@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
     public class InventoryItemMoveProtocol : IPacketResponse
     {
         public const string Tag = "va:invItemMove";
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)

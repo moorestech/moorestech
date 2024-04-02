@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Core.Other
         public void Test()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var inventoryList = new List<IBlockInventory>();

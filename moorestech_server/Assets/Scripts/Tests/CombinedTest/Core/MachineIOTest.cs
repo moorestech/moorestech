@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
             GameUpdater.ResetUpdate();
             
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
 

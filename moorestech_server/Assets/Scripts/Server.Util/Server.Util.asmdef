@@ -4,7 +4,7 @@
   "references": [
     "MessagePack.Annotations",
     "Game.Entity.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Core.Util",
     "Game.Base"
   ],

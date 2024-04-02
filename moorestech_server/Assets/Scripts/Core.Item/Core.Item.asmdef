@@ -3,7 +3,8 @@
   "rootNamespace": "",
   "references": [
     "Core.Const",
-    "Core.ConfigJson"
+    "Core.ConfigJson",
+    "Core.Item.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

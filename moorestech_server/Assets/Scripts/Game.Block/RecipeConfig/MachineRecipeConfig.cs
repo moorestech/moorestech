@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 
@@ -13,7 +13,7 @@ namespace Game.Block.RecipeConfig
         private readonly List<MachineRecipeData> _recipedatas;
 
         //IDからレシピデータを取得する
-        public MachineRecipeConfig(ConfigJsonFileContainer configJsonFileContainer,IBlockConfig blockConfig, ItemStackFactory itemStackFactory)
+        public MachineRecipeConfig(ConfigJsonFileContainer configJsonFileContainer,IBlockConfig blockConfig, IItemStackFactory itemStackFactory)
         {
             _recipedatas = new MachineRecipeJsonLoad().LoadConfig(blockConfig, itemStackFactory,
                 configJsonFileContainer.SortedMachineRecipeConfigJsonList);

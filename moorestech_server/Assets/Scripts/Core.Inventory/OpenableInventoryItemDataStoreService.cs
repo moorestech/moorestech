@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.Item;
+using Core.Item.Interface;
 
 namespace Core.Inventory
 {
@@ -12,17 +12,14 @@ namespace Core.Inventory
         public delegate void InventoryUpdate(int slot, IItemStack itemStack);
 
         private readonly List<IItemStack> _inventory;
-
-        private readonly ItemStackFactory _itemStackFactory;
-
+        private readonly IItemStackFactory _itemStackFactory;
         private readonly InventoryUpdate _onInventoryUpdate;
 
-        public OpenableInventoryItemDataStoreService(InventoryUpdate onInventoryUpdate,
-            ItemStackFactory itemStackFactory, int slotNumber)
+        public OpenableInventoryItemDataStoreService(InventoryUpdate onInventoryUpdate, IItemStackFactory itemStackFactory, int slotNumber)
         {
             _itemStackFactory = itemStackFactory;
-
             _onInventoryUpdate = onInventoryUpdate;
+            
             _inventory = new List<IItemStack>();
             for (var i = 0; i < slotNumber; i++) _inventory.Add(_itemStackFactory.CreatEmpty());
         }

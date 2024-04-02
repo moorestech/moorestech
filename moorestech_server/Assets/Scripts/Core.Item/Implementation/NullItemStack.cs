@@ -1,15 +1,16 @@
 ﻿#nullable enable
 using System;
 using Core.Const;
+using Core.Item.Interface;
 using Core.Item.Util;
 
 namespace Core.Item.Implementation
 {
     internal class NullItemStack : IItemStack
     {
-        private readonly ItemStackFactory _itemStackFactory;
+        private readonly IItemStackFactory _itemStackFactory;
 
-        public NullItemStack(ItemStackFactory itemStackFactory)
+        public NullItemStack(IItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
             ItemInstanceId = ItemInstanceIdGenerator.Generate();

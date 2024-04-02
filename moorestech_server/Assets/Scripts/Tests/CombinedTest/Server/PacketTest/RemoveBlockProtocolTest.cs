@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Interface;
 using Game.Block.BlockInventory;
@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var mainInventory =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
@@ -14,11 +14,11 @@ namespace Game.PlayerInventory
     {
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
 
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
 
-        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, ItemStackFactory itemStackFactory, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IItemStackFactory itemStackFactory, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;

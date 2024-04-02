@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server
         public void BlockDirectionItemPositionTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemsStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
@@ -143,14 +143,14 @@ namespace Tests.CombinedTest.Server
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemsStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var belt1 = CreateOneItemInsertedItem(itemsStackFactory, componentFactory, new Vector3Int(0, 0, 0), BlockDirection.North);
             worldDataStore.AddBlock(belt1);
             var belt2PosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one);
-            var belt2 = new VanillaBeltConveyor(1, 11, 1, itemsStackFactory, 4, TimeOfItemEnterToExit, belt2PosInfo, componentFactory);
+            var belt2 = new VanillaBeltConveyor(1, 11, 1, 4, TimeOfItemEnterToExit, belt2PosInfo, componentFactory);
             //二つのベルトコンベアを繋がるように設置
             worldDataStore.AddBlock(belt2);
 
@@ -167,10 +167,10 @@ namespace Tests.CombinedTest.Server
         }
 
 
-        private VanillaBeltConveyor CreateOneItemInsertedItem(ItemStackFactory itemsStackFactory, ComponentFactory componentFactory, Vector3Int pos, BlockDirection blockDirection)
+        private VanillaBeltConveyor CreateOneItemInsertedItem(IItemStackFactory itemsStackFactory, ComponentFactory componentFactory, Vector3Int pos, BlockDirection blockDirection)
         {
             var blockPosInfo = new BlockPositionInfo(pos, blockDirection, Vector3Int.one);
-            var beltConveyor = new VanillaBeltConveyor(UnitTestModBlockId.BeltConveyorId, 10, 1, itemsStackFactory, 4, TimeOfItemEnterToExit, blockPosInfo, componentFactory);
+            var beltConveyor = new VanillaBeltConveyor(UnitTestModBlockId.BeltConveyorId, 10, 1, 4, TimeOfItemEnterToExit, blockPosInfo, componentFactory);
 
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);

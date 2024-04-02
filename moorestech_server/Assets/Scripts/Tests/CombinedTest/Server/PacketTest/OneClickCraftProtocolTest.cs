@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInv = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             
             
             //不要なアテムを追加

@@ -1,4 +1,4 @@
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //機械のブロックを配置
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 3);
             var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 1);

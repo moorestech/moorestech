@@ -1,4 +1,4 @@
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -17,7 +17,7 @@ namespace Game.Context
         public static ICraftingConfig CraftingConfig { get; private set; }
         public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
         
-        public static ItemStackFactory ItemStackFactory { get; private set; }
+        public static IItemStackFactory IItemStackFactory { get; private set; }
         public static IBlockFactory BlockFactory { get; private set; }
         
         public static IWorldBlockDatastore WorldBlockDatastore { get; private set; }
@@ -25,13 +25,13 @@ namespace Game.Context
         public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
         public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
         
-        public ServerContext(IItemConfig itemConfig, IBlockConfig blockConfig, ICraftingConfig craftingConfig, IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory, IBlockFactory blockFactory, IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent)
+        public ServerContext(IItemConfig itemConfig, IBlockConfig blockConfig, ICraftingConfig craftingConfig, IMachineRecipeConfig machineRecipeConfig, IItemStackFactory itemStackFactory, IBlockFactory blockFactory, IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent)
         {
             ItemConfig = itemConfig;
             BlockConfig = blockConfig;
             CraftingConfig = craftingConfig;
             MachineRecipeConfig = machineRecipeConfig;
-            ItemStackFactory = itemStackFactory;
+            IItemStackFactory = itemStackFactory;
             BlockFactory = blockFactory;
             WorldBlockDatastore = worldBlockDatastore;
             WorldBlockUpdateEvent = worldBlockUpdateEvent;

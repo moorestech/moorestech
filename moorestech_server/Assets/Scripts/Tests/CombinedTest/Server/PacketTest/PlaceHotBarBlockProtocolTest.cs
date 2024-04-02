@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             //パケットでプレイヤーインベントリを生成
 
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
             //パケットでプレイヤーインベントリを生成

@@ -1,12 +1,12 @@
-using Core.Item;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 
 namespace Game.Block.Blocks.Machine.SaveLoad
 {
     public class VanillaMachineLoad
     {
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly IMachineRecipeConfig _machineRecipeConfig;
         private readonly int _requestPower;
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
@@ -15,13 +15,11 @@ namespace Game.Block.Blocks.Machine.SaveLoad
         public VanillaMachineLoad(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ItemStackFactory itemStackFactory,
             IMachineRecipeConfig machineRecipeConfig,
             int requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            _itemStackFactory = itemStackFactory;
             _machineRecipeConfig = machineRecipeConfig;
             _requestPower = requestPower;
         }
@@ -36,7 +34,8 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             {
                 var id = int.Parse(split[index]);
                 var count = int.Parse(split[index + 1]);
-                _vanillaMachineInputInventory.SetItem(inventorySlot, _itemStackFactory.Create(id, count));
+                var item = ServerContext.IItemStackFactory.Create(id, count);
+                _vanillaMachineInputInventory.SetItem(inventorySlot, item);
                 inventorySlot++;
             }
 
@@ -45,7 +44,8 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             {
                 var id = int.Parse(split[index]);
                 var count = int.Parse(split[index + 1]);
-                _vanillaMachineOutputInventory.SetItem(inventorySlot, _itemStackFactory.Create(id, count));
+                var item = ServerContext.IItemStackFactory.Create(id, count);
+                _vanillaMachineOutputInventory.SetItem(inventorySlot, item);
                 inventorySlot++;
             }
 

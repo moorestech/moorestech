@@ -3,10 +3,10 @@
   "rootNamespace": "",
   "references": [
     "Game.Crafting.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Core.ConfigJson",
     "Game.PlayerInventory.Interface",
-    "Core.Inventory"
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

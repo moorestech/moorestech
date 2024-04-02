@@ -2,7 +2,7 @@
     "name": "Game.Context",
     "rootNamespace": "",
     "references": [
-        "Core.Item",
+        "Core.Item.Interface",
         "Game.World.Interface",
         "Game.Block.Interface",
         "Game.Crafting.Interface"

@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using Core.Const;
 using Core.EnergySystem;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Config.LoadConfig.Param;
@@ -13,6 +13,7 @@ using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
+using Game.Context;
 using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
@@ -43,7 +44,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
             BlockHash = data.BlockHash;
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.IItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
             _blockComponentManager.AddComponent(data.InputConnectorComponent);
@@ -58,8 +59,10 @@ namespace Game.Block.Blocks.PowerGenerator
             var slot = 0;
             for (var i = 2; i < split.Length; i += 2)
             {
-                _itemDataStoreService.SetItem(slot,
-                    data.ItemStackFactory.Create(long.Parse(split[i]), int.Parse(split[i + 1])));
+                var itemHash = long.Parse(split[i]);
+                var count = int.Parse(split[i + 1]);
+                var item = ServerContext.IItemStackFactory.Create(itemHash, count);
+                _itemDataStoreService.SetItem(slot, item);
                 slot++;
             }
         }

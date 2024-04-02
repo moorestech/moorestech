@@ -1,12 +1,12 @@
-﻿using Core.Item;
+﻿using Core.Item.Interface;
 
 namespace Game.Block.BlockInventory
 {
     public class NullIBlockInventory : IBlockInventory
     {
-        private readonly ItemStackFactory _itemStackFactory;
+        private readonly IItemStackFactory _itemStackFactory;
 
-        public NullIBlockInventory(ItemStackFactory itemStackFactory)
+        public NullIBlockInventory(IItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
         }

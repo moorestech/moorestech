@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 using Newtonsoft.Json;
@@ -9,7 +9,7 @@ namespace Game.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory,
+        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, IItemStackFactory itemStackFactory,
             List<string> configJsons)
         {
             var recipes = new List<MachineRecipeData>();
@@ -18,7 +18,7 @@ namespace Game.Block.RecipeConfig
             return recipes;
         }
 
-        private List<MachineRecipeData> Load(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, string json)
+        private List<MachineRecipeData> Load(IBlockConfig blockConfig, IItemStackFactory itemStackFactory, string json)
         {
             //JSONデータの読み込み
             MachineRecipeJsonData[] data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);

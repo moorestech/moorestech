@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;

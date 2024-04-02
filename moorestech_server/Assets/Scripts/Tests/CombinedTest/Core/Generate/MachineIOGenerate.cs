@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Core.Generate
 
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var recipes = recipe.Recipes;
             foreach (var r in recipes)
@@ -83,7 +83,7 @@ namespace Tests.CombinedTest.Core.Generate
             public List<IItemStack> Output;
             public int Time;
 
-            public MachineIOTest(ItemStackFactory itemStackFactory, InputItem[] input, OutputItem[] output,
+            public MachineIOTest(IItemStackFactory itemStackFactory, InputItem[] input, OutputItem[] output,
                 List<IItemStack> inputRemainder, int blockId, int time, int craftCnt)
             {
                 BlockId = blockId;
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Core.Generate
                 CraftCnt = craftCnt;
             }
 
-            public MachineIOTest(ItemStackFactory itemStackFactory, InputItem[] input, List<IItemStack> output,
+            public MachineIOTest(IItemStackFactory itemStackFactory, InputItem[] input, List<IItemStack> output,
                 InputItem[] inputRemainder, int blockId, int time, int craftCnt)
             {
                 BlockId = blockId;
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core.Generate
                 CraftCnt = craftCnt;
             }
 
-            public static List<IItemStack> Convart(InputItem[] input, ItemStackFactory itemStackFactory)
+            public static List<IItemStack> Convart(InputItem[] input, IItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
                 foreach (var i in input) r.Add(itemStackFactory.Create(i.ID, i.Count));
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Core.Generate
                 return a.ToList();
             }
 
-            public static List<IItemStack> Convart(OutputItem[] output, ItemStackFactory itemStackFactory)
+            public static List<IItemStack> Convart(OutputItem[] output, IItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
                 foreach (var o in output) r.Add(itemStackFactory.Create(o.ID, o.Count));

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Event;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly IMachineRecipeConfig _machineRecipeConfig;
 
         public VanillaMachineInputInventory(int blockId, int inputSlot, IMachineRecipeConfig machineRecipeConfig,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
+            IItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
         {
             _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;

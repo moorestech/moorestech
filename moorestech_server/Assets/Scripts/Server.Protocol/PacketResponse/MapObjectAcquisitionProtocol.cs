@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
     public class MapObjectAcquisitionProtocol : IPacketResponse
     {
         public const string Tag = "va:mapObjectInfoAcquisition";
-        private readonly ItemStackFactory _itemStackFactory;
+
 
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse
         public MapObjectAcquisitionProtocol(ServiceProvider serviceProvider)
         {
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 

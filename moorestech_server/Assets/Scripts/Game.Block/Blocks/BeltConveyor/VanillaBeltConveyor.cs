@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Text;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
+using Game.Context;
 using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -20,17 +21,16 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly BlockComponentManager _blockComponentManager = new();
 
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
         public readonly int InventoryItemNum;
 
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
         {
             EntityId = entityId;
             BlockId = blockId;
-            _itemStackFactory = itemStackFactory;
             InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BlockPositionInfo = blockPositionInfo;
@@ -54,8 +54,7 @@ namespace Game.Block.Blocks.BeltConveyor
         }
 
         public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state,
-            ItemStackFactory itemStackFactory,
-            int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : this(blockId, entityId, blockHash, itemStackFactory,
+            int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : this(blockId, entityId, blockHash,
             inventoryItemNum, timeOfItemEnterToExit, blockPositionInfo, componentFactory)
         {
             //stateから復元
@@ -136,7 +135,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public IItemStack GetItem(int slot)
         {
-            return _itemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
+            return ServerContext.IItemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
@@ -179,7 +178,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 //最後のアイテムの場合は接続先に渡す
                 if (i == 0 && item.RemainingTime <= 0)
                 {
-                    var insertItem = _itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+                    var insertItem = ServerContext.IItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
                     var inputConnector = ComponentManager.GetComponent<InputConnectorComponent>();
                     if (inputConnector.ConnectInventory.Count == 0) continue;

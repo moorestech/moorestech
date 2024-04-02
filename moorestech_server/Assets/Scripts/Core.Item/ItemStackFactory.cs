@@ -1,10 +1,11 @@
 ﻿using Core.Const;
 using Core.Item.Config;
 using Core.Item.Implementation;
+using Core.Item.Interface;
 
 namespace Core.Item
 {
-    public class ItemStackFactory
+    public class ItemStackFactory : IItemStackFactory
     {
         private readonly IItemConfig _itemConfig;
         private readonly IItemStack _nullItem;

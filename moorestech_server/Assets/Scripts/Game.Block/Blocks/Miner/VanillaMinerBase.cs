@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.EnergySystem;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine;
@@ -15,6 +15,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
+using Game.Context;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -27,7 +28,7 @@ namespace Game.Block.Blocks.Miner
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
 
         private int _currentPower;
@@ -39,18 +40,15 @@ namespace Game.Block.Blocks.Miner
         private List<IItemStack> _miningItems = new();
         private int _remainingMillSecond = int.MaxValue;
 
-        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
         {
             BlockId = blockId;
             EntityId = entityId;
             RequestEnergy = requestPower;
             BlockHash = blockHash;
 
-            _itemStackFactory = itemStackFactory;
             _blockInventoryUpdate = openableInventoryUpdateEvent;
             BlockPositionInfo = blockPositionInfo;
-
 
             var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
                 new IOConnectionSetting(
@@ -59,17 +57,16 @@ namespace Game.Block.Blocks.Miner
                     new[] { VanillaBlockType.BeltConveyor }));
             _blockComponentManager.AddComponent(inputConnectorComponent);
 
+            var itemStackFactory = ServerContext.IItemStackFactory;
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower,
-            int outputSlotCount, ItemStackFactory itemStackFactory,
+        protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
             BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
-            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,
-                openableInventoryUpdateEvent, blockPositionInfo, componentFactory)
+            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, openableInventoryUpdateEvent, blockPositionInfo, componentFactory)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
@@ -79,7 +76,8 @@ namespace Game.Block.Blocks.Miner
             {
                 var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                inventoryItems.Add(_itemStackFactory.Create(itemHash, itemCount));
+                var item = ServerContext.IItemStackFactory.Create(itemHash, itemCount);
+                inventoryItems.Add(item);
             }
 
             for (var i = 0; i < inventoryItems.Count; i++)
@@ -137,7 +135,8 @@ namespace Game.Block.Blocks.Miner
         {
             if (_defaultMiningTime != int.MaxValue) throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
 
-            _miningItems = new List<IItemStack> { _itemStackFactory.Create(miningItemId, 1) };
+            var item = ServerContext.IItemStackFactory.Create(miningItemId, 1);
+            _miningItems = new List<IItemStack> { item };
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;
         }

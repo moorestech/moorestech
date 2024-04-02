@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             //ブロックをセットアップ
             var blockPositionInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             //ブロック1をセットアップ
             var block1PosInfo = new BlockPositionInfo(new Vector3Int(5 ,7), BlockDirection.North, Vector3Int.one);

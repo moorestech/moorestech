@@ -2,7 +2,7 @@ using System.IO;
 using Core.ConfigJson;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Component;
 using Game.Block.Config;
@@ -61,7 +61,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
             initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
-            initializerCollection.AddSingleton<ItemStackFactory>();
+            initializerCollection.AddSingleton<IItemStackFactory>();
             
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
@@ -77,7 +77,7 @@ namespace Server.Boot
                 initializerProvider.GetService<IBlockConfig>(),
                 initializerProvider.GetService<ICraftingConfig>(),
                 initializerProvider.GetService<IMachineRecipeConfig>(),
-                initializerProvider.GetService<ItemStackFactory>(),
+                initializerProvider.GetService<IItemStackFactory>(),
                 initializerProvider.GetService<IBlockFactory>(),
                 initializerProvider.GetService<IWorldBlockDatastore>(),
                 initializerProvider.GetService<IWorldBlockUpdateEvent>(),

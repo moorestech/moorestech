@@ -1,5 +1,5 @@
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 
 namespace Game.PlayerInventory.Interface
 {

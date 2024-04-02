@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Item;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;
@@ -18,17 +17,15 @@ namespace Game.Block.Factory.BlockTemplate
 
         private readonly IBlockOpenableInventoryUpdateEvent _blockInventoryUpdateEven;
         private readonly ComponentFactory _componentFactory;
-        private readonly ItemStackFactory _itemStackFactory;
+
 
         private readonly LoadGenerator _loadGenerator;
         private readonly NewGenerator _newGenerator;
 
-        public VanillaPowerGeneratorTemplate(ItemStackFactory itemStackFactory,
-            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEven, ComponentFactory componentFactory, NewGenerator newGenerator,
+        public VanillaPowerGeneratorTemplate(IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEven, ComponentFactory componentFactory, NewGenerator newGenerator,
             LoadGenerator loadGenerator)
         {
             _componentFactory = componentFactory;
-            _itemStackFactory = itemStackFactory;
             _blockInventoryUpdateEven = blockInventoryUpdateEven;
             _newGenerator = newGenerator;
             _loadGenerator = loadGenerator;
@@ -40,8 +37,7 @@ namespace Game.Block.Factory.BlockTemplate
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _newGenerator(new VanillaPowerGeneratorProperties(
                 param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
-                generatorParam.InfinityPower, _itemStackFactory,
-                generatorParam.FuelSettings, _blockInventoryUpdateEven, blockPositionInfo, inputConnectorComponent));
+                generatorParam.InfinityPower, generatorParam.FuelSettings, _blockInventoryUpdateEven, blockPositionInfo, inputConnectorComponent));
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
@@ -50,7 +46,7 @@ namespace Game.Block.Factory.BlockTemplate
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _loadGenerator(new VanillaPowerGeneratorProperties(
                 param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
-                generatorParam.InfinityPower, _itemStackFactory,
+                generatorParam.InfinityPower,
                 generatorParam.FuelSettings, _blockInventoryUpdateEven, blockPositionInfo, inputConnectorComponent), state);
         }
 
@@ -77,10 +73,9 @@ namespace Game.Block.Factory.BlockTemplate
         public readonly int InfinityPower;
         public readonly InputConnectorComponent InputConnectorComponent;
         public readonly bool IsInfinityPower;
-        public readonly ItemStackFactory ItemStackFactory;
 
         public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot,
-            bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory,
+            bool isInfinityPower, int infinityPower,
             Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent)
         {
             BlockId = blockId;
@@ -89,7 +84,6 @@ namespace Game.Block.Factory.BlockTemplate
             FuelItemSlot = fuelItemSlot;
             IsInfinityPower = isInfinityPower;
             InfinityPower = infinityPower;
-            ItemStackFactory = itemStackFactory;
             FuelSettings = fuelSettings;
             BlockInventoryUpdate = blockInventoryUpdate;
             BlockPositionInfo = blockPositionInfo;

@@ -1,5 +1,5 @@
 ﻿using Core.EnergySystem.Electric;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
 using Game.Block.Component.IOConnector;
@@ -12,9 +12,9 @@ namespace Game.Block.Blocks.Machine
         public VanillaElectricMachine(
             (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
                 VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-                ItemStackFactory itemStackFactory, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent) data)
+                IItemStackFactory itemStackFactory, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent) data)
             : base(data.blockId, data.entityId, data.blockHash, data.vanillaMachineBlockInventory,
-                data.vanillaMachineSave, data.vanillaMachineRunProcess, data.itemStackFactory, data.blockPositionInfo, data.inputConnectorComponent)
+                data.vanillaMachineSave, data.vanillaMachineRunProcess, data.blockPositionInfo, data.inputConnectorComponent)
         {
         }
     }

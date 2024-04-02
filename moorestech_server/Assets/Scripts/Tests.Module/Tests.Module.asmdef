@@ -9,6 +9,7 @@
     "Core.EnergySystem",
     "Core.Inventory",
     "Core.Item",
+    "Core.Item.Interface",
     "Core.Update",
     "Core.Util",
     "Game.Block",

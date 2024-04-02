@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
@@ -12,6 +12,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
+using Game.Context;
 using UniRx;
 
 namespace Game.Block.Blocks.Chest
@@ -24,8 +25,7 @@ namespace Game.Block.Blocks.Chest
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
-        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -42,20 +42,19 @@ namespace Game.Block.Blocks.Chest
 
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, slotNum);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.IItemStackFactory, slotNum);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : this(blockId,
-            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate, blockPositionInfo, componentFactory)
+        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : 
+            this(blockId, entityId, blockHash, slotNum, blockInventoryUpdate, blockPositionInfo, componentFactory)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
             {
                 var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                var item = itemStackFactory.Create(itemHash, itemCount);
+                var item = ServerContext.IItemStackFactory.Create(itemHash, itemCount);
                 _itemDataStoreService.SetItem(i / 2, item);
             }
         }

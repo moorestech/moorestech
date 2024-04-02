@@ -1,4 +1,4 @@
-using Core.Item;
+using Core.Item.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Game
 
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             //プレイヤーのインベントリの設定
             var playerInventoryData =

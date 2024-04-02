@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
 
             //インベントリの設定
@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(5 ,10), BlockDirection.North, Vector3Int.one);
             var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1,chestPosInfo);

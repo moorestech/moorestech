@@ -1,4 +1,4 @@
-﻿using Core.Item;
+﻿using Core.Item.Interface;
 
 namespace Game.Block.BlockInventory
 {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.Item;
+using Core.Item.Interface;
 
 namespace Core.Inventory
 {

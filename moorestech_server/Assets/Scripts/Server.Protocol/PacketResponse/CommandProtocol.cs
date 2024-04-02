@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,14 +10,14 @@ namespace Server.Protocol.PacketResponse
     public class SendCommandProtocol : IPacketResponse
     {
         public const string Tag = "va:sendCommand";
-        private readonly ItemStackFactory _itemStackFactory;
+
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)

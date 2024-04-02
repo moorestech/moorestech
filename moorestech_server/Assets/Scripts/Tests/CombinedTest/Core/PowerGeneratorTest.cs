@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.PowerGenerator;
@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Core
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10,posInfo) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
             var fuelItem1 = itemStackFactory.Create(generatorConfigParam.FuelSettings[FuelItem1Id].ItemId, 1);
             var fuelItem2 = itemStackFactory.Create(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId, 1);

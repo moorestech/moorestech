@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.BeltConveyor;
@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(4123);

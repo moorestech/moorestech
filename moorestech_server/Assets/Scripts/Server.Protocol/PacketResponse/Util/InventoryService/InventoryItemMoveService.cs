@@ -1,13 +1,13 @@
 using System;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemMoveService
     {
-        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot,
+        public static void Move(IItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot,
             IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             try
@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             }
         }
 
-        private static void ExecuteMove(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory,
+        private static void ExecuteMove(IItemStackFactory itemStackFactory, IOpenableInventory fromInventory,
             int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない

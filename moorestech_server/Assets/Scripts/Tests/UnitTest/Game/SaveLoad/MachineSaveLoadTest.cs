@@ -1,5 +1,5 @@
 using System.Reflection;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -120,14 +120,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,
+        private (IItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,
             WorldLoaderFromJson)
             CreateBlockTestModule()
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();

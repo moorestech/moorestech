@@ -35,9 +35,9 @@ namespace Core.Item.Config
             }
         }
 
-        public IReadOnlyList<ItemConfigData> ItemConfigDataList => _itemConfigList;
+        public IReadOnlyList<IItemConfigData> ItemConfigDataList => _itemConfigList;
 
-        public ItemConfigData GetItemConfig(int id)
+        public IItemConfigData GetItemConfig(int id)
         {
             //0は何も持っていないことを表すので-1してListのindexにする
             id -= 1;
@@ -50,7 +50,7 @@ namespace Core.Item.Config
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found", id);
         }
 
-        public ItemConfigData GetItemConfig(long itemHash)
+        public IItemConfigData GetItemConfig(long itemHash)
         {
             return GetItemConfig(GetItemId(itemHash));
         }

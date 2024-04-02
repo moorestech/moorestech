@@ -1,5 +1,5 @@
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Core.Inventory
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var itemStackFactory = serviceProvider.GetRequiredService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetRequiredService<IItemStackFactory>();
 
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10);
 

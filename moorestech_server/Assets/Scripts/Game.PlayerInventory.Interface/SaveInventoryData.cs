@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Newtonsoft.Json;
 
 namespace Game.PlayerInventory.Interface
@@ -34,7 +34,7 @@ namespace Game.PlayerInventory.Interface
         }
 
         public (List<IItemStack> mainInventory, List<IItemStack> craftInventory, IItemStack grabItem)
-            GetPlayerInventoryData(ItemStackFactory itemStackFactory)
+            GetPlayerInventoryData(IItemStackFactory itemStackFactory)
         {
             var mainItemStack = new List<IItemStack>();
             for (var i = 0; i < MainItemId.Count; i++)

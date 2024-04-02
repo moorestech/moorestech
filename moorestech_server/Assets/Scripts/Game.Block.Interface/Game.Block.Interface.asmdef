@@ -2,7 +2,7 @@
   "name": "Game.Block.Interface",
   "rootNamespace": "",
   "references": [
-    "Core.Item",
+    "Core.Item.Interface",
     "Core.Util",
     "Core.Const",
     "UniRx"

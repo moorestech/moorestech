@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.EnergySystem;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
+using Game.Context;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -21,21 +22,18 @@ namespace Game.Block.Blocks.Machine
     {
         private readonly BlockComponentManager _blockComponentManager = new();
 
-        private readonly ItemStackFactory _itemStackFactory;
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
         private readonly VanillaMachineSave _vanillaMachineSave;
 
         protected VanillaMachineBase(int blockId, int entityId, long blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
-            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-            ItemStackFactory itemStackFactory, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent)
+            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent)
         {
             BlockId = blockId;
             _vanillaMachineBlockInventory = vanillaMachineBlockInventory;
             _vanillaMachineSave = vanillaMachineSave;
             _vanillaMachineRunProcess = vanillaMachineRunProcess;
-            _itemStackFactory = itemStackFactory;
             BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
             EntityId = entityId;
@@ -89,7 +87,8 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            return _vanillaMachineBlockInventory.InsertItem(_itemStackFactory.Create(itemId, count));
+            var item = ServerContext.IItemStackFactory.Create(itemId, count);
+            return _vanillaMachineBlockInventory.InsertItem(item);
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
@@ -121,7 +120,8 @@ namespace Game.Block.Blocks.Machine
 
         public void SetItem(int slot, int itemId, int count)
         {
-            _vanillaMachineBlockInventory.SetItem(slot, _itemStackFactory.Create(itemId, count));
+            var item = ServerContext.IItemStackFactory.Create(itemId, count);
+            _vanillaMachineBlockInventory.SetItem(slot, item);
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
@@ -131,7 +131,8 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            return ReplaceItem(slot, _itemStackFactory.Create(itemId, count));
+            var item = ServerContext.IItemStackFactory.Create(itemId, count);
+            return ReplaceItem(slot, item);
         }
 
         public int GetSlotSize()

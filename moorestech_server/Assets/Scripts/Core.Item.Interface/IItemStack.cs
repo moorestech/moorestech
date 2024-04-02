@@ -1,6 +1,4 @@
-﻿using Core.Item.Util;
-
-namespace Core.Item
+﻿namespace Core.Item.Interface
 {
     public interface IItemStack
     {

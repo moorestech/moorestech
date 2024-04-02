@@ -1,4 +1,4 @@
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Factory;
 using Game.Block.Interface.BlockConfig;
@@ -18,7 +18,7 @@ namespace Mod.Base
 
         public readonly ICraftingConfig CraftingConfig;
         public readonly IItemConfig ItemConfig;
-        public readonly ItemStackFactory ItemStackFactory;
+        public readonly IItemStackFactory IItemStackFactory;
         public readonly IMachineRecipeConfig MachineRecipeConfig;
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Mod.Base
             CraftingConfig = serviceProvider.GetRequiredService<ICraftingConfig>();
             MachineRecipeConfig = serviceProvider.GetRequiredService<IMachineRecipeConfig>();
             ItemConfig = serviceProvider.GetRequiredService<IItemConfig>();
-            ItemStackFactory = serviceProvider.GetRequiredService<ItemStackFactory>();
+            IItemStackFactory = serviceProvider.GetRequiredService<IItemStackFactory>();
             BlockConfig = serviceProvider.GetRequiredService<IBlockConfig>();
             BlockFactory = serviceProvider.GetRequiredService<BlockFactory>();
         }

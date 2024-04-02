@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
@@ -15,7 +15,7 @@ namespace Game.PlayerInventory.ItemManaged
         private readonly int _playerId;
 
         public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory)
+            IItemStackFactory itemStackFactory)
         {
             _playerId = playerId;
             _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
@@ -24,7 +24,7 @@ namespace Game.PlayerInventory.ItemManaged
         }
 
         public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory, List<IItemStack> itemStacks) :
+            IItemStackFactory itemStackFactory, List<IItemStack> itemStacks) :
             this(playerId, mainInventoryUpdateEvent, itemStackFactory)
         {
             for (var i = 0; i < itemStacks.Count; i++) _openableInventoryService.SetItemWithoutEvent(i, itemStacks[i]);

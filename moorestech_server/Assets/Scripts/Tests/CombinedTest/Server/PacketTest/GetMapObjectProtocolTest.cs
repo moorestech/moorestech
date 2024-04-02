@@ -1,5 +1,5 @@
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
 
             //マップオブジェクトを取得するプロトコルを送信

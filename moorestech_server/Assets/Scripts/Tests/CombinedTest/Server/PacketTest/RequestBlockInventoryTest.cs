@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
 
 
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(5 ,10), BlockDirection.North, Vector3Int.one);

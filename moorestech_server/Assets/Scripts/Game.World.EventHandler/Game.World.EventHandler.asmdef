@@ -6,7 +6,7 @@
     "Core.EnergySystem",
     "Game.Block.Interface",
     "Game.World.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Game.Block",
     "Game.Map.Interface",
     "Game.Context"

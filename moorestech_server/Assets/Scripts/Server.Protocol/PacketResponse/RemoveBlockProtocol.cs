@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:removeBlock";
         private readonly IBlockConfig _blockConfig;
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             _blockConfig = serviceProvider.GetService<IBlockConfig>();
         }
 

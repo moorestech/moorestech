@@ -5,7 +5,7 @@
     "Game.Block.Interface",
     "Game.Block",
     "Game.Crafting.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Server.Protocol",
     "Game.World.Interface",
     "Core.Update",
