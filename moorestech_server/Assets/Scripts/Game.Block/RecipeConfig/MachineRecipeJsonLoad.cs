@@ -9,8 +9,7 @@ namespace Game.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, IItemStackFactory itemStackFactory,
-            List<string> configJsons)
+        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, IItemStackFactory itemStackFactory, List<string> configJsons)
         {
             var recipes = new List<MachineRecipeData>();
             foreach (var json in configJsons) recipes.AddRange(Load(blockConfig, itemStackFactory, json));

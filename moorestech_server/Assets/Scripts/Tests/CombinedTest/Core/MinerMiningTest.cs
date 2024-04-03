@@ -32,7 +32,6 @@ namespace Tests.CombinedTest.Core
             GameUpdater.ResetUpdate();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
 
@@ -43,7 +42,7 @@ namespace Tests.CombinedTest.Core
             var miningItemId = miningSetting.ItemId;
 
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, new BlockOpenableInventoryUpdateEvent(), posInfo, componentFactory));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, new BlockOpenableInventoryUpdateEvent(), posInfo));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory();

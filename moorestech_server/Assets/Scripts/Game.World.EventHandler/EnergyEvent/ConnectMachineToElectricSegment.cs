@@ -21,20 +21,13 @@ namespace Game.World.EventHandler.EnergyEvent
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        private readonly IBlockConfig _blockConfig;
         private readonly int _maxMachineConnectionRange;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
 
 
-        public ConnectMachineToElectricSegment(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
-            IBlockConfig blockConfig,
-            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockDatastore worldBlockDatastore)
+        public ConnectMachineToElectricSegment(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
-            _blockConfig = blockConfig;
-            _worldBlockDatastore = worldBlockDatastore;
             _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
@@ -56,7 +49,7 @@ namespace Game.World.EventHandler.EnergyEvent
             for (var j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
             {
                 var polePos = new Vector3Int(i, j);
-                if (!_worldBlockDatastore.ExistsComponent<IElectricPole>(polePos)) continue;
+                if (!ServerContext.WorldBlockDatastore.ExistsComponent<IElectricPole>(polePos)) continue;
 
                 //範囲内に電柱がある場合
                 //電柱に接続
@@ -66,8 +59,8 @@ namespace Game.World.EventHandler.EnergyEvent
 
         private bool IsElectricMachine(Vector3Int pos)
         {
-            return _worldBlockDatastore.ExistsComponent<TGenerator>(pos) ||
-                   _worldBlockDatastore.ExistsComponent<TConsumer>(pos);
+            return ServerContext.WorldBlockDatastore.ExistsComponent<TGenerator>(pos) ||
+                   ServerContext.WorldBlockDatastore.ExistsComponent<TConsumer>(pos);
         }
 
 
@@ -76,10 +69,12 @@ namespace Game.World.EventHandler.EnergyEvent
         /// </summary>
         private void ConnectToElectricPole(Vector3Int polePos, Vector3Int machinePos)
         {
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
             //電柱を取得
-            var pole = _worldBlockDatastore.GetBlock<TTransformer>(polePos);
+            var pole = worldBlockDatastore.GetBlock<TTransformer>(polePos);
             //その電柱のコンフィグを取得
-            var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
+            var configParam = ServerContext.BlockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認
@@ -91,10 +86,10 @@ namespace Game.World.EventHandler.EnergyEvent
             //在る場合は発電機か機械かを判定して接続
             //発電機を電力セグメントに追加
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
-            if (_worldBlockDatastore.ExistsComponent<TGenerator>(machinePos))
-                segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machinePos));
-            else if (_worldBlockDatastore.ExistsComponent<TConsumer>(machinePos))
-                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machinePos));
+            if (worldBlockDatastore.ExistsComponent<TGenerator>(machinePos))
+                segment.AddGenerator(worldBlockDatastore.GetBlock<TGenerator>(machinePos));
+            else if (worldBlockDatastore.ExistsComponent<TConsumer>(machinePos))
+                segment.AddEnergyConsumer(worldBlockDatastore.GetBlock<TConsumer>(machinePos));
         }
     }
 }

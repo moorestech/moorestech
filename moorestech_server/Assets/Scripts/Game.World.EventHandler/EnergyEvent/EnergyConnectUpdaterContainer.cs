@@ -14,16 +14,12 @@ namespace Game.World.EventHandler.EnergyEvent
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        public EnergyConnectUpdaterContainer(
-            IBlockConfig blockConfig,
-            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
-            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockDatastore worldBlockDatastore)
+        public EnergyConnectUpdaterContainer(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
-            new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, blockConfig, worldBlockDatastore);
-            new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, blockConfig, maxElectricPoleMachineConnectionRange, worldBlockDatastore);
+            new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
+            new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, maxElectricPoleMachineConnectionRange);
 
-            new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(blockConfig, worldEnergySegmentDatastore, worldBlockDatastore);
+            new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
         }
     }
 }

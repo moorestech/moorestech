@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.BlockInventory;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using UnityEngine;
@@ -12,27 +12,20 @@ namespace Game.Block.Component.IOConnector
 {
     public class InputConnectorComponent : IBlockComponent
     {
-        private readonly IBlockConfig _blockConfig;
         private readonly BlockDirection _blockDirection;
-
         private readonly Vector3Int _blockPos;
 
         private readonly List<IDisposable> _blockUpdateEvents = new();
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly IOConnectionSetting _ioConnectionSetting;
 
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-
-        public InputConnectorComponent(IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
+        public InputConnectorComponent(IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
         {
             _blockPos = blockPositionInfo.OriginalPos;
             _blockDirection = blockPositionInfo.BlockDirection;
-            _worldBlockDatastore = worldBlockDatastore;
-            _blockConfig = blockConfig;
             _ioConnectionSetting = ioConnectionSetting;
 
-
+            var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
             List<Vector3Int> outputPoss = ConvertConnectDirection(_ioConnectionSetting.OutputConnector);
             foreach (var outputPos in outputPoss)
             {
@@ -40,7 +33,7 @@ namespace Game.Block.Component.IOConnector
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribeRemove(outputPos, RemoveBlock));
 
                 //アウトプット先にブロックがあったら接続を試みる
-                if (_worldBlockDatastore.Exists(outputPos))
+                if (ServerContext.WorldBlockDatastore.Exists(outputPos))
                 {
                     PlaceBlock(outputPos);
                 }
@@ -79,18 +72,20 @@ namespace Game.Block.Component.IOConnector
         private void PlaceBlock(Vector3Int destinationPos)
         {
             //接続先にBlockInventoryがなければ処理を終了
-            if (!_worldBlockDatastore.TryGetBlock<InputConnectorComponent>(destinationPos, out var destinationInputConnector)) return;
-            if (!_worldBlockDatastore.TryGetBlock<IBlockInventory>(destinationPos, out var blockInventory)) return;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            if (!worldBlockDatastore.TryGetBlock<InputConnectorComponent>(destinationPos, out var destinationInputConnector)) return;
+            if (!worldBlockDatastore.TryGetBlock<IBlockInventory>(destinationPos, out var blockInventory)) return;
 
             //接続元のブロックデータを取得
             (_, List<ConnectDirection> sourceBlockOutputConnector) = GetConnectionPositions(_ioConnectionSetting, _blockDirection);
 
 
             //接続先のブロックデータを取得
-            var destinationBlockType = _blockConfig.GetBlockConfig(_worldBlockDatastore.GetBlock(destinationPos).BlockId).Type;
+            var blockId = worldBlockDatastore.GetBlock(destinationPos).BlockId;
+            var destinationBlockType = ServerContext.BlockConfig.GetBlockConfig(blockId).Type;
 
             var destinationSetting = destinationInputConnector._ioConnectionSetting;
-            var destinationDirection = _worldBlockDatastore.GetBlockDirection(destinationPos);
+            var destinationDirection = worldBlockDatastore.GetBlockDirection(destinationPos);
             (List<ConnectDirection> destinationBlockInputConnector, _) = GetConnectionPositions(destinationSetting, destinationDirection);
 
             //接続元の接続可能リストに接続先がなかったら終了
@@ -143,7 +138,7 @@ namespace Game.Block.Component.IOConnector
         private void RemoveBlock(BlockUpdateProperties updateProperties)
         {
             //削除されたブロックがInputConnectorComponentでない場合、処理を終了する
-            if (!_worldBlockDatastore.TryGetBlock<IBlockInventory>(updateProperties.Pos, out var component)) return;
+            if (!ServerContext.WorldBlockDatastore.TryGetBlock<IBlockInventory>(updateProperties.Pos, out var component)) return;
 
             _connectInventory.Remove(component);
         }

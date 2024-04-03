@@ -19,7 +19,6 @@ namespace Game.Block.Blocks.BeltConveyor
     public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
         private readonly BlockComponentManager _blockComponentManager = new();
-
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
 
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
@@ -27,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo)
         {
             EntityId = entityId;
             BlockId = blockId;
@@ -40,7 +39,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
-            var component = componentFactory.CreateInputConnectorComponent(blockPositionInfo, new IOConnectionSetting(
+            var component = new InputConnectorComponent(new IOConnectionSetting(
                 // 南、西、東をからの接続を受け、アイテムをインプットする
                 new ConnectDirection[] { new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                 //北向きに出力する
@@ -49,13 +48,12 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
                     VanillaBlockType.Miner, VanillaBlockType.BeltConveyor,
-                }));
+                }), blockPositionInfo);
             _blockComponentManager.AddComponent(component);
         }
 
-        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state,
-            int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : this(blockId, entityId, blockHash,
-            inventoryItemNum, timeOfItemEnterToExit, blockPositionInfo, componentFactory)
+        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo) :
+            this(blockId, entityId, blockHash, inventoryItemNum, timeOfItemEnterToExit, blockPositionInfo)
         {
             //stateから復元
             //データがないときは何もしない

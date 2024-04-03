@@ -25,7 +25,7 @@ namespace Game.Block.Blocks.Chest
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
-        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -33,11 +33,11 @@ namespace Game.Block.Blocks.Chest
             BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
-            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
+            var inputConnectorComponent = new InputConnectorComponent(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }));
+                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
             _blockComponentManager.AddComponent(inputConnectorComponent);
 
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
@@ -46,8 +46,8 @@ namespace Game.Block.Blocks.Chest
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : 
-            this(blockId, entityId, blockHash, slotNum, blockInventoryUpdate, blockPositionInfo, componentFactory)
+        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo) :
+            this(blockId, entityId, blockHash, slotNum, blockInventoryUpdate, blockPositionInfo)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)

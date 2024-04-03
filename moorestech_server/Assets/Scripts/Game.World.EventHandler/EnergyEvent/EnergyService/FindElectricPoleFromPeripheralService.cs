@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
@@ -15,16 +16,13 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="electricPoleConfigParam"></param>
-        /// <param name="blockDatastore"></param>
         /// <returns></returns>
-        public static List<IEnergyTransformer> Find(
-            Vector3Int pos,
-            ElectricPoleConfigParam electricPoleConfigParam,
-            IWorldBlockDatastore blockDatastore)
+        public static List<IEnergyTransformer> Find(Vector3Int pos, ElectricPoleConfigParam electricPoleConfigParam)
         {
             var electricPoles = new List<IEnergyTransformer>();
             //for文のための設定
             var poleRange = electricPoleConfigParam.poleConnectionRange;
+            var blockDatastore = ServerContext.WorldBlockDatastore;
             blockDatastore.GetBlock(pos);
             var startElectricX = pos.x - poleRange / 2;
             var startElectricY = pos.y - poleRange / 2;

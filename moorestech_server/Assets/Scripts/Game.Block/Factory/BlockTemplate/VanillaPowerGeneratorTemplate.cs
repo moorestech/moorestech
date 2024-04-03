@@ -16,16 +16,12 @@ namespace Game.Block.Factory.BlockTemplate
         public delegate VanillaPowerGeneratorBase NewGenerator(VanillaPowerGeneratorProperties data);
 
         private readonly IBlockOpenableInventoryUpdateEvent _blockInventoryUpdateEven;
-        private readonly ComponentFactory _componentFactory;
-
 
         private readonly LoadGenerator _loadGenerator;
         private readonly NewGenerator _newGenerator;
 
-        public VanillaPowerGeneratorTemplate(IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEven, ComponentFactory componentFactory, NewGenerator newGenerator,
-            LoadGenerator loadGenerator)
+        public VanillaPowerGeneratorTemplate(IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEven, NewGenerator newGenerator, LoadGenerator loadGenerator)
         {
-            _componentFactory = componentFactory;
             _blockInventoryUpdateEven = blockInventoryUpdateEven;
             _newGenerator = newGenerator;
             _loadGenerator = loadGenerator;
@@ -52,11 +48,11 @@ namespace Game.Block.Factory.BlockTemplate
 
         private InputConnectorComponent GetComponent(BlockPositionInfo blockPositionInfo)
         {
-            return _componentFactory.CreateInputConnectorComponent(blockPositionInfo,
+            return new InputConnectorComponent(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { },
-                    new[] { VanillaBlockType.BeltConveyor }));
+                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
         }
     }
 

@@ -3,10 +3,8 @@ using System.Reflection;
 using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
-using Game.Block.Interface;
 using Game.Map.Interface.Vein;
 using Game.World.Interface.DataStore;
-using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -48,7 +46,7 @@ namespace Tests.CombinedTest.Core
 
             #region Internal
 
-            (IMapVein mapVein,Vector3Int pos) GetMapVein()
+            (IMapVein mapVein, Vector3Int pos) GetMapVein()
             {
                 var pos = new Vector3Int(0, 0);
                 for (var i = 0; i < 500; i++)
@@ -57,8 +55,8 @@ namespace Tests.CombinedTest.Core
                     {
                         var veins = mapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
                         if (veins.Count == 0) continue;
-                    
-                         return (veins[0], new Vector3Int(i, j));
+
+                        return (veins[0], new Vector3Int(i, j));
                     }
                 }
                 return (null, pos);

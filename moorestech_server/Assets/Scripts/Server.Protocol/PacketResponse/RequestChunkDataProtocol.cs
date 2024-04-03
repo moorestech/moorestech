@@ -63,7 +63,7 @@ namespace Server.Protocol.PacketResponse
                 }
 
                 //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
-                List<IEntity> items = CollectBeltConveyorItems.CollectItemFromChunk(chunkPos, _worldBlockDatastore, _blockConfig, _entityFactory);
+                List<IEntity> items = CollectBeltConveyorItems.CollectItemFromChunk(chunkPos, _entityFactory);
                 var entities = new List<EntityMessagePack>();
                 entities.AddRange(items.Select(item => new EntityMessagePack(item)));
 

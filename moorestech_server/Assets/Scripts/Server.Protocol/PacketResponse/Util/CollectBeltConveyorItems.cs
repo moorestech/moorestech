@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
@@ -16,18 +16,17 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks,
-            IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             foreach (var collectChunk in collectChunks)
-                result.AddRange(CollectItemFromChunk(collectChunk, worldBlockDatastore, blockConfig, entityFactory));
+                result.AddRange(CollectItemFromChunk(collectChunk, entityFactory));
 
             return result;
         }
 
 
-        public static List<IEntity> CollectItemFromChunk(Vector2Int chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromChunk(Vector2Int chunk, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
@@ -37,13 +36,13 @@ namespace Server.Protocol.PacketResponse.Util
                 var y = j + chunk.y;
                 var pos = new Vector3Int(x, y);
 
-                if (!worldBlockDatastore.TryGetBlock(pos, out var block)) continue;
+                if (!ServerContext.WorldBlockDatastore.TryGetBlock(pos, out var block)) continue;
 
-                var type = blockConfig.GetBlockConfig(block.BlockId).Type;
+                var type = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Type;
 
                 if (type != VanillaBlockType.BeltConveyor) continue;
 
-                var direction = worldBlockDatastore.GetBlockDirection(pos);
+                var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
 
                 result.AddRange(CollectItemFromBeltConveyor(entityFactory, (VanillaBeltConveyor)block, pos,
                     direction));

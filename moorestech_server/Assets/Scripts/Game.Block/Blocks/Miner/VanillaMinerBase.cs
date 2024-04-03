@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.Miner
         private List<IItemStack> _miningItems = new();
         private int _remainingMillSecond = int.MaxValue;
 
-        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -50,11 +50,11 @@ namespace Game.Block.Blocks.Miner
             _blockInventoryUpdate = openableInventoryUpdateEvent;
             BlockPositionInfo = blockPositionInfo;
 
-            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
+            var inputConnectorComponent = new InputConnectorComponent(
                 new IOConnectionSetting(
                     new ConnectDirection[] { },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }));
+                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
             _blockComponentManager.AddComponent(inputConnectorComponent);
 
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -65,8 +65,8 @@ namespace Game.Block.Blocks.Miner
         }
 
         protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
-            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
-            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, openableInventoryUpdateEvent, blockPositionInfo, componentFactory)
+            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
+            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, openableInventoryUpdateEvent, blockPositionInfo)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');

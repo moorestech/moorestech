@@ -19,11 +19,9 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SaveLoadTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemsStackFactory = ServerContext.ItemStackFactory;
-            var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var belt = new VanillaBeltConveyor(1, 10, 1, 4, 4000, beltPosInfo, componentFactory);
+            var belt = new VanillaBeltConveyor(1, 10, 1, 4, 4000, beltPosInfo);
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
@@ -38,7 +36,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var str = belt.GetSaveState();
             Debug.Log(str);
             //セーブデータをロード
-            var newBelt = new VanillaBeltConveyor(1, 10, 1, str, 4, 4000, beltPosInfo, componentFactory);
+            var newBelt = new VanillaBeltConveyor(1, 10, 1, str, 4, 4000, beltPosInfo);
             var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
 
             //アイテムが一致するかチェック

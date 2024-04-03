@@ -36,7 +36,6 @@ using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
 using Newtonsoft.Json;
@@ -56,6 +55,7 @@ namespace Server.Boot
             var modDirectory = Path.Combine(serverDirectory, "mods");
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
+            //TODO EntitiyFactoryを登録？
             var configJsons = ModJsonStringLoader.GetConfigString(modDirectory);
             initializerCollection.AddSingleton(new ConfigJsonFileContainer(configJsons));
             initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
@@ -66,7 +66,6 @@ namespace Server.Boot
 
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
-            initializerCollection.AddSingleton<ComponentFactory, ComponentFactory>();
 
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
@@ -97,7 +96,7 @@ namespace Server.Boot
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
-            services.AddSingleton<IEntityFactory, EntityFactory>();
+            services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
@@ -124,7 +123,6 @@ namespace Server.Boot
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
-            services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<MapObjectUpdateEventPacket>();
 
             //データのセーブシステム
@@ -144,7 +142,6 @@ namespace Server.Boot
 
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
-            serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
 

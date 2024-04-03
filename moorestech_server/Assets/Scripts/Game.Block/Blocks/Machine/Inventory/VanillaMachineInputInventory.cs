@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Game.Block.Event;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
@@ -14,19 +15,17 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly int _entityId;
-        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly IMachineRecipeConfig _machineRecipeConfig;
 
-        public VanillaMachineInputInventory(int blockId, int inputSlot, IMachineRecipeConfig machineRecipeConfig,
-            IItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+
+        public VanillaMachineInputInventory(int blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
         {
             _blockId = blockId;
-            _machineRecipeConfig = machineRecipeConfig;
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, inputSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot);
         }
 
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.Inventory;
@@ -36,7 +35,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             get
             {
                 //建物IDと現在のインプットスロットからレシピを検索する
-                var recipe = _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
+                var recipe = ServerContext.MachineRecipeConfig.GetRecipeData(_blockId, InputSlot);
                 //実行できるレシピかどうか
                 return recipe.RecipeConfirmation(InputSlot, _blockId);
             }
@@ -54,7 +53,7 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         public MachineRecipeData GetRecipeData()
         {
-            return _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
+            return ServerContext.MachineRecipeConfig.GetRecipeData(_blockId, InputSlot);
         }
 
         public void ReduceInputSlot(MachineRecipeData recipe)

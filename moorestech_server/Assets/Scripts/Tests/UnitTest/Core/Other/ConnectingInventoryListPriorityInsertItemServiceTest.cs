@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Core.Item.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
-using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.Context;
@@ -26,7 +24,6 @@ namespace Tests.UnitTest.Core.Other
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var inventoryList = new List<IBlockInventory>();
 
@@ -40,7 +37,7 @@ namespace Tests.UnitTest.Core.Other
 
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var connectionSetting = new IOConnectionSetting(Array.Empty<ConnectDirection>(), Array.Empty<ConnectDirection>(), Array.Empty<string>());
-            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(componentPos, connectionSetting);
+            var inputConnectorComponent = new InputConnectorComponent(connectionSetting, componentPos);
 
             ((List<IBlockInventory>)inputConnectorComponent.ConnectInventory).AddRange(inventoryList);
 
