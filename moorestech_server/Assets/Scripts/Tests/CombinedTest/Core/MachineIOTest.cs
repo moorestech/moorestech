@@ -9,8 +9,8 @@ using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
-using Game.Block.Interface;
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -27,15 +27,15 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
             GameUpdater.ResetUpdate();
-            
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+
+            var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
 
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 
 
-            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1,new BlockPositionInfo(Vector3Int.one, BlockDirection.North,Vector3Int.one));
+            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             foreach (var inputItem in recipe.ItemInputs)
                 block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 

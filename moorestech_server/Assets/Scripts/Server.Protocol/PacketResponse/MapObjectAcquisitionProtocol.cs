@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
+using Game.Context;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -23,7 +24,6 @@ namespace Server.Protocol.PacketResponse
         public MapObjectAcquisitionProtocol(ServiceProvider serviceProvider)
         {
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
-            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 
@@ -33,9 +33,8 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload.ToArray());
 
             var mapObject = _mapObjectDatastore.Get(data.InstanceId);
-            var itemStack = _itemStackFactory.Create(mapObject.ItemId, mapObject.ItemCount);
-            var playerMainInventory =
-                _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+            var itemStack = ServerContext.ItemStackFactory.Create(mapObject.ItemId, mapObject.ItemCount);
+            var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             var insertedItem = playerMainInventory.InsertItem(itemStack);
 
             //アイテムの挿入に成功したらマップオブジェクトを削除

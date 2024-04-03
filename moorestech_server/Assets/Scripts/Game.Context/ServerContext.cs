@@ -17,7 +17,7 @@ namespace Game.Context
         public static ICraftingConfig CraftingConfig { get; private set; }
         public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
         
-        public static IItemStackFactory IItemStackFactory { get; private set; }
+        public static IItemStackFactory ItemStackFactory { get; private set; }
         public static IBlockFactory BlockFactory { get; private set; }
         
         public static IWorldBlockDatastore WorldBlockDatastore { get; private set; }
@@ -31,7 +31,7 @@ namespace Game.Context
             BlockConfig = blockConfig;
             CraftingConfig = craftingConfig;
             MachineRecipeConfig = machineRecipeConfig;
-            IItemStackFactory = itemStackFactory;
+            ItemStackFactory = itemStackFactory;
             BlockFactory = blockFactory;
             WorldBlockDatastore = worldBlockDatastore;
             WorldBlockUpdateEvent = worldBlockUpdateEvent;

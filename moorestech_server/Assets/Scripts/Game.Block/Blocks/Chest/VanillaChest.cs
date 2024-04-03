@@ -42,7 +42,7 @@ namespace Game.Block.Blocks.Chest
 
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.IItemStackFactory, slotNum);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
@@ -54,7 +54,7 @@ namespace Game.Block.Blocks.Chest
             {
                 var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                var item = ServerContext.IItemStackFactory.Create(itemHash, itemCount);
+                var item = ServerContext.ItemStackFactory.Create(itemHash, itemCount);
                 _itemDataStoreService.SetItem(i / 2, item);
             }
         }

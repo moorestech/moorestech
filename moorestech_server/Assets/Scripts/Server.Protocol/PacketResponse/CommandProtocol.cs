@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,6 @@ namespace Server.Protocol.PacketResponse
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
             if (command[0] == "give")
             {
                 var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
-                var item = _itemStackFactory.Create(int.Parse(command[2]), int.Parse(command[3]));
+                var item = ServerContext.ItemStackFactory.Create(int.Parse(command[2]), int.Parse(command[3]));
                 inventory.MainOpenableInventory.InsertItem(item);
             }
 

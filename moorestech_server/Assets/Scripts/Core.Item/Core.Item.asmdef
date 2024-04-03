@@ -4,7 +4,8 @@
   "references": [
     "Core.Const",
     "Core.ConfigJson",
-    "Core.Item.Interface"
+    "Core.Item.Interface",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -2,6 +2,7 @@ using System.IO;
 using Core.ConfigJson;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Component;
@@ -61,16 +62,16 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
             initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
-            initializerCollection.AddSingleton<IItemStackFactory>();
-            
+            initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
+
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
             initializerCollection.AddSingleton<ComponentFactory, ComponentFactory>();
-            
+
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
-            
+
             var initializerProvider = initializerCollection.BuildServiceProvider();
             new ServerContext(
                 initializerProvider.GetService<IItemConfig>(),
@@ -82,12 +83,12 @@ namespace Server.Boot
                 initializerProvider.GetService<IWorldBlockDatastore>(),
                 initializerProvider.GetService<IWorldBlockUpdateEvent>(),
                 initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>()
-                );
+            );
 
 
             //コンフィグ、ファクトリーのインスタンスを登録
             var services = new ServiceCollection();
-            
+
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();

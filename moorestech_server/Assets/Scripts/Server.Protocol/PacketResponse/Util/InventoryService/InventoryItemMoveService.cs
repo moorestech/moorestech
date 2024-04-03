@@ -1,18 +1,17 @@
 using System;
 using Core.Inventory;
-using Core.Item.Interface;
+using Game.Context;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemMoveService
     {
-        public static void Move(IItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot,
-            IOpenableInventory toInventory, int toSlot, int itemCount)
+        public static void Move(IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             try
             {
-                ExecuteMove(itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, itemCount);
+                ExecuteMove(fromInventory, fromSlot, toInventory, toSlot, itemCount);
             }
             catch (ArgumentOutOfRangeException e)
             {
@@ -28,8 +27,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             }
         }
 
-        private static void ExecuteMove(IItemStackFactory itemStackFactory, IOpenableInventory fromInventory,
-            int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
+        private static void ExecuteMove(IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない
             if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot) return;
@@ -41,7 +39,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             if (originItem.Count < itemCount) itemCount = originItem.Count;
 
             //実際に移動するアイテムインスタンスの作成
-            var moveItem = itemStackFactory.Create(originItem.Id, itemCount);
+            var moveItem = ServerContext.ItemStackFactory.Create(originItem.Id, itemCount);
 
             var destinationInventoryItem = toInventory.GetItem(toSlot);
 
@@ -55,8 +53,8 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 //移動元インベントリに残るアイテムを計算
                 //ゼロの時は自動でNullItemになる
                 var playerItemCount = originItem.Count - itemCount;
-                var remainItem = replaceItem.AddItem(itemStackFactory.Create(originItem.Id, playerItemCount))
-                    .ProcessResultItemStack;
+                var addItem = ServerContext.ItemStackFactory.Create(originItem.Id, playerItemCount);
+                var remainItem = replaceItem.AddItem(addItem).ProcessResultItemStack;
 
                 //移動元インベントリに残りのアイテムをセット
                 fromInventory.SetItem(fromSlot, remainItem);

@@ -1,37 +1,32 @@
 ﻿#nullable enable
 using System;
 using Core.Const;
-using Core.Item.Config;
 using Core.Item.Interface;
 using Core.Item.Util;
+using Game.Context;
 
 namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
-        private readonly IItemConfig _itemConfig;
-        private readonly IItemStackFactory _itemStackFactory;
-
-        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory)
+        public ItemStack(int id, int count)
         {
-            _itemConfig = itemConfig;
-            _itemStackFactory = itemStackFactory;
             ItemInstanceId = ItemInstanceIdGenerator.Generate();
-            ItemHash = itemConfig.GetItemConfig(id).ItemHash;
+            var configData = ServerContext.ItemConfig.GetItemConfig(id);
+            ItemHash = configData.ItemHash;
             if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
 
             if (count < 1) throw new ArgumentOutOfRangeException();
 
-            if (itemConfig.GetItemConfig(id).MaxStack < count)
+            if (configData.MaxStack < count)
                 throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count +
-                                                      " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
+                                                      " MaxStack:" + configData.MaxStack);
 
             Id = id;
             Count = count;
         }
 
-        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory, long instanceId)
-            : this(id, count, itemConfig, itemStackFactory)
+        public ItemStack(int id, int count, long instanceId) : this(id, count)
         {
             ItemInstanceId = instanceId;
         }
@@ -47,42 +42,44 @@ namespace Core.Item.Implementation
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
                 // インスタンスIDが同じだとベルトコンベアなどの輸送時に問題が生じるので、新しいインスタンスを生成する
-                var newItem = _itemStackFactory.Create(Id, Count);
-                return new ItemProcessResult(newItem, _itemStackFactory.CreatEmpty());
+                var newItem = ServerContext.ItemStackFactory.Create(Id, Count);
+                var empty = ServerContext.ItemStackFactory.CreatEmpty();
+                return new ItemProcessResult(newItem, empty);
             }
 
             //IDが違うならそれぞれで返す
             if (((ItemStack)receiveItemStack).Id != Id)
             {
-                var newItem = _itemStackFactory.Create(Id, Count);
+                var newItem = ServerContext.ItemStackFactory.Create(Id, Count);
                 return new ItemProcessResult(newItem, receiveItemStack);
             }
 
             var newCount = ((ItemStack)receiveItemStack).Count + Count;
-            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
+            var tmpStack = ServerContext.ItemConfig.GetItemConfig(Id).MaxStack;
 
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
             {
-                var tmpItem = _itemStackFactory.Create(Id, tmpStack);
-                var tmpReceive = _itemStackFactory.Create(Id, newCount - tmpStack);
+                var tmpItem = ServerContext.ItemStackFactory.Create(Id, tmpStack);
+                var tmpReceive = ServerContext.ItemStackFactory.Create(Id, newCount - tmpStack);
 
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
 
-            return new ItemProcessResult(_itemStackFactory.Create(Id, newCount), _itemStackFactory.CreatEmpty());
+            var reminderItem = ServerContext.ItemStackFactory.Create(Id, newCount);
+            return new ItemProcessResult(reminderItem, ServerContext.ItemStackFactory.CreatEmpty());
         }
 
         public IItemStack SubItem(int subCount)
         {
-            if (0 < Count - subCount) return _itemStackFactory.Create(Id, Count - subCount);
+            if (0 < Count - subCount) return ServerContext.ItemStackFactory.Create(Id, Count - subCount);
 
-            return _itemStackFactory.CreatEmpty();
+            return ServerContext.ItemStackFactory.CreatEmpty();
         }
 
         public bool IsAllowedToAdd(IItemStack item)
         {
-            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
+            var tmpStack = ServerContext.ItemConfig.GetItemConfig(Id).MaxStack;
 
             return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
                    item.Count + Count <= tmpStack;
@@ -102,14 +99,13 @@ namespace Core.Item.Implementation
 
         protected bool Equals(ItemStack other)
         {
-            return Equals(_itemConfig, other._itemConfig) && Equals(_itemStackFactory, other._itemStackFactory) &&
-                   Id == other.Id && Count == other.Count && ItemHash == other.ItemHash &&
+            return Id == other.Id && Count == other.Count && ItemHash == other.ItemHash &&
                    ItemInstanceId == other.ItemInstanceId;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(_itemConfig, _itemStackFactory, Id, Count, ItemHash, ItemInstanceId);
+            return HashCode.Combine(Id, Count, ItemHash, ItemInstanceId);
         }
 
         public override string ToString()

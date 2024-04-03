@@ -76,11 +76,11 @@ namespace Game.Block.Factory.BlockTemplate
             var machineParam = param.Param as MachineBlockConfigParam;
 
             var input = new VanillaMachineInputInventory(
-                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, ServerContext.IItemStackFactory,
+                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, ServerContext.ItemStackFactory,
                 _blockInventoryUpdateEvent, entityId);
 
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, ServerContext.IItemStackFactory, _blockInventoryUpdateEvent, entityId,
+                machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, entityId,
                 machineParam.InputSlot, inputConnectorComponent);
 
             return (input, output, machineParam);

@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,11 +29,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
 
-            var machinePosInfo = new BlockPositionInfo(new Vector3Int(5 ,10), BlockDirection.North, Vector3Int.one);
-            var machine = serviceProvider.GetService<IBlockFactory>().Create(MachineBlockId, 5,machinePosInfo) as VanillaMachineBase;
+            var machinePosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
+            var machine = serviceProvider.GetService<IBlockFactory>().Create(MachineBlockId, 5, machinePosInfo) as VanillaMachineBase;
             machine.SetItem(0, itemStackFactory.Create(1, 2));
             machine.SetItem(2, itemStackFactory.Create(4, 5));
 

@@ -87,7 +87,7 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            var item = ServerContext.IItemStackFactory.Create(itemId, count);
+            var item = ServerContext.ItemStackFactory.Create(itemId, count);
             return _vanillaMachineBlockInventory.InsertItem(item);
         }
 
@@ -120,7 +120,7 @@ namespace Game.Block.Blocks.Machine
 
         public void SetItem(int slot, int itemId, int count)
         {
-            var item = ServerContext.IItemStackFactory.Create(itemId, count);
+            var item = ServerContext.ItemStackFactory.Create(itemId, count);
             _vanillaMachineBlockInventory.SetItem(slot, item);
         }
 
@@ -131,7 +131,7 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            var item = ServerContext.IItemStackFactory.Create(itemId, count);
+            var item = ServerContext.ItemStackFactory.Create(itemId, count);
             return ReplaceItem(slot, item);
         }
 

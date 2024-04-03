@@ -17,7 +17,8 @@
     "Server.Event",
     "Game.Map.Interface",
     "Game.SaveLoad.Interface",
-    "Game.Crafting.Interface"
+    "Game.Crafting.Interface",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

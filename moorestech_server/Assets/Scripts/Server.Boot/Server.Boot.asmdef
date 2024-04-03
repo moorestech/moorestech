@@ -27,7 +27,8 @@
     "Mod.Base",
     "Core.Update",
     "Server.Util",
-    "Game.Context"
+    "Game.Context",
+    "Core.Item"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

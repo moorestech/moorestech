@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
             BlockHash = data.BlockHash;
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.IItemStackFactory, data.FuelItemSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
             _blockComponentManager.AddComponent(data.InputConnectorComponent);
@@ -61,7 +61,7 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 var itemHash = long.Parse(split[i]);
                 var count = int.Parse(split[i + 1]);
-                var item = ServerContext.IItemStackFactory.Create(itemHash, count);
+                var item = ServerContext.ItemStackFactory.Create(itemHash, count);
                 _itemDataStoreService.SetItem(slot, item);
                 slot++;
             }

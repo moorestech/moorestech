@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Item.Interface;
 using Game.Block.Interface;
-using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,17 +32,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             //ブロックをセットアップ
             var blockPositionInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, 1,blockPositionInfo);
+            var block = blockFactory.Create(MachineBlockId, 1, blockPositionInfo);
             var blockInventory = (IOpenableInventory)block;
             worldBlockDataStore.AddBlock(block);
 
 
             //インベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (5, 7), true));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new(5, 7), true));
             //ブロックにアイテムを入れる
             blockInventory.SetItem(1, itemStackFactory.Create(4, 8));
 
@@ -67,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
 
             //ブロックのインベントリを閉じる
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (5, 7), false));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new(5, 7), false));
 
             //ブロックにアイテムを入れる
             blockInventory.SetItem(2, itemStackFactory.Create(4, 8));
@@ -89,25 +88,25 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             //ブロック1をセットアップ
-            var block1PosInfo = new BlockPositionInfo(new Vector3Int(5 ,7), BlockDirection.North, Vector3Int.one);
-            var block1 = blockFactory.Create(MachineBlockId, 1,block1PosInfo);
+            var block1PosInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
+            var block1 = blockFactory.Create(MachineBlockId, 1, block1PosInfo);
             var block1Inventory = (IOpenableInventory)block1;
             worldBlockDataStore.AddBlock(block1);
-            
+
             //ブロック2をセットアップ
             var block2PosInfo = new BlockPositionInfo(new Vector3Int(10, 20), BlockDirection.North, Vector3Int.one);
-            var block2 = blockFactory.Create(MachineBlockId, 2,block2PosInfo);
+            var block2 = blockFactory.Create(MachineBlockId, 2, block2PosInfo);
             worldBlockDataStore.AddBlock(block2);
 
 
             //一つ目のブロックインベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (5, 7), true));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new(5, 7), true));
             //二つ目のブロックインベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (10, 20), true));
-            
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new(10, 20), true));
+
 
 
             //一つ目のブロックインベントリにアイテムを入れる

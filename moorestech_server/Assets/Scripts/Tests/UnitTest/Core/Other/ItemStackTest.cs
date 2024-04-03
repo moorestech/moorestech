@@ -1,6 +1,7 @@
 using System;
 using Core.Const;
 using Core.Item.Interface;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -15,9 +16,8 @@ namespace Tests.UnitTest.Core.Other
         [SetUp]
         public void Setup()
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            _itemStackFactory = ServerContext.ItemStackFactory;
         }
 
         [TestCase(1, 1, 1, 1, 2, 0, 1, ItemConst.EmptyItemId)]

@@ -7,6 +7,7 @@ using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,7 +39,7 @@ namespace Tests.CombinedTest.Server
         public void BlockDirectionItemPositionTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemsStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemsStackFactory = ServerContext.ItemStackFactory;
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
@@ -143,7 +144,7 @@ namespace Tests.CombinedTest.Server
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var itemsStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemsStackFactory = ServerContext.ItemStackFactory;
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 

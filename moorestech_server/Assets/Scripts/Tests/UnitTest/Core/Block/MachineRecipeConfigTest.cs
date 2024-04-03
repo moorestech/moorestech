@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -17,9 +18,8 @@ namespace Tests.UnitTest.Core.Block
         [SetUp]
         public void Setup()
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            _itemStackFactory = ServerContext.ItemStackFactory;
             _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }
 

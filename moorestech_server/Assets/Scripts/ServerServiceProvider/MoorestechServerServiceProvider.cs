@@ -3,6 +3,7 @@ using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 using Game.Crafting.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
@@ -30,7 +31,7 @@ namespace ServerServiceProvider
             CraftingConfig = serviceProvider.GetService<ICraftingConfig>();
             MachineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
             ItemConfig = serviceProvider.GetService<IItemConfig>();
-            IItemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            IItemStackFactory = ServerContext.ItemStackFactory;
             BlockConfig = serviceProvider.GetService<IBlockConfig>();
             ConfigJsonFileContainer = serviceProvider.GetService<ConfigJsonFileContainer>();
         }

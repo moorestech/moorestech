@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -19,7 +20,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
-            var itemStackFactory = saveServiceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
             var assembleJsonText = saveServiceProvider.GetService<AssembleSaveJsonText>();
 
             var playerEntityId = 100;
@@ -65,7 +66,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
                 Assert.AreEqual(itemStackFactory.CreatEmpty(), loadedPlayerInventory.MainOpenableInventory.GetItem(i));
             }
-
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
-            var itemStackFactory = saveServiceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
             var seed = 13143;
 
             //プレイヤーのインベントリを作成

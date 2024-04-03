@@ -8,7 +8,8 @@
     "Core.Item.Interface",
     "Game.Block",
     "Server.Boot",
-    "Server.Protocol"
+    "Server.Protocol",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

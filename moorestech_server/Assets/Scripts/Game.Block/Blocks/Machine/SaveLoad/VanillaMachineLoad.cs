@@ -34,7 +34,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             {
                 var id = int.Parse(split[index]);
                 var count = int.Parse(split[index + 1]);
-                var item = ServerContext.IItemStackFactory.Create(id, count);
+                var item = ServerContext.ItemStackFactory.Create(id, count);
                 _vanillaMachineInputInventory.SetItem(inventorySlot, item);
                 inventorySlot++;
             }
@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             {
                 var id = int.Parse(split[index]);
                 var count = int.Parse(split[index + 1]);
-                var item = ServerContext.IItemStackFactory.Create(id, count);
+                var item = ServerContext.ItemStackFactory.Create(id, count);
                 _vanillaMachineOutputInventory.SetItem(inventorySlot, item);
                 inventorySlot++;
             }

@@ -13,13 +13,12 @@ namespace Tests.Module
 
         private int _endInsertCnt;
 
-        public DummyBlockInventory(IItemStackFactory itemStackFactory, int insertToEndNum = 1, int maxSlot = 100)
+        public DummyBlockInventory(int insertToEndNum = 1, int maxSlot = 100)
         {
-            _itemStackFactory = itemStackFactory;
             IsItemExists = false;
             InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            _insertedItems = CreateEmptyItemStacksList.Create(maxSlot, _itemStackFactory).ToList();
+            _insertedItems = CreateEmptyItemStacksList.Create(maxSlot).ToList();
         }
 
         public bool IsItemExists { get; private set; }

@@ -57,7 +57,7 @@ namespace Game.Block.Blocks.Miner
                     new[] { VanillaBlockType.BeltConveyor }));
             _blockComponentManager.AddComponent(inputConnectorComponent);
 
-            var itemStackFactory = ServerContext.IItemStackFactory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
@@ -76,7 +76,7 @@ namespace Game.Block.Blocks.Miner
             {
                 var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                var item = ServerContext.IItemStackFactory.Create(itemHash, itemCount);
+                var item = ServerContext.ItemStackFactory.Create(itemHash, itemCount);
                 inventoryItems.Add(item);
             }
 
@@ -135,7 +135,7 @@ namespace Game.Block.Blocks.Miner
         {
             if (_defaultMiningTime != int.MaxValue) throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
 
-            var item = ServerContext.IItemStackFactory.Create(miningItemId, 1);
+            var item = ServerContext.ItemStackFactory.Create(miningItemId, 1);
             _miningItems = new List<IItemStack> { item };
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;

@@ -6,6 +6,7 @@ using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -24,15 +25,15 @@ namespace Tests.UnitTest.Core.Other
         public void Test()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var inventoryList = new List<IBlockInventory>();
 
             //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
-            var inventory1 = new DummyBlockInventory(itemStackFactory, 1, 1);
-            var inventory2 = new DummyBlockInventory(itemStackFactory);
-            var inventory3 = new DummyBlockInventory(itemStackFactory);
+            var inventory1 = new DummyBlockInventory(1, 1);
+            var inventory2 = new DummyBlockInventory();
+            var inventory3 = new DummyBlockInventory();
             inventoryList.Add(inventory1);
             inventoryList.Add(inventory2);
             inventoryList.Add(inventory3);

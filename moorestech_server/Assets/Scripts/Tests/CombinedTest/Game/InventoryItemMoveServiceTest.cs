@@ -1,4 +1,5 @@
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -19,7 +20,7 @@ namespace Tests.CombinedTest.Game
 
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             //プレイヤーのインベントリの設定
             var playerInventoryData =
@@ -35,38 +36,38 @@ namespace Tests.CombinedTest.Game
 
             //実際に移動させてテスト
             //全てのアイテムを移動させるテスト
-            InventoryItemMoveService.Move(itemStackFactory, inventory,
+            InventoryItemMoveService.Move(inventory,
                 0, inventory, 3, 5);
             Assert.AreEqual(inventory.GetItem(0), itemStackFactory.CreatEmpty());
             Assert.AreEqual(inventory.GetItem(3), itemStackFactory.Create(1, 5));
 
             //一部のアイテムを移動させるテスト
-            InventoryItemMoveService.Move(itemStackFactory, inventory,
+            InventoryItemMoveService.Move(inventory,
                 3, inventory, 0, 3);
             Assert.AreEqual(inventory.GetItem(0), itemStackFactory.Create(1, 3));
             Assert.AreEqual(inventory.GetItem(3), itemStackFactory.Create(1, 2));
 
             //一部のアイテムを移動しようとするが他にスロットがあるため失敗するテスト
-            InventoryItemMoveService.Move(itemStackFactory, inventory,
+            InventoryItemMoveService.Move(inventory,
                 0, inventory, 2, 1);
             Assert.AreEqual(inventory.GetItem(0), itemStackFactory.Create(1, 3));
             Assert.AreEqual(inventory.GetItem(2), itemStackFactory.Create(2, 1));
 
             //全てのアイテムを移動させるテスト
-            InventoryItemMoveService.Move(itemStackFactory, inventory,
+            InventoryItemMoveService.Move(inventory,
                 0, inventory, 2, 3);
             Assert.AreEqual(inventory.GetItem(0), itemStackFactory.Create(2, 1));
             Assert.AreEqual(inventory.GetItem(2), itemStackFactory.Create(1, 3));
 
             //アイテムを加算するテスト
-            InventoryItemMoveService.Move(itemStackFactory, inventory,
+            InventoryItemMoveService.Move(inventory,
                 2, inventory, 1, 3);
             Assert.AreEqual(inventory.GetItem(2), itemStackFactory.CreatEmpty());
             Assert.AreEqual(inventory.GetItem(1), itemStackFactory.Create(1, 4));
 
 
             //全てのアイテムを同じスロットにアイテムを移動させるテスト
-            InventoryItemMoveService.Move(itemStackFactory, inventory,
+            InventoryItemMoveService.Move(inventory,
                 1, inventory, 1, 4);
             Assert.AreEqual(inventory.GetItem(1), itemStackFactory.Create(1, 4));
         }

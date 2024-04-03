@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -18,7 +19,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SaveLoadTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemsStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemsStackFactory = ServerContext.ItemStackFactory;
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);

@@ -1,13 +1,12 @@
 using System;
 using System.Reflection;
 using Core.Const;
-using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -27,13 +26,13 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
-            
+
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(PowerGeneratorId, 10,posInfo) as VanillaPowerGeneratorBase;
+            var powerGenerator = blockFactory.Create(PowerGeneratorId, 10, posInfo) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var fuelItem1 = itemStackFactory.Create(generatorConfigParam.FuelSettings[FuelItem1Id].ItemId, 1);
             var fuelItem2 = itemStackFactory.Create(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId, 1);
@@ -91,10 +90,10 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
-            
+
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10,posInfo) as VanillaPowerGeneratorBase;
+            var powerGenerator = blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10, posInfo) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var generatorConfigParam = blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
 

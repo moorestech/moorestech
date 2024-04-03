@@ -39,7 +39,8 @@
     "Server.Util",
     "Tests.Module",
     "MessagePack",
-    "MessagePack.Annotations"
+    "MessagePack.Annotations",
+    "Game.Context"
   ],
   "includePlatforms": [
     "Editor"

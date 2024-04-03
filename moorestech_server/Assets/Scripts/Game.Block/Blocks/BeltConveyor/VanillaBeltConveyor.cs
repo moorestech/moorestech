@@ -135,7 +135,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public IItemStack GetItem(int slot)
         {
-            return ServerContext.IItemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
+            return ServerContext.ItemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
@@ -178,7 +178,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 //最後のアイテムの場合は接続先に渡す
                 if (i == 0 && item.RemainingTime <= 0)
                 {
-                    var insertItem = ServerContext.IItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+                    var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
                     var inputConnector = ComponentManager.GetComponent<InputConnectorComponent>();
                     if (inputConnector.ConnectInventory.Count == 0) continue;

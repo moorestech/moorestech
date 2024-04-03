@@ -28,7 +28,6 @@ namespace Server.Protocol.PacketResponse
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -54,7 +53,7 @@ namespace Server.Protocol.PacketResponse
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
+                    InventoryItemMoveService.Move(fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.EnergySystem;
-using Core.Item.Interface;
-using Core.Item.Config;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
@@ -33,9 +31,7 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var itemStackFactory = serviceProvider.GetService<IItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
@@ -47,10 +43,10 @@ namespace Tests.CombinedTest.Core
             var miningItemId = miningSetting.ItemId;
 
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent(), posInfo, componentFactory));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, new BlockOpenableInventoryUpdateEvent(), posInfo, componentFactory));
             miner.SetMiningItem(miningItemId, miningTime);
 
-            var dummyInventory = new DummyBlockInventory(itemStackFactory);
+            var dummyInventory = new DummyBlockInventory();
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
             var minerConnectors = (List<IBlockInventory>)miner.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
