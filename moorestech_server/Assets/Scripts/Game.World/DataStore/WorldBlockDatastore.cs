@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
+using Game.Context;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using UniRx;
@@ -132,8 +133,9 @@ namespace Game.World.DataStore
         }
 
         //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
-        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList, IBlockFactory blockFactory)
+        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
         {
+            var blockFactory = ServerContext.BlockFactory;
             foreach (var block in saveBlockDataList)
             {
                 var pos = block.Pos;
