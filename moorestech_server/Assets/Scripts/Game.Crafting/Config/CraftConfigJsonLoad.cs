@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Interface;
 using Game.Context;
 using Game.Crafting.Interface;
 using Newtonsoft.Json;
@@ -9,10 +10,16 @@ namespace Game.Crafting.Config
 {
     public class CraftConfigJsonLoad
     {
+        private readonly IItemStackFactory _itemStackFactory;
+
+        public CraftConfigJsonLoad(IItemStackFactory itemStackFactory)
+        {
+            _itemStackFactory = itemStackFactory;
+        }
+
         public List<CraftingConfigData> Load(List<string> jsons)
         {
             var loadedData = jsons.SelectMany(JsonConvert.DeserializeObject<CraftConfigDataElement[]>).ToList();
-            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var result = new List<CraftingConfigData>();
 
@@ -24,19 +31,20 @@ namespace Game.Crafting.Config
                 {
                     if (string.IsNullOrEmpty(craftItem.ItemName) || string.IsNullOrEmpty(craftItem.ModId))
                     {
-                        items.Add(new CraftingItemData(itemStackFactory.CreatEmpty(), false));
+                        items.Add(new CraftingItemData(_itemStackFactory.CreatEmpty(), false));
                         continue;
                     }
 
                     items.Add(new CraftingItemData(
-                        itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count),
+                        _itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count),
                         craftItem.IsRemain));
                 }
 
                 //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
                 if (config.Result.ModId == null) Debug.Log(i + " : Result item is null");
 
-                var resultItem = itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);
+                var resultItem =
+                    _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);
 
                 result.Add(new CraftingConfigData(items, resultItem, i));
             }

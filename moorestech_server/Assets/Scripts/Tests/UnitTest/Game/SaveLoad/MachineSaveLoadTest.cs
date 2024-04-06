@@ -128,8 +128,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = ServerContext.BlockFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
             var loadJsonFile = serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;

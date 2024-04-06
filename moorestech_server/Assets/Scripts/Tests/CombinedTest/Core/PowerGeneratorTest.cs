@@ -27,10 +27,10 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10, posInfo) as VanillaPowerGeneratorBase;
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
@@ -91,10 +91,10 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
             var powerGenerator = blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10, posInfo) as VanillaPowerGeneratorBase;
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
 
             //1回目のループ

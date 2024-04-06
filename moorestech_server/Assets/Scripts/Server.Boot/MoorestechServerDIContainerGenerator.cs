@@ -67,9 +67,12 @@ namespace Server.Boot
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
 
-            initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
+            initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
+            
+            initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
+            initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
             var initializerProvider = initializerCollection.BuildServiceProvider();
             new ServerContext(
@@ -81,7 +84,8 @@ namespace Server.Boot
                 initializerProvider.GetService<IBlockFactory>(),
                 initializerProvider.GetService<IWorldBlockDatastore>(),
                 initializerProvider.GetService<IWorldBlockUpdateEvent>(),
-                initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>()
+                initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>(),
+                initializerProvider.GetService<IMapVeinDatastore>()
             );
 
 
@@ -100,7 +104,6 @@ namespace Server.Boot
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-            services.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
 
             //JSONファイルのセーブシステムの読み込み

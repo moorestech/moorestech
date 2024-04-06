@@ -21,8 +21,6 @@ namespace Game.Block.Blocks.PowerGenerator
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
         private readonly BlockComponentManager _blockComponentManager = new();
-
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
 
         private readonly int _infinityPower;
@@ -43,7 +41,6 @@ namespace Game.Block.Blocks.PowerGenerator
             _infinityPower = data.InfinityPower;
 
             BlockHash = data.BlockHash;
-            _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
@@ -188,8 +185,9 @@ namespace Game.Block.Blocks.PowerGenerator
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                EntityId, slot, itemStack));
+            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+            var properties = new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack);
+            blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
 
         public override bool Equals(object obj)

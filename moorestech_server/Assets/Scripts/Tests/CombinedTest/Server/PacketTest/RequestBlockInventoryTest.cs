@@ -33,11 +33,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
-            var machine = serviceProvider.GetService<IBlockFactory>().Create(MachineBlockId, 5, machinePosInfo) as VanillaMachineBase;
+            var machine = ServerContext.BlockFactory.Create(MachineBlockId, 5, machinePosInfo) as VanillaMachineBase;
             machine.SetItem(0, itemStackFactory.Create(1, 2));
             machine.SetItem(2, itemStackFactory.Create(4, 5));
 
-            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine);
+            ServerContext.WorldBlockDatastore.AddBlock(machine);
 
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(

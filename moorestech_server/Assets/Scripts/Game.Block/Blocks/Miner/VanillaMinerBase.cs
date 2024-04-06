@@ -11,11 +11,13 @@ using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.Map.Interface.Vein;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -62,6 +64,31 @@ namespace Game.Block.Blocks.Miner
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
+            
+            SetMiningItem();
+
+            #region Internal
+
+            void SetMiningItem()
+            {
+                var veins = ServerContext.MapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
+                foreach (var vein in veins)
+                {
+                    _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
+                }
+                if (veins.Count == 0) return;
+                
+                var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockId).Param as MinerBlockConfigParam;
+                foreach (var miningSetting in blockConfig.MineItemSettings)
+                {
+                    if (miningSetting.ItemId != veins[0].VeinItemId) continue;
+                    _defaultMiningTime = miningSetting.MiningTime;
+                    _remainingMillSecond = _defaultMiningTime;
+                    break;
+                }
+            }
+            
+            #endregion
         }
 
         protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
@@ -129,16 +156,6 @@ namespace Game.Block.Blocks.Miner
         public void SupplyEnergy(int power)
         {
             _currentPower = power;
-        }
-
-        public void SetMiningItem(int miningItemId, int miningTime)
-        {
-            if (_defaultMiningTime != int.MaxValue) throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
-
-            var item = ServerContext.ItemStackFactory.Create(miningItemId, 1);
-            _miningItems = new List<IItemStack> { item };
-            _defaultMiningTime = miningTime;
-            _remainingMillSecond = _defaultMiningTime;
         }
 
         private void Update()

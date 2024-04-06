@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -22,11 +23,8 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 
@@ -75,8 +73,8 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = _worldBlockDatastore.ExistsComponent<IOpenableInventory>(pos)
-                        ? _worldBlockDatastore.GetBlock<IOpenableInventory>(pos)
+                    inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableInventory>(pos)
+                        ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableInventory>(pos)
                         : null;
                     break;
             }

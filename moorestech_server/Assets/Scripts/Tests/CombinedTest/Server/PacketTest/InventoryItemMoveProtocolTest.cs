@@ -63,8 +63,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = ServerContext.BlockFactory;
+            var worldDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);

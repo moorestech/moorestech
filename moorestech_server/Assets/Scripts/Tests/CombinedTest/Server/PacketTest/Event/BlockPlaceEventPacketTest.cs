@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldBlockDataStore = ServerContext.WorldBlockDatastore;
 
 
             //イベントキューにIDを登録する

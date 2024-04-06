@@ -22,10 +22,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void PowerGeneratorTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            var fuelSlotCount = (serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
+            var fuelSlotCount = (ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var powerGenerator = (VanillaPowerGeneratorBase)blockFactory.Create(PowerGeneratorId, 10, generatorPosInfo);
 
@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(saveText);
 
 
-            var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).BlockHash;
+            var blockHash = ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).BlockHash;
             //発電機を再作成
             var loadedPowerGenerator = (VanillaPowerGeneratorBase)blockFactory.Load(blockHash, 10, saveText, generatorPosInfo);
             //発電機を再作成した結果を検証

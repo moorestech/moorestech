@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server
         public void BlockDirectionItemPositionTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldDataStore = ServerContext.WorldBlockDatastore;
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
 
             //x,yがともにプラスの時のテスト 
@@ -141,7 +141,7 @@ namespace Tests.CombinedTest.Server
             GameUpdater.ResetUpdate();
 
             var itemsStackFactory = ServerContext.ItemStackFactory;
-            var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldDataStore = ServerContext.WorldBlockDatastore;
 
             var belt1 = CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North);
             worldDataStore.AddBlock(belt1);

@@ -1,19 +1,16 @@
-﻿using Game.Block.Interface.Event;
-using static Game.Block.Interface.Event.IBlockOpenableInventoryUpdateEvent;
+﻿using System;
+using Game.Block.Interface.Event;
 
 namespace Game.Block.Event
 {
     public class BlockOpenableInventoryUpdateEvent : IBlockOpenableInventoryUpdateEvent
     {
-        public void Subscribe(BlockInventoryEvent blockInventoryEvent)
+        public void Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent)
         {
             OnBlockInventoryUpdate += blockInventoryEvent;
-        }
+        }        public event Action<BlockOpenableInventoryUpdateEventProperties> OnBlockInventoryUpdate;
 
-        public event BlockInventoryEvent OnBlockInventoryUpdate;
-
-        public void OnInventoryUpdateInvoke(
-            BlockOpenableInventoryUpdateEventProperties properties)
+        public void OnInventoryUpdateInvoke(BlockOpenableInventoryUpdateEventProperties properties)
         {
             OnBlockInventoryUpdate?.Invoke(properties);
         }

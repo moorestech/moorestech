@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0));
 
             //ブロックが置かれているかチェック
-            var world = serviceProvider.GetService<IWorldBlockDatastore>();
+            var world = ServerContext.WorldBlockDatastore;
             Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2, 4)).BlockId);
             //アイテムが減っているかチェック
             Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //パケットでプレイヤーインベントリを生成
 

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
@@ -21,12 +22,12 @@ namespace Game.SaveLoad.Json
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
-        public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
+        public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             IMapObjectDatastore mapObjectDatastore)
         {
             _saveJsonFileName = saveJsonFileName;
-            _worldBlockDatastore = worldBlockDatastore;
+            _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;

@@ -5,6 +5,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
+using Game.Map.Interface.Vein;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 
@@ -21,11 +22,12 @@ namespace Game.Context
         public static IBlockFactory BlockFactory { get; private set; }
         
         public static IWorldBlockDatastore WorldBlockDatastore { get; private set; }
+        public static IMapVeinDatastore MapVeinDatastore { get; private set; }
         
         public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
         public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
         
-        public ServerContext(IItemConfig itemConfig, IBlockConfig blockConfig, ICraftingConfig craftingConfig, IMachineRecipeConfig machineRecipeConfig, IItemStackFactory itemStackFactory, IBlockFactory blockFactory, IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent)
+        public ServerContext(IItemConfig itemConfig, IBlockConfig blockConfig, ICraftingConfig craftingConfig, IMachineRecipeConfig machineRecipeConfig, IItemStackFactory itemStackFactory, IBlockFactory blockFactory, IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, IMapVeinDatastore mapVeinDatastore)
         {
             ItemConfig = itemConfig;
             BlockConfig = blockConfig;
@@ -34,6 +36,7 @@ namespace Game.Context
             ItemStackFactory = itemStackFactory;
             BlockFactory = blockFactory;
             WorldBlockDatastore = worldBlockDatastore;
+            MapVeinDatastore = mapVeinDatastore;
             WorldBlockUpdateEvent = worldBlockUpdateEvent;
             BlockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
         }

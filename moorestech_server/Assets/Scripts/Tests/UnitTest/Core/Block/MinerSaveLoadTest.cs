@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -21,8 +22,8 @@ namespace Tests.UnitTest.Core.Block
         {
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var minerHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(MinerId).BlockHash;
+            var blockFactory = ServerContext.BlockFactory;
+            var minerHash = ServerContext.BlockConfig.GetBlockConfig(MinerId).BlockHash;
 
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var originalMiner = blockFactory.Create(MinerId, 1,minerPosInfo);

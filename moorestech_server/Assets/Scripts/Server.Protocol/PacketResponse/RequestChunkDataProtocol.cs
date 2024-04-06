@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -17,15 +18,10 @@ namespace Server.Protocol.PacketResponse
     public class RequestChunkDataProtocol : IPacketResponse
     {
         public const string Tag = "va:getChunk";
-        private readonly IBlockConfig _blockConfig;
         private readonly IEntityFactory _entityFactory;
-
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public RequestChunkDataProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
-            _blockConfig = serviceProvider.GetService<IBlockConfig>();
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
         }
 
@@ -53,7 +49,7 @@ namespace Server.Protocol.PacketResponse
                 for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
                     var blockPos = chunkOrigin + new Vector3Int(i, 0, j);
-                    var originalPosBlock = _worldBlockDatastore.GetOriginPosBlock(blockPos);
+                    var originalPosBlock = ServerContext.WorldBlockDatastore.GetOriginPosBlock(blockPos);
 
                     if (originalPosBlock == null) continue;
 

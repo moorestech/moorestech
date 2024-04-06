@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -15,18 +16,12 @@ namespace Server.Protocol.PacketResponse
     public class SendPlaceHotBarBlockProtocol : IPacketResponse
     {
         public const string Tag = "va:palceHotbarBlock";
-        private readonly IBlockConfig _blockConfig;
-        private readonly IBlockFactory _blockFactory;
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
-            _blockConfig = serviceProvider.GetService<IBlockConfig>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
-            _blockFactory = serviceProvider.GetService<IBlockFactory>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -36,18 +31,19 @@ namespace Server.Protocol.PacketResponse
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.Slot);
             var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.GetItem(inventorySlot);
 
+            var blockConfig = ServerContext.BlockConfig;
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!_blockConfig.IsBlock(item.Id)) return null;
+            if (!blockConfig.IsBlock(item.Id)) return null;
             //すでにブロックがある場合はそもまま処理を終了
-            if (_worldBlockDatastore.Exists(data.Pos)) return null;
+            if (ServerContext.WorldBlockDatastore.Exists(data.Pos)) return null;
 
             //ブロックの作成
-            var blockId = _blockConfig.ItemIdToBlockId(item.Id);
-            var blockSize = _blockConfig.GetBlockConfig(blockId).BlockSize;
+            var blockId = blockConfig.ItemIdToBlockId(item.Id);
+            var blockSize = blockConfig.GetBlockConfig(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection, blockSize);
-            var block = _blockFactory.Create(blockId, CreateBlockEntityId.Create(), blockPositionInfo);
+            var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), blockPositionInfo);
             //ブロックの設置
-            _worldBlockDatastore.AddBlock(block);
+            ServerContext.WorldBlockDatastore.AddBlock(block);
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);

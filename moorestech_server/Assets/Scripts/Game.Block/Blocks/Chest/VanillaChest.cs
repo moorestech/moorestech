@@ -20,16 +20,14 @@ namespace Game.Block.Blocks.Chest
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
         private readonly BlockComponentManager _blockComponentManager = new();
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
-        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo)
+        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
-            _blockInventoryUpdate = blockInventoryUpdate;
             BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
@@ -46,8 +44,8 @@ namespace Game.Block.Blocks.Chest
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo) :
-            this(blockId, entityId, blockHash, slotNum, blockInventoryUpdate, blockPositionInfo)
+        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockPositionInfo blockPositionInfo) :
+            this(blockId, entityId, blockHash, slotNum, blockPositionInfo)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
@@ -143,8 +141,8 @@ namespace Game.Block.Blocks.Chest
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                EntityId, slot, itemStack));
+            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
         }
 
         public override bool Equals(object obj)

@@ -28,9 +28,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var blockConfig = ServerContext.BlockConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
@@ -75,9 +75,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var itemConfig = ServerContext.ItemConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
@@ -128,9 +128,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var itemConfig = ServerContext.ItemConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var mainInventory =

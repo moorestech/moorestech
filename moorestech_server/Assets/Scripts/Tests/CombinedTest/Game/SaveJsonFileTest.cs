@@ -1,6 +1,7 @@
 using System.Reflection;
 using Game.Block.Interface;
 using Game.Block.Interface;
+using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
@@ -22,8 +23,8 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
 
             //リフレクションでテスト用のファイル名を変更

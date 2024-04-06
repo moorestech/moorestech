@@ -11,10 +11,6 @@ namespace Game.Map
     {
         private readonly Random _random = new();
 
-        public MapObjectFactory(IItemConfig itemConfig)
-        {
-        }
-
         public IMapObject Create(int instanceId, string type, Vector3 position, bool isDestroyed)
         {
             var (itemId, itemCount) = GetItemIdAndCount(type);

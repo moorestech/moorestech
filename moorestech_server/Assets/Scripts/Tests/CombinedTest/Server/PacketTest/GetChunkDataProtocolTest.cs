@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Const;
 using Game.Block.Interface;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using MessagePack;
@@ -27,8 +28,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void RandomPlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             var random = new Random(13944156);
             //ブロックの設置
@@ -85,8 +86,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void PlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //ブロックの設置
             var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);

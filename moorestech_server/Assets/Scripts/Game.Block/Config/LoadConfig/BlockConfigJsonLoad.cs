@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
 using Core.Const;
+using Core.Item.Config;
 using Game.Block.Interface.BlockConfig;
-using Game.Context;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -13,12 +13,14 @@ namespace Game.Block.Config.LoadConfig
     public class BlockConfigJsonLoad
     {
         private readonly Dictionary<string, IBlockConfigParamGenerator> _generators;
+        private readonly IItemConfig _itemConfig;
         private readonly string _jsonPath;
 
 
-        public BlockConfigJsonLoad()
+        public BlockConfigJsonLoad(IItemConfig itemConfig)
         {
-            _generators = new VanillaBlockConfigGenerator().Generate();
+            _itemConfig = itemConfig;
+            _generators = new VanillaBlockConfigGenerator().Generate(itemConfig);
         }
 
         public List<BlockConfigData> LoadFromJsons(Dictionary<string, string> blockJsons, List<string> mods)
@@ -67,7 +69,7 @@ namespace Game.Block.Config.LoadConfig
                     //TODO ログ基盤に入れる
                     Debug.Log("[BlockJsonLoad] ブロックのアイテム設定が不正です。modId:" + modId + " ブロック名:" + name);
                 else
-                    itemId = ServerContext.ItemConfig.GetItemId(itemModId, itemName);
+                    itemId = _itemConfig.GetItemId(itemModId, itemName);
 
 
                 IBlockConfigParam blockParam = _generators[type].Generate(block.param);

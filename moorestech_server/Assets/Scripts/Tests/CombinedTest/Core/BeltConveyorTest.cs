@@ -30,9 +30,9 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var blockConfig = ServerContext.BlockConfig;
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var random = new Random(4123);
@@ -69,9 +69,9 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var blockConfig = ServerContext.BlockConfig;
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
 
@@ -113,9 +113,9 @@ namespace Tests.CombinedTest.Core
             GameUpdater.ResetUpdate();
 
 
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var blockConfig = ServerContext.BlockConfig;
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var random = new Random(4123);
@@ -146,7 +146,7 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             var random = new Random(4123);

@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core
             GameUpdater.ResetUpdate();
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
 
             var random = new Random(4123);
 
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
 
             var chest = (VanillaChest)blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltconveyor = (VanillaBeltConveyor)blockFactory.Create(3, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));

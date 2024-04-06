@@ -1,3 +1,4 @@
+using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
@@ -12,15 +13,11 @@ namespace Game.SaveLoad.Json
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
-        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore,
-            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            IMapObjectDatastore mapObjectDatastore)
+        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
-            _worldBlockDatastore = worldBlockDatastore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
@@ -29,7 +26,7 @@ namespace Game.SaveLoad.Json
         public string AssembleSaveJson()
         {
             var saveData = new WorldSaveAllInfoV1(
-                _worldBlockDatastore.GetSaveBlockDataList(),
+                ServerContext.WorldBlockDatastore.GetSaveBlockDataList(),
                 _inventoryDataStore.GetSaveInventoryDataList(),
                 _entitiesDatastore.GetSaveBlockDataList(),
                 _worldSettingsDatastore.GetSettingsSaveData(),

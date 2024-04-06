@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Game.Block.Interface.Event;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -19,18 +20,14 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenStateDataStore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         private DateTime _now = DateTime.Now;
 
-        public OpenableBlockInventoryUpdateEventPacket(
-            EventProtocolProvider eventProtocolProvider, IBlockInventoryOpenStateDataStore inventoryOpenStateDataStore,
-            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IWorldBlockDatastore worldBlockDatastore)
+        public OpenableBlockInventoryUpdateEventPacket(EventProtocolProvider eventProtocolProvider, IBlockInventoryOpenStateDataStore inventoryOpenStateDataStore)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _inventoryOpenStateDataStore = inventoryOpenStateDataStore;
-            _worldBlockDatastore = worldBlockDatastore;
-            blockInventoryUpdateEvent.Subscribe(InventoryUpdateEvent);
+            ServerContext.BlockOpenableInventoryUpdateEvent.Subscribe(InventoryUpdateEvent);
         }
 
 
@@ -40,7 +37,7 @@ namespace Server.Event.EventReceive
             List<int> playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
             if (playerIds.Count == 0) return;
 
-            var pos = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
+            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(properties.EntityId);
             var messagePack = new OpenableBlockInventoryUpdateEventMessagePack(pos, properties.Slot, properties.ItemStack);
             var payload = MessagePackSerializer.Serialize(messagePack);
 

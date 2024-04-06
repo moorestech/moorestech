@@ -1,5 +1,6 @@
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,13 +14,11 @@ namespace Tests.UnitTest.Game
 {
     public class WorldBlockDatastoreTest
     {
-        private IBlockFactory _blockFactory;
-
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldData = ServerContext.WorldBlockDatastore;
 
             var random = new Random(131513);
             for (var i = 0; i < 10; i++)
@@ -43,7 +42,7 @@ namespace Tests.UnitTest.Game
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldData = ServerContext.WorldBlockDatastore;
 
             var entityId = CreateBlockEntityId.Create();
 
@@ -60,7 +59,7 @@ namespace Tests.UnitTest.Game
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldData = ServerContext.WorldBlockDatastore;
 
             var block = CreateMachine(1, CreateBlockEntityId.Create(), new Vector3Int(1, 1), BlockDirection.North);
             worldData.AddBlock(block);
@@ -72,14 +71,8 @@ namespace Tests.UnitTest.Game
 
         private VanillaMachineBase CreateMachine(int id, int entityId, Vector3Int pos, BlockDirection direction)
         {
-            if (_blockFactory == null)
-            {
-                var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-                _blockFactory = serviceProvider.GetService<IBlockFactory>();
-            }
-
             var posInfo = new BlockPositionInfo(pos, direction, Vector3Int.one);
-            var machine = _blockFactory.Create(id, entityId, posInfo) as VanillaMachineBase;
+            var machine = ServerContext.BlockFactory.Create(id, entityId, posInfo) as VanillaMachineBase;
             return machine;
         }
     }

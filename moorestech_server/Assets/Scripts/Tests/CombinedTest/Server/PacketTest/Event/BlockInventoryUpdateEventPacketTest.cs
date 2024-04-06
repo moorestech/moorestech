@@ -30,8 +30,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var worldBlockDataStore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             //ブロックをセットアップ
@@ -86,8 +86,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var worldBlockDataStore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             //ブロック1をセットアップ

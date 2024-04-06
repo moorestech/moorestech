@@ -21,7 +21,7 @@ namespace Game.Block.Config
 
         public BlockConfig(ConfigJsonFileContainer configJson, IItemConfig itemConfig)
         {
-            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
+            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
             foreach (var blockConfig in _blockConfigList)
             {
                 if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash))

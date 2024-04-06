@@ -7,7 +7,15 @@ using Game.Context;
 namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class PowerGeneratorConfigParamGenerator : IBlockConfigParamGenerator
-    {        public IBlockConfigParam Generate(dynamic blockParam)
+    {        
+        private readonly IItemConfig _itemConfig;
+
+        public PowerGeneratorConfigParamGenerator(IItemConfig itemConfig)
+        {
+            _itemConfig = itemConfig;
+        }
+
+        public IBlockConfigParam Generate(dynamic blockParam)
         {
             var fuelSettings = new Dictionary<int, FuelSetting>();
             foreach (var fuel in blockParam.fuel)
@@ -19,7 +27,7 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
                 int time = fuel.time;
                 int power = fuel.power;
 
-                var itemId = ServerContext.ItemConfig.GetItemId(itemModId, idItemName);
+                var itemId = _itemConfig.GetItemId(itemModId, idItemName);
 
                 fuelSettings.Add(itemId, new FuelSetting(itemId, time, power));
             }

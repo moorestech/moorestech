@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //インベントリにアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
-            playerInventoryData.MainOpenableInventory.SetItem(5,serviceProvider.GetService<IItemStackFactory>().Create(1, 5));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            playerInventoryData.MainOpenableInventory.SetItem(5,itemStackFactory.Create(1, 5));
 
             //追加時のイベントのキャッチ
             response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));

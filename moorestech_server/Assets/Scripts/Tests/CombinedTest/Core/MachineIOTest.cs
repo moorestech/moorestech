@@ -29,8 +29,8 @@ namespace Tests.CombinedTest.Core
             GameUpdater.ResetUpdate();
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
+            var blockFactory = ServerContext.BlockFactory;
+            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
 
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 

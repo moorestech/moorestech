@@ -28,11 +28,11 @@ namespace ServerServiceProvider
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(serverDirectory);
 
             ServiceProvider = serviceProvider;
-            CraftingConfig = serviceProvider.GetService<ICraftingConfig>();
-            MachineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
-            ItemConfig = serviceProvider.GetService<IItemConfig>();
+            CraftingConfig = ServerContext.CraftingConfig;
+            MachineRecipeConfig = ServerContext.MachineRecipeConfig;
+            ItemConfig = ServerContext.ItemConfig;
             IItemStackFactory = ServerContext.ItemStackFactory;
-            BlockConfig = serviceProvider.GetService<IBlockConfig>();
+            BlockConfig = ServerContext.BlockConfig;
             ConfigJsonFileContainer = serviceProvider.GetService<ConfigJsonFileContainer>();
         }
     }

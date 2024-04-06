@@ -1,6 +1,7 @@
 using Core.EnergySystem;
 using Game.Block.Interface;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -23,8 +24,8 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //範囲内の電柱
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));
@@ -77,8 +78,8 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //起点となる電柱の設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0,0), BlockDirection.North, Vector3Int.one)));
@@ -136,8 +137,8 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
 
             //周りに機械を設置
@@ -183,8 +184,8 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //一つ目のセグメントを設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));

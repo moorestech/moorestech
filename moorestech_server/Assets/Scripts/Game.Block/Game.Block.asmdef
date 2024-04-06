@@ -12,7 +12,8 @@
     "Core.Util",
     "Game.World.Interface",
     "UniRx",
-    "Game.Context"
+    "Game.Context",
+    "Game.Map.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

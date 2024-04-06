@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,9 +29,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //ブロックを設置
             BlockPlace(4, 0, 1, worldBlock, blockFactory);
@@ -43,7 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(4, eventMessagePack.Events.Count);
 
-            var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var worldDataStore = ServerContext.WorldBlockDatastore;
             //一個ブロックを削除
             worldDataStore.RemoveBlock(new Vector3Int(4, 0));
 
