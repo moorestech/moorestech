@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.Context;
 using Game.Block.Interface;
+using Game.Context;
 using MainGame.UnityView.Block;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ namespace Client.Game.BlockSystem
         public static Vector3 GetBlockPositionToPlacePosition(Vector3Int blockPosition, BlockDirection blockDirection, int blockId)
         {
             // 大きさをBlockDirection系に変換
-            var blockSize = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId).BlockSize;
+            var blockSize = ServerContext.BlockConfig.GetBlockConfig(blockId).BlockSize;
             var originPos = blockDirection.GetBlockOriginPos(blockPosition, blockSize);
 
             return originPos;

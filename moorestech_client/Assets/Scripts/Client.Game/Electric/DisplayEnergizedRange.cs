@@ -7,6 +7,7 @@ using Client.Game.UI.UIState;
 using Core.Const;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Chunk;
 using UnityEngine;
@@ -80,7 +81,7 @@ namespace MainGame.Extension
 
         private void CreateRangeObject()
         {
-            var blockConfig = MoorestechContext.ServerServices.BlockConfig;
+            var blockConfig = ServerContext.BlockConfig;
 
             var (isElectricalBlock, isPole) = IsDisplay();
             //電気ブロックでも電柱でもない

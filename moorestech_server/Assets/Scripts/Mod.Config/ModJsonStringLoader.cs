@@ -14,10 +14,8 @@ namespace Mod.Config
         private const string OreConfigPath = "config/ore.json";
         private const string QuestConfigPath = "config/quest.json";
 
-        public static Dictionary<string, ConfigJson>  GetConfigString(string modDirectory)
+        public static Dictionary<string, ConfigJson> GetConfigString(ModsResource modResource)
         {
-            var modResource = new ModsResource(modDirectory);
-
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
             foreach (KeyValuePair<string, Loader.Mod> mod in modResource.Mods)

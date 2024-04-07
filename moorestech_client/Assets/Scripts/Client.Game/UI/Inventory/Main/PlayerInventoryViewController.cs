@@ -7,6 +7,8 @@ using Client.Game.Context;
 using Client.Game.UI.Inventory.Element;
 using Core.Const;
 using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using UniRx;
@@ -252,7 +254,7 @@ namespace Client.Game.UI.Inventory.Main
 
         private void PlaceOneItem(int slotIndex)
         {
-            var oneItem = MoorestechContext.ServerServices.ItemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
+            var oneItem = ServerContext.ItemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
             var currentItem = _playerInventory.LocalPlayerInventory[slotIndex];
 
             //追加できない場合はスキップ
@@ -293,7 +295,7 @@ namespace Client.Game.UI.Inventory.Main
             //余っているアイテム数
             var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
 
-            var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             foreach (var dragSlot in _itemSplitDraggedSlots)
             {

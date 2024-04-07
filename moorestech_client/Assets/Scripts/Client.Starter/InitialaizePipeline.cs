@@ -90,7 +90,7 @@ namespace Client.Starter
                 Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
                 //Vanilla APIの作成
-                vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, serverServiceProvider.ItemStackFactory, playerConnectionSetting, _proprieties.LocalServerProcess);
+                vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, playerConnectionSetting, _proprieties.LocalServerProcess);
 
                 //最初に必要なデータを取得
                 handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
@@ -119,7 +119,7 @@ namespace Client.Starter
 
             async UniTask LoadBlockAssets()
             {
-                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory, nothingIndexBlock, serverServiceProvider.BlockConfig);
+                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory, nothingIndexBlock);
                 loadingLog.text += $"\nブロックロード完了  {loadingStopwatch.Elapsed}";
             }
 
@@ -127,7 +127,7 @@ namespace Client.Starter
             {
                 //アイテム画像をロード
                 //TODO 非同期で実行できるようにする
-                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory, serverServiceProvider.ItemConfig);
+                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory);
                 loadingLog.text += $"\nアイテムロード完了  {loadingStopwatch.Elapsed}";
             }
 

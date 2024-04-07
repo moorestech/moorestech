@@ -3,6 +3,7 @@ using Client.Game.Context;
 using Client.Game.UI.Inventory.Element;
 using Client.Game.UI.Inventory.Main;
 using Core.Const;
+using Game.Context;
 using Game.Crafting.Interface;
 using TMPro;
 using UniRx;
@@ -41,7 +42,7 @@ namespace Client.Game.UI.Inventory.Sub
             _localPlayerInventory = localPlayerInventory;
             _localPlayerInventory.OnItemChange.Subscribe(OnItemChange);
 
-            var itemConfig = MoorestechContext.ServerServices.ItemConfig;
+            var itemConfig = ServerContext.ItemConfig;
 
             foreach (var item in itemConfig.ItemConfigDataList)
             {
@@ -76,7 +77,7 @@ namespace Client.Game.UI.Inventory.Sub
 
         private void OnClickItemList(ItemSlotObject slot)
         {
-            var craftConfig = MoorestechContext.ServerServices.CraftingConfig;
+            var craftConfig = ServerContext.CraftingConfig;
             _currentCraftingConfigDataList = craftConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
             if (_currentCraftingConfigDataList.Count == 0) return;
 
@@ -187,7 +188,7 @@ namespace Client.Game.UI.Inventory.Sub
 
             var result = new HashSet<int>();
 
-            var craftingConfig = MoorestechContext.ServerServices.CraftingConfig;
+            var craftingConfig = ServerContext.CraftingConfig;
             foreach (var configData in craftingConfig.CraftingConfigList)
             {
                 if (result.Contains(configData.ResultItem.Id)) continue; //すでにクラフト可能なアイテムならスキップ

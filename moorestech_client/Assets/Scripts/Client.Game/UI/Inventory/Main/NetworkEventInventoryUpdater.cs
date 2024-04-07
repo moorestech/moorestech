@@ -1,5 +1,6 @@
 using Client.Game.Context;
 using Client.Game.UI.Inventory.Sub;
+using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive;
 using VContainer.Unity;
@@ -30,7 +31,7 @@ namespace Client.Game.UI.Inventory.Main
         private void OnGrabInventoryUpdateEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(payload);
-            var item = MoorestechContext.ServerServices.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetGrabItem(item);
         }
 
@@ -40,7 +41,7 @@ namespace Client.Game.UI.Inventory.Main
         private void OnMainInventoryUpdateEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(payload);
-            var item = MoorestechContext.ServerServices.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetMainItem(packet.Slot, item);
         }
 
@@ -50,7 +51,7 @@ namespace Client.Game.UI.Inventory.Main
         private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
-            var item = MoorestechContext.ServerServices.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _blockInventoryView.SetItemSlot(packet.Slot, item);
         }
     }

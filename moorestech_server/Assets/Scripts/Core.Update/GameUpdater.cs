@@ -6,10 +6,10 @@ namespace Core.Update
 {
     public static class GameUpdater
     {
+        public static IObservable<Unit> UpdateObservable => UpdateSubject;
         private static readonly Subject<Unit> UpdateSubject = new();
 
         private static DateTime _lastUpdateTime = DateTime.Now;
-        public static IObservable<Unit> UpdateObservable => UpdateSubject;
 
         [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateMillSecondTime { get; private set; }
 

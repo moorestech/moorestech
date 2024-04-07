@@ -49,7 +49,9 @@
     "Server.Event",
     "Server.Protocol",
     "Server.Util",
-    "ServerServiceProvider"
+    "ServerServiceProvider",
+    "Game.Context",
+    "Core.Item.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

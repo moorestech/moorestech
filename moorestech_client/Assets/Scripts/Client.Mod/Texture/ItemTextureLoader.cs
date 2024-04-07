@@ -2,6 +2,7 @@
 using System.Linq;
 using Client.Common;
 using Core.Item.Config;
+using Game.Context;
 using Mod.Loader;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace MainGame.ModLoader.Texture
     {
         private const string ModTextureDirectory = "assets/item/";
 
-        public static List<ItemViewData> GetItemTexture(string modDirectory, IItemConfig itemConfig)
+        public static List<ItemViewData> GetItemTexture(string modDirectory)
         {
             var textureList = new List<ItemViewData>();
 
@@ -19,8 +20,8 @@ namespace MainGame.ModLoader.Texture
 
             foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
             {
-                List<int> itemIds = itemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
-                var itemConfigs = itemIds.Select(itemConfig.GetItemConfig).ToList();
+                List<int> itemIds = ServerContext.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
+                var itemConfigs = itemIds.Select(ServerContext.ItemConfig.GetItemConfig).ToList();
 
                 textureList.AddRange(GetTextures(itemConfigs, mod.Value));
             }
@@ -29,7 +30,7 @@ namespace MainGame.ModLoader.Texture
         }
 
 
-        private static List<ItemViewData> GetTextures(List<ItemConfigData> itemConfigs, Mod.Loader.Mod mod)
+        private static List<ItemViewData> GetTextures(List<IItemConfigData> itemConfigs, Mod.Loader.Mod mod)
         {
             var textureList = new List<ItemViewData>();
             foreach (var config in itemConfigs)
@@ -47,12 +48,12 @@ namespace MainGame.ModLoader.Texture
 
     public class ItemViewData
     {
-        public readonly ItemConfigData ItemConfigData;
+        public readonly IItemConfigData ItemConfigData;
 
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
 
-        public ItemViewData(Sprite itemImage, UnityEngine.Texture itemTexture, ItemConfigData itemConfigData)
+        public ItemViewData(Sprite itemImage, UnityEngine.Texture itemTexture, IItemConfigData itemConfigData)
         {
             ItemImage = itemImage;
             ItemConfigData = itemConfigData;

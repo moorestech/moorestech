@@ -19,14 +19,14 @@ namespace MainGame.UnityView.Item
             _nothingIndexItemImage = nothingIndexItemImage;
         }
 
-        public static ItemImageContainer CreateAndLoadItemImageContainer(string modsDirectory, IItemConfig itemConfig)
+        public static ItemImageContainer CreateAndLoadItemImageContainer(string modsDirectory)
         {
             var nothingIndexItemImage = new ItemViewData(null, null, new ItemConfigData("Not item", 100, "Not mod", 0));
             var itemImageList = new List<ItemViewData>();
 
             itemImageList.Add(nothingIndexItemImage); //id 0番は何もないことを表すので、何もない画像を追加
 
-            List<ItemViewData> textures = ItemTextureLoader.GetItemTexture(modsDirectory, itemConfig);
+            List<ItemViewData> textures = ItemTextureLoader.GetItemTexture(modsDirectory);
             itemImageList.AddRange(textures);
 
             return new ItemImageContainer(itemImageList, nothingIndexItemImage);

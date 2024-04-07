@@ -1,4 +1,3 @@
-using Core.Item;
 using Game.Block.Interface;
 using MainGame.Network.Settings;
 using Server.Protocol.PacketResponse;
@@ -9,15 +8,13 @@ namespace Client.Network.API
 {
     public class VanillaApiSendOnly
     {
-        private readonly ItemStackFactory _itemStackFactory;
         private readonly PacketSender _packetSender;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
         private readonly int _playerId;
 
-        public VanillaApiSendOnly(PacketSender packetSender, ItemStackFactory itemStackFactory, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApiSendOnly(PacketSender packetSender, PlayerConnectionSetting playerConnectionSetting)
         {
             _packetSender = packetSender;
-            _itemStackFactory = itemStackFactory;
             _playerConnectionSetting = playerConnectionSetting;
             _playerId = playerConnectionSetting.PlayerId;
         }

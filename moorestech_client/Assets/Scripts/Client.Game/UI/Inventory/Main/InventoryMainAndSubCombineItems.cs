@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Client.Game.Context;
 using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
@@ -32,7 +34,7 @@ namespace Client.Game.UI.Inventory.Main
         {
             _mainInventory = new List<IItemStack>();
 
-            var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 _mainInventory.Add(itemStackFactory.CreatEmpty());
@@ -60,7 +62,7 @@ namespace Client.Game.UI.Inventory.Main
 
         public bool IsItemExist(string modId, string itemName, int itemSlot)
         {
-            var id = MoorestechContext.ServerServices.ItemConfig.GetItemId(modId, itemName);
+            var id = ServerContext.ItemConfig.GetItemId(modId, itemName);
 
             if (itemSlot < _mainInventory.Count) return _mainInventory[itemSlot].Id == id;
 
@@ -80,7 +82,7 @@ namespace Client.Game.UI.Inventory.Main
                 if (subIndex < _subInventory.Count) return _subInventory.SubInventory[index - _mainInventory.Count];
 
                 Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
-                return MoorestechContext.ServerServices.ItemStackFactory.CreatEmpty();
+                return ServerContext.ItemStackFactory.CreatEmpty();
             }
             set
             {

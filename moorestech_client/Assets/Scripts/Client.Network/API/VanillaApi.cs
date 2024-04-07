@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using Core.Item;
 using MainGame.Network;
 using MainGame.Network.Settings;
 using UniRx;
@@ -17,14 +16,14 @@ namespace Client.Network.API
         public readonly VanillaApiWithResponse Response;
         public readonly VanillaApiSendOnly SendOnly;
 
-        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender, ServerCommunicator serverCommunicator, ItemStackFactory itemStackFactory, PlayerConnectionSetting playerConnectionSetting, Process localServerProcess)
+        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender, ServerCommunicator serverCommunicator, PlayerConnectionSetting playerConnectionSetting, Process localServerProcess)
         {
             _serverCommunicator = serverCommunicator;
             _localServerProcess = localServerProcess;
 
             Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
-            Response = new VanillaApiWithResponse(packetExchangeManager, itemStackFactory, playerConnectionSetting);
-            SendOnly = new VanillaApiSendOnly(packetSender, itemStackFactory, playerConnectionSetting);
+            Response = new VanillaApiWithResponse(packetExchangeManager, playerConnectionSetting);
+            SendOnly = new VanillaApiSendOnly(packetSender, playerConnectionSetting);
         }
         public IObservable<Unit> OnDisconnect => _serverCommunicator.OnDisconnect;
 

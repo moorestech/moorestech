@@ -38,6 +38,7 @@ using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
+using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
@@ -55,8 +56,8 @@ namespace Server.Boot
             var modDirectory = Path.Combine(serverDirectory, "mods");
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
-            //TODO EntitiyFactoryを登録？
-            var configJsons = ModJsonStringLoader.GetConfigString(modDirectory);
+            var modResource = new ModsResource(modDirectory);
+            var configJsons = ModJsonStringLoader.GetConfigString(modResource);
             initializerCollection.AddSingleton(new ConfigJsonFileContainer(configJsons));
             initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
             initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
@@ -70,7 +71,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
-            
+
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
@@ -107,6 +108,7 @@ namespace Server.Boot
 
 
             //JSONファイルのセーブシステムの読み込み
+            services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));

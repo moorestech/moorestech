@@ -6,8 +6,10 @@ using Client.Game.Control.MouseKeyboard;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.Inventory.Sub;
 using Core.Item;
+using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Block;
+using Game.Context;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using UnityEngine;
@@ -55,7 +57,7 @@ namespace Client.Game.UI.UIState
 
             //ブロックインベントリのビューを設定する
             var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
-            var config = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(id);
+            var config = ServerContext.BlockConfig.GetBlockConfig(id);
 
             var type = config.Type switch
             {

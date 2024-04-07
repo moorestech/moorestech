@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using Client.Game.Context;
 using Client.Game.UI.Inventory.Element;
 using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using TMPro;
 using UnityEngine;
@@ -41,7 +43,7 @@ namespace Client.Game.UI.Inventory.Sub
 
         public void SetBlockInventoryType(BlockInventoryType type, Vector3Int blockPos, IBlockConfigParam param, int blockId)
         {
-            var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockPos);
 
             Clear();
@@ -116,7 +118,7 @@ namespace Client.Game.UI.Inventory.Sub
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
 
-                var config = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId);
+                var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
                 machineBlockNameText.text = config.Name;
                 SetItemList(itemList);
             }

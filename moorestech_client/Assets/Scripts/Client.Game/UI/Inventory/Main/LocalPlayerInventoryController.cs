@@ -1,6 +1,8 @@
 using System;
 using Client.Game.Context;
 using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
@@ -15,7 +17,7 @@ namespace Client.Game.UI.Inventory.Main
         public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
-            GrabInventory = MoorestechContext.ServerServices.ItemStackFactory.Create(0, 0);
+            GrabInventory = ServerContext.ItemStackFactory.Create(0, 0);
         }
         public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
         public IItemStack GrabInventory { get; private set; }
@@ -45,7 +47,7 @@ namespace Client.Game.UI.Inventory.Main
 
             void SetInventory()
             {
-                var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
+                var itemStackFactory = ServerContext.ItemStackFactory;
 
                 var toInvItem = to switch
                 {

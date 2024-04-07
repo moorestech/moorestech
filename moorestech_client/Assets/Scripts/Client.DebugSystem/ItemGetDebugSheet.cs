@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Client.Game.Context;
 using Core.Item.Config;
+using Game.Context;
 using UnityDebugSheet.Runtime.Core.Scripts;
 
 namespace Client.DebugSystem
@@ -12,7 +13,7 @@ namespace Client.DebugSystem
 
         public override IEnumerator Initialize()
         {
-            IReadOnlyList<ItemConfigData> items = MoorestechContext.ServerServices.ItemConfig.ItemConfigDataList;
+            var items = ServerContext.ItemConfig.ItemConfigDataList;
             foreach (var itemConfig in items)
             {
                 var itemImage = MoorestechContext.ItemImageContainer.GetItemView(itemConfig.ItemId);

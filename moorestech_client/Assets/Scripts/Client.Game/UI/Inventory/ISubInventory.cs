@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.UI.Inventory.Element;
 using Core.Item;
+using Core.Item.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
 namespace Client.Game.UI.Inventory

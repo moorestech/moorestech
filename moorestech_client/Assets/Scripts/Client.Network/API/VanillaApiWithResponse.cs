@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Core.Item;
+using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using MainGame.Network.Settings;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
@@ -14,14 +15,14 @@ namespace Client.Network.API
     public class VanillaApiWithResponse
     {
         private readonly List<Vector2Int> _getChunkPoss = new();
-        private readonly ItemStackFactory _itemStackFactory;
+        private readonly IItemStackFactory _itemStackFactory;
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
 
-        public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, ItemStackFactory itemStackFactory, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
+            _itemStackFactory = ServerContext.ItemStackFactory;
             _packetExchangeManager = packetExchangeManager;
-            _itemStackFactory = itemStackFactory;
             _playerConnectionSetting = playerConnectionSetting;
 
             var getChunkSize = 5;

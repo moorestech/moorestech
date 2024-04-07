@@ -4,6 +4,7 @@ using Client.Common;
 using Client.Common.Util;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Mod.Loader;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace MainGame.ModLoader.Glb
     {
         private const string BlockDirectory = "assets/block/";
 
-        public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory, IBlockConfig blockConfig)
+        public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory)
         {
             var blocks = new List<BlockData>();
 
@@ -24,8 +25,8 @@ namespace MainGame.ModLoader.Glb
 
             foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
             {
-                List<int> blockIds = blockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
-                var blockConfigs = blockIds.Select(blockConfig.GetBlockConfig).ToList();
+                List<int> blockIds = ServerContext.BlockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
+                var blockConfigs = blockIds.Select(ServerContext.BlockConfig.GetBlockConfig).ToList();
 
                 blocks.AddRange(await GetBlocks(blockConfigs, mod.Value, blockPrefabsParent.transform));
             }

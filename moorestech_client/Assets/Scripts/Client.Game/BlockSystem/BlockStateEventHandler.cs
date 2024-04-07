@@ -1,4 +1,5 @@
 ﻿using Client.Game.Context;
+using Game.Context;
 using MainGame.UnityView.Chunk;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -35,7 +36,7 @@ namespace Client.Game.BlockSystem
                 var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
                 blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateJsonData);
 
-                var blockConfig = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockObject.BlockId);
+                var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockObject.BlockId);
             }
         }
     }

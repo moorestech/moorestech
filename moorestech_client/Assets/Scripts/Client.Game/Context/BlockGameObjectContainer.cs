@@ -4,7 +4,7 @@ using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
 using Game.Block;
-using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using MainGame.ModLoader.Glb;
 using UnityEngine;
 
@@ -16,22 +16,20 @@ namespace Client.Game.Context
     /// </summary>
     public class BlockGameObjectContainer
     {
-        private readonly IBlockConfig _blockConfig;
         private readonly List<BlockData> _blockObjectList;
         private readonly BlockGameObject _nothingIndexBlockObject;
 
-        public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig, List<BlockData> blockObjectList)
+        public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, List<BlockData> blockObjectList)
         {
             _nothingIndexBlockObject = nothingIndexBlockObject;
-            _blockConfig = blockConfig;
             _blockObjectList = blockObjectList;
         }
 
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig)
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject)
         {
-            List<BlockData> blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, blockConfig);
+            List<BlockData> blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory);
 
-            return new BlockGameObjectContainer(nothingIndexBlockObject, blockConfig, blockObjectList);
+            return new BlockGameObjectContainer(nothingIndexBlockObject, blockObjectList);
         }
 
 
@@ -39,7 +37,7 @@ namespace Client.Game.Context
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;
-            var blockConfig = _blockConfig.GetBlockConfig(blockId);
+            var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockId);
 
             if (blockConfigIndex < 0 || _blockObjectList.Count <= blockConfigIndex)
             {
@@ -84,7 +82,7 @@ namespace Client.Game.Context
             block.SetActive(true);
 
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
-            previewGameObject.Initialize(_blockConfig.GetBlockConfig(blockId));
+            previewGameObject.Initialize(ServerContext.BlockConfig.GetBlockConfig(blockId));
             return previewGameObject;
         }
 

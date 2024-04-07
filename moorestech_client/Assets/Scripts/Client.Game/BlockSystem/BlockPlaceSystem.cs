@@ -5,6 +5,7 @@ using Client.Game.UI.Inventory;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.UIState;
 using Game.Block.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
@@ -112,7 +113,7 @@ namespace Client.Game.BlockSystem
 
         private void GroundClickControl()
         {
-            var blockConfig = MoorestechContext.ServerServices.BlockConfig;
+            var blockConfig = ServerContext.BlockConfig;
 
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);

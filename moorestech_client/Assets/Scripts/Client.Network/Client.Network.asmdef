@@ -44,7 +44,9 @@
     "Client.Common",
     "UniRx",
     "UniTask",
-    "MessagePack"
+    "MessagePack",
+    "Core.Item.Interface",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

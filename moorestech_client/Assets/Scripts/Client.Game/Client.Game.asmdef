@@ -53,7 +53,9 @@
     "StarterAssetsInputs",
     "ThirdPersonController",
     "MessagePack",
-    "Game.Map.Interface"
+    "Game.Map.Interface",
+    "Game.Context",
+    "Core.Item.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
