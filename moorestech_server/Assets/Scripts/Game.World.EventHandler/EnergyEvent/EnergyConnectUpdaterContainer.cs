@@ -2,7 +2,6 @@
 using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler.EnergyEvent
 {
@@ -15,21 +14,12 @@ namespace Game.World.EventHandler.EnergyEvent
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        public EnergyConnectUpdaterContainer(
-            IBlockRemoveEvent blockRemoveEvent,
-            IBlockConfig blockConfig,
-            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
-            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockDatastore worldBlockDatastore,
-            IBlockPlaceEvent blockPlaceEvent)
+        public EnergyConnectUpdaterContainer(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
-            new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(blockPlaceEvent,
-                worldEnergySegmentDatastore, blockConfig, worldBlockDatastore);
-            new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(blockPlaceEvent,
-                worldEnergySegmentDatastore, blockConfig, maxElectricPoleMachineConnectionRange, worldBlockDatastore);
+            new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
+            new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, maxElectricPoleMachineConnectionRange);
 
-            new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(
-                blockRemoveEvent, blockConfig, worldEnergySegmentDatastore, worldBlockDatastore);
+            new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
         }
     }
 }

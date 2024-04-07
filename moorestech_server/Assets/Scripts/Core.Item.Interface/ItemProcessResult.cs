@@ -1,4 +1,4 @@
-﻿namespace Core.Item.Util
+﻿namespace Core.Item.Interface
 {
     public class ItemProcessResult
     {

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface.Event;
 
@@ -13,18 +14,14 @@ namespace Game.PlayerInventory.ItemManaged
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
 
-        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory)
+        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             _playerId = playerId;
             _grabInventoryUpdateEvent = grabInventoryUpdateEvent;
-            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent,
-                itemStackFactory, 1);
+            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, 1);
         }
 
-        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory, IItemStack itemStacks) :
-            this(playerId, grabInventoryUpdateEvent, itemStackFactory)
+        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent, IItemStack itemStacks) : this(playerId, grabInventoryUpdateEvent)
         {
             _openableInventoryService.SetItemWithoutEvent(0, itemStacks);
         }

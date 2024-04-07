@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
-using Game.Block.Interface;
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -25,17 +25,17 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingOutputTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
             GameUpdater.ResetUpdate();
-            
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
+
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var blockFactory = ServerContext.BlockFactory;
+            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
 
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 
 
-            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1,new BlockPositionInfo(Vector3Int.one, BlockDirection.North,Vector3Int.one));
+            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             foreach (var inputItem in recipe.ItemInputs)
                 block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 

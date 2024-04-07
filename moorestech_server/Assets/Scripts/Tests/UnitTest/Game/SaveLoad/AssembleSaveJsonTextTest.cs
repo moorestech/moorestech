@@ -1,5 +1,6 @@
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
@@ -18,11 +19,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SimpleBlockPlacedTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
-            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var blockConfig = ServerContext.BlockConfig;
 
             var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;
             var blockHash2 = blockConfig.GetBlockConfig(2).BlockHash;
@@ -34,11 +35,10 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Debug.Log(json);
 
-            var (_, loadServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
-            var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
+            var worldLoadBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var block1 = worldLoadBlockDatastore.GetBlock(new Vector3Int(0, 0));
             Assert.AreEqual(1, block1.BlockId);

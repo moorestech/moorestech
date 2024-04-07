@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
-using Core.Item;
 using Game.Block.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -26,8 +25,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void BlockPlaceTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             //パケットでプレイヤーインベントリを生成
 
@@ -40,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0));
 
             //ブロックが置かれているかチェック
-            var world = serviceProvider.GetService<IWorldBlockDatastore>();
+            var world = ServerContext.WorldBlockDatastore;
             Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2, 4)).BlockId);
             //アイテムが減っているかチェック
             Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
@@ -70,9 +69,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void PlaceDirectionTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //パケットでプレイヤーインベントリを生成
 

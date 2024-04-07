@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using System.IO;
 using Core.ConfigJson;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Component;
 using Game.Block.Config;
@@ -14,6 +14,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.RecipeConfig;
+using Game.Context;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.Entity;
@@ -31,13 +32,10 @@ using Game.SaveLoad.Json;
 using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
-using Game.World.Event;
 using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
-using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
 using Newtonsoft.Json;
@@ -47,45 +45,65 @@ using Server.Protocol;
 
 namespace Server.Boot
 {
-    public class MoorestechServerDiContainerGenerator
+    public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
-            var services = new ServiceCollection();
-
+            //必要な各種インスタンスを手動で作成
+            var initializerCollection = new ServiceCollection();
             var modDirectory = Path.Combine(serverDirectory, "mods");
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
-            //コンフィグ、ファクトリーのインスタンスを登録
-            (Dictionary<string, ConfigJson> configJsons, var modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
-            services.AddSingleton(new ConfigJsonList(configJsons));
-            services.AddSingleton(modsResource);
-            services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
-            services.AddSingleton<IItemConfig, ItemConfig>();
-            services.AddSingleton<ICraftingConfig, CraftConfig>();
-            services.AddSingleton<ItemStackFactory, ItemStackFactory>();
-            services.AddSingleton<IBlockConfig, BlockConfig>();
-            services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
-            services.AddSingleton<IBlockFactory, BlockFactory>();
-            services.AddSingleton<ComponentFactory, ComponentFactory>();
+            //TODO EntitiyFactoryを登録？
+            var configJsons = ModJsonStringLoader.GetConfigString(modDirectory);
+            initializerCollection.AddSingleton(new ConfigJsonFileContainer(configJsons));
+            initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
+            initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
+            initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
+            initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
+            initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
 
+            initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
+            initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
+
+            initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
+            initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
+            initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
+            
+            initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
+            initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
+
+            var initializerProvider = initializerCollection.BuildServiceProvider();
+            new ServerContext(
+                initializerProvider.GetService<IItemConfig>(),
+                initializerProvider.GetService<IBlockConfig>(),
+                initializerProvider.GetService<ICraftingConfig>(),
+                initializerProvider.GetService<IMachineRecipeConfig>(),
+                initializerProvider.GetService<IItemStackFactory>(),
+                initializerProvider.GetService<IBlockFactory>(),
+                initializerProvider.GetService<IWorldBlockDatastore>(),
+                initializerProvider.GetService<IWorldBlockUpdateEvent>(),
+                initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>(),
+                initializerProvider.GetService<IMapVeinDatastore>()
+            );
+
+
+            //コンフィグ、ファクトリーのインスタンスを登録
+            var services = new ServiceCollection();
 
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
-            services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
-            services.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
-            services.AddSingleton<IEntityFactory, EntityFactory>();
+            services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-            services.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
 
             //JSONファイルのセーブシステムの読み込み
@@ -95,9 +113,6 @@ namespace Server.Boot
             services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
 
             //イベントを登録
-            services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
-            services.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
-            services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
 
@@ -111,7 +126,6 @@ namespace Server.Boot
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
-            services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<MapObjectUpdateEventPacket>();
 
             //データのセーブシステム
@@ -131,7 +145,6 @@ namespace Server.Boot
 
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
-            serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
 

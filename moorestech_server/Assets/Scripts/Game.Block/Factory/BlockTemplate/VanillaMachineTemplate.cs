@@ -1,4 +1,4 @@
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
@@ -9,7 +9,7 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -19,25 +19,15 @@ namespace Game.Block.Factory.BlockTemplate
         public delegate VanillaMachineBase CreateMachine(
             (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
                 VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-                ItemStackFactory itemStackFactory, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent) data);
+                BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
-        private readonly ComponentFactory _componentFactory;
         private readonly CreateMachine _createMachine;
-        private readonly ItemStackFactory _itemStackFactory;
 
-
-        private readonly IMachineRecipeConfig _machineRecipeConfig;
-
-
-        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, CreateMachine createMachine, ComponentFactory componentFactory)
+        public VanillaMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, CreateMachine createMachine)
         {
-            _machineRecipeConfig = machineRecipeConfig;
-            _itemStackFactory = itemStackFactory;
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
             _createMachine = createMachine;
-            _componentFactory = componentFactory;
         }
 
         public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
@@ -45,13 +35,13 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = CreateInputConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(param, entityId, inputConnectorComponent);
 
-            var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetEmptyRecipeData(), machineParam.RequiredPower);
+            var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
+            var runProcess = new VanillaMachineRunProcess(input, output, emptyRecipe, machineParam.RequiredPower);
 
             return _createMachine((param.BlockId, entityId, blockHash,
                     new VanillaMachineBlockInventory(input, output),
                     new VanillaMachineSave(input, output, runProcess),
                     runProcess,
-                    _itemStackFactory,
                     blockPositionInfo,
                     inputConnectorComponent
                 ));
@@ -62,13 +52,12 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = CreateInputConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(param, entityId, inputConnectorComponent);
 
-            var runProcess = new VanillaMachineLoad(input, output, _itemStackFactory, _machineRecipeConfig, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
+            var runProcess = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
 
             return _createMachine((param.BlockId, entityId, blockHash,
                     new VanillaMachineBlockInventory(input, output),
                     new VanillaMachineSave(input, output, runProcess),
                     runProcess,
-                    _itemStackFactory,
                     blockPositionInfo,
                     inputConnectorComponent
                 ));
@@ -79,11 +68,11 @@ namespace Game.Block.Factory.BlockTemplate
             var machineParam = param.Param as MachineBlockConfigParam;
 
             var input = new VanillaMachineInputInventory(
-                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, _itemStackFactory,
+                param.BlockId, machineParam.InputSlot,
                 _blockInventoryUpdateEvent, entityId);
 
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent, entityId,
+                machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, entityId,
                 machineParam.InputSlot, inputConnectorComponent);
 
             return (input, output, machineParam);
@@ -91,11 +80,10 @@ namespace Game.Block.Factory.BlockTemplate
 
         private InputConnectorComponent CreateInputConnector(BlockPositionInfo blockPositionInfo)
         {
-            return _componentFactory.CreateInputConnectorComponent(blockPositionInfo,
-                new IOConnectionSetting(
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }));
+            return new InputConnectorComponent(new IOConnectionSetting(
+                new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
         }
     }
 }

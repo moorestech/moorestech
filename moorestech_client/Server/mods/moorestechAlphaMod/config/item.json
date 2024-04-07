@@ -218,5 +218,10 @@
         "name": "wooden chest",
         "maxStacks": 100,
         "imagePath": "assets/item/wooden chest.png"
+    },
+    {
+        "name": "test",
+        "maxStacks": 100,
+        "imagePath": ""
     }
 ]

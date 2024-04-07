@@ -1,4 +1,4 @@
-using Core.Item.Config;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Game
         public void InsertTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
@@ -41,12 +41,12 @@ namespace Tests.CombinedTest.Game
         public void FullItemInsert()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             
-            var id1MaxStack = serviceProvider.GetService<IItemConfig>().GetItemConfig(1).MaxStack;
+            var id1MaxStack = ServerContext.ItemConfig.GetItemConfig(1).MaxStack;
 
             //インベントリをアイテムで満たす
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) mainInventory.SetItem(i, 1, id1MaxStack);

@@ -1,7 +1,9 @@
 using System;
-using Game.World.Interface.Event;
+using Game.Context;
+using Game.World.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
+using UniRx;
 using UnityEngine;
 
 namespace Server.Event.EventReceive
@@ -11,17 +13,16 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:removeBlock";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent, EventProtocolProvider eventProtocolProvider)
+        public RemoveBlockToSetEventPacket(EventProtocolProvider eventProtocolProvider)
         {
-            blockRemoveEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
+            ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
-        private void ReceivedEvent(BlockRemoveEventProperties blockPlaceEventProperties)
+        private void OnBlockRemove(BlockUpdateProperties updateProperties)
         {
-            var c = blockPlaceEventProperties.Pos;
-
-            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(c));
+            var pos = updateProperties.Pos;
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(pos));
 
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }

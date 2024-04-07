@@ -1,10 +1,11 @@
 using System.Reflection;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -20,11 +21,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void PowerGeneratorTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var blockFactory = ServerContext.BlockFactory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
-            var fuelSlotCount = (serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
+            var fuelSlotCount = (ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var powerGenerator = (VanillaPowerGeneratorBase)blockFactory.Create(PowerGeneratorId, 10, generatorPosInfo);
 
@@ -49,7 +50,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(saveText);
 
 
-            var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).BlockHash;
+            var blockHash = ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).BlockHash;
             //発電機を再作成
             var loadedPowerGenerator = (VanillaPowerGeneratorBase)blockFactory.Load(blockHash, 10, saveText, generatorPosInfo);
             //発電機を再作成した結果を検証

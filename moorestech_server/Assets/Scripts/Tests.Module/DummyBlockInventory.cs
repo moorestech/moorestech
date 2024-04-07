@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Util;
 using Game.Block.BlockInventory;
 
@@ -10,16 +10,15 @@ namespace Tests.Module
     public class DummyBlockInventory : IBlockInventory
     {
         private readonly List<IItemStack> _insertedItems;
-        private readonly ItemStackFactory _itemStackFactory;
+
         private int _endInsertCnt;
 
-        public DummyBlockInventory(ItemStackFactory itemStackFactory, int insertToEndNum = 1, int maxSlot = 100)
+        public DummyBlockInventory(int insertToEndNum = 1, int maxSlot = 100)
         {
-            _itemStackFactory = itemStackFactory;
             IsItemExists = false;
             InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            _insertedItems = CreateEmptyItemStacksList.Create(maxSlot, _itemStackFactory).ToList();
+            _insertedItems = CreateEmptyItemStacksList.Create(maxSlot).ToList();
         }
 
         public bool IsItemExists { get; private set; }

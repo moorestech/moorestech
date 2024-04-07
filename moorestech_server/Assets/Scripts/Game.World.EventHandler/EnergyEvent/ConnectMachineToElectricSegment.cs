@@ -3,9 +3,11 @@ using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
+using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
+using UniRx;
 using UnityEngine;
 
 namespace Game.World.EventHandler.EnergyEvent
@@ -19,33 +21,26 @@ namespace Game.World.EventHandler.EnergyEvent
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        private readonly IBlockConfig _blockConfig;
         private readonly int _maxMachineConnectionRange;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
 
 
-        public ConnectMachineToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
-            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
-            IBlockConfig blockConfig,
-            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockDatastore worldBlockDatastore)
+        public ConnectMachineToElectricSegment(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
-            _blockConfig = blockConfig;
-            _worldBlockDatastore = worldBlockDatastore;
             _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
-            blockPlaceEvent.Subscribe(OnBlockPlace);
+            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
-        private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
+        private void OnBlockPlace(BlockUpdateProperties updateProperties)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.Pos.x;
-            var y = blockPlaceEvent.Pos.y;
+            var pos = updateProperties.Pos;
+            var x = updateProperties.Pos.x;
+            var y = updateProperties.Pos.y;
 
             //設置されたブロックが発電機か機械以外はスルー処理
-            if (!IsElectricMachine(blockPlaceEvent.Pos)) return;
+            if (!IsElectricMachine(pos)) return;
 
             //最大の電柱の接続範囲を取得探索して接続する
             var startMachineX = x - _maxMachineConnectionRange / 2;
@@ -54,19 +49,18 @@ namespace Game.World.EventHandler.EnergyEvent
             for (var j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
             {
                 var polePos = new Vector3Int(i, j);
-                if (!_worldBlockDatastore.ExistsComponent<IElectricPole>(polePos)) continue;
+                if (!ServerContext.WorldBlockDatastore.ExistsComponent<IElectricPole>(polePos)) continue;
 
                 //範囲内に電柱がある場合
                 //電柱に接続
-                var machinePos = blockPlaceEvent.Pos;
-                ConnectToElectricPole(polePos, machinePos);
+                ConnectToElectricPole(polePos, pos);
             }
         }
 
         private bool IsElectricMachine(Vector3Int pos)
         {
-            return _worldBlockDatastore.ExistsComponent<TGenerator>(pos) ||
-                   _worldBlockDatastore.ExistsComponent<TConsumer>(pos);
+            return ServerContext.WorldBlockDatastore.ExistsComponent<TGenerator>(pos) ||
+                   ServerContext.WorldBlockDatastore.ExistsComponent<TConsumer>(pos);
         }
 
 
@@ -75,10 +69,12 @@ namespace Game.World.EventHandler.EnergyEvent
         /// </summary>
         private void ConnectToElectricPole(Vector3Int polePos, Vector3Int machinePos)
         {
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
             //電柱を取得
-            var pole = _worldBlockDatastore.GetBlock<TTransformer>(polePos);
+            var pole = worldBlockDatastore.GetBlock<TTransformer>(polePos);
             //その電柱のコンフィグを取得
-            var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
+            var configParam = ServerContext.BlockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認
@@ -90,10 +86,10 @@ namespace Game.World.EventHandler.EnergyEvent
             //在る場合は発電機か機械かを判定して接続
             //発電機を電力セグメントに追加
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
-            if (_worldBlockDatastore.ExistsComponent<TGenerator>(machinePos))
-                segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machinePos));
-            else if (_worldBlockDatastore.ExistsComponent<TConsumer>(machinePos))
-                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machinePos));
+            if (worldBlockDatastore.ExistsComponent<TGenerator>(machinePos))
+                segment.AddGenerator(worldBlockDatastore.GetBlock<TGenerator>(machinePos));
+            else if (worldBlockDatastore.ExistsComponent<TConsumer>(machinePos))
+                segment.AddEnergyConsumer(worldBlockDatastore.GetBlock<TConsumer>(machinePos));
         }
     }
 }

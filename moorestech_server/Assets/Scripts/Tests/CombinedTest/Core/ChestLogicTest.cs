@@ -1,13 +1,11 @@
 using System.Collections.Generic;
-using Core.Item;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
 using Game.Block.Component.IOConnector;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -23,11 +21,11 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void BeltConveyorInsertChestLogicTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var blockFactory = ServerContext.BlockFactory;
 
             var random = new Random(4123);
 
@@ -51,10 +49,10 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void BeltConveyorOutputChestLogicTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var blockFactory = ServerContext.BlockFactory;
 
             var chest = (VanillaChest)blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltconveyor = (VanillaBeltConveyor)blockFactory.Create(3, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));

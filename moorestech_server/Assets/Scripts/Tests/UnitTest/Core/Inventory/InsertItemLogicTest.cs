@@ -1,5 +1,6 @@
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -16,9 +17,9 @@ namespace Tests.UnitTest.Core.Inventory
         public void InsertItemWithPrioritySlotTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var itemStackFactory = serviceProvider.GetRequiredService<ItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10);
 

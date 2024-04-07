@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
+using Core.Item.Interface;
 
 namespace Game.Block.Interface.RecipeConfig
 {

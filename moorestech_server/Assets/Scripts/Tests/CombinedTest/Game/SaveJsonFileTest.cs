@@ -1,6 +1,7 @@
 using System.Reflection;
 using Game.Block.Interface;
 using Game.Block.Interface;
+using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
@@ -21,9 +22,9 @@ namespace Tests.CombinedTest.Game
         public void SaveJsonAndLoadTest()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
 
             //リフレクションでテスト用のファイル名を変更
@@ -40,7 +41,7 @@ namespace Tests.CombinedTest.Game
 
 
             var (_, loadServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             //テスト用にファイル名を変更
@@ -49,7 +50,7 @@ namespace Tests.CombinedTest.Game
             Debug.Log(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
-            var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
+            var loadWorldBlockDatastore = ServerContext.WorldBlockDatastore;
 
 
             //追加したブロックのチェック

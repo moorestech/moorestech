@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void SpawnCoordinateTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             //ワールド設定情報を初期化
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize();

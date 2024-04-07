@@ -1,5 +1,5 @@
 using System.Linq;
-using Core.Item;
+using Game.Context;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -18,12 +18,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectProtocol_DestroyAndAddToInventory_Test()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
 
             //マップオブジェクトを取得するプロトコルを送信

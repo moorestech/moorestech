@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
@@ -12,6 +12,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
+using Game.Context;
 using UniRx;
 
 namespace Game.Block.Blocks.Chest
@@ -19,43 +20,39 @@ namespace Game.Block.Blocks.Chest
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
         private readonly BlockComponentManager _blockComponentManager = new();
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
-        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
+        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
-            _blockInventoryUpdate = blockInventoryUpdate;
             BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
-            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
+            var inputConnectorComponent = new InputConnectorComponent(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }));
+                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
             _blockComponentManager.AddComponent(inputConnectorComponent);
 
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, slotNum);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : this(blockId,
-            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate, blockPositionInfo, componentFactory)
+        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockPositionInfo blockPositionInfo) :
+            this(blockId, entityId, blockHash, slotNum, blockPositionInfo)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
             {
                 var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                var item = itemStackFactory.Create(itemHash, itemCount);
+                var item = ServerContext.ItemStackFactory.Create(itemHash, itemCount);
                 _itemDataStoreService.SetItem(i / 2, item);
             }
         }
@@ -144,8 +141,8 @@ namespace Game.Block.Blocks.Chest
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                EntityId, slot, itemStack));
+            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
         }
 
         public override bool Equals(object obj)

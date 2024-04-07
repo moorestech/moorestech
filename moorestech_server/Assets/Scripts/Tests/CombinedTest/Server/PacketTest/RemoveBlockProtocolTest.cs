@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Item.Config;
 using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -26,16 +27,16 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void RemoveTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var blockConfig = ServerContext.BlockConfig;
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
-            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North,Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, 0,blockPosInfo);
+            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
             var blockInventory = (IBlockInventory)block;
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
@@ -43,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //削除するためのブロックの生成
             worldBlock.AddBlock(block);
 
-            Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0,  0)).EntityId);
+            Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0, 0)).EntityId);
 
             //プレイヤーインベントリに削除したブロックを追加
 
@@ -73,11 +74,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var itemConfig = ServerContext.ItemConfig;
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
@@ -93,8 +94,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //削除するためのブロックの生成
-            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North,Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, 0,blockPosInfo);
+            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
             var blockInventory = (IBlockInventory)block;
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
@@ -126,11 +127,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void InventoryFullToCantRemoveBlockTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlock = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            var itemConfig = ServerContext.ItemConfig;
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var mainInventory =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
@@ -141,8 +142,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
 
             //ブロックを設置
-            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North,Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, 0,blockPosInfo);
+            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
             worldBlock.AddBlock(block);
 
 

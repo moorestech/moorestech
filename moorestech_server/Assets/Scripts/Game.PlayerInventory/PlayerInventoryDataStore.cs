@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
@@ -14,25 +14,23 @@ namespace Game.PlayerInventory
     {
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
 
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
 
-        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, ItemStackFactory itemStackFactory, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
-
-            _itemStackFactory = itemStackFactory;
         }
 
         public PlayerInventoryData GetInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
-                var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent);
+                var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent);
 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab));
             }
@@ -61,12 +59,11 @@ namespace Game.PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
-                (List<IItemStack> mainItems, List<IItemStack> craftItems, var grabItem) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
+                (List<IItemStack> mainItems, var grabItem) = saveInventory.GetPlayerInventoryData();
 
                 //アイテムを復元
-                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,
-                    mainItems);
-                var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory, grabItem);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, mainItems);
+                var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
 
                 var playerInventory = new PlayerInventoryData(main, grab);
 

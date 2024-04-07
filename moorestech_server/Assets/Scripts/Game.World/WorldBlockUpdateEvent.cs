@@ -8,19 +8,19 @@ namespace Game.World
 {
     public class WorldBlockUpdateEvent : IWorldBlockUpdateEvent
     {
-        private readonly Subject<WorldBlockData> _onBlockPlaceEvent = new();
-        private readonly Subject<WorldBlockData> _onBlockRemoveEvent = new();
-        public IObservable<WorldBlockData> OnBlockPlaceEvent => _onBlockPlaceEvent;
+        private readonly Subject<BlockUpdateProperties> _onBlockPlaceEvent = new();
+        private readonly Subject<BlockUpdateProperties> _onBlockRemoveEvent = new();
+        public IObservable<BlockUpdateProperties> OnBlockPlaceEvent => _onBlockPlaceEvent;
 
-        public IObservable<WorldBlockData> OnBlockRemoveEvent => _onBlockRemoveEvent;
+        public IObservable<BlockUpdateProperties> OnBlockRemoveEvent => _onBlockRemoveEvent;
 
         public IDisposable SubscribePlace(Vector3Int subscribePos, Action<BlockUpdateProperties> blockPlaceEvent)
         {
             return _onBlockPlaceEvent.Subscribe(data =>
             {
-                if (data.BlockPositionInfo.IsContainPos(subscribePos))
+                if (data.BlockData.BlockPositionInfo.IsContainPos(subscribePos))
                 {
-                    blockPlaceEvent(new BlockUpdateProperties(subscribePos, data));
+                    blockPlaceEvent(new BlockUpdateProperties(subscribePos, data.BlockData));
                 }
             });
         }
@@ -29,21 +29,21 @@ namespace Game.World
         {
             return _onBlockRemoveEvent.Subscribe(data =>
             {
-                if (data.BlockPositionInfo.IsContainPos(subscribePos))
+                if (data.BlockData.BlockPositionInfo.IsContainPos(subscribePos))
                 {
-                    blockPlaceEvent(new BlockUpdateProperties(subscribePos, data));
+                    blockPlaceEvent(new BlockUpdateProperties(subscribePos, data.BlockData));
                 }
             });
         }
 
-        public void OnBlockPlaceEventInvoke(WorldBlockData worldBlockData)
+        public void OnBlockPlaceEventInvoke(Vector3Int pos,WorldBlockData worldBlockData)
         {
-            _onBlockPlaceEvent.OnNext(worldBlockData);
+            _onBlockPlaceEvent.OnNext(new BlockUpdateProperties(pos, worldBlockData));
         }
 
-        public void OnBlockRemoveEventInvoke(WorldBlockData worldBlockData)
+        public void OnBlockRemoveEventInvoke(Vector3Int pos,WorldBlockData worldBlockData)
         {
-            _onBlockRemoveEvent.OnNext(worldBlockData);
+            _onBlockRemoveEvent.OnNext(new BlockUpdateProperties(pos, worldBlockData));
         }
     }
 }

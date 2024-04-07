@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -19,16 +20,12 @@ namespace Server.Protocol.PacketResponse
     public class InventoryItemMoveProtocol : IPacketResponse
     {
         public const string Tag = "va:invItemMove";
-        private readonly ItemStackFactory _itemStackFactory;
-        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -54,7 +51,7 @@ namespace Server.Protocol.PacketResponse
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
+                    InventoryItemMoveService.Move(fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
@@ -76,8 +73,8 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = _worldBlockDatastore.ExistsComponent<IOpenableInventory>(pos)
-                        ? _worldBlockDatastore.GetBlock<IOpenableInventory>(pos)
+                    inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableInventory>(pos)
+                        ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableInventory>(pos)
                         : null;
                     break;
             }

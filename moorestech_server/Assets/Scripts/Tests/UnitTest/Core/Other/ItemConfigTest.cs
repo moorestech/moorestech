@@ -1,4 +1,5 @@
 using Core.Item.Config;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -17,8 +18,8 @@ namespace Tests.UnitTest.Core.Other
         public void JsonStackTest(int id, int stack)
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemConfig = ServerContext.ItemConfig;
             Assert.AreEqual(stack, itemConfig.GetItemConfig(id).MaxStack);
         }
 
@@ -32,8 +33,8 @@ namespace Tests.UnitTest.Core.Other
         public void JsonNameTest(int id, string name)
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemConfig = ServerContext.ItemConfig;
             Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
         }
 
@@ -41,8 +42,8 @@ namespace Tests.UnitTest.Core.Other
         public void ModIdToItemListTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemConfig = ServerContext.ItemConfig;
 
 
             Assert.AreEqual(13, itemConfig.GetItemIds("Test Author:forUniTest").Count);

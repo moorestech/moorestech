@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
+    /// <summary>
+    /// TODO こういうのinterfaceにする
+    /// </summary>
     public class WorldBlockData
     {
         public WorldBlockData(IBlock block, Vector3Int originalPos, BlockDirection blockDirection, IBlockConfig blockConfig)

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -16,19 +17,13 @@ namespace Server.Protocol.PacketResponse
     public class RemoveBlockProtocol : IPacketResponse
     {
         public const string Tag = "va:removeBlock";
-        private readonly IBlockConfig _blockConfig;
-        private readonly ItemStackFactory _itemStackFactory;
-        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
 
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            _blockConfig = serviceProvider.GetService<IBlockConfig>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -43,7 +38,8 @@ namespace Server.Protocol.PacketResponse
             var isNotRemainItem = true;
 
             //インベントリがある時は
-            if (_worldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            if (worldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
                 //プレイヤーインベントリにブロック内のアイテムを挿入
                 for (var i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
@@ -54,7 +50,8 @@ namespace Server.Protocol.PacketResponse
                     blockInventory.SetItem(i, remainItem);
 
                     //アイテムが入りきらなかったらブロックを削除しないフラグを立てる
-                    if (!remainItem.Equals(_itemStackFactory.CreatEmpty())) isNotRemainItem = false;
+                    var emptyItem = ServerContext.ItemStackFactory.CreatEmpty();
+                    if (!remainItem.Equals(emptyItem)) isNotRemainItem = false;
                 }
 
 
@@ -62,7 +59,7 @@ namespace Server.Protocol.PacketResponse
 
             //壊したブロックをインベントリーに挿入
             //ブロックIdの取得
-            var blockId = _worldBlockDatastore.GetBlock(data.Pos).BlockId;
+            var blockId = worldBlockDatastore.GetBlock(data.Pos).BlockId;
             //すでにブロックがなかったら-1
             if (blockId == BlockConst.EmptyBlockId)
             {
@@ -70,13 +67,14 @@ namespace Server.Protocol.PacketResponse
             }
 
             //ブロックのIDを取得
-            var blockItemId = _blockConfig.GetBlockConfig(blockId).ItemId;
-            var remainBlockItem = playerMainInventory.InsertItem(_itemStackFactory.Create(blockItemId, 1));
+            var blockItemId = ServerContext.BlockConfig.GetBlockConfig(blockId).ItemId;
+            //アイテムを挿入
+            var remainBlockItem = playerMainInventory.InsertItem(ServerContext.ItemStackFactory.Create(blockItemId, 1));
 
 
             //ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
-            if (isNotRemainItem && remainBlockItem.Equals(_itemStackFactory.CreatEmpty()))
-                _worldBlockDatastore.RemoveBlock(data.Pos);
+            if (isNotRemainItem && remainBlockItem.Equals(ServerContext.ItemStackFactory.CreatEmpty()))
+                worldBlockDatastore.RemoveBlock(data.Pos);
 
             return null;
         }

@@ -1,6 +1,7 @@
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -16,10 +17,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(ChestBlockId).BlockHash;
+            var blockFactory = ServerContext.BlockFactory;
+            var blockHash = ServerContext.BlockConfig.GetBlockConfig(ChestBlockId).BlockHash;
 
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1, chestPosInfo);

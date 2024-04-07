@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Core.EnergySystem;
-using Core.Item;
-using Core.Item.Config;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
@@ -12,6 +12,8 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
+using Game.Map.Interface.Vein;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -30,27 +32,23 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
-            var componentFactory = serviceProvider.GetService<ComponentFactory>();
-
-            var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
+            var blockFactory = ServerContext.BlockFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //手動で鉱石の設定を行う
-            var outputCount = minerBlockConfigParam.OutputSlot;
-            var miningSetting = minerBlockConfigParam.MineItemSettings[0];
-            var miningTime = miningSetting.MiningTime;
-            var miningItemId = miningSetting.ItemId;
+            var (mapVein, pos) = GetMapVein();
+            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1, new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
+            var miner = worldBlockDatastore.GetBlock(pos) as VanillaMinerBase;
+            
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerBase).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
+            var miningItemId = miningItems[0].Id;
+            var miningTime = (int)typeof(VanillaMinerBase).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
 
-            var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent(), posInfo, componentFactory));
-            miner.SetMiningItem(miningItemId, miningTime);
 
-            var dummyInventory = new DummyBlockInventory(itemStackFactory);
+            var dummyInventory = new DummyBlockInventory();
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
             var minerConnectors = (List<IBlockInventory>)miner.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
@@ -94,5 +92,22 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);
         }
+        
+        (IMapVein mapVein, Vector3Int pos) GetMapVein()
+        {
+            var pos = new Vector3Int(0, 0);
+            for (var i = 0; i < 500; i++)
+            {
+                for (var j = 0; j < 500; j++)
+                {
+                    var veins = ServerContext.MapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
+                    if (veins.Count == 0) continue;
+
+                    return (veins[0], new Vector3Int(i, j));
+                }
+            }
+            return (null, pos);
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using Game.Block.Interface.State;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Newtonsoft.Json;
@@ -15,11 +16,10 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider,
-            IWorldBlockDatastore worldBlockDatastore)
+        public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            worldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
+            ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
         }
 
         private void ChangeState((ChangedBlockState state, WorldBlockData blockData) state)

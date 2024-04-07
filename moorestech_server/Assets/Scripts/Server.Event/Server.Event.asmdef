@@ -6,13 +6,14 @@
     "MessagePack",
     "Core.Inventory",
     "Core.Util",
-    "Core.Item",
+    "Core.Item.Interface",
     "Game.World.Interface",
     "Game.Block.Interface",
     "Game.PlayerInventory.Interface",
     "Game.Map.Interface",
     "Server.Util",
-    "UniRx"
+    "UniRx",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

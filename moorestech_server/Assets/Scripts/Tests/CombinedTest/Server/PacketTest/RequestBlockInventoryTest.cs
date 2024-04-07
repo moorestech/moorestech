@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,16 +28,16 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void MachineInventoryRequest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
 
-            var machinePosInfo = new BlockPositionInfo(new Vector3Int(5 ,10), BlockDirection.North, Vector3Int.one);
-            var machine = serviceProvider.GetService<IBlockFactory>().Create(MachineBlockId, 5,machinePosInfo) as VanillaMachineBase;
+            var machinePosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
+            var machine = ServerContext.BlockFactory.Create(MachineBlockId, 5, machinePosInfo) as VanillaMachineBase;
             machine.SetItem(0, itemStackFactory.Create(1, 2));
             machine.SetItem(2, itemStackFactory.Create(4, 5));
 
-            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine);
+            ServerContext.WorldBlockDatastore.AddBlock(machine);
 
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(

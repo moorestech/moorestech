@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
-using Core.Item;
+using Core.Item.Interface;
 using Game.Crafting.Interface;
 
 namespace Game.Crafting.Config
@@ -10,7 +10,7 @@ namespace Game.Crafting.Config
     {
         private readonly List<CraftingConfigData> _configDataList;
 
-        public CraftConfig(ItemStackFactory itemStackFactory, ConfigJsonList configJson)
+        public CraftConfig(IItemStackFactory itemStackFactory, ConfigJsonFileContainer configJson)
         {
             //ロードしたコンフィグのデータを元に、CraftingConfigDataを作成
             _configDataList = new CraftConfigJsonLoad(itemStackFactory).Load(configJson.SortedCraftRecipeConfigJsonList);

@@ -1,4 +1,5 @@
 using Game.Block.Interface.RecipeConfig;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -11,9 +12,8 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void NullTest()
         {
-            var (packetResponse, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var recipeData = serviceProvider.GetService<IMachineRecipeConfig>().GetEmptyRecipeData();
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var recipeData = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
             Assert.AreEqual(0, recipeData.ItemInputs.Count);
             Assert.AreEqual(0, recipeData.ItemOutputs.Count);
             Assert.AreEqual(0, recipeData.BlockId);

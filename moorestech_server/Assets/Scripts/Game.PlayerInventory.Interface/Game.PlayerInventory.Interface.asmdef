@@ -2,8 +2,9 @@
   "name": "Game.PlayerInventory.Interface",
   "rootNamespace": "",
   "references": [
-    "Core.Item",
-    "Core.Inventory"
+    "Core.Item.Interface",
+    "Core.Inventory",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,4 +1,5 @@
-﻿using Core.Item;
+﻿using System;
+using Core.Item.Interface;
 
 namespace Game.Block.Interface.Event
 {
@@ -8,10 +9,7 @@ namespace Game.Block.Interface.Event
     /// </summary>
     public interface IBlockOpenableInventoryUpdateEvent
     {
-        public delegate void BlockInventoryEvent(
-            BlockOpenableInventoryUpdateEventProperties properties);
-
-        public void Subscribe(BlockInventoryEvent blockInventoryEvent);
+        public void Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent);
     }
 
     public class BlockOpenableInventoryUpdateEventProperties

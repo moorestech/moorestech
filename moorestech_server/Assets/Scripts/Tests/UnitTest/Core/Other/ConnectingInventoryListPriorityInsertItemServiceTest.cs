@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
-using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
+using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -23,23 +22,22 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void Test()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var componentFactory = serviceProvider.GetService<ComponentFactory>();
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var inventoryList = new List<IBlockInventory>();
 
             //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
-            var inventory1 = new DummyBlockInventory(itemStackFactory, 1, 1);
-            var inventory2 = new DummyBlockInventory(itemStackFactory);
-            var inventory3 = new DummyBlockInventory(itemStackFactory);
+            var inventory1 = new DummyBlockInventory(1, 1);
+            var inventory2 = new DummyBlockInventory();
+            var inventory3 = new DummyBlockInventory();
             inventoryList.Add(inventory1);
             inventoryList.Add(inventory2);
             inventoryList.Add(inventory3);
 
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var connectionSetting = new IOConnectionSetting(Array.Empty<ConnectDirection>(), Array.Empty<ConnectDirection>(), Array.Empty<string>());
-            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(componentPos, connectionSetting);
+            var inputConnectorComponent = new InputConnectorComponent(connectionSetting, componentPos);
 
             ((List<IBlockInventory>)inputConnectorComponent.ConnectInventory).AddRange(inventoryList);
 

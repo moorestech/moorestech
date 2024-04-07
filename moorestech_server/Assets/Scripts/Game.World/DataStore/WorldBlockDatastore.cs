@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
-using Game.World.Event;
-using Game.World.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
 using UniRx;
 using UnityEngine;
 
@@ -18,27 +15,13 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
-        private readonly IBlockConfig _blockConfig;
-
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
-
-        private readonly BlockPlaceEvent _blockPlaceEvent;
-        private readonly BlockRemoveEvent _blockRemoveEvent;
 
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
         private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
-        private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
-        {
-            _blockConfig = blockConfig;
-            _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
-            _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
-            _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
-        }
         //イベント
         public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
 
@@ -51,11 +34,10 @@ namespace Game.World.DataStore
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
                 !_coordinateDictionary.ContainsKey(pos))
             {
-                var data = new WorldBlockData(block, pos, blockDirection, _blockConfig);
+                var data = new WorldBlockData(block, pos, blockDirection, ServerContext.BlockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(pos, block.EntityId);
-                _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(pos, data.Block, blockDirection));
-                _worldBlockUpdateEvent.OnBlockPlaceEventInvoke(data);
+                ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
 
                 block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
 
@@ -73,9 +55,7 @@ namespace Game.World.DataStore
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
 
             var data = _blockMasterDictionary[entityId];
-
-            _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(pos, data.Block));
-            _worldBlockUpdateEvent.OnBlockRemoveEventInvoke(data);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data);
 
             _blockMasterDictionary.Remove(entityId);
             _coordinateDictionary.Remove(pos);
@@ -143,13 +123,14 @@ namespace Game.World.DataStore
         }
 
         //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
-        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList, IBlockFactory blockFactory)
+        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
         {
+            var blockFactory = ServerContext.BlockFactory;
             foreach (var block in saveBlockDataList)
             {
                 var pos = block.Pos;
                 var direction = (BlockDirection)block.Direction;
-                var size = _blockConfig.GetBlockConfig(block.BlockHash).BlockSize;
+                var size = ServerContext.BlockConfig.GetBlockConfig(block.BlockHash).BlockSize;
                 var blockData = new BlockPositionInfo(pos, direction, size);
                 AddBlock(blockFactory.Load(block.BlockHash, block.EntityId, block.State, blockData));
             }

@@ -10,14 +10,15 @@
     "MessagePack",
     "Game.Block.Interface",
     "Core.Inventory",
-    "Core.Item",
+    "Core.Item.Interface",
     "Core.Const",
     "Game.PlayerInventory.Interface",
     "Game.Block",
     "Server.Event",
     "Game.Map.Interface",
     "Game.SaveLoad.Interface",
-    "Game.Crafting.Interface"
+    "Game.Crafting.Interface",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

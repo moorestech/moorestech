@@ -4,10 +4,11 @@
   "references": [
     "Game.PlayerInventory.Interface",
     "Game.Crafting.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Game.World.Interface",
     "Core.Inventory",
-    "Game.Block.Interface"
+    "Game.Block.Interface",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -2,7 +2,7 @@
   "name": "Game.Crafting.Interface",
   "rootNamespace": "",
   "references": [
-    "Core.Item",
+    "Core.Item.Interface",
     "Core.Inventory"
   ],
   "includePlatforms": [],

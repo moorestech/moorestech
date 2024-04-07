@@ -7,7 +7,8 @@
     "Core.Const",
     "Core.EnergySystem",
     "Game.Block.Interface",
-    "UniRx"
+    "UniRx",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

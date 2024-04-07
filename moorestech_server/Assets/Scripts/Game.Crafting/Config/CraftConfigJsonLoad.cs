@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.Crafting.Interface;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -9,9 +10,9 @@ namespace Game.Crafting.Config
 {
     public class CraftConfigJsonLoad
     {
-        private readonly ItemStackFactory _itemStackFactory;
+        private readonly IItemStackFactory _itemStackFactory;
 
-        public CraftConfigJsonLoad(ItemStackFactory itemStackFactory)
+        public CraftConfigJsonLoad(IItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
         }

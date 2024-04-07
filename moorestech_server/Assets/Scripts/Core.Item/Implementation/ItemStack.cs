@@ -2,16 +2,18 @@
 using System;
 using Core.Const;
 using Core.Item.Config;
+using Core.Item.Interface;
 using Core.Item.Util;
+using Game.Context;
 
 namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
         private readonly IItemConfig _itemConfig;
-        private readonly ItemStackFactory _itemStackFactory;
+        private readonly IItemStackFactory _itemStackFactory;
 
-        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory)
+        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory)
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
@@ -29,7 +31,7 @@ namespace Core.Item.Implementation
             Count = count;
         }
 
-        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory, long instanceId)
+        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory, long instanceId)
             : this(id, count, itemConfig, itemStackFactory)
         {
             ItemInstanceId = instanceId;

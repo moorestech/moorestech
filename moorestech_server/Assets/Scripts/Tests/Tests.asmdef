@@ -11,8 +11,8 @@
     "Core.EnergySystem",
     "Core.Inventory",
     "Core.Item",
+    "Core.Item.Interface",
     "Core.Update",
-    "Core.Util",
     "Game.Block",
     "Game.Block.Interface",
     "Game.Crafting",
@@ -39,7 +39,8 @@
     "Server.Util",
     "Tests.Module",
     "MessagePack",
-    "MessagePack.Annotations"
+    "MessagePack.Annotations",
+    "Game.Context"
   ],
   "includePlatforms": [
     "Editor"

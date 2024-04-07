@@ -2,6 +2,7 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Game.Block.Interface;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -22,15 +23,15 @@ namespace Tests.CombinedTest.Game
         public void RemoveElectricPoleToDisconnectSegment()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             /*設置する電柱、機械、発電機の場所
              * M □  □ G □  □ M
              * P □  □ P □  □ P
              * G
              */
 
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //電柱の設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));
@@ -91,10 +92,10 @@ namespace Tests.CombinedTest.Game
              * G □ □ G
              */
             var (_, saveServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
             var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
 
             //電柱の設置

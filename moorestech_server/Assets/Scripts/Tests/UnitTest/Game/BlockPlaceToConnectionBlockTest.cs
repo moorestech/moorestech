@@ -9,6 +9,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,10 +36,9 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorConnectMachineTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var world = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //北向きにベルトコンベアを設置した時、機械とつながるかをテスト
             var (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
@@ -96,9 +96,9 @@ namespace Tests.UnitTest.Game
         public void MachineConnectToBeltConveyorTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var world = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //機械の設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
@@ -149,36 +149,33 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorToChestConnectTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             //チェストの設置
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var vanillaChest = (VanillaChest)blockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
-            world.AddBlock(vanillaChest);
+            var vanillaChest = (VanillaChest)ServerContext.BlockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
+            ServerContext.WorldBlockDatastore.AddBlock(vanillaChest);
 
 
             //北向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0, 0, -1), BlockDirection.North, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0, 0, -1), BlockDirection.North, vanillaChest);
 
             //東向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(-1, 0, 0), BlockDirection.East, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(-1, 0, 0), BlockDirection.East, vanillaChest);
 
             //南向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0, 0, 1), BlockDirection.South, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0, 0, 1), BlockDirection.South, vanillaChest);
 
             //西向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(1, 0, 0), BlockDirection.West, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(1, 0, 0), BlockDirection.West, vanillaChest);
         }
 
-        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
+        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, VanillaChest targetChest)
         {
             var posInfo = new BlockPositionInfo(beltConveyorPos, direction, Vector3Int.one);
-            var northBeltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
+            var northBeltConveyor = (VanillaBeltConveyor)ServerContext.BlockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
 
-            world.AddBlock(northBeltConveyor);
+            ServerContext.WorldBlockDatastore.AddBlock(northBeltConveyor);
 
             var connector = (VanillaChest)northBeltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
 
@@ -191,9 +188,9 @@ namespace Tests.UnitTest.Game
         [Test]
         public void NotConnectableBlockTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var world = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             //機械とチェストを設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);

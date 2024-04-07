@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Component.IOConnector;
@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
-        public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory,
+        public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize, InputConnectorComponent inputConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;

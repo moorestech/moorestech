@@ -3,10 +3,11 @@
   "rootNamespace": "",
   "references": [
     "Game.Map.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Game.Base",
     "Game.SaveLoad.Interface",
-    "Game.SaveLoad"
+    "Game.SaveLoad",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 
 namespace Game.Block.Interface.RecipeConfig
 {

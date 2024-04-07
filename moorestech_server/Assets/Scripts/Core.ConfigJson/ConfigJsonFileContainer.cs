@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Core.ConfigJson
 {
-    public class ConfigJsonList
+    public class ConfigJsonFileContainer
     {
         /// <summary>
         ///     ブロックのコンフィグが入っている
@@ -35,7 +35,7 @@ namespace Core.ConfigJson
 
         public readonly List<string> SortedModIds;
 
-        public ConfigJsonList(Dictionary<string, ConfigJson> configs)
+        public ConfigJsonFileContainer(Dictionary<string, ConfigJson> configs)
         {
             var keys = configs.Keys.ToList();
             keys.Sort();

@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using Core.Item.Config;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 
 namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class PowerGeneratorConfigParamGenerator : IBlockConfigParamGenerator
-    {
+    {        
         private readonly IItemConfig _itemConfig;
 
         public PowerGeneratorConfigParamGenerator(IItemConfig itemConfig)

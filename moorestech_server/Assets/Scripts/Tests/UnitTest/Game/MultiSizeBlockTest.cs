@@ -1,4 +1,5 @@
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -22,10 +23,10 @@ namespace Tests.UnitTest.Game
         public void BlockPlaceAndGetTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            _blockFactory = serviceProvider.GetService<IBlockFactory>();
-            worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            _blockFactory = ServerContext.BlockFactory;
+            worldDatastore = ServerContext.WorldBlockDatastore;
 
             //平面設置の検証
             PlaceBlock(Block_1x4_Id, new Vector3Int(10, 0, 10), BlockDirection.North);
@@ -67,10 +68,10 @@ namespace Tests.UnitTest.Game
         public void OverlappingBlockTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            _blockFactory = serviceProvider.GetService<IBlockFactory>();
-            worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            _blockFactory = ServerContext.BlockFactory;
+            worldDatastore = ServerContext.WorldBlockDatastore;
 
             PlaceBlock(Block_1x4_Id, new Vector3Int(10, 0, 10), BlockDirection.North);
             PlaceBlock(Block_3x2_Id, new Vector3Int(10, 0, 12), BlockDirection.South);
@@ -83,10 +84,10 @@ namespace Tests.UnitTest.Game
         public void BoundaryBlockTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            _blockFactory = serviceProvider.GetService<IBlockFactory>();
-            worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            _blockFactory = ServerContext.BlockFactory;
+            worldDatastore = ServerContext.WorldBlockDatastore;
 
 
             PlaceBlock(Block_1x4_Id, new Vector3Int(10, 0, 10), BlockDirection.North);

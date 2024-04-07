@@ -3,6 +3,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -18,11 +19,11 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void TwoItemIoTest()
         {
-            var (_, saveServiceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
             
-            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
 
             var inputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,0), BlockDirection.North, Vector3Int.one);
             var inputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 1,inputChestPosInfo);

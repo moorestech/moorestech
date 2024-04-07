@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 
 namespace Core.Inventory
 {
@@ -17,8 +17,7 @@ namespace Core.Inventory
         /// <param name="itemStackFactory">アイテム作成用のItemStackFactory</param>
         /// <param name="onSlotUpdate">挿入後発火したいイベント</param>
         /// <returns>余ったアイテム</returns>
-        internal static List<IItemStack> InsertItem(List<IItemStack> insertItemStack, List<IItemStack> inventoryItems,
-            ItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
+        internal static List<IItemStack> InsertItem(List<IItemStack> insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
         {
             var reminderItemStacks = new List<IItemStack>();
 
@@ -42,8 +41,7 @@ namespace Core.Inventory
         /// <param name="itemStackFactory">アイテム作成用のItemStackFactory</param>
         /// <param name="onSlotUpdate">挿入後発火したいイベント</param>
         /// <returns>余ったアイテム</returns>
-        internal static IItemStack InsertItem(IItemStack insertItemStack, List<IItemStack> inventoryItems,
-            ItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
+        internal static IItemStack InsertItem(IItemStack insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
         {
             for (var i = 0; i < inventoryItems.Count; i++)
             {
@@ -66,8 +64,7 @@ namespace Core.Inventory
         ///     特定のスロットを優先してアイテムを挿入します
         ///     優先すべきスロットに入らない場合は、通常通り挿入処理を行います
         /// </summary>
-        public static IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, List<IItemStack> inventory,
-            ItemStackFactory itemStackFactory, int[] prioritySlots, Action<int> invokeEvent)
+        public static IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, List<IItemStack> inventory, IItemStackFactory itemStackFactory, int[] prioritySlots, Action<int> invokeEvent)
         {
             //優先スロットに挿入を試みる
             var remainItem = itemStack;
@@ -82,8 +79,7 @@ namespace Core.Inventory
         ///     指定されたスロットにアイテムを挿入する
         /// </summary>
         /// <returns>余ったアイテム 余ったアイテムがなければ空のアイテムを返す</returns>
-        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems,
-            ItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
+        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
         {
             if (itemStack.Equals(itemStackFactory.CreatEmpty())) return itemStack;
             if (!inventoryItems[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;

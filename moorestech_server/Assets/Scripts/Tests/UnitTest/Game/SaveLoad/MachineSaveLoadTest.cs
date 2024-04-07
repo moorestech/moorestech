@@ -1,10 +1,11 @@
 using System.Reflection;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Interface;
+using Game.Context;
 using Game.PlayerInventory;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -26,7 +27,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void InventoryBlockTest()
         {
             //機械の追加
-            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
+            var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
+            var itemStackFactory = ServerContext.ItemStackFactory;
             GameUpdater.ResetUpdate();
 
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
@@ -78,7 +80,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
 
             //ロードした時に機械の状態が正しいことを確認
-            var (_, _, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();
+            var (_, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();
 
             loadJsonFile.Load(json);
 
@@ -120,22 +122,19 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,
-            WorldLoaderFromJson)
+        private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = ServerContext.BlockFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
             var loadJsonFile = serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
 
-            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,
-                loadJsonFile);
+            return (blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
         }
     }
 }

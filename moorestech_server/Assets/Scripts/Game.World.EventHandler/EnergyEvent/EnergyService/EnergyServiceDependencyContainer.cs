@@ -6,16 +6,11 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public class EnergyServiceDependencyContainer<TSegment> where TSegment : EnergySegment, new()
     {
-        public readonly IBlockConfig BlockConfig;
-        public readonly IWorldBlockDatastore WorldBlockDatastore;
         public readonly IWorldEnergySegmentDatastore<TSegment> WorldEnergySegmentDatastore;
 
-        public EnergyServiceDependencyContainer(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
-            IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig)
+        public EnergyServiceDependencyContainer(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore)
         {
             WorldEnergySegmentDatastore = worldEnergySegmentDatastore;
-            WorldBlockDatastore = worldBlockDatastore;
-            BlockConfig = blockConfig;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Item.Config;
+using Game.Context;
 using Game.Map.Interface;
 using UnityEngine;
 using Random = System.Random;
@@ -8,14 +9,7 @@ namespace Game.Map
 {
     public class MapObjectFactory : IMapObjectFactory
     {
-        private readonly IItemConfig _itemConfig;
-
         private readonly Random _random = new();
-
-        public MapObjectFactory(IItemConfig itemConfig)
-        {
-            _itemConfig = itemConfig;
-        }
 
         public IMapObject Create(int instanceId, string type, Vector3 position, bool isDestroyed)
         {
@@ -35,22 +29,23 @@ namespace Game.Map
         //TODO コンフィグを参照するようにする
         private (int itemId, int count) GetItemIdAndCount(string type)
         {
+            var itemConfig = ServerContext.ItemConfig;
             return type switch
             {
-                VanillaMapObjectType.VanillaTree => (_itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "wood"),
+                VanillaMapObjectType.VanillaTree => (itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "wood"),
                     _random.Next(2, 3)),
-                VanillaMapObjectType.VanillaBigTree => (_itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "wood"),
+                VanillaMapObjectType.VanillaBigTree => (itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "wood"),
                     _random.Next(10, 15)),
-                VanillaMapObjectType.VanillaStone => (_itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "stone"),
+                VanillaMapObjectType.VanillaStone => (itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "stone"),
                     _random.Next(1, 3)),
-                VanillaMapObjectType.VanillaBush => (_itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "cotton"),
+                VanillaMapObjectType.VanillaBush => (itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "cotton"),
                     _random.Next(1, 2)),
-                VanillaMapObjectType.VanillaCray => (_itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "clay"),
+                VanillaMapObjectType.VanillaCray => (itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "clay"),
                     _random.Next(1, 2)),
-                VanillaMapObjectType.VanillaCoal => (_itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "coal"),
+                VanillaMapObjectType.VanillaCoal => (itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "coal"),
                     _random.Next(1, 2)),
                 VanillaMapObjectType.VanillaIronOre => (
-                    _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "iron ore"), _random.Next(1, 2)),
+                    itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "iron ore"), _random.Next(1, 2)),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
             };
         }

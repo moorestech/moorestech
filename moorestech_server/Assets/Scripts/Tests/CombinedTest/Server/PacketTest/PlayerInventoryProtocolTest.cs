@@ -1,6 +1,7 @@
 using System.Linq;
 using Core.Const;
-using Core.Item;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerId = 1;
 
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             //からの時のデータ要求
@@ -43,9 +44,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //インベントリにアイテムが入っている時のテスト
-            var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
+            var itemStackFactory = ServerContext.ItemStackFactory;
             playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(1, 5));
             playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(3, 1));
             playerInventoryData.MainOpenableInventory.SetItem(34, itemStackFactory.Create(10, 7));
@@ -78,7 +78,6 @@ namespace Tests.CombinedTest.Server.PacketTest
                     Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
                     Assert.AreEqual(0, data.Main[i].Count);
                 }
-
         }
     }
 }

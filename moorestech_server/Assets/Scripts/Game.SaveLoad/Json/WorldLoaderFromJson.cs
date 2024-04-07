@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Game.Block.Interface;
+using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
@@ -14,7 +14,6 @@ namespace Game.SaveLoad.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
-        private readonly IBlockFactory _blockFactory;
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
@@ -23,17 +22,16 @@ namespace Game.SaveLoad.Json
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
-        public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
+        public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            IMapObjectDatastore mapObjectDatastore, IBlockFactory blockFactory)
+            IMapObjectDatastore mapObjectDatastore)
         {
             _saveJsonFileName = saveJsonFileName;
-            _worldBlockDatastore = worldBlockDatastore;
+            _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
-            _blockFactory = blockFactory;
         }
 
         public void LoadOrInitialize()
@@ -65,7 +63,7 @@ namespace Game.SaveLoad.Json
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
 
-            _worldBlockDatastore.LoadBlockDataList(load.World, _blockFactory);
+            _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);

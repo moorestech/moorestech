@@ -5,10 +5,11 @@
     "Game.Block.Interface",
     "Core.ConfigJson",
     "Game.Crafting.Interface",
-    "Core.Item",
+    "Core.Item.Interface",
     "Game.Block",
     "Server.Boot",
-    "Server.Protocol"
+    "Server.Protocol",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
