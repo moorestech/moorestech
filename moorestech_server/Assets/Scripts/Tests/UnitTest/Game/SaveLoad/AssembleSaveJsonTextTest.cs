@@ -35,11 +35,10 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Debug.Log(json);
 
-            var (_, loadServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
-            var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
+            var worldLoadBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var block1 = worldLoadBlockDatastore.GetBlock(new Vector3Int(0, 0));
             Assert.AreEqual(1, block1.BlockId);

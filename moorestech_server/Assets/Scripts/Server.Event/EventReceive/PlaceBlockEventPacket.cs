@@ -17,7 +17,7 @@ namespace Server.Event.EventReceive
         public PlaceBlockEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
+            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockRemove);
         }
 
         private void OnBlockRemove(BlockUpdateProperties updateProperties)

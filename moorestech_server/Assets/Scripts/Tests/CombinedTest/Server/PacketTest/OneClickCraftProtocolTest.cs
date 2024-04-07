@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //アイテムがあるときにクラフトできるかのテスト
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
+            var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
 
             //必要なアイテムをインベントリに追加
             for (var i = 0; i < craftConfig.CraftItems.Count; i++)
@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //アイテムが一つ足りないときにクラフトできないかのテスト
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
+            var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
 
             //必要なアイテムをインベントリに追加
             for (var i = 0; i < craftConfig.CraftItems.Count; i++)
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //グラブインベントリのアイテムが満杯の時にクラフトできないテスト
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInv = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
+            var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
             var itemStackFactory = ServerContext.ItemStackFactory;
 
 

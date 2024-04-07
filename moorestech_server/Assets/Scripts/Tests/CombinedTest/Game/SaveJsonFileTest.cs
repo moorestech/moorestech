@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Game
             Debug.Log(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
-            var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
+            var loadWorldBlockDatastore = ServerContext.WorldBlockDatastore;
 
 
             //追加したブロックのチェック

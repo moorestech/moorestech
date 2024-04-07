@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
+using Game.Context;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -12,14 +13,12 @@ namespace Server.Protocol.PacketResponse
     public class OneClickCraft : IPacketResponse
     {
         public const string Tag = "va:oneClickCraft";
-        private readonly ICraftingConfig _craftingConfig;
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public OneClickCraft(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _craftingConfig = serviceProvider.GetService<ICraftingConfig>();
         }
 
 
@@ -27,7 +26,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload.ToArray());
 
-            var craftConfig = _craftingConfig.GetCraftingConfigData(data.CraftRecipeId);
+            var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(data.CraftRecipeId);
             //プレイヤーインベントリを取得
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var mainInventory = playerInventory.MainOpenableInventory;
