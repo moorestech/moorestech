@@ -4,7 +4,7 @@ namespace Client.Game.UI.UIState
     {
         public UIStateEnum GetNext()
         {
-            
+            return UIStateEnum.Current;
         }
         public void OnEnter(UIStateEnum lastStateEnum)
         {

@@ -5,8 +5,8 @@
         "UniRx",
         "UniTask",
         "Unity.TextMeshPro",
-        "DoTween",
-        "UniTask.DOTween"
+        "UniTask.DOTween",
+        "DOTween.Modules"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
