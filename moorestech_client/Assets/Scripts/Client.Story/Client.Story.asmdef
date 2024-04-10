@@ -1,0 +1,22 @@
+{
+    "name": "Client.Story",
+    "rootNamespace": "",
+    "references": [
+        "UniRx",
+        "UniTask",
+        "Unity.TextMeshPro",
+        "DoTween",
+        "UniTask.DOTween"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "DOTween.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

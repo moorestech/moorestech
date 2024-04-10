@@ -9,5 +9,6 @@
         BlockInventory,
         PauseMenu,
         DeleteBar,
+        Story,
     }
 }
