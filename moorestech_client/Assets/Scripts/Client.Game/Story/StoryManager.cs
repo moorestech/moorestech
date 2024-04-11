@@ -3,6 +3,7 @@ using Client.Game.Control.MouseKeyboard;
 using Client.Story.StoryTrack;
 using Client.Story.UI;
 using Cysharp.Threading.Tasks;
+using MainGame.UnityView.Player;
 using UnityEngine;
 
 namespace Client.Story
@@ -12,17 +13,20 @@ namespace Client.Story
         [SerializeField] private StoryUI storyUI;
         [SerializeField] private StoryCamera storyCamera;
         [SerializeField] private CameraController cameraController;
-        [SerializeField] private TextAsset storyCsv;
 
         [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
+        
+        [SerializeField] private PlayerObjectController playerObjectController;
 
-        public async UniTask StartStory()
+        public async UniTask StartStory(TextAsset storyCsv)
         {
             //前処理
             var storyContext = PreProcess();
             var lines = storyCsv.text.Split('\n');
             var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
+            
+            playerObjectController.SetActive(false);
 
             //トラックの実行処理
             for (var i = 0; i < lines.Length; i++)
@@ -60,6 +64,8 @@ namespace Client.Story
             //後処理
             storyCamera.SetEnabled(false);
             if (cameraController) cameraController.SetEnable(true);
+            
+            playerObjectController.SetActive(true);
 
             #region Internal
 
