@@ -115,5 +115,14 @@ namespace Game.Block.Config
         {
             return GetBlockConfig(ItemIdToBlockId(itemId));
         }
+
+        public int BlockIdToItemId(int blockId)
+        {
+            foreach (var (itemId, block) in _itemIdToBlockId)
+            {
+                if (block == blockId) return itemId;
+            }
+            return ItemConst.EmptyItemId;
+        }
     }
 }
