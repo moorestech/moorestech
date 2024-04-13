@@ -6,13 +6,20 @@ namespace Client.Game.UI.UIState
     {
         private readonly Dictionary<UIStateEnum, IUIState> _stateDictionary = new();
 
-        public UIStateDictionary(GameScreenState gameScreenState, PlayerInventoryState playerInventoryState, BlockInventoryState blockInventoryState, PauseMenuState pauseMenuState, DeleteBlockState deleteBlockState)
+        public UIStateDictionary(
+            GameScreenState gameScreenState, 
+            PlayerInventoryState playerInventoryState, 
+            BlockInventoryState blockInventoryState,
+            PauseMenuState pauseMenuState, 
+            DeleteBlockState deleteBlockState,
+            StoryState storyState)
         {
             _stateDictionary.Add(UIStateEnum.GameScreen, gameScreenState);
             _stateDictionary.Add(UIStateEnum.PlayerInventory, playerInventoryState);
             _stateDictionary.Add(UIStateEnum.BlockInventory, blockInventoryState);
             _stateDictionary.Add(UIStateEnum.PauseMenu, pauseMenuState);
             _stateDictionary.Add(UIStateEnum.DeleteBar, deleteBlockState);
+            _stateDictionary.Add(UIStateEnum.Story, storyState);
         }
 
         public IUIState GetState(UIStateEnum state)

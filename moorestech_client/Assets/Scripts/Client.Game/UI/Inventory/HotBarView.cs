@@ -17,8 +17,6 @@ namespace Client.Game.UI.Inventory
 {
     public class HotBarView : MonoBehaviour
     {
-        public static HotBarView Instance { get; private set; }
-
         [SerializeField] private List<HotBarItem> hotBarItems;
         [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
@@ -27,6 +25,14 @@ namespace Client.Game.UI.Inventory
         private ILocalPlayerInventory _localPlayerInventory;
 
         public int SelectIndex { get; private set; }
+
+        public event Action<int> OnSelectHotBar;
+
+        [Inject]
+        public void Construct(ILocalPlayerInventory localPlayerInventory)
+        {
+            _localPlayerInventory = localPlayerInventory;
+        }
 
         private void Start()
         {
@@ -112,20 +118,15 @@ namespace Client.Game.UI.Inventory
             #endregion
         }
 
-        public event Action<int> OnSelectHotBar;
-
-        [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory)
-        {
-            _localPlayerInventory = localPlayerInventory;
-            Instance = this;
-        }
-
-
         private void UpdateSelectedView(int prevIndex, int nextIndex)
         {
             hotBarItems[prevIndex].SetSelect(false);
             hotBarItems[nextIndex].SetSelect(true);
+        }
+
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
         }
     }
 }
