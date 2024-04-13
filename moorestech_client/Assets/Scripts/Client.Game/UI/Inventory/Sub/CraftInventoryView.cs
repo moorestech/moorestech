@@ -33,6 +33,7 @@ namespace Client.Game.UI.Inventory.Sub
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
         [SerializeField] private TMP_Text recipeCountText;
+        [SerializeField] private TMP_Text _itemNameText;
 
         [SerializeField] private ItemSlotObject _requiredMachineSlot;
 
@@ -91,26 +92,49 @@ namespace Client.Game.UI.Inventory.Sub
             ).AddTo(this);
         }
 
+        private void Start()
+        {
+            // find valid first recipe
+            var recipes = ServerContext.CraftingConfig.CraftingConfigList;
+            if (recipes.Count != 0)
+            {
+                TrySetRecipe(recipes[0].ResultItem.Id);
+            }
+        }
+
         private void OnClickItemSlot(ItemSlotObject slot)
         {
             if (slot.ItemViewData.ItemId == _currentItem)
                 return;
-            _currentItem = slot.ItemViewData.ItemId;
+            
+            TrySetRecipe(slot.ItemViewData.ItemId, _currentItem);
+        }
 
+        private bool TrySetRecipe(int ItemId, int fallbackId = 0)
+        {
             Clear();
 
             // collect all normal recipes that have the item as a result
-            CollectCraftingRecipes(slot.ItemViewData.ItemId);
+            CollectCraftingRecipes(ItemId);
 
             // collect all the machine recipes that have the item as a result
-            CollectMachineRecipes(slot.ItemViewData.ItemId);
+            CollectMachineRecipes(ItemId);
 
             // if machine, collect all the recipes that use the machine
-            if (ServerContext.BlockConfig.IsBlock(slot.ItemViewData.ItemId))
-                CollectRecipesUsingMachines(ServerContext.BlockConfig.ItemIdToBlockId(slot.ItemViewData.ItemId));
+            if (ServerContext.BlockConfig.IsBlock(ItemId))
+                CollectRecipesUsingMachines(ServerContext.BlockConfig.ItemIdToBlockId(ItemId));
 
             if (TotalRecipeAmount != 0)
+            {
+                _currentItem = ItemId;
                 DisplayRecipe();
+                return true;
+            }
+            else if (fallbackId != 0)
+            {
+                return TrySetRecipe(fallbackId);
+            }
+            return false;
         }
 
         private void OnItemChange(int slot)
@@ -258,16 +282,20 @@ namespace Client.Game.UI.Inventory.Sub
         private void UpdateButtonAndText(bool isCraftable, bool isMachineRecipe)
         {
             int recipesAmount = TotalRecipeAmount;
+            var itemConfig = ServerContext.ItemConfig.GetItemConfig(_currentItem);
 
             prevRecipeButton.interactable = recipesAmount > 1;
             nextRecipeButton.interactable = recipesAmount > 1;
             
             recipeCountText.text = $"{CurrentCraftingRecipeIndex + 1} / {TotalRecipeAmount}";
             
+            _itemNameText.text = itemConfig.Name;
+            
             _craftButton.UpdateInteractable(isCraftable);
             _craftButton.gameObject.SetActive(!isMachineRecipe);
 
             _requiredMachineSlot.SetActive(isMachineRecipe);
+
         }
 
         private void SetRequiredMachine(int blockId)

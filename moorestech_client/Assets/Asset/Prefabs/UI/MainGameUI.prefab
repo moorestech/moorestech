@@ -1420,7 +1420,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2426,7 +2426,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 2697085508811012062}
+  m_TargetGraphic: {fileID: 8504444499957411016}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
@@ -3085,7 +3085,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 3041050497177124748}
+  m_TargetGraphic: {fileID: 9195145392135694447}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
@@ -3752,6 +3752,7 @@ MonoBehaviour:
   nextRecipeButton: {fileID: 8915801518316534857}
   prevRecipeButton: {fileID: 0}
   recipeCountText: {fileID: 4103172355902646815}
+  _itemNameText: {fileID: 0}
   _requiredMachineSlot: {fileID: 0}
 --- !u!1 &4789098456084041490
 GameObject:
@@ -5879,6 +5880,7 @@ MonoBehaviour:
   nextRecipeButton: {fileID: 7885722958363309220}
   prevRecipeButton: {fileID: 8122030075278338625}
   recipeCountText: {fileID: 1930956621763274736}
+  _itemNameText: {fileID: 3986666217085817516}
   _requiredMachineSlot: {fileID: 65759263223517676}
 --- !u!1 &7369432569108525015
 GameObject:
@@ -5970,7 +5972,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 8618486022195903852}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
@@ -12062,7 +12064,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 80.275
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y

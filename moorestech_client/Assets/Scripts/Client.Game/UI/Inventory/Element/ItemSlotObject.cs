@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Core.Const;
 using MainGame.ModLoader.Texture;
 using MainGame.UnityView.UI.Util;
@@ -102,6 +102,9 @@ namespace Client.Game.UI.Inventory.Element
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+
+            // disable hover effect in case it was hovered
+            hoverImage.SetActive(false);
         }
 
 
