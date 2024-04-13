@@ -272,6 +272,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _storyManager: {fileID: 1849144035}
+  _scenarioCsv: {fileID: 4900000, guid: 3bad25b0c048c4dbf847950e9479f0bc, type: 3}
 --- !u!4 &1471453386
 Transform:
   m_ObjectHideFlags: 0
