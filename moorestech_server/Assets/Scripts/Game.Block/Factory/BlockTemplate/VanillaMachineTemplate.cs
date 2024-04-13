@@ -1,4 +1,5 @@
 using Core.Item.Interface;
+using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
@@ -19,7 +20,7 @@ namespace Game.Block.Factory.BlockTemplate
         public delegate VanillaMachineBase CreateMachine(
             (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
                 VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-                BlockPositionInfo blockPositionInfo, InventoryInputConnectorComponent inputConnectorComponent) data);
+                BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> inputConnectorComponent) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly CreateMachine _createMachine;
@@ -63,7 +64,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ));
         }
 
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, InventoryInputConnectorComponent inventoryInputConnectorComponent)
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
 
@@ -73,14 +74,14 @@ namespace Game.Block.Factory.BlockTemplate
 
             var output = new VanillaMachineOutputInventory(
                 machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, entityId,
-                machineParam.InputSlot, inventoryInputConnectorComponent);
+                machineParam.InputSlot, blockConnectorComponent);
 
             return (input, output, machineParam);
         }
 
-        private InventoryInputConnectorComponent CreateInputConnector(BlockPositionInfo blockPositionInfo)
+        private BlockConnectorComponent<IBlockInventory> CreateInputConnector(BlockPositionInfo blockPositionInfo)
         {
-            return new InventoryInputConnectorComponent(new IOConnectionSetting(
+            return new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(
                 new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                 new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                 new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);

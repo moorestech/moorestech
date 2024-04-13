@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
+using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Component.IOConnector;
 using Game.Block.Event;
@@ -22,13 +23,13 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
         public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize, InventoryInputConnectorComponent inventoryInputConnectorComponent)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inventoryInputConnectorComponent);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.BlockInventory;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;
@@ -42,9 +43,9 @@ namespace Game.Block.Factory.BlockTemplate
                 generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent), state);
         }
 
-        private InventoryInputConnectorComponent GetComponent(BlockPositionInfo blockPositionInfo)
+        private BlockConnectorComponent<IBlockInventory> GetComponent(BlockPositionInfo blockPositionInfo)
         {
-            return new InventoryInputConnectorComponent(
+            return new BlockConnectorComponent<IBlockInventory>(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { },
@@ -62,11 +63,11 @@ namespace Game.Block.Factory.BlockTemplate
 
         public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int InfinityPower;
-        public readonly InventoryInputConnectorComponent InventoryInputConnectorComponent;
+        public readonly BlockConnectorComponent<IBlockInventory> InventoryInputConnectorComponent;
         public readonly bool IsInfinityPower;
 
         public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot,
-            bool isInfinityPower, int infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, InventoryInputConnectorComponent inventoryInputConnectorComponent)
+            bool isInfinityPower, int infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -76,7 +77,7 @@ namespace Game.Block.Factory.BlockTemplate
             InfinityPower = infinityPower;
             FuelSettings = fuelSettings;
             BlockPositionInfo = blockPositionInfo;
-            InventoryInputConnectorComponent = inventoryInputConnectorComponent;
+            InventoryInputConnectorComponent = blockConnectorComponent;
         }
     }
 }

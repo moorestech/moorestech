@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Core
             var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             beltConveyor.InsertItem(item);
 
-            var beltConnectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
+            var beltConnectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
             beltConnectInventory.Add(chest);
 
 
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Core
 
             chest.SetItem(0, 1, 1);
 
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
+            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
             chestConnectInventory.Add(beltconveyor);
             GameUpdater.UpdateWithWait();
 

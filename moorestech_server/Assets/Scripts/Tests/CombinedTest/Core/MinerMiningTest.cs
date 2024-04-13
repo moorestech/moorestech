@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core
             var dummyInventory = new DummyBlockInventory();
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
-            var minerConnectors = (List<IBlockInventory>)miner.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
+            var minerConnectors = (List<IBlockInventory>)miner.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
             minerConnectors.Add(dummyInventory);
 
             //電力の設定

@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
-            var component = new InventoryInputConnectorComponent(new IOConnectionSetting(
+            var component = new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(
                 // 南、西、東をからの接続を受け、アイテムをインプットする
                 new ConnectDirection[] { new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                 //北向きに出力する
@@ -178,10 +178,10 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
-                    var inputConnector = ComponentManager.GetComponent<InventoryInputConnectorComponent>();
-                    if (inputConnector.ConnectInventory.Count == 0) continue;
+                    var inputConnector = ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>();
+                    if (inputConnector.ConnectTargets.Count == 0) continue;
 
-                    var connector = inputConnector.ConnectInventory[0];
+                    var connector = inputConnector.ConnectTargets[0];
                     var output = connector.InsertItem(insertItem);
 
                     //渡した結果がnullItemだったらそのアイテムを消す

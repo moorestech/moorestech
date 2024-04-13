@@ -10,16 +10,16 @@ using UnityEngine;
 
 namespace Game.Block.Component.IOConnector
 {
-    public class InventoryInputConnectorComponent : IBlockComponent
+    public class BlockConnectorComponent<TTarget> : IBlockComponent
     {
         private readonly BlockDirection _blockDirection;
         private readonly Vector3Int _blockPos;
 
         private readonly List<IDisposable> _blockUpdateEvents = new();
-        private readonly List<IBlockInventory> _connectInventory = new();
+        private readonly List<TTarget> _connectTargets = new();
         private readonly IOConnectionSetting _ioConnectionSetting;
 
-        public InventoryInputConnectorComponent(IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
+        public BlockConnectorComponent(IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
         {
             _blockPos = blockPositionInfo.OriginalPos;
             _blockDirection = blockPositionInfo.BlockDirection;
@@ -52,13 +52,13 @@ namespace Game.Block.Component.IOConnector
 
             #endregion
         }
-        public IReadOnlyList<IBlockInventory> ConnectInventory => _connectInventory;
+        public IReadOnlyList<TTarget> ConnectTargets => _connectTargets;
 
         public bool IsDestroy { get; private set; }
 
         public void Destroy()
         {
-            _connectInventory.Clear();
+            _connectTargets.Clear();
             _blockUpdateEvents.ForEach(x => x.Dispose());
             _blockUpdateEvents.Clear();
             IsDestroy = true;
@@ -73,8 +73,8 @@ namespace Game.Block.Component.IOConnector
         {
             //接続先にBlockInventoryがなければ処理を終了
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            if (!worldBlockDatastore.TryGetBlock<InventoryInputConnectorComponent>(destinationPos, out var destinationInputConnector)) return;
-            if (!worldBlockDatastore.TryGetBlock<IBlockInventory>(destinationPos, out var blockInventory)) return;
+            if (!worldBlockDatastore.TryGetBlock<BlockConnectorComponent<TTarget>>(destinationPos, out var destinationInputConnector)) return;
+            if (!worldBlockDatastore.TryGetBlock<TTarget>(destinationPos, out var targetComponent)) return;
 
             //接続元のブロックデータを取得
             (_, List<ConnectDirection> sourceBlockOutputConnector) = GetConnectionPositions(_ioConnectionSetting, _blockDirection);
@@ -105,9 +105,9 @@ namespace Game.Block.Component.IOConnector
 
 
             //接続元ブロックと接続先ブロックを接続
-            if (!_connectInventory.Contains(blockInventory))
+            if (!_connectTargets.Contains(targetComponent))
             {
-                _connectInventory.Add(blockInventory);
+                _connectTargets.Add(targetComponent);
             }
 
             #region Internal
@@ -138,9 +138,9 @@ namespace Game.Block.Component.IOConnector
         private void RemoveBlock(BlockUpdateProperties updateProperties)
         {
             //削除されたブロックがInputConnectorComponentでない場合、処理を終了する
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock<IBlockInventory>(updateProperties.Pos, out var component)) return;
+            if (!ServerContext.WorldBlockDatastore.TryGetBlock<TTarget>(updateProperties.Pos, out var component)) return;
 
-            _connectInventory.Remove(component);
+            _connectTargets.Remove(component);
         }
     }
 }
