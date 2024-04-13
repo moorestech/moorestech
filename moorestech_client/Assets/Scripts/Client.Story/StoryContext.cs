@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Story.UI;
+using UnityEngine;
 
 namespace Client.Story
 {
@@ -21,6 +22,14 @@ namespace Client.Story
         public StoryCharacter GetCharacter(string characterKey)
         {
             return _characters[characterKey];
+        }
+
+        public void DestroyCharacter()
+        {
+            foreach (var character in _characters)
+            {
+                Object.Destroy(character.Value.gameObject);
+            }
         }
     }
 }

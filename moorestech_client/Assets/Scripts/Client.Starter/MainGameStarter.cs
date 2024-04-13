@@ -4,12 +4,14 @@ using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
 using Client.Game.Entity;
 using Client.Game.Map.MapObject;
+using Client.Game.Story;
 using Client.Game.UI.Inventory;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.Inventory.Sub;
 using Client.Game.UI.UIState;
 using Client.Game.UI.UIState.UIObject;
 using Client.Network.API;
+using Client.Story;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
 using MainGame.Presenter.Block;
@@ -57,6 +59,9 @@ namespace Client.Starter
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
+        
+        [SerializeField] private PlayerStoryStarter playerStoryStarter;
+        [SerializeField] private StoryManager storyManager;
 
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
 
@@ -104,6 +109,7 @@ namespace Client.Starter
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
+            builder.Register<StoryState>(Lifetime.Singleton);
 
 
             //Hierarchy上にあるcomponent
@@ -127,6 +133,9 @@ namespace Client.Starter
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
+            
+            builder.RegisterComponent(playerStoryStarter);
+            builder.RegisterComponent(storyManager);
 
 
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
