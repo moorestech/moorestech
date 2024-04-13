@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -22,11 +22,15 @@ namespace Client.Game.UI.Inventory.Sub
 
         private void Awake()
         {
-            button.OnPointerDownAsObservable().Subscribe(_ => _isButtonDown = true).AddTo(this);
+            button.OnPointerDownAsObservable().Subscribe(_ =>
+            {
+                if (button.interactable)
+                    _isButtonDown = true;
+            }).AddTo(this);
             button.OnPointerUpAsObservable().Subscribe(_ =>
             {
-                _isButtonDown = false;
-                _buttonDownElapsed = 0;
+                    _isButtonDown = false;
+                    _buttonDownElapsed = 0;
             }).AddTo(this);
             button.OnPointerExitAsObservable().Subscribe(_ =>
             {
