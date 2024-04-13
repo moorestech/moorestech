@@ -11,18 +11,18 @@ namespace Game.Block.Blocks.Service
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService
     {
-        private readonly InputConnectorComponent _inputConnectorComponent;
+        private readonly InventoryInputConnectorComponent _inventoryInputConnectorComponent;
 
         private int _index = -1;
 
-        public ConnectingInventoryListPriorityInsertItemService(InputConnectorComponent inputConnectorComponent)
+        public ConnectingInventoryListPriorityInsertItemService(InventoryInputConnectorComponent inventoryInputConnectorComponent)
         {
-            _inputConnectorComponent = inputConnectorComponent;
+            _inventoryInputConnectorComponent = inventoryInputConnectorComponent;
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            IReadOnlyList<IBlockInventory> inventories = _inputConnectorComponent.ConnectInventory;
+            IReadOnlyList<IBlockInventory> inventories = _inventoryInputConnectorComponent.ConnectInventory;
 
             for (var i = 0; i < inventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
                 lock (inventories)
@@ -37,7 +37,7 @@ namespace Game.Block.Blocks.Service
         private void AddIndex()
         {
             _index++;
-            if (_inputConnectorComponent.ConnectInventory.Count <= _index) _index = 0;
+            if (_inventoryInputConnectorComponent.ConnectInventory.Count <= _index) _index = 0;
         }
     }
 }

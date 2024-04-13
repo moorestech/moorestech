@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Game.Block.Component.IOConnector
 {
-    public class InputConnectorComponent : IBlockComponent
+    public class InventoryInputConnectorComponent : IBlockComponent
     {
         private readonly BlockDirection _blockDirection;
         private readonly Vector3Int _blockPos;
@@ -19,7 +19,7 @@ namespace Game.Block.Component.IOConnector
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly IOConnectionSetting _ioConnectionSetting;
 
-        public InputConnectorComponent(IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
+        public InventoryInputConnectorComponent(IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
         {
             _blockPos = blockPositionInfo.OriginalPos;
             _blockDirection = blockPositionInfo.BlockDirection;
@@ -73,7 +73,7 @@ namespace Game.Block.Component.IOConnector
         {
             //接続先にBlockInventoryがなければ処理を終了
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            if (!worldBlockDatastore.TryGetBlock<InputConnectorComponent>(destinationPos, out var destinationInputConnector)) return;
+            if (!worldBlockDatastore.TryGetBlock<InventoryInputConnectorComponent>(destinationPos, out var destinationInputConnector)) return;
             if (!worldBlockDatastore.TryGetBlock<IBlockInventory>(destinationPos, out var blockInventory)) return;
 
             //接続元のブロックデータを取得

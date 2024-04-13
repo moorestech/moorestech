@@ -31,7 +31,7 @@ namespace Game.Block.Blocks.Chest
             BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
-            var inputConnectorComponent = new InputConnectorComponent(
+            var inputConnectorComponent = new InventoryInputConnectorComponent(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },

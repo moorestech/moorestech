@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.Machine
     {
         public VanillaElectricMachine(
             (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
-                VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent) data)
+                VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, BlockPositionInfo blockPositionInfo, InventoryInputConnectorComponent inputConnectorComponent) data)
             : base(data.blockId, data.entityId, data.blockHash, data.vanillaMachineBlockInventory,
                 data.vanillaMachineSave, data.vanillaMachineRunProcess, data.blockPositionInfo, data.inputConnectorComponent)
         {

@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.PowerGenerator
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
-            _blockComponentManager.AddComponent(data.InputConnectorComponent);
+            _blockComponentManager.AddComponent(data.InventoryInputConnectorComponent);
         }
 
         protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data, string state) : this(data)

@@ -28,7 +28,7 @@ namespace Game.Block.Blocks.Machine
 
         protected VanillaMachineBase(int blockId, int entityId, long blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
-            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent)
+            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, BlockPositionInfo blockPositionInfo, InventoryInputConnectorComponent inventoryInputConnectorComponent)
         {
             BlockId = blockId;
             _vanillaMachineBlockInventory = vanillaMachineBlockInventory;
@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Machine
             BlockHash = blockHash;
             EntityId = entityId;
 
-            _blockComponentManager.AddComponent(inputConnectorComponent);
+            _blockComponentManager.AddComponent(inventoryInputConnectorComponent);
         }
 
         public int EntityId { get; }

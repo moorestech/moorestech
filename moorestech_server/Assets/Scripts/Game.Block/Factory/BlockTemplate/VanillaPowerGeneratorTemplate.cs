@@ -42,9 +42,9 @@ namespace Game.Block.Factory.BlockTemplate
                 generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent), state);
         }
 
-        private InputConnectorComponent GetComponent(BlockPositionInfo blockPositionInfo)
+        private InventoryInputConnectorComponent GetComponent(BlockPositionInfo blockPositionInfo)
         {
-            return new InputConnectorComponent(
+            return new InventoryInputConnectorComponent(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { },
@@ -62,11 +62,11 @@ namespace Game.Block.Factory.BlockTemplate
 
         public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int InfinityPower;
-        public readonly InputConnectorComponent InputConnectorComponent;
+        public readonly InventoryInputConnectorComponent InventoryInputConnectorComponent;
         public readonly bool IsInfinityPower;
 
         public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot,
-            bool isInfinityPower, int infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent)
+            bool isInfinityPower, int infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, InventoryInputConnectorComponent inventoryInputConnectorComponent)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -76,7 +76,7 @@ namespace Game.Block.Factory.BlockTemplate
             InfinityPower = infinityPower;
             FuelSettings = fuelSettings;
             BlockPositionInfo = blockPositionInfo;
-            InputConnectorComponent = inputConnectorComponent;
+            InventoryInputConnectorComponent = inventoryInputConnectorComponent;
         }
     }
 }

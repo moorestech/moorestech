@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Core
 
                 var dummy = new DummyBlockInventory();
 
-                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
                 connectInventory.Add(dummy);
                 GameUpdater.UpdateWithWait();
 
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Core
                 var dummy = new DummyBlockInventory();
                 var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
 
-                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
                 connectInventory.Add(dummy);
 
                 var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
@@ -125,7 +125,7 @@ namespace Tests.CombinedTest.Core
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
                 var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
                 connectInventory.Add(dummy);
 
                 while (!dummy.IsItemExists)

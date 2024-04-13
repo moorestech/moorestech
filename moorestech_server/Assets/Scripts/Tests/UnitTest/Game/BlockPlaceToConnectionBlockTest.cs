@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyor);
 
             //繋がっているコネクターを取得
-            var connectedMachine = (VanillaMachineBase)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
+            var connectedMachine = (VanillaMachineBase)beltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory[0];
 
             //それぞれのentityIdを返却
             return (vanillaMachine.EntityId, connectedMachine.EntityId);
@@ -119,7 +119,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyors[3]);
 
             //繋がっているコネクターを取得
-            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
 
             Assert.AreEqual(4, connectInventory.Count);
 
@@ -177,7 +177,7 @@ namespace Tests.UnitTest.Game
 
             ServerContext.WorldBlockDatastore.AddBlock(northBeltConveyor);
 
-            var connector = (VanillaChest)northBeltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
+            var connector = (VanillaChest)northBeltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory[0];
 
             Assert.AreEqual(targetChest.EntityId, connector.EntityId);
         }
@@ -202,13 +202,13 @@ namespace Tests.UnitTest.Game
             world.AddBlock(chest);
 
             //機械のコネクターを取得
-            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
 
             //チェストのコネクターを取得
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);

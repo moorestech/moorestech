@@ -19,7 +19,7 @@ namespace Game.Block.Factory.BlockTemplate
         public delegate VanillaMachineBase CreateMachine(
             (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
                 VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-                BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent) data);
+                BlockPositionInfo blockPositionInfo, InventoryInputConnectorComponent inputConnectorComponent) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly CreateMachine _createMachine;
@@ -63,7 +63,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ));
         }
 
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, InputConnectorComponent inputConnectorComponent)
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, InventoryInputConnectorComponent inventoryInputConnectorComponent)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
 
@@ -73,14 +73,14 @@ namespace Game.Block.Factory.BlockTemplate
 
             var output = new VanillaMachineOutputInventory(
                 machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, entityId,
-                machineParam.InputSlot, inputConnectorComponent);
+                machineParam.InputSlot, inventoryInputConnectorComponent);
 
             return (input, output, machineParam);
         }
 
-        private InputConnectorComponent CreateInputConnector(BlockPositionInfo blockPositionInfo)
+        private InventoryInputConnectorComponent CreateInputConnector(BlockPositionInfo blockPositionInfo)
         {
-            return new InputConnectorComponent(new IOConnectionSetting(
+            return new InventoryInputConnectorComponent(new IOConnectionSetting(
                 new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                 new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                 new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
