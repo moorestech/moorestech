@@ -287,6 +287,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1631010886 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8889034664745369174, guid: 7e8e975bee48acc4d9fb7ce1a351ad57, type: 3}
+  m_PrefabInstance: {fileID: 1677942783}
+  m_PrefabAsset: {fileID: 0}
+--- !u!81 &1631010892
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631010886}
+  m_Enabled: 1
 --- !u!1001 &1677942783
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -350,7 +363,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8889034664745369174, guid: 7e8e975bee48acc4d9fb7ce1a351ad57, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1631010892}
   m_SourcePrefab: {fileID: 100100000, guid: 7e8e975bee48acc4d9fb7ce1a351ad57, type: 3}
 --- !u!114 &1849144035 stripped
 MonoBehaviour:
