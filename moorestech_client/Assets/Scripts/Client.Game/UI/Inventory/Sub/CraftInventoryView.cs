@@ -1,17 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.Context;
 using Client.Game.UI.Inventory.Element;
 using Client.Game.UI.Inventory.Main;
 using Core.Const;
-using Core.Item.Interface;
-using Game.Block.Interface.RecipeConfig;
 using Game.Context;
-using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using TMPro;
 using UniRx;
-using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -20,8 +15,6 @@ namespace Client.Game.UI.Inventory.Sub
 {
     public class CraftInventoryView : MonoBehaviour
     {
-        private ILocalPlayerInventory _localPlayerInventory;
-
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
 
         [SerializeField] private RectTransform craftMaterialParent;
@@ -29,30 +22,19 @@ namespace Client.Game.UI.Inventory.Sub
 
         [SerializeField] private RectTransform itemListParent;
 
-        [SerializeField] private CraftButton _craftButton;
+        [SerializeField] private CraftButton craftButton;
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
         [SerializeField] private TMP_Text recipeCountText;
-        [SerializeField] private TMP_Text _itemNameText;
 
-        [SerializeField] private ItemSlotObject _requiredMachineSlot;
-
+        private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         private readonly List<ItemSlotObject> _itemListObjects = new();
+        private ItemSlotObject _craftResultSlot;
 
-        private int _currentItem = 0;
-
-        private List<CraftingConfigData> _currentCraftingConfigDataList = new();
-        private List<MachineRecipeData> _currentMachineRecipeDataList = new();
+        private IReadOnlyList<CraftingConfigData> _currentCraftingConfigDataList;
         private int _currentCraftingConfigIndex;
 
-        private int CraftRecipesAmount => _currentCraftingConfigDataList.Count;
-        private int MachineRecipesAmount => _currentMachineRecipeDataList.Count;
-        private int TotalRecipeAmount => CraftRecipesAmount + MachineRecipesAmount;
-        public int CurrentCraftingRecipeIndex { get => _currentCraftingConfigIndex; set => _currentCraftingConfigIndex = (value < 0) ? (TotalRecipeAmount - 1) : (value % TotalRecipeAmount); }
-        private bool IsCraftRecipeSelected => CurrentCraftingRecipeIndex < CraftRecipesAmount;
-        private bool IsMachineRecipeSelected => CurrentCraftingRecipeIndex >= CraftRecipesAmount;
-        private int CraftRecipeIndex => CurrentCraftingRecipeIndex;
-        private int MachineRecipeIndex => CurrentCraftingRecipeIndex - CraftRecipesAmount;
+        private ILocalPlayerInventory _localPlayerInventory;
 
         [Inject]
         public void Construct(ILocalPlayerInventory localPlayerInventory)
@@ -68,73 +50,39 @@ namespace Client.Game.UI.Inventory.Sub
 
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);
-                itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemSlot);
+                itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                 _itemListObjects.Add(itemSlotObject);
             }
 
             nextRecipeButton.onClick.AddListener(() =>
             {
-                CurrentCraftingRecipeIndex++;
-                DisplayRecipe();
+                _currentCraftingConfigIndex++;
+                if (_currentCraftingConfigDataList.Count <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
+                DisplayRecipe(_currentCraftingConfigIndex);
             });
 
             prevRecipeButton.onClick.AddListener(() =>
             {
-                CurrentCraftingRecipeIndex--;
-                DisplayRecipe();
+                _currentCraftingConfigIndex--;
+                if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = _currentCraftingConfigDataList.Count - 1;
+                DisplayRecipe(_currentCraftingConfigIndex);
             });
 
-            _craftButton.OnCraftFinish.Subscribe(_ =>
+            craftButton.OnCraftFinish.Subscribe(_ =>
             {
-                if (IsCraftRecipeSelected)
-                    MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
-            }
-            ).AddTo(this);
+                if (_currentCraftingConfigDataList?.Count == 0) return;
+                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
+            }).AddTo(this);
         }
 
-        private void Start()
+        private void OnClickItemList(ItemSlotObject slot)
         {
-            // find valid first recipe
-            var recipes = ServerContext.CraftingConfig.CraftingConfigList;
-            if (recipes.Count != 0)
-            {
-                TrySetRecipe(recipes[0].ResultItem.Id);
-            }
-        }
+            var craftConfig = ServerContext.CraftingConfig;
+            _currentCraftingConfigDataList = craftConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
+            if (_currentCraftingConfigDataList.Count == 0) return;
 
-        private void OnClickItemSlot(ItemSlotObject slot)
-        {
-            if (slot.ItemViewData.ItemId == _currentItem)
-                return;
-            
-            TrySetRecipe(slot.ItemViewData.ItemId, _currentItem);
-        }
-
-        private bool TrySetRecipe(int ItemId, int fallbackId = 0)
-        {
-            Clear();
-
-            // collect all normal recipes that have the item as a result
-            CollectCraftingRecipes(ItemId);
-
-            // collect all the machine recipes that have the item as a result
-            CollectMachineRecipes(ItemId);
-
-            // if machine, collect all the recipes that use the machine
-            if (ServerContext.BlockConfig.IsBlock(ItemId))
-                CollectRecipesUsingMachines(ServerContext.BlockConfig.ItemIdToBlockId(ItemId));
-
-            if (TotalRecipeAmount != 0)
-            {
-                _currentItem = ItemId;
-                DisplayRecipe();
-                return true;
-            }
-            else if (fallbackId != 0)
-            {
-                return TrySetRecipe(fallbackId);
-            }
-            return false;
+            _currentCraftingConfigIndex = 0;
+            DisplayRecipe(0);
         }
 
         private void OnItemChange(int slot)
@@ -147,172 +95,57 @@ namespace Client.Game.UI.Inventory.Sub
             }
         }
 
-        private void CollectCraftingRecipes(int itemId)
+
+        private void DisplayRecipe(int index)
         {
-            var craftConfig = ServerContext.CraftingConfig;
-            var results = craftConfig.GetResultItemCraftingConfigList(itemId);
-
-            if (results?.Count != 0)
-                _currentCraftingConfigDataList = results.ToList();
-        }
-
-        private void CollectMachineRecipes(int itemId)
-        {
-            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
-            var machineResults = machineRecipeConfig
-                .GetAllRecipeData()
-                .Where(recipe => recipe.ItemOutputs.Any(i => i.OutputItem.Id == itemId));
-
-            _currentMachineRecipeDataList.AddRange(machineResults);
-        }
-
-        private void CollectRecipesUsingMachines(int blockId)
-        {
-            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
-            var machineResults = machineRecipeConfig
-                .GetAllRecipeData()
-                .Where(recipe => recipe.BlockId == blockId);
-
-            _currentMachineRecipeDataList.AddRange(machineResults);
-        }
-
-        private void Clear()
-        {
-            _currentCraftingConfigIndex = 0;
-            _currentCraftingConfigDataList.Clear();
-            _currentMachineRecipeDataList.Clear();
-
-            recipeCountText.text = "0 / 0";
-
-            _requiredMachineSlot.SetActive(false);
+            var craftingConfigData = _currentCraftingConfigDataList[index];
 
             ClearSlotObject();
-        }
 
-        private void DisplayRecipe()
-        {
-            if (IsCraftRecipeSelected)
+            SetMaterialSlot();
+
+            SetResultSlot();
+
+            UpdateButtonAndText();
+
+            #region InternalMethod
+
+            void ClearSlotObject()
             {
-                DisplayCraftRecipe(CraftRecipeIndex);
-                return;
+                foreach (var materialSlot in _craftMaterialSlotList) Destroy(materialSlot.gameObject);
+                _craftMaterialSlotList.Clear();
+                if (_craftResultSlot != null) Destroy(_craftResultSlot.gameObject);
             }
 
-            if (IsMachineRecipeSelected)
+            void SetMaterialSlot()
             {
-                DisplayMachineRecipe(MachineRecipeIndex);
-                return;
+                foreach (var material in craftingConfigData.CraftItems)
+                {
+                    var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(material.Id);
+                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
+                    itemSlotObject.SetItem(itemViewData, material.Count);
+                    itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
+                    _craftMaterialSlotList.Add(itemSlotObject);
+                }
             }
-        }
 
-        private void DisplayCraftRecipe(int index)
-        {
-            CraftingConfigData craftingConfigData = _currentCraftingConfigDataList[index];
-
-            bool isCraftable = IsCraftable(craftingConfigData);
-
-            ClearSlotObject();
-            SetMaterialSlot(craftingConfigData.CraftItems);
-            SetResultSlot(craftingConfigData.ResultItem);
-            UpdateButtonAndText(isCraftable, false);
-        }
-
-        private void DisplayMachineRecipe(int index)
-        {
-            MachineRecipeData recipeData = _currentMachineRecipeDataList[index];
-
-            ClearSlotObject();
-            SetMaterialSlot(recipeData.ItemInputs);
-            SetResultSlots(recipeData.ItemOutputs.Select(x => x.OutputItem));
-            UpdateButtonAndText(false, true);
-
-            SetRequiredMachine(recipeData.BlockId);
-        }
-        #region InternalMethod
-
-        private void ClearSlotObject()
-        {
-            foreach (Transform child in craftResultParent)
+            void SetResultSlot()
             {
-                Destroy(child.gameObject);
+                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(craftingConfigData.ResultItem.Id);
+                _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
+                _craftResultSlot.SetItem(itemViewData, craftingConfigData.ResultItem.Count);
             }
-            foreach (Transform child in craftMaterialParent)
+
+            void UpdateButtonAndText()
             {
-                Destroy(child.gameObject);
+                prevRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
+                nextRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
+                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigDataList.Count}";
+                craftButton.UpdateInteractable(IsCraftable(craftingConfigData));
             }
+
+            #endregion
         }
-
-        private void SetMaterialSlot(IEnumerable<IItemStack> items)
-        {
-            foreach (var item in items)
-            {
-                AddItemSlot(item, craftMaterialParent);
-            }
-        }
-
-        private void SetMaterialSlot(IItemStack items)
-        {
-            AddItemSlot(items, craftMaterialParent);
-        }
-
-        private void SetResultSlots(IEnumerable<IItemStack> items)
-        {
-            foreach (var item in items)
-            {
-                AddItemSlot(item, craftResultParent);
-            }
-        }
-
-        private void SetResultSlot(IItemStack item)
-        {
-            AddItemSlot(item, craftResultParent);
-        }
-
-        private void AddItemSlot(IItemStack item, RectTransform parent)
-        {
-            var itemSlotObject = Instantiate(itemSlotObjectPrefab, parent);
-
-            var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
-            itemSlotObject.SetItem(itemViewData, item.Count);
-
-            itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemSlot);
-        }
-
-        
-
-        private void UpdateButtonAndText(bool isCraftable, bool isMachineRecipe)
-        {
-            int recipesAmount = TotalRecipeAmount;
-            var itemConfig = ServerContext.ItemConfig.GetItemConfig(_currentItem);
-
-            prevRecipeButton.interactable = recipesAmount > 1;
-            nextRecipeButton.interactable = recipesAmount > 1;
-            
-            recipeCountText.text = $"{CurrentCraftingRecipeIndex + 1} / {TotalRecipeAmount}";
-            
-            _itemNameText.text = itemConfig.Name;
-            
-            _craftButton.UpdateInteractable(isCraftable);
-            _craftButton.gameObject.SetActive(!isMachineRecipe);
-
-            _requiredMachineSlot.SetActive(isMachineRecipe);
-
-        }
-
-        private void SetRequiredMachine(int blockId)
-        {
-            int itemID = ServerContext.BlockConfig.BlockIdToItemId(blockId);
-            var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(itemID);
-            _requiredMachineSlot.SetItem(itemViewData, 0);
-
-            _requiredMachineSlot.SetActive(true);
-
-            _requiredMachineSlot.OnLeftClickUp.Subscribe(slot =>
-            {
-                OnClickItemSlot(slot);
-            });
-        }
-
-        #endregion
 
 
         /// <summary>
