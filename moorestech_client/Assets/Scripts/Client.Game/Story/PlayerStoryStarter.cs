@@ -7,7 +7,7 @@ namespace Client.Game.Story
     public class PlayerStoryStarter : MonoBehaviour
     {
         [SerializeField] private StartStoryUI startStoryUI;
-        
+
         public bool IsStartReady => CurrentStoryStarterObject != null;
         public StoryStarterObject CurrentStoryStarterObject { get; private set; }
 
@@ -20,7 +20,7 @@ namespace Client.Game.Story
                 startStoryUI.ShowStartStoryUI(true);
             }
         }
-        
+
         private void OnTriggerExit(Collider other)
         {
             if (other.TryGetComponent<StoryStarterObject>(out var _))
@@ -28,6 +28,11 @@ namespace Client.Game.Story
                 CurrentStoryStarterObject = null;
                 startStoryUI.ShowStartStoryUI(false);
             }
+        }
+
+        private void OnDisable()
+        {
+            startStoryUI.ShowStartStoryUI(false);
         }
     }
 }

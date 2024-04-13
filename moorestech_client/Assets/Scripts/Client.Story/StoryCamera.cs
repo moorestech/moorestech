@@ -9,7 +9,7 @@ namespace Client.Story
 
         public void SetTransform(Vector3 pos, Vector3 rot);
 
-        public void SetEnabled(bool enabled);
+        public void SetActive(bool enabled);
     }
 
     public class StoryCamera : MonoBehaviour, IStoryCamera
@@ -30,9 +30,9 @@ namespace Client.Story
             camera.transform.eulerAngles = rot;
         }
 
-        public void SetEnabled(bool enabled)
+        public void SetActive(bool enabled)
         {
-            camera.enabled = enabled;
+            gameObject.SetActive(enabled);
         }
     }
 }

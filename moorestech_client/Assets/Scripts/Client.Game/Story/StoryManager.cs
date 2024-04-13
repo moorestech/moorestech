@@ -16,19 +16,17 @@ namespace Client.Story
 
         [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
-        
+
         [SerializeField] private PlayerObjectController playerObjectController;
 
         public async UniTask StartStory(TextAsset storyCsv)
         {
-            //前処理
+            //前処理 Pre process
             var storyContext = PreProcess();
             var lines = storyCsv.text.Split('\n');
             var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
-            
-            playerObjectController.SetActive(false);
 
-            //トラックの実行処理
+            //トラックの実行処理 Execute track
             for (var i = 0; i < lines.Length; i++)
             {
                 var values = lines[i].Split(',');
@@ -61,11 +59,13 @@ namespace Client.Story
                 i = nextIndex - 1;
             }
 
-            //後処理
-            storyCamera.SetEnabled(false);
+            //後処理 Post process
+            storyCamera.SetActive(false);
+            storyUI.gameObject.SetActive(false);
             if (cameraController) cameraController.SetEnable(true);
-            
+
             playerObjectController.SetActive(true);
+            storyContext.DestroyCharacter();
 
             #region Internal
 
@@ -80,8 +80,10 @@ namespace Client.Story
                     characters.Add(characterInfo.CharacterKey, character);
                 }
 
-                //カメラの設定
-                storyCamera.SetEnabled(true);
+                // 表示の設定
+                storyCamera.SetActive(true);
+                playerObjectController.SetActive(false);
+                storyUI.gameObject.SetActive(true);
                 if (cameraController) cameraController.SetEnable(false);
 
                 return new StoryContext(storyUI, characters, storyCamera, voiceDefine);

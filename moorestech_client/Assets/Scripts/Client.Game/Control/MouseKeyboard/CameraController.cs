@@ -7,6 +7,8 @@ namespace Client.Game.Control.MouseKeyboard
 {
     public class CameraController : MonoBehaviour
     {
+        [SerializeField] private Camera mainCamera;
+
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
         [SerializeField] private UIStateControl uiStateControl;
         [SerializeField] private Vector2 sensitivity = Vector2.one;
@@ -66,6 +68,7 @@ namespace Client.Game.Control.MouseKeyboard
         public void SetEnable(bool enable)
         {
             enabled = enable;
+            mainCamera.gameObject.SetActive(enable);
         }
     }
 }
