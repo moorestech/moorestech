@@ -82,7 +82,7 @@ namespace Client.Story
 
                 // 表示の設定
                 storyCamera.SetActive(true);
-                playerObjectController.SetActive(false);
+                if (playerObjectController) playerObjectController.SetActive(false);
                 storyUI.gameObject.SetActive(true);
                 if (cameraController) cameraController.SetEnable(false);
 
