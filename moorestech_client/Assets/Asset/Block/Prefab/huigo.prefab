@@ -1006,7 +1006,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5909471806100412200}
   m_Layer: 0
-  m_Name: huigo 1
+  m_Name: huigo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
