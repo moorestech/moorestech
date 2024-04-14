@@ -1,49 +1,56 @@
+using System.Collections.Generic;
 using Core.Const;
+using Game.Block.Blocks;
 using Game.Block.Blocks.Miner;
+using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Component;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaMinerTemplate : IBlockTemplate
     {
-        public delegate VanillaMinerBase LoadMiner(
-            (string state, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInvEvent, BlockPositionInfo blockPositionInfo) data);
-
-        public delegate VanillaMinerBase NewMiner(
-            (int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInvEvent, BlockPositionInfo blockPositionInfo) data);
-
         private readonly BlockOpenableInventoryUpdateEvent _blockOpenableInventoryUpdateEvent;
 
-
-        public readonly LoadMiner _loadMiner;
-        public readonly NewMiner _newMiner;
-
-        public VanillaMinerTemplate(BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, NewMiner newMiner, LoadMiner loadMiner)
+        public VanillaMinerTemplate(BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent)
         {
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
-            _newMiner = newMiner;
-            _loadMiner = loadMiner;
         }
 
         public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
         {
-            var (requestPower, outputSlot) = GetData(param, entityId);
+            var (requestPower, outputSlot) = GetData(param);
 
-            return _newMiner((param.BlockId, entityId, blockHash, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, blockPositionInfo));
+            var inputConnectorComponent = GetComponent(blockPositionInfo);
+            var minerComponent = new VanillaElectricMinerComponent(param.BlockId,entityId, requestPower,outputSlot,_blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var components = new List<IBlockComponent>
+            {
+                minerComponent,
+                inputConnectorComponent,
+            };
+            
+            return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
         {
-            var (requestPower, outputSlot) = GetData(param, entityId);
+            var (requestPower, outputSlot) = GetData(param);
 
-            return _loadMiner((state, param.BlockId, entityId, blockHash, requestPower,
-                outputSlot, _blockOpenableInventoryUpdateEvent, blockPositionInfo));
+            var inputConnectorComponent = GetComponent(blockPositionInfo);
+            var minerComponent = new VanillaElectricMinerComponent(state, param.BlockId,entityId, requestPower,outputSlot,_blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var components = new List<IBlockComponent>
+            {
+                minerComponent,
+                inputConnectorComponent,
+            };
+            
+            return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
         }
 
-        private (int, int) GetData(BlockConfigData param, int entityId)
+        private (int requestPower, int outputSlot) GetData(BlockConfigData param)
         {
             var minerParam = param.Param as MinerBlockConfigParam;
 
@@ -52,6 +59,15 @@ namespace Game.Block.Factory.BlockTemplate
             var miningTime = int.MaxValue;
 
             return (requestPower, minerParam.OutputSlot);
+        }
+
+        BlockConnectorComponent<IBlockInventory> GetComponent(BlockPositionInfo blockPositionInfo)
+        {
+            return new BlockConnectorComponent<IBlockInventory>(
+                new IOConnectionSetting(
+                    new ConnectDirection[] { },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
         }
     }
 }

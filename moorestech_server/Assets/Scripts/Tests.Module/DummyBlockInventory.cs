@@ -3,7 +3,7 @@ using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Item.Util;
-using Game.Block.BlockInventory;
+using Game.Block.Interface.Component;
 
 namespace Tests.Module
 {
@@ -72,6 +72,11 @@ namespace Tests.Module
 
         public void RemoveOutputConnector(IBlockInventory blockInventory)
         {
+        }
+        public bool IsDestroy => false;
+        public void Destroy()
+        {
+            
         }
     }
 }

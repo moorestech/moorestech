@@ -15,7 +15,7 @@ namespace Tests.UnitTest.Core.Block
 {
     public class MinerSaveLoadTest
     {
-        private const int MinerId = UnitTestModBlockId.MinerId;
+        private const int MinerId = ForUnitTestModBlockId.MinerId;
 
         [Test]
         public void SaveLoadTest()
@@ -30,12 +30,12 @@ namespace Tests.UnitTest.Core.Block
             var originalRemainingMillSecond = 350;
 
             var inventory =
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
+                (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(originalMiner);
             inventory.SetItem(0, 1, 1);
             inventory.SetItem(2, 4, 1);
-            typeof(VanillaMinerBase).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+            typeof(VanillaElectricMinerComponent).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(originalMiner, originalRemainingMillSecond);
 
 
@@ -45,11 +45,11 @@ namespace Tests.UnitTest.Core.Block
 
             var loadedMiner = blockFactory.Load(minerHash, 1, json,minerPosInfo);
             var loadedInventory =
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
+                (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(originalMiner);
             var loadedRemainingMillSecond =
-                (int)typeof(VanillaMinerBase)
+                (int)typeof(VanillaElectricMinerComponent)
                     .GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(loadedMiner);
 

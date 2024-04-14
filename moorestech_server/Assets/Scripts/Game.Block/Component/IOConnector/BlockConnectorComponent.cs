@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Block.BlockInventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.ComponentAttribute;
 using Game.Context;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
@@ -10,6 +11,7 @@ using UnityEngine;
 
 namespace Game.Block.Component.IOConnector
 {
+    [DisallowMultiple]
     public class BlockConnectorComponent<TTarget> : IBlockComponent
     {
         private readonly BlockDirection _blockDirection;

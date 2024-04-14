@@ -15,9 +15,9 @@ namespace Tests.CombinedTest.Game
     //電柱が無くなったときにセグメントが切断されるテスト
     public class DisconnectElectricSegmentTest
     {
-        private const int ElectricPoleId = UnitTestModBlockId.ElectricPoleId;
-        private const int MachineId = UnitTestModBlockId.MachineId;
-        private const int GenerateId = UnitTestModBlockId.GeneratorId;
+        private const int ElectricPoleId = ForUnitTestModBlockId.ElectricPoleId;
+        private const int MachineId = ForUnitTestModBlockId.MachineId;
+        private const int GenerateId = ForUnitTestModBlockId.GeneratorId;
 
         [Test]
         public void RemoveElectricPoleToDisconnectSegment()

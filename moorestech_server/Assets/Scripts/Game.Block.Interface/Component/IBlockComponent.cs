@@ -1,4 +1,4 @@
-namespace Game.Block.Interface
+namespace Game.Block.Interface.Component
 {
     public interface IBlockComponent
     {

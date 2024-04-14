@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class PowerGeneratorSaveLoadTest
     {
-        private const int PowerGeneratorId = UnitTestModBlockId.GeneratorId;
+        private const int PowerGeneratorId = ForUnitTestModBlockId.GeneratorId;
 
         [Test]
         public void PowerGeneratorTest()
@@ -27,13 +27,13 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var fuelSlotCount = (ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = (VanillaPowerGeneratorBase)blockFactory.Create(PowerGeneratorId, 10, generatorPosInfo);
+            var powerGenerator = (VanillaElectricGeneratorComponent)blockFactory.Create(PowerGeneratorId, 10, generatorPosInfo);
 
             const int fuelItemId = 5;
             const int remainingFuelTime = 567;
 
             //検証元の発電機を作成
-            var type = typeof(VanillaPowerGeneratorBase);
+            var type = typeof(VanillaElectricGeneratorComponent);
             type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, fuelItemId);
             type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var blockHash = ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).BlockHash;
             //発電機を再作成
-            var loadedPowerGenerator = (VanillaPowerGeneratorBase)blockFactory.Load(blockHash, 10, saveText, generatorPosInfo);
+            var loadedPowerGenerator = (VanillaElectricGeneratorComponent)blockFactory.Load(blockHash, 10, saveText, generatorPosInfo);
             //発電機を再作成した結果を検証
             var loadedFuelItemId = (int)type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);

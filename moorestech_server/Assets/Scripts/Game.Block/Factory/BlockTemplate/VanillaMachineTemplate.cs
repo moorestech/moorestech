@@ -1,5 +1,6 @@
+using System.Collections.Generic;
 using Core.Item.Interface;
-using Game.Block.BlockInventory;
+using Game.Block.Blocks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
@@ -10,25 +11,18 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Component;
 using Game.Context;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaMachineTemplate : IBlockTemplate
     {
-        //TODO こういうダルいところ整理したい 全部コンポーネントにするのはアリ
-        public delegate VanillaMachineBase CreateMachine(
-            (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
-                VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-                BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> inputConnectorComponent) data);
-
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
-        private readonly CreateMachine _createMachine;
 
-        public VanillaMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, CreateMachine createMachine)
+        public VanillaMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
-            _createMachine = createMachine;
         }
 
         public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
@@ -39,13 +33,17 @@ namespace Game.Block.Factory.BlockTemplate
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
             var runProcess = new VanillaMachineRunProcess(input, output, emptyRecipe, machineParam.RequiredPower);
 
-            return _createMachine((param.BlockId, entityId, blockHash,
-                    new VanillaMachineBlockInventory(input, output),
-                    new VanillaMachineSave(input, output, runProcess),
-                    runProcess,
-                    blockPositionInfo,
-                    inputConnectorComponent
-                ));
+            var blockInventory = new VanillaMachineBlockInventory(input, output);
+            var machineSave = new VanillaMachineSave(input, output, runProcess);
+            var machineComponent = new VanillaElectricMachineComponent(entityId, blockInventory,machineSave,runProcess);
+
+            var components = new List<IBlockComponent>()
+            {
+                machineComponent,
+                inputConnectorComponent,
+            };
+            
+            return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
@@ -55,13 +53,17 @@ namespace Game.Block.Factory.BlockTemplate
 
             var runProcess = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
 
-            return _createMachine((param.BlockId, entityId, blockHash,
-                    new VanillaMachineBlockInventory(input, output),
-                    new VanillaMachineSave(input, output, runProcess),
-                    runProcess,
-                    blockPositionInfo,
-                    inputConnectorComponent
-                ));
+            var blockInventory = new VanillaMachineBlockInventory(input, output);
+            var machineSave = new VanillaMachineSave(input, output, runProcess);
+            var machineComponent = new VanillaElectricMachineComponent(entityId, blockInventory,machineSave,runProcess);
+
+            var components = new List<IBlockComponent>()
+            {
+                machineComponent,
+                inputConnectorComponent,
+            };
+            
+            return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
         }
 
         private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)

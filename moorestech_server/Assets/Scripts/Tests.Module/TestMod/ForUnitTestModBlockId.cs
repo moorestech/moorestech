@@ -1,6 +1,6 @@
 namespace Tests.Module.TestMod
 {
-    public class UnitTestModBlockId
+    public static class ForUnitTestModBlockId
     {
         public const int MachineId = 1;
         public const int BlockId = 2;

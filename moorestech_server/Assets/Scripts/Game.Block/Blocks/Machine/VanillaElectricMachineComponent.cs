@@ -4,11 +4,9 @@ using System.Collections.ObjectModel;
 using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item.Interface;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
-using Game.Block.Component.IOConnector;
-using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
 
@@ -17,38 +15,30 @@ namespace Game.Block.Blocks.Machine
     /// <summary>
     ///     機械を表すクラス
     ///     具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
+    /// TODO この処理周辺のコンポーネントの分離をいい感じにする
     /// </summary>
-    public abstract class VanillaMachineBase : IBlock, IBlockInventory, IEnergyConsumer, IOpenableInventory
+    public class VanillaElectricMachineComponent : IBlockInventory, IEnergyConsumer, IOpenableInventory, IBlockStateChange, IBlockSaveState
     {
-        private readonly BlockComponentManager _blockComponentManager = new();
-
+        public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
+        
+        public bool IsDestroy { get; private set; }
+        
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
         private readonly VanillaMachineSave _vanillaMachineSave;
 
-        protected VanillaMachineBase(int blockId, int entityId, long blockHash,
+        public VanillaElectricMachineComponent(int entityId,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
-            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess)
         {
-            BlockId = blockId;
             _vanillaMachineBlockInventory = vanillaMachineBlockInventory;
             _vanillaMachineSave = vanillaMachineSave;
             _vanillaMachineRunProcess = vanillaMachineRunProcess;
-            BlockPositionInfo = blockPositionInfo;
-            BlockHash = blockHash;
             EntityId = entityId;
-
-            _blockComponentManager.AddComponent(blockConnectorComponent);
         }
 
         public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
 
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
-
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
 
         #region IBlock implementation
 
@@ -58,25 +48,6 @@ namespace Game.Block.Blocks.Machine
         }
 
         #endregion
-
-
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
-        }
-
 
         #region IBlockInventory
 
@@ -153,5 +124,10 @@ namespace Game.Block.Blocks.Machine
         }
 
         #endregion
+
+        public void Destroy()
+        {
+            IsDestroy = true;
+        }
     }
 }

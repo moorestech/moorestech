@@ -5,30 +5,30 @@ using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
-using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
-using Game.Map.Interface.Vein;
 using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner, IOpenableInventory
+    public class VanillaElectricMinerComponent : IEnergyConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
-        private readonly BlockComponentManager _blockComponentManager = new();
-
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
+        public bool IsDestroy { get; private set; }
+        
+        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
         private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new();
+        
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
@@ -42,22 +42,12 @@ namespace Game.Block.Blocks.Miner
         private List<IItemStack> _miningItems = new();
         private int _remainingMillSecond = int.MaxValue;
 
-        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(int blockId, int entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent,BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
-            BlockId = blockId;
             EntityId = entityId;
             RequestEnergy = requestPower;
-            BlockHash = blockHash;
 
             _blockInventoryUpdate = openableInventoryUpdateEvent;
-            BlockPositionInfo = blockPositionInfo;
-
-            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(
-                new IOConnectionSetting(
-                    new ConnectDirection[] { },
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
-            _blockComponentManager.AddComponent(inputConnectorComponent);
 
             var itemStackFactory = ServerContext.ItemStackFactory;
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
@@ -91,9 +81,8 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
 
-        protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
-            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
-            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, openableInventoryUpdateEvent, blockPositionInfo)
+        public VanillaElectricMinerComponent(string saveData,int blockId, int entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent,BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+            : this(blockId, entityId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
@@ -110,14 +99,9 @@ namespace Game.Block.Blocks.Miner
             for (var i = 0; i < inventoryItems.Count; i++)
                 _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
         }
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
 
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
 
         public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
 
         public string GetSaveState()
         {
@@ -127,12 +111,6 @@ namespace Game.Block.Blocks.Miner
                 saveState += $",{itemStack.ItemHash},{itemStack.Count}";
 
             return saveState;
-        }
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public IItemStack GetItem(int slot)
@@ -240,18 +218,7 @@ namespace Game.Block.Blocks.Miner
             _blockInventoryUpdate.OnInventoryUpdateInvoke(
                 new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
         }
-
-        public override bool Equals(object obj)
-        {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
-        }
-
-
+        
         #region Implimantion IOpenableInventory
 
         public ReadOnlyCollection<IItemStack> Items => _openableInventoryItemDataStoreService.Items;
@@ -292,6 +259,11 @@ namespace Game.Block.Blocks.Miner
         }
 
         #endregion
+
+        public void Destroy()
+        {
+            IsDestroy = true;
+        }
     }
 
     public enum VanillaMinerState

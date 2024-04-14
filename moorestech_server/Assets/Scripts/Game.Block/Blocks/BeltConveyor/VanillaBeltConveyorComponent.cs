@@ -3,10 +3,8 @@ using System.Text;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.BlockInventory;
-using Game.Block.Component;
 using Game.Block.Component.IOConnector;
-using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
 using UniRx;
@@ -16,44 +14,32 @@ namespace Game.Block.Blocks.BeltConveyor
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyor : IBlock, IBlockInventory
+    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IBlockStateChange
     {
-        private readonly BlockComponentManager _blockComponentManager = new();
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
-
+        public bool IsDestroy { get; private set; }
+        
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-        public readonly int InventoryItemNum;
+        
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
 
+        public readonly int InventoryItemNum;
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit,BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
-            EntityId = entityId;
-            BlockId = blockId;
             InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
-            BlockPositionInfo = blockPositionInfo;
-            BlockHash = blockHash;
+            _blockConnectorComponent = blockConnectorComponent;
 
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
-
-            var component = new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(
-                // 南、西、東をからの接続を受け、アイテムをインプットする
-                new ConnectDirection[] { new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                //北向きに出力する
-                new ConnectDirection[] { new(1, 0, 0) },
-                new[]
-                {
-                    VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
-                    VanillaBlockType.Miner, VanillaBlockType.BeltConveyor,
-                }), blockPositionInfo);
-            _blockComponentManager.AddComponent(component);
         }
 
-        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockPositionInfo blockPositionInfo) :
-            this(blockId, entityId, blockHash, inventoryItemNum, timeOfItemEnterToExit, blockPositionInfo)
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
+            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent)
         {
             //stateから復元
             //データがないときは何もしない
@@ -69,17 +55,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
             }
         }
-
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
-
-        public BlockPositionInfo BlockPositionInfo { get; }
-
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-
-        public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
-
+        
         public string GetSaveState()
         {
             if (_inventoryItems.Length == 0) return string.Empty;
@@ -103,14 +79,6 @@ namespace Game.Block.Blocks.BeltConveyor
             //最後のカンマを削除
             state.Remove(state.Length - 1, 1);
             return state.ToString();
-        }
-
-
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -178,10 +146,9 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
-                    var inputConnector = ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>();
-                    if (inputConnector.ConnectTargets.Count == 0) continue;
+                    if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
 
-                    var connector = inputConnector.ConnectTargets[0];
+                    var connector = _blockConnectorComponent.ConnectTargets[0];
                     var output = connector.InsertItem(insertItem);
 
                     //渡した結果がnullItemだったらそのアイテムを消す
@@ -199,15 +166,10 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             return _inventoryItems[index];
         }
-
-        public override bool Equals(object obj)
+        
+        public void Destroy()
         {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
+            IsDestroy = true;
         }
     }
 }

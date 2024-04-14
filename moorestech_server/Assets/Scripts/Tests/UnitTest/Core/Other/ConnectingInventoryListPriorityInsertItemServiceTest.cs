@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

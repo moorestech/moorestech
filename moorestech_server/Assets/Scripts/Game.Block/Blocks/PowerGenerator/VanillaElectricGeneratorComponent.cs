@@ -6,11 +6,11 @@ using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.BlockInventory;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -18,36 +18,45 @@ using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
+    public class VanillaElectricGeneratorComponent : IEnergyGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange
     {
+        public BlockPositionInfo BlockPositionInfo { get; }
+
+        public int EntityId { get; }
+        
+        public bool IsDestroy { get; private set; }
+        
+        
+        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+        
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
 
         private readonly int _infinityPower;
         private readonly bool _isInfinityPower;
-        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-
+        
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
 
-        protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data)
+        public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
         {
             BlockPositionInfo = data.BlockPositionInfo;
-            BlockId = data.BlockId;
             EntityId = data.EntityId;
             _fuelSettings = data.FuelSettings;
             _isInfinityPower = data.IsInfinityPower;
             _infinityPower = data.InfinityPower;
 
-            BlockHash = data.BlockHash;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
 
             _blockComponentManager.AddComponent(data.InventoryInputConnectorComponent);
         }
 
-        protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data, string state) : this(data)
+        public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data, string state) : this(data)
         {
             var split = state.Split(',');
             _fuelItemId = int.Parse(split[0]);
@@ -63,14 +72,6 @@ namespace Game.Block.Blocks.PowerGenerator
                 slot++;
             }
         }
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
-
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-
-        public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
 
         public string GetSaveState()
         {
@@ -82,13 +83,6 @@ namespace Game.Block.Blocks.PowerGenerator
 
             return saveState;
         }
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
-        }
-
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -117,8 +111,6 @@ namespace Game.Block.Blocks.PowerGenerator
 
             return 0;
         }
-
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
@@ -189,15 +181,10 @@ namespace Game.Block.Blocks.PowerGenerator
             var properties = new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
-
-        public override bool Equals(object obj)
+        
+        public void Destroy()
         {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
+            IsDestroy = true;
         }
     }
 }

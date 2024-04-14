@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
 
 namespace Game.Block.Interface
@@ -8,6 +9,7 @@ namespace Game.Block.Interface
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
+        public BlockConfigData BlockConfigData { get; }
         public IBlockComponentManager ComponentManager { get; }
         public BlockPositionInfo BlockPositionInfo { get; }
 

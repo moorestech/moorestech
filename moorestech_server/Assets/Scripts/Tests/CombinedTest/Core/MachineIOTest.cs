@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 
 
-            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var block = (VanillaElectricMachineComponent)blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             foreach (var inputItem in recipe.ItemInputs)
                 block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 
@@ -52,11 +52,11 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i], output[i]);
         }
 
-        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBase machineBase)
+        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaElectricMachineComponent electricMachineComponent)
         {
-            var vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
+            var vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machineBase);
+                .GetValue(electricMachineComponent);
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachineInventory);

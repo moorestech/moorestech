@@ -4,12 +4,11 @@ using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
-using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Event;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -17,26 +16,29 @@ using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
+    public class VanillaChest : IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
-        private readonly BlockComponentManager _blockComponentManager = new();
+        public int EntityId { get; }
+        
+        public bool IsDestroy { get; private set; }
+        
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+        
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
-        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, BlockPositionInfo blockPositionInfo)
+        public VanillaChest(int entityId, int slotNum, BlockPositionInfo blockPositionInfo)
         {
-            BlockId = blockId;
             EntityId = entityId;
             BlockPositionInfo = blockPositionInfo;
-            BlockHash = blockHash;
 
             var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
-            _blockComponentManager.AddComponent(inputConnectorComponent);
 
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
@@ -44,8 +46,8 @@ namespace Game.Block.Blocks.Chest
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, BlockPositionInfo blockPositionInfo) :
-            this(blockId, entityId, blockHash, slotNum, blockPositionInfo)
+        public VanillaChest(string saveData, int entityId, int slotNum, BlockPositionInfo blockPositionInfo) :
+            this(entityId, slotNum, blockPositionInfo)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
@@ -56,13 +58,6 @@ namespace Game.Block.Blocks.Chest
                 _itemDataStoreService.SetItem(i / 2, item);
             }
         }
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-
-        public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
 
         public string GetSaveState()
         {
@@ -71,12 +66,6 @@ namespace Game.Block.Blocks.Chest
             foreach (var itemStack in _itemDataStoreService.Inventory)
                 saveState += $"{itemStack.ItemHash},{itemStack.Count},";
             return saveState.TrimEnd(',');
-        }
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public void SetItem(int slot, IItemStack itemStack)
@@ -144,15 +133,10 @@ namespace Game.Block.Blocks.Chest
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
             blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
         }
-
-        public override bool Equals(object obj)
+        
+        public void Destroy()
         {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
+            IsDestroy = true;
         }
     }
 }

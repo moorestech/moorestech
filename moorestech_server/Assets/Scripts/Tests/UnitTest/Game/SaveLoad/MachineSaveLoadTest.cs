@@ -32,24 +32,25 @@ namespace Tests.UnitTest.Game.SaveLoad
             GameUpdater.ResetUpdate();
 
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var machine = (VanillaMachineBase)blockFactory.Create(1, 10, machinePosInfo);
-            worldBlockDatastore.AddBlock(machine);
+            var machineBlock = blockFactory.Create(1, 10, machinePosInfo);
+            var machineComponent = machineBlock.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            worldBlockDatastore.AddBlock(machineBlock);
 
 
             //レシピ用のアイテムを追加
-            machine.InsertItem(itemStackFactory.Create(1, 3));
-            machine.InsertItem(itemStackFactory.Create(2, 1));
+            machineComponent.InsertItem(itemStackFactory.Create(1, 3));
+            machineComponent.InsertItem(itemStackFactory.Create(2, 1));
             //処理を開始
             GameUpdater.UpdateWithWait();
             //別のアイテムを追加
-            machine.InsertItem(itemStackFactory.Create(5, 6));
-            machine.InsertItem(itemStackFactory.Create(2, 4));
+            machineComponent.InsertItem(itemStackFactory.Create(5, 6));
+            machineComponent.InsertItem(itemStackFactory.Create(2, 4));
 
             //リフレクションで機械の状態を設定
             //機械のレシピの残り時間設定
-            var vanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
+            var vanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machine);
+                .GetValue(machineComponent);
             typeof(VanillaMachineRunProcess)
                 .GetProperty("RemainingMillSecond")
                 .SetValue(vanillaMachineRunProcess, 300);
@@ -59,9 +60,9 @@ namespace Tests.UnitTest.Game.SaveLoad
                 .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
 
             //機械のアウトプットスロットの設定
-            var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
+            var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machine);
+                .GetValue(machineComponent);
 
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -84,16 +85,16 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             loadJsonFile.Load(json);
 
-            var loadMachine = (VanillaMachineBase)loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            Debug.Log(machine.GetHashCode());
+            var loadMachine = (VanillaElectricMachineComponent)loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
+            Debug.Log(machineComponent.GetHashCode());
             Debug.Log(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
-            Assert.AreEqual(machine.BlockId, loadMachine.BlockId);
-            Assert.AreEqual(machine.EntityId, loadMachine.EntityId);
+            Assert.AreEqual(machineBlock.BlockId, machineBlock.BlockId);
+            Assert.AreEqual(machineComponent.EntityId, loadMachine.EntityId);
 
 
             //機械のレシピの残り時間のチェック
-            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
+            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             Assert.AreEqual(300, loadVanillaMachineRunProcess.RemainingMillSecond);
@@ -103,7 +104,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.CurrentState);
 
 
-            var loadMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
+            var loadMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             //インプットスロットのチェック

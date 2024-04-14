@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
-using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;

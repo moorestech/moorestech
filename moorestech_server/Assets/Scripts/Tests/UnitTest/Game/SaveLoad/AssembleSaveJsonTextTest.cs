@@ -23,10 +23,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
-            var blockConfig = ServerContext.BlockConfig;
-
-            var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;
-            var blockHash2 = blockConfig.GetBlockConfig(2).BlockHash;
 
             worldBlockDatastore.AddBlock(blockFactory.Create(1, 10,new BlockPositionInfo(Vector3Int.zero, BlockDirection.North,Vector3Int.one)));
             worldBlockDatastore.AddBlock(blockFactory.Create(2, 100, new BlockPositionInfo(new Vector3Int(10, -15), BlockDirection.North, Vector3Int.one)));
