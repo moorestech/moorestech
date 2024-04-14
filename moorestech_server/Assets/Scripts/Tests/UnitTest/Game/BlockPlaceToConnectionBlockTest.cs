@@ -173,8 +173,7 @@ namespace Tests.UnitTest.Game
         private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, VanillaChest targetChest)
         {
             var posInfo = new BlockPositionInfo(beltConveyorPos, direction, Vector3Int.one);
-            var northBeltConveyorBlock = ServerContext.BlockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
-            var 
+            var northBeltConveyor = ServerContext.BlockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
 
             ServerContext.WorldBlockDatastore.AddBlock(northBeltConveyor);
 
