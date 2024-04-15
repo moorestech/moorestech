@@ -200,7 +200,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3f42e2b9bfdda4a88add9cae43133f1a, type: 2}
+  - {fileID: 2100000, guid: dce45058d47631b489dd3c4fd7083797, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -308,7 +308,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.6296925
+      value: 0.52271307
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -320,7 +320,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6536760820669664449, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.6296925
+      value: 0.52271307
       objectReference: {fileID: 0}
     - target: {fileID: 6536760820669664449, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -610,6 +610,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FX_Smoke_Black
       objectReference: {fileID: 0}
+    - target: {fileID: 6682510082241314233, guid: f22c62a7f76b83849a8bf224f51e8eae, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7294860836884867647, guid: f22c62a7f76b83849a8bf224f51e8eae, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.05
@@ -671,6 +675,10 @@ PrefabInstance:
     - target: {fileID: 127819012342506187, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
       propertyPath: m_Name
       value: FX_Smoke_White
+      objectReference: {fileID: 0}
+    - target: {fileID: 2538492106956898524, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7168059181342127312, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
       propertyPath: m_LocalPosition.x
