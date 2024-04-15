@@ -1,9 +1,11 @@
-﻿namespace Core.EnergySystem
+﻿using Game.Block.Interface.Component;
+
+namespace Game.EnergySystem
 {
     /// <summary>
     ///     エネルギーを伝達するモノ
     /// </summary>
-    public interface IEnergyTransformer
+    public interface IElectricTransformer : IBlockComponent
     {
         public int EntityId { get; }
     }

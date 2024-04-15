@@ -14,11 +14,12 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.EnergySystem;
 using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IEnergyGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange
     {
         public BlockPositionInfo BlockPositionInfo { get; }
 

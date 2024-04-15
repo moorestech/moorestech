@@ -2,6 +2,7 @@ using Core.EnergySystem;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

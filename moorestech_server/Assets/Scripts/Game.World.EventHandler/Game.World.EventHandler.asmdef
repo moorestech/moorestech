@@ -3,7 +3,7 @@
   "rootNamespace": "",
   "references": [
     "UniRx",
-    "Core.EnergySystem",
+    "Game.EnergySystem",
     "Game.Block.Interface",
     "Game.World.Interface",
     "Core.Item.Interface",

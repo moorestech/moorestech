@@ -21,7 +21,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaElectricMinerComponent : IEnergyConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
+    public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
         public bool IsDestroy { get; private set; }
         

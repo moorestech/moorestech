@@ -1,5 +1,6 @@
 ﻿using Core.EnergySystem;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Inventory;
+using Game.Block.Component;
 using Game.Block.Interface.BlockConfig;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -25,7 +26,7 @@ namespace Server.Protocol.PacketResponse
 
             //開けるインベントリを持つブロックが存在するかどうかをチェック
             var blockDatastore = ServerContext.WorldBlockDatastore;
-            if (!blockDatastore.ExistsComponent<IOpenableInventory>(data.Pos))
+            if (!blockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(data.Pos))
                 return null;
 
 
@@ -33,7 +34,7 @@ namespace Server.Protocol.PacketResponse
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
 
-            foreach (var item in blockDatastore.GetBlock<IOpenableInventory>(data.Pos).Items)
+            foreach (var item in blockDatastore.GetBlock<IOpenableBlockInventoryComponent>(data.Pos).Items)
             {
                 itemIds.Add(item.Id);
                 itemCounts.Add(item.Count);

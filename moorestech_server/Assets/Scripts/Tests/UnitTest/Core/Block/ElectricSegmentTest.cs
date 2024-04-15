@@ -1,6 +1,6 @@
 using Core.EnergySystem;
-using Core.EnergySystem.Electric;
 using Core.Update;
+using Game.EnergySystem;
 using NUnit.Framework;
 using Tests.Module;
 
@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Core.Block
         }
     }
 
-    internal class BlockElectricConsumer : IBlockElectricConsumer
+    internal class BlockElectricConsumer : IElectricConsumer
     {
         public int NowPower;
 
@@ -57,6 +57,10 @@ namespace Tests.UnitTest.Core.Block
         public void SupplyEnergy(int power)
         {
             NowPower = power;
+        }
+        public bool IsDestroy { get; }
+        public void Destroy()
+        {
         }
     }
 }

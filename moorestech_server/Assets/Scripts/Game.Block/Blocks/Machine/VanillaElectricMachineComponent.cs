@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.Machine
     ///     具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
     /// TODO この処理周辺のコンポーネントの分離をいい感じにする
     /// </summary>
-    public class VanillaElectricMachineComponent : IBlockInventory, IEnergyConsumer, IOpenableInventory, IBlockStateChange, IBlockSaveState
+    public class VanillaElectricMachineComponent : IBlockInventory, IElectricConsumer, IOpenableInventory, IBlockStateChange, IBlockSaveState
     {
         public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
         

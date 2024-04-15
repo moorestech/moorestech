@@ -8,7 +8,7 @@
     "Core.Block",
     "Core.ConfigJson",
     "Core.Const",
-    "Core.EnergySystem",
+    "Game.EnergySystem",
     "Core.Inventory",
     "Core.Item",
     "Core.Item.Interface",

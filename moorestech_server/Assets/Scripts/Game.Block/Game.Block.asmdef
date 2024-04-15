@@ -6,7 +6,7 @@
     "Game.Block.Interface",
     "Core.Update",
     "Core.Inventory",
-    "Core.EnergySystem",
+    "Game.EnergySystem",
     "Core.Const",
     "Core.ConfigJson",
     "Core.Util",

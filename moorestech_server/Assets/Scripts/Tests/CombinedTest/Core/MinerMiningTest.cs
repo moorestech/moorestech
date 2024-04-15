@@ -13,6 +13,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.EnergySystem;
 using Game.Map.Interface.Vein;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,7 +58,7 @@ namespace Tests.CombinedTest.Core
 
             //電力の設定
             var segment = new EnergySegment();
-            segment.AddEnergyConsumer(miner.ComponentManager.GetComponent<IEnergyConsumer>());
+            segment.AddEnergyConsumer(miner.ComponentManager.GetComponent<IElectricConsumer>());
             segment.AddGenerator(new TestElectricGenerator(10000, 10));
 
             var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);

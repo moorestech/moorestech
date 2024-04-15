@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using UnityEngine;
 
@@ -34,7 +35,7 @@ namespace Game.World.Interface.DataStore
             return block != null;
         }
 
-        public static bool ExistsComponent<TComponent>(this IWorldBlockDatastore datastore, Vector3Int pos)
+        public static bool ExistsComponent<TComponent>(this IWorldBlockDatastore datastore, Vector3Int pos) where TComponent : IBlockComponent
         {
             var block = datastore.GetBlock(pos);
             if (block == null)
@@ -44,7 +45,7 @@ namespace Game.World.Interface.DataStore
             return block.ComponentManager.ExistsComponent<TComponent>();
         }
 
-        public static TComponent GetBlock<TComponent>(this IWorldBlockDatastore datastore, Vector3Int pos)
+        public static TComponent GetBlock<TComponent>(this IWorldBlockDatastore datastore, Vector3Int pos) where TComponent : IBlockComponent
         {
             var block = datastore.GetBlock(pos);
 
@@ -53,7 +54,7 @@ namespace Game.World.Interface.DataStore
             return default;
         }
 
-        public static bool TryGetBlock<TComponent>(this IWorldBlockDatastore datastore, Vector3Int pos, out TComponent component)
+        public static bool TryGetBlock<TComponent>(this IWorldBlockDatastore datastore, Vector3Int pos, out TComponent component) where TComponent : IBlockComponent
         {
             if (datastore.ExistsComponent<TComponent>(pos))
             {

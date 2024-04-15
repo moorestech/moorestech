@@ -1,8 +1,8 @@
 using Core.EnergySystem;
-using Core.EnergySystem.Electric;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -69,8 +69,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(false, worldElectricSegment.GetEnergySegment(1).Generators.ContainsKey(5));
 
             //両端の電柱が別のセグメントであることを確認する
-            var segment1 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(0,  0)) as IElectricPole);
-            var segment2 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(6,  0)) as IElectricPole);
+            var segment1 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(0,  0)) as IElectricTransformer);
+            var segment2 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(6,  0)) as IElectricTransformer);
 
             Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
 

@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Game.Block.Component.IOConnector
 {
     [DisallowMultiple]
-    public class BlockConnectorComponent<TTarget> : IBlockComponent
+    public class BlockConnectorComponent<TTarget> : IBlockComponent where TTarget : IBlockComponent
     {
         private readonly BlockDirection _blockDirection;
         private readonly Vector3Int _blockPos;

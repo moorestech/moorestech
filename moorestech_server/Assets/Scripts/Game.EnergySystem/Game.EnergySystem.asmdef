@@ -1,9 +1,10 @@
 {
-  "name": "Core.EnergySystem",
+  "name": "Game.EnergySystem",
   "rootNamespace": "",
   "references": [
     "Core.Update",
-    "UniRx"
+    "UniRx",
+    "Game.Block.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

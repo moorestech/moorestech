@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.EnergySystem;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.DataStore
@@ -11,7 +12,7 @@ namespace Game.World.DataStore
         private readonly List<TSegment> _segmentDictionary = new();
 
         //電柱オブジェクトから所属している電力セグメントを取得する
-        public TSegment GetEnergySegment(IEnergyTransformer transformer)
+        public TSegment GetEnergySegment(IElectricTransformer transformer)
         {
             foreach (var segment in _segmentDictionary)
             {

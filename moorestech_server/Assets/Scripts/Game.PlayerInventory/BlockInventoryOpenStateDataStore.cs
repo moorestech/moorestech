@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Inventory;
+using Game.Block.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -21,7 +21,7 @@ namespace Game.PlayerInventory
         public void Open(int playerId, Vector3Int pos)
         {
             //開けるインベントリのブロックが存在していなかったらそのまま終了
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock<IOpenableInventory>(pos, out _)) return;
+            if (!ServerContext.WorldBlockDatastore.TryGetBlock<IOpenableBlockInventoryComponent>(pos, out _)) return;
 
             var entityId = ServerContext.WorldBlockDatastore.GetBlock(pos).EntityId;
             _openCoordinates[playerId] = entityId;
