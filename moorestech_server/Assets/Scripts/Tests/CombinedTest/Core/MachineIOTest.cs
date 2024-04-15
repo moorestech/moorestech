@@ -35,9 +35,10 @@ namespace Tests.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 
 
-            var block = (VanillaElectricMachineComponent)blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var block = blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var machineComponent = block.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             foreach (var inputItem in recipe.ItemInputs)
-                block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
+                machineComponent.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 
 
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
@@ -45,7 +46,7 @@ namespace Tests.CombinedTest.Core
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //検証
-            var (input, output) = GetInputOutputSlot(block);
+            var (input, output) = GetInputOutputSlot(machineComponent);
 
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
 

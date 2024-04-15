@@ -145,8 +145,8 @@ namespace Tests.CombinedTest.Server
 
             var belt1 = CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North);
             worldDataStore.AddBlock(belt1);
-            var belt2PosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one);
-            var belt2 = new VanillaBeltConveyorComponent(4, TimeOfItemEnterToExit, belt2PosInfo);
+            var belt2 = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1,
+                new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one));
             //二つのベルトコンベアを繋がるように設置
             worldDataStore.AddBlock(belt2);
 
@@ -163,14 +163,15 @@ namespace Tests.CombinedTest.Server
         }
 
 
-        private VanillaBeltConveyorComponent CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection)
+        private IBlock CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection)
         {
-            var blockPosInfo = new BlockPositionInfo(pos, blockDirection, Vector3Int.one);
-            var beltConveyor = new VanillaBeltConveyorComponent(4, TimeOfItemEnterToExit, blockPosInfo);
+            var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1,
+                new BlockPositionInfo(pos, blockDirection, Vector3Int.one));
+            var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
 
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyor);
+            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
 
             inventoryItems[0] = new BeltConveyorInventoryItem(1, RemainingTime, ItemInstanceId);
             inventoryItems[1] = null;

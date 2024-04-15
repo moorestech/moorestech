@@ -2,6 +2,7 @@
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Component;
+using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -14,10 +15,12 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
         {
             var chest = param.Param as ChestConfigParam;
-            var chestComponent = new VanillaChest(entityId, chest.ChestItemNum, blockPositionInfo);
+            var inputConnectorComponent = CreateConnector(blockPositionInfo);
+            var chestComponent = new VanillaChestComponent(entityId, chest.ChestItemNum, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
+                inputConnectorComponent
             };
             
             return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
@@ -26,13 +29,24 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
         {
             var chest = param.Param as ChestConfigParam;
-            var chestComponent  = new VanillaChest(state, entityId, chest.ChestItemNum, blockPositionInfo);
+            var inputConnectorComponent = CreateConnector(blockPositionInfo);
+            var chestComponent  = new VanillaChestComponent(state, entityId, chest.ChestItemNum, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
+                inputConnectorComponent
             };
             
             return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
+        }
+        
+        private BlockConnectorComponent<IBlockInventory> CreateConnector(BlockPositionInfo blockPositionInfo)
+        {
+            return new BlockConnectorComponent<IBlockInventory>(
+                new IOConnectionSetting(
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
         }
     }
 }

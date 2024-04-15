@@ -41,11 +41,12 @@ namespace Tests.CombinedTest.Core
             //手動で鉱石の設定を行う
             var (mapVein, pos) = GetMapVein();
             worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1, new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
-            var miner = worldBlockDatastore.GetBlock(pos) as VanillaElectricMinerComponent;
+            var miner = worldBlockDatastore.GetBlock(pos);
+            var minerComponent = miner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
             
-            var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
+            var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
-            var miningTime = (int)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
+            var miningTime = (int)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
 
 
             var dummyInventory = new DummyBlockInventory();
@@ -56,7 +57,7 @@ namespace Tests.CombinedTest.Core
 
             //電力の設定
             var segment = new EnergySegment();
-            segment.AddEnergyConsumer(miner);
+            segment.AddEnergyConsumer(miner.ComponentManager.GetComponent<IEnergyConsumer>());
             segment.AddGenerator(new TestElectricGenerator(10000, 10));
 
             var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);
@@ -78,7 +79,7 @@ namespace Tests.CombinedTest.Core
             while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //鉱石2個が残っているかチェック
-            var outputSlot = miner.Items[0];
+            var outputSlot = miner.ComponentManager.GetComponent<VanillaElectricMinerComponent>().Items[0];
             Assert.AreEqual(miningItemId, outputSlot.Id);
             Assert.AreEqual(2, outputSlot.Count);
 

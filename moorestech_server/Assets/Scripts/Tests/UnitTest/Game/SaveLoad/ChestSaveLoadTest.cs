@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockHash = ServerContext.BlockConfig.GetBlockConfig(ChestBlockId).BlockHash;
 
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1, chestPosInfo);
+            var chest = (VanillaChestComponent)blockFactory.Create(ChestBlockId, 1, chestPosInfo);
 
 
             chest.SetItem(0, 1, 7);
@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var save = chest.GetSaveState();
             Debug.Log(save);
 
-            var chest2 = (VanillaChest)blockFactory.Load(blockHash, 1, save, chestPosInfo);
+            var chest2 = (VanillaChestComponent)blockFactory.Load(blockHash, 1, save, chestPosInfo);
 
             Assert.AreEqual(chest.GetItem(0), chest2.GetItem(0));
             Assert.AreEqual(chest.GetItem(2), chest2.GetItem(2));

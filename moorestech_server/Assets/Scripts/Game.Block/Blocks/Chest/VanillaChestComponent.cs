@@ -16,38 +16,30 @@ using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChest : IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
+    public class VanillaChestComponent : IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
         public int EntityId { get; }
         
         public bool IsDestroy { get; private set; }
         
-        public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
         
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
-        public VanillaChest(int entityId, int slotNum, BlockPositionInfo blockPositionInfo)
+        public VanillaChestComponent(int entityId, int slotNum,BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             EntityId = entityId;
-            BlockPositionInfo = blockPositionInfo;
 
-            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(
-                new IOConnectionSetting(
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
-
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
 
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaChest(string saveData, int entityId, int slotNum, BlockPositionInfo blockPositionInfo) :
-            this(entityId, slotNum, blockPositionInfo)
+        public VanillaChestComponent(string saveData, int entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
+            this(entityId, slotNum, blockConnectorComponent)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)

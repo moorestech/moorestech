@@ -8,14 +8,11 @@ namespace Game.Block.Interface
 {
     public interface IBlockComponentManager
     {
-        //public T GetComponent<T>() where T : IBlockComponent;
-        public T GetComponent<T>();
+        public T GetComponent<T>() where T : IBlockComponent;
 
-        //public bool ExistsComponent<T>() where T : IBlockComponent;
-        public bool ExistsComponent<T>();
+        public bool ExistsComponent<T>() where T : IBlockComponent;
 
-        //public bool TryGetComponent<T>(out T component) where T : IBlockComponent;
-        public bool TryGetComponent<T>(out T component);
+        public bool TryGetComponent<T>(out T component) where T : IBlockComponent;
     }
 
     public class BlockComponentManager : IBlockComponentManager
@@ -25,24 +22,21 @@ namespace Game.Block.Interface
         private readonly List<IBlockComponent> _blockComponents = new();
         private readonly Dictionary<Type,IBlockComponent> _disallowMultiple = new();
 
-        //public T GetComponent<T>() where T : IBlockComponent
-        public T GetComponent<T>()
+        public T GetComponent<T>() where T : IBlockComponent
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
 
             return (T)_blockComponents.Find(x => x is T);
         }
 
-        //public bool ExistsComponent<T>() where T : IBlockComponent
-        public bool ExistsComponent<T>()
+        public bool ExistsComponent<T>() where T : IBlockComponent
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
 
             return _blockComponents.Exists(x => x is T);
         }
 
-        //public bool TryGetComponent<T>(out T component) where T : IBlockComponent
-        public bool TryGetComponent<T>(out T component)
+        public bool TryGetComponent<T>(out T component) where T : IBlockComponent
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
 
@@ -91,7 +85,7 @@ namespace Game.Block.Interface
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
 
-            foreach (var blockComponent in _blockComponents)
+            foreach (var blockComponent in blockComponents)
             {
                 AddComponent(blockComponent);
             }
