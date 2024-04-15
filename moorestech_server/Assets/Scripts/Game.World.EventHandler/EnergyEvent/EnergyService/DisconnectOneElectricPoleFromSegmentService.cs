@@ -25,7 +25,8 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         {
             //必要なデータを取得
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(removedElectricPole.EntityId);
-            var poleConfig = ServerContext.BlockConfig.GetBlockConfig(((IBlock)removedElectricPole).BlockId).Param as ElectricPoleConfigParam;
+            var removedBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            var poleConfig = ServerContext.BlockConfig.GetBlockConfig(removedBlock.BlockId).Param as ElectricPoleConfigParam;
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             List<IElectricTransformer> electricPoles = FindElectricPoleFromPeripheralService.Find(
                 pos, poleConfig);
@@ -47,8 +48,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
             var connectedPos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPoles[0].EntityId);
-            var connectedPoleConfig = ServerContext.BlockConfig.GetBlockConfig(((IBlock)electricPoles[0]).BlockId).Param as ElectricPoleConfigParam;
-            (List<IElectricConsumer> connectedBlocks, List<IElectricGenerator> connectedGenerators) =
+            var connectedBlock = ServerContext.WorldBlockDatastore.GetBlock(connectedPos);
+            var connectedPoleConfig = ServerContext.BlockConfig.GetBlockConfig(connectedBlock.BlockId).Param as ElectricPoleConfigParam;
+            (List<IElectricConsumer> connectedBlocks, List<IElectricGenerator> connectedGenerators) = 
                 FindMachineAndGeneratorFromPeripheralService.Find(connectedPos, connectedPoleConfig);
 
             //セグメントに追加する

@@ -71,17 +71,18 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                 EnergyServiceDependencyContainer<TSegment> container)
         {
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
-            var poleConfig = ServerContext.BlockConfig.GetBlockConfig(((IBlock)electricPole).BlockId).Param as ElectricPoleConfigParam;
+            var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            var poleConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Param as ElectricPoleConfigParam;
 
 
             //周辺の機械、発電機を取得
             (List<IElectricConsumer> newBlocks, List<IElectricGenerator> newGenerators) =
                 FindMachineAndGeneratorFromPeripheralService.Find(pos, poleConfig);
             //ブロックと発電機を追加
-            foreach (var block in newBlocks)
+            foreach (var newBlock in newBlocks)
             {
-                if (blockElectrics.ContainsKey(block.EntityId)) continue;
-                blockElectrics.Add(block.EntityId, block);
+                if (blockElectrics.ContainsKey(newBlock.EntityId)) continue;
+                blockElectrics.Add(newBlock.EntityId, newBlock);
             }
 
             foreach (var generator in newGenerators)

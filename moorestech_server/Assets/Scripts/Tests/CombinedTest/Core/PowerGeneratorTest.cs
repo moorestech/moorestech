@@ -52,7 +52,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem1Id].Power, generatorComponent.OutputEnergy());
 
             //燃料の枯渇までループ
-            while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
+            while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) 
+                GameUpdater.UpdateWithWait();
 
             //燃料が枯渇しているか確認
             //リフレクションで現在の燃料を取得
@@ -72,7 +73,7 @@ namespace Tests.CombinedTest.Core
             //2個の燃料が入っていることを確認
             fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_fuelItemId",
                     BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(powerGenerator);
+                .GetValue(generatorComponent);
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId, fuelItemId);
 
             //燃料の2個目の枯渇までループ
@@ -82,7 +83,7 @@ namespace Tests.CombinedTest.Core
             //2個目の燃料が枯渇しているか確認
             fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_fuelItemId",
                     BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(powerGenerator);
+                .GetValue(generatorComponent);
             Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
         }
 

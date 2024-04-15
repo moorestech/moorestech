@@ -69,8 +69,12 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(false, worldElectricSegment.GetEnergySegment(1).Generators.ContainsKey(5));
 
             //両端の電柱が別のセグメントであることを確認する
-            var segment1 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(0,  0)) as IElectricTransformer);
-            var segment2 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(6,  0)) as IElectricTransformer);
+            var segment1Block = worldBlockDatastore.GetBlock(new Vector3Int(0, 0));
+            var segment2Block = worldBlockDatastore.GetBlock(new Vector3Int(6, 0));
+            var electricityTransformer1 = segment1Block.ComponentManager.GetComponent<IElectricTransformer>();
+            var electricityTransformer2 = segment2Block.ComponentManager.GetComponent<IElectricTransformer>();
+            var segment1 = worldElectricSegment.GetEnergySegment(electricityTransformer1);
+            var segment2 = worldElectricSegment.GetEnergySegment(electricityTransformer2);
 
             Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
 

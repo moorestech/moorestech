@@ -1,6 +1,7 @@
 using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
@@ -70,10 +71,13 @@ namespace Game.World.EventHandler.EnergyEvent
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
+
             //電柱を取得
             var pole = worldBlockDatastore.GetBlock<TTransformer>(polePos);
+            var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
             //その電柱のコンフィグを取得
-            var configParam = ServerContext.BlockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
+            var blockConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId);
+            var configParam = blockConfig.Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認
