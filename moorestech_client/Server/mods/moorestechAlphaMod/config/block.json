@@ -101,7 +101,7 @@
         },
         {
             "name": "bloomery with bellows",
-            "type": "GearMachine",
+            "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "bloomery with bellows",
             "size": {
@@ -166,7 +166,7 @@
         },
         {
             "name": "gear ore crusher",
-            "type": "GearMachine",
+            "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear ore crusher",
             "size": {
@@ -199,7 +199,7 @@
         },
         {
             "name": "gear miner",
-            "type": "GearMiner",
+            "type": "Miner",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear miner",
             "size": {
@@ -243,7 +243,7 @@
         },
         {
             "name": "water wheel",
-            "type": "GearGenerator",
+            "type": "Generator",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "water wheel",
             "size": {
@@ -277,7 +277,7 @@
         },
         {
             "name": "wooden gearbox",
-            "type": "GearEnergyTransformer",
+            "type": "ElectricPole",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "wooden gearbox",
             "size": {

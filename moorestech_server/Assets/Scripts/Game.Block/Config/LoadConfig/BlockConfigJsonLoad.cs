@@ -71,8 +71,12 @@ namespace Game.Block.Config.LoadConfig
                 else
                     itemId = _itemConfig.GetItemId(itemModId, itemName);
 
+                if (!_generators.TryGetValue(type, out var generator))
+                {
+                    throw new Exception($"存在しないタイプを指定しています。type  {type} block名 {name} modId {modId}");
+                }
 
-                IBlockConfigParam blockParam = _generators[type].Generate(block.param);
+                var blockParam = generator.Generate(block.param);
 
                 var hash = BitConverter.ToInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
 
