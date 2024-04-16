@@ -30,7 +30,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-
             //インベントリの設定
             mainInventory.SetItem(0, 1, 10);
 
@@ -63,17 +62,21 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
+            var blockInventoryOpen = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
             var worldDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            var chestPosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
+            Vector3Int chestPosition = new Vector3Int(5, 10);
+
+            var chestPosInfo = new BlockPositionInfo(chestPosition, BlockDirection.North, Vector3Int.one);
             var chest = ServerContext.BlockFactory.Create(ChestBlockId, 1, chestPosInfo);
             var chestComponent = chest.ComponentManager.GetComponent<VanillaChestComponent>();
             worldDataStore.AddBlock(chest);
 
             //ブロックインベントリの設定
+            blockInventoryOpen.Open(PlayerId, chestPosition);
             chestComponent.SetItem(1, 1, 10);
-
+            blockInventoryOpen.Close(PlayerId);
 
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,

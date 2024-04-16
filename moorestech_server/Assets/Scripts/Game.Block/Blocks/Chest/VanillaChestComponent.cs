@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Service;
+using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -16,7 +17,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
+    public class VanillaChestComponent : IBlockInventory, IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateChange
     {
         public int EntityId { get; }
         

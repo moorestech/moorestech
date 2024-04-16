@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
-            var blockInventory = (IBlockInventory)block;
+            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
 
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //削除するためのブロックの生成
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
-            var blockInventory = (IBlockInventory)block;
+            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
             blockInventory.SetItem(0, itemStackFactory.Create(3, 2));

@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse.Util
 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, (VanillaBeltConveyorComponent)block, pos,
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.ComponentManager.GetComponent<VanillaBeltConveyorComponent>(), pos,
                     direction));
             }
 

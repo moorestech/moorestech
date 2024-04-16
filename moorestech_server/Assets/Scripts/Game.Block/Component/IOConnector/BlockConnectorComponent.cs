@@ -27,17 +27,20 @@ namespace Game.Block.Component.IOConnector
             _blockDirection = blockPositionInfo.BlockDirection;
             _ioConnectionSetting = ioConnectionSetting;
 
-            var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
-            List<Vector3Int> outputPoss = ConvertConnectDirection(_ioConnectionSetting.OutputConnector);
-            foreach (var outputPos in outputPoss)
+            if (_ioConnectionSetting.OutputConnector != null)
             {
-                _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribePlace(outputPos, b => PlaceBlock(b.Pos)));
-                _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribeRemove(outputPos, RemoveBlock));
-
-                //アウトプット先にブロックがあったら接続を試みる
-                if (ServerContext.WorldBlockDatastore.Exists(outputPos))
+                var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
+                List<Vector3Int> outputPoss = ConvertConnectDirection(_ioConnectionSetting.OutputConnector);
+                foreach (var outputPos in outputPoss)
                 {
-                    PlaceBlock(outputPos);
+                    _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribePlace(outputPos, b => PlaceBlock(b.Pos)));
+                    _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribeRemove(outputPos, RemoveBlock));
+
+                    //アウトプット先にブロックがあったら接続を試みる
+                    if (ServerContext.WorldBlockDatastore.Exists(outputPos))
+                    {
+                        PlaceBlock(outputPos);
+                    }
                 }
             }
 

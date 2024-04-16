@@ -12,6 +12,7 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.PlayerInventory.Interface;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -23,8 +24,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
+            var blockInventoryOpen = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
+
+            Vector3Int pos = new(0, 0);
+
             //機械のブロックを作る
-            var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var posInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
             var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, 1, posInfo);
             //機械のブロックを配置
             ServerContext.WorldBlockDatastore.AddBlock(machine);
@@ -35,12 +40,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 1);
 
             var machineComponent = machine.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            
+            blockInventoryOpen.Open(0, pos);
+
             machineComponent.InsertItem(item1);
             machineComponent.InsertItem(item2);
 
+
             //稼働用の電気を供給する
             machineComponent.SupplyEnergy(100);
-
 
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
@@ -48,6 +56,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //アップデートしてステートを更新する
             GameUpdater.UpdateWithWait();
 
+            blockInventoryOpen.Close(0);
 
             //ステートが実行中になっているかをチェック
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));

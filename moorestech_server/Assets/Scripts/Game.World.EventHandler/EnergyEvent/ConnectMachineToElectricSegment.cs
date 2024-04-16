@@ -73,8 +73,8 @@ namespace Game.World.EventHandler.EnergyEvent
 
 
             //電柱を取得
-            var pole = worldBlockDatastore.GetBlock<TTransformer>(polePos);
             var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
+            var pole = block.ComponentManager.GetComponent<TTransformer>();
             //その電柱のコンフィグを取得
             var blockConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId);
             var configParam = blockConfig.Param as ElectricPoleConfigParam;

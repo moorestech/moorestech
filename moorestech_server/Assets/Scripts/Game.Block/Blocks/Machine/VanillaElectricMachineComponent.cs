@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.EnergySystem;
@@ -6,6 +6,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
+using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -17,7 +18,7 @@ namespace Game.Block.Blocks.Machine
     ///     具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
     /// TODO この処理周辺のコンポーネントの分離をいい感じにする
     /// </summary>
-    public class VanillaElectricMachineComponent : IBlockInventory, IElectricConsumer, IOpenableInventory, IBlockStateChange, IBlockSaveState
+    public class VanillaElectricMachineComponent : IBlockInventory, IElectricConsumer, IOpenableBlockInventoryComponent, IBlockStateChange, IBlockSaveState
     {
         public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
         
