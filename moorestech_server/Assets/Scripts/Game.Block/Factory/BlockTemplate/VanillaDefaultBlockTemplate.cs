@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Component;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -8,12 +10,12 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
         {
-            return new VanillaBlock(param.BlockId, entityId, blockHash, blockPositionInfo);
+            return new BlockSystem(entityId, param.BlockId, new List<IBlockComponent>(), blockPositionInfo);
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
         {
-            return new VanillaBlock(param.BlockId, entityId, blockHash, blockPositionInfo);
+            return new BlockSystem(entityId, param.BlockId, new List<IBlockComponent>(), blockPositionInfo);
         }
     }
 }

@@ -9,11 +9,5 @@ namespace Game.Block
         public const string Generator = "Generator";
         public const string ElectricPole = "ElectricPole";
         public const string Chest = "Chest";
-
-
-        public const string GearMachine = "GearMachine";
-        public const string GearMiner = "GearMiner";
-        public const string GearGenerator = "GearGenerator";
-        public const string GearEnergyTransformer = "GearEnergyTransformer";
     }
 }

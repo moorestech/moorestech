@@ -26,13 +26,13 @@ namespace Tests.CombinedTest.Game
             var blockFactory = ServerContext.BlockFactory;
 
             var inputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,0), BlockDirection.North, Vector3Int.one);
-            var inputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 1,inputChestPosInfo);
+            var inputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, 1,inputChestPosInfo);
             
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,1), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(UnitTestModBlockId.BeltConveyorId, 2,beltPosInfo);
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 2,beltPosInfo);
             
             var outputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,2), BlockDirection.North, Vector3Int.one);
-            var outputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 3,outputChestPosInfo);
+            var outputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, 3,outputChestPosInfo);
 
             //それぞれを設置
             worldBlockDatastore.AddBlock(inputChest);
@@ -40,16 +40,18 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.AddBlock(outputChest);
 
             //インプットチェストにアイテムを2つ入れる
-            inputChest.SetItem(0, 1, 2);
+            var inputChestComponent = inputChest.ComponentManager.GetComponent<VanillaChestComponent>();
+            inputChestComponent.SetItem(0, 1, 2);
 
             //ベルトコンベアのアイテムが出てから入るまでの6秒間アップデートする
             var now = DateTime.Now;
             while (DateTime.Now - now < TimeSpan.FromSeconds(5)) GameUpdater.UpdateWithWait();
 
             //アイテムが出ているか確認
-            Assert.AreEqual(0, inputChest.GetItem(0).Count);
+            Assert.AreEqual(0, inputChestComponent.GetItem(0).Count);
             //アイテムが入っているか確認
-            Assert.AreEqual(2, outputChest.GetItem(0).Count);
+            var outputChestComponent = outputChest.ComponentManager.GetComponent<VanillaChestComponent>();
+            Assert.AreEqual(2, outputChestComponent.GetItem(0).Count);
         }
     }
 }

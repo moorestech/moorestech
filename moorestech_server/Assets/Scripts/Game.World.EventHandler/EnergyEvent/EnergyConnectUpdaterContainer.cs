@@ -1,5 +1,6 @@
 ﻿using Core.EnergySystem;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 
@@ -10,9 +11,9 @@ namespace Game.World.EventHandler.EnergyEvent
     /// </summary>
     public class EnergyConnectUpdaterContainer<TSegment, TConsumer, TGenerator, TTransformer>
         where TSegment : EnergySegment, new()
-        where TConsumer : IEnergyConsumer
-        where TGenerator : IEnergyGenerator
-        where TTransformer : IEnergyTransformer
+        where TConsumer : IElectricConsumer
+        where TGenerator : IElectricGenerator
+        where TTransformer : IElectricTransformer
     {
         public EnergyConnectUpdaterContainer(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {

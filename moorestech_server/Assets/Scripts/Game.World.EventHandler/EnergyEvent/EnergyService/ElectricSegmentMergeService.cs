@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.EnergySystem;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
@@ -13,7 +14,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         /// <param name="poles">マージしたい電柱</param>
         /// <returns></returns>
         public static EnergySegment MergeAndSetDatastoreElectricSegments<TSegment>(
-            IWorldEnergySegmentDatastore<TSegment> segmentDatastore, List<IEnergyTransformer> poles)
+            IWorldEnergySegmentDatastore<TSegment> segmentDatastore, List<IElectricTransformer> poles)
             where TSegment : EnergySegment, new()
         {
             //電力セグメントをリストアップ

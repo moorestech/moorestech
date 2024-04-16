@@ -5,7 +5,7 @@
     "Game.World.Interface",
     "Core.Util",
     "Core.Const",
-    "Core.EnergySystem",
+    "Game.EnergySystem",
     "Game.Block.Interface",
     "UniRx",
     "Game.Context"

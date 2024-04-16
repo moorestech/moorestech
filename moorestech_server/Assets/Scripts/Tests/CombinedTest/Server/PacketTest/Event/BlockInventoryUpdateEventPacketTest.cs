@@ -1,8 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
+using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
+using Game.PlayerInventory;
+using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,12 +38,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            //ブロックをセットアップ
-            var blockPositionInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, 1, blockPositionInfo);
-            var blockInventory = (IOpenableInventory)block;
-            worldBlockDataStore.AddBlock(block);
+            Vector3Int pos = new(5, 7);
 
+            //ブロックをセットアップ
+            var blockPositionInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 1, blockPositionInfo);
+            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
+            worldBlockDataStore.AddBlock(block);
+           
 
             //インベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new(5, 7), true));
@@ -93,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロック1をセットアップ
             var block1PosInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
             var block1 = blockFactory.Create(MachineBlockId, 1, block1PosInfo);
-            var block1Inventory = (IOpenableInventory)block1;
+            var block1Inventory = block1.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             worldBlockDataStore.AddBlock(block1);
 
             //ブロック2をセットアップ

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
-using Core.EnergySystem.Electric;
+using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
@@ -9,9 +10,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public static class FindMachineAndGeneratorFromPeripheralService
     {
-        public static (List<IBlockElectricConsumer>, List<IElectricGenerator>) Find(Vector3Int pos, ElectricPoleConfigParam poleConfigParam)
+        public static (List<IElectricConsumer>, List<IElectricGenerator>) Find(Vector3Int pos, ElectricPoleConfigParam poleConfigParam)
         {
-            var blocks = new List<IBlockElectricConsumer>();
+            var blocks = new List<IElectricConsumer>();
             var generators = new List<IElectricGenerator>();
             var machineRange = poleConfigParam.machineConnectionRange;
 
@@ -24,7 +25,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 
                 var worldBlockDatastore = ServerContext.WorldBlockDatastore;
                 //範囲内に機械がある場合
-                if (worldBlockDatastore.TryGetBlock<IBlockElectricConsumer>(machinePos, out var consumer))
+                if (worldBlockDatastore.TryGetBlock<IElectricConsumer>(machinePos, out var consumer))
                     //機械を電力セグメントに追加
                     blocks.Add(consumer);
 

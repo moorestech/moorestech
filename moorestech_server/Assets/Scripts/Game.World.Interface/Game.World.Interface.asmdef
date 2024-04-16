@@ -4,7 +4,7 @@
   "references": [
     "Game.Block.Interface",
     "Core.Util",
-    "Core.EnergySystem",
+    "Game.EnergySystem",
     "Core.Const"
   ],
   "includePlatforms": [],

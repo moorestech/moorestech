@@ -1,8 +1,8 @@
 using Core.EnergySystem;
-using Core.EnergySystem.Electric;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -15,9 +15,9 @@ namespace Tests.CombinedTest.Game
     //電柱が無くなったときにセグメントが切断されるテスト
     public class DisconnectElectricSegmentTest
     {
-        private const int ElectricPoleId = UnitTestModBlockId.ElectricPoleId;
-        private const int MachineId = UnitTestModBlockId.MachineId;
-        private const int GenerateId = UnitTestModBlockId.GeneratorId;
+        private const int ElectricPoleId = ForUnitTestModBlockId.ElectricPoleId;
+        private const int MachineId = ForUnitTestModBlockId.MachineId;
+        private const int GenerateId = ForUnitTestModBlockId.GeneratorId;
 
         [Test]
         public void RemoveElectricPoleToDisconnectSegment()
@@ -69,8 +69,12 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(false, worldElectricSegment.GetEnergySegment(1).Generators.ContainsKey(5));
 
             //両端の電柱が別のセグメントであることを確認する
-            var segment1 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(0,  0)) as IElectricPole);
-            var segment2 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(new Vector3Int(6,  0)) as IElectricPole);
+            var segment1Block = worldBlockDatastore.GetBlock(new Vector3Int(0, 0));
+            var segment2Block = worldBlockDatastore.GetBlock(new Vector3Int(6, 0));
+            var electricityTransformer1 = segment1Block.ComponentManager.GetComponent<IElectricTransformer>();
+            var electricityTransformer2 = segment2Block.ComponentManager.GetComponent<IElectricTransformer>();
+            var segment1 = worldElectricSegment.GetEnergySegment(electricityTransformer1);
+            var segment2 = worldElectricSegment.GetEnergySegment(electricityTransformer2);
 
             Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
 

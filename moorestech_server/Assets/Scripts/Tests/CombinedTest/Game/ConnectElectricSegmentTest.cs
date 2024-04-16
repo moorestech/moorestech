@@ -2,6 +2,7 @@ using Core.EnergySystem;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -14,9 +15,9 @@ namespace Tests.CombinedTest.Game
     public class ConnectElectricSegmentTest
     {
         //ブロックIDが変わったらここを変える
-        private const int ElectricPoleId = UnitTestModBlockId.ElectricPoleId;
-        private const int MachineId = UnitTestModBlockId.MachineId;
-        private const int GenerateId = UnitTestModBlockId.GeneratorId;
+        private const int ElectricPoleId = ForUnitTestModBlockId.ElectricPoleId;
+        private const int MachineId = ForUnitTestModBlockId.MachineId;
+        private const int GenerateId = ForUnitTestModBlockId.GeneratorId;
 
         //電柱を設置し、電柱に接続するテスト
         [Test]

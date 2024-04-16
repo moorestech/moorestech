@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using UniRx;
 
@@ -16,10 +16,10 @@ namespace Core.Update
         public static void Update()
         {
             //アップデートの実行
-            UpdateSubject.OnNext(Unit.Default);
-
             UpdateMillSecondTime = (DateTime.Now - _lastUpdateTime).TotalMilliseconds;
             _lastUpdateTime = DateTime.Now;
+
+            UpdateSubject.OnNext(Unit.Default);
         }
 
         public static void Dispose()

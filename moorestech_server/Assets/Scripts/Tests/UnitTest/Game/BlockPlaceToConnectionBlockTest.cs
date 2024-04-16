@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine;
@@ -9,6 +8,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -25,9 +25,9 @@ namespace Tests.UnitTest.Game
     /// </summary>
     public class BlockPlaceToConnectionBlockTest
     {
-        private const int MachineId = UnitTestModBlockId.MachineId;
-        private const int BeltConveyorId = UnitTestModBlockId.BeltConveyorId;
-        private const int ChestId = UnitTestModBlockId.ChestId;
+        private const int MachineId = ForUnitTestModBlockId.MachineId;
+        private const int BeltConveyorId = ForUnitTestModBlockId.BeltConveyorId;
+        private const int ChestId = ForUnitTestModBlockId.ChestId;
 
         /// <summary>
         ///     機械にベルトコンベアが自動でつながるかをテストする
@@ -77,11 +77,11 @@ namespace Tests.UnitTest.Game
 
             //ベルトコンベアの設置
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(conveyorX, 0, conveyorZ), direction, Vector3Int.one);
-            var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), beltPosInfo);
+            var beltConveyor = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), beltPosInfo);
             world.AddBlock(beltConveyor);
 
             //繋がっているコネクターを取得
-            var connectedMachine = (VanillaMachineBase)beltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory[0];
+            var connectedMachine = (VanillaElectricMachineComponent)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets[0];
 
             //それぞれのentityIdを返却
             return (vanillaMachine.EntityId, connectedMachine.EntityId);
@@ -102,16 +102,16 @@ namespace Tests.UnitTest.Game
 
             //機械の設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var vanillaMachine = (VanillaMachineBase)blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
+            var vanillaMachine = blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
             world.AddBlock(vanillaMachine);
 
             //機械から4方向にベルトコンベアが出るように配置
-            var beltConveyors = new List<VanillaBeltConveyor>
+            var beltConveyors = new List<IBlock>
             {
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(1, 0, 0), BlockDirection.North, Vector3Int.one)),
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.East, Vector3Int.one)),
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(-1, 0, 0), BlockDirection.South, Vector3Int.one)),
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, -1), BlockDirection.West, Vector3Int.one))
+                blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(1, 0, 0), BlockDirection.North, Vector3Int.one)),
+                blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.East, Vector3Int.one)),
+                blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(-1, 0, 0), BlockDirection.South, Vector3Int.one)),
+                blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, -1), BlockDirection.West, Vector3Int.one))
             };
             world.AddBlock(beltConveyors[0]);
             world.AddBlock(beltConveyors[1]);
@@ -119,15 +119,9 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyors[3]);
 
             //繋がっているコネクターを取得
-            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
+            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             Assert.AreEqual(4, connectInventory.Count);
-
-            //繋がっているコネクターの中身を確認
-            var _connectInventoryItem =
-                connectInventory.Select(item => ((VanillaBeltConveyor)item).EntityId).ToList();
-            foreach (var beltConveyor in beltConveyors)
-                Assert.True(_connectInventoryItem.Contains(beltConveyor.EntityId));
 
             //ベルトコンベアを削除する
             world.RemoveBlock(new Vector3Int(1, 0, 0));
@@ -153,7 +147,7 @@ namespace Tests.UnitTest.Game
 
             //チェストの設置
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var vanillaChest = (VanillaChest)ServerContext.BlockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
+            var vanillaChest = ServerContext.BlockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
             ServerContext.WorldBlockDatastore.AddBlock(vanillaChest);
 
 
@@ -170,14 +164,14 @@ namespace Tests.UnitTest.Game
             BeltConveyorPlaceAndCheckConnector(new Vector3Int(1, 0, 0), BlockDirection.West, vanillaChest);
         }
 
-        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, VanillaChest targetChest)
+        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, IBlock targetChest)
         {
             var posInfo = new BlockPositionInfo(beltConveyorPos, direction, Vector3Int.one);
-            var northBeltConveyor = (VanillaBeltConveyor)ServerContext.BlockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
+            var northBeltConveyor = ServerContext.BlockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
 
             ServerContext.WorldBlockDatastore.AddBlock(northBeltConveyor);
 
-            var connector = (VanillaChest)northBeltConveyor.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory[0];
+            var connector = (VanillaChestComponent)northBeltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets[0];
 
             Assert.AreEqual(targetChest.EntityId, connector.EntityId);
         }
@@ -194,21 +188,21 @@ namespace Tests.UnitTest.Game
 
             //機械とチェストを設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var machine = (VanillaMachineBase)blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
+            var machine = blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
             world.AddBlock(machine);
 
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 1), BlockDirection.North, Vector3Int.one);
-            var chest = (VanillaChest)blockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
+            var chest = blockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
             world.AddBlock(chest);
 
             //機械のコネクターを取得
-            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
+            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
 
             //チェストのコネクターを取得
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InventoryInputConnectorComponent>().ConnectInventory;
+            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);

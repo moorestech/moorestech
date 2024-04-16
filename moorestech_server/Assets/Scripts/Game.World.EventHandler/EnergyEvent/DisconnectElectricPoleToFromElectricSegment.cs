@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
@@ -14,9 +15,9 @@ namespace Game.World.EventHandler.EnergyEvent
     /// </summary>
     public class DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>
         where TSegment : EnergySegment, new()
-        where TConsumer : IEnergyConsumer
-        where TGenerator : IEnergyGenerator
-        where TTransformer : IEnergyTransformer
+        where TConsumer : IElectricConsumer
+        where TGenerator : IElectricGenerator
+        where TTransformer : IElectricTransformer
     {
         private readonly EnergyServiceDependencyContainer<TSegment> _dependencyContainer;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
@@ -42,7 +43,7 @@ namespace Game.World.EventHandler.EnergyEvent
             //接続範囲内の電柱を取得
             var blockId = updateProperties.BlockData.Block.BlockId;
             var electricPoleConfigParam = ServerContext.BlockConfig.GetBlockConfig(blockId).Param as ElectricPoleConfigParam;
-            List<IEnergyTransformer> electricPoles = FindElectricPoleFromPeripheralService.Find(pos, electricPoleConfigParam);
+            List<IElectricTransformer> electricPoles = FindElectricPoleFromPeripheralService.Find(pos, electricPoleConfigParam);
 
             //削除した電柱のセグメントを取得
             var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);

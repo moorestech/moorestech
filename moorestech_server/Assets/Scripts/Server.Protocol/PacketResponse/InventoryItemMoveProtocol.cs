@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
+using Game.Block.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -73,8 +74,8 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableInventory>(pos)
-                        ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableInventory>(pos)
+                    inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
+                        ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
                         : null;
                     break;
             }

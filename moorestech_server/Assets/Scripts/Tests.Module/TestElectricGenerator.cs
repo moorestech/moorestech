@@ -1,4 +1,5 @@
-using Core.EnergySystem.Electric;
+using Core.EnergySystem;
+using Game.EnergySystem;
 
 namespace Tests.Module
 {
@@ -18,6 +19,10 @@ namespace Tests.Module
         public int OutputEnergy()
         {
             return _power;
+        }
+        public bool IsDestroy { get; }
+        public void Destroy()
+        {
         }
     }
 }

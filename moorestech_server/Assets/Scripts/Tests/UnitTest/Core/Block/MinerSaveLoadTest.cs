@@ -15,7 +15,7 @@ namespace Tests.UnitTest.Core.Block
 {
     public class MinerSaveLoadTest
     {
-        private const int MinerId = UnitTestModBlockId.MinerId;
+        private const int MinerId = ForUnitTestModBlockId.MinerId;
 
         [Test]
         public void SaveLoadTest()
@@ -27,16 +27,17 @@ namespace Tests.UnitTest.Core.Block
 
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var originalMiner = blockFactory.Create(MinerId, 1,minerPosInfo);
+            var originalMinerComponent = originalMiner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
             var originalRemainingMillSecond = 350;
 
             var inventory =
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
+                (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .GetValue(originalMiner);
+                    .GetValue(originalMinerComponent);
             inventory.SetItem(0, 1, 1);
             inventory.SetItem(2, 4, 1);
-            typeof(VanillaMinerBase).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(originalMiner, originalRemainingMillSecond);
+            typeof(VanillaElectricMinerComponent).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(originalMinerComponent, originalRemainingMillSecond);
 
 
             var json = originalMiner.GetSaveState();
@@ -44,14 +45,15 @@ namespace Tests.UnitTest.Core.Block
 
 
             var loadedMiner = blockFactory.Load(minerHash, 1, json,minerPosInfo);
+            var loadedMinerComponent = loadedMiner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
             var loadedInventory =
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
+                (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .GetValue(originalMiner);
+                    .GetValue(originalMinerComponent);
             var loadedRemainingMillSecond =
-                (int)typeof(VanillaMinerBase)
+                (int)typeof(VanillaElectricMinerComponent)
                     .GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .GetValue(loadedMiner);
+                    .GetValue(loadedMinerComponent);
 
             Assert.AreEqual(inventory.GetItem(0), loadedInventory.GetItem(0));
             Assert.AreEqual(inventory.GetItem(1), loadedInventory.GetItem(1));

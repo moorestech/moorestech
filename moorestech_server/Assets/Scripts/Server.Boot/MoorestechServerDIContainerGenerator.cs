@@ -1,7 +1,6 @@
 using System.IO;
 using Core.ConfigJson;
 using Core.EnergySystem;
-using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Item.Config;
@@ -17,6 +16,7 @@ using Game.Block.RecipeConfig;
 using Game.Context;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
+using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
 using Game.Map;
@@ -126,7 +126,7 @@ namespace Server.Boot
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
 
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
 
@@ -145,7 +145,7 @@ namespace Server.Boot
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
 
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();

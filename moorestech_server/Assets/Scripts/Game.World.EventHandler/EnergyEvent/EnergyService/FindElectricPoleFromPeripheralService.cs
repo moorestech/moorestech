@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
@@ -17,9 +18,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         /// <param name="y"></param>
         /// <param name="electricPoleConfigParam"></param>
         /// <returns></returns>
-        public static List<IEnergyTransformer> Find(Vector3Int pos, ElectricPoleConfigParam electricPoleConfigParam)
+        public static List<IElectricTransformer> Find(Vector3Int pos, ElectricPoleConfigParam electricPoleConfigParam)
         {
-            var electricPoles = new List<IEnergyTransformer>();
+            var electricPoles = new List<IElectricTransformer>();
             //for文のための設定
             var poleRange = electricPoleConfigParam.poleConnectionRange;
             var blockDatastore = ServerContext.WorldBlockDatastore;
@@ -33,10 +34,10 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             {
                 //範囲内に電柱がある場合 ただし自身のブロックは除く
                 var electricPolePos = new Vector3Int(i, j);
-                if (!blockDatastore.ExistsComponent<IEnergyTransformer>(electricPolePos) || i == pos.x && j == pos.y) continue;
+                if (!blockDatastore.ExistsComponent<IElectricTransformer>(electricPolePos) || i == pos.x && j == pos.y) continue;
 
                 //電柱を追加
-                electricPoles.Add(blockDatastore.GetBlock<IEnergyTransformer>(electricPolePos));
+                electricPoles.Add(blockDatastore.GetBlock<IElectricTransformer>(electricPolePos));
             }
 
             return electricPoles;

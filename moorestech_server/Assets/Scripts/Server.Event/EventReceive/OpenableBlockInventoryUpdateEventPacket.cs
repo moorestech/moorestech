@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Game.Block.Interface.Event;

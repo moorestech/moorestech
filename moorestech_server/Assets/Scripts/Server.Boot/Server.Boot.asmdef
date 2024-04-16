@@ -18,7 +18,7 @@
     "Mod.Loader",
     "Game.World",
     "Game.PlayerInventory",
-    "Core.EnergySystem",
+    "Game.EnergySystem",
     "Game.Entity.Interface",
     "Game.Entity",
     "Game.Map.Interface",

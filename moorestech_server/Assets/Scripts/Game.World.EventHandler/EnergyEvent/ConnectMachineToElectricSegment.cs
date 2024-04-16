@@ -1,9 +1,9 @@
 using Core.EnergySystem;
-using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Component;
 using Game.Context;
+using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
@@ -17,9 +17,9 @@ namespace Game.World.EventHandler.EnergyEvent
     /// </summary>
     public class ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>
         where TSegment : EnergySegment, new()
-        where TConsumer : IEnergyConsumer
-        where TGenerator : IEnergyGenerator
-        where TTransformer : IEnergyTransformer
+        where TConsumer : IElectricConsumer
+        where TGenerator : IElectricGenerator
+        where TTransformer : IElectricTransformer
     {
         private readonly int _maxMachineConnectionRange;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
@@ -49,7 +49,7 @@ namespace Game.World.EventHandler.EnergyEvent
             for (var j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
             {
                 var polePos = new Vector3Int(i, j);
-                if (!ServerContext.WorldBlockDatastore.ExistsComponent<IElectricPole>(polePos)) continue;
+                if (!ServerContext.WorldBlockDatastore.ExistsComponent<IElectricTransformer>(polePos)) continue;
 
                 //範囲内に電柱がある場合
                 //電柱に接続
@@ -71,10 +71,13 @@ namespace Game.World.EventHandler.EnergyEvent
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
+
             //電柱を取得
-            var pole = worldBlockDatastore.GetBlock<TTransformer>(polePos);
+            var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
+            var pole = block.ComponentManager.GetComponent<TTransformer>();
             //その電柱のコンフィグを取得
-            var configParam = ServerContext.BlockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
+            var blockConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId);
+            var configParam = blockConfig.Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認

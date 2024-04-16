@@ -1,0 +1,18 @@
+{
+  "name": "Game.EnergySystem",
+  "rootNamespace": "",
+  "references": [
+    "Core.Update",
+    "UniRx",
+    "Game.Block.Interface"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

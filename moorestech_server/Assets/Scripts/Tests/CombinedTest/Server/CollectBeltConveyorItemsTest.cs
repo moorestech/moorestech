@@ -22,8 +22,8 @@ namespace Tests.CombinedTest.Server
     public class CollectBeltConveyorItemsTest
     {
         //4秒で入って出るベルトコンベアで残り1秒で出る時の座標が正しいかどうかをテストする
-        private const int TimeOfItemEnterToExit = 4000;
-        private const int RemainingTime = 1000;
+        private const int TimeOfItemEnterToExit = 2000;
+        private const int RemainingTime = 500;
         private const int ItemInstanceId = 100;
 
         private readonly List<Vector2Int> _minusPlayerCoordinate = new()
@@ -142,35 +142,37 @@ namespace Tests.CombinedTest.Server
 
             var itemsStackFactory = ServerContext.ItemStackFactory;
             var worldDataStore = ServerContext.WorldBlockDatastore;
+            
+            var belt2 = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1,
+                new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one));
+            //二つのベルトコンベアを繋がるように設置
+            worldDataStore.AddBlock(belt2);
 
             var belt1 = CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North);
             worldDataStore.AddBlock(belt1);
-            var belt2PosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one);
-            var belt2 = new VanillaBeltConveyor(1, 11, 1, 4, TimeOfItemEnterToExit, belt2PosInfo);
-            //二つのベルトコンベアを繋がるように設置
-            worldDataStore.AddBlock(belt2);
 
             //4秒間アップデートする
             var now = DateTime.Now;
             while (DateTime.Now - now < TimeSpan.FromMilliseconds(RemainingTime * 1.1)) GameUpdater.UpdateWithWait();
 
             //ベルトコンベアからアイテムを取得
-            var inventoryItemsField = typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventory2Items = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2);
+            var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var inventory2Items = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.ComponentManager.GetComponent<VanillaBeltConveyorComponent>());
 
             //InstanceIdが変化していないことを検証
             Assert.AreEqual(ItemInstanceId, inventory2Items[3].ItemInstanceId);
         }
 
 
-        private VanillaBeltConveyor CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection)
+        private IBlock CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection)
         {
-            var blockPosInfo = new BlockPositionInfo(pos, blockDirection, Vector3Int.one);
-            var beltConveyor = new VanillaBeltConveyor(UnitTestModBlockId.BeltConveyorId, 10, 1, 4, TimeOfItemEnterToExit, blockPosInfo);
+            var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1,
+                new BlockPositionInfo(pos, blockDirection, Vector3Int.one));
+            var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
 
             //リフレクションで_inventoryItemsを取得
-            var inventoryItemsField = typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyor);
+            var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
 
             inventoryItems[0] = new BeltConveyorInventoryItem(1, RemainingTime, ItemInstanceId);
             inventoryItems[1] = null;
