@@ -25,8 +25,8 @@ namespace Client.Game.Control.MouseKeyboard
 
         private void Update()
         {
-            _cinemachineFraming.m_CameraDistance += InputManager.UI.SwitchHotBar.ReadValue<float>() / -100;
-            _cinemachineFraming.m_CameraDistance = Mathf.Clamp(_cinemachineFraming.m_CameraDistance, 1, 75);
+            var distance = _cinemachineFraming.m_CameraDistance + (InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f);
+            _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
 
             if (uiStateControl && uiStateControl.CurrentState != UIStateEnum.GameScreen && uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
 
