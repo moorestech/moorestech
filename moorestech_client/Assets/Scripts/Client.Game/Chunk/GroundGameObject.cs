@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.Chunk
 {
-    public class GroundPlane : MonoBehaviour
+    public class GroundGameObject : MonoBehaviour
     {
     }
 }

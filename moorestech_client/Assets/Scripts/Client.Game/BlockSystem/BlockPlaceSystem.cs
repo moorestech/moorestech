@@ -1,5 +1,6 @@
 using ClassLibrary;
 using Client.Common;
+using Client.Game.Block;
 using Client.Game.Context;
 using Client.Game.UI.Inventory;
 using Client.Game.UI.Inventory.Main;
@@ -165,27 +166,13 @@ namespace Client.Game.BlockSystem
 
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
-            //そのrayが地面のオブジェクトにヒットしてるか
-            if (hit.transform.GetComponent<GroundPlane>() == null) return false;
+            //そのrayが地面のオブジェクトかブロックにヒットしてるか
+            if (!hit.transform.TryGetComponent<GroundGameObject>(out _) && !hit.transform.TryGetComponent<BlockGameObject>(out _)) return false;
 
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             pos = hit.point;
 
             return true;
-        }
-    }
-
-    public class OnPlaceProprietors
-    {
-        public BlockDirection PlaceBlockDirection;
-        public Vector2Int PlaceBlockPosition;
-        public int PlaceHotBarSlot;
-
-        public OnPlaceProprietors(Vector2Int placeBlockPosition, int placeHotBarSlot, BlockDirection placeBlockDirection)
-        {
-            PlaceBlockPosition = placeBlockPosition;
-            PlaceHotBarSlot = placeHotBarSlot;
-            PlaceBlockDirection = placeBlockDirection;
         }
     }
 }
