@@ -34,7 +34,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var blockInventoryOpen = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -51,9 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //インベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new(5, 7), true));
             //ブロックにアイテムを入れる
-            blockInventoryOpen.Open(PlayerId, pos);
             blockInventory.SetItem(1, itemStackFactory.Create(4, 8));
-            blockInventoryOpen.Close(PlayerId);
 
 
             //パケットが送られていることをチェック

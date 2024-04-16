@@ -24,8 +24,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-            var blockInventoryOpen = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
-
             Vector3Int pos = new(0, 0);
 
             //機械のブロックを作る
@@ -41,8 +39,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var machineComponent = machine.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             
-            blockInventoryOpen.Open(0, pos);
-
             machineComponent.InsertItem(item1);
             machineComponent.InsertItem(item2);
 
@@ -56,7 +52,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //アップデートしてステートを更新する
             GameUpdater.UpdateWithWait();
 
-            blockInventoryOpen.Close(0);
 
             //ステートが実行中になっているかをチェック
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));

@@ -4,6 +4,10 @@ using Core.Item.Interface;
 
 namespace Core.Inventory
 {
+    /// <summary>
+    /// プレイヤーが開くことができるインベントリ系のインターフェース
+    /// プレイヤーのインベントリやブロックのインベントリが該当する
+    /// </summary>
     public interface IOpenableInventory
     {
         public ReadOnlyCollection<IItemStack> Items { get; }
