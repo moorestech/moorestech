@@ -10,6 +10,8 @@ namespace Client.Game.BlockSystem
     {
         private BlockPreviewObject _previewBlock;
 
+        public bool IsActive => gameObject.activeSelf;
+
         public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockConfig.BlockId);

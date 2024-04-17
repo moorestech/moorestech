@@ -111,40 +111,26 @@ namespace Client.Game.BlockSystem
             }
         }
 
-
         private void GroundClickControl()
         {
             var blockConfig = ServerContext.BlockConfig;
+            var selectIndex = _hotBarView.SelectIndex;
+            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+            var hitPoint = Vector3.zero;
 
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
 
-            //UIの状態がゲームホットバー選択中か
-            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
+            //プレビュー表示判定
+            if (!IsDisplayPreviewBlock()) return;
 
-            var selectIndex = (short)_hotBarView.SelectIndex;
-            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
-            //持っているアイテムがブロックじゃなかったら何もしない
-            if (!blockConfig.IsBlock(itemId)) return;
-
-            //プレビューの座標を取得
-            if (!TryGetRayHitPosition(out var hitPoint)) return;
-
+            //設置座標計算 calculate place point
             var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
+            var placePoint = CalcPlacePoint();
 
-            var convertAction = _currentBlockDirection.GetCoordinateConvertAction();
-            var convertedSize = convertAction(holdingBlockConfig.BlockSize).Abs();
-
-            var placePoint = Vector3Int.zero;
-            placePoint.x = Mathf.FloorToInt(hitPoint.x + (convertedSize.x % 2 == 0 ? 0.5f : 0));
-            placePoint.z = Mathf.FloorToInt(hitPoint.z + (convertedSize.z % 2 == 0 ? 0.5f : 0));
-            placePoint.y = Mathf.FloorToInt(hitPoint.y);
-
-            placePoint += new Vector3Int(0, _heightOffset, 0);
-            placePoint -= convertedSize / 2;
-
-            //プレビュー表示
+            //プレビュー表示 display preview
             _blockPlacePreview.SetActive(true);
+            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
 
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
@@ -154,8 +140,37 @@ namespace Client.Game.BlockSystem
                 return;
             }
 
-            //クリックされてなかったらプレビューを表示する
-            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+            #region Internal
+
+            bool IsDisplayPreviewBlock()
+            {
+                //UIの状態がゲームホットバー選択中か
+                if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return false;
+
+                //持っているアイテムがブロックじゃなかったら何もしない
+                if (!blockConfig.IsBlock(itemId)) return false;
+
+                //プレビューの座標を取得
+                return TryGetRayHitPosition(out hitPoint);
+            }
+
+            Vector3Int CalcPlacePoint()
+            {
+                var convertAction = _currentBlockDirection.GetCoordinateConvertAction();
+                var convertedSize = convertAction(holdingBlockConfig.BlockSize).Abs();
+
+                var point = Vector3Int.zero;
+                point.x = Mathf.FloorToInt(hitPoint.x + (convertedSize.x % 2 == 0 ? 0.5f : 0));
+                point.z = Mathf.FloorToInt(hitPoint.z + (convertedSize.z % 2 == 0 ? 0.5f : 0));
+                point.y = Mathf.FloorToInt(hitPoint.y);
+
+                point += new Vector3Int(0, _heightOffset, 0);
+                point -= convertedSize / 2;
+
+                return point;
+            }
+
+            #endregion
         }
 
 

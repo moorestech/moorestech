@@ -1836,7 +1836,7 @@ MonoBehaviour:
   GroundedRadius: 0.28
   GroundLayers:
     serializedVersion: 2
-    m_Bits: 513
+    m_Bits: 4294967295
   CinemachineCameraTarget: {fileID: 2637806057976697803}
   TopClamp: 70
   BottomClamp: -30

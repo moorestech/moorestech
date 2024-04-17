@@ -9,12 +9,14 @@ namespace Client.Game.UI.UIState
     public class GameScreenState : IUIState
     {
         private readonly PlayerStoryStarter _playerStoryStarter;
-        
-        public GameScreenState(PlayerStoryStarter playerStoryStarter)
+        private readonly IBlockPlacePreview _blockPlacePreview;
+
+        public GameScreenState(PlayerStoryStarter playerStoryStarter, IBlockPlacePreview blockPlacePreview)
         {
             _playerStoryStarter = playerStoryStarter;
+            _blockPlacePreview = blockPlacePreview;
         }
-        
+
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
@@ -37,6 +39,7 @@ namespace Client.Game.UI.UIState
 
         private bool IsClickOpenableBlock()
         {
+            if (_blockPlacePreview.IsActive) return false; //ブロック設置中の場合は無効
             if (BlockClickDetect.TryGetClickBlock(out var block)) return block.GetComponent<OpenableInventoryBlock>();
 
             return false;

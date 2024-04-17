@@ -6,6 +6,8 @@ namespace Client.Game.BlockSystem
 {
     public interface IBlockPlacePreview
     {
+        bool IsActive { get; }
+
         public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
 
         public void SetActive(bool active);
