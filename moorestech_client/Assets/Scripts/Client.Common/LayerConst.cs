@@ -10,7 +10,8 @@ namespace Client.Common
 
         public static readonly int BlockOnlyLayerMask = 1 << BlockLayer;
         public static readonly int MapObjectOnlyLayerMask = 1 << MapObjectLayer;
+        public static readonly int PlayerOnlyLayerMask = 1 << PlayerLayer;
 
-        public static readonly int WithoutMapObjectAndPlayerLayerMask = ~MapObjectOnlyLayerMask & ~PlayerLayer;
+        public static readonly int WithoutMapObjectAndPlayerLayerMask = ~MapObjectOnlyLayerMask & ~PlayerOnlyLayerMask;
     }
 }

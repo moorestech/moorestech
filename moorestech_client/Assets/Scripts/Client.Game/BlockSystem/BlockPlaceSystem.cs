@@ -167,7 +167,7 @@ namespace Client.Game.BlockSystem
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
             //そのrayが地面のオブジェクトかブロックにヒットしてるか
-            if (!hit.transform.TryGetComponent<GroundGameObject>(out _) && !hit.transform.TryGetComponent<BlockGameObject>(out _)) return false;
+            if (!hit.transform.TryGetComponent<GroundGameObject>(out _) && !hit.transform.TryGetComponent<BlockGameObjectChild>(out _)) return false;
 
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             pos = hit.point;
