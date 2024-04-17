@@ -1749,8 +1749,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52b6f625ec884c449fb0824b02b5773d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandParent: {fileID: 0}
-  rightHandParent: {fileID: 0}
+  leftHandParent: {fileID: 5848485569410187725}
+  rightHandParent: {fileID: 1768649225059614857}
 --- !u!114 &2390720203738673597
 MonoBehaviour:
   m_ObjectHideFlags: 0
