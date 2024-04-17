@@ -17,18 +17,26 @@ namespace Client.Game.UI.Inventory.Sub
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
 
 
+        #region Chest
         [SerializeField] private RectTransform chestItemParent;
+        [SerializeField] private RectTransform chestSlotsParent;
+        #endregion
 
-
+        #region Miner
         [SerializeField] private RectTransform minerItemParent;
+        [SerializeField] private ItemSlotObject minerResourceSlot;
+        [SerializeField] private RectTransform minerResultsParent;
+        #endregion
 
-
+        #region Machine
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
+        #endregion
 
+        #region Generator
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
-
+        #endregion
 
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
@@ -73,15 +81,22 @@ namespace Client.Game.UI.Inventory.Sub
                     Destroy(slotObject.gameObject);
                 }
                 _blockItemSlotObjects.Clear();
+
+                chestItemParent.gameObject.SetActive(false);
+                minerItemParent.gameObject.SetActive(false);
+                machineInputItemParent.gameObject.SetActive(false);
+                machineOutputItemParent.gameObject.SetActive(false);
             }
 
             void Chest()
             {
+                chestItemParent.gameObject.SetActive(true);
+
                 var itemList = new List<IItemStack>();
                 var chestParam = (ChestConfigParam)param;
                 for (var i = 0; i < chestParam.ChestItemNum; i++)
                 {
-                    var slotObject = Instantiate(itemSlotObjectPrefab, chestItemParent);
+                    var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
@@ -90,19 +105,27 @@ namespace Client.Game.UI.Inventory.Sub
 
             void Miner()
             {
+                minerItemParent.gameObject.SetActive(true);
+
                 var itemList = new List<IItemStack>();
                 var minerParam = (MinerBlockConfigParam)param;
+
                 for (var i = 0; i < minerParam.OutputSlot; i++)
                 {
-                    var slotObject = Instantiate(itemSlotObjectPrefab, minerItemParent);
+                    var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 SetItemList(itemList);
+
+                var outputImage = MoorestechContext.ItemImageContainer.GetItemView(minerParam.OutputSlot);
+                minerResourceSlot.SetItem(outputImage, 0);
             }
 
             void Machine()
             {
+                machineInputItemParent.gameObject.SetActive(true);
+
                 var itemList = new List<IItemStack>();
                 var machineParam = (MachineBlockConfigParam)param;
                 for (var i = 0; i < machineParam.InputSlot; i++)
@@ -125,6 +148,8 @@ namespace Client.Game.UI.Inventory.Sub
 
             void Generator()
             {
+                powerGeneratorFuelItemParent.gameObject.SetActive(true);
+
                 var itemList = new List<IItemStack>();
                 var generatorParam = (PowerGeneratorConfigParam)param;
                 for (var i = 0; i < generatorParam.FuelSlot; i++)
