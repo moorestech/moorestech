@@ -24,9 +24,14 @@ namespace Game.Map
         public string Type { get; }
         public bool IsDestroyed { get; private set; }
         public Vector3 Position { get; }
+        public int HP { get; private set; }
         public int ItemId { get; }
         public int ItemCount { get; }
 
+        public bool Attack(int damage)
+        {
+            
+        }
         public event Action OnDestroy;
 
         public void Destroy()

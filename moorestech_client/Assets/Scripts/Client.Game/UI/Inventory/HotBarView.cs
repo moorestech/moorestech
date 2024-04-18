@@ -24,6 +24,7 @@ namespace Client.Game.UI.Inventory
         private GameObject _currentGrabItem;
         private ILocalPlayerInventory _localPlayerInventory;
 
+        public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
         public int SelectIndex { get; private set; }
 
         public event Action<int> OnSelectHotBar;

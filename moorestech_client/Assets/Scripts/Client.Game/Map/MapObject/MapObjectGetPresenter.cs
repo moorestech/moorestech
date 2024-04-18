@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Client.Common;
 using Client.Game.Context;
@@ -24,7 +25,6 @@ namespace Client.Game.Map.MapObject
     /// </summary>
     public class MapObjectGetPresenter : MonoBehaviour
     {
-        [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private float miningDistance = 1.5f;
 
@@ -37,13 +37,23 @@ namespace Client.Game.Map.MapObject
         private IPlayerObjectController _playerObjectController;
         private UIStateControl _uiStateControl;
 
-        private async UniTask Update()
-        {
-            if (miningObjectProgressbarPresenter.IsMining)
-            {
-                return;
-            }
 
+        private void Start()
+        {
+            ManualUpdate().Forget();
+        }
+
+        private async UniTask ManualUpdate()
+        {
+            while (true)
+            {
+                await MiningUpdate();
+                await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
+            }
+        }
+
+        private async UniTask MiningUpdate()
+        {
             UpdateCurrentMapObject();
             var isMinenable = IsStartMining();
 
@@ -97,9 +107,8 @@ namespace Client.Game.Map.MapObject
 
                 //マイニングバーのUIを表示するやつを設定
                 var (miningTime, _) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
-                miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
 
-                //_playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
+                _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
 
                 var isMiningFinish = await IsMiningFinishWait(miningTime);
 
@@ -265,9 +274,8 @@ namespace Client.Game.Map.MapObject
 
         private MapObjectGameObject GetOnMouseMapObject()
         {
-            //スクリーンからマウスの位置にRayを飛ばす
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (!Physics.Raycast(ray, out var hit, 10)) return null;
+            var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
+            if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
 
