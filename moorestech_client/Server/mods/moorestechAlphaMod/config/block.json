@@ -344,9 +344,9 @@
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "iron furnace with bellows",
             "size": {
-                "x": 1,
-                "y": 1,
-                "z": 1
+                "x": 3,
+                "y": 3,
+                "z": 7
             },
             "param": {
                 "inputSlot": 2,
