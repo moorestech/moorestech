@@ -40,15 +40,20 @@ namespace MainGame.ModLoader.Glb
 
             foreach (var config in blockConfigs)
             {
+                var name = config.Name;
+                var type = config.Type;
+                
                 //glbからモデルのロード
                 var gameObject = await GlbLoader.Load(mod.ExtractedPath, BlockDirectory + config.Name + ".glb");
                 if (gameObject == null)
                 {
+                    //TODO Prefabコンテナのことも考慮する（モデルのパスを指定するようにする
                     Debug.LogError("GlbFile Not Found  ModId:" + mod.ModMetaJson.ModId + " BlockName:" + config.Name);
                     continue;
                 }
 
-                blocks.Add(new BlockData(SetUpObject(gameObject, blockPrefabsParent, config, mod), config.Name, config.Type));
+                var setupObject = SetUpObject(gameObject, blockPrefabsParent, config, mod);
+                blocks.Add(new BlockData(setupObject, name, type));
             }
 
             return blocks;

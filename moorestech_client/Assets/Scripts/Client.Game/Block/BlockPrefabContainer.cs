@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
+using Game.Context;
+using MainGame.ModLoader.Glb;
 using UnityEngine;
 
 namespace Client.Game.Block
@@ -21,6 +23,24 @@ namespace Client.Game.Block
                 }
             }
             return null;
+        }
+
+        public List<BlockData> GetBlockDataList()
+        {
+            var result = new List<BlockData>();
+            
+            var blockConfigs = ServerContext.BlockConfig.BlockConfigList;
+            foreach (var blockConfig in blockConfigs)
+            {
+                var blockPrefab = GetBlockPrefab(blockConfig.ModId, blockConfig.Name);
+                if (blockPrefab == null) continue;
+                
+                var blockName = blockConfig.Name;
+                var type = blockConfig.Type;
+                result.Add(new BlockData(blockPrefab, blockName, type));
+            }
+            
+            return result;
         }
     }
 

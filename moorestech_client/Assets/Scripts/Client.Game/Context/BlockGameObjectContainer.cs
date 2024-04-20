@@ -25,9 +25,12 @@ namespace Client.Game.Context
             _blockObjectList = blockObjectList;
         }
 
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject)
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory,BlockPrefabContainer blockPrefabContainer, BlockGameObject nothingIndexBlockObject)
         {
             List<BlockData> blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory);
+            
+            var prefabBlockData = blockPrefabContainer.GetBlockDataList();
+            blockObjectList.AddRange(prefabBlockData);
 
             return new BlockGameObjectContainer(nothingIndexBlockObject, blockObjectList);
         }

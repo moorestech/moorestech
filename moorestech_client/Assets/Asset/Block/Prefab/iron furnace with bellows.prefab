@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2260954137793463165}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,7 +65,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7742809051714426792}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower L Down
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,7 +99,7 @@ GameObject:
   - component: {fileID: 2528689074084677669}
   - component: {fileID: 7575219904533319068}
   - component: {fileID: 3390862922389982648}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.021
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,7 +182,7 @@ GameObject:
   - component: {fileID: 5377093158237925324}
   - component: {fileID: 7782355830598376196}
   - component: {fileID: 2162714927988344775}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower pusher 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -263,7 +263,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 964352400069641019}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u30DC\u30FC\u30F3_3.L_end"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -294,7 +294,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2170004850331387017}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u30DC\u30FC\u30F3_3.R"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -328,7 +328,7 @@ GameObject:
   - component: {fileID: 7560427146287789580}
   - component: {fileID: 6077573899634593019}
   - component: {fileID: 8052443903512631475}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -411,7 +411,7 @@ GameObject:
   - component: {fileID: 5817215897714018198}
   - component: {fileID: 3000916900293587073}
   - component: {fileID: 8462847994561280294}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -494,7 +494,7 @@ GameObject:
   - component: {fileID: 8487840960354295605}
   - component: {fileID: 8802616387530321032}
   - component: {fileID: 8925026411704695877}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -575,7 +575,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7210223479645217907}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower L Down End
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -608,7 +608,7 @@ GameObject:
   - component: {fileID: 4592164779788258953}
   - component: {fileID: 4330952523598798854}
   - component: {fileID: 6830920376884261426}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.016
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -689,7 +689,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8960404528172312201}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower L Up
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -723,7 +723,7 @@ GameObject:
   - component: {fileID: 6293017570083411352}
   - component: {fileID: 735798804913414704}
   - component: {fileID: 2665074765659328435}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -806,7 +806,7 @@ GameObject:
   - component: {fileID: 347510954936179158}
   - component: {fileID: 6854955053854717335}
   - component: {fileID: 8709701797591051463}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -888,7 +888,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2304689365289641055}
   - component: {fileID: 453544058527710466}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -980,7 +980,7 @@ GameObject:
   - component: {fileID: 3492912057889545318}
   - component: {fileID: 7571827673641336976}
   - component: {fileID: 1861935705648418712}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.020
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1062,7 +1062,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5909471806100412200}
   - component: {fileID: 8605636641784529956}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: iron furnace with bellows
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1118,7 +1118,7 @@ GameObject:
   - component: {fileID: 5154604371417821507}
   - component: {fileID: 5084290923618354002}
   - component: {fileID: 4945186114784831404}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.019
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1201,7 +1201,7 @@ GameObject:
   - component: {fileID: 3221539720392251821}
   - component: {fileID: 4519957397587086975}
   - component: {fileID: 3317342127934759563}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.022
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1284,7 +1284,7 @@ GameObject:
   - component: {fileID: 6565329935007393431}
   - component: {fileID: 138150311934654430}
   - component: {fileID: 3656184538701698729}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.015
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1367,7 +1367,7 @@ GameObject:
   - component: {fileID: 7274902000610475004}
   - component: {fileID: 8890226964202353196}
   - component: {fileID: 359043870720256647}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.023
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1451,7 +1451,7 @@ GameObject:
   - component: {fileID: 6992617411660387066}
   - component: {fileID: 7733756925327585048}
   - component: {fileID: 9133365376706534155}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower pusher 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1533,7 +1533,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1968095575828116666}
   - component: {fileID: 2816455031192880016}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1623,7 +1623,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 543567562371400375}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower R Down End
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1656,7 +1656,7 @@ GameObject:
   - component: {fileID: 3331277624731806958}
   - component: {fileID: 799288171763159006}
   - component: {fileID: 669412089889999012}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.013
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1737,7 +1737,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1438123037299610299}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u30DC\u30FC\u30F3_3.L"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1769,7 +1769,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3655570569446207462}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower R Up
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1803,7 +1803,7 @@ GameObject:
   - component: {fileID: 1296449321377642469}
   - component: {fileID: 619562181034774210}
   - component: {fileID: 1879426226318946569}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.012
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1886,7 +1886,7 @@ GameObject:
   - component: {fileID: 3206852717080509905}
   - component: {fileID: 1875593510146784862}
   - component: {fileID: 1678280036155387648}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.018
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1969,7 +1969,7 @@ GameObject:
   - component: {fileID: 5075957129002764989}
   - component: {fileID: 5451294344023408360}
   - component: {fileID: 1207229418361341893}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2050,7 +2050,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8049330368829144285}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower R Up End
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2083,7 +2083,7 @@ GameObject:
   - component: {fileID: 8358825922151944204}
   - component: {fileID: 6696816392915788205}
   - component: {fileID: 4696590228624112180}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2164,7 +2164,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6327999908848834189}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2203,7 +2203,7 @@ GameObject:
   - component: {fileID: 6330105106498691974}
   - component: {fileID: 675048944563607415}
   - component: {fileID: 6744583899097250548}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2284,7 +2284,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7239060080662143044}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: stick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2320,7 +2320,7 @@ GameObject:
   - component: {fileID: 8778161281136631367}
   - component: {fileID: 1898681214229101474}
   - component: {fileID: 6392179992808187425}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.017
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2403,7 +2403,7 @@ GameObject:
   - component: {fileID: 4110671993307897355}
   - component: {fileID: 1560591683626831490}
   - component: {fileID: 8577085829688956211}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.014
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2484,7 +2484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7152712989833711390}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower L Up End
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2515,7 +2515,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5029462180020274498}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: blower R Down
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2547,7 +2547,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4888717363170522804}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u30DC\u30FC\u30F3_3.R_end"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2580,7 +2580,7 @@ GameObject:
   - component: {fileID: 7193172613864279374}
   - component: {fileID: 5509812936532418577}
   - component: {fileID: 1563942777847515886}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: huigo.024
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2663,7 +2663,7 @@ GameObject:
   - component: {fileID: 6201576125498127304}
   - component: {fileID: 3193287179565209319}
   - component: {fileID: 3957260348809475060}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: stick model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2744,7 +2744,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4816537976567803668}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: VFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2780,6 +2780,10 @@ PrefabInstance:
     - target: {fileID: 7379783776434672465, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
       propertyPath: m_Name
       value: FX_Flame_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7379783776434672465, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7530922184536814915, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2842,6 +2846,10 @@ PrefabInstance:
     - target: {fileID: 753936051993882410, guid: f22c62a7f76b83849a8bf224f51e8eae, type: 3}
       propertyPath: m_Name
       value: FX_Smoke_Black
+      objectReference: {fileID: 0}
+    - target: {fileID: 753936051993882410, guid: f22c62a7f76b83849a8bf224f51e8eae, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6682510082241314233, guid: f22c62a7f76b83849a8bf224f51e8eae, type: 3}
       propertyPath: m_CastShadows
@@ -2908,6 +2916,10 @@ PrefabInstance:
     - target: {fileID: 7379783776434672465, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
       propertyPath: m_Name
       value: FX_Flame
+      objectReference: {fileID: 0}
+    - target: {fileID: 7379783776434672465, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7530922184536814915, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
       propertyPath: m_LocalPosition.x
