@@ -8,7 +8,7 @@ namespace MainGame.UnityView.Item
     ///     TODO このコードはalpha2.0以降で消す
     /// </summary>
     [Obsolete("Alpha2.0用のコンテナ")]
-    [CreateAssetMenu(fileName = "ItemObjectContainer", menuName = "ItemObjectContainer", order = 0)]
+    [CreateAssetMenu(fileName = "ItemObjectContainer", menuName = "moorestech/ItemObjectContainer", order = 0)]
     public class ItemObjectContainer : ScriptableObject
     {
         [SerializeField] private ItemObjectData[] itemObjects;

@@ -218,5 +218,10 @@
         "name": "wooden chest",
         "maxStacks": 100,
         "imagePath": "assets/item/wooden chest.png"
+    },
+    {
+        "name": "iron furnace with bellows",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron furnace with bellows.png"
     }
 ]

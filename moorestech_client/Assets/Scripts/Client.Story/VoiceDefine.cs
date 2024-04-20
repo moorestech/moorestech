@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Client.Story
 {
-    [CreateAssetMenu(fileName = "VoiceDefine", menuName = "VoiceDefine", order = 0)]
+    [CreateAssetMenu(fileName = "VoiceDefine", menuName = "moorestech/VoiceDefine", order = 0)]
     public class VoiceDefine : ScriptableObject
     {
         [SerializeField] private List<CharacterVoices> characterVoices;

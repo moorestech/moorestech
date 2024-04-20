@@ -337,6 +337,39 @@
                     "z": 1
                 }
             }
-        }
+        },
+        {
+            "name": "iron furnace with bellows",
+            "type": "Machine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "iron furnace with bellows",
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
     ]
 }

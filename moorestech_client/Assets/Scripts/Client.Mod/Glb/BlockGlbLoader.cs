@@ -20,7 +20,7 @@ namespace MainGame.ModLoader.Glb
 
             var mods = new ModsResource(modDirectory);
 
-            var blockPrefabsParent = new GameObject("BlockPrefabsParent");
+            var blockPrefabsParent = new GameObject("Dynamic loaded block prefabs parent");
             Object.DontDestroyOnLoad(blockPrefabsParent);
 
             foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
