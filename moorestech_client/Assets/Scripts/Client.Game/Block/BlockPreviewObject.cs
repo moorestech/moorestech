@@ -1,6 +1,7 @@
 using Client.Common;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace Client.Game.Block
 {
@@ -18,6 +19,13 @@ namespace Client.Game.Block
             {
                 var replacer = new RendererMaterialReplacer(renderer);
                 replacer.SetMaterial(previewMaterial);
+            }
+            
+            var visualEffects = GetComponentsInChildren<VisualEffect>(true);
+            Debug.Log($"visualEffects.Length: {visualEffects.Length}");
+            foreach (var visualEffect in visualEffects)
+            {
+                visualEffect.gameObject.SetActive(false);
             }
         }
     }
