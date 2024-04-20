@@ -13,6 +13,7 @@ namespace Game.Block.Config
     //todo クライアントのためにそのブロックタイプがopneableInventoryを持っているかをチェックするクラスを作成する
     public class BlockConfig : IBlockConfig
     {
+        public IReadOnlyList<BlockConfigData> BlockConfigList => _blockConfigList;
         private readonly List<BlockConfigData> _blockConfigList;
         private readonly Dictionary<long, BlockConfigData> _bockHashToConfig = new();
 

@@ -4,6 +4,8 @@ namespace Game.Block.Interface.BlockConfig
 {
     public interface IBlockConfig
     {
+        public IReadOnlyList<BlockConfigData> BlockConfigList { get; }
+        
         public BlockConfigData GetBlockConfig(int id);
         public BlockConfigData GetBlockConfig(long blockHash);
         public BlockConfigData GetBlockConfig(string modId, string blockName);

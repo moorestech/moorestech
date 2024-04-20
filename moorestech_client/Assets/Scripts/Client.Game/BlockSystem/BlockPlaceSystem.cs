@@ -26,7 +26,7 @@ namespace Client.Game.BlockSystem
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
 
-        private int _heightOffset;
+        private int _heightOffset = 0;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
@@ -165,7 +165,7 @@ namespace Client.Game.BlockSystem
                 point.y = Mathf.FloorToInt(hitPoint.y);
 
                 point += new Vector3Int(0, _heightOffset, 0);
-                point -= convertedSize / 2;
+                point -= new Vector3Int(convertedSize.x,0,convertedSize.z) / 2;
 
                 return point;
             }
