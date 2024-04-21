@@ -28,11 +28,11 @@ namespace Game.Map.Interface
         ///     オブジェクトが存在する座標
         /// </summary>
         Vector3 Position { get; }
-        
+
         /// <summary>
         /// MapObjectが破壊されるまでのHP
         /// </summary>
-        public int HP { get; }
+        public int Hp { get; }
 
         /// <summary>
         ///     獲得したとき入手できるアイテム
@@ -40,13 +40,18 @@ namespace Game.Map.Interface
         public int ItemId { get; }
 
         int ItemCount { get; }
-        
+
 
         /// <summary>
         /// HPを減らして、HPが0以下になったらtrueを返す
         /// 0以下になったらDestroyをする
         /// </summary>
         public bool Attack(int damage);
+
+        /// <summary>
+        /// オブジェクトを破壊する
+        /// </summary>
+        public void Destroy();
 
         public event Action OnDestroy;
     }

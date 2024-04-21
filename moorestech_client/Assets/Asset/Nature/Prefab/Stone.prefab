@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1700651994550293215}
   - component: {fileID: 7320391117292602439}
   - component: {fileID: 4025926000838640696}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26,6 +26,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3721622024080728583}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -38.75584, y: 0, z: -27.336315}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -34,7 +35,6 @@ Transform:
   - {fileID: 5900065288486782927}
   - {fileID: 1474551850767553389}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!205 &1700651994550293215
 LODGroup:
@@ -100,7 +100,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1474551850767553389}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -114,6 +114,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5631076428431296696}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -121,7 +122,6 @@ Transform:
   m_Children:
   - {fileID: 1173152606432708958}
   m_Father: {fileID: 230451577391878160}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2019815267310906895
 PrefabInstance:
@@ -137,7 +137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 507750004299185643, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_Layer
-      value: 10
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 882762000588138321, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_RootOrder
@@ -198,7 +198,7 @@ PrefabInstance:
     - target: {fileID: 2020743494139321406, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: cffca594d28ae41758002142ee7ab90d, type: 2}
+      objectReference: {fileID: 2100000, guid: b90a66031b12c4047b83b2be6d7c7273, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -220,6 +220,10 @@ PrefabInstance:
     - target: {fileID: 507750004299185643, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_Name
       value: StoneCollection1
+      objectReference: {fileID: 0}
+    - target: {fileID: 507750004299185643, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 882762000588138321, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_RootOrder
