@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Client.Story
 {
-    [CreateAssetMenu(fileName = "CharacterDefine", menuName = "CharacterDefine", order = 0)]
+    [CreateAssetMenu(fileName = "CharacterDefine", menuName = "moorestech/CharacterDefine", order = 0)]
     public class CharacterDefine : ScriptableObject
     {
         public IReadOnlyList<CharacterInfo> CharacterInfos => characterInfos;

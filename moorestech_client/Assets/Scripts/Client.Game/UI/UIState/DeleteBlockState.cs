@@ -31,7 +31,7 @@ namespace Client.Game.UI.UIState
                     _removeTargetBlock.ResetMaterial();
                 }
                 _removeTargetBlock = blockGameObject;
-                _removeTargetBlock.SetRemovePreviewMaterial();
+                _removeTargetBlock.SetRemovePreviewing();
             }
             else
             {

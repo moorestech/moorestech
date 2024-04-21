@@ -25,10 +25,11 @@ namespace Client.Game.BlockSystem
             return originPos;
         }
 
+        [Obsolete("一応残してある")]
         public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType, Vector3Int blockPosition, BlockDirection blockDirection, Vector3Int blockSize)
         {
             //実際のブロックのモデルは+0.5した値が中心になる
-            var blockObjectPos = blockPosition.AddBlockPlaceOffset();
+            var blockObjectPos = blockPosition.AddBlockPlaceOffset();//TODo ←システムが変わったのでおそらくこの行は不要
 
             var frontPoint = GetGroundPoint(GetBlockFrontRayOffset(blockDirection) + blockObjectPos);
             var backPoint = GetGroundPoint(-GetBlockFrontRayOffset(blockDirection) + blockObjectPos);

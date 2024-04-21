@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Common;
 using UnityEngine;
 
 namespace Client.Game.Block
@@ -6,14 +7,28 @@ namespace Client.Game.Block
     public class RendererMaterialReplacer
     {
         private readonly List<Material> _originalMaterials;
-        private readonly Renderer _renderers;
+        private readonly Renderer _renderer;
         private readonly List<Material> _replacedMaterials = new();
+        
+        /// <summary>
+        /// ゲームオブジェクトのパスに、このリストに含まれる文字列が含まれている場合、マテリアルを置き換えない
+        /// Do not replace materials if the game object's path contains any of the strings in this list.
+        /// </summary>
+        private readonly List<string> _ignoreGameObjectPathKeyWords = new (){ "/VFX/" };
 
-        public RendererMaterialReplacer(Renderer renderers)
+        public RendererMaterialReplacer(Renderer renderer)
         {
-            _renderers = renderers;
+            var path = renderer.gameObject.GetFullPath();
+            foreach (var keyWord in _ignoreGameObjectPathKeyWords)
+            {
+                if (!path.Contains(keyWord)) continue;
+                return;
+            }
+            
+            
+            _renderer = renderer;
             _originalMaterials = new List<Material>();
-            foreach (var material in renderers.sharedMaterials)
+            foreach (var material in renderer.sharedMaterials)
             {
                 _originalMaterials.Add(material);
             }
@@ -21,7 +36,12 @@ namespace Client.Game.Block
 
         public void SetMaterial(Material placeMaterial)
         {
-            foreach (var material in _renderers.sharedMaterials)
+            if (_renderer == null)
+            {
+                return;
+            }
+            
+            foreach (var material in _renderer.sharedMaterials)
             {
                 var mainTexture = material.mainTexture;
                 var mainColor = material.color;
@@ -37,7 +57,7 @@ namespace Client.Game.Block
                 _replacedMaterials.Add(newMaterial);
             }
 
-            _renderers.materials = _replacedMaterials.ToArray();
+            _renderer.materials = _replacedMaterials.ToArray();
         }
 
         public void SetPlaceMaterialProperty(string propertyName, float value)
@@ -50,13 +70,18 @@ namespace Client.Game.Block
 
         public void ResetMaterial()
         {
+            if (_renderer == null)
+            {
+                return;
+            }
+            
             //作ったプレビュー用のマテリアルを削除
             foreach (var material in _replacedMaterials)
             {
                 Object.Destroy(material);
             }
             _replacedMaterials.Clear();
-            _renderers.materials = _originalMaterials.ToArray();
+            _renderer.materials = _originalMaterials.ToArray();
         }
     }
 }
