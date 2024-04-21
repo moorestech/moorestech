@@ -223,5 +223,10 @@
         "name": "iron furnace with bellows",
         "maxStacks": 100,
         "imagePath": "assets/item/iron furnace with bellows.png"
+    },
+    {
+        "name": "static steam engine",
+        "maxStacks": 100,
+        "imagePath": "assets/item/.png"
     }
 ]
