@@ -3,6 +3,7 @@ using Client.Game.Context;
 using Client.Game.UI.Inventory;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.Inventory.Sub;
+using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
@@ -17,13 +18,21 @@ namespace Client.Game.UI.UIState
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        public PlayerInventoryState(CraftInventoryView craftInventory, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController)
+        public PlayerInventoryState(CraftInventoryView craftInventory, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, InitialHandshakeResponse handshakeResponse)
         {
             _craftInventory = craftInventory;
             _playerInventoryViewController = playerInventoryViewController;
             _localPlayerInventoryController = localPlayerInventoryController;
 
             craftInventory.SetActive(false);
+
+            //インベントリの初期設定
+            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            {
+                var item = handshakeResponse.Inventory.MainInventory[i];
+                _localPlayerInventoryController.SetMainItem(i, item);
+            }
+            _localPlayerInventoryController.SetGrabItem(handshakeResponse.Inventory.GrabItem);
         }
 
         public UIStateEnum GetNext()

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Client.Common;
 using Client.Game.Context;
@@ -24,7 +25,6 @@ namespace Client.Game.Map.MapObject
     /// </summary>
     public class MapObjectGetPresenter : MonoBehaviour
     {
-        [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private float miningDistance = 1.5f;
 
@@ -33,17 +33,26 @@ namespace Client.Game.Map.MapObject
         private CancellationToken _gameObjectCancellationToken;
 
         private ILocalPlayerInventory _localPlayerInventory;
-        private CancellationTokenSource _miningCancellationTokenSource = new();
         private IPlayerObjectController _playerObjectController;
         private UIStateControl _uiStateControl;
 
-        private async UniTask Update()
-        {
-            if (miningObjectProgressbarPresenter.IsMining)
-            {
-                return;
-            }
 
+        private void Start()
+        {
+            ManualUpdate().Forget();
+        }
+
+        private async UniTask ManualUpdate()
+        {
+            while (true)
+            {
+                await MiningUpdate();
+                await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
+            }
+        }
+
+        private async UniTask MiningUpdate()
+        {
             UpdateCurrentMapObject();
             var isMinenable = IsStartMining();
 
@@ -92,14 +101,10 @@ namespace Client.Game.Map.MapObject
 
             async UniTask Mining()
             {
-                _miningCancellationTokenSource.Cancel();
-                _miningCancellationTokenSource = new CancellationTokenSource();
-
                 //マイニングバーのUIを表示するやつを設定
                 var (miningTime, _) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
-                miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
 
-                //_playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
+                _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
 
                 var isMiningFinish = await IsMiningFinishWait(miningTime);
 
@@ -111,13 +116,11 @@ namespace Client.Game.Map.MapObject
                     MoorestechContext.VanillaApi.SendOnly.GetMapObject(_currentMapObjectGameObject.InstanceId);
                     PlaySoundEffect();
                 }
-
-                _miningCancellationTokenSource.Cancel();
             }
 
             void UpdateCurrentMapObject()
             {
-                var mapObject = GetOnMouseMapObject();
+                var mapObject = GetMapObject();
                 if (mapObject == null)
                 {
                     if (_currentMapObjectGameObject != null)
@@ -154,11 +157,11 @@ namespace Client.Game.Map.MapObject
                     #region 木
 
                     case VanillaMapObjectType.VanillaTree when isIronAx:
-                        return (4, true);
+                        return (1.5f, true);
                     case VanillaMapObjectType.VanillaTree when isStoneAx:
-                        return (4, true);
+                        return (2, true);
                     case VanillaMapObjectType.VanillaTree when isStoneTool:
-                        return (10, true);
+                        return (4, true);
 
                     case VanillaMapObjectType.VanillaBigTree when isIronAx:
                         return (10, true);
@@ -215,7 +218,7 @@ namespace Client.Game.Map.MapObject
                     nowTime += Time.deltaTime;
 
                     //クリックが離されたら採掘を終了する か map objectが変わったら採掘を終了する
-                    if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _currentMapObjectGameObject != GetOnMouseMapObject())
+                    if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _currentMapObjectGameObject != GetMapObject())
                     {
                         return false;
                     }
@@ -263,11 +266,10 @@ namespace Client.Game.Map.MapObject
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
 
-        private MapObjectGameObject GetOnMouseMapObject()
+        private MapObjectGameObject GetMapObject()
         {
-            //スクリーンからマウスの位置にRayを飛ばす
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (!Physics.Raycast(ray, out var hit, 10)) return null;
+            var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
+            if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
 

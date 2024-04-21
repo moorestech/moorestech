@@ -44,8 +44,7 @@ namespace Game.Map
                 }
                 else
                 {
-                    var mapObject =
-                        _mapObjectFactory.Create(data.instanceId, data.type, data.Position, data.isDestroyed);
+                    var mapObject = _mapObjectFactory.Create(data.instanceId, data.type, data.Position, data.isDestroyed);
                     mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
                 }
         }

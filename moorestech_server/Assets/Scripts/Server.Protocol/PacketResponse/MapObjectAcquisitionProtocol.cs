@@ -37,8 +37,8 @@ namespace Server.Protocol.PacketResponse
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             var insertedItem = playerMainInventory.InsertItem(itemStack);
 
-            //アイテムの挿入に成功したらマップオブジェクトを削除
-            if (insertedItem.Id == ItemConst.EmptyItemId) mapObject.Destroy();
+            //アイテムの挿入に成功したらマップオブジェクトにダメージを与える
+            if (insertedItem.Id == ItemConst.EmptyItemId) mapObject.Attack(20); // TODO この値は創風に向けた仮の値です
 
             return null;
         }
