@@ -16,6 +16,7 @@ namespace Game.World.DataStore
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
         //メインのデータストア
+        public IReadOnlyDictionary<int, WorldBlockData> BlockMasterDictionary => _blockMasterDictionary;
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
 
         //座標とキーの紐づけ

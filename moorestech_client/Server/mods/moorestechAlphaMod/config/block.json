@@ -148,9 +148,9 @@
             },
             "modelTransform": {
                 "position": {
-                    "x": 0,
+                    "x": 0.5,
                     "y": 0,
-                    "z": 0
+                    "z": 0.5
                 },
                 "rotation": {
                     "x": 0,

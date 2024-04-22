@@ -17,17 +17,19 @@ namespace Game.Block.Blocks.BeltConveyor
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IBlockStateChange
     {
         public bool IsDestroy { get; private set; }
-        
+
+        public const float DefaultBeltConveyorHeight = 0.3f;
+
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-        
+
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
 
         public readonly int InventoryItemNum;
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit,BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
@@ -55,7 +57,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
             }
         }
-        
+
         public string GetSaveState()
         {
             if (_inventoryItems.Length == 0) return string.Empty;
@@ -166,7 +168,7 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             return _inventoryItems[index];
         }
-        
+
         public void Destroy()
         {
             IsDestroy = true;

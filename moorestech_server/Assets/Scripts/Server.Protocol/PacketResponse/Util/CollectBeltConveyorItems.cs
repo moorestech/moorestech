@@ -20,23 +20,21 @@ namespace Server.Protocol.PacketResponse.Util
         {
             var result = new List<IEntity>();
             foreach (var collectChunk in collectChunks)
-                result.AddRange(CollectItemFromChunk(collectChunk, entityFactory));
+                result.AddRange(CollectItemFromChunk(entityFactory));
 
             return result;
         }
 
 
-        public static List<IEntity> CollectItemFromChunk(Vector2Int chunk, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromChunk(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
-            for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
-            for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
-            {
-                var x = i + chunk.x;
-                var y = j + chunk.y;
-                var pos = new Vector3Int(x, y);
 
-                if (!ServerContext.WorldBlockDatastore.TryGetBlock(pos, out var block)) continue;
+            //TODO 個々のパフォーマンス問題を何とかする
+            foreach (var blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
+            {
+                var block = blockMaster.Value.Block;
+                var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
 
                 var type = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Type;
 
@@ -44,53 +42,55 @@ namespace Server.Protocol.PacketResponse.Util
 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.ComponentManager.GetComponent<VanillaBeltConveyorComponent>(), pos,
-                    direction));
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.ComponentManager.GetComponent<VanillaBeltConveyorComponent>(), pos, direction));
             }
 
             return result;
         }
 
 
-        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory,
-            VanillaBeltConveyorComponent vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
+        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, VanillaBeltConveyorComponent vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < vanillaBeltConveyorComponent.InventoryItemNum; i++)
             {
                 var beltConveyorItem = vanillaBeltConveyorComponent.GetBeltConveyorItem(i);
-                if (beltConveyorItem == null) continue;
+                if (beltConveyorItem == null)
+                {
+                    continue;
+                }
 
                 //残り時間をどこまで進んだかに変換するために 1- する
-                var parcent =
-                    1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyorComponent.TimeOfItemEnterToExit);
+                var percent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyorComponent.TimeOfItemEnterToExit);
                 float entityX = pos.x;
-                float entityY = pos.y;
+                float entityZ = pos.z;
                 switch (blockDirection)
                 {
                     case BlockDirection.North:
                         entityX += 0.5f; //ベルトコンベアの基準座標は中心なので0.5を他してアイテムを中心に持ってくる
-                        entityY += parcent;
+                        entityZ += percent;
                         break;
                     case BlockDirection.South:
                         entityX += 0.5f;
-                        entityY += 1 - parcent; //北とは逆向きなので1を引いて逆向きにする
+                        entityZ += 1 - percent; //北とは逆向きなので1を引いて逆向きにする
                         break;
                     case BlockDirection.East:
-                        entityX += parcent;
-                        entityY += 0.5f;
+                        entityX += percent;
+                        entityZ += 0.5f;
                         break;
                     case BlockDirection.West:
-                        entityX += 1 - parcent;
-                        entityY += 0.5f;
+                        entityX += 1 - percent;
+                        entityZ += 0.5f;
                         break;
                 }
 
-                //Unity側ではZ軸がサーバーのY軸になるため変換する
-                var position = new Vector3(entityX, 0, entityY);
+                //この0.3という値は仮
+                var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
+                var position = new Vector3(entityX, y, entityZ);
 
-                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem,
-                    beltConveyorItem.ItemInstanceId, position);
+
+
+                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);
                 itemEntity.SetState(beltConveyorItem.ItemId, 1);
 
                 result.Add(itemEntity);

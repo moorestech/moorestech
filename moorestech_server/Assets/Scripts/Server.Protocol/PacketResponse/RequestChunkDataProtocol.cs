@@ -36,6 +36,14 @@ namespace Server.Protocol.PacketResponse
                 result[i] = chunkData;
             }
 
+            //TODO 創風仮対応 そのうちチャンクの概念を消す
+            //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
+            List<IEntity> items = CollectBeltConveyorItems.CollectItemFromChunk(_entityFactory);
+            var entities = new List<EntityMessagePack>();
+            entities.AddRange(items.Select(item => new EntityMessagePack(item)));
+            result[0].Entities = entities.ToArray();
+            //TODO ここまで仮対応
+
             return new ResponseChunkDataMessagePack(result);
 
             #region Internal
@@ -58,12 +66,8 @@ namespace Server.Protocol.PacketResponse
                     blocks.Add(new BlockDataMessagePack(blockId, blockPos, blockDirection));
                 }
 
-                //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
-                List<IEntity> items = CollectBeltConveyorItems.CollectItemFromChunk(chunkPos, _entityFactory);
-                var entities = new List<EntityMessagePack>();
-                entities.AddRange(items.Select(item => new EntityMessagePack(item)));
 
-                return new ChunkDataMessagePack(chunkPos, blocks.ToArray(), entities.ToArray());
+                return new ChunkDataMessagePack(chunkPos, blocks.ToArray(), Array.Empty<EntityMessagePack>());
             }
 
             #endregion
