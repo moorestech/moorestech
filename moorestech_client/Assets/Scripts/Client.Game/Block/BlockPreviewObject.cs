@@ -22,7 +22,6 @@ namespace Client.Game.Block
             }
             
             var visualEffects = GetComponentsInChildren<VisualEffect>(true);
-            Debug.Log($"visualEffects.Length: {visualEffects.Length}");
             foreach (var visualEffect in visualEffects)
             {
                 visualEffect.gameObject.SetActive(false);
