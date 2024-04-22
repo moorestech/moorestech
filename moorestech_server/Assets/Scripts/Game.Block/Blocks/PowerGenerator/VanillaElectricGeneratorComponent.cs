@@ -19,7 +19,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange, IBlockSaveState
     {
         public BlockPositionInfo BlockPositionInfo { get; }
 

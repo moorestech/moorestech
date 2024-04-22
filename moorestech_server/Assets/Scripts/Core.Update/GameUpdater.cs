@@ -6,8 +6,8 @@ namespace Core.Update
 {
     public static class GameUpdater
     {
-        public static IObservable<Unit> UpdateObservable => UpdateSubject;
-        private static readonly Subject<Unit> UpdateSubject = new();
+        public static IObservable<Unit> UpdateObservable => _updateSubject;
+        private static Subject<Unit> _updateSubject = new();
 
         private static DateTime _lastUpdateTime = DateTime.Now;
 
@@ -19,20 +19,22 @@ namespace Core.Update
             UpdateMillSecondTime = (DateTime.Now - _lastUpdateTime).TotalMilliseconds;
             _lastUpdateTime = DateTime.Now;
 
-            UpdateSubject.OnNext(Unit.Default);
+            _updateSubject.OnNext(Unit.Default);
+        }
+        
+        public static void ResetUpdate()
+        {
+            _updateSubject = new Subject<Unit>();
+            UpdateMillSecondTime = 0;
+            _lastUpdateTime = DateTime.Now;
         }
 
         public static void Dispose()
         {
-            UpdateSubject.Dispose();
+            _updateSubject.Dispose();
         }
 
 #if UNITY_EDITOR
-        public static void ResetUpdate()
-        {
-            UpdateMillSecondTime = 0;
-            _lastUpdateTime = DateTime.Now;
-        }
         public static void UpdateWithWait()
         {
             //TODO ゲームループ周りの修正についてはちょっと考えたい

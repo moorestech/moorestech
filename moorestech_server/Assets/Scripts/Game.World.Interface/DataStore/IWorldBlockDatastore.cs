@@ -9,6 +9,8 @@ namespace Game.World.Interface.DataStore
 {
     public interface IWorldBlockDatastore
     {
+        public IReadOnlyDictionary<int, WorldBlockData> BlockMasterDictionary { get; }
+
         public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
 
         public bool AddBlock(IBlock block);

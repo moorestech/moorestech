@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Update;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
@@ -19,7 +20,6 @@ namespace Server.Boot
     {
         private const int ArgsCount = 1;
 
-
         private static string DebugServerDirectory =>
             Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../moorestech_client/Server"));
 
@@ -34,6 +34,8 @@ namespace Server.Boot
 
         public static (Thread serverUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
+            GameUpdater.ResetUpdate();
+
             //カレントディレクトリを表示
 #if DEBUG
             var serverDirectory = DebugServerDirectory;
