@@ -103,7 +103,12 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public IItemStack GetItem(int slot)
         {
-            return ServerContext.ItemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            if (_inventoryItems[slot] == null)
+            {
+                return itemStackFactory.CreatEmpty();
+            }
+            return itemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
