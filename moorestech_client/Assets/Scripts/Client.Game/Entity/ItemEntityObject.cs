@@ -12,30 +12,34 @@ namespace MainGame.UnityView.Entity
         private float _linerTime;
 
         private Vector3 _targetPosition;
+        private Vector3 _previousPosition;
 
         private void Awake()
         {
             _targetPosition = transform.position;
+            _previousPosition = transform.position;
         }
 
         //Linerでポジションを補完させる
         private void Update()
         {
             //補完する
-            var rate = _linerTime / Interval;
+            var rate = _linerTime / (Interval);
             rate = Mathf.Clamp01(rate);
-            transform.position = Vector3.Lerp(transform.position, _targetPosition, rate);
+            transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
             _linerTime += Time.deltaTime;
         }
 
         public void SetDirectPosition(Vector3 position)
         {
             _targetPosition = position;
+            _previousPosition = position;
             transform.position = position;
         }
 
         public void SetInterpolationPosition(Vector3 position)
         {
+            _previousPosition = transform.position;
             _targetPosition = position;
             _linerTime = 0;
         }

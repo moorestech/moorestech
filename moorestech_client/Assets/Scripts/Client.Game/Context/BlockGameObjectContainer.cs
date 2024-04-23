@@ -31,6 +31,9 @@ namespace Client.Game.Context
             
             var prefabBlockData = blockPrefabContainer.GetBlockDataList();
             blockObjectList.AddRange(prefabBlockData);
+            
+            //IDでソート
+            blockObjectList.Sort((a, b) => a.BlockConfig.BlockId - b.BlockConfig.BlockId);
 
             return new BlockGameObjectContainer(nothingIndexBlockObject, blockObjectList);
         }

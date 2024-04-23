@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2750780202867129520}
-  m_Layer: 0
-  m_Name: gear beltconveyor
+  m_Layer: 7
+  m_Name: gear belt conveyor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -92,9 +92,29 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: fb937f781011b5f44a1dd5a9be406deb, type: 2}
+    - target: {fileID: -7060006574750722323, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: -3048082796431513065, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: -1985231667673049833, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
       propertyPath: m_Name
       value: gear beltconveyor
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2526769209988736227, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2901010975670976043, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -104,10 +124,18 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[1]
       value: 
       objectReference: {fileID: 2100000, guid: 995dfde344ddfa34e84ec44c34391a9d, type: 2}
+    - target: {fileID: 3013171908295920607, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 4334619796446061658, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 995dfde344ddfa34e84ec44c34391a9d, type: 2}
+    - target: {fileID: 5435079005960370828, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 7568363135680813511, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -124,6 +152,10 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[1]
       value: 
       objectReference: {fileID: 2100000, guid: a155fcb6bc444cc46a1854d2e14c4544, type: 2}
+    - target: {fileID: 9113013675261603427, guid: 87c5b07536e48404c8ee0f24e3dad94d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

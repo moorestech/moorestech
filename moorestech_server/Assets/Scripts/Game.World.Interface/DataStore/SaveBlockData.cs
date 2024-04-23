@@ -12,11 +12,13 @@ namespace Game.World.Interface.DataStore
 
         [JsonProperty("X")] public int X;
         [JsonProperty("Y")] public int Y;
+        [JsonProperty("Z")] public int Z;
 
         public SaveBlockData(Vector3Int pos, long blocHash, int entityId, string state, int direction)
         {
             X = pos.x;
             Y = pos.y;
+            Z = pos.z;
             BlockHash = blocHash;
             EntityId = entityId;
             State = state;
@@ -24,6 +26,6 @@ namespace Game.World.Interface.DataStore
         }
 
         [JsonIgnore]
-        public Vector3Int Pos => new(X, Y);
+        public Vector3Int Pos => new(X, Y, Z);
     }
 }

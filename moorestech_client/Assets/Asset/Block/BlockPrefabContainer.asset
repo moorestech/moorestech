@@ -17,3 +17,9 @@ MonoBehaviour:
     blockPrefab: {fileID: 3080275620989080107, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
   - blockName: static steam engine
     blockPrefab: {fileID: 7152712139784919903, guid: 4685e69708529f14084d76cb7178947d, type: 3}
+  - blockName: gear belt conveyor up
+    blockPrefab: {fileID: 3661652225155609364, guid: d53243d74377b724f9ad131c7510fa39, type: 3}
+  - blockName: gear belt conveyor down
+    blockPrefab: {fileID: 213257732635183545, guid: df26304a296b7e44daa5a26c3739abcc, type: 3}
+  - blockName: gear belt conveyor
+    blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}

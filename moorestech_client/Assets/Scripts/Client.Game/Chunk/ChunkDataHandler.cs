@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Client.Common;
+using Client.Common.Server;
 using Client.Game.Context;
 using Client.Game.Entity;
 using Client.Network.API;
@@ -78,7 +79,7 @@ namespace MainGame.Presenter.Block
             while (true)
             {
                 await GetChunkAndApply();
-                await UniTask.Delay(500, cancellationToken: ct); //TODO 本当に0.5秒に1回でいいのか？
+                await UniTask.Delay(NetworkConst.UpdateIntervalMilliseconds, cancellationToken: ct); //TODO 本当に0.5秒に1回でいいのか？
             }
 
             #region Internal

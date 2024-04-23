@@ -33,11 +33,14 @@ namespace Client.Game.Block
             foreach (var blockConfig in blockConfigs)
             {
                 var blockPrefab = GetBlockPrefab(blockConfig.ModId, blockConfig.Name);
-                if (blockPrefab == null) continue;
+                if (blockPrefab == null)
+                {
+                    continue;
+                }
                 
                 var blockName = blockConfig.Name;
                 var type = blockConfig.Type;
-                result.Add(new BlockData(blockPrefab, blockName, type));
+                result.Add(new BlockData(blockPrefab, blockName, type, blockConfig));
             }
             
             return result;
