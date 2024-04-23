@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 114380531760109497}
   - component: {fileID: 1202201147266788363}
   m_Layer: 7
-  m_Name: "\u5186\u67F1.038"
+  m_Name: mini gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -294,7 +294,7 @@ GameObject:
   - component: {fileID: 8893701590483474219}
   - component: {fileID: 2048646897540408119}
   m_Layer: 7
-  m_Name: "\u5186\u67F1.035"
+  m_Name: back gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -308,13 +308,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3697678988152229561}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.6532815, y: 0.27059805, z: 0.27059814, w: 0.65328145}
+  m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 0.362, y: -0.293, z: -0.026}
   m_LocalScale: {x: 0.99999994, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8596397662798646998}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 90}
 --- !u!33 &8893701590483474219
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -461,7 +461,7 @@ GameObject:
   - component: {fileID: 2413363488630986373}
   - component: {fileID: 1468053279647495234}
   m_Layer: 7
-  m_Name: "\u5186\u67F1.039"
+  m_Name: front gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -545,7 +545,7 @@ GameObject:
   - component: {fileID: 4464541034077967911}
   - component: {fileID: 969548980357638350}
   m_Layer: 7
-  m_Name: "\u5186\u67F1.036"
+  m_Name: belt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -625,8 +625,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8596397662798646998}
+  - component: {fileID: 2512037430021955123}
   m_Layer: 7
-  m_Name: gear beltconveyor slope
+  m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -655,6 +656,27 @@ Transform:
   - {fileID: 1881445238896969329}
   m_Father: {fileID: 6343339494470462173}
   m_LocalEulerAnglesHint: {x: 0, y: -270, z: 0}
+--- !u!95 &2512037430021955123
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6741941487171357498}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b94142a20e9854006afcabb54da3e869, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8161316437279348783
 GameObject:
   m_ObjectHideFlags: 0
