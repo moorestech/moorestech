@@ -90,7 +90,7 @@ namespace Client.Game.UI.Inventory.Sub
             HashSet<int> enableItem = IsAllItemCraftable();
             foreach (var itemUI in _itemListObjects)
             {
-                var isGrayOut = enableItem.Contains(itemUI.ItemViewData.ItemId);
+                var isGrayOut = !enableItem.Contains(itemUI.ItemViewData.ItemId);
                 itemUI.SetGrayOut(isGrayOut);
             }
         }

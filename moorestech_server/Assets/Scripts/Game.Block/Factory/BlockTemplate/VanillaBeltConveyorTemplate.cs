@@ -17,9 +17,10 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
         {
             var beltParam = param.Param as BeltConveyorConfigParam;
+            var blockName = ServerContext.BlockConfig.GetBlockConfig(blockHash).Name;
 
             var connectorComponent = CreateConnector(blockPositionInfo, blockHash);
-            var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent);
+            var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
             var components = new List<IBlockComponent>
             {
                 beltComponent,
@@ -32,9 +33,10 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
         {
             var beltParam = param.Param as BeltConveyorConfigParam;
+            var blockName = ServerContext.BlockConfig.GetBlockConfig(blockHash).Name;
 
             var connectorComponent = CreateConnector(blockPositionInfo, blockHash);
-            var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent);
+            var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent,blockName);
             var components = new List<IBlockComponent>
             {
                 beltComponent,
@@ -46,6 +48,8 @@ namespace Game.Block.Factory.BlockTemplate
 
         public const string SlopeUpBeltConveyor = "gear belt conveyor up";
         public const string SlopeDownBeltConveyor = "gear belt conveyor down";
+        public const string Hueru = "gear belt conveyor hueru";
+        public const string Kieru = "gear belt conveyor kieru";
 
 
         private BlockConnectorComponent<IBlockInventory> CreateConnector(BlockPositionInfo blockPositionInfo, long blockHash)

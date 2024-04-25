@@ -227,21 +227,31 @@
     {
         "name": "static steam engine",
         "maxStacks": 100,
-        "imagePath": "assets/item/wooden chest.png"
+        "imagePath": "assets/item/static steam engine.png"
     },
     {
         "name": "gear belt conveyor",
         "maxStacks": 100,
-        "imagePath": "assets/item/wooden chest.png"
+        "imagePath": "assets/item/gear belt conveyor.png"
     },
     {
         "name": "gear belt conveyor up",
         "maxStacks": 100,
-        "imagePath": "assets/item/wooden chest.png"
+        "imagePath": "assets/item/gear belt conveyor up.png"
     },
     {
         "name": "gear belt conveyor down",
         "maxStacks": 100,
-        "imagePath": "assets/item/wooden chest.png"
+        "imagePath": "assets/item/gear belt conveyor down.png"
+    },
+    {
+        "name": "gear belt conveyor hueru",
+        "maxStacks": 100,
+        "imagePath": "assets/item/gear belt conveyor.png"
+    },
+    {
+        "name": "gear belt conveyor kieru",
+        "maxStacks": 100,
+        "imagePath": "assets/item/gear belt conveyor.png"
     }
 ]

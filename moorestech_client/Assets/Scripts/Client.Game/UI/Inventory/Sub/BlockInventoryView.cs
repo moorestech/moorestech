@@ -125,6 +125,7 @@ namespace Client.Game.UI.Inventory.Sub
             void Machine()
             {
                 machineInputItemParent.gameObject.SetActive(true);
+                machineOutputItemParent.gameObject.SetActive(true);
 
                 var itemList = new List<IItemStack>();
                 var machineParam = (MachineBlockConfigParam)param;

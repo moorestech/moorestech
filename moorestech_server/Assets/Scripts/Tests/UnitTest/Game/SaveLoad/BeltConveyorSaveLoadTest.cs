@@ -47,7 +47,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(null,null,null), beltPosInfo);
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector);
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector,"");
             var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
 
             //アイテムが一致するかチェック

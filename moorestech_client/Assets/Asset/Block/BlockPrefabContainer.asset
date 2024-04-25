@@ -23,3 +23,9 @@ MonoBehaviour:
     blockPrefab: {fileID: 213257732635183545, guid: df26304a296b7e44daa5a26c3739abcc, type: 3}
   - blockName: gear belt conveyor
     blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+  - blockName: gear belt conveyor hueru
+    blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+  - blockName: gear belt conveyor kieru
+    blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+  - blockName: campfire
+    blockPrefab: {fileID: 5595802654781065204, guid: aec28d5cf61a6ce4db83c4c669c55eb7, type: 3}
