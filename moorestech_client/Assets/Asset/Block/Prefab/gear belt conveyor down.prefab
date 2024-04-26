@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5086658313194969459}
-  m_Layer: 0
-  m_Name: gear beltconveyor down slope
+  m_Layer: 7
+  m_Name: gear belt conveyor down
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 1358080965007924857}
   - component: {fileID: 5755554561651161082}
   - component: {fileID: 8714401848427882685}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.008"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -126,8 +126,8 @@ GameObject:
   - component: {fileID: 2097194405952621663}
   - component: {fileID: 859492472349700773}
   - component: {fileID: 5011735652623344415}
-  m_Layer: 0
-  m_Name: "\u5186\u67F1.038"
+  m_Layer: 7
+  m_Name: mini gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -208,8 +208,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8427910755559630401}
-  m_Layer: 0
-  m_Name: gear beltconveyor slope
+  - component: {fileID: 7316880915807749281}
+  m_Layer: 7
+  m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -238,6 +239,27 @@ Transform:
   - {fileID: 3730574674724763619}
   m_Father: {fileID: 5086658313194969459}
   m_LocalEulerAnglesHint: {x: 0, y: -270, z: 0}
+--- !u!95 &7316880915807749281
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3763414243015773423}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b94142a20e9854006afcabb54da3e869, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3851393317398477376
 GameObject:
   m_ObjectHideFlags: 0
@@ -249,8 +271,8 @@ GameObject:
   - component: {fileID: 2477971098258162781}
   - component: {fileID: 6999417948518449300}
   - component: {fileID: 1846166683610625939}
-  m_Layer: 0
-  m_Name: "\u5186\u67F1.039"
+  m_Layer: 7
+  m_Name: front gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -333,8 +355,8 @@ GameObject:
   - component: {fileID: 2671674868993767854}
   - component: {fileID: 8197282973467925754}
   - component: {fileID: 6112486329905893779}
-  m_Layer: 0
-  m_Name: "\u5186\u67F1.035"
+  m_Layer: 7
+  m_Name: back gear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -417,7 +439,7 @@ GameObject:
   - component: {fileID: 9190515611915197452}
   - component: {fileID: 5667734293864592885}
   - component: {fileID: 1629686904283243065}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u5186\u67F1.040"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -500,7 +522,7 @@ GameObject:
   - component: {fileID: 3730574674724763619}
   - component: {fileID: 8051525455381285249}
   - component: {fileID: 3607488297508294768}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.009"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -583,8 +605,8 @@ GameObject:
   - component: {fileID: 643788590015946376}
   - component: {fileID: 720970257178653417}
   - component: {fileID: 8740718270851983499}
-  m_Layer: 0
-  m_Name: "\u5186\u67F1.036"
+  m_Layer: 7
+  m_Name: belt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -666,7 +688,7 @@ GameObject:
   - component: {fileID: 7998268766957027381}
   - component: {fileID: 4992476798978013756}
   - component: {fileID: 1937439698868454053}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u5186\u67F1.037"
   m_TagString: Untagged
   m_Icon: {fileID: 0}

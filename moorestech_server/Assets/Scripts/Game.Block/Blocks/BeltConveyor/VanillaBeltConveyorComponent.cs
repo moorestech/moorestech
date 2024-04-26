@@ -4,6 +4,7 @@ using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Component.IOConnector;
+using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -28,9 +29,12 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public readonly int InventoryItemNum;
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        
+        private readonly string _blockName;
 
-        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
+            _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             _blockConnectorComponent = blockConnectorComponent;
@@ -40,8 +44,8 @@ namespace Game.Block.Blocks.BeltConveyor
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
-            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent)
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
+            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, blockName)
         {
             //stateから復元
             //データがないときは何もしない
@@ -127,6 +131,11 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
 
+            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null)
+            {
+                _inventoryItems[0] = new BeltConveyorInventoryItem(4, TimeOfItemEnterToExit, ItemInstanceIdGenerator.Generate());
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var item = _inventoryItems[i];
@@ -151,12 +160,18 @@ namespace Game.Block.Blocks.BeltConveyor
                 //最後のアイテムの場合は接続先に渡す
                 if (i == 0 && item.RemainingTime <= 0)
                 {
+                    if (_blockName == VanillaBeltConveyorTemplate.Kieru)
+                    {
+                        _inventoryItems[i] = null;
+                    }
+                    
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
                     if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
 
                     var connector = _blockConnectorComponent.ConnectTargets[0];
                     var output = connector.InsertItem(insertItem);
+                    
 
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemConst.EmptyItemId) _inventoryItems[i] = null;

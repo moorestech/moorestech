@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Entity.Interface;
@@ -86,10 +87,21 @@ namespace Server.Protocol.PacketResponse.Util
 
                 //この0.3という値は仮
                 var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
+
+                var block = ServerContext.WorldBlockDatastore.GetOriginPosBlock(pos);
+                if (block.Block.BlockConfigData.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
+                {
+                    y += percent;
+                    y += 0.1f;
+                }
+                else if (block.Block.BlockConfigData.Name == VanillaBeltConveyorTemplate.SlopeDownBeltConveyor)
+                {
+                    y -= percent;
+                    y += 0.1f;
+                    y++;
+                }
+
                 var position = new Vector3(entityX, y, entityZ);
-
-
-
                 var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);
                 itemEntity.SetState(beltConveyorItem.ItemId, 1);
 

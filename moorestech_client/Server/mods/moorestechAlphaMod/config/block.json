@@ -225,9 +225,9 @@
             },
             "modelTransform": {
                 "position": {
-                    "x": 0,
+                    "x": 0.5,
                     "y": 0,
-                    "z": 0
+                    "z": 0.5
                 },
                 "rotation": {
                     "x": 0,
@@ -386,6 +386,166 @@
                 "isInfinityPower": true,
                 "infinityPower": 50,
                 "fuel": []
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear belt conveyor",
+            "type": "BeltConveyor",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear belt conveyor",
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "param": {
+                "slot": 3,
+                "time": 2500
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear belt conveyor up",
+            "type": "BeltConveyor",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear belt conveyor up",
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "param": {
+                "slot": 3,
+                "time": 2500
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear belt conveyor down",
+            "type": "BeltConveyor",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear belt conveyor down",
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "param": {
+                "slot": 3,
+                "time": 2500
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear belt conveyor hueru",
+            "type": "BeltConveyor",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear belt conveyor hueru",
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "param": {
+                "slot": 3,
+                "time": 2500
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear belt conveyor kieru",
+            "type": "BeltConveyor",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear belt conveyor kieru",
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "param": {
+                "slot": 3,
+                "time": 2500
             },
             "modelTransform": {
                 "position": {

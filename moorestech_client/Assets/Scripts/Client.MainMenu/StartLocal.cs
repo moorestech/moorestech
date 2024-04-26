@@ -18,29 +18,11 @@ namespace MainMenu
 
         private void Start()
         {
-            startLocalButton.onClick.AddListener(() => StartLocalServer().Forget());
+            startLocalButton.onClick.AddListener(() => ConnectLocalServer().Forget());
         }
 
-        private async UniTask StartLocalServer()
+        private async UniTask ConnectLocalServer()
         {
-            _serverProcess = new Process();
-            _serverProcess.StartInfo.FileName = ServerConst.DotnetRuntimePath;
-            _serverProcess.StartInfo.Arguments = $"\"{ServerConst.ServerDllPath}\"";
-            _serverProcess.StartInfo.UseShellExecute = true;
-            _serverProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-
-            Debug.Log($"Start Server Runtime : {ServerConst.DotnetRuntimePath} Arguments : {ServerConst.ServerDllPath}");
-            _serverProcess.Start();
-            await UniTask.Delay(1000);
-            if (_serverProcess.HasExited)
-            {
-                Debug.LogError("Server did not start");
-                Debug.LogError($"ExitCode : {_serverProcess.ExitCode}");
-                Debug.LogError("Log : " + _serverProcess.StandardOutput.ReadToEnd());
-                Debug.LogError("Message : " + _serverProcess.StandardError.ReadToEnd());
-                return;
-            }
-
             Debug.Log("Server started");
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;

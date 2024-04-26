@@ -29,48 +29,32 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestChunkDataMessagePack>(payload.ToArray());
 
-            var result = new ChunkDataMessagePack[data.ChunkPos.Count];
-            for (var i = 0; i < data.ChunkPos.Count; i++)
-            {
-                var chunkData = GetChunkData(data.ChunkPos[i]);
-                result[i] = chunkData;
-            }
+            var result = new ChunkDataMessagePack[1];
 
             //TODO 創風仮対応 そのうちチャンクの概念を消す
+
+            //TODO ブロックを全部取得して変換
+            var blockMasterDictionary = ServerContext.WorldBlockDatastore.BlockMasterDictionary;
+            var blockResult = new List<BlockDataMessagePack>();
+            foreach (var blockMaster in blockMasterDictionary)
+            {
+                var block = blockMaster.Value.Block;
+                var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
+                var blockDirection = blockMaster.Value.BlockPositionInfo.BlockDirection;
+                blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection));
+            }
+
+
             //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
             List<IEntity> items = CollectBeltConveyorItems.CollectItemFromChunk(_entityFactory);
             var entities = new List<EntityMessagePack>();
             entities.AddRange(items.Select(item => new EntityMessagePack(item)));
-            result[0].Entities = entities.ToArray();
+
+
+            result[0] = new ChunkDataMessagePack(new Vector2Int(0, 0), blockResult.ToArray(), entities.ToArray());
             //TODO ここまで仮対応
 
             return new ResponseChunkDataMessagePack(result);
-
-            #region Internal
-
-            ChunkDataMessagePack GetChunkData(Vector2Int chunkPos)
-            {
-                var chunkOrigin = new Vector3Int(chunkPos.x, 0, chunkPos.y);
-                var blocks = new List<BlockDataMessagePack>();
-
-                for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
-                for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
-                {
-                    var blockPos = chunkOrigin + new Vector3Int(i, 0, j);
-                    var originalPosBlock = ServerContext.WorldBlockDatastore.GetOriginPosBlock(blockPos);
-
-                    if (originalPosBlock == null) continue;
-
-                    var blockDirection = originalPosBlock.BlockPositionInfo.BlockDirection;
-                    var blockId = originalPosBlock.Block.BlockId;
-                    blocks.Add(new BlockDataMessagePack(blockId, blockPos, blockDirection));
-                }
-
-
-                return new ChunkDataMessagePack(chunkPos, blocks.ToArray(), Array.Empty<EntityMessagePack>());
-            }
-
-            #endregion
         }
     }
 
