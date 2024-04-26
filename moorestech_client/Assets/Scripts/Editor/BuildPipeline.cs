@@ -46,7 +46,7 @@ public class BuildPipeline
         }
 
 
-        DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path, ServerConst.ServerDirName));
+        //DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path, ServerConst.ServerDirName));
 
         var buildOptions = new BuildPlayerOptions
         {
