@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
 using UnityEngine;
 
 namespace Game.Map.Interface
@@ -15,7 +17,7 @@ namespace Game.Map.Interface
         public int InstanceId { get; }
 
         /// <summary>
-        ///     そのオブジェクトの種類 <see cref="VanillaMapObjectType" /> などを参照
+        ///     そのオブジェクトの種類
         /// </summary>
         public string Type { get; }
 
@@ -32,14 +34,12 @@ namespace Game.Map.Interface
         /// <summary>
         /// MapObjectが破壊されるまでのHP
         /// </summary>
-        public int Hp { get; }
+        public int CurrentHp { get; }
 
         /// <summary>
         ///     獲得したとき入手できるアイテム
         /// </summary>
-        public int ItemId { get; }
-
-        int ItemCount { get; }
+        public List<IItemStack> EarnItems { get; }
 
 
         /// <summary>

@@ -22,19 +22,18 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
-            var itemStackFactory = ServerContext.ItemStackFactory;
-
 
             //マップオブジェクトを取得するプロトコルを送信
             var mapObject = worldMapObjectDataStore.MapObjects[0];
-            packet.GetPacketResponse(MessagePackSerializer
-                .Serialize(new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId)).ToList());
+            var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, mapObject.CurrentHp);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList());
 
 
             //実際マップオブジェクトが取得されているかのテスト
-            var mapObjectItemStack = itemStackFactory.Create(mapObject.ItemId, mapObject.ItemCount);
+            var earnItem = mapObject.EarnItems[0];
             var playerInventory = playerInventoryDataStore.GetInventoryData(PlayerId).MainOpenableInventory;
-            Assert.AreEqual(playerInventory.GetItem(0), mapObjectItemStack);
+            var itemSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            Assert.AreEqual(earnItem,playerInventory.GetItem(itemSlot));
         }
     }
 }

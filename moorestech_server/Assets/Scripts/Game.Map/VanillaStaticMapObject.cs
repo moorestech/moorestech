@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Game.Context;
 using Game.Map.Interface;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Game.Map
 {
@@ -13,35 +17,38 @@ namespace Game.Map
         public string Type { get; }
         public bool IsDestroyed { get; private set; }
         public Vector3 Position { get; }
-        public int Hp { get; private set; }
-        public int ItemId { get; }
-        public int ItemCount { get; }
+        public int CurrentHp { get; private set; }
+        public List<IItemStack> EarnItems { get; }
 
         public event Action OnDestroy;
 
-        public VanillaStaticMapObject(int id, string type, bool isDestroyed, Vector3 position, int itemId, int itemCount)
+        public VanillaStaticMapObject(int instanceId, string type, bool isDestroyed, int currentHp, Vector3 position)
         {
-            InstanceId = id;
+            InstanceId = instanceId;
             Type = type;
             IsDestroyed = isDestroyed;
             Position = position;
-            ItemId = itemId;
-            ItemCount = itemCount;
-            Hp = type switch
+            CurrentHp = currentHp;
+
+
+            var random = new Random(instanceId);
+            var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(type);
+
+            EarnItems = new List<IItemStack>();
+            foreach (var earnItemConfig in mapObjectConfig.EarnItems)
             {
-                VanillaMapObjectType.VanillaStone => 20,
-                VanillaMapObjectType.VanillaTree => 100,
-                _ => 100
-            };
-            // TODO これは仮で100を入れている そのうちconfigから読み込むようにする
-            // TODO それとHPのデータを保管していないので、それを入れるようにもする
+                var itemCount = random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
+                var itemStack = ServerContext.ItemStackFactory.Create(earnItemConfig.ItemId, itemCount);
+
+                EarnItems.Add(itemStack);
+            }
         }
 
 
         public bool Attack(int damage)
         {
-            Hp -= damage;
-            if (Hp <= 0)
+            CurrentHp -= damage;
+            if (CurrentHp <= 0)
             {
                 Destroy();
                 return true;
@@ -52,7 +59,7 @@ namespace Game.Map
 
         public void Destroy()
         {
-            Hp = 0;
+            CurrentHp = 0;
             IsDestroyed = true;
             OnDestroy?.Invoke();
         }

@@ -13,7 +13,7 @@ namespace Game.SaveLoad.Json.WorldVersions
 
         public WorldSaveAllInfoV1(List<SaveBlockData> world, List<SaveInventoryData> inventory,
             List<SaveEntityData> entities, WorldSettingSaveData setting,
-            List<SaveMapObjectData> mapObjects)
+            List<SavedMapObject> mapObjects)
         {
             World = world;
             Inventory = inventory;
@@ -26,6 +26,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("playerInventory")] public List<SaveInventoryData> Inventory { get; }
         [JsonProperty("entities")] public List<SaveEntityData> Entities { get; }
         [JsonProperty("setting")] public WorldSettingSaveData Setting { get; }
-        [JsonProperty("mapObjects")] public List<SaveMapObjectData> MapObjects { get; set; }
+        [JsonProperty("mapObjects")] public List<SavedMapObject> MapObjects { get; set; }
     }
 }

@@ -33,12 +33,14 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload.ToArray());
 
             var mapObject = _mapObjectDatastore.Get(data.InstanceId);
-            var itemStack = ServerContext.ItemStackFactory.Create(mapObject.ItemId, mapObject.ItemCount);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-            var insertedItem = playerMainInventory.InsertItem(itemStack);
 
-            //アイテムの挿入に成功したらマップオブジェクトにダメージを与える
-            if (insertedItem.Id == ItemConst.EmptyItemId) mapObject.Attack(20); // TODO この値は創風に向けた仮の値です
+            foreach (var earnItem in mapObject.EarnItems)
+            {
+                playerMainInventory.InsertItem(earnItem);
+            }
+
+            mapObject.Attack(data.AttackDamage); // ダメージを与える
 
             return null;
         }
@@ -53,16 +55,19 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId)
+        public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId, int attackDamage)
         {
             Tag = MapObjectAcquisitionProtocol.Tag;
             PlayerId = playerId;
             InstanceId = instanceId;
+            AttackDamage = attackDamage;
         }
 
         [Key(2)]
         public int PlayerId { get; set; }
         [Key(3)]
         public int InstanceId { get; set; }
+        [Key(4)]
+        public int AttackDamage { get; set; }
     }
 }

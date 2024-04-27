@@ -14,6 +14,7 @@ namespace Game.Map.Interface.Json
     {
         [JsonProperty("instanceId")] public int InstanceId;
         [JsonProperty("type")] public string Type;
+
         [JsonProperty("x")] public float X;
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;

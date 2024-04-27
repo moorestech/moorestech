@@ -7,31 +7,31 @@ namespace Mod.Config
 {
     public class ModJsonStringLoader
     {
+        //TODO こういうコンフィグ類を、パスを追加するだけでいい感じに管理できるようにしたい
         private const string ItemConfigPath = "config/item.json";
         private const string BlockConfigPath = "config/block.json";
         private const string MachineRecipeConfigPath = "config/machineRecipe.json";
         private const string CraftRecipeConfigPath = "config/craftRecipe.json";
-        private const string OreConfigPath = "config/ore.json";
-        private const string QuestConfigPath = "config/quest.json";
+        private const string MapObjectConfigPath = "config/mapObject.json";
 
         public static Dictionary<string, ConfigJson> GetConfigString(ModsResource modResource)
         {
             var configDict = new Dictionary<string, ConfigJson>();
+
             //zipファイルの中身のjsonファイルを読み込む
             foreach (KeyValuePair<string, Loader.Mod> mod in modResource.Mods)
             {
+                var modId = mod.Value.ModMetaJson.ModId;
                 var extractedPath = mod.Value.ExtractedPath;
 
                 var itemConfigJson = LoadConfigFile(extractedPath, ItemConfigPath);
                 var blockConfigJson = LoadConfigFile(extractedPath, BlockConfigPath);
                 var machineRecipeConfigJson = LoadConfigFile(extractedPath, MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFile(extractedPath, CraftRecipeConfigPath);
-                var oreConfigJson = LoadConfigFile(extractedPath, OreConfigPath);
-                var questConfigJson = LoadConfigFile(extractedPath, QuestConfigPath);
+                var mapObjectConfigJson = LoadConfigFile(extractedPath, MapObjectConfigPath);
 
-                configDict.Add(mod.Value.ModMetaJson.ModId,
-                    new ConfigJson(mod.Value.ModMetaJson.ModId, itemConfigJson, blockConfigJson,
-                        machineRecipeConfigJson, craftRecipeConfigJson, oreConfigJson, questConfigJson));
+                configDict.Add(modId,
+                    new ConfigJson(modId, itemConfigJson, blockConfigJson, machineRecipeConfigJson, craftRecipeConfigJson, mapObjectConfigJson));
             }
 
             return configDict;

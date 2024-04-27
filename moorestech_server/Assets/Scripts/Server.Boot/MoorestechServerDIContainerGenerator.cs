@@ -20,7 +20,9 @@ using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
 using Game.Map;
+using Game.Map.Config;
 using Game.Map.Interface;
+using Game.Map.Interface.Config;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.Vein;
 using Game.PlayerInventory;
@@ -64,6 +66,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
+            initializerCollection.AddSingleton<IMapObjectConfig, MapObjectConfig>();
 
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
@@ -81,6 +84,7 @@ namespace Server.Boot
                 initializerProvider.GetService<IBlockConfig>(),
                 initializerProvider.GetService<ICraftingConfig>(),
                 initializerProvider.GetService<IMachineRecipeConfig>(),
+                initializerProvider.GetService<IMapObjectConfig>(),
                 initializerProvider.GetService<IItemStackFactory>(),
                 initializerProvider.GetService<IBlockFactory>(),
                 initializerProvider.GetService<IWorldBlockDatastore>(),
