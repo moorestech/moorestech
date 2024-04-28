@@ -5232,6 +5232,7 @@ MonoBehaviour:
   minerItemParent: {fileID: 5007840687213973404}
   minerResourceSlot: {fileID: 8183729453602337311}
   minerResultsParent: {fileID: 6173606048611413269}
+  machineUIParent: {fileID: 7479798211182756840}
   machineInputItemParent: {fileID: 8272910220911628785}
   machineOutputItemParent: {fileID: 8361660780846271158}
   machineBlockNameText: {fileID: 2473410571551793877}
@@ -13148,7 +13149,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 80.275
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y

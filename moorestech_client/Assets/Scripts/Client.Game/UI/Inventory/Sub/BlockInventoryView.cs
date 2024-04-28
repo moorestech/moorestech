@@ -18,24 +18,34 @@ namespace Client.Game.UI.Inventory.Sub
 
 
         #region Chest
+
         [SerializeField] private RectTransform chestItemParent;
         [SerializeField] private RectTransform chestSlotsParent;
+
         #endregion
 
         #region Miner
+
         [SerializeField] private RectTransform minerItemParent;
         [SerializeField] private ItemSlotObject minerResourceSlot;
         [SerializeField] private RectTransform minerResultsParent;
+
         #endregion
 
         #region Machine
+
+        [SerializeField] private GameObject machineUIParent;
+
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
+
         #endregion
 
         #region Generator
+
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
+
         #endregion
 
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
@@ -84,8 +94,7 @@ namespace Client.Game.UI.Inventory.Sub
 
                 chestItemParent.gameObject.SetActive(false);
                 minerItemParent.gameObject.SetActive(false);
-                machineInputItemParent.gameObject.SetActive(false);
-                machineOutputItemParent.gameObject.SetActive(false);
+                machineUIParent.SetActive(false);
             }
 
             void Chest()
@@ -124,9 +133,7 @@ namespace Client.Game.UI.Inventory.Sub
 
             void Machine()
             {
-                machineInputItemParent.gameObject.SetActive(true);
-                machineOutputItemParent.gameObject.SetActive(true);
-
+                machineUIParent.gameObject.SetActive(true);
                 var itemList = new List<IItemStack>();
                 var machineParam = (MachineBlockConfigParam)param;
                 for (var i = 0; i < machineParam.InputSlot; i++)
