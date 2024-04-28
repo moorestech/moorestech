@@ -46,6 +46,9 @@ namespace Client.Game.Map.MapObject
             Undo.RecordObject(this, "SetMapObjectData");
 
             this.instanceId = instanceId;
+
+            //Dirtyフラグを立てる
+            EditorUtility.SetDirty(this);
         }
 
 #endif

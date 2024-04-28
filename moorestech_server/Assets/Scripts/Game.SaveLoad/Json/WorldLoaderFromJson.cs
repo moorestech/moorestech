@@ -68,7 +68,7 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
 
-            _mapObjectDatastore.LoadAndCreateObject(load.MapObjects);
+            _mapObjectDatastore.LoadMapObject(load.MapObjects);
         }
 
         public void WorldInitialize()

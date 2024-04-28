@@ -2,7 +2,8 @@
   "name": "Game.Map.Interface",
   "rootNamespace": "",
   "references": [
-    "Game.Base"
+    "Game.Base",
+    "Core.Item.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

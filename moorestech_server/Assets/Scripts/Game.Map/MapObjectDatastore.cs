@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Context;
 using Game.Map.Interface;
 using Game.Map.Interface.Json;
 using Game.SaveLoad.Json;
@@ -9,6 +10,8 @@ namespace Game.Map
 {
     public class MapObjectDatastore : IMapObjectDatastore
     {
+        public event Action<IMapObject> OnDestroyMapObject;
+
         private readonly IMapObjectFactory _mapObjectFactory;
 
         /// <summary>
@@ -22,31 +25,32 @@ namespace Game.Map
         {
             _mapObjectFactory = mapObjectFactory;
 
-            //configからmap obejctを生成
-            foreach (var configMapObject in mapInfoJson.MapObjects)
+            foreach (var mapObjectInfo in mapInfoJson.MapObjects)
             {
-                var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId, configMapObject.Type, configMapObject.Position, false);
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(mapObjectInfo.Type);
+                var hp = mapObjectConfig.Hp;
+
+                var mapObject = _mapObjectFactory.Create(mapObjectInfo.InstanceId, mapObjectInfo.Type, hp, false, mapObjectInfo.Position);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
                 mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }
         }
 
-        public event Action<IMapObject> OnDestroyMapObject;
-
         public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
 
-        public void LoadAndCreateObject(List<SaveMapObjectData> jsonMapObjectDataList)
+        public void LoadMapObject(List<SavedMapObject> savedMapObjects)
         {
-            foreach (var data in jsonMapObjectDataList)
-                if (_mapObjects.TryGetValue(data.instanceId, out var loadedMapObject))
+            foreach (var savedMapObject in savedMapObjects)
+            {
+                if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject))
                 {
-                    if (data.isDestroyed) loadedMapObject.Destroy();
+                    throw new KeyNotFoundException($"セーブデータ内にあるインスタンスID: {savedMapObject.instanceId} のmapObjectが実際のマップに存在しません。");
                 }
-                else
-                {
-                    var mapObject = _mapObjectFactory.Create(data.instanceId, data.type, data.Position, data.isDestroyed);
-                    mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
-                }
+
+                //破壊状況をロード
+                if (savedMapObject.isDestroyed) loadedMapObject.Destroy();
+                if (savedMapObject.hp != loadedMapObject.CurrentHp) loadedMapObject.Attack(loadedMapObject.CurrentHp - savedMapObject.hp);
+            }
         }
 
         public void Add(IMapObject mapObject)
@@ -60,9 +64,9 @@ namespace Game.Map
             return _mapObjects[instanceId];
         }
 
-        public List<SaveMapObjectData> GetSettingsSaveData()
+        public List<SavedMapObject> GetSettingsSaveData()
         {
-            return _mapObjects.Select(m => new SaveMapObjectData(m.Value)).ToList();
+            return _mapObjects.Select(m => new SavedMapObject(m.Value)).ToList();
         }
     }
 }

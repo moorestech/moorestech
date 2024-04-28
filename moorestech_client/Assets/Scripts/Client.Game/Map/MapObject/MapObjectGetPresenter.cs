@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Client.Common;
 using Client.Game.Context;
@@ -7,13 +7,14 @@ using Client.Game.UI.Inventory;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.UIState;
 using Cysharp.Threading.Tasks;
-using Game.Map.Interface;
+using Game.Context;
+using Game.Map.Interface.Config;
+using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Util;
-using MainGame.UnityView.Util;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -54,21 +55,26 @@ namespace Client.Game.Map.MapObject
         private async UniTask MiningUpdate()
         {
             UpdateCurrentMapObject();
+
+            var miningToolInfo = GetMiningToolInfo();
             var isMinenable = IsStartMining();
+            var isPickUpable = false;
 
             if (_currentMapObjectGameObject != null)
             {
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
+                isPickUpable = mapObjectConfig.MiningTools.Count == 0;
                 var text = string.Empty;
                 if (isMinenable)
                 {
-                    text = "Press and hold left-click to get";
+                    text = isPickUpable ? "左クリックで取得" : "左クリック長押しで採掘";
                 }
                 else
                 {
                     text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType));
                 }
 
-                MouseCursorExplainer.Instance.Show(text, isLocalize: isMinenable);
+                MouseCursorExplainer.Instance.Show(text, isLocalize: false);
             }
 
             if (!isMinenable)
@@ -83,40 +89,7 @@ namespace Client.Game.Map.MapObject
 
             await Mining();
 
-
             #region Internal
-
-            bool IsStartMining()
-            {
-                if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return false;
-
-                if (_currentMapObjectGameObject == null) return false;
-
-                var (_, mineable) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
-
-                if (!mineable) return false;
-
-                return true;
-            }
-
-            async UniTask Mining()
-            {
-                //マイニングバーのUIを表示するやつを設定
-                var (miningTime, _) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
-
-                _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
-
-                var isMiningFinish = await IsMiningFinishWait(miningTime);
-
-                _playerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
-
-                //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
-                if (isMiningFinish)
-                {
-                    MoorestechContext.VanillaApi.SendOnly.GetMapObject(_currentMapObjectGameObject.InstanceId);
-                    PlaySoundEffect();
-                }
-            }
 
             void UpdateCurrentMapObject()
             {
@@ -142,68 +115,69 @@ namespace Client.Game.Map.MapObject
                 _currentMapObjectGameObject.OutlineEnable(true);
             }
 
-            (float miningTime, bool mineable) GetMiningData(string mapObjectType)
+            bool IsStartMining()
             {
-                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
+                if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return false;
 
-                //TODO 採掘するためのアイテムはコンフィグに移す（mapObject.jsonとか作る？）
-                var isStoneTool = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool", slotIndex);
-                var isStoneAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone ax", slotIndex);
-                var isIronAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron ax", slotIndex);
-                var isIronPickaxe = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron pickaxe", slotIndex);
+                if (_currentMapObjectGameObject == null) return false;
 
-                switch (mapObjectType)
+
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
+
+                return miningToolInfo != null || mapObjectConfig.MiningTools.Count == 0;
+            }
+
+            async UniTask Mining()
+            {
+                var instanceId = _currentMapObjectGameObject.InstanceId;
+
+                if (isPickUpable)
                 {
-                    #region 木
-
-                    case VanillaMapObjectType.VanillaTree when isIronAx:
-                        return (1.5f, true);
-                    case VanillaMapObjectType.VanillaTree when isStoneAx:
-                        return (2, true);
-                    case VanillaMapObjectType.VanillaTree when isStoneTool:
-                        return (4, true);
-
-                    case VanillaMapObjectType.VanillaBigTree when isIronAx:
-                        return (10, true);
-
-                    #endregion
-
-                    #region 石
-
-                    case VanillaMapObjectType.VanillaStone:
-                        return (5, true);
-
-
-                    case VanillaMapObjectType.VanillaCoal when isIronPickaxe:
-                        return (5, true);
-                    case VanillaMapObjectType.VanillaIronOre when isIronPickaxe:
-                        return (10, true);
-                    case VanillaMapObjectType.VanillaCray:
-                        return (3, true);
-
-                    #endregion
-
-                    #region ブッシュ
-
-                    case VanillaMapObjectType.VanillaBush:
-                        return (3, true);
-
-                    #endregion
+                    MoorestechContext.VanillaApi.SendOnly.AttackMapObject(instanceId, int.MaxValue); //TODO max valueじゃないものにしたい
+                    return;
                 }
 
-                return (5, false);
+                //マイニングバーのUIを表示するやつを設定
+                _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
+
+                var isMiningFinish = await IsMiningFinishWait(miningToolInfo.AttackSpeed);
+
+                _playerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
+
+                //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
+                if (isMiningFinish)
+                {
+                    var damage = miningToolInfo.Damage;
+                    MoorestechContext.VanillaApi.SendOnly.AttackMapObject(instanceId, damage);
+                    PlaySoundEffect();
+                }
+            }
+
+            MapObjectToolItemConfigInfo GetMiningToolInfo()
+            {
+                if (_currentMapObjectGameObject == null)
+                {
+                    return null;
+                }
+
+                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
+                var currentItem = _localPlayerInventory[slotIndex];
+
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
+
+                return mapObjectConfig.MiningTools.FirstOrDefault(tool => tool.ToolItemId == currentItem.Id);
             }
 
             List<string> GetRecommendItemId(string mapObjectType)
             {
-                return mapObjectType switch
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(mapObjectType);
+                var result = new List<string>();
+                foreach (var tool in mapObjectConfig.MiningTools)
                 {
-                    VanillaMapObjectType.VanillaTree => new List<string> { "iron ax", "stone ax", "stone tool" },
-                    VanillaMapObjectType.VanillaBigTree => new List<string> { "iron ax" },
-                    VanillaMapObjectType.VanillaCoal => new List<string> { "iron pickaxe" },
-                    VanillaMapObjectType.VanillaIronOre => new List<string> { "iron pickaxe" },
-                    _ => new List<string>(),
-                };
+                    var itemConfig = ServerContext.ItemConfig.GetItemConfig(tool.ToolItemId);
+                    result.Add(itemConfig.Name);
+                }
+                return result;
             }
 
             async UniTask<bool> IsMiningFinishWait(float miningTime)
@@ -232,18 +206,11 @@ namespace Client.Game.Map.MapObject
                 SoundEffectType soundEffectType;
                 switch (_currentMapObjectGameObject.MapObjectType)
                 {
-                    case VanillaMapObjectType.VanillaStone:
-                    case VanillaMapObjectType.VanillaCray:
-                    case VanillaMapObjectType.VanillaCoal:
-                    case VanillaMapObjectType.VanillaIronOre:
+                    case VanillaMapObjectType.VanillaPebble:
                         soundEffectType = SoundEffectType.DestroyStone;
                         break;
                     case VanillaMapObjectType.VanillaTree:
-                    case VanillaMapObjectType.VanillaBigTree:
                         soundEffectType = SoundEffectType.DestroyTree;
-                        break;
-                    case VanillaMapObjectType.VanillaBush:
-                        soundEffectType = SoundEffectType.DestroyBush;
                         break;
                     default:
                         soundEffectType = SoundEffectType.DestroyStone;

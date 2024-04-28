@@ -29,11 +29,13 @@ public class MapExportAndSetting : EditorWindow
         var path = EditorUtility.SaveFilePanel("Save map object config", "../../Server/map/", "map", "json");
         if (path.Length != 0) File.WriteAllText(path, json);
 
+
         #region Internal
 
         List<MapObjectInfoJson> SetUpMapObjectInfos()
         {
             var datastore = FindObjectOfType<MapObjectGameObjectDatastore>();
+            datastore.FindMapObjects();
 
             var instanceId = 0;
             var result = new List<MapObjectInfoJson>();

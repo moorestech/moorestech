@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.Context;
 using Client.Network.API;
 using MessagePack;
@@ -17,9 +18,6 @@ namespace Client.Game.Map.MapObject
         [SerializeField] private List<MapObjectGameObject> mapObjects;
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
 
-#if UNITY_EDITOR
-        public IReadOnlyList<MapObjectGameObject> MapObjects => mapObjects;
-#endif
 
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
@@ -53,5 +51,15 @@ namespace Client.Game.Map.MapObject
                     throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
             }
         }
+
+#if UNITY_EDITOR
+        public List<MapObjectGameObject> MapObjects => mapObjects;
+
+        public void FindMapObjects()
+        {
+            mapObjects = FindObjectsOfType<MapObjectGameObject>().ToList();
+            mapObjects.Sort((a, b) => string.Compare(a.gameObject.name, b.gameObject.name, StringComparison.Ordinal));
+        }
+#endif
     }
 }

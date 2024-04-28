@@ -7,7 +7,8 @@
     "Game.Base",
     "Game.SaveLoad.Interface",
     "Game.SaveLoad",
-    "Game.Context"
+    "Game.Context",
+    "Core.ConfigJson"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

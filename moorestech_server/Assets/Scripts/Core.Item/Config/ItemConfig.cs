@@ -16,8 +16,7 @@ namespace Core.Item.Config
 
         public ItemConfig(ConfigJsonFileContainer configPath)
         {
-            _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs, configPath.SortedModIds);
-
+            _itemConfigList = ItemConfigLoad.LoadFromJsons(configPath.ItemConfigs, configPath.SortedModIds);
 
             //実際のIDは1から（空IDの次の値）始まる
             for (var itemId = ItemConst.EmptyItemId + 1; itemId <= _itemConfigList.Count; itemId++)

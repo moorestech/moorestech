@@ -11,7 +11,7 @@ namespace Core.Item.Config
 {
     public class ItemConfigLoad
     {
-        public List<ItemConfigData> LoadFromJsons(Dictionary<string, string> jsons, List<string> mods)
+        public static List<ItemConfigData> LoadFromJsons(Dictionary<string, string> jsons, List<string> mods)
         {
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
