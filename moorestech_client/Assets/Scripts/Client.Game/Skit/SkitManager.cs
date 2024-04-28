@@ -12,14 +12,12 @@ namespace Client.Game.Skit
 {
     public class SkitManager : MonoBehaviour
     {
-        [SerializeField] private SkitMainUI skitMainUI;
+        [SerializeField] private SkitUI skitUI;
+
         [SerializeField] private SkitCamera skitCamera;
-        [SerializeField] private InGameCameraController inGameCameraController;
 
         [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
-
-        [SerializeField] private PlayerObjectController playerObjectController;
 
         public async UniTask StartStory(TextAsset storyCsv)
         {
@@ -62,11 +60,7 @@ namespace Client.Game.Skit
             }
 
             //後処理 Post process
-            skitCamera.SetActive(false);
-            skitMainUI.gameObject.SetActive(false);
-            if (inGameCameraController) inGameCameraController.SetEnable(true);
-
-            playerObjectController.SetActive(true);
+            skitUI.gameObject.SetActive(false);
             storyContext.DestroyCharacter();
 
             #region Internal
@@ -83,12 +77,9 @@ namespace Client.Game.Skit
                 }
 
                 // 表示の設定
-                skitCamera.SetActive(true);
-                if (playerObjectController) playerObjectController.SetActive(false);
-                skitMainUI.gameObject.SetActive(true);
-                if (inGameCameraController) inGameCameraController.SetEnable(false);
+                skitUI.gameObject.SetActive(true);
 
-                return new StoryContext(skitMainUI, characters, skitCamera, voiceDefine);
+                return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
             }
 
             List<string> CreateParameter(string[] values)

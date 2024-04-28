@@ -235,6 +235,8 @@ namespace Client.Game.InGame.Map.MapObject
 
         private MapObjectGameObject GetMapObject()
         {
+            if (Camera.main == null) return null;
+
             var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
             if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
             if (EventSystem.current.IsPointerOverGameObject()) return null;

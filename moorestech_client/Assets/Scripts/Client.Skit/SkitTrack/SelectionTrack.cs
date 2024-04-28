@@ -7,7 +7,7 @@ namespace Client.Skit.SkitTrack
     {
         public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
-            storyContext.SkitMainUI.ShowSelectionUI(true);
+            storyContext.SkitUI.ShowSelectionUI(true);
 
             var jumpTags = new List<string>();
             var selectionTexts = new List<string>();
@@ -23,9 +23,9 @@ namespace Client.Skit.SkitTrack
                 selectionTexts.Add(text);
             }
 
-            var selectedIndex = await storyContext.SkitMainUI.WaitSelectText(selectionTexts);
+            var selectedIndex = await storyContext.SkitUI.WaitSelectText(selectionTexts);
 
-            storyContext.SkitMainUI.ShowSelectionUI(false);
+            storyContext.SkitUI.ShowSelectionUI(false);
 
             var selectedTag = jumpTags[selectedIndex];
             if (selectedTag == string.Empty)

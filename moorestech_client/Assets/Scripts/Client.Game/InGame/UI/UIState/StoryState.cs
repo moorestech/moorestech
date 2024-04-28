@@ -1,3 +1,4 @@
+using Client.Game.Common;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.Skit;
 using Client.Game.Skit.Starter;
@@ -8,7 +9,6 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class StoryState : IUIState
     {
-        private readonly HotBarView _hotBarView;
         private readonly PlayerSkitStarterDetector _playerSkitStarterDetector;
         private readonly SkitManager _skitManager;
 
@@ -18,7 +18,6 @@ namespace Client.Game.InGame.UI.UIState
         {
             _playerSkitStarterDetector = playerSkitStarterDetector;
             _skitManager = skitManager;
-            _hotBarView = hotBarView;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)
@@ -37,15 +36,15 @@ namespace Client.Game.InGame.UI.UIState
 
         private async UniTask PlayStory()
         {
-            _hotBarView.SetActive(false);
-            InputManager.MouseCursorVisible(true);
             _currentNext = UIStateEnum.Current;
+
+            GameStateController.Instance.ChangeState(GameStateType.Skit);
 
             var csv = _playerSkitStarterDetector.CurrentSkitStarterObject.ScenarioCsv;
             await _skitManager.StartStory(csv);
 
-            _hotBarView.SetActive(true);
-            InputManager.MouseCursorVisible(false);
+            GameStateController.Instance.ChangeState(GameStateType.InGame);
+
             _currentNext = UIStateEnum.GameScreen;
         }
     }

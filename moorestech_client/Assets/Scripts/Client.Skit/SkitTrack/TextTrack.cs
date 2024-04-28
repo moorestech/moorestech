@@ -11,7 +11,7 @@ namespace Client.Skit.SkitTrack
             var characterName = parameters[0];
             var text = parameters[1];
 
-            storyContext.SkitMainUI.SetText(characterName, text);
+            storyContext.SkitUI.SetText(characterName, text);
 
             var voiceAudioClip = storyContext.VoiceDefine.GetVoiceClip(characterName, text);
             if (voiceAudioClip != null)

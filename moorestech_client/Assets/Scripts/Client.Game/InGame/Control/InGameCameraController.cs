@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Control
 
             #endregion
         }
-        public void SetEnable(bool enable)
+        public void SetActive(bool enable)
         {
             enabled = enable;
             mainCamera.gameObject.SetActive(enable);

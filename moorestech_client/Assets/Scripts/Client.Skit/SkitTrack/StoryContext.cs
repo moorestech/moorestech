@@ -9,12 +9,12 @@ namespace Client.Skit.SkitTrack
     {
         private readonly Dictionary<string, SkitCharacter> _characters;
         public readonly ISkitCamera SkitCamera;
-        public readonly SkitMainUI SkitMainUI;
+        public readonly SkitUI SkitUI;
         public readonly VoiceDefine VoiceDefine;
 
-        public StoryContext(SkitMainUI skitMainUI, Dictionary<string, SkitCharacter> characters, SkitCamera skitCamera, VoiceDefine voiceDefine)
+        public StoryContext(SkitUI skitUI, Dictionary<string, SkitCharacter> characters, SkitCamera skitCamera, VoiceDefine voiceDefine)
         {
-            SkitMainUI = skitMainUI;
+            SkitUI = skitUI;
             _characters = characters;
             SkitCamera = skitCamera;
             VoiceDefine = voiceDefine;
