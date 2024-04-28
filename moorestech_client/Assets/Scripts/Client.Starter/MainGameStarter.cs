@@ -59,9 +59,9 @@ namespace Client.Starter
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
-        
-        [SerializeField] private PlayerStoryStarter playerStoryStarter;
-        [SerializeField] private StoryManager storyManager;
+
+        [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
+        [SerializeField] private SkitManager skitManager;
 
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
 
@@ -133,9 +133,9 @@ namespace Client.Starter
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
-            
-            builder.RegisterComponent(playerStoryStarter);
-            builder.RegisterComponent(storyManager);
+
+            builder.RegisterComponent(playerSkitStarterDetector);
+            builder.RegisterComponent(skitManager);
 
 
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
