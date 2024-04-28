@@ -1,10 +1,10 @@
 using Client.Common.Server;
-using Client.Game.Context;
-using MainGame.UnityView.Player;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Player;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Player
+namespace Client.Game.InGame.Presenter.Player
 {
     public class PlayerPositionSender : ITickable
     {

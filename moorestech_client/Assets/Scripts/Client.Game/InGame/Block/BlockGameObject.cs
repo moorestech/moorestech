@@ -1,21 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
-using Client.Game.BlockSystem.StateChange;
+using Client.Game.InGame.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace Client.Game.Block
+namespace Client.Game.InGame.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
         private BlockShaderAnimation _blockShaderAnimation;
-        private List<VisualEffect> _visualEffects;
 
         private bool _isShaderAnimationing;
         private List<RendererMaterialReplacer> _rendererMaterialReplacer;
+        private List<VisualEffect> _visualEffects;
         public int BlockId { get; private set; }
         public BlockConfigData BlockConfig { get; private set; }
         public Vector3Int BlockPosition { get; private set; } = Vector3Int.zero;
@@ -65,7 +65,7 @@ namespace Client.Game.Block
             await _blockShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
         }
-        
+
         private void SetVfxActive(bool isActive)
         {
             foreach (var vfx in _visualEffects)

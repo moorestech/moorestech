@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace MainGame.UnityView.Control
+namespace Client.Input
 {
     public static class InputManager
     {

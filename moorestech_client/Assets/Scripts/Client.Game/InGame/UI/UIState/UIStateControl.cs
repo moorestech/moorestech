@@ -2,7 +2,7 @@
 using UnityEngine;
 using VContainer;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class UIStateControl : MonoBehaviour
     {

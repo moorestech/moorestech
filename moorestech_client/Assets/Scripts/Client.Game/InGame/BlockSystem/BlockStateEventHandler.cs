@@ -1,12 +1,12 @@
-﻿using Client.Game.Context;
+﻿using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Context;
 using Game.Context;
-using MainGame.UnityView.Chunk;
 using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Client.Game.BlockSystem
+namespace Client.Game.InGame.BlockSystem
 {
     public class BlockStateEventHandler : IInitializable
     {

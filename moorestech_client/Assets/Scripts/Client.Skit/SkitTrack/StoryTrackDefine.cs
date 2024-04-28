@@ -1,4 +1,4 @@
-namespace Client.Story.StoryTrack
+namespace Client.Skit.SkitTrack
 {
     public class StoryTrackDefine
     {
@@ -16,7 +16,7 @@ namespace Client.Story.StoryTrack
                 "Transition" => new TransitionTrack(),
                 "SelectionTrack" => new SelectionTrack(),
                 "Jump" => new JumpTrack(),
-                _ => null
+                _ => null,
             };
         }
     }

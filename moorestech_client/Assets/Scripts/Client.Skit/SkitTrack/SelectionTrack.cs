@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
-namespace Client.Story.StoryTrack
+namespace Client.Skit.SkitTrack
 {
     public class SelectionTrack : IStoryTrack
     {
@@ -12,7 +12,7 @@ namespace Client.Story.StoryTrack
             var jumpTags = new List<string>();
             var selectionTexts = new List<string>();
 
-            for (int i = 0; i < parameters.Count; i += 2)
+            for (var i = 0; i < parameters.Count; i += 2)
             {
                 var tag = parameters[i];
                 var text = parameters[i + 1];

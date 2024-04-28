@@ -1,9 +1,9 @@
-using Client.Game.UI.Inventory.Element;
-using MainGame.ModLoader.Texture;
+using Client.Game.InGame.UI.Inventory.Element;
+using Client.Mod.Texture;
 using TMPro;
 using UnityEngine;
 
-namespace Client.Game.UI.Inventory
+namespace Client.Game.InGame.UI.Inventory
 {
     public class HotBarItem : MonoBehaviour
     {

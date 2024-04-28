@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.UnityView.Player
+namespace Client.Game.InGame.Player
 {
     public class PlayerGrabItemManager : MonoBehaviour
     {

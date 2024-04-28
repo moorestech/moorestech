@@ -1,4 +1,4 @@
-﻿namespace MainGame.Network.Settings
+﻿namespace Client.Network.Settings
 {
     public class PlayerConnectionSetting
     {

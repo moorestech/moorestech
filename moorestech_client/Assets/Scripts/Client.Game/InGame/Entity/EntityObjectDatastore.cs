@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.Context;
+using Client.Game.InGame.Context;
 using Client.Network.API;
 using Game.Entity.Interface;
-using MainGame.UnityView.Entity;
 using UnityEngine;
 
-namespace Client.Game.Entity
+namespace Client.Game.InGame.Entity
 {
     public class EntityObjectDatastore : MonoBehaviour
     {

@@ -1,4 +1,4 @@
-﻿namespace Client.Game.UI.UIState
+﻿namespace Client.Game.InGame.UI.UIState
 {
     public interface IUIState
     {

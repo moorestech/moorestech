@@ -1,8 +1,8 @@
-﻿using Client.Game.Context;
+﻿using Client.Game.InGame.Context;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.Control.UI.PauseMenu
+namespace Client.Game.InGame.Presenter.PauseMenu
 {
     public class SaveButton : MonoBehaviour
     {

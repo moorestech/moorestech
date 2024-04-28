@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
-namespace Client.Story.StoryTrack
+namespace Client.Skit.SkitTrack
 {
     public class WaitTimeTrack : IStoryTrack
     {
@@ -9,7 +9,7 @@ namespace Client.Story.StoryTrack
         {
             var time = float.Parse(parameters[0]);
             await UniTask.Delay((int)(time * 1000));
-            
+
             return null;
         }
     }

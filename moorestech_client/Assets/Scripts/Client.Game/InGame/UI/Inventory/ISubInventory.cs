@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using Client.Game.UI.Inventory.Element;
-using Core.Item;
+using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
-namespace Client.Game.UI.Inventory
+namespace Client.Game.InGame.UI.Inventory
 {
     public interface ISubInventory
     {

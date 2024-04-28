@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
-using Client.Game.Context;
 using Game.Block.Interface;
 using Game.Context;
-using MainGame.UnityView.Block;
 using UnityEngine;
 
-namespace Client.Game.BlockSystem
+namespace Client.Game.InGame.BlockSystem
 {
     public class SlopeBlockPlaceSystem
     {
@@ -29,7 +27,7 @@ namespace Client.Game.BlockSystem
         public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType, Vector3Int blockPosition, BlockDirection blockDirection, Vector3Int blockSize)
         {
             //実際のブロックのモデルは+0.5した値が中心になる
-            var blockObjectPos = blockPosition.AddBlockPlaceOffset();//TODo ←システムが変わったのでおそらくこの行は不要
+            var blockObjectPos = blockPosition.AddBlockPlaceOffset(); //TODo ←システムが変わったのでおそらくこの行は不要
 
             var frontPoint = GetGroundPoint(GetBlockFrontRayOffset(blockDirection) + blockObjectPos);
             var backPoint = GetGroundPoint(-GetBlockFrontRayOffset(blockDirection) + blockObjectPos);

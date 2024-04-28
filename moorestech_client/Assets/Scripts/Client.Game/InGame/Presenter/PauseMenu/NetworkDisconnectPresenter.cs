@@ -1,11 +1,11 @@
 ﻿using Client.Common;
-using Client.Game.Context;
+using Client.Game.InGame.Context;
 using UniRx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace MainGame.Presenter.PauseMenu
+namespace Client.Game.InGame.Presenter.PauseMenu
 {
     public class NetworkDisconnectPresenter : MonoBehaviour
     {

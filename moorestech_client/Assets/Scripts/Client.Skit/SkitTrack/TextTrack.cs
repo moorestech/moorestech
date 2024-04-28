@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Client.Story.StoryTrack
+namespace Client.Skit.SkitTrack
 {
     public class TextTrack : IStoryTrack
     {

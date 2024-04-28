@@ -1,11 +1,11 @@
 ﻿using Cinemachine;
-using Client.Game.UI.UIState;
-using MainGame.UnityView.Control;
+using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using UnityEngine;
 
-namespace Client.Game.Control.MouseKeyboard
+namespace Client.Game.InGame.Control
 {
-    public class CameraController : MonoBehaviour
+    public class InGameCameraController : MonoBehaviour
     {
         [SerializeField] private Camera mainCamera;
 
@@ -25,7 +25,7 @@ namespace Client.Game.Control.MouseKeyboard
 
         private void Update()
         {
-            var distance = _cinemachineFraming.m_CameraDistance + (InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f);
+            var distance = _cinemachineFraming.m_CameraDistance + InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
 
             if (uiStateControl && uiStateControl.CurrentState != UIStateEnum.GameScreen && uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;

@@ -1,8 +1,8 @@
-﻿using Client.Game.BlockSystem;
+﻿using Client.Game.InGame.BlockSystem;
 using StarterAssets;
 using UnityEngine;
 
-namespace MainGame.UnityView.Player
+namespace Client.Game.InGame.Player
 {
     public interface IPlayerObjectController
     {

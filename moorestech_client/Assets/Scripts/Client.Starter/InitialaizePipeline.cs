@@ -3,14 +3,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
-using Client.Game.Block;
-using Client.Game.Context;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Define;
+using Client.Network;
 using Client.Network.API;
+using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
-using MainGame.Network;
-using MainGame.Network.Send.SocketUtil;
-using MainGame.Network.Settings;
-using MainGame.UnityView.Item;
 using ServerServiceProvider;
 using TMPro;
 using UnityEngine;
@@ -28,7 +27,7 @@ namespace Client.Starter
     {
         [SerializeField] private BlockGameObject nothingIndexBlock;
         [SerializeField] private BlockPrefabContainer blockPrefabContainer;
-        
+
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
 
@@ -121,7 +120,7 @@ namespace Client.Starter
 
             async UniTask LoadBlockAssets()
             {
-                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory,blockPrefabContainer , nothingIndexBlock);
+                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory, blockPrefabContainer, nothingIndexBlock);
                 loadingLog.text += $"\nブロックロード完了  {loadingStopwatch.Elapsed}";
             }
 

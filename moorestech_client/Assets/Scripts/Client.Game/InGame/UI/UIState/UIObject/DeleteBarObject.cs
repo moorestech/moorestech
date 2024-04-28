@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Client.Game.UI.UIState.UIObject
+namespace Client.Game.InGame.UI.UIState.UIObject
 {
     public class DeleteBarObject : MonoBehaviour
     {

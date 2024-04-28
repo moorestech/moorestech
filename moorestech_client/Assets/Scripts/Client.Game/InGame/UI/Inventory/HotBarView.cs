@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.Context;
-using Client.Game.UI.Inventory.Main;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Define;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Input;
 using Core.Const;
-using Core.Item;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.Control;
-using MainGame.UnityView.Item;
-using MainGame.UnityView.Player;
 using UnityEngine;
 using VContainer;
 
-namespace Client.Game.UI.Inventory
+namespace Client.Game.InGame.UI.Inventory
 {
     public class HotBarView : MonoBehaviour
     {
@@ -26,14 +25,6 @@ namespace Client.Game.UI.Inventory
 
         public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
         public int SelectIndex { get; private set; }
-
-        public event Action<int> OnSelectHotBar;
-
-        [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory)
-        {
-            _localPlayerInventory = localPlayerInventory;
-        }
 
         private void Start()
         {
@@ -117,6 +108,14 @@ namespace Client.Game.UI.Inventory
             }
 
             #endregion
+        }
+
+        public event Action<int> OnSelectHotBar;
+
+        [Inject]
+        public void Construct(ILocalPlayerInventory localPlayerInventory)
+        {
+            _localPlayerInventory = localPlayerInventory;
         }
 
         private void UpdateSelectedView(int prevIndex, int nextIndex)

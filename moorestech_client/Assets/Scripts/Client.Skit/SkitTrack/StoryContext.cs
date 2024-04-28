@@ -1,15 +1,16 @@
 using System.Collections.Generic;
-using Client.Story.UI;
+using Client.Skit.Define;
+using Client.Skit.UI;
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Skit.SkitTrack
 {
     public class StoryContext
     {
-        public readonly SkitMainUI SkitMainUI;
-        public readonly ISkitCamera SkitCamera;
-        public readonly VoiceDefine VoiceDefine;
         private readonly Dictionary<string, SkitCharacter> _characters;
+        public readonly ISkitCamera SkitCamera;
+        public readonly SkitMainUI SkitMainUI;
+        public readonly VoiceDefine VoiceDefine;
 
         public StoryContext(SkitMainUI skitMainUI, Dictionary<string, SkitCharacter> characters, SkitCamera skitCamera, VoiceDefine voiceDefine)
         {
@@ -26,7 +27,7 @@ namespace Client.Story
 
         public void DestroyCharacter()
         {
-            foreach (var character in _characters)
+            foreach (KeyValuePair<string, SkitCharacter> character in _characters)
             {
                 Object.Destroy(character.Value.gameObject);
             }

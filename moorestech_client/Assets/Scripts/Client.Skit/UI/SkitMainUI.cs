@@ -4,7 +4,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-namespace Client.Story.UI
+namespace Client.Skit.UI
 {
     public class SkitMainUI : MonoBehaviour
     {
@@ -38,7 +38,7 @@ namespace Client.Story.UI
 
         public async UniTask<int> WaitSelectText(List<string> texts)
         {
-            for (int i = 0; i < selectionButtons.Count; i++)
+            for (var i = 0; i < selectionButtons.Count; i++)
             {
                 if (i < texts.Count)
                 {

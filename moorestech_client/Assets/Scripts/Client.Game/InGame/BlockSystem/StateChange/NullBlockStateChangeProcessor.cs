@@ -1,4 +1,4 @@
-﻿namespace Client.Game.BlockSystem.StateChange
+﻿namespace Client.Game.InGame.BlockSystem.StateChange
 {
     /// <summary>
     ///     無機能のブロックに使うステートプロセッサー

@@ -1,8 +1,6 @@
-using System;
-using Client.Game.Story.UI;
 using UnityEngine;
 
-namespace Client.Game.Story
+namespace Client.Game.Skit.Starter
 {
     public class PlayerSkitStarterDetector : MonoBehaviour
     {
@@ -11,6 +9,10 @@ namespace Client.Game.Story
         public bool IsStartReady => CurrentSkitStarterObject != null;
         public SkitStarterObject CurrentSkitStarterObject { get; private set; }
 
+        private void OnDisable()
+        {
+            startSkitUI.ShowStartStoryUI(false);
+        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -28,11 +30,6 @@ namespace Client.Game.Story
                 CurrentSkitStarterObject = null;
                 startSkitUI.ShowStartStoryUI(false);
             }
-        }
-
-        private void OnDisable()
-        {
-            startSkitUI.ShowStartStoryUI(false);
         }
     }
 }

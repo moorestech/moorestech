@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace MainGame.UnityView.SoundEffect
+namespace Client.Game.InGame.SoundEffect
 {
     /// <summary>
     ///     TODO 仮のSE専用マネージャ 将来的な作り変えを意識しつつ、とりあえずこれで実装する

@@ -1,4 +1,4 @@
-﻿namespace MainGame.Network.Send.SocketUtil
+﻿namespace Client.Network.Settings
 {
     public class ConnectionServerConfig
     {

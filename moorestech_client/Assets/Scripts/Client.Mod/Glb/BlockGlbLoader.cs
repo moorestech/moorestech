@@ -8,7 +8,7 @@ using Game.Context;
 using Mod.Loader;
 using UnityEngine;
 
-namespace MainGame.ModLoader.Glb
+namespace Client.Mod.Glb
 {
     public class BlockGlbLoader
     {
@@ -23,7 +23,7 @@ namespace MainGame.ModLoader.Glb
             var blockPrefabsParent = new GameObject("Dynamic loaded block prefabs parent");
             Object.DontDestroyOnLoad(blockPrefabsParent);
 
-            foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
+            foreach (KeyValuePair<string, global::Mod.Loader.Mod> mod in mods.Mods)
             {
                 List<int> blockIds = ServerContext.BlockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
                 var blockConfigs = blockIds.Select(ServerContext.BlockConfig.GetBlockConfig).ToList();
@@ -34,7 +34,7 @@ namespace MainGame.ModLoader.Glb
             return blocks;
         }
 
-        private static async UniTask<List<BlockData>> GetBlocks(List<BlockConfigData> blockConfigs, Mod.Loader.Mod mod, Transform blockPrefabsParent)
+        private static async UniTask<List<BlockData>> GetBlocks(List<BlockConfigData> blockConfigs, global::Mod.Loader.Mod mod, Transform blockPrefabsParent)
         {
             var blocks = new List<BlockData>();
 
@@ -59,7 +59,7 @@ namespace MainGame.ModLoader.Glb
             return blocks;
         }
 
-        private static GameObject SetUpObject(GameObject blockModel, Transform blockPrefabsParent, BlockConfigData config, Mod.Loader.Mod mod)
+        private static GameObject SetUpObject(GameObject blockModel, Transform blockPrefabsParent, BlockConfigData config, global::Mod.Loader.Mod mod)
         {
             blockModel.name = "model";
             //ブロックモデルの位置をリセットしてから親の設定
@@ -102,8 +102,8 @@ namespace MainGame.ModLoader.Glb
 
     public class BlockData
     {
-        public readonly GameObject BlockObject;
         public readonly BlockConfigData BlockConfig;
+        public readonly GameObject BlockObject;
         public readonly string Name;
         public readonly string Type;
 

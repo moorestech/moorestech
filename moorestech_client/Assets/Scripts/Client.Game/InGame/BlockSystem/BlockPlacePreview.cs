@@ -1,10 +1,10 @@
-﻿using Client.Game.Block;
-using Client.Game.Context;
+﻿using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
-namespace Client.Game.BlockSystem
+namespace Client.Game.InGame.BlockSystem
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {

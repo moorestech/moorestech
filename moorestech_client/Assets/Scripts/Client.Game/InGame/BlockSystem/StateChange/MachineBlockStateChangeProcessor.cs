@@ -4,7 +4,7 @@ using Game.Block.Interface.State;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace Client.Game.BlockSystem.StateChange
+namespace Client.Game.InGame.BlockSystem.StateChange
 {
     public class MachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {

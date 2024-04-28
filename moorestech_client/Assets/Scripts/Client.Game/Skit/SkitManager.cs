@@ -1,18 +1,20 @@
 using System.Collections.Generic;
-using Client.Game.Control.MouseKeyboard;
-using Client.Story.StoryTrack;
-using Client.Story.UI;
+using Client.Game.InGame.Control;
+using Client.Game.InGame.Player;
+using Client.Skit;
+using Client.Skit.Define;
+using Client.Skit.SkitTrack;
+using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
-using MainGame.UnityView.Player;
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Game.Skit
 {
     public class SkitManager : MonoBehaviour
     {
         [SerializeField] private SkitMainUI skitMainUI;
         [SerializeField] private SkitCamera skitCamera;
-        [SerializeField] private CameraController cameraController;
+        [SerializeField] private InGameCameraController inGameCameraController;
 
         [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
@@ -24,7 +26,7 @@ namespace Client.Story
             //前処理 Pre process
             var storyContext = PreProcess();
             var lines = storyCsv.text.Split('\n');
-            var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
+            Dictionary<string, int> tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
 
             //トラックの実行処理 Execute track
             for (var i = 0; i < lines.Length; i++)
@@ -44,7 +46,7 @@ namespace Client.Story
                 }
 
                 //トラックの実行
-                var parameters = CreateParameter(values);
+                List<string> parameters = CreateParameter(values);
                 var nextTag = await track.ExecuteTrack(storyContext, parameters);
 
                 //タグがなかったのでそのまま継続
@@ -62,7 +64,7 @@ namespace Client.Story
             //後処理 Post process
             skitCamera.SetActive(false);
             skitMainUI.gameObject.SetActive(false);
-            if (cameraController) cameraController.SetEnable(true);
+            if (inGameCameraController) inGameCameraController.SetEnable(true);
 
             playerObjectController.SetActive(true);
             storyContext.DestroyCharacter();
@@ -84,7 +86,7 @@ namespace Client.Story
                 skitCamera.SetActive(true);
                 if (playerObjectController) playerObjectController.SetActive(false);
                 skitMainUI.gameObject.SetActive(true);
-                if (cameraController) cameraController.SetEnable(false);
+                if (inGameCameraController) inGameCameraController.SetEnable(false);
 
                 return new StoryContext(skitMainUI, characters, skitCamera, voiceDefine);
             }

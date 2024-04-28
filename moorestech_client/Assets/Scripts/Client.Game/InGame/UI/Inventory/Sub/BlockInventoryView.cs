@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Client.Game.Context;
-using Client.Game.UI.Inventory.Element;
-using Core.Item;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
@@ -10,37 +9,11 @@ using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using TMPro;
 using UnityEngine;
 
-namespace Client.Game.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.Sub
 {
     public class BlockInventoryView : MonoBehaviour, ISubInventory
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-
-
-        #region Chest
-
-        [SerializeField] private RectTransform chestItemParent;
-        [SerializeField] private RectTransform chestSlotsParent;
-
-        #endregion
-
-        #region Miner
-
-        [SerializeField] private RectTransform minerItemParent;
-        [SerializeField] private ItemSlotObject minerResourceSlot;
-        [SerializeField] private RectTransform minerResultsParent;
-
-        #endregion
-
-        #region Machine
-
-        [SerializeField] private GameObject machineUIParent;
-
-        [SerializeField] private RectTransform machineInputItemParent;
-        [SerializeField] private RectTransform machineOutputItemParent;
-        [SerializeField] private TMP_Text machineBlockNameText;
-
-        #endregion
 
         #region Generator
 
@@ -186,6 +159,32 @@ namespace Client.Game.UI.Inventory.Sub
             }
             SubInventory[slot] = item;
         }
+
+
+        #region Chest
+
+        [SerializeField] private RectTransform chestItemParent;
+        [SerializeField] private RectTransform chestSlotsParent;
+
+        #endregion
+
+        #region Miner
+
+        [SerializeField] private RectTransform minerItemParent;
+        [SerializeField] private ItemSlotObject minerResourceSlot;
+        [SerializeField] private RectTransform minerResultsParent;
+
+        #endregion
+
+        #region Machine
+
+        [SerializeField] private GameObject machineUIParent;
+
+        [SerializeField] private RectTransform machineInputItemParent;
+        [SerializeField] private RectTransform machineOutputItemParent;
+        [SerializeField] private TMP_Text machineBlockNameText;
+
+        #endregion
     }
 
     public enum BlockInventoryType

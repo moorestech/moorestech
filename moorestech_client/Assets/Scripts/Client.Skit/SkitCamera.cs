@@ -1,7 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Skit
 {
     public interface ISkitCamera
     {

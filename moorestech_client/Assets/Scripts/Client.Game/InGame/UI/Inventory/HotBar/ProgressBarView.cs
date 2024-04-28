@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Client.Game.UI.Inventory.HotBar
+namespace Client.Game.InGame.UI.Inventory.HotBar
 {
     public class ProgressBarView : MonoBehaviour
     {

@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
+using Client.Mod.Glb;
+using Game.Block.Interface.BlockConfig;
 using Game.Context;
-using MainGame.ModLoader.Glb;
 using UnityEngine;
 
-namespace Client.Game.Block
+namespace Client.Game.InGame.Define
 {
     [CreateAssetMenu(fileName = "BlockPrefabContainer", menuName = "moorestech/BlockPrefabContainer", order = 0)]
     public class BlockPrefabContainer : ScriptableObject
     {
-        public IReadOnlyList<BlockPrefabInfo> BlockPrefabs => blockPrefabs;
         [SerializeField] private List<BlockPrefabInfo> blockPrefabs;
 
         public GameObject GetBlockPrefab(string modId, string blockName)
@@ -28,8 +28,8 @@ namespace Client.Game.Block
         public List<BlockData> GetBlockDataList()
         {
             var result = new List<BlockData>();
-            
-            var blockConfigs = ServerContext.BlockConfig.BlockConfigList;
+
+            IReadOnlyList<BlockConfigData> blockConfigs = ServerContext.BlockConfig.BlockConfigList;
             foreach (var blockConfig in blockConfigs)
             {
                 var blockPrefab = GetBlockPrefab(blockConfig.ModId, blockConfig.Name);
@@ -37,12 +37,12 @@ namespace Client.Game.Block
                 {
                     continue;
                 }
-                
+
                 var blockName = blockConfig.Name;
                 var type = blockConfig.Type;
                 result.Add(new BlockData(blockPrefab, blockName, type, blockConfig));
             }
-            
+
             return result;
         }
     }
@@ -50,13 +50,13 @@ namespace Client.Game.Block
     [Serializable]
     public class BlockPrefabInfo
     {
+        [SerializeField] private string blockName;
+        [SerializeField] private GameObject blockPrefab;
         public string ModId => AlphaMod.ModId;
         //TODO 将来的に設定できるようにする [SerializeField] private string modId = AlphaMod.ModId;
-        
+
         public string BlockName => blockName;
-        [SerializeField] private string blockName;
-        
+
         public GameObject BlockPrefab => blockPrefab;
-        [SerializeField] private GameObject blockPrefab;
     }
 }

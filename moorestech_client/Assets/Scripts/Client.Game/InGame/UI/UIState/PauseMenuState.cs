@@ -1,7 +1,7 @@
-﻿using Client.Game.UI.UIState.UIObject;
-using MainGame.UnityView.Control;
+﻿using Client.Game.InGame.UI.UIState.UIObject;
+using Client.Input;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class PauseMenuState : IUIState
     {

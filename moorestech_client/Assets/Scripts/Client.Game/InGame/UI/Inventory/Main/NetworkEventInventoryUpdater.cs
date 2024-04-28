@@ -1,11 +1,11 @@
-using Client.Game.Context;
-using Client.Game.UI.Inventory.Sub;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Sub;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive;
 using VContainer.Unity;
 
-namespace Client.Game.UI.Inventory.Main
+namespace Client.Game.InGame.UI.Inventory.Main
 {
     public class NetworkEventInventoryUpdater : IInitializable
     {

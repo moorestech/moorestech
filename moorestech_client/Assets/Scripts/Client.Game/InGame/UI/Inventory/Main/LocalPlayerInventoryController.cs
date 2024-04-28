@@ -1,12 +1,11 @@
 using System;
-using Client.Game.Context;
-using Core.Item;
+using Client.Game.InGame.Context;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
-namespace Client.Game.UI.Inventory.Main
+namespace Client.Game.InGame.UI.Inventory.Main
 {
     public class LocalPlayerInventoryController
     {

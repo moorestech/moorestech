@@ -2,24 +2,24 @@
 using System.Linq;
 using System.Threading;
 using Client.Common;
-using Client.Game.Context;
-using Client.Game.UI.Inventory;
-using Client.Game.UI.Inventory.Main;
-using Client.Game.UI.UIState;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.SoundEffect;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.Util;
+using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.Control;
-using MainGame.UnityView.Player;
-using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Util;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
 
-namespace Client.Game.Map.MapObject
+namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
     ///     マップオブジェクトのUIの表示や削除の判定を担当する

@@ -2,22 +2,22 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Skit.Define
 {
     [CreateAssetMenu(fileName = "CharacterDefine", menuName = "moorestech/CharacterDefine", order = 0)]
     public class CharacterDefine : ScriptableObject
     {
-        public IReadOnlyList<CharacterInfo> CharacterInfos => characterInfos;
         [SerializeField] private List<CharacterInfo> characterInfos;
+        public IReadOnlyList<CharacterInfo> CharacterInfos => characterInfos;
     }
 
     [Serializable]
     public class CharacterInfo
     {
-        public string CharacterKey => characterKey;
         [SerializeField] private string characterKey;
+        [SerializeField] private SkitCharacter characterPrefab;
+        public string CharacterKey => characterKey;
 
         public SkitCharacter CharacterPrefab => characterPrefab;
-        [SerializeField] private SkitCharacter characterPrefab;
     }
 }

@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class UIStateDictionary
     {
         private readonly Dictionary<UIStateEnum, IUIState> _stateDictionary = new();
 
         public UIStateDictionary(
-            GameScreenState gameScreenState, 
-            PlayerInventoryState playerInventoryState, 
+            GameScreenState gameScreenState,
+            PlayerInventoryState playerInventoryState,
             BlockInventoryState blockInventoryState,
-            PauseMenuState pauseMenuState, 
+            PauseMenuState pauseMenuState,
             DeleteBlockState deleteBlockState,
             StoryState storyState)
         {

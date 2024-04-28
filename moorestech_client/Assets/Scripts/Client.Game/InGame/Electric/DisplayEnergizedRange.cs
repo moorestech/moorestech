@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
-using Client.Game.Block;
-using Client.Game.Context;
-using Client.Game.UI.Inventory;
-using Client.Game.UI.Inventory.Main;
-using Client.Game.UI.UIState;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Chunk;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
 using Core.Const;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Extension
+namespace Client.Game.InGame.Electric
 {
     /// <summary>
     ///     TODO 各データにアクセスしやすいようなアクセッサを作ってそっちに乗り換える

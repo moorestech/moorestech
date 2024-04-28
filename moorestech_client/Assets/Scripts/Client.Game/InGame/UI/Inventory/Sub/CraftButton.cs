@@ -4,7 +4,7 @@ using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Client.Game.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.Sub
 {
     public class CraftButton : MonoBehaviour
     {

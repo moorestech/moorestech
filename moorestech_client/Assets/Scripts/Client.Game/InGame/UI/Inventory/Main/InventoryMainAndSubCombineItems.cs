@@ -1,15 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Client.Game.Context;
-using Core.Item;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Game.UI.Inventory.Main
+namespace Client.Game.InGame.UI.Inventory.Main
 {
     public interface ILocalPlayerInventory : IEnumerable<IItemStack>
     {

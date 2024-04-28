@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.Block
+namespace Client.Game.InGame.Block
 {
     public class BlockGameObjectChild : MonoBehaviour
     {

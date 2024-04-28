@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MainGame.UnityView.Block
+namespace Client.Game.InGame.BlockSystem
 {
     public class BlockSlopeDeformationType
     {

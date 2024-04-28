@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.Map.MapVein
+namespace Client.Game.InGame.Map.MapVein
 {
     public class MapVeinGameObject : MonoBehaviour
     {

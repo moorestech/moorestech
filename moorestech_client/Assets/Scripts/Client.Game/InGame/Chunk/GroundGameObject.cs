@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.UnityView.Chunk
+namespace Client.Game.InGame.Chunk
 {
     public class GroundGameObject : MonoBehaviour
     {

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MainGame.UnityView.UI.Util
+namespace Client.Game.InGame.UI.Util
 {
     /// <summary>
     ///     UIにアタッチして、そのUI要素にマウスカーソルが乗ったら文字列を表示するシステム

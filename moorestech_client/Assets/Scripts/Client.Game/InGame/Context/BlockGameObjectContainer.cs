@@ -1,14 +1,15 @@
 using System.Collections.Generic;
-using Client.Game.Block;
-using Client.Game.BlockSystem;
-using Client.Game.BlockSystem.StateChange;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.StateChange;
+using Client.Game.InGame.Define;
+using Client.Mod.Glb;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Context;
-using MainGame.ModLoader.Glb;
 using UnityEngine;
 
-namespace Client.Game.Context
+namespace Client.Game.InGame.Context
 {
     /// <summary>
     ///     Unityに表示されるブロックの実際のGameObjectを管理するクラス
@@ -25,13 +26,13 @@ namespace Client.Game.Context
             _blockObjectList = blockObjectList;
         }
 
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory,BlockPrefabContainer blockPrefabContainer, BlockGameObject nothingIndexBlockObject)
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockPrefabContainer blockPrefabContainer, BlockGameObject nothingIndexBlockObject)
         {
             List<BlockData> blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory);
-            
-            var prefabBlockData = blockPrefabContainer.GetBlockDataList();
+
+            List<BlockData> prefabBlockData = blockPrefabContainer.GetBlockDataList();
             blockObjectList.AddRange(prefabBlockData);
-            
+
             //IDでソート
             blockObjectList.Sort((a, b) => a.BlockConfig.BlockId - b.BlockConfig.BlockId);
 

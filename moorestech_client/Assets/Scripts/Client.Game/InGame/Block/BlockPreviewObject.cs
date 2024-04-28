@@ -3,7 +3,7 @@ using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace Client.Game.Block
+namespace Client.Game.InGame.Block
 {
     public class BlockPreviewObject : MonoBehaviour
     {
@@ -20,8 +20,8 @@ namespace Client.Game.Block
                 var replacer = new RendererMaterialReplacer(renderer);
                 replacer.SetMaterial(previewMaterial);
             }
-            
-            var visualEffects = GetComponentsInChildren<VisualEffect>(true);
+
+            VisualEffect[] visualEffects = GetComponentsInChildren<VisualEffect>(true);
             foreach (var visualEffect in visualEffects)
             {
                 visualEffect.gameObject.SetActive(false);

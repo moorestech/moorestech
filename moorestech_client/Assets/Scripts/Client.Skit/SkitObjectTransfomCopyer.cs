@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Skit
 {
     public class SkitObjectTransfomCopyer : MonoBehaviour
     {

@@ -2,19 +2,18 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Common;
 using Client.Common.Server;
-using Client.Game.Context;
-using Client.Game.Entity;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Entity;
+using Client.Game.InGame.SoundEffect;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using MainGame.UnityView.Chunk;
-using MainGame.UnityView.SoundEffect;
 using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Block
+namespace Client.Game.InGame.Chunk
 {
     /// <summary>
     ///     サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す

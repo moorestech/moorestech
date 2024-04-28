@@ -1,9 +1,9 @@
-using Client.Game.Context;
+using Client.Game.InGame.Context;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.Presenter.Command
+namespace Client.Game.InGame.Presenter.Command
 {
     public class CommandUIInput : MonoBehaviour
     {

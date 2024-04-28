@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainMenu
+namespace Client.MainMenu
 {
     public class QuitGame : MonoBehaviour
     {

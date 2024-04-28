@@ -1,4 +1,4 @@
-﻿namespace Client.Game.BlockSystem.StateChange
+﻿namespace Client.Game.InGame.BlockSystem.StateChange
 {
     /// <summary>
     ///     ステートの変更を受け取り、その変更に合わせてアニメーション、エフェクト、音を再生するためのinterface

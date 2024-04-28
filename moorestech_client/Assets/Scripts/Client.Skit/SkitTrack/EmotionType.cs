@@ -1,4 +1,4 @@
-namespace Client.Story
+namespace Client.Skit.SkitTrack
 {
     public enum EmotionType
     {

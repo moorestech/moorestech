@@ -2,7 +2,7 @@ using System;
 using Client.Common;
 using UnityEngine;
 
-namespace MainGame.UnityView.Item
+namespace Client.Game.InGame.Define
 {
     /// <summary>
     ///     TODO このコードはalpha2.0以降で消す

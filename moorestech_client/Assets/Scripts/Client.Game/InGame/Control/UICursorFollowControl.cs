@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.Control.MouseKeyboard
+namespace Client.Game.InGame.Control
 {
     public class UICursorFollowControl : MonoBehaviour
     {
@@ -18,8 +18,8 @@ namespace Client.Game.Control.MouseKeyboard
 
             var itemPos = new Vector3();
 
-            itemPos.x = Input.mousePosition.x * magnification - _canvasRect.sizeDelta.x / 2;
-            itemPos.y = Input.mousePosition.y * magnification - _canvasRect.sizeDelta.y / 2;
+            itemPos.x = UnityEngine.Input.mousePosition.x * magnification - _canvasRect.sizeDelta.x / 2;
+            itemPos.y = UnityEngine.Input.mousePosition.y * magnification - _canvasRect.sizeDelta.y / 2;
             itemPos.z = transform.localPosition.z;
 
             transform.localPosition = itemPos + offSet;

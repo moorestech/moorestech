@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.Story.UI
+namespace Client.Game.Skit.Starter
 {
     public class StartSkitUI : MonoBehaviour
     {

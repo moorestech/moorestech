@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.Context;
-using Client.Game.UI.Inventory.Element;
-using Core.Item;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Config;
 using Core.Item.Interface;
 using Game.Block.Interface.RecipeConfig;
@@ -10,7 +9,7 @@ using Game.Crafting.Interface;
 using UniRx;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.ItemRecipeViewer
+namespace Client.Game.InGame.UI.ItemRecipeViewer
 {
     public class RecipeViewerList : MonoBehaviour
     {

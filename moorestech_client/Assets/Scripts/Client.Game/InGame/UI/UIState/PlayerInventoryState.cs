@@ -1,14 +1,14 @@
 ﻿using System.Threading;
-using Client.Game.Context;
-using Client.Game.UI.Inventory;
-using Client.Game.UI.Inventory.Main;
-using Client.Game.UI.Inventory.Sub;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.Sub;
+using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.Control;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class PlayerInventoryState : IUIState
     {

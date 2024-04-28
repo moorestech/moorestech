@@ -1,14 +1,14 @@
 ﻿using System;
+using Client.Game.InGame.UI.Util;
+using Client.Mod.Texture;
 using Core.Const;
-using MainGame.ModLoader.Texture;
-using MainGame.UnityView.UI.Util;
 using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Client.Game.UI.Inventory.Element
+namespace Client.Game.InGame.UI.Inventory.Element
 {
     public class ItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {

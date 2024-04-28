@@ -4,21 +4,21 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Client.Story.UI
+namespace Client.Skit.UI
 {
     public class SelectionButton : MonoBehaviour
     {
         [SerializeField] private Button button;
         [SerializeField] private TMP_Text buttonText;
-        
+
         private int _index;
-        
-        public void SetButton(string text,int index)
+
+        public void SetButton(string text, int index)
         {
             buttonText.text = text;
             _index = index;
         }
-        
+
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);

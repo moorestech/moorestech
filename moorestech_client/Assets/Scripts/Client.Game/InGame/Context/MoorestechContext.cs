@@ -1,9 +1,8 @@
 using Client.Network.API;
-using MainGame.Network.Settings;
-using MainGame.UnityView.Item;
+using Client.Network.Settings;
 using ServerServiceProvider;
 
-namespace Client.Game.Context
+namespace Client.Game.InGame.Context
 {
     public class MoorestechContext
     {

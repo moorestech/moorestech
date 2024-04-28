@@ -4,7 +4,7 @@ using DG.Tweening;
 using UnityEngine;
 using static System.Enum;
 
-namespace Client.Story.StoryTrack
+namespace Client.Skit.SkitTrack
 {
     public class CameraworkTrack : IStoryTrack
     {

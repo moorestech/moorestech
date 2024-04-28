@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
-namespace Client.Game.Block
+namespace Client.Game.InGame.Block
 {
     public class BlockShaderAnimation : MonoBehaviour
     {

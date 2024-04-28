@@ -1,8 +1,8 @@
-using MainGame.UnityView.Control;
+using Client.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MainGame.UnityView.UI.Util
+namespace Client.Game.InGame.UI.Util
 {
     /// <summary>
     ///     GameObjectのマウスカーソル説明コンポーネントにマウスカーソルが乗っているかを統合的に管理するシステム

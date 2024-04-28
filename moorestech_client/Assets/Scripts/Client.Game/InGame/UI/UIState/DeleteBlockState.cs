@@ -1,10 +1,10 @@
-﻿using Client.Game.Block;
-using Client.Game.Context;
-using Client.Game.Control.MouseKeyboard;
-using Client.Game.UI.UIState.UIObject;
-using MainGame.UnityView.Control;
+﻿using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.UIState.UIObject;
+using Client.Input;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class DeleteBlockState : IUIState
     {

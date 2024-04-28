@@ -1,20 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Client.Game.Context;
-using Client.Game.Control.MouseKeyboard;
-using Client.Game.UI.Inventory.Main;
-using Client.Game.UI.Inventory.Sub;
-using Core.Item;
+using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.Sub;
+using Client.Input;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Context;
-using MainGame.UnityView.Chunk;
-using MainGame.UnityView.Control;
 using UnityEngine;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class BlockInventoryState : IUIState
     {

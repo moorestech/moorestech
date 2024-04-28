@@ -2,7 +2,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace MainMenu
+namespace Client.MainMenu
 {
     public class LanguageSetting : MonoBehaviour
     {

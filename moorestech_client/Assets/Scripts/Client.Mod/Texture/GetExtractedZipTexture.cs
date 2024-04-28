@@ -2,7 +2,7 @@
 using System.IO;
 using UnityEngine;
 
-namespace MainGame.ModLoader.Texture
+namespace Client.Mod.Texture
 {
     //TODO 成功か失敗かと理由を返すようにする　ログ出力は使う側が行う
     public static class GetExtractedZipTexture

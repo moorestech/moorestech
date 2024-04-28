@@ -1,10 +1,10 @@
 using Client.Common;
-using Client.Game.Block;
-using MainGame.UnityView.Control;
+using Client.Game.InGame.Block;
+using Client.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Client.Game.Control.MouseKeyboard
+namespace Client.Game.InGame.Control
 {
     public static class BlockClickDetect
     {

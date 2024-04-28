@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Item;
 using Core.Item.Interface;
 using Game.Block.Interface;
 using Server.Event.EventReceive;
@@ -11,11 +10,6 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
-        public Vector2 PlayerPos { get; }
-        public List<ChunkResponse> Chunks { get; }
-        public List<MapObjectsInfoMessagePack> MapObjects { get; }
-        public PlayerInventoryResponse Inventory { get; }
-
         public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory)
         {
             PlayerPos = response.PlayerPos;
@@ -23,17 +17,21 @@ namespace Client.Network.API
             MapObjects = mapObjects;
             Inventory = inventory;
         }
+        public Vector2 PlayerPos { get; }
+        public List<ChunkResponse> Chunks { get; }
+        public List<MapObjectsInfoMessagePack> MapObjects { get; }
+        public PlayerInventoryResponse Inventory { get; }
     }
 
     public class PlayerInventoryResponse
     {
-        public List<IItemStack> MainInventory { get; }
-        public IItemStack GrabItem { get; }
         public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem)
         {
             MainInventory = mainInventory;
             GrabItem = grabItem;
         }
+        public List<IItemStack> MainInventory { get; }
+        public IItemStack GrabItem { get; }
     }
 
     public class ChunkResponse

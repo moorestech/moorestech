@@ -2,14 +2,14 @@
 using System.Net;
 using System.Net.Sockets;
 using Client.Common;
+using Client.MainMenu.PopUp;
 using Client.Starter;
-using MainMenu.PopUp;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace MainMenu
+namespace Client.MainMenu
 {
     public class ConnectServer : MonoBehaviour
     {

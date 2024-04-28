@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Client.Game.Entity
+namespace Client.Game.InGame.Entity
 {
     public interface IEntityObject
     {

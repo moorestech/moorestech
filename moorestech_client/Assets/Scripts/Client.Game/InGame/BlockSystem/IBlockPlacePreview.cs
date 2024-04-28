@@ -2,7 +2,7 @@
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
-namespace Client.Game.BlockSystem
+namespace Client.Game.InGame.BlockSystem
 {
     public interface IBlockPlacePreview
     {

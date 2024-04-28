@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
-namespace Client.Story.StoryTrack
+namespace Client.Skit.SkitTrack
 {
     public interface IStoryTrack
     {

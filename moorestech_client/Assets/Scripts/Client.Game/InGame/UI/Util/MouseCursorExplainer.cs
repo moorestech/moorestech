@@ -2,7 +2,7 @@ using Client.Localization;
 using TMPro;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Util
+namespace Client.Game.InGame.UI.Util
 {
     public interface IMouseCursorExplainer
     {

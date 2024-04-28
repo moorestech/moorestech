@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.Extension
+namespace Client.Game.InGame.Electric
 {
     public class EnergizedRangeObject : MonoBehaviour
     {

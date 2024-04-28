@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Skit.Define
 {
     [CreateAssetMenu(fileName = "VoiceDefine", menuName = "moorestech/VoiceDefine", order = 0)]
     public class VoiceDefine : ScriptableObject
@@ -22,22 +22,22 @@ namespace Client.Story
     [Serializable]
     public class CharacterVoices
     {
-        public string CharacterKey => characterKey;
         [SerializeField] private string characterKey;
-
-        public List<VoiceInfo> VoiceInfos => voiceInfos;
         [SerializeField] private List<VoiceInfo> voiceInfos;
 
         [SerializeField] private string credit;
+        public string CharacterKey => characterKey;
+
+        public List<VoiceInfo> VoiceInfos => voiceInfos;
     }
 
     [Serializable]
     public class VoiceInfo
     {
+        [SerializeField] [Multiline] private string sentence;
+        [SerializeField] private AudioClip voiceClip;
         public string Sentence => sentence;
-        [SerializeField, Multiline] private string sentence;
 
         public AudioClip VoiceClip => voiceClip;
-        [SerializeField] private AudioClip voiceClip;
     }
 }

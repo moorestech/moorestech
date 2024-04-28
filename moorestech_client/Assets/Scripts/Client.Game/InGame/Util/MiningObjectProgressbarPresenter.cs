@@ -1,10 +1,10 @@
 using System;
 using System.Threading;
-using Client.Game.UI.Inventory.HotBar;
+using Client.Game.InGame.UI.Inventory.HotBar;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace MainGame.UnityView.Util
+namespace Client.Game.InGame.Util
 {
     /// <summary>
     ///     何かを採掘する処理を簡単にして一つにまとめる

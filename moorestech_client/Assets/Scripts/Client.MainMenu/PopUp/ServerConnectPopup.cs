@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainMenu.PopUp
+namespace Client.MainMenu.PopUp
 {
     public class ServerConnectPopup : MonoBehaviour
     {

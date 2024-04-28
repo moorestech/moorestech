@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using ClassLibrary;
 using Client.Common;
-using Client.Game.Context;
-using Client.Game.UI.Inventory.Element;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Element;
+using Client.Input;
 using Core.Const;
-using Core.Item;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.Control;
 using UniRx;
 using UnityEngine;
 using VContainer;
 
-namespace Client.Game.UI.Inventory.Main
+namespace Client.Game.InGame.UI.Inventory.Main
 {
     /// <summary>
     ///     TODO フラグ管理をステートベースに変換する
@@ -29,6 +28,7 @@ namespace Client.Game.UI.Inventory.Main
 
         //現在スプリットドラッグしているスロットのリスト
         private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
+        private readonly List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
         //ドラッグ中のアイテムをドラッグする前のGrabインベントリ
         private IItemStack _grabInventoryBeforeDrag;
         private bool _isItemOneDragging;
@@ -37,7 +37,6 @@ namespace Client.Game.UI.Inventory.Main
         private LocalPlayerInventoryController _playerInventory;
 
         private ISubInventory _subInventory;
-        private readonly List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
 
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
 

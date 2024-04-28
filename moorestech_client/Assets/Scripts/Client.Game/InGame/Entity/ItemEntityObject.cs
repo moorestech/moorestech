@@ -1,8 +1,7 @@
 using Client.Common.Server;
-using Client.Game.Entity;
 using UnityEngine;
 
-namespace MainGame.UnityView.Entity
+namespace Client.Game.InGame.Entity
 {
     public class ItemEntityObject : MonoBehaviour, IEntityObject
     {
@@ -10,9 +9,9 @@ namespace MainGame.UnityView.Entity
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Material itemMaterial;
         private float _linerTime;
+        private Vector3 _previousPosition;
 
         private Vector3 _targetPosition;
-        private Vector3 _previousPosition;
 
         private void Awake()
         {
@@ -24,7 +23,7 @@ namespace MainGame.UnityView.Entity
         private void Update()
         {
             //補完する
-            var rate = _linerTime / (Interval);
+            var rate = _linerTime / Interval;
             rate = Mathf.Clamp01(rate);
             transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
             _linerTime += Time.deltaTime;

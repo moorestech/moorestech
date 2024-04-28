@@ -1,16 +1,16 @@
-using Client.Game.Story;
-using Client.Game.UI.Inventory;
-using Client.Story;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.Skit;
+using Client.Game.Skit.Starter;
+using Client.Input;
 using Cysharp.Threading.Tasks;
-using MainGame.UnityView.Control;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class StoryState : IUIState
     {
+        private readonly HotBarView _hotBarView;
         private readonly PlayerSkitStarterDetector _playerSkitStarterDetector;
         private readonly SkitManager _skitManager;
-        private readonly HotBarView _hotBarView;
 
         private UIStateEnum _currentNext;
 
@@ -26,6 +26,15 @@ namespace Client.Game.UI.UIState
             PlayStory().Forget();
         }
 
+        public UIStateEnum GetNext()
+        {
+            return _currentNext;
+        }
+
+        public void OnExit()
+        {
+        }
+
         private async UniTask PlayStory()
         {
             _hotBarView.SetActive(false);
@@ -38,15 +47,6 @@ namespace Client.Game.UI.UIState
             _hotBarView.SetActive(true);
             InputManager.MouseCursorVisible(false);
             _currentNext = UIStateEnum.GameScreen;
-        }
-
-        public UIStateEnum GetNext()
-        {
-            return _currentNext;
-        }
-
-        public void OnExit()
-        {
         }
     }
 }

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.Block;
-using Client.Game.BlockSystem;
-using Client.Game.Context;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
 
-namespace MainGame.UnityView.Chunk
+namespace Client.Game.InGame.Chunk
 {
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {

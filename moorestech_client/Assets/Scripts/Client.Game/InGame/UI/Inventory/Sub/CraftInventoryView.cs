@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Client.Game.Context;
-using Client.Game.UI.Inventory.Element;
-using Client.Game.UI.Inventory.Main;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Main;
 using Core.Const;
 using Game.Context;
 using Game.Crafting.Interface;
@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Client.Game.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.Sub
 {
     public class CraftInventoryView : MonoBehaviour
     {

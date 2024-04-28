@@ -2,19 +2,18 @@ using System.Collections.Generic;
 using Client.Common;
 using UnityEngine;
 
-namespace Client.Game.Block
+namespace Client.Game.InGame.Block
 {
     public class RendererMaterialReplacer
     {
+        /// <summary>
+        ///     ゲームオブジェクトのパスに、このリストに含まれる文字列が含まれている場合、マテリアルを置き換えない
+        ///     Do not replace materials if the game object's path contains any of the strings in this list.
+        /// </summary>
+        private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/" };
         private readonly List<Material> _originalMaterials;
         private readonly Renderer _renderer;
         private readonly List<Material> _replacedMaterials = new();
-        
-        /// <summary>
-        /// ゲームオブジェクトのパスに、このリストに含まれる文字列が含まれている場合、マテリアルを置き換えない
-        /// Do not replace materials if the game object's path contains any of the strings in this list.
-        /// </summary>
-        private readonly List<string> _ignoreGameObjectPathKeyWords = new (){ "/VFX/" };
 
         public RendererMaterialReplacer(Renderer renderer)
         {
@@ -24,8 +23,8 @@ namespace Client.Game.Block
                 if (!path.Contains(keyWord)) continue;
                 return;
             }
-            
-            
+
+
             _renderer = renderer;
             _originalMaterials = new List<Material>();
             foreach (var material in renderer.sharedMaterials)
@@ -40,7 +39,7 @@ namespace Client.Game.Block
             {
                 return;
             }
-            
+
             foreach (var material in _renderer.sharedMaterials)
             {
                 var mainTexture = material.mainTexture;
@@ -74,7 +73,7 @@ namespace Client.Game.Block
             {
                 return;
             }
-            
+
             //作ったプレビュー用のマテリアルを削除
             foreach (var material in _replacedMaterials)
             {

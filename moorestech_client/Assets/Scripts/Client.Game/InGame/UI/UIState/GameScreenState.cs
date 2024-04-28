@@ -1,15 +1,15 @@
-﻿using Client.Game.BlockSystem;
-using Client.Game.Control.MouseKeyboard;
-using Client.Game.Story;
-using MainGame.UnityView.Control;
+﻿using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.Control;
+using Client.Game.Skit.Starter;
+using Client.Input;
 using UnityEngine;
 
-namespace Client.Game.UI.UIState
+namespace Client.Game.InGame.UI.UIState
 {
     public class GameScreenState : IUIState
     {
-        private readonly PlayerSkitStarterDetector _playerSkitStarterDetector;
         private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly PlayerSkitStarterDetector _playerSkitStarterDetector;
 
         public GameScreenState(PlayerSkitStarterDetector playerSkitStarterDetector, IBlockPlacePreview blockPlacePreview)
         {
@@ -23,7 +23,7 @@ namespace Client.Game.UI.UIState
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
             if (IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
-            if (_playerSkitStarterDetector.IsStartReady && Input.GetKeyDown(KeyCode.F)) return UIStateEnum.Story; //TODO インプットマネージャー整理
+            if (_playerSkitStarterDetector.IsStartReady && UnityEngine.Input.GetKeyDown(KeyCode.F)) return UIStateEnum.Story; //TODO インプットマネージャー整理
 
             return UIStateEnum.Current;
         }

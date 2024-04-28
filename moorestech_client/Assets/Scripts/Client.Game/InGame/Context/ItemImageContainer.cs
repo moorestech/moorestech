@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using Client.Mod.Texture;
 using Core.Item.Config;
-using MainGame.ModLoader.Texture;
 using UnityEngine;
 
-namespace MainGame.UnityView.Item
+namespace Client.Game.InGame.Context
 {
     /// <summary>
     ///     アイテム画像を管理するクラス

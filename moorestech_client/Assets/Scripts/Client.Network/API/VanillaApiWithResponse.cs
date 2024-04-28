@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Client.Network.Settings;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using MainGame.Network.Settings;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util.MessagePack;

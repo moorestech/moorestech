@@ -1,10 +1,10 @@
 using UnityEngine;
 
-namespace Client.Game.Story
+namespace Client.Game.Skit.Starter
 {
     public class SkitStarterObject : MonoBehaviour
     {
-        public TextAsset ScenarioCsv => scenarioCsv;
         [SerializeField] private TextAsset scenarioCsv;
+        public TextAsset ScenarioCsv => scenarioCsv;
     }
 }

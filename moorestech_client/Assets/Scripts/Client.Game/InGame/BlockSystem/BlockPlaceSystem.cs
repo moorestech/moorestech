@@ -1,21 +1,21 @@
 using ClassLibrary;
 using Client.Common;
-using Client.Game.Block;
-using Client.Game.Context;
-using Client.Game.UI.Inventory;
-using Client.Game.UI.Inventory.Main;
-using Client.Game.UI.UIState;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.SoundEffect;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.Chunk;
-using MainGame.UnityView.Control;
-using MainGame.UnityView.SoundEffect;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer.Unity;
 
-namespace Client.Game.BlockSystem
+namespace Client.Game.InGame.BlockSystem
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
@@ -23,14 +23,14 @@ namespace Client.Game.BlockSystem
     public class BlockPlaceSystem : IPostTickable
     {
         private readonly IBlockPlacePreview _blockPlacePreview;
-
-        private BlockDirection _currentBlockDirection = BlockDirection.North;
-
-        private int _heightOffset = 0;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly UIStateControl _uiStateControl;
+
+        private BlockDirection _currentBlockDirection = BlockDirection.North;
+
+        private int _heightOffset;
 
         public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
         {
@@ -50,11 +50,11 @@ namespace Client.Game.BlockSystem
 
         private void UpdateHeightOffset()
         {
-            if (Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
             {
                 _heightOffset--;
             }
-            else if (Input.GetKeyDown(KeyCode.E))
+            else if (UnityEngine.Input.GetKeyDown(KeyCode.E))
             {
                 _heightOffset++;
             }
@@ -87,7 +87,7 @@ namespace Client.Game.BlockSystem
             }
 
             //TODo シフトはインプットマネージャーに入れる
-            if (Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+            if (UnityEngine.Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
             {
                 _currentBlockDirection = _currentBlockDirection switch
                 {
@@ -137,7 +137,6 @@ namespace Client.Game.BlockSystem
             {
                 MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-                return;
             }
 
             #region Internal
@@ -165,7 +164,7 @@ namespace Client.Game.BlockSystem
                 point.y = Mathf.FloorToInt(hitPoint.y);
 
                 point += new Vector3Int(0, _heightOffset, 0);
-                point -= new Vector3Int(convertedSize.x,0,convertedSize.z) / 2;
+                point -= new Vector3Int(convertedSize.x, 0, convertedSize.z) / 2;
 
                 return point;
             }

@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
+using Client.Skit.SkitTrack;
 using DG.Tweening;
 using UnityEngine;
 
-namespace Client.Story
+namespace Client.Skit
 {
     public class SkitCharacter : MonoBehaviour
     {
@@ -36,7 +36,7 @@ namespace Client.Story
 
         public void SetEmotion(EmotionType emotion, float duration)
         {
-            var blendShapeData = ToBlendShapeData(emotion);
+            Dictionary<int, float> blendShapeData = ToBlendShapeData(emotion);
 
             // Tween BlendShape
             foreach (var (key, value) in blendShapeData)
