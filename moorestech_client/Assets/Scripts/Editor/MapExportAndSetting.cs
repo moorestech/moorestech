@@ -7,90 +7,88 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
-namespace Editor
+
+public class MapExportAndSetting : EditorWindow
 {
-    public class MapExportAndSetting : EditorWindow
+    private void OnGUI()
     {
-        private void OnGUI()
+        if (!GUILayout.Button("Export and Setting Map"))
         {
-            if (!GUILayout.Button("Export and Setting Map"))
-            {
-                return;
-            }
+            return;
+        }
 
-            var mapObjectConfig = new MapInfoJson
-            {
-                MapObjects = SetUpMapObjectInfos(),
-                MapVeins = GetMapVeinInfo(),
-            };
+        var mapObjectConfig = new MapInfoJson
+        {
+            MapObjects = SetUpMapObjectInfos(),
+            MapVeins = GetMapVeinInfo(),
+        };
 
-            // jsonに変換
-            var json = JsonConvert.SerializeObject(mapObjectConfig, Formatting.Indented);
+        // jsonに変換
+        var json = JsonConvert.SerializeObject(mapObjectConfig, Formatting.Indented);
 
-            //ダイアログを出して保存
-            var path = EditorUtility.SaveFilePanel("Save map object config", "../../Server/map/", "map", "json");
-            if (path.Length != 0) File.WriteAllText(path, json);
+        //ダイアログを出して保存
+        var path = EditorUtility.SaveFilePanel("Save map object config", "../../Server/map/", "map", "json");
+        if (path.Length != 0) File.WriteAllText(path, json);
 
 
         #region Internal
 
-            List<MapObjectInfoJson> SetUpMapObjectInfos()
+        List<MapObjectInfoJson> SetUpMapObjectInfos()
+        {
+            var datastore = FindObjectOfType<MapObjectGameObjectDatastore>();
+            datastore.FindMapObjects();
+
+            var instanceId = 0;
+            var result = new List<MapObjectInfoJson>();
+
+            foreach (var mapObject in datastore.MapObjects)
             {
-                var datastore = FindObjectOfType<MapObjectGameObjectDatastore>();
-                datastore.FindMapObjects();
+                mapObject.SetMapObjectData(instanceId);
+                instanceId++;
 
-                var instanceId = 0;
-                var result = new List<MapObjectInfoJson>();
-
-                foreach (var mapObject in datastore.MapObjects)
+                var config = new MapObjectInfoJson
                 {
-                    mapObject.SetMapObjectData(instanceId);
-                    instanceId++;
-
-                    var config = new MapObjectInfoJson
-                    {
-                        Type = mapObject.MapObjectType,
-                        InstanceId = mapObject.InstanceId,
-                        X = mapObject.GetPosition().x,
-                        Y = mapObject.GetPosition().y,
-                        Z = mapObject.GetPosition().z,
-                    };
-                    result.Add(config);
-                }
-
-                return result;
+                    Type = mapObject.MapObjectType,
+                    InstanceId = mapObject.InstanceId,
+                    X = mapObject.GetPosition().x,
+                    Y = mapObject.GetPosition().y,
+                    Z = mapObject.GetPosition().z,
+                };
+                result.Add(config);
             }
 
-            List<MapVeinInfoJson> GetMapVeinInfo()
+            return result;
+        }
+
+        List<MapVeinInfoJson> GetMapVeinInfo()
+        {
+            MapVeinGameObject[] veins = FindObjectsOfType<MapVeinGameObject>();
+            var result = new List<MapVeinInfoJson>();
+
+            foreach (var vein in veins)
             {
-                MapVeinGameObject[] veins = FindObjectsOfType<MapVeinGameObject>();
-                var result = new List<MapVeinInfoJson>();
-
-                foreach (var vein in veins)
+                var config = new MapVeinInfoJson
                 {
-                    var config = new MapVeinInfoJson
-                    {
-                        ItemModId = vein.VeinItemModId,
-                        ItemId = vein.VeinItemId,
-                        XMin = vein.VeinRangeMinPos.x,
-                        YMin = vein.VeinRangeMinPos.y,
-                        XMax = vein.VeinRangeMaxPos.x,
-                        YMax = vein.VeinRangeMaxPos.y,
-                    };
-                    result.Add(config);
-                }
-
-                return result;
+                    ItemModId = vein.VeinItemModId,
+                    ItemId = vein.VeinItemId,
+                    XMin = vein.VeinRangeMinPos.x,
+                    YMin = vein.VeinRangeMinPos.y,
+                    XMax = vein.VeinRangeMaxPos.x,
+                    YMax = vein.VeinRangeMaxPos.y,
+                };
+                result.Add(config);
             }
+
+            return result;
+        }
 
         #endregion
-        }
-        [MenuItem("moorestech/MapExportAndSetting")]
-        private static void ShowWindow()
-        {
-            var window = GetWindow<MapExportAndSetting>();
-            window.titleContent = new GUIContent("MapExportAndSetting");
-            window.Show();
-        }
+    }
+    [MenuItem("moorestech/MapExportAndSetting")]
+    private static void ShowWindow()
+    {
+        var window = GetWindow<MapExportAndSetting>();
+        window.titleContent = new GUIContent("MapExportAndSetting");
+        window.Show();
     }
 }
