@@ -22,18 +22,41 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
+            var itemFactory = ServerContext.ItemStackFactory;
 
-            //マップオブジェクトを取得するプロトコルを送信
             var mapObject = worldMapObjectDataStore.MapObjects[0];
-            var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, mapObject.CurrentHp);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList());
-
-
-            //実際マップオブジェクトが取得されているかのテスト
-            var earnItem = mapObject.EarnItems[0];
+            
             var playerInventory = playerInventoryDataStore.GetInventoryData(PlayerId).MainOpenableInventory;
             var itemSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            
+            
+            // 少ないダメージでアイテムが入手できないことのテスト
+            var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, 5);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList());
+            
+            Assert.AreEqual(itemFactory.CreatEmpty(),playerInventory.GetItem(itemSlot));
+            
+            
+            // アイテムがもらえるだけのダメージを与えてアイテムを入手できることのテスト
+            messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, 5);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList());
+
+            var earnItem = mapObject.EarnItems[0];
             Assert.AreEqual(earnItem,playerInventory.GetItem(itemSlot));
+            playerInventory.SetItem(itemSlot, itemFactory.CreatEmpty()); // アイテムをリセット
+
+            
+            //大きくダメージを与えて2倍のアイテムを入手できることのテスト
+            messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, 20);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList());
+            
+            Assert.AreEqual(earnItem.Id,playerInventory.GetItem(itemSlot).Id);
+            Assert.AreEqual(earnItem.Count * 2,playerInventory.GetItem(itemSlot).Count);
+            
+            //破壊されていることのテスト
+            Assert.IsTrue(mapObject.IsDestroyed);
+            
+            
         }
     }
 }

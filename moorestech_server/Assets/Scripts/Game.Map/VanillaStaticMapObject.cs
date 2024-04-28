@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Game.Context;
 using Game.Map.Interface;
@@ -18,7 +19,10 @@ namespace Game.Map
         public bool IsDestroyed { get; private set; }
         public Vector3 Position { get; }
         public int CurrentHp { get; private set; }
+
         public List<IItemStack> EarnItems { get; }
+
+        private readonly List<int> _earnItemHps;
 
         public event Action OnDestroy;
 
@@ -30,10 +34,11 @@ namespace Game.Map
             Position = position;
             CurrentHp = currentHp;
 
-
-            var random = new Random(instanceId);
             var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(type);
 
+            _earnItemHps = mapObjectConfig.EarnItemHps;
+
+            var random = new Random(instanceId);
             EarnItems = new List<IItemStack>();
             foreach (var earnItemConfig in mapObjectConfig.EarnItems)
             {
@@ -44,17 +49,31 @@ namespace Game.Map
             }
         }
 
-
-        public bool Attack(int damage)
+        public List<IItemStack> Attack(int damage)
         {
+            var lastHp = CurrentHp;
             CurrentHp -= damage;
             if (CurrentHp <= 0)
             {
                 Destroy();
-                return true;
             }
 
-            return false;
+            var earnedCount = _earnItemHps.Count(hp => lastHp > hp && CurrentHp <= hp);
+            if (earnedCount == 0)
+            {
+                return new List<IItemStack>();
+            }
+
+            var earnedItems = new List<IItemStack>();
+            foreach (var item in EarnItems)
+            {
+                var id = item.Id;
+                var count = item.Count * earnedCount;
+
+                earnedItems.Add(ServerContext.ItemStackFactory.Create(id, count));
+            }
+
+            return earnedItems;
         }
 
         public void Destroy()

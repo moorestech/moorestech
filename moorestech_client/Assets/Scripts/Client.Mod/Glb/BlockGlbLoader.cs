@@ -42,13 +42,13 @@ namespace MainGame.ModLoader.Glb
             {
                 var name = config.Name;
                 var type = config.Type;
-                
+
                 //glbからモデルのロード
                 var gameObject = await GlbLoader.Load(mod.ExtractedPath, BlockDirectory + config.Name + ".glb");
                 if (gameObject == null)
                 {
                     //TODO Prefabコンテナのことも考慮する（モデルのパスを指定するようにする
-                    Debug.LogError("GlbFile Not Found  ModId:" + mod.ModMetaJson.ModId + " BlockName:" + config.Name);
+                    Debug.LogWarning("GlbFile Not Found  ModId:" + mod.ModMetaJson.ModId + " BlockName:" + config.Name);
                     continue;
                 }
 

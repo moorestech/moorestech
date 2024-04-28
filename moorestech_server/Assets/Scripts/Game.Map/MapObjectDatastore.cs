@@ -10,6 +10,8 @@ namespace Game.Map
 {
     public class MapObjectDatastore : IMapObjectDatastore
     {
+        public event Action<IMapObject> OnDestroyMapObject;
+
         private readonly IMapObjectFactory _mapObjectFactory;
 
         /// <summary>
@@ -33,8 +35,6 @@ namespace Game.Map
                 mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }
         }
-
-        public event Action<IMapObject> OnDestroyMapObject;
 
         public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
 

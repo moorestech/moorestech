@@ -7,6 +7,7 @@ using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -35,12 +36,12 @@ namespace Server.Protocol.PacketResponse
             var mapObject = _mapObjectDatastore.Get(data.InstanceId);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
 
-            foreach (var earnItem in mapObject.EarnItems)
+            var earnedItem = mapObject.Attack(data.AttackDamage); // ダメージを与える
+
+            foreach (var earnItem in earnedItem)
             {
                 playerMainInventory.InsertItem(earnItem);
             }
-
-            mapObject.Attack(data.AttackDamage); // ダメージを与える
 
             return null;
         }

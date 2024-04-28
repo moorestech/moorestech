@@ -61,9 +61,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void GetMapObject(int mapObjectInstanceId)
+        public void AttackMapObject(int mapObjectInstanceId,int attackDamage)
         {
-            var request = new GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId);
+            var request = new GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId, attackDamage);
             _packetSender.Send(request);
         }
 

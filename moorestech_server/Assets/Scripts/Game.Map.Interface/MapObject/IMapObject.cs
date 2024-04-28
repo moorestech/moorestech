@@ -10,6 +10,8 @@ namespace Game.Map.Interface
     /// </summary>
     public interface IMapObject
     {
+        public event Action OnDestroy;
+
         /// <summary>
         ///     マップオブジェクト自体の固有ID
         ///     オブジェクトごとに異なる
@@ -41,18 +43,15 @@ namespace Game.Map.Interface
         /// </summary>
         public List<IItemStack> EarnItems { get; }
 
-
         /// <summary>
-        /// HPを減らして、HPが0以下になったらtrueを返す
+        /// HPを減らして、入手できるアイテムを返す
         /// 0以下になったらDestroyをする
         /// </summary>
-        public bool Attack(int damage);
+        public List<IItemStack> Attack(int damage);
 
         /// <summary>
         /// オブジェクトを破壊する
         /// </summary>
         public void Destroy();
-
-        public event Action OnDestroy;
     }
 }
