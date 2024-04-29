@@ -1,5 +1,4 @@
 ﻿//Credit https://kan-kikuchi.hatenablog.com/entry/DirectoryProcessor
-
 using System.IO;
 
 /// <summary>

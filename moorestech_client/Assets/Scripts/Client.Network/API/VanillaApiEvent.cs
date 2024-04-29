@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
-using MainGame.Network.Settings;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using UnityEngine;

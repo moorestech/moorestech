@@ -5227,6 +5227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
+  powerGeneratorFuelItemParent: {fileID: 9045899306962993239}
   chestItemParent: {fileID: 1350583716129079841}
   chestSlotsParent: {fileID: 1051153132719793239}
   minerItemParent: {fileID: 5007840687213973404}
@@ -5236,7 +5237,6 @@ MonoBehaviour:
   machineInputItemParent: {fileID: 8272910220911628785}
   machineOutputItemParent: {fileID: 8361660780846271158}
   machineBlockNameText: {fileID: 2473410571551793877}
-  powerGeneratorFuelItemParent: {fileID: 9045899306962993239}
 --- !u!1 &6256779807334643581
 GameObject:
   m_ObjectHideFlags: 0
@@ -12720,7 +12720,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4567897031300107488, guid: 9525eda8e634954499da896e6c682cbd, type: 3}
       propertyPath: m_Name
-      value: StoryUI
+      value: SkitUI
       objectReference: {fileID: 0}
     - target: {fileID: 5647830948214825343, guid: 9525eda8e634954499da896e6c682cbd, type: 3}
       propertyPath: m_Pivot.x

@@ -11,7 +11,7 @@ namespace Client.Common
 
         public static string GetFullPath(this Transform t)
         {
-            string path = t.name;
+            var path = t.name;
             var parent = t.parent;
             while (parent)
             {

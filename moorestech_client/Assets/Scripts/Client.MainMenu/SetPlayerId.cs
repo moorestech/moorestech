@@ -1,7 +1,7 @@
 ﻿using Client.Common;
 using UnityEngine;
 
-namespace MainMenu
+namespace Client.MainMenu
 {
     /// <summary>
     ///     プレイヤーIDがセットされてないときに、プレイヤーIDセットする

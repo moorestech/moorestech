@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
-using MainGame.Network;
-using MainGame.Network.Settings;
+using Client.Network.Settings;
 using UniRx;
 using VContainer.Unity;
 

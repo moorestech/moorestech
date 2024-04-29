@@ -6,7 +6,7 @@ using UnityEngine.InputSystem.Utilities;
 #if UNITY_EDITOR
 #endif
 
-namespace InputSystem
+namespace Client.Input
 {
 #if UNITY_EDITOR
     [InitializeOnLoad]

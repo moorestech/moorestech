@@ -6,7 +6,7 @@ using Game.Context;
 using Mod.Loader;
 using UnityEngine;
 
-namespace MainGame.ModLoader.Texture
+namespace Client.Mod.Texture
 {
     public static class ItemTextureLoader
     {
@@ -18,7 +18,7 @@ namespace MainGame.ModLoader.Texture
 
             var mods = new ModsResource(modDirectory);
 
-            foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
+            foreach (KeyValuePair<string, global::Mod.Loader.Mod> mod in mods.Mods)
             {
                 List<int> itemIds = ServerContext.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
                 var itemConfigs = itemIds.Select(ServerContext.ItemConfig.GetItemConfig).ToList();
@@ -30,7 +30,7 @@ namespace MainGame.ModLoader.Texture
         }
 
 
-        private static List<ItemViewData> GetTextures(List<IItemConfigData> itemConfigs, Mod.Loader.Mod mod)
+        private static List<ItemViewData> GetTextures(List<IItemConfigData> itemConfigs, global::Mod.Loader.Mod mod)
         {
             var textureList = new List<ItemViewData>();
             foreach (var config in itemConfigs)

@@ -4,7 +4,7 @@ using UniGLTF;
 using UnityEngine;
 using VRMShaders;
 
-namespace MainGame.ModLoader.Glb
+namespace Client.Mod.Glb
 {
     public class GlbLoader
     {

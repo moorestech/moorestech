@@ -7,7 +7,6 @@
     "Core.Block",
     "Core.ConfigJson",
     "Core.Const",
-    "Core.EnergySystem",
     "Core.Inventory",
     "Core.Item",
     "Core.Update",
@@ -40,7 +39,6 @@
     "Client.Input",
     "Client.Localization",
     "Client.Network",
-    "Client.Story",
     "Cinemachine",
     "UniRx",
     "UniTask",
@@ -50,7 +48,9 @@
     "MessagePack",
     "Game.Map.Interface",
     "Game.Context",
-    "Core.Item.Interface"
+    "Core.Item.Interface",
+    "Client.Skit",
+    "Client.CutScene"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

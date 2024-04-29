@@ -1,25 +1,23 @@
 using System.Diagnostics;
 using Client.Common;
-using Client.Game.BlockSystem;
-using Client.Game.BlockSystem.StateChange;
-using Client.Game.Entity;
-using Client.Game.Map.MapObject;
-using Client.Game.Story;
-using Client.Game.UI.Inventory;
-using Client.Game.UI.Inventory.Main;
-using Client.Game.UI.Inventory.Sub;
-using Client.Game.UI.UIState;
-using Client.Game.UI.UIState.UIObject;
+using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.StateChange;
+using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Electric;
+using Client.Game.InGame.Entity;
+using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.Presenter.Command;
+using Client.Game.InGame.Presenter.PauseMenu;
+using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.Sub;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.UIObject;
+using Client.Game.Skit;
+using Client.Game.Skit.Starter;
 using Client.Network.API;
-using Client.Story;
-using MainGame.Control.UI.PauseMenu;
-using MainGame.Extension;
-using MainGame.Presenter.Block;
-using MainGame.Presenter.Command;
-using MainGame.Presenter.PauseMenu;
-using MainGame.Presenter.Player;
-using MainGame.UnityView.Chunk;
-using MainGame.UnityView.Player;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -59,9 +57,9 @@ namespace Client.Starter
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
-        
-        [SerializeField] private PlayerStoryStarter playerStoryStarter;
-        [SerializeField] private StoryManager storyManager;
+
+        [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
+        [SerializeField] private SkitManager skitManager;
 
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
 
@@ -109,7 +107,7 @@ namespace Client.Starter
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
-            builder.Register<StoryState>(Lifetime.Singleton);
+            builder.Register<SkitState>(Lifetime.Singleton);
 
 
             //Hierarchy上にあるcomponent
@@ -133,9 +131,9 @@ namespace Client.Starter
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
-            
-            builder.RegisterComponent(playerStoryStarter);
-            builder.RegisterComponent(storyManager);
+
+            builder.RegisterComponent(playerSkitStarterDetector);
+            builder.RegisterComponent(skitManager);
 
 
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController);

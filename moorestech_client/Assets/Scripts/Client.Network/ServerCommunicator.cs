@@ -4,14 +4,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Client.Network.API;
+using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
-using MainGame.Network.Send.SocketUtil;
 using MessagePack;
 using Server.Util;
 using UniRx;
 using UnityEngine;
 
-namespace MainGame.Network
+namespace Client.Network
 {
     /// <summary>
     ///     C#の<see cref="Socket" />クラスを用いて実際にサーバーと通信するクラス

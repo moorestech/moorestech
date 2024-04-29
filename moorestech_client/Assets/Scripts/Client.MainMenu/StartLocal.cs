@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
-namespace MainMenu
+namespace Client.MainMenu
 {
     public class StartLocal : MonoBehaviour
     {
