@@ -110,7 +110,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 491.5435, y: 50}
+  m_SizeDelta: {x: 964.86, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &467951394685692431
 CanvasRenderer:
@@ -140,7 +140,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u3053\u3053\u306B\u30AA\u30FC\u30D7\u30CB\u30F3\u30B0\u306E\u30AB\u30C3\u30C8\u30B7\u30FC\u30F3\u3092\u5165\u308C\u308B"
+  m_text: "\uFF5E\u3053\u3053\u306B\u30AA\u30FC\u30D7\u30CB\u30F3\u30B0\u306E\u30AB\u30C3\u30C8\u30B7\u30FC\u30F3\u3092\u5165\u308C\u308B\uFF5E\n\n\u3042\u308B\u661F\u306E\u59EB\u3060\u3063\u305F\u4E3B\u4EBA\u516C\u306F\u3001\u308F\u3051\u3082\u308F\u304B\u3089\u305A\u7121\u4EBA\u306E\u3053\u306E\u661F\u306B\u9023\u308C\u3055\u308C\u308C\u3066\u304D\u3066\u3057\u307E\u3063\u305F...."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 75338526785cbac4e8f0f85c9c635e75, type: 2}
   m_sharedMaterial: {fileID: 5734235435605505953, guid: 75338526785cbac4e8f0f85c9c635e75, type: 2}
@@ -227,7 +227,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &5578023238812323210
 RectTransform:
   m_ObjectHideFlags: 0
@@ -497,7 +497,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playableDirector: {fileID: 4316314732125813925}
-  timelineAsset: {fileID: 11400000, guid: 233bc6e7d7905df43829b4ee7a45a832, type: 2}
 --- !u!320 &4316314732125813925
 PlayableDirector:
   m_ObjectHideFlags: 0
