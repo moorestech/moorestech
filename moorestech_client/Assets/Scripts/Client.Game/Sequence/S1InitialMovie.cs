@@ -1,6 +1,7 @@
 using System;
 using Client.CutScene;
 using Client.Game.Common;
+using Client.Game.InGame.BackgroundSkit;
 using Client.Game.Skit;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -16,7 +17,11 @@ namespace Client.Game.Sequence
         [SerializeField] private TextAsset initialSkit;
 
         [SerializeField] private PlayableAsset initialMovie;
+
         [SerializeField] private SkitManager skitManager;
+
+        [SerializeField] private TextAsset backgroundSkit;
+        [SerializeField] private BackgroundSkitManager backgroundSkitManager;
 
         public const string S1InitialMoviePlayerPrefsKey = "S1InitialMoviePlayed"; //TODo そのうち保存先をワールドに変更する
 
@@ -46,6 +51,8 @@ namespace Client.Game.Sequence
             await skitManager.StartSkit(initialSkit);
 
             GameStateController.ChangeState(GameStateType.InGame);
+
+            await backgroundSkitManager.StartBackgroundSkit(backgroundSkit);
         }
     }
 }
