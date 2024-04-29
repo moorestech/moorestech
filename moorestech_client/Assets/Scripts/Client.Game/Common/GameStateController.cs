@@ -10,8 +10,6 @@ namespace Client.Game.Common
 {
     public class GameStateController : MonoBehaviour
     {
-        public static GameStateController Instance { get; private set; }
-
         [SerializeField] private SkitCamera skitCamera;
         [SerializeField] private InGameCameraController inGameCameraController;
 
@@ -19,9 +17,11 @@ namespace Client.Game.Common
 
         [SerializeField] private HotBarView hotBarView;
 
+        private static GameStateController _instance;
+
         private void Awake()
         {
-            Instance = this;
+            _instance = this;
         }
 
         public void Start()
@@ -29,18 +29,18 @@ namespace Client.Game.Common
             ChangeState(GameStateType.InGame);
         }
 
-        public void ChangeState(GameStateType gameStateType)
+        public static void ChangeState(GameStateType gameStateType)
         {
             switch (gameStateType)
             {
                 case GameStateType.InGame:
-                    SetInGameState();
+                    _instance.SetInGameState();
                     break;
                 case GameStateType.Skit:
-                    SetSkitState();
+                    _instance.SetSkitState();
                     break;
                 case GameStateType.CutScene:
-                    SetCutSceneState();
+                    _instance.SetCutSceneState();
                     break;
             }
         }
@@ -54,7 +54,7 @@ namespace Client.Game.Common
 
             hotBarView.SetActive(true);
 
-            InputManager.MouseCursorVisible(true);
+            InputManager.MouseCursorVisible(false);
         }
 
         private void SetSkitState()
@@ -66,11 +66,19 @@ namespace Client.Game.Common
 
             hotBarView.SetActive(false);
 
-            InputManager.MouseCursorVisible(false);
+            InputManager.MouseCursorVisible(true);
         }
 
         private void SetCutSceneState()
         {
+            skitCamera.SetActive(false);
+            inGameCameraController.SetActive(false);
+
+            playerObjectController.SetActive(false);
+
+            hotBarView.SetActive(false);
+
+            InputManager.MouseCursorVisible(false);
         }
     }
 

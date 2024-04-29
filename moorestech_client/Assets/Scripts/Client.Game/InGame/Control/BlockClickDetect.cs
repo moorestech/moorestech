@@ -43,7 +43,10 @@ namespace Client.Game.InGame.Control
         {
             blockObject = null;
 
-            var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
+            var camera = Camera.main;
+            if (camera == null) return false;
+
+            var ray = camera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
 
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
             var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();

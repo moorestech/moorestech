@@ -19,8 +19,12 @@ namespace Client.Game.Skit
         [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
 
-        public async UniTask StartStory(TextAsset storyCsv)
+        public bool IsPlayingSkit { get; private set; }
+
+        public async UniTask StartSkit(TextAsset storyCsv)
         {
+            IsPlayingSkit = true;
+
             //前処理 Pre process
             var storyContext = PreProcess();
             var lines = storyCsv.text.Split('\n');
@@ -62,6 +66,7 @@ namespace Client.Game.Skit
             //後処理 Post process
             skitUI.gameObject.SetActive(false);
             storyContext.DestroyCharacter();
+            IsPlayingSkit = false;
 
             #region Internal
 

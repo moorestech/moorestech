@@ -107,7 +107,7 @@ namespace Client.Starter
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
-            builder.Register<StoryState>(Lifetime.Singleton);
+            builder.Register<SkitState>(Lifetime.Singleton);
 
 
             //Hierarchy上にあるcomponent

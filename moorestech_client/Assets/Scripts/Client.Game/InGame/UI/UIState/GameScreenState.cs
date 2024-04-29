@@ -1,6 +1,6 @@
 ﻿using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Control;
-using Client.Game.Skit.Starter;
+using Client.Game.Skit;
 using Client.Input;
 using UnityEngine;
 
@@ -9,12 +9,12 @@ namespace Client.Game.InGame.UI.UIState
     public class GameScreenState : IUIState
     {
         private readonly IBlockPlacePreview _blockPlacePreview;
-        private readonly PlayerSkitStarterDetector _playerSkitStarterDetector;
+        private readonly SkitManager _skitManager;
 
-        public GameScreenState(PlayerSkitStarterDetector playerSkitStarterDetector, IBlockPlacePreview blockPlacePreview)
+        public GameScreenState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager)
         {
-            _playerSkitStarterDetector = playerSkitStarterDetector;
             _blockPlacePreview = blockPlacePreview;
+            _skitManager = skitManager;
         }
 
         public UIStateEnum GetNext()
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.UI.UIState
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
             if (IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
-            if (_playerSkitStarterDetector.IsStartReady && UnityEngine.Input.GetKeyDown(KeyCode.F)) return UIStateEnum.Story; //TODO インプットマネージャー整理
+            if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
 
             return UIStateEnum.Current;
         }
@@ -33,9 +33,7 @@ namespace Client.Game.InGame.UI.UIState
             InputManager.MouseCursorVisible(false);
         }
 
-        public void OnExit()
-        {
-        }
+        public void OnExit() { }
 
         private bool IsClickOpenableBlock()
         {

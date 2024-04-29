@@ -6,9 +6,16 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class UIStateControl : MonoBehaviour
     {
+        public UIStateEnum CurrentState { get; private set; } = UIStateEnum.GameScreen;
+
+        public event Action<UIStateEnum> OnStateChanged;
         private UIStateDictionary _uiStateDictionary;
 
-        public UIStateEnum CurrentState { get; private set; } = UIStateEnum.GameScreen;
+        [Inject]
+        public void Construct(UIStateDictionary uiStateDictionary)
+        {
+            _uiStateDictionary = uiStateDictionary;
+        }
 
         private void Start()
         {
@@ -30,14 +37,6 @@ namespace Client.Game.InGame.UI.UIState
             _uiStateDictionary.GetState(CurrentState).OnEnter(lastState);
 
             OnStateChanged?.Invoke(CurrentState);
-        }
-
-        public event Action<UIStateEnum> OnStateChanged;
-
-        [Inject]
-        public void Construct(UIStateDictionary uiStateDictionary)
-        {
-            _uiStateDictionary = uiStateDictionary;
         }
     }
 }

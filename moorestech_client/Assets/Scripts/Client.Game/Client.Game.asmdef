@@ -49,7 +49,8 @@
     "Game.Map.Interface",
     "Game.Context",
     "Core.Item.Interface",
-    "Client.Skit"
+    "Client.Skit",
+    "Client.CutScene"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
