@@ -1,9 +1,9 @@
 using System.IO;
 using Core.ConfigJson;
-using Core.EnergySystem;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Block.Component;
 using Game.Block.Config;
 using Game.Block.Event;
@@ -24,6 +24,7 @@ using Game.Map.Config;
 using Game.Map.Interface;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Json;
+using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;

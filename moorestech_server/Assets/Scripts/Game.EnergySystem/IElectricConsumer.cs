@@ -1,6 +1,6 @@
 ﻿using Game.Block.Interface.Component;
 
-namespace Core.EnergySystem
+namespace Game.EnergySystem
 {
     /// <summary>
     ///     エネルギーを消費するモノ

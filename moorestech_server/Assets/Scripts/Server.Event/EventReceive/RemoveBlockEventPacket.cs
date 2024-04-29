@@ -1,6 +1,7 @@
 using System;
 using Game.Context;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using MessagePack;
 using Server.Util.MessagePack;
 using UniRx;

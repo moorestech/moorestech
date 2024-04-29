@@ -2,6 +2,7 @@
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Interface;
+using Core.Item.Interface.Config;
 
 namespace Core.Item
 {

@@ -1,4 +1,3 @@
-using Core.EnergySystem;
 using Game.EnergySystem;
 
 namespace Tests.Module

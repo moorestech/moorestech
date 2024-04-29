@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Map.Interface.MapObject;
 using Newtonsoft.Json;
 using UnityEngine;
 

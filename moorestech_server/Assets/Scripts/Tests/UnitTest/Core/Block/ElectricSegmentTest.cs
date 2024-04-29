@@ -1,4 +1,3 @@
-using Core.EnergySystem;
 using Core.Update;
 using Game.EnergySystem;
 using NUnit.Framework;

@@ -1,4 +1,3 @@
-using Core.EnergySystem;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Context;

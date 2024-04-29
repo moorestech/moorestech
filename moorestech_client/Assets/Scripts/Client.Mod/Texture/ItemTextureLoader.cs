@@ -2,6 +2,7 @@
 using System.Linq;
 using Client.Common;
 using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Context;
 using Mod.Loader;
 using UnityEngine;

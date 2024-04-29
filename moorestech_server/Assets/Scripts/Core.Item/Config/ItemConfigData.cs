@@ -1,6 +1,7 @@
 using System;
 using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
+using Core.Item.Interface.Config;
 
 namespace Core.Item.Config
 {

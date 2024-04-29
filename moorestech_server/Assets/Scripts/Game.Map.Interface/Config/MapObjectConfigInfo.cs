@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item.Config;
+using Core.Item.Interface.Config;
 
 namespace Game.Map.Interface.Config
 {

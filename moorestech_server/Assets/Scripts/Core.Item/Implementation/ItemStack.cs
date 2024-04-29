@@ -3,6 +3,7 @@ using System;
 using Core.Const;
 using Core.Item.Config;
 using Core.Item.Interface;
+using Core.Item.Interface.Config;
 using Core.Item.Util;
 using Game.Context;
 

@@ -1,6 +1,5 @@
 using Core.ConfigJson;
 using Core.Item.Interface;
-using Core.Item.Config;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 using Game.Context;

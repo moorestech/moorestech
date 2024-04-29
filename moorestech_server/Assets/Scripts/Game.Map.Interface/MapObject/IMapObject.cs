@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using UnityEngine;
 
-namespace Game.Map.Interface
+namespace Game.Map.Interface.MapObject
 {
     /// <summary>
     ///     小石や木など、マップ上にもとから配置されている静的なオブジェクトです。

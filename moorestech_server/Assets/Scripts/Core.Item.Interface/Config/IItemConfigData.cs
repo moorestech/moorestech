@@ -1,4 +1,4 @@
-namespace Core.Item.Config
+namespace Core.Item.Interface.Config
 {
     public interface IItemConfigData
     {

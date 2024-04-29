@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Context;
 using UnityDebugSheet.Runtime.Core.Scripts;
 

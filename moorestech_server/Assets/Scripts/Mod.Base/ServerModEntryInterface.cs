@@ -1,5 +1,4 @@
 using Core.Item.Interface;
-using Core.Item.Config;
 using Game.Block.Factory;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;

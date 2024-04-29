@@ -1,7 +1,7 @@
 ﻿using System;
-using Core.Item.Config;
 using Game.Context;
 using Game.Map.Interface;
+using Game.Map.Interface.MapObject;
 using UnityEngine;
 using Random = System.Random;
 

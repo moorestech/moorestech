@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Game.Map.Interface
+namespace Game.Map.Interface.MapObject
 {
     public interface IMapObjectFactory
     {

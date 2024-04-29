@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Core.EnergySystem;
 using Core.Update;
 using UniRx;
 

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Context;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.Vein;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Core.Item.Config
+namespace Core.Item.Interface.Config
 {
     public interface IItemConfig
     {

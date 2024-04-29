@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.ConfigJson;
 using Core.Const;
-using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Block.Config.LoadConfig;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;

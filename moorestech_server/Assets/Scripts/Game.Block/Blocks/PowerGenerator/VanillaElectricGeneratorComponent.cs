@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Const;
-using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;

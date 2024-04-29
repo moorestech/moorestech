@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
 using Core.Const;
-using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
 using Newtonsoft.Json.Linq;
 using UnityEngine;

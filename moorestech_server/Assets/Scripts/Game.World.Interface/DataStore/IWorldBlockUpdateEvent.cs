@@ -1,8 +1,7 @@
 using System;
-using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace Game.World.Interface
+namespace Game.World.Interface.DataStore
 {
     public interface IWorldBlockUpdateEvent
     {

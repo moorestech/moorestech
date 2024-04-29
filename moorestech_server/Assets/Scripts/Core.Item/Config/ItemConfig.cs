@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
 using Core.Const;
+using Core.Item.Interface.Config;
 using UnityEngine;
 
 namespace Core.Item.Config

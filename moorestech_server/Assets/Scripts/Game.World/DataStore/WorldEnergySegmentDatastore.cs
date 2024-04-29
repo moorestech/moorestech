@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.EnergySystem;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 

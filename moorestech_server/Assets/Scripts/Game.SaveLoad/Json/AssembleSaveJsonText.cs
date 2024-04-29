@@ -1,6 +1,7 @@
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface;
+using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.World.Interface.DataStore;

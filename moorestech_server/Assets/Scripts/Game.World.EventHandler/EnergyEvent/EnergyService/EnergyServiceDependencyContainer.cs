@@ -1,5 +1,4 @@
-﻿using Core.EnergySystem;
-using Game.Block.Interface.BlockConfig;
+﻿using Game.Block.Interface.BlockConfig;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 

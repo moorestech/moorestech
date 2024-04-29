@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Context;

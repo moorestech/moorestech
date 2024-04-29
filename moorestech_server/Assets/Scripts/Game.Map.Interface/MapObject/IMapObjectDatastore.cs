@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Game.Map.Interface.Json;
 
-namespace Game.Map.Interface
+namespace Game.Map.Interface.MapObject
 {
     public interface IMapObjectDatastore
     {

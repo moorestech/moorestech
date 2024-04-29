@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
@@ -16,6 +15,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.EnergySystem;
 using Newtonsoft.Json;
 using UniRx;
 

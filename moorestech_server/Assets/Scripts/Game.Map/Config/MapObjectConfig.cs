@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
-using Core.Item.Config;
+using Core.Item.Interface.Config;
 using Game.Map.Interface.Config;
 using Newtonsoft.Json;
 

@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Context;
 using Game.Map.Interface;
 using Game.Map.Interface.Json;
+using Game.Map.Interface.MapObject;
 using Game.SaveLoad.Json;
 
 namespace Game.Map
