@@ -7330,7 +7330,7 @@ GameObject:
   - component: {fileID: 1839125652762378870}
   - component: {fileID: 7703004122553551720}
   m_Layer: 8
-  m_Name: TestAvater
+  m_Name: "SkitCharacter-\u4E3B\u4EBA\u516C"
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
