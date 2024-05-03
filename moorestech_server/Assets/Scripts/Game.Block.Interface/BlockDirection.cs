@@ -148,5 +148,13 @@ namespace Game.Block.Interface
 
             return pos + addPos;
         }
+
+        public static Vector3Int RotationPosition(this BlockDirection blockDirection, Vector3Int originPos, Vector3Int targetPos)
+        {
+            var originBaseTargetPos = targetPos - originPos;
+            var convertAction = blockDirection.GetCoordinateConvertAction();
+            
+            return convertAction(originBaseTargetPos) + originPos;
+        }
     }
 }

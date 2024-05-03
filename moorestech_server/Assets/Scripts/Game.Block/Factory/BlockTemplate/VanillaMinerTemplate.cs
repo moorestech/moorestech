@@ -63,11 +63,7 @@ namespace Game.Block.Factory.BlockTemplate
 
         BlockConnectorComponent<IBlockInventory> GetComponent(BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IBlockInventory>(
-                new IOConnectionSetting(
-                    new ConnectDirection[] { },
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor }), blockPositionInfo);
+            return new BlockConnectorComponent<IBlockInventory>(blockPositionInfo);
         }
     }
 }

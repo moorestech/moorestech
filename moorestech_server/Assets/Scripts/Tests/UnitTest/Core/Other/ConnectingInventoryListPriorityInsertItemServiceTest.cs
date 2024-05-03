@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Core.Other
 
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var connectionSetting = new IOConnectionSetting(Array.Empty<ConnectDirection>(), Array.Empty<ConnectDirection>(), Array.Empty<string>());
-            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(connectionSetting, componentPos);
+            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(componentPos);
 
             ((List<IBlockInventory>)inputConnectorComponent.ConnectTargets).AddRange(inventoryList);
 

@@ -7,12 +7,10 @@ namespace Game.Block.Component.IOConnector
     public class IOConnectionSetting
     {
         public readonly string[] ConnectableBlockType;
-        public readonly ConnectDirection[] InputConnector;
         public readonly ConnectDirection[] OutputConnector;
 
         public IOConnectionSetting(ConnectDirection[] inputConnector, ConnectDirection[] outputConnector, string[] connectableBlockType)
         {
-            InputConnector = inputConnector;
             OutputConnector = outputConnector;
             ConnectableBlockType = connectableBlockType;
         }

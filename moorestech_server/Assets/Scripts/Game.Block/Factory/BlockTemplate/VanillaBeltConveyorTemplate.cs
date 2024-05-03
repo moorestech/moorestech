@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
@@ -58,55 +57,17 @@ namespace Game.Block.Factory.BlockTemplate
             if (config.Name == SlopeUpBeltConveyor)
             {
                 Debug.Log("SlopeUpBeltConveyor");
-                return new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(
-                    // 南のみ接続を受け、アイテムをインプットする
-                    new ConnectDirection[] { new(-1, 0, 0), new(-1, 0, -1) },
-                    //上の北向きに出力する
-                    new ConnectDirection[] { new(1, 0, 1) },
-                    new[]
-                    {
-                        VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
-                        VanillaBlockType.Miner, VanillaBlockType.BeltConveyor,
-                    }), blockPositionInfo);
+                return new BlockConnectorComponent<IBlockInventory>(blockPositionInfo);
             }
             if (config.Name == SlopeDownBeltConveyor)
             {
                 Debug.Log("SlopeDownBeltConveyor");
-                return new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(
-                    // 上南のみ接続を受け、アイテムをインプットする
-                    new ConnectDirection[] { new(-1, 0, 1) },
-                    //北向き、もしくはひとつ下のダウンベルコンに出力する
-                    new ConnectDirection[] { new(1, 0, 0), new(1, 0, -1) },
-                    new[]
-                    {
-                        VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
-                        VanillaBlockType.Miner, VanillaBlockType.BeltConveyor,
-                    }), blockPositionInfo);
+                return new BlockConnectorComponent<IBlockInventory>(blockPositionInfo);
             }
 
             //TODo UP bletからの入力を受付
 
-            return new BlockConnectorComponent<IBlockInventory>(new IOConnectionSetting(
-                // 南、西、東をからの接続を受け、アイテムをインプットする
-                new ConnectDirection[]
-                {
-                    new(-1, 0, 0), // 後ろ側
-                    new(-1, 0, -1), // 後ろ上からの入力（下り坂）
-                    new(-1, 0, 1), // 後ろ下からの入力（上り坂）
-                    new(0, 1, 0), new(0, -1, 0)
-                },
-                //北向きに出力する
-                new ConnectDirection[]
-                {
-                    new(1, 0, 0),
-                    new(1, 0, 1),
-                    new(1, 0, -1),
-                },
-                new[]
-                {
-                    VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
-                    VanillaBlockType.Miner, VanillaBlockType.BeltConveyor,
-                }), blockPositionInfo);
+            return new BlockConnectorComponent<IBlockInventory>(blockPositionInfo);
         }
     }
 }
