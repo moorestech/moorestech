@@ -207,5 +207,46 @@ namespace Tests.UnitTest.Game
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);
         }
+
+
+        /// <summary>
+        /// 大きさが1x1x1以上のブロックで複数のコネクターがある場合、正しく接続されるかをテスト
+        /// </summary>
+        [Test]
+        public void MultiBlockConnectTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var world = ServerContext.WorldBlockDatastore;
+            var blockFactory = ServerContext.BlockFactory;
+            
+            //ベルトコンベアを設置
+            
+            //接続するベルトコンベア
+            var belt1PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, 3), BlockDirection.North, Vector3Int.one);
+            var belt1 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt1PosInfo);
+            world.AddBlock(belt1);
+            var belt2PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, -1), BlockDirection.South, Vector3Int.one);
+            var belt2 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt2PosInfo);
+            world.AddBlock(belt2);
+            
+            //接続されないベルトコンベア
+            var belt3PosInfo = new BlockPositionInfo(new Vector3Int(3, 0, 3), BlockDirection.North, Vector3Int.one);
+            var belt3 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt3PosInfo);
+            world.AddBlock(belt3);
+            var belt4PosInfo = new BlockPositionInfo(new Vector3Int(1, 0, -1), BlockDirection.South, Vector3Int.one);
+            var belt4 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt4PosInfo);
+            world.AddBlock(belt4);
+
+            //マルチブロックを設置
+            var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var multiBlock = blockFactory.Create(ForUnitTestModBlockId.MultiBlockGeneratorId, CreateBlockEntityId.Create(), machinePosInfo);
+            world.AddBlock(multiBlock);
+            
+            // マルチブロックのコネクターを取得
+            var connector = (List<IBlockInventory>)multiBlock.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            
+            // ベルトコンベアが正しく接続されているかをチェック
+            Assert.AreEqual(2, connector.Count);
+        }
     }
 }
