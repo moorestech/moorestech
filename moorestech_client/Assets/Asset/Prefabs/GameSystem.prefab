@@ -91,7 +91,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   forcePlay: 0
   timelinePlayer: {fileID: 2631860076997896039}
-  initialSkit: {fileID: 4900000, guid: 3bad25b0c048c4dbf847950e9479f0bc, type: 3}
+  initialSkit: {fileID: 4900000, guid: c6ae7c0160f19c6458b2e0f761acceda, type: 3}
   initialMovie: {fileID: 11400000, guid: 233bc6e7d7905df43829b4ee7a45a832, type: 2}
   skitManager: {fileID: 1951205481002623162}
   backgroundSkit: {fileID: 4900000, guid: d5caf3a22668d6f4f9ee3e4e08b90ac9, type: 3}

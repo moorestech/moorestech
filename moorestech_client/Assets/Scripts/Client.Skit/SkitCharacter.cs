@@ -34,6 +34,11 @@ namespace Client.Skit
             voiceAudioSource.Play();
         }
 
+        public void StopVoice()
+        {
+            voiceAudioSource.Stop();
+        }
+
         public void SetEmotion(EmotionType emotion, float duration)
         {
             Dictionary<int, float> blendShapeData = ToBlendShapeData(emotion);

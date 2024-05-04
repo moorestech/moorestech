@@ -22,7 +22,7 @@ namespace Client.Skit.UI
         {
             storyPanel.SetActive(true);
             characterNameText.text = characterName;
-            storyText.text = text;
+            storyText.text = text.Replace("\\n", "\n");
         }
 
         public void ShowTransition(bool isShow, float duration)

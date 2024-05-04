@@ -9,14 +9,16 @@ namespace Client.Skit.SkitTrack
         public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
             var characterName = parameters[0];
+            var characterDisplayName = parameters[2] == string.Empty ? characterName : parameters[2];
             var text = parameters[1];
 
-            storyContext.SkitUI.SetText(characterName, text);
+            storyContext.SkitUI.SetText(characterDisplayName, text);
 
             var voiceAudioClip = storyContext.VoiceDefine.GetVoiceClip(characterName, text);
+
+            var character = storyContext.GetCharacter(characterName);
             if (voiceAudioClip != null)
             {
-                var character = storyContext.GetCharacter(characterName);
                 character.PlayVoice(voiceAudioClip);
             }
 
@@ -27,6 +29,7 @@ namespace Client.Skit.SkitTrack
                 {
                     // 1フレーム待たないとクリックが即座に次のテキストに反映されてしまう
                     await UniTask.Yield();
+                    character.StopVoice();
                     return null;
                 }
                 await UniTask.Yield();
