@@ -21,7 +21,7 @@ namespace Game.Block.Factory
         {
             var config = _blockConfig.GetBlockConfig(blockId);
             if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].New(config, entityId, config.BlockHash, blockPositionInfo);
+                return _blockTypesDictionary[config.Type].New(config, entityId, blockPositionInfo);
 
             throw new Exception("Block type not found :" + config.Type);
         }
@@ -30,7 +30,7 @@ namespace Game.Block.Factory
         {
             var config = _blockConfig.GetBlockConfig(blockHash);
             if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].Load(config, entityId, config.BlockHash, state, blockPositionInfo);
+                return _blockTypesDictionary[config.Type].Load(state, config, entityId, blockPositionInfo);
 
             throw new Exception("Block type not found :" + config.Type);
         }

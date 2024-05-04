@@ -4,6 +4,7 @@ using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Factory.Extension;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
@@ -12,46 +13,40 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaPowerGeneratorTemplate : IBlockTemplate
     {
-
-        public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = GetComponent(blockPositionInfo);
-            var generatorParam = param.Param as PowerGeneratorConfigParam;
+            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var generatorParam = config.Param as PowerGeneratorConfigParam;
             var properties = new VanillaPowerGeneratorProperties(entityId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent);
-            
+
             var generatorComponent = new VanillaElectricGeneratorComponent(properties);
-            
+
             var components = new List<IBlockComponent>
             {
                 generatorComponent,
                 inputConnectorComponent,
             };
-            
-            return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
+
+            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = GetComponent(blockPositionInfo);
-            var generatorParam = param.Param as PowerGeneratorConfigParam;
+            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var generatorParam = config.Param as PowerGeneratorConfigParam;
             var properties = new VanillaPowerGeneratorProperties(entityId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent);
-            
-            var generatorComponent = new VanillaElectricGeneratorComponent(properties,state);
-            
+
+            var generatorComponent = new VanillaElectricGeneratorComponent(properties, state);
+
             var components = new List<IBlockComponent>
             {
                 generatorComponent,
                 inputConnectorComponent,
             };
-            
-            return new BlockSystem(entityId, param.BlockId, components, blockPositionInfo);
-        }
 
-        private BlockConnectorComponent<IBlockInventory> GetComponent(BlockPositionInfo blockPositionInfo)
-        {
-            return new BlockConnectorComponent<IBlockInventory>(blockPositionInfo);
+            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
     }
 

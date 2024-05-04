@@ -1,22 +1,29 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Block.Interface.BlockConfig
 {
     public class BlockConfigData
     {
-        public readonly long BlockHash;
-
-        public readonly int BlockId;
-        public readonly Vector3Int BlockSize;
-        public readonly int ItemId;
-        public readonly ModelTransform ModelTransform;
         public readonly string ModId;
         public readonly string Name;
-        public readonly IBlockConfigParam Param;
+        public readonly long BlockHash;
+        public readonly int BlockId;
+        
         public readonly string Type;
+        
+        public readonly int ItemId;
+        
+        public readonly IBlockConfigParam Param;
+        
+        public readonly Vector3Int BlockSize;
+        public readonly ModelTransform ModelTransform;
+        
+        public readonly List<ConnectSettings> InputConnectSettings;
+        public readonly List<ConnectSettings> OutputConnectSettings;
 
         public BlockConfigData(string modId, int blockId, string name, long blockHash, string type,
-            IBlockConfigParam param, int itemId, ModelTransform modelTransform, Vector3Int blockSize)
+            IBlockConfigParam param, int itemId, ModelTransform modelTransform, Vector3Int blockSize, List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings)
         {
             BlockId = blockId;
             Name = name;
@@ -27,6 +34,8 @@ namespace Game.Block.Interface.BlockConfig
             BlockSize = blockSize;
             ModId = modId;
             BlockHash = blockHash;
+            InputConnectSettings = inputConnectSettings;
+            OutputConnectSettings = outputConnectSettings;
         }
     }
 
@@ -46,5 +55,11 @@ namespace Game.Block.Interface.BlockConfig
         public ModelTransform()
         {
         }
+    }
+
+    public class ConnectSettings
+    {
+        public Vector3Int ConnectorPosOffset; // 原点からみたコネクターの場所のオフセット
+        public List<Vector3Int> ConnectorDirections; // インプットされる方向、もしくはアウトプットする方向
     }
 }

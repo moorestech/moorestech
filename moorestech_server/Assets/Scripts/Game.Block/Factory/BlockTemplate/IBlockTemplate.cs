@@ -5,7 +5,12 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public interface IBlockTemplate
     {
-        public IBlock New(BlockConfigData param, int entityId, long blockHash, BlockPositionInfo blockPositionInfo);
-        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state, BlockPositionInfo blockPositionInfo);
+        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo);
+        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo);
+    }
+
+    public class BlockCreateProperties
+    {
+        
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.ComponentAttribute;
 using Game.Context;
@@ -22,17 +23,19 @@ namespace Game.Block.Component.IOConnector
         private readonly List<IDisposable> _blockUpdateEvents = new();
         private readonly List<TTarget> _connectTargets = new();
 
-        private readonly Dictionary<Vector3Int,ConnectSettings> _outputConnectSettings = new();
-        private readonly Dictionary<Vector3Int,ConnectSettings> _inputConnectSettings = new();
-        
-        public BlockConnectorComponent(List<ConnectSettings> outputConnectSettings, List<ConnectSettings> inputConnectSettings,BlockPositionInfo blockPositionInfo)
+        private readonly Dictionary<Vector3Int,List<Vector3Int>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
+        private readonly Dictionary<Vector3Int,Vector3Int> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
+
+        public BlockConnectorComponent(List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings, BlockPositionInfo blockPositionInfo)
         {
             var blockPos = blockPositionInfo.OriginalPos;
             var blockDirection = blockPositionInfo.BlockDirection;
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
+
+            CreateInputConnectPoss();
+            CreateOutputTargetToOutputConnector();
             
-            var outputPoss = ConvertConnectionPos(_outputConnectSettings,outputConnectSettings);
-            foreach (var outputPos in outputPoss)
+            foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribePlace(outputPos, b => OnPlaceBlock(b.Pos)));
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribeRemove(outputPos, OnRemoveBlock));
@@ -40,38 +43,56 @@ namespace Game.Block.Component.IOConnector
                 //アウトプット先にブロックがあったら接続を試みる
                 if (ServerContext.WorldBlockDatastore.Exists(outputPos))
                 {
+                    Debug.Log("Manual OnPlaceBlock " + outputPos);
                     OnPlaceBlock(outputPos);
                 }
             }
-            
-            ConvertConnectionPos(_inputConnectSettings,inputConnectSettings);
 
             #region Internal
 
-            // 接続先のブロックの接続可能な位置を取得する
-            List<Vector3Int> ConvertConnectionPos(Dictionary<Vector3Int,ConnectSettings> addTarget,List<ConnectSettings> connectSettings)
+            void CreateInputConnectPoss()
             {
-                var result = new List<Vector3Int>();
-                foreach (var connectSetting in connectSettings)
+                if (inputConnectSettings == null)
+                {
+                    return;
+                }
+                foreach (var inputConnectSetting in inputConnectSettings)
                 {
                     var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
                     
-                    var convertedOffset = blockPosConvertAction(connectSetting.ConnectorPosOffset);
-                    if (connectSetting.ConnectDirection.Count == 0)
+                    var inputConnectorPos = blockPos + blockPosConvertAction(inputConnectSetting.ConnectorPosOffset);
+                    var directions = inputConnectSetting.ConnectorDirections;
+                    if (directions == null)
                     {
-                        addTarget.Add(blockPos, connectSetting);
+                        _inputConnectPoss.Add(inputConnectorPos, null);
                         continue;
                     }
+                    
+                    var targetPoss = directions.Select(c => blockPosConvertAction(c) + inputConnectorPos).ToList();
+                    _inputConnectPoss.Add(inputConnectorPos, targetPoss);
+                }
+            }
 
-                    var targetPoss = connectSetting.ConnectDirection.Select(c => blockPosConvertAction(c) + blockPos + convertedOffset).ToList();
-                    result.AddRange(targetPoss);
-                    foreach (var targetPos in targetPoss)
-                    {
-                        addTarget.Add(targetPos, connectSetting);
-                    }
+            void CreateOutputTargetToOutputConnector()
+            {
+                if (outputConnectSettings == null)
+                {
+                    return;
                 }
                 
-                return result;
+                foreach (var connectSetting in outputConnectSettings)
+                {
+                    var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
+                    
+                    var outputConnectorPos = blockPos + blockPosConvertAction(connectSetting.ConnectorPosOffset);
+                    var directions = connectSetting.ConnectorDirections;
+                    var targetPoss = directions.Select(c => blockPosConvertAction(c) + outputConnectorPos).ToList();
+                    
+                    foreach (var targetPos in targetPoss)
+                    {
+                        _outputTargetToOutputConnector.Add(targetPos, outputConnectorPos);
+                    }
+                }
             }
 
             #endregion
@@ -88,33 +109,45 @@ namespace Game.Block.Component.IOConnector
         /// <summary>
         ///     ブロックを接続元から接続先に接続できるなら接続する
         ///     その場所にブロックがあるか、
-        ///     それぞれインプットとアウトプットの向きはあっているかを確認し、接続する
+        ///     それぞれインプットとアウトプットの向きはあっているかを確認し、接続する TODO ここのドキュメントを書く
         /// </summary>
         private void OnPlaceBlock(Vector3Int outputTargetPos)
         {
+            Debug.Log("OnPlaceBlock " + outputTargetPos);
             //接続先にBlockInventoryがなければ処理を終了
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             if (!worldBlockDatastore.TryGetBlock<BlockConnectorComponent<TTarget>>(outputTargetPos, out var targetConnector)) return;
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
             
             // アウトプット先にターゲットのインプットオブジェクトがあるかどうかをチェックする
-            var isConnectable = false;
-            foreach (var targetInputPos in targetConnector._inputConnectSettings)      
+            var isConnect = false;
+            foreach (var targetInput in targetConnector._inputConnectPoss)
             {
-                if (targetInputPos.Key == outputTargetPos)
+                // アウトプット先に、インプットのコネクターがあるかどうかをチェックする
+                if (targetInput.Key != outputTargetPos) continue;
+                
+                // インプットがどこからでも接続できるならそのまま接続
+                if (targetInput.Value == null)
                 {
-                    isConnectable = true;
+                    isConnect = true;
+                    break;
+                }
+                    
+                // インプット先に制限がある場合、その座標にアウトプットのコネクターがあるかをチェックする
+                var outputConnectorPos = _outputTargetToOutputConnector[outputTargetPos];
+                
+                // インプット先にアウトプットのコネクターがある場合は接続できる
+                if (targetInput.Value.Any(inputTargetPosition => inputTargetPosition == outputConnectorPos))
+                {
+                    isConnect = true;
+                    break;
                 }
             }
-            if (!isConnectable)
+            if (!isConnect)
             {
                 return;
             }
-            
-            //TODo インプット方向に制限があったら、その制限の方向に自分のアウトプットコネクターがあるかどうかをチェックする
-            if
-            
-            
+
             //接続元ブロックと接続先ブロックを接続
             if (!_connectTargets.Contains(targetComponent))
             {
@@ -129,11 +162,5 @@ namespace Game.Block.Component.IOConnector
 
             _connectTargets.Remove(component);
         }
-    }
-
-    public class ConnectSettings
-    {
-        public Vector3Int ConnectorPosOffset; // 原点からみたコネクターの場所のオフセット
-        public List<Vector3Int> ConnectDirection; // インプットされる方向、もしくはアウトプットする方向
     }
 }
