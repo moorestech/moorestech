@@ -19,6 +19,9 @@ namespace Game.Block.Interface
         ///     クライアント側で稼働アニメーションや稼働音を実行するときに使用します
         /// </summary>
         public IObservable<ChangedBlockState> BlockStateChange { get; }
+        
         public string GetSaveState();
+
+        public void Destroy();
     }
 }

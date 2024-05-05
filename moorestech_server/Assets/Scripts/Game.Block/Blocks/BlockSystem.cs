@@ -42,6 +42,11 @@ namespace Game.Block.Blocks
         {
             return _blockComponentManager.TryGetComponent<IBlockSaveState>(out var blockSaveState) ? blockSaveState.GetSaveState() : string.Empty;
         }
+        
+        public void Destroy()
+        {
+            _blockComponentManager.Destroy();
+        }
 
         public bool Equals(IBlock other)
         {

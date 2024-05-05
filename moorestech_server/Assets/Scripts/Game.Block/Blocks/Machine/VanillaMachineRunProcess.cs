@@ -11,14 +11,24 @@ namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineRunProcess
     {
+        public readonly Subject<ChangedBlockState> ChangeState = new();
+        
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
         public readonly int RequestPower;
+        
         private int _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeData _processingRecipeData;
-        public Subject<ChangedBlockState> ChangeState = new();
+        
+        public readonly IDisposable UpdateObservable;
+
+        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
+        public double RemainingMillSecond { get; private set; }
+
+        public int RecipeDataId => _processingRecipeData.RecipeId;
+
 
         public VanillaMachineRunProcess(
             VanillaMachineInputInventory vanillaMachineInputInventory,
@@ -30,7 +40,8 @@ namespace Game.Block.Blocks.Machine
             _processingRecipeData = machineRecipeData;
             RequestPower = requestPower;
 
-            GameUpdater.UpdateObservable.Subscribe(_ => Update());
+            //TODO コンポーネント化する
+            UpdateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public VanillaMachineRunProcess(
@@ -47,14 +58,13 @@ namespace Game.Block.Blocks.Machine
             RemainingMillSecond = remainingMillSecond;
             CurrentState = currentState;
 
-            GameUpdater.UpdateObservable.Subscribe(_ => Update());
+            UpdateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-
-        public double RemainingMillSecond { get; private set; }
-
-        public int RecipeDataId => _processingRecipeData.RecipeId;
+        public void SupplyPower(int power)
+        {
+            _currentPower = power;
+        }
 
         private void Update()
         {
@@ -112,11 +122,6 @@ namespace Game.Block.Blocks.Machine
             return CurrentState == ProcessState.Idle &&
                    _vanillaMachineInputInventory.IsAllowedToStartProcess &&
                    _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
-        }
-
-        public void SupplyPower(int power)
-        {
-            _currentPower = power;
         }
     }
 
