@@ -162,7 +162,56 @@
                     "y": 1,
                     "z": 1
                 }
-            }
+            },
+            "inventoryConnectors" : {
+                "inputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      },
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": -1
+                      },
+                      {
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      },
+                      {
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ],
+                "outputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  }
+                ]
+              }
         },
         {
             "name": "gear ore crusher",
@@ -336,7 +385,50 @@
                     "y": 1,
                     "z": 1
                 }
+            },
+            
+      "inventoryConnectors" : {
+        "inputConnects" : [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
             }
+          }
+        ],
+        "outputConnects" : [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "z": 0
+              },
+              {
+                "x": -1,
+                "y": 0,
+                "z": 0
+              }
+            ]
+          }
+        ]
+      }
         },
         {
             "name": "iron furnace with bellows",
@@ -435,7 +527,61 @@
                     "y": 1,
                     "z": 1
                 }
-            }
+            },
+            "inventoryConnectors" : {
+                "inputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      },
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": -1
+                      },
+                      {
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      },
+                      {
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ],
+                "outputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      },
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": 1
+                      }
+                    ]
+                  }
+                ]
+              }
         },
         {
             "name": "gear belt conveyor up",
@@ -467,7 +613,46 @@
                     "y": 1,
                     "z": 1
                 }
-            }
+            },
+            "inventoryConnectors" : {
+                "inputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      },
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": -1
+                      }
+                    ]
+                  }
+                ],
+                "outputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 1,
+                        "z": 1
+                      }
+                    ]
+                  }
+                ]
+              }
         },
         {
             "name": "gear belt conveyor down",
@@ -499,7 +684,46 @@
                     "y": 1,
                     "z": 1
                 }
-            }
+            },
+            "inventoryConnectors" : {
+                "inputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 1,
+                        "z": -1
+                      }
+                    ]
+                  }
+                ],
+                "outputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": 1
+                      },                    
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  }
+                ]
+              }
         },
         {
             "name": "gear belt conveyor hueru",
@@ -531,7 +755,56 @@
                     "y": 1,
                     "z": 1
                 }
-            }
+            },
+            "inventoryConnectors" : {
+                "inputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      },
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": -1
+                      },
+                      {
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      },
+                      {
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ],
+                "outputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  }
+                ]
+              }
         },
         {
             "name": "gear belt conveyor kieru",
@@ -563,7 +836,56 @@
                     "y": 1,
                     "z": 1
                 }
-            }
+            },
+            "inventoryConnectors" : {
+                "inputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      },
+                      {
+                        "x": 0,
+                        "y": -1,
+                        "z": -1
+                      },
+                      {
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      },
+                      {
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ],
+                "outputConnects" : [
+                  {
+                    "offset": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "directions": [
+                      {
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  }
+                ]
+              }
         }
     ]
 }

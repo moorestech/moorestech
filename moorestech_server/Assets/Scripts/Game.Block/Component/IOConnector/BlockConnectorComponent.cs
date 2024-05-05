@@ -43,7 +43,6 @@ namespace Game.Block.Component.IOConnector
                 //アウトプット先にブロックがあったら接続を試みる
                 if (ServerContext.WorldBlockDatastore.Exists(outputPos))
                 {
-                    Debug.Log("Manual OnPlaceBlock " + outputPos);
                     OnPlaceBlock(outputPos);
                 }
             }
@@ -113,7 +112,6 @@ namespace Game.Block.Component.IOConnector
         /// </summary>
         private void OnPlaceBlock(Vector3Int outputTargetPos)
         {
-            Debug.Log("OnPlaceBlock " + outputTargetPos);
             //接続先にBlockInventoryがなければ処理を終了
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             if (!worldBlockDatastore.TryGetBlock<BlockConnectorComponent<TTarget>>(outputTargetPos, out var targetConnector)) return;
