@@ -83,13 +83,16 @@ namespace Game.Block.Config.LoadConfig
                 var modelTransform = GetModelTransform(block);
                 var size = block.size;
                 var blockSize = new Vector3Int((int)size.x, (int)size.y, (int)size.z);
+                
+                var inputConnector = GetConnectSettings(block, true);
+                var outputConnector = GetConnectSettings(block, false);
+                
 
-                blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform, blockSize));
+                blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform, blockSize, inputConnector, outputConnector));
             }
 
             return blockDictionary;
         }
-
 
         private ModelTransform GetModelTransform(dynamic blockDynamic)
         {
@@ -125,6 +128,46 @@ namespace Game.Block.Config.LoadConfig
 
 
             return modelTransform;
+        }
+        
+        private List<ConnectSettings> GetConnectSettings(dynamic blockDynamic,bool isInput)
+        {            var inventorySlots = blockDynamic.inventoryConnectors;
+            if (inventorySlots == null) return null;
+            
+            var connectorsName = isInput ? "inputConnects" : "outputConnects";
+            var connectors = inventorySlots[connectorsName];
+            if (connectors == null) return null;
+            
+            var resultSettings = new List<ConnectSettings>();
+            foreach (var connector in connectors)
+            {
+                var connectSetting = new ConnectSettings();
+                resultSettings.Add(connectSetting);
+                
+                var offset = connector.offset;
+                var offsetX = (int) offset.x;
+                var offsetY = (int) offset.y;
+                var offsetZ = (int) offset.z;
+                
+                connectSetting.ConnectorPosOffset = new Vector3Int(offsetX, offsetY, offsetZ);
+                
+                var directions = connector.directions;
+                if (directions == null) continue;
+
+                var directionResult = new List<Vector3Int>();
+                foreach (var direction in directions)
+                {
+                    var dirX = (int) direction.x;
+                    var dirY = (int) direction.y;
+                    var dirZ = (int) direction.z;
+                    
+                    directionResult.Add(new Vector3Int(dirX, dirY, dirZ));
+                }
+                
+                connectSetting.ConnectorDirections = directionResult;
+            }
+
+            return resultSettings;
         }
     }
 }

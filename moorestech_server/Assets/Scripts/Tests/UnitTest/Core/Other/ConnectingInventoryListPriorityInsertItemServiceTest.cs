@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.Service;
 using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -36,8 +34,7 @@ namespace Tests.UnitTest.Core.Other
             inventoryList.Add(inventory3);
 
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var connectionSetting = new IOConnectionSetting(Array.Empty<ConnectDirection>(), Array.Empty<ConnectDirection>(), Array.Empty<string>());
-            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(connectionSetting, componentPos);
+            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(null, null, componentPos);
 
             ((List<IBlockInventory>)inputConnectorComponent.ConnectTargets).AddRange(inventoryList);
 
