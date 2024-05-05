@@ -58,6 +58,7 @@ namespace Game.World.DataStore
             var data = _blockMasterDictionary[entityId];
             ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data);
 
+            data.Block.Destroy();
             _blockMasterDictionary.Remove(entityId);
             _coordinateDictionary.Remove(pos);
             return true;

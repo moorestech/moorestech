@@ -2,6 +2,11 @@
 {
     public class BeltConveyorInventoryItem
     {
+        /// <summary>
+        ///     ベルトコンベア内のアイテムがあと何秒で出るかを入れるプロパティ
+        /// </summary>
+        public double RemainingTime { get; set; }
+        
         public readonly int ItemId;
         public readonly long ItemInstanceId;
 
@@ -11,10 +16,5 @@
             RemainingTime = remainingTime;
             ItemInstanceId = itemInstanceId;
         }
-
-        /// <summary>
-        ///     ベルトコンベア内のアイテムがあと何秒で出るかを入れるプロパティ
-        /// </summary>
-        public double RemainingTime { get; set; }
     }
 }

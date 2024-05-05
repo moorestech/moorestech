@@ -54,6 +54,10 @@ namespace Game.Block.Interface
         public void Destroy()
         {
             IsDestroy = true;
+            foreach (var blockComponent in _blockComponents)
+            {
+                blockComponent.Destroy();
+            }
         }
 
         public void AddComponent(IBlockComponent blockComponent)
