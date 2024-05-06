@@ -15,8 +15,8 @@
         "outputSlot": 3,
         "requiredPower": 100
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -25,7 +25,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -84,8 +84,8 @@
         "slot": 4,
         "time": 2000
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -116,7 +116,7 @@
             ]
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -178,8 +178,8 @@
           }
         ]
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -188,7 +188,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -242,8 +242,8 @@
           }
         ]
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -252,7 +252,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -298,8 +298,8 @@
       "param": {
         "slot": 5
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -308,7 +308,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -357,8 +357,8 @@
         "fuelSlot": 0,
         "fuel": []
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -367,7 +367,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -416,8 +416,8 @@
         "fuelSlot": 0,
         "fuel": []
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -426,7 +426,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -475,8 +475,8 @@
         "fuelSlot": 0,
         "fuel": []
       },
-      "inventoryConnectors" : {
-        "outputConnects" : [
+      "inventoryConnectors": {
+        "outputConnects": [
           {
             "offset": {
               "x": 2,
@@ -524,8 +524,8 @@
         "fuelSlot": 0,
         "fuel": []
       },
-      "inventoryConnectors" : {
-        "inputConnects" : [
+      "inventoryConnectors": {
+        "inputConnects": [
           {
             "offset": {
               "x": 0,
@@ -534,7 +534,7 @@
             }
           }
         ],
-        "outputConnects" : [
+        "outputConnects": [
           {
             "offset": {
               "x": 0,
@@ -565,6 +565,71 @@
             ]
           }
         ]
+      }
+    },
+    {
+      "name": "SmallTestGear",
+      "type": "Gear",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "SmallTestGear",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+      }
+    },
+    {
+      "name": "BigTestGear",
+      "type": "Gear",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "BigTestGear",
+      "size": {
+        "x": 3,
+        "y": 3,
+        "z": 1
+      },
+      "param": {
+      }
+    },
+    {
+      "name": "TestShaft",
+      "type": "Shaft",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "TestShaft",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+      }
+    },
+    {
+      "name": "TestGearMachine",
+      "type": "GearMachine",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "TestGearMachine",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+      }
+    },
+    {
+      "name": "TestSimpleGearGenerator",
+      "type": "SimpleGearGenerator",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "TestSimpleGearGenerator",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
       }
     }
   ]

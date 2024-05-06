@@ -50,5 +50,25 @@
   {
     "name": "stone",
     "maxStacks": 100
+  },
+  {
+    "name": "SmallTestGear",
+    "maxStacks": 100
+  },
+  {
+    "name": "BigTestGear",
+    "maxStacks": 100
+  },
+  {
+    "name": "TestShaft",
+    "maxStacks": 100
+  },
+  {
+    "name": "TestGearMachine",
+    "maxStacks": 100
+  },
+  {
+    "name": "TestSimpleGearGenerator",
+    "maxStacks": 100
   }
 ]

@@ -40,7 +40,8 @@
     "Tests.Module",
     "MessagePack",
     "MessagePack.Annotations",
-    "Game.Context"
+    "Game.Context",
+    "Game.Gear"
   ],
   "includePlatforms": [
     "Editor"
