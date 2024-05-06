@@ -5,10 +5,17 @@ namespace Game.Gear
 {
     public class GearNetwork
     {
+        public readonly int NetworkId;
+        
         private readonly List<IGearConsumer> _gearConsumers = new();
         private readonly Dictionary<int, IGearGenerator> _gearGeneratorMap = new();
 
         private readonly Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
+        
+        public GearNetwork(int networkId)
+        {
+            NetworkId = networkId;
+        }
 
         public void CalculateSupplyPower()
         {
