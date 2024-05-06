@@ -4,7 +4,7 @@ using Game.Gear.Common;
 
 namespace Game.Gear.Component
 {
-    public class GearComponent : IGearConsumer
+    public class GearConsumer : IGearConsumer
     {
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers => _connectorComponent.ConnectTargets;
         public int EntityId { get; }
@@ -14,7 +14,7 @@ namespace Game.Gear.Component
 
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
 
-        public GearComponent(IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, int entityId, int teethCount, float requiredPower)
+        public GearConsumer(IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, int entityId, int teethCount, float requiredPower)
         {
             _connectorComponent = connectorComponent;
             EntityId = entityId;
