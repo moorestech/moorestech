@@ -5,7 +5,8 @@
     "Core.Item.Interface",
     "Core.Util",
     "Core.Const",
-    "UniRx"
+    "UniRx",
+    "Core.Inventory"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

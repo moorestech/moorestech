@@ -3,7 +3,7 @@ using System.Text;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;

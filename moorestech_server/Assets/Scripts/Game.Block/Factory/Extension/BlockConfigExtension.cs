@@ -1,4 +1,4 @@
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;

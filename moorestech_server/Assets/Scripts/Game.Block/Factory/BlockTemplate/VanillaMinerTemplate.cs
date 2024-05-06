@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Core.Const;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Miner;
-using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Factory.Extension;

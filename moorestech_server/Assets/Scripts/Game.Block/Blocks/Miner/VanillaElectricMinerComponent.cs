@@ -7,7 +7,7 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;

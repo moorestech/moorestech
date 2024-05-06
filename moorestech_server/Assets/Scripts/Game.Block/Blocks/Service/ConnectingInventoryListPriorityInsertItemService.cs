@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface.Component;
 
 namespace Game.Block.Blocks.Service

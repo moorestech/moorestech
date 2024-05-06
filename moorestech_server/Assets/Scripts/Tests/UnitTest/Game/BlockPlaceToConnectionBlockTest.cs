@@ -6,7 +6,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -218,9 +218,9 @@ namespace Tests.UnitTest.Game
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
-            
+
             //ベルトコンベアを設置
-            
+
             //接続するベルトコンベア
             var belt1PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, 3), BlockDirection.North, Vector3Int.one);
             var belt1 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt1PosInfo);
@@ -228,7 +228,7 @@ namespace Tests.UnitTest.Game
             var belt2PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, -1), BlockDirection.South, Vector3Int.one);
             var belt2 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt2PosInfo);
             world.AddBlock(belt2);
-            
+
             //接続されないベルトコンベア
             var belt3PosInfo = new BlockPositionInfo(new Vector3Int(3, 0, 3), BlockDirection.North, Vector3Int.one);
             var belt3 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt3PosInfo);
@@ -241,10 +241,10 @@ namespace Tests.UnitTest.Game
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var multiBlock = blockFactory.Create(ForUnitTestModBlockId.MultiBlockGeneratorId, CreateBlockEntityId.Create(), machinePosInfo);
             world.AddBlock(multiBlock);
-            
+
             // マルチブロックのコネクターを取得
             var connector = (List<IBlockInventory>)multiBlock.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            
+
             // ベルトコンベアが正しく接続されているかをチェック
             Assert.AreEqual(2, connector.Count);
         }

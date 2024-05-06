@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Component;
-using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Factory.Extension;
 using Game.Block.Interface;

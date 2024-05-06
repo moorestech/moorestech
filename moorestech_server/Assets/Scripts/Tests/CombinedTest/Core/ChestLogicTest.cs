@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Core
             var id = random.Next(1, 11);
             var count = 1;
             var item = itemStackFactory.Create(id, count);
-            
+
             var chest = blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var chestComponent = chest.ComponentManager.GetComponent<VanillaChestComponent>();
 
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Core
 
             var chest = blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var chestComponent = chest.ComponentManager.GetComponent<VanillaChestComponent>();
-            
+
             var beltconveyor = blockFactory.Create(3, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltconveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
 

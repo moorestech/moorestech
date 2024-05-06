@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Game.Block.Component;
 using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;

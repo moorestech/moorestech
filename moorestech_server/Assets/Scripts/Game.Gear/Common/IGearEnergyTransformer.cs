@@ -9,6 +9,6 @@ namespace Game.Gear.Common
 
         public int EntityId { get; }
 
-        public IReadOnlyList<IGear> ConnectingTransformers { get; }
+        public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers { get; }
     }
 }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks.Service;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;

@@ -5,7 +5,6 @@ using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;
-using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -43,7 +42,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1, new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
-            
+
             var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
             var miningTime = (int)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
@@ -93,7 +92,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);
         }
-        
+
         (IMapVein mapVein, Vector3Int pos) GetMapVein()
         {
             var pos = new Vector3Int(0, 0);
@@ -109,6 +108,5 @@ namespace Tests.CombinedTest.Core
             }
             return (null, pos);
         }
-
     }
 }
