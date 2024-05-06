@@ -1,6 +1,6 @@
-namespace Game.Gear
+namespace Game.Gear.Common
 {
-    public interface IGearGenerator : IGearComponent
+    public interface IGearGenerator : IGear
     {
         public float GeneratePower => GenerateRpm * GenerateTorque;
         public float GenerateRpm { get; }
