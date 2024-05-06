@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config.LoadConfig.Param
@@ -9,7 +10,26 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int OutputSlot;
         public readonly int RequiredPower;
 
-        public MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
+        public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
+        {
+            int requiredPower = blockParam.requiredPower;
+            int outputSlot = blockParam.outputSlot;
+            var oreSetting = new List<MineItemSetting>();
+            foreach (var ore in blockParam.mineSettings)
+            {
+                int time = ore.time;
+                string itemModId = ore.itemModId;
+                string itemName = ore.itemName;
+
+                var itemId = itemConfig.GetItemId(itemModId, itemName);
+
+                oreSetting.Add(new MineItemSetting(time, itemId));
+            }
+
+            return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);
+        }
+
+        private MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
         {
             RequiredPower = requiredPower;
             MineItemSettings = mineItemSettings;

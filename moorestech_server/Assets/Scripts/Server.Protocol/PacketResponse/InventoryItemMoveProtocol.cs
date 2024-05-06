@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Inventory;
-using Core.Item.Interface;
-using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;

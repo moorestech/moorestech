@@ -4,6 +4,7 @@ using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
 using Core.Const;
 using Core.Item.Interface.Config;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -12,15 +13,31 @@ namespace Game.Block.Config.LoadConfig
 {
     public class BlockConfigJsonLoad
     {
-        private readonly Dictionary<string, IBlockConfigParamGenerator> _generators;
+        public delegate IBlockConfigParam ConfigParamGenerator(dynamic blockParam, IItemConfig itemConfig);
+
+        private readonly Dictionary<string, ConfigParamGenerator> _generators;
         private readonly IItemConfig _itemConfig;
         private readonly string _jsonPath;
-
 
         public BlockConfigJsonLoad(IItemConfig itemConfig)
         {
             _itemConfig = itemConfig;
-            _generators = new VanillaBlockConfigGenerator().Generate(itemConfig);
+
+            _generators = new Dictionary<string, ConfigParamGenerator>
+            {
+                { VanillaBlockType.Machine, MachineBlockConfigParam.Generate },
+                { VanillaBlockType.Block, NullBlockConfigParam.Generate },
+                { VanillaBlockType.BeltConveyor, BeltConveyorConfigParam.Generate },
+                { VanillaBlockType.ElectricPole, ElectricPoleConfigParam.Generate },
+                { VanillaBlockType.Generator, PowerGeneratorConfigParam.Generate },
+                { VanillaBlockType.Miner, MinerBlockConfigParam.Generate },
+                { VanillaBlockType.Chest, ChestConfigParam.Generate },
+
+                { VanillaBlockType.Gear, GearConfigParam.Generate },
+                { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
+                { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
+                { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
+            };
         }
 
         public List<BlockConfigData> LoadFromJsons(Dictionary<string, string> blockJsons, List<string> mods)
@@ -76,17 +93,23 @@ namespace Game.Block.Config.LoadConfig
                     throw new Exception($"存在しないタイプを指定しています。type  {type} block名 {name} modId {modId}");
                 }
 
-                var blockParam = generator.Generate(block.param);
+                var blockParam = generator(block.param, _itemConfig);
 
                 var hash = BitConverter.ToInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
 
                 var modelTransform = GetModelTransform(block);
                 var size = block.size;
                 var blockSize = new Vector3Int((int)size.x, (int)size.y, (int)size.z);
-                
-                var inputConnector = GetConnectSettings(block, true);
-                var outputConnector = GetConnectSettings(block, false);
-                
+
+
+                var inputConnector = new List<ConnectSettings>();
+                var outputConnector = new List<ConnectSettings>();
+                var inventorySlots = block.inventoryConnectors;
+                if (inventorySlots != null)
+                {
+                    inputConnector = GetConnectSettings(block, true);
+                    outputConnector = GetConnectSettings(block, false);
+                }
 
                 blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform, blockSize, inputConnector, outputConnector));
             }
@@ -129,41 +152,39 @@ namespace Game.Block.Config.LoadConfig
 
             return modelTransform;
         }
-        
-        private List<ConnectSettings> GetConnectSettings(dynamic blockDynamic,bool isInput)
-        {            var inventorySlots = blockDynamic.inventoryConnectors;
-            if (inventorySlots == null) return null;
-            
+
+        public static List<ConnectSettings> GetConnectSettings(dynamic connectSettings, bool isInput)
+        {
             var connectorsName = isInput ? "inputConnects" : "outputConnects";
-            var connectors = inventorySlots[connectorsName];
+            var connectors = connectSettings[connectorsName];
             if (connectors == null) return null;
-            
+
             var resultSettings = new List<ConnectSettings>();
             foreach (var connector in connectors)
             {
                 var connectSetting = new ConnectSettings();
                 resultSettings.Add(connectSetting);
-                
+
                 var offset = connector.offset;
-                var offsetX = (int) offset.x;
-                var offsetY = (int) offset.y;
-                var offsetZ = (int) offset.z;
-                
+                var offsetX = (int)offset.x;
+                var offsetY = (int)offset.y;
+                var offsetZ = (int)offset.z;
+
                 connectSetting.ConnectorPosOffset = new Vector3Int(offsetX, offsetY, offsetZ);
-                
+
                 var directions = connector.directions;
                 if (directions == null) continue;
 
                 var directionResult = new List<Vector3Int>();
                 foreach (var direction in directions)
                 {
-                    var dirX = (int) direction.x;
-                    var dirY = (int) direction.y;
-                    var dirZ = (int) direction.z;
-                    
+                    var dirX = (int)direction.x;
+                    var dirY = (int)direction.y;
+                    var dirZ = (int)direction.z;
+
                     directionResult.Add(new Vector3Int(dirX, dirY, dirZ));
                 }
-                
+
                 connectSetting.ConnectorDirections = directionResult;
             }
 
