@@ -1,3 +1,4 @@
 {
-  "name": "Game.Gear"
+  "name": "Game.Gear",
+  "references":[ "GUID:2e65bd1131a2144bca9461c5f24dc755", "GUID:559e05852f4834e6b836e9c5499e87db" ]
 }
