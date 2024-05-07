@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateChange;
 using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Map.MapObject;
@@ -62,6 +63,8 @@ namespace Client.Starter
         [SerializeField] private SkitManager skitManager;
         
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
+        
+        [SerializeField] private InGameCameraController inGameCameraController;
         
         
         
@@ -136,6 +139,7 @@ namespace Client.Starter
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);
             
+            builder.RegisterComponent(inGameCameraController);
             
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
