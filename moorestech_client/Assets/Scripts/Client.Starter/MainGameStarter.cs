@@ -100,7 +100,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<ChunkDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
-            builder.RegisterEntryPoint<BlockPlaceSystem>();
+            builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
             
             
             //UIコントロール

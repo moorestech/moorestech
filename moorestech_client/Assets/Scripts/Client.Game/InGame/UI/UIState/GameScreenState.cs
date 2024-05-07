@@ -9,14 +9,21 @@ namespace Client.Game.InGame.UI.UIState
     public class GameScreenState : IUIState
     {
         private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly BlockPlaceSystem _blockPlaceSystem;
         private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
         
-        public GameScreenState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
+        public GameScreenState(
+            IBlockPlacePreview blockPlacePreview,
+            SkitManager skitManager,
+            InGameCameraController inGameCameraController,
+            BlockPlaceSystem blockPlaceSystem
+        )
         {
             _blockPlacePreview = blockPlacePreview;
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
+            _blockPlaceSystem = blockPlaceSystem;
         }
         
         public UIStateEnum GetNext()
@@ -36,11 +43,13 @@ namespace Client.Game.InGame.UI.UIState
         {
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.updateCameraAngle = true;
+            _blockPlaceSystem.DisplayPreview = true;
         }
         
         public void OnExit()
         {
             _inGameCameraController.updateCameraAngle = false;
+            _blockPlaceSystem.DisplayPreview = false;
         }
         
         private bool IsClickOpenableBlock()
