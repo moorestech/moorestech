@@ -522,6 +522,7 @@ MonoBehaviour:
   playerSkitStarterDetector: {fileID: 7828429637590761482}
   skitManager: {fileID: 1951205481002623162}
   displayEnergizedRange: {fileID: 6801616934556956278}
+  inGameCameraController: {fileID: 4843909587234544541}
 --- !u!1001 &932377419651066343
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -3,12 +3,13 @@
     public enum UIStateEnum
     {
         Current,
-
+        
         GameScreen,
         PlayerInventory,
         BlockInventory,
         PauseMenu,
         DeleteBar,
         Story,
+        PlaceBlock,
     }
 }
