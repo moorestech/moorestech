@@ -9,10 +9,13 @@ namespace Client.Game.InGame.UI.UIState
     public class DeleteBlockState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
+        private readonly InGameCameraController _inGameCameraController; 
+            
         private BlockGameObject _removeTargetBlock;
 
-        public DeleteBlockState(DeleteBarObject deleteBarObject)
+        public DeleteBlockState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
+            _inGameCameraController = inGameCameraController;
             _deleteBarObject = deleteBarObject;
             deleteBarObject.gameObject.SetActive(false);
         }
@@ -47,6 +50,19 @@ namespace Client.Game.InGame.UI.UIState
                 var blockPosition = _removeTargetBlock.BlockPosition;
                 MoorestechContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
             }
+            
+            //TODO InputSystemのリファクタ対象
+            if (UnityEngine.Input.GetMouseButtonDown(1))
+            {
+                InputManager.MouseCursorVisible(false);
+                _inGameCameraController.SetUpdateCameraAngle(true);
+            }
+            //TODO InputSystemのリファクタ対象
+            if (UnityEngine.Input.GetMouseButtonUp(1))
+            {
+                InputManager.MouseCursorVisible(true);
+                _inGameCameraController.SetUpdateCameraAngle(false);
+            }
 
             return UIStateEnum.Current;
         }
@@ -54,6 +70,8 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _deleteBarObject.gameObject.SetActive(true);
+            InputManager.MouseCursorVisible(true);
+            _inGameCameraController.SetUpdateCameraAngle(false);
         }
 
         public void OnExit()
@@ -63,6 +81,7 @@ namespace Client.Game.InGame.UI.UIState
                 _removeTargetBlock.ResetMaterial();
             }
             _deleteBarObject.gameObject.SetActive(false);
+            InputManager.MouseCursorVisible(false);
         }
     }
 }
