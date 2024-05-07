@@ -10,5 +10,7 @@ namespace Game.Gear.Common
         public int EntityId { get; }
 
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers { get; }
+        
+        public void SupplyRotation(float rpm, bool isClockwise);
     }
 }

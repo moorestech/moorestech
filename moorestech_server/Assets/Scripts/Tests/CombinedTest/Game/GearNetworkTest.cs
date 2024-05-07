@@ -19,11 +19,16 @@ namespace Tests.CombinedTest.Game
         public void SimpleGeneratorAndGearRpmTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = ServerContext.BlockFactory;
-            var world = ServerContext.WorldBlockDatastore;
 
-            var simpleGeneratorPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var simpleGenerator = blockFactory.Create(ForUnitTestModBlockId.BlockId, CreateBlockEntityId.Create(), simpleGeneratorPos);
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Vector3Int.zero, BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0,0,1), BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(0,0,2), BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2,0,2), BlockDirection.North);
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks[0];
+
+            gearNetwork.ManualUpdate();
         }
 
         [Test]
@@ -74,6 +79,15 @@ namespace Tests.CombinedTest.Game
         public void GearNetworkMergeTest()
         {
             //TODO 設置したら歯車NWが増える、歯車NWのマージのテスト、削除したら歯車NWが分割されるテスト
+        }
+
+        private static void AddBlock(int blockId,Vector3Int pos,BlockDirection direction)
+        {
+            var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
+            
+            var posInfo = new BlockPositionInfo(pos, direction, config.BlockSize);
+            var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), posInfo);
+            ServerContext.WorldBlockDatastore.AddBlock(block);
         }
     }
 }

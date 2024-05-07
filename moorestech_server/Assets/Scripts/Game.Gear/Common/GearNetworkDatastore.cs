@@ -8,6 +8,7 @@ namespace Game.Gear.Common
 {
     public class GearNetworkDatastore
     {
+        public IReadOnlyList<GearNetwork> GearNetworks => _gearNetworks;
         private readonly List<GearNetwork> _gearNetworks;
         private readonly Dictionary<int, GearNetwork> _blockEntityToGearNetwork;
 
@@ -113,7 +114,7 @@ namespace Game.Gear.Common
         {
             foreach (var gearNetwork in _gearNetworks)
             {
-                gearNetwork.CalculateSupplyPower();
+                gearNetwork.ManualUpdate();
             }
         }
     }

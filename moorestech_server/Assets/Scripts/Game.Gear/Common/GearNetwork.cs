@@ -13,7 +13,8 @@ namespace Game.Gear.Common
         public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         private readonly List<IGearGenerator> _gearGenerators = new();
 
-        private readonly Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
+        private Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
+        private List<IGearEnergyTransformer> _gearEnergyTransformers = new();
 
         public GearNetwork(int networkId)
         {
@@ -33,7 +34,7 @@ namespace Game.Gear.Common
             }
         }
 
-        public void CalculateSupplyPower()
+        public void ManualUpdate()
         {
             //もっとも早いジェネレーターを選定、RPMを取得
             IGearGenerator fastGenerator = null;
@@ -62,8 +63,19 @@ namespace Game.Gear.Common
 
             //そのジェネレータと接続している各歯車コンポーネントを深さ優先度探索でたどり、RPMと回転方向を計算していく
             _checkedGearComponents.Clear();
+            _checkedGearComponents = new();
+            _gearEnergyTransformers.Clear();
+            _gearEnergyTransformers = new();
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.IsClockwise, fastGenerator);
             CalcGearInfo(fastGenerator, generatorGearRotationInfo);
+            
+            //すべてのGearTransformerに回転を設定
+            foreach (var gearEnergyTransformer in _gearEnergyTransformers)
+            {
+                var entityId = gearEnergyTransformer.EntityId;
+                var info = _checkedGearComponents[entityId];
+                gearEnergyTransformer.SupplyRotation(info.Rpm, info.IsClockwise);
+            }
 
             //すべてのジェネレーターから生成GPを取得し、合算する
             var totalGeneratePower = 0f;
@@ -129,6 +141,7 @@ namespace Game.Gear.Common
                 // 計算済みとして登録
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
                 _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
+                _gearEnergyTransformers.Add(transformer);
 
                 // この歯車が接続している歯車を再帰的に計算する
                 foreach (var connectingGear in transformer.ConnectingTransformers)
