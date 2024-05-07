@@ -6,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Game.Block.Interface;
 using Game.Context;
@@ -25,20 +26,19 @@ namespace Client.Game.InGame.BlockSystem
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
+        private readonly UIStateControl _uiState;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         
         private int _heightOffset;
-        public bool DisplayPreview = true;
-        public Vector2 MousePosition;
         
-        public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
+        public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory, UIStateControl uiStateControl)
         {
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
-            MousePosition = new Vector2(Screen.width / 2.0f, Screen.height / 2.0f);
+            _uiState = uiStateControl;
         }
         
         public void PostTick()
@@ -143,8 +143,8 @@ namespace Client.Game.InGame.BlockSystem
             
             bool IsDisplayPreviewBlock()
             {
-                //UIの状態がゲームホットバー選択中か
-                if (!DisplayPreview) return false;
+                //UIの状態が設置ステートか
+                if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return false;
                 
                 //持っているアイテムがブロックじゃなかったら何もしない
                 if (!blockConfig.IsBlock(itemId)) return false;
@@ -176,7 +176,7 @@ namespace Client.Game.InGame.BlockSystem
         private bool TryGetRayHitPosition(out Vector3 pos)
         {
             pos = Vector3Int.zero;
-            var ray = _mainCamera.ScreenPointToRay(MousePosition);
+            var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;

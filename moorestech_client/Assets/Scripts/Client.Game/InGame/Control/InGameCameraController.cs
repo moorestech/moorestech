@@ -1,4 +1,5 @@
 ﻿using Cinemachine;
+using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using UnityEngine;
 
@@ -11,7 +12,8 @@ namespace Client.Game.InGame.Control
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
         [SerializeField] private Vector2 sensitivity = Vector2.one;
         [SerializeField] private float lerpSpeed = 5.0f; // Adjust this to change the lerp speed
-        [SerializeField] public bool updateCameraAngle;
+        
+        private bool _updateCameraAngle;
         
         private CinemachineFramingTransposer _cinemachineFraming;
         private Quaternion _targetRotation; // The rotation to smoothly rotate towards
@@ -27,7 +29,7 @@ namespace Client.Game.InGame.Control
             var distance = _cinemachineFraming.m_CameraDistance + InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
             
-            if (!updateCameraAngle) return;
+            if (!_updateCameraAngle) return;
             
             //マウスのインプットによって向きを変える
             UpdateCameraRotation();
@@ -64,10 +66,16 @@ namespace Client.Game.InGame.Control
             
             #endregion
         }
+        
         public void SetActive(bool enable)
         {
             enabled = enable;
             mainCamera.gameObject.SetActive(enable);
+        }
+        
+        public void SetUpdateCameraAngle(bool enable)
+        {
+            _updateCameraAngle = enable;
         }
     }
 }
