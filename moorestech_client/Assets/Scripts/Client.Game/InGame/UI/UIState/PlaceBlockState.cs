@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
@@ -12,15 +12,18 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            throw new NotImplementedException();
+            Debug.Log("Enter PlaceBlockState");
         }
         public UIStateEnum GetNext()
         {
-            throw new NotImplementedException();
+            //TODO InputSystemのリファクタ対象
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.GameScreen;
+            
+            return UIStateEnum.Current;
         }
         public void OnExit()
         {
-            throw new NotImplementedException();
+            Debug.Log("Exit PlaceBlockState");
         }
     }
 }
