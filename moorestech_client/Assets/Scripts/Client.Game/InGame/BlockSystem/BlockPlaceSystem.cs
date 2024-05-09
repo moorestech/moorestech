@@ -121,19 +121,27 @@ namespace Client.Game.InGame.BlockSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
+            // ブロックを設置するステートかどうか
+            if (!IsPlaceBlockState()) return;
+            
             // ブロック設置用のrayが当たっているか
             if (!TryGetRayHitPosition(out hitPoint)) return;
             
-            // ブロックが置けるか
-            if (!IsPlaceableBlock() || !IsPlaceBlockState())
-            {
-                // プレビューを赤くする処理
-                return;
-            }
+            // 置けるブロックかどうか
+            if (!IsPlaceableBlock()) return;
             
             //設置座標計算 calculate place point
             var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
             var placePoint = CalcPlacePoint();
+            
+            // ブロックが置けるか
+            if (IsAlreadyExistingBlock() || IsTerrainOverlapBlock())
+            {
+                //TODO プレビューを赤くする処理
+                _blockPlacePreview.SetActive(true);
+                _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+                return;
+            }
             
             //プレビュー表示 display preview
             _blockPlacePreview.SetActive(true);
@@ -158,6 +166,18 @@ namespace Client.Game.InGame.BlockSystem
             {
                 //UIの状態が設置ステートか
                 return _uiState.CurrentState == UIStateEnum.PlaceBlock;
+            }
+            
+            bool IsAlreadyExistingBlock()
+            {
+                // ブロックが既に存在しているかどうか
+                return false;
+            }
+            
+            bool IsTerrainOverlapBlock()
+            {
+                // ブロックとterrainが重なっていること
+                return false;
             }
             
             Vector3Int CalcPlacePoint()
