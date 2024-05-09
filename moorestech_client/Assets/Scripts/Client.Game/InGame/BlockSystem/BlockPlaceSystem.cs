@@ -121,8 +121,15 @@ namespace Client.Game.InGame.BlockSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            //ブロックを設置できるか
-            if (!CanPlaceBlock()) return;
+            // ブロック設置用のrayが当たっているか
+            if (!TryGetRayHitPosition(out hitPoint)) return;
+            
+            // ブロックが置けるか
+            if (!IsPlaceableBlock() || !IsPlaceBlockState())
+            {
+                // プレビューを赤くする処理
+                return;
+            }
             
             //設置座標計算 calculate place point
             var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
@@ -141,16 +148,16 @@ namespace Client.Game.InGame.BlockSystem
             
             #region Internal
             
-            bool CanPlaceBlock()
+            bool IsPlaceableBlock()
+            {
+                // 持っているアイテムがブロックかどうか
+                return blockConfig.IsBlock(itemId);
+            }
+            
+            bool IsPlaceBlockState()
             {
                 //UIの状態が設置ステートか
-                if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return false;
-                
-                //持っているアイテムがブロックじゃなかったら何もしない
-                if (!blockConfig.IsBlock(itemId)) return false;
-                
-                //プレビューの座標を取得
-                return TryGetRayHitPosition(out hitPoint);
+                return _uiState.CurrentState == UIStateEnum.PlaceBlock;
             }
             
             Vector3Int CalcPlacePoint()
