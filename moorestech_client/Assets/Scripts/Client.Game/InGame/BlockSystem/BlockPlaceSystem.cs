@@ -121,8 +121,8 @@ namespace Client.Game.InGame.BlockSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            //プレビュー表示判定
-            if (!IsDisplayPreviewBlock()) return;
+            //ブロックを設置できるか
+            if (!CanPlaceBlock()) return;
             
             //設置座標計算 calculate place point
             var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
@@ -141,7 +141,7 @@ namespace Client.Game.InGame.BlockSystem
             
             #region Internal
             
-            bool IsDisplayPreviewBlock()
+            bool CanPlaceBlock()
             {
                 //UIの状態が設置ステートか
                 if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return false;
