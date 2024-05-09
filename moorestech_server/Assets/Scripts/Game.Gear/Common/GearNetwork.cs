@@ -66,7 +66,7 @@ namespace Game.Gear.Common
             _checkedGearComponents = new();
             _gearEnergyTransformers.Clear();
             _gearEnergyTransformers = new();
-            var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.IsClockwise, fastGenerator);
+            var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
             CalcGearInfo(fastGenerator, generatorGearRotationInfo);
             
             //すべてのGearTransformerに回転を設定
@@ -133,7 +133,7 @@ namespace Game.Gear.Common
                 }
 
                 // もしこれがジェネレーターである場合、回転方向が合っているかを確認し、合っていない場合はロックフラグを立てる
-                if (transformer is IGearGenerator generator && generator.IsClockwise != isClockwise)
+                if (transformer is IGearGenerator generator && generator.GenerateIsClockwise != isClockwise)
                 {
                     return true;
                 }

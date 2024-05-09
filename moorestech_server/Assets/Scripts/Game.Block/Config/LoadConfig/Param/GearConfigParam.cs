@@ -7,17 +7,17 @@ namespace Game.Block.Config.LoadConfig.Param
     public class GearConfigParam : IBlockConfigParam
     {
         public readonly int TeethCount;
-        public readonly float LossPower;
+        public readonly float RequiredPower;
 
         public List<ConnectSettings> InputConnectSettings;
         public List<ConnectSettings> OutputConnectSettings;
 
-        private GearConfigParam(int teethCount, float lossPower, List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings)
+        private GearConfigParam(int teethCount, float requiredPower, List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings)
         {
             TeethCount = teethCount;
             InputConnectSettings = inputConnectSettings;
             OutputConnectSettings = outputConnectSettings;
-            LossPower = lossPower;
+            RequiredPower = requiredPower;
         }
 
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
