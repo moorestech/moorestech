@@ -46,7 +46,8 @@ namespace Client.Game.InGame.Control
             var camera = Camera.main;
             if (camera == null) return false;
 
-            var ray = camera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
+            //TODO InputSystemのリファクタ対象
+            var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
 
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
             var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();

@@ -386,6 +386,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "BlockPlace",
+                    "type": "Button",
+                    "id": "d4120381-5129-4f9c-978b-e08cb83b2209",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "AllCraft",
                     "type": "Button",
                     "id": "8c3efc46-7724-4341-a7e8-9402cddefebf",
@@ -651,6 +660,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "ItemDirectMove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "11e79b02-c0f8-4a03-b1eb-fbee55d3f172",
+                    "path": "<Keyboard>/b",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "BlockPlace",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
