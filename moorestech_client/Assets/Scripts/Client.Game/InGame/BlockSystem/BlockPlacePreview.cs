@@ -17,7 +17,7 @@ namespace Client.Game.InGame.BlockSystem
             gameObject.SetActive(active);
         }
         
-        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig, Material material)
+        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockConfig.BlockId);
             var rot = blockDirection.GetRotation();
@@ -31,12 +31,16 @@ namespace Client.Game.InGame.BlockSystem
                 _previewBlock = MoorestechContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
                 _previewBlock.transform.SetParent(transform);
                 _previewBlock.transform.localPosition = Vector3.zero;
-                //プレビューブロックのマテリアルを変更
-                _previewBlock.SetMaterial(material);
             }
             
             transform.position = pos;
             _previewBlock.transform.rotation = rot;
+        }
+        
+        public void SetMaterial(Material material)
+        {
+            //プレビューブロックのマテリアルを変更
+            _previewBlock.SetMaterial(material);
         }
     }
 }

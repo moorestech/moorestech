@@ -144,17 +144,19 @@ namespace Client.Game.InGame.BlockSystem
             var placePoint = CalcPlacePoint();
             
             // ブロックが置けるか
-            if (IsAlreadyExistingBlock(placePoint) || IsTerrainOverlapBlock())
+            if (IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
             {
                 //TODO プレビューを赤くする処理
                 _blockPlacePreview.SetActive(true);
-                _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig, Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
+                _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+                _blockPlacePreview.SetMaterial(Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
                 return;
             }
             
             //プレビュー表示 display preview
             _blockPlacePreview.SetActive(true);
-            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig, Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
+            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+            _blockPlacePreview.SetMaterial(Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
@@ -177,10 +179,22 @@ namespace Client.Game.InGame.BlockSystem
                 return _uiState.CurrentState == UIStateEnum.PlaceBlock;
             }
             
-            bool IsAlreadyExistingBlock(Vector3Int position)
+            bool IsAlreadyExistingBlock(Vector3Int position, Vector3Int size)
             {
                 // ブロックが既に存在しているかどうか
-                return _chunkBlockGameObjectDataStore.ContainsBlockGameObject(position);
+                for (var z = 0; z < size.z; z++)
+                {
+                    for (var y = 0; y < size.y; y++)
+                    {
+                        for (var x = 0; x < size.x; x++)
+                        {
+                            var pos = position + new Vector3Int(x, y, z);
+                            if (_chunkBlockGameObjectDataStore.ContainsBlockGameObject(pos)) return true;
+                        }
+                    }
+                }
+                
+                return false;
             }
             
             bool IsTerrainOverlapBlock()
@@ -191,16 +205,16 @@ namespace Client.Game.InGame.BlockSystem
             
             Vector3Int CalcPlacePoint()
             {
-                var convertAction = _currentBlockDirection.GetCoordinateConvertAction();
-                var convertedSize = convertAction(holdingBlockConfig.BlockSize).Abs();
+                var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
+                var rotatedSize = rotateAction(holdingBlockConfig.BlockSize).Abs();
                 
                 var point = Vector3Int.zero;
-                point.x = Mathf.FloorToInt(hitPoint.x + (convertedSize.x % 2 == 0 ? 0.5f : 0));
-                point.z = Mathf.FloorToInt(hitPoint.z + (convertedSize.z % 2 == 0 ? 0.5f : 0));
+                point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
+                point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
                 point.y = Mathf.FloorToInt(hitPoint.y);
                 
                 point += new Vector3Int(0, _heightOffset, 0);
-                point -= new Vector3Int(convertedSize.x, 0, convertedSize.z) / 2;
+                point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
                 
                 return point;
             }

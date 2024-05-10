@@ -8,7 +8,9 @@ namespace Client.Game.InGame.BlockSystem
     {
         bool IsActive { get; }
         
-        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig, Material material);
+        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
+        
+        public void SetMaterial(Material material);
         
         public void SetActive(bool active);
     }
