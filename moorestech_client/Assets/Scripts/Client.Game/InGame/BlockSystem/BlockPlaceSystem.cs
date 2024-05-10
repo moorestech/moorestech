@@ -23,6 +23,7 @@ namespace Client.Game.InGame.BlockSystem
     public class BlockPlaceSystem : IPostTickable
     {
         private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
@@ -32,13 +33,21 @@ namespace Client.Game.InGame.BlockSystem
         
         private int _heightOffset;
         
-        public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory, UIStateControl uiStateControl)
+        public BlockPlaceSystem(
+            Camera mainCamera,
+            HotBarView hotBarView,
+            IBlockPlacePreview blockPlacePreview,
+            ILocalPlayerInventory localPlayerInventory,
+            UIStateControl uiStateControl,
+            ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore
+        )
         {
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
             _uiState = uiStateControl;
+            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
         }
         
         public void PostTick()
@@ -135,7 +144,7 @@ namespace Client.Game.InGame.BlockSystem
             var placePoint = CalcPlacePoint();
             
             // ブロックが置けるか
-            if (IsAlreadyExistingBlock() || IsTerrainOverlapBlock())
+            if (IsAlreadyExistingBlock(placePoint) || IsTerrainOverlapBlock())
             {
                 //TODO プレビューを赤くする処理
                 _blockPlacePreview.SetActive(true);
@@ -168,10 +177,10 @@ namespace Client.Game.InGame.BlockSystem
                 return _uiState.CurrentState == UIStateEnum.PlaceBlock;
             }
             
-            bool IsAlreadyExistingBlock()
+            bool IsAlreadyExistingBlock(Vector3Int position)
             {
                 // ブロックが既に存在しているかどうか
-                return true;
+                return _chunkBlockGameObjectDataStore.ContainsBlockGameObject(position);
             }
             
             bool IsTerrainOverlapBlock()
