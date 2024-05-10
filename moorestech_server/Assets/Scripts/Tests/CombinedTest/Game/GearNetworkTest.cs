@@ -68,6 +68,7 @@ namespace Tests.CombinedTest.Game
         public void DifferentRpmGearNetworkToRockTest()
         {
             //TODO RPMが違ってロックされるテスト
+            //TODO Test locked with different RPM
         }
 
         [Test]
