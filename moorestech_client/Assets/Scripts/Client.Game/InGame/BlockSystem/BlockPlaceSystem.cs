@@ -139,13 +139,13 @@ namespace Client.Game.InGame.BlockSystem
             {
                 //TODO プレビューを赤くする処理
                 _blockPlacePreview.SetActive(true);
-                _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+                _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig, Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
                 return;
             }
             
             //プレビュー表示 display preview
             _blockPlacePreview.SetActive(true);
-            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig, Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
@@ -171,7 +171,7 @@ namespace Client.Game.InGame.BlockSystem
             bool IsAlreadyExistingBlock()
             {
                 // ブロックが既に存在しているかどうか
-                return false;
+                return true;
             }
             
             bool IsTerrainOverlapBlock()
