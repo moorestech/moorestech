@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Game.Block.Blocks.Gear;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
@@ -69,6 +70,64 @@ namespace Tests.CombinedTest.Game
         {
             //TODO RPMが違ってロックされるテスト
             //TODO Test locked with different RPM
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+
+            Vector3Int Generator0Pos = new Vector3Int(0, 0, 0);
+            Vector3Int Generator1Pos = new Vector3Int(3, 0, 0);
+            Vector3Int BigGearPos = new Vector3Int(0, 0, 1);
+            Vector3Int SmallGear1Pos = new Vector3Int(2, 0, 1);
+            Vector3Int SmallGear0Pos = new Vector3Int(3, 0, 1);
+
+            var generator0 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Generator0Pos, BlockDirection.North);
+            var generator1 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Generator1Pos, BlockDirection.North);
+            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, BigGearPos, BlockDirection.North);
+            var smallGear0 = AddBlock(ForUnitTestModBlockId.SmallGear, SmallGear0Pos, BlockDirection.North);
+            var smallGear1 = AddBlock(ForUnitTestModBlockId.SmallGear, SmallGear1Pos, BlockDirection.North);
+
+            // 大ギアは小ギア0に接続され、小ギアは小ギア1に接続されている。
+            // 発電機は2つあり、発電機0と発電機1である。
+            // 発電機0は大ギヤに、発電機1は小ギヤ1に電力を供給する。
+            // 大ギアは小ギア0に小ギア1よりも高い回転数を与えるはずである。
+            // 小歯車0と小歯車1が互いに異なる回転数で接続されているため、 ネットワークはロックされるべきである。
+            // 回転方向が異なるため、ネットワークはロックされるべきではない。
+            // big gear is connected to small gear 0 which is connected to small gear 1.
+            // there are two generators, generator 0 and generator 1.
+            // generator 0 powers the big gear and generator 1 powers the small gear 1.
+            // the big gear should give the small gear 0 a higher rpm than the small gear 1.
+            // the network should be locked because the small gear 0 and small gear 1 are connected to each other with a difference RPM.
+            // the network should not lock because of a different rotation direction.
+
+            // find the network
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            GearNetwork gearNetwork = null;
+            foreach (var network in gearNetworkDatastore.GearNetworks)
+                foreach (var generator in network.GearGenerators)
+                    if (generator == generator0)
+                    {
+                        gearNetwork = network;
+                        break;
+                    }
+            Assert.NotNull(gearNetwork);
+
+            //ネットワークをアップデート
+            //Update the network
+            gearNetwork.ManualUpdate();
+
+            // TODO: ネットワークがロックされているかどうかを確認する
+            //Assert.IsTrue(gearNetwork.IsLocked);
+
+            // Are the generators the same RPM?
+            // ジェネレーターの回転数は同じですか？
+            var generatorComponent0 = generator0.ComponentManager.GetComponent<GearGeneratorComponent>();
+            var generatorComponent1 = generator1.ComponentManager.GetComponent<GearGeneratorComponent>();
+            Assert.AreEqual(generatorComponent0.CurrentRpm, generatorComponent1.CurrentRpm);
+            Assert.AreEqual(generatorComponent0.GenerateIsClockwise, generatorComponent1.GenerateIsClockwise);
+
+            ServerContext.WorldBlockDatastore.RemoveBlock(Generator0Pos);
+            ServerContext.WorldBlockDatastore.RemoveBlock(Generator1Pos);
+            ServerContext.WorldBlockDatastore.RemoveBlock(BigGearPos);
+            ServerContext.WorldBlockDatastore.RemoveBlock(SmallGear0Pos);
+            ServerContext.WorldBlockDatastore.RemoveBlock(SmallGear1Pos);
         }
 
         [Test]
