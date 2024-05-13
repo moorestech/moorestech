@@ -4,14 +4,6 @@ namespace Game.Block.Interface
 {
     public class BlockPositionInfo
     {
-        public BlockPositionInfo(Vector3Int originalPos, BlockDirection blockDirection, Vector3Int blockSize)
-        {
-            OriginalPos = originalPos;
-            BlockDirection = blockDirection;
-            BlockSize = blockSize;
-
-            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
-        }
         /// <summary>
         ///     オリジナル座標は常に左下（ブロックが専有する範囲の最小の座標）になる
         /// </summary>
@@ -22,6 +14,15 @@ namespace Game.Block.Interface
         public Vector3Int MaxPos { get; }
 
         public BlockDirection BlockDirection { get; }
+        
+        public BlockPositionInfo(Vector3Int originalPos, BlockDirection blockDirection, Vector3Int blockSize)
+        {
+            OriginalPos = originalPos;
+            BlockDirection = blockDirection;
+            BlockSize = blockSize;
+
+            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
+        }
 
         public bool IsContainPos(Vector3Int pos)
         {
