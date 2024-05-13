@@ -67,7 +67,7 @@ namespace Game.World.DataStore
 
         public IBlock GetBlock(Vector3Int pos)
         {
-            return GetBlockDatastore(pos)?.Block;
+            return GetBlockData(pos)?.Block;
         }
 
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
@@ -86,20 +86,20 @@ namespace Game.World.DataStore
 
         public BlockDirection GetBlockDirection(Vector3Int pos)
         {
-            var block = GetBlockDatastore(pos);
+            var block = GetBlockData(pos);
             //TODO ブロックないときの処理どうしよう
             return block?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
         }
 
         private int GetEntityId(Vector3Int pos)
         {
-            return GetBlockDatastore(pos).Block.EntityId;
+            return GetBlockData(pos).Block.EntityId;
         }
 
         /// <summary>
         ///     TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
         /// </summary>
-        private WorldBlockData GetBlockDatastore(Vector3Int pos)
+        private WorldBlockData GetBlockData(Vector3Int pos)
         {
             foreach (KeyValuePair<int, WorldBlockData> block in
                      _blockMasterDictionary.Where(block => block.Value.BlockPositionInfo.IsContainPos(pos)))
