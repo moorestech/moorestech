@@ -7,6 +7,7 @@ namespace Game.Gear.Component
     public class GearConsumer : IGearEnergyTransformer
     {
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers => _connectorComponent.ConnectTargets;
+
         public int EntityId { get; }
         public bool IsReverseRotation { get; }
         public int TeethCount { get; }
@@ -29,6 +30,11 @@ namespace Game.Gear.Component
         }
 
         public void SupplyPower(float rpm, float torque, bool isClockwise)
+        {
+            throw new System.NotImplementedException();
+        }
+        
+        public void SupplyRotation(float rpm, bool isClockwise)
         {
             throw new System.NotImplementedException();
         }

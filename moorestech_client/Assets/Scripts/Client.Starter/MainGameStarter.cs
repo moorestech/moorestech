@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateChange;
 using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Map.MapObject;
@@ -32,74 +33,76 @@ namespace Client.Starter
     {
         // Hierarchy上にある依存解決が必要なものをまとめたところ
         //TODO regionでちゃんと分類分けしたい
-
+        
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
-
+        
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
-
+        
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
-
+        
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
-
+        
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockInventoryView blockInventoryView;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
-
+        
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
-
+        
         [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
         [SerializeField] private SkitManager skitManager;
-
+        
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
-
-
-
-
+        
+        [SerializeField] private InGameCameraController inGameCameraController;
+        
+        
+        
+        
         private IObjectResolver _resolver;
         private string IPAddress = ServerConst.LocalServerIp;
-
+        
         private bool isLocal;
         private Process localServerProcess;
-
+        
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
-
+        
         protected override void OnDestroy()
         {
             _resolver?.Dispose();
         }
-
+        
         public void StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
-
+            
             //最初に取得したデータを登録
             builder.RegisterInstance(initialHandshakeResponse);
-
+            
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
-
+            
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<ChunkDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
-            builder.RegisterEntryPoint<BlockPlaceSystem>();
-
-
+            builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
+            
+            
             //UIコントロール
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
             builder.Register<BlockInventoryState>(Lifetime.Singleton);
@@ -108,16 +111,17 @@ namespace Client.Starter
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
             builder.Register<SkitState>(Lifetime.Singleton);
-
-
+            builder.Register<PlaceBlockState>(Lifetime.Singleton);
+            
+            
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
-
+            
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarView);
-
+            
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
@@ -125,22 +129,23 @@ namespace Client.Starter
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
             builder.RegisterComponent(mapObjectGetPresenter);
-
+            
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
-
+            
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);
-
-
+            
+            builder.RegisterComponent(inGameCameraController);
+            
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
-
+            
             builder.RegisterBuildCallback(objectResolver => { });
-
+            
             //依存関係を解決
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();

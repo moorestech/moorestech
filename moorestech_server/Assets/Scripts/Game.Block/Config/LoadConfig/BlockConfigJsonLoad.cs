@@ -34,7 +34,6 @@ namespace Game.Block.Config.LoadConfig
                 { VanillaBlockType.Chest, ChestConfigParam.Generate },
 
                 { VanillaBlockType.Gear, GearConfigParam.Generate },
-                { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
                 { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
             };

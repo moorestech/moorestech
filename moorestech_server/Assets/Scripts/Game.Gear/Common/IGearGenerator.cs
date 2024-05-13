@@ -6,6 +6,6 @@ namespace Game.Gear.Common
         public float GenerateRpm { get; }
         public float GenerateTorque { get; }
 
-        public bool IsClockwise { get; }
+        public bool GenerateIsClockwise { get; }
     }
 }

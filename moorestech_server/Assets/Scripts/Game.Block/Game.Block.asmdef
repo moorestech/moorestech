@@ -13,7 +13,8 @@
     "Game.World.Interface",
     "UniRx",
     "Game.Context",
-    "Game.Map.Interface"
+    "Game.Map.Interface",
+    "Game.Gear"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
