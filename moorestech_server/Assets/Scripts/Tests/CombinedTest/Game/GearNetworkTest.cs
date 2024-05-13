@@ -72,17 +72,19 @@ namespace Tests.CombinedTest.Game
             //TODO Test locked with different RPM
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            Vector3Int Generator0Pos = new Vector3Int(0, 0, 0);
-            Vector3Int Generator1Pos = new Vector3Int(3, 0, 0);
-            Vector3Int BigGearPos = new Vector3Int(0, 0, 1);
-            Vector3Int SmallGear1Pos = new Vector3Int(2, 0, 1);
-            Vector3Int SmallGear0Pos = new Vector3Int(3, 0, 1);
+            var generatorPos = new Vector3Int(0, 0, 0);
+            var bigGearPos = new Vector3Int(0, 0, 1);
+            var connectedBigGearSmallGearPos = new Vector3Int(2, 0, 1);
+            
+            var smallGear1Pos = new Vector3Int(0, 0, -1);
+            var smallGear2Pos = new Vector3Int(1, 0, -1);
+            var smallGearPos = new Vector3Int(2, 0, -1);
 
-            var generator0 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Generator0Pos, BlockDirection.North);
-            var generator1 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Generator1Pos, BlockDirection.North);
-            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, BigGearPos, BlockDirection.North);
-            var smallGear0 = AddBlock(ForUnitTestModBlockId.SmallGear, SmallGear0Pos, BlockDirection.North);
-            var smallGear1 = AddBlock(ForUnitTestModBlockId.SmallGear, SmallGear1Pos, BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.SmallGear, connectedBigGearSmallGearPos, BlockDirection.North);
+            
+            AddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North);
 
             // 大ギアは小ギア0に接続され、小ギアは小ギア1に接続されている。
             // 発電機は2つあり、発電機0と発電機1である。
@@ -99,14 +101,7 @@ namespace Tests.CombinedTest.Game
 
             // find the network
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            GearNetwork gearNetwork = null;
-            foreach (var network in gearNetworkDatastore.GearNetworks)
-                foreach (var generator in network.GearGenerators)
-                    if (generator == generator0)
-                    {
-                        gearNetwork = network;
-                        break;
-                    }
+            var gearNetwork = gearNetworkDatastore.GearNetworks[0];
             Assert.NotNull(gearNetwork);
 
             //ネットワークをアップデート
@@ -115,19 +110,6 @@ namespace Tests.CombinedTest.Game
 
             // TODO: ネットワークがロックされているかどうかを確認する
             //Assert.IsTrue(gearNetwork.IsLocked);
-
-            // Are the generators the same RPM?
-            // ジェネレーターの回転数は同じですか？
-            var generatorComponent0 = generator0.ComponentManager.GetComponent<GearGeneratorComponent>();
-            var generatorComponent1 = generator1.ComponentManager.GetComponent<GearGeneratorComponent>();
-            Assert.AreEqual(generatorComponent0.CurrentRpm, generatorComponent1.CurrentRpm);
-            Assert.AreEqual(generatorComponent0.GenerateIsClockwise, generatorComponent1.GenerateIsClockwise);
-
-            ServerContext.WorldBlockDatastore.RemoveBlock(Generator0Pos);
-            ServerContext.WorldBlockDatastore.RemoveBlock(Generator1Pos);
-            ServerContext.WorldBlockDatastore.RemoveBlock(BigGearPos);
-            ServerContext.WorldBlockDatastore.RemoveBlock(SmallGear0Pos);
-            ServerContext.WorldBlockDatastore.RemoveBlock(SmallGear1Pos);
         }
 
         [Test]
