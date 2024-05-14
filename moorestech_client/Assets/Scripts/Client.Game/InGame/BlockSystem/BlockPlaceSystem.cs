@@ -181,21 +181,10 @@ namespace Client.Game.InGame.BlockSystem
             
             bool IsAlreadyExistingBlock(Vector3Int originPosition, Vector3Int size)
             {
-                var maxPosition = BlockPositionInfo.CalcBlockMaxPos(originPosition, _currentBlockDirection, size) + Vector3Int.one;
-                
-                var min = Vector3Int.Min(originPosition, maxPosition);
-                var max = Vector3Int.Max(originPosition, maxPosition);
-                
                 // ブロックが既に存在しているかどうか
-                for (var x = min.x; x < max.x; x++)
+                foreach (var position in BlockPositionInfo.GetBlockBoundingBox(originPosition, _currentBlockDirection, size))
                 {
-                    for (var y = min.y; y < max.y; y++)
-                    {
-                        for (var z = min.z; z < max.z; z++)
-                        {
-                            if (_blockGameObjectDataStore.ContainsBlockGameObject(new Vector3Int(x, y, z))) return true;
-                        }
-                    }
+                    if (_blockGameObjectDataStore.ContainsBlockGameObject(position)) return true;
                 }
                 
                 return false;
