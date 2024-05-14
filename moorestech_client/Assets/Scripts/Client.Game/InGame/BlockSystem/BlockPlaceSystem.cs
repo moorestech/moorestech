@@ -193,16 +193,6 @@ namespace Client.Game.InGame.BlockSystem
                     {
                         for (var z = min.z; z < max.z; z++)
                         {
-                            Debug.DrawLine(new Vector3(x, y, z), new Vector3(x, y, z) + Vector3Int.up, Color.red);
-                        }
-                    }
-                }
-                for (var x = min.x; x < max.x; x++)
-                {
-                    for (var y = min.y; y < max.y; y++)
-                    {
-                        for (var z = min.z; z < max.z; z++)
-                        {
                             if (_blockGameObjectDataStore.ContainsBlockGameObject(new Vector3Int(x, y, z))) return true;
                         }
                     }
