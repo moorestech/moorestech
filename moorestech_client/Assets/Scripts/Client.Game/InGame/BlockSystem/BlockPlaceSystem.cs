@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem
     public class BlockPlaceSystem : IPostTickable
     {
         private readonly IBlockPlacePreview _blockPlacePreview;
-        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
@@ -39,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem
             IBlockPlacePreview blockPlacePreview,
             ILocalPlayerInventory localPlayerInventory,
             UIStateControl uiStateControl,
-            ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore
+            BlockGameObjectDataStore blockGameObjectDataStore
         )
         {
             _hotBarView = hotBarView;
@@ -47,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
             _uiState = uiStateControl;
-            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
         public void PostTick()
@@ -197,14 +197,13 @@ namespace Client.Game.InGame.BlockSystem
                         }
                     }
                 }
-                return false;
                 for (var x = min.x; x < max.x; x++)
                 {
                     for (var y = min.y; y < max.y; y++)
                     {
                         for (var z = min.z; z < max.z; z++)
                         {
-                            if (_chunkBlockGameObjectDataStore.ContainsBlockGameObject(new Vector3Int(x, y, z))) return true;
+                            if (_blockGameObjectDataStore.ContainsBlockGameObject(new Vector3Int(x, y, z))) return true;
                         }
                     }
                 }

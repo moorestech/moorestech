@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -19,11 +20,13 @@ namespace Client.Game.InGame.Block
         public int BlockId { get; private set; }
         public BlockConfigData BlockConfig { get; private set; }
         public Vector3Int BlockPosition { get; private set; } = Vector3Int.zero;
+        public BlockDirection BlockDirection { get; private set; }
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
 
-        public void Initialize(BlockConfigData blockConfig, Vector3Int position, IBlockStateChangeProcessor blockStateChangeProcessor)
+        public void Initialize(BlockConfigData blockConfig, Vector3Int position, BlockDirection direction, IBlockStateChangeProcessor blockStateChangeProcessor)
         {
             BlockPosition = position;
+            BlockDirection = direction;
             BlockId = blockConfig.BlockId;
             BlockConfig = blockConfig;
             BlockStateChangeProcessor = blockStateChangeProcessor;

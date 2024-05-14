@@ -10,11 +10,11 @@ namespace Client.Game.InGame.BlockSystem
 {
     public class BlockStateEventHandler : IInitializable
     {
-        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
-        public BlockStateEventHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore)
         {
-            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             MoorestechContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
         }
 
@@ -27,13 +27,13 @@ namespace Client.Game.InGame.BlockSystem
             var data = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(payload);
 
             var pos = data.Position;
-            if (!_chunkBlockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
+            if (!_blockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
             {
                 Debug.Log("ブロックがない : " + pos);
             }
             else
             {
-                var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
+                var blockObject = _blockGameObjectDataStore.BlockGameObjectDictionary[pos];
                 blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateJsonData);
 
                 var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockObject.BlockId);

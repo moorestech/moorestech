@@ -20,6 +20,7 @@ using Client.Game.Skit;
 using Client.Game.Skit.Starter;
 using Client.Network.API;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -37,7 +38,7 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
-        [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
+        [FormerlySerializedAs("chunkBlockGameObjectDataStore")] [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
         [SerializeField] private CommandUIInput commandUIInput;
@@ -115,7 +116,7 @@ namespace Client.Starter
             
             
             //Hierarchy上にあるcomponent
-            builder.RegisterComponent(chunkBlockGameObjectDataStore);
+            builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             
             builder.RegisterComponent(mainCamera);
@@ -148,7 +149,7 @@ namespace Client.Starter
             
             //依存関係を解決
             _resolver = builder.Build();
-            _resolver.Resolve<ChunkBlockGameObjectDataStore>();
+            _resolver.Resolve<BlockGameObjectDataStore>();
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();

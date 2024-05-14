@@ -7,6 +7,7 @@ using Client.Game.InGame.Define;
 using Client.Mod.Glb;
 using Cysharp.Threading.Tasks;
 using Game.Block;
+using Game.Block.Interface;
 using Game.Context;
 using UnityEngine;
 
@@ -41,7 +42,7 @@ namespace Client.Game.InGame.Context
         }
         
         
-        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition)
+        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition, BlockDirection direction)
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;
@@ -52,7 +53,7 @@ namespace Client.Game.InGame.Context
                 //ブロックIDがないのでない時用のブロックを作る
                 Debug.LogError("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject, position, rotation, parent);
-                nothing.Initialize(blockConfig, blockPosition, new NullBlockStateChangeProcessor());
+                nothing.Initialize(blockConfig, blockPosition, direction, new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
             
@@ -70,7 +71,7 @@ namespace Client.Game.InGame.Context
             
             var blockType = _blockObjectList[blockConfigIndex].Type;
             blockObj.gameObject.SetActive(true);
-            blockObj.Initialize(blockConfig, blockPosition, GetBlockStateChangeProcessor(blockObj, blockType));
+            blockObj.Initialize(blockConfig, blockPosition, direction, GetBlockStateChangeProcessor(blockObj, blockType));
             
             //ブロックが開けるものの場合はそのコンポーネントを付与する
             if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
