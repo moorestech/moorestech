@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Chunk;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -22,11 +23,13 @@ namespace Client.Game.InGame.BlockSystem
     /// </summary>
     public class BlockPlaceSystem : IPostTickable
     {
-        private readonly IBlockPlacePreview _blockPlacePreview;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly DetectCollisionTerrain _detectCollisionTerrain;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
+        private readonly PlayerObjectController _playerObjectController;
         private readonly UIStateControl _uiState;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
@@ -37,17 +40,21 @@ namespace Client.Game.InGame.BlockSystem
             Camera mainCamera,
             HotBarView hotBarView,
             IBlockPlacePreview blockPlacePreview,
+            DetectCollisionTerrain detectCollisionTerrain,
             ILocalPlayerInventory localPlayerInventory,
             UIStateControl uiStateControl,
-            BlockGameObjectDataStore blockGameObjectDataStore
+            BlockGameObjectDataStore blockGameObjectDataStore,
+            PlayerObjectController playerObjectController
         )
         {
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
+            _detectCollisionTerrain = detectCollisionTerrain;
             _localPlayerInventory = localPlayerInventory;
             _uiState = uiStateControl;
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _playerObjectController = playerObjectController;
         }
         
         public void PostTick()
@@ -146,7 +153,6 @@ namespace Client.Game.InGame.BlockSystem
             // ブロックが置けるか
             if (IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
             {
-                //TODO プレビューを赤くする処理
                 _blockPlacePreview.SetActive(true);
                 _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
                 _blockPlacePreview.SetMaterial(Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
@@ -193,7 +199,7 @@ namespace Client.Game.InGame.BlockSystem
             bool IsTerrainOverlapBlock()
             {
                 // ブロックとterrainが重なっていること
-                return false;
+                return _detectCollisionTerrain.isCollisionTerrain;
             }
             
             Vector3Int CalcPlacePoint()
@@ -222,7 +228,7 @@ namespace Client.Game.InGame.BlockSystem
             var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
+            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
             //そのrayが地面のオブジェクトかブロックにヒットしてるか
             if (!hit.transform.TryGetComponent<GroundGameObject>(out _) && !hit.transform.TryGetComponent<BlockGameObjectChild>(out _)) return false;
             

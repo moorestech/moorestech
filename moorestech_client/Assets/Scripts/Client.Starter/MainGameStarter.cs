@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateChange;
 using Client.Game.InGame.Chunk;
@@ -38,7 +39,8 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
-        [FormerlySerializedAs("chunkBlockGameObjectDataStore")] [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
+        [FormerlySerializedAs("chunkBlockGameObjectDataStore")] [SerializeField]
+        private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
         [SerializeField] private CommandUIInput commandUIInput;
@@ -56,6 +58,7 @@ namespace Client.Starter
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
+        [SerializeField] private DetectCollisionTerrain previewDetectCollisionTerrain;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
@@ -142,8 +145,9 @@ namespace Client.Starter
             
             builder.RegisterComponent(inGameCameraController);
             
-            builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
+            builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
+            builder.RegisterComponent(previewDetectCollisionTerrain);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

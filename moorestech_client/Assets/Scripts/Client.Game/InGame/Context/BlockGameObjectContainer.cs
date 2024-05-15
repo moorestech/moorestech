@@ -91,7 +91,10 @@ namespace Client.Game.InGame.Context
             block.SetActive(true);
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
-            previewGameObject.Initialize(ServerContext.BlockConfig.GetBlockConfig(blockId), Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
+            previewGameObject.Initialize(
+                ServerContext.BlockConfig.GetBlockConfig(blockId),
+                Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial)
+            );
             return previewGameObject;
         }
         
