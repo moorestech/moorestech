@@ -155,15 +155,13 @@ namespace Client.Game.InGame.BlockSystem
             if (!IsBlockPlaceableDistance(PlaceableMaxDistance) || IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
             {
                 _blockPlacePreview.SetActive(true);
-                _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
-                _blockPlacePreview.SetMaterial(Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
+                _blockPlacePreview.SetNotPlaceablePreview(placePoint, _currentBlockDirection, holdingBlockConfig);
                 return;
             }
             
             //プレビュー表示 display preview
             _blockPlacePreview.SetActive(true);
-            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
-            _blockPlacePreview.SetMaterial(Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
+            _blockPlacePreview.SetPlaceablePreview(placePoint, _currentBlockDirection, holdingBlockConfig);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())

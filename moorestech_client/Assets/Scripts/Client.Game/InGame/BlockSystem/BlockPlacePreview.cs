@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.Block;
+﻿using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -12,12 +13,24 @@ namespace Client.Game.InGame.BlockSystem
         
         public bool IsActive => gameObject.activeSelf;
         
+        public void SetPlaceablePreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
+        {
+            SetPreview(blockPosition, blockDirection, blockConfig);
+            SetMaterial(Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
+        }
+        
+        public void SetNotPlaceablePreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
+        {
+            SetMaterial(Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
+            SetPreview(blockPosition, blockDirection, blockConfig);
+        }
+        
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
         }
         
-        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
+        private void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockConfig.BlockId);
             var rot = blockDirection.GetRotation();
