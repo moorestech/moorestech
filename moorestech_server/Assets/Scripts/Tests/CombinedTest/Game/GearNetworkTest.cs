@@ -1,6 +1,4 @@
-using System;
 using Game.Block.Blocks.Gear;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Gear.Common;
@@ -21,11 +19,11 @@ namespace Tests.CombinedTest.Game
         public void SimpleGeneratorAndGearRpmTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-
+            
             var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Vector3Int.zero, BlockDirection.North);
-            var shaft = AddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0,0,1), BlockDirection.North);
-            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(0,0,2), BlockDirection.North);
-            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2,0,2), BlockDirection.North);
+            var shaft = AddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North);
+            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(0, 0, 2), BlockDirection.North);
+            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 2), BlockDirection.North);
             
             //ネットワークをアップデート
             //Update the network
@@ -57,60 +55,112 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(20.0f, smallGearComponent.CurrentRpm); // ギア比2:1 Gear ratio 2:1
             Assert.AreEqual(false, smallGearComponent.IsCurrentClockwise); // 回転が反転する Rotation is reversed
         }
-
+        
         [Test]
         public void LoopGearNetworkTest()
         {
             //TODO ループした歯車NWを作成し、RPM、回転方向があっているかをテスト
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            // C - D
+            // |   |
+            // A - B
+            //
+            // A = 0,0,0
+            // GeneratorはGearの下に
+            
+            const float rpm = 10.0f;
+            
+            var gearPositionA = new Vector3Int(0, 0, 0);
+            var gearPositionB = new Vector3Int(1, 0, 0);
+            var gearPositionC = new Vector3Int(0, 0, 1);
+            var gearPositionD = new Vector3Int(1, 0, 1);
+            var generatorPosition = gearPositionA - new Vector3Int(0, 1, 0);
+            
+            var generatorBlock = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.UpNorth);
+            var smallGearABlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.UpNorth);
+            var smallGearBBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.UpNorth);
+            var smallGearCBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.UpNorth);
+            var smallGearDBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionD, BlockDirection.UpNorth);
+            
+            var generator = generatorBlock.ComponentManager.GetComponent<GearGeneratorComponent>();
+            var smallGearA = smallGearABlock.ComponentManager.GetComponent<GearGeneratorComponent>();
+            var smallGearB = smallGearBBlock.ComponentManager.GetComponent<GearGeneratorComponent>();
+            var smallGearC = smallGearCBlock.ComponentManager.GetComponent<GearGeneratorComponent>();
+            var smallGearD = smallGearDBlock.ComponentManager.GetComponent<GearGeneratorComponent>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks[0];
+            gearNetwork.ManualUpdate();
+            
+            // Generatorの回転方向とRPMのテスト
+            Assert.AreEqual(rpm, generator.CurrentRpm);
+            Assert.AreEqual(true, generator.GenerateIsClockwise);
+            
+            // smallGearAの回転方向とRPMのテスト
+            Assert.AreEqual(rpm, smallGearA.CurrentRpm);
+            Assert.AreEqual(true, smallGearA.GenerateIsClockwise);
+            
+            // smallGearBの回転方向とRPMのテスト
+            Assert.AreEqual(rpm, smallGearB.CurrentRpm);
+            Assert.AreEqual(false, smallGearB.GenerateIsClockwise);
+            
+            // smallGearCの回転方向とRPMのテスト
+            Assert.AreEqual(rpm, smallGearC.CurrentRpm);
+            Assert.AreEqual(false, smallGearC.GenerateIsClockwise);
+            
+            // smallGearDの回転方向とRPMのテスト
+            Assert.AreEqual(rpm, smallGearD.CurrentRpm);
+            Assert.AreEqual(true, smallGearD.GenerateIsClockwise);
         }
-
+        
         [Test]
         public void DifferentRpmGearNetworkToRockTest()
         {
             //TODO RPMが違ってロックされるテスト
             //TODO Test locked with different RPM
         }
-
+        
         [Test]
         public void DifferentDirectionGearNetworkToRockTest()
         {
             //TODO 回転方向が違ってロックされるテスト
         }
-
-
+        
+        
         [Test]
         public void MultiGeneratorOverrideRpmTest()
         {
             //TODO 複数のジェネレーターのRPMがオーバーライドされるテスト
         }
-
-
+        
+        
         [Test]
         public void MultiGeneratorDifferentDirectionToRockTest()
         {
             //TODO 複数のジェネレーターの回転方向が違うことでロックされるテスト
         }
-
+        
         [Test]
         public void ServeTorqueTest()
         {
             //TODO 機械によってトルクが消費されるテスト（正しいトルクが供給されるかのテスト
             //TODO 供給トルクが足りないときに稼働時間が長くなるテスト
         }
-
+        
         [Test]
         public void ServeTorqueOverTest()
         {
             //TODO トルクが多いとその分供給トルクが減るテスト
         }
-
+        
         [Test]
         public void GearNetworkMergeTest()
         {
             //TODO 設置したら歯車NWが増える、歯車NWのマージのテスト、削除したら歯車NWが分割されるテスト
         }
-
-        private static IBlock AddBlock(int blockId,Vector3Int pos,BlockDirection direction)
+        
+        private static IBlock AddBlock(int blockId, Vector3Int pos, BlockDirection direction)
         {
             var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
             
