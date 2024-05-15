@@ -79,13 +79,13 @@ namespace Tests.CombinedTest.Game
             var gearPositionC = new Vector3Int(0, 0, 1);
             var gearPositionD = new Vector3Int(1, 0, 1);
             var generatorPosition = gearPositionA - new Vector3Int(0, 1, 0);
-            
-            var generatorBlock = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.UpNorth);
-            var smallGearABlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.UpNorth);
-            var smallGearBBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.UpNorth);
-            var smallGearCBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.UpNorth);
-            var smallGearDBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionD, BlockDirection.UpNorth);
-            
+
+            var generatorBlock = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            var smallGearABlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.North);
+            var smallGearBBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.North);
+            var smallGearCBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.North);
+            var smallGearDBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionD, BlockDirection.North);
+
             var generator = generatorBlock.ComponentManager.GetComponent<GearGeneratorComponent>();
             var smallGearA = smallGearABlock.ComponentManager.GetComponent<GearGeneratorComponent>();
             var smallGearB = smallGearBBlock.ComponentManager.GetComponent<GearGeneratorComponent>();
@@ -137,18 +137,12 @@ namespace Tests.CombinedTest.Game
             AddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North);
             
             var smallGear1 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North);
-            BlockConnectorComponent<IGearEnergyTransformer> smallGear1Connector = smallGear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
-            var smallGear1Transform = smallGear1.ComponentManager.GetComponent<IGearEnergyTransformer>();
-            
             var smallGear3 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear3Pos, BlockDirection.North);
-            BlockConnectorComponent<IGearEnergyTransformer> smallGear3Connector = smallGear3.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
-            var smallGear3Transform = smallGear3.ComponentManager.GetComponent<IGearEnergyTransformer>();
-            
+
             //RPMが違う歯車同士を強制的に接続
             //Force connection between gears with different RPM
-            ((List<IGearEnergyTransformer>)smallGear1Connector.ConnectTargets).Add(smallGear1Transform);
-            ((List<IGearEnergyTransformer>)smallGear3Connector.ConnectTargets).Add(smallGear3Transform);
-            
+            ForceConnectGear(smallGear1, smallGear3);
+
             // find the network
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDatastore.GearNetworks[0];
