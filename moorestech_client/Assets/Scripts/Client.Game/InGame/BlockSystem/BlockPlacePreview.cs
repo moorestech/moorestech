@@ -1,4 +1,6 @@
-﻿using Client.Game.InGame.Block;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -11,7 +13,19 @@ namespace Client.Game.InGame.BlockSystem
         private BlockPreviewObject _previewBlock;
         
         public bool IsActive => gameObject.activeSelf;
+
+        public bool IsCollisionGround
+        {
+            get
+            {
+                if (_collisionDetectors == null) return false;
+                
+                return _collisionDetectors.Any(detector => detector.IsCollision);
+            }
+        }
         
+        private GroundCollisionDetector[] _collisionDetectors;
+
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
@@ -31,6 +45,7 @@ namespace Client.Game.InGame.BlockSystem
                 _previewBlock = MoorestechContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
                 _previewBlock.transform.SetParent(transform);
                 _previewBlock.transform.localPosition = Vector3.zero;
+                _collisionDetectors = _previewBlock.GetComponentsInChildren<GroundCollisionDetector>();
             }
             
             transform.position = pos;

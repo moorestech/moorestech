@@ -58,7 +58,6 @@ namespace Client.Starter
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
-        [SerializeField] private DetectCollisionTerrain previewDetectCollisionTerrain;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
@@ -147,7 +146,6 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
-            builder.RegisterComponent(previewDetectCollisionTerrain);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

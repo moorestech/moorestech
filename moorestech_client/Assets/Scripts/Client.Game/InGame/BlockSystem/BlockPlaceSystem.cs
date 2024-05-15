@@ -26,7 +26,6 @@ namespace Client.Game.InGame.BlockSystem
         private const float PlaceableMaxDistance = 100f;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly IBlockPlacePreview _blockPlacePreview;
-        private readonly DetectCollisionTerrain _detectCollisionTerrain;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
@@ -41,7 +40,6 @@ namespace Client.Game.InGame.BlockSystem
             Camera mainCamera,
             HotBarView hotBarView,
             IBlockPlacePreview blockPlacePreview,
-            DetectCollisionTerrain detectCollisionTerrain,
             ILocalPlayerInventory localPlayerInventory,
             UIStateControl uiStateControl,
             BlockGameObjectDataStore blockGameObjectDataStore,
@@ -51,7 +49,6 @@ namespace Client.Game.InGame.BlockSystem
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
-            _detectCollisionTerrain = detectCollisionTerrain;
             _localPlayerInventory = localPlayerInventory;
             _uiState = uiStateControl;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -200,7 +197,7 @@ namespace Client.Game.InGame.BlockSystem
             bool IsTerrainOverlapBlock()
             {
                 // ブロックとterrainが重なっていること
-                return _detectCollisionTerrain.isCollisionTerrain;
+                return _blockPlacePreview.IsCollisionGround;
             }
             
             bool IsBlockPlaceableDistance(float maxDistance)
