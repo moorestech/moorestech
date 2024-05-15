@@ -7,8 +7,8 @@ namespace Game.Gear.Common
     {
         public readonly int NetworkId;
 
-        public IReadOnlyList<IGearConsumer> GearConsumers => _gearConsumers;
-        private readonly List<IGearConsumer> _gearConsumers = new();
+        public IReadOnlyList<IGearEnergyTransformer> GearConsumers => _gearConsumers;
+        private readonly List<IGearEnergyTransformer> _gearConsumers = new();
 
         public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         private readonly List<IGearGenerator> _gearGenerators = new();
@@ -25,11 +25,11 @@ namespace Game.Gear.Common
         {
             switch (gear)
             {
-                case IGearConsumer consumer:
-                    _gearConsumers.Add(consumer);
-                    break;
                 case IGearGenerator generator:
                     _gearGenerators.Add(generator);
+                    break;
+                case IGearEnergyTransformer consumer:
+                    _gearConsumers.Add(consumer);
                     break;
             }
         }
@@ -69,14 +69,6 @@ namespace Game.Gear.Common
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
             CalcGearInfo(fastGenerator, generatorGearRotationInfo);
             
-            //すべてのGearTransformerに回転を設定
-            foreach (var gearEnergyTransformer in _gearEnergyTransformers)
-            {
-                var entityId = gearEnergyTransformer.EntityId;
-                var info = _checkedGearComponents[entityId];
-                gearEnergyTransformer.SupplyRotation(info.Rpm, info.IsClockwise);
-            }
-
             //すべてのジェネレーターから生成GPを取得し、合算する
             var totalGeneratePower = 0f;
             foreach (var gearGenerator in GearGenerators)

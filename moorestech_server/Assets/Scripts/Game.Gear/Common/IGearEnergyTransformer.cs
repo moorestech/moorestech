@@ -5,12 +5,12 @@ namespace Game.Gear.Common
 {
     public interface IGearEnergyTransformer : IBlockComponent
     {
-        public bool IsReverseRotation { get; }
-
         public int EntityId { get; }
+        public bool IsReverseRotation { get; }
+        public float RequiredPower { get; }
 
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers { get; }
         
-        public void SupplyRotation(float rpm, bool isClockwise);
+        public void SupplyPower(float rpm, float torque, bool isClockwise);
     }
 }

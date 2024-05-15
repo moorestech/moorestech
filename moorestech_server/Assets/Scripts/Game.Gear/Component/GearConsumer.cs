@@ -4,11 +4,12 @@ using Game.Gear.Common;
 
 namespace Game.Gear.Component
 {
-    public class GearConsumer : IGearConsumer
+    public class GearConsumer : IGearEnergyTransformer
     {
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers => _connectorComponent.ConnectTargets;
 
         public int EntityId { get; }
+        public bool IsReverseRotation { get; }
         public int TeethCount { get; }
         public float RequiredPower { get; }
         public bool IsDestroy { get; private set; }
