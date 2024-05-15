@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.Gear;
+using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Context;
@@ -24,34 +26,34 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, Vector3Int.zero, BlockDirection.North);
-            var shaft = AddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0,0,1), BlockDirection.North);
-            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(0,0,2), BlockDirection.North);
-            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2,0,2), BlockDirection.North);
-            
+            var shaft = AddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North);
+            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(0, 0, 2), BlockDirection.North);
+            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 2), BlockDirection.North);
+
             //ネットワークをアップデート
             //Update the network
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDatastore.GearNetworks[0];
             gearNetwork.ManualUpdate();
-            
+
             //ジェネレーターの供給が正しいか
             //Is the generator supply correct?
             var generatorComponent = generator.ComponentManager.GetComponent<GearGeneratorComponent>();
             Assert.AreEqual(10.0f, generatorComponent.CurrentRpm);
             Assert.AreEqual(true, generatorComponent.GenerateIsClockwise);
-            
+
             //シャフトの回転は正しいか
             //Is the rotation of the shaft correct?
             var shaftComponent = shaft.ComponentManager.GetComponent<GearComponent>();
             Assert.AreEqual(10.0f, shaftComponent.CurrentRpm);
             Assert.AreEqual(true, shaftComponent.IsCurrentClockwise);
-            
+
             //BigGearの回転は正しいか
             //Is the rotation of BigGear correct?
             var bigGearComponent = bigGear.ComponentManager.GetComponent<GearComponent>();
             Assert.AreEqual(10.0f, bigGearComponent.CurrentRpm);
             Assert.AreEqual(true, bigGearComponent.IsCurrentClockwise);
-            
+
             //SmallGearの回転は正しいか
             //Is the rotation of SmallGear correct?
             var smallGearComponent = smallGear.ComponentManager.GetComponent<GearComponent>();
@@ -66,38 +68,36 @@ namespace Tests.CombinedTest.Game
         }
 
         [Test]
+        // BigGearを使ってRPMを変えたSmallGearと、RPMを変えていないSmallGearを無理やりつなぎ、ロックされることをテストする
+        // Using BigGear, forcibly connect SmallGear with a different RPM and SmallGear with an unchanged RPM, and test that it locks.
         public void DifferentRpmGearNetworkToRockTest()
         {
-            //TODO RPMが違ってロックされるテスト
-            //TODO Test locked with different RPM
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var generatorPos = new Vector3Int(0, 0, 0);
-            var bigGearPos = new Vector3Int(0, 0, 1);
-            var connectedBigGearSmallGearPos = new Vector3Int(2, 0, 1);
-            
-            var smallGear1Pos = new Vector3Int(0, 0, -1);
-            var smallGear2Pos = new Vector3Int(1, 0, -1);
-            var smallGearPos = new Vector3Int(2, 0, -1);
+            var generatorPos = new Vector3Int(0, 0, 0); // 大歯車を使ってRPMを変化させた側の歯車
+            var bigGearPos = new Vector3Int(0, 0, 1); // Gears on the side that changed RPM with large gears
+            var smallGear1Pos = new Vector3Int(0, 0, 1);
+
+            var smallGear2Pos = new Vector3Int(0, 0, -1); // RPMを変化させていない側の歯車（回転方向を変えないために2つの小歯車をつかう）
+            var smallGear3Pos = new Vector3Int(1, 0, -1); // Gears on the side not changing RPM (two small gears are used to keep the direction of rotation the same)
 
             AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North);
             AddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North);
-            AddBlock(ForUnitTestModBlockId.SmallGear, connectedBigGearSmallGearPos, BlockDirection.North);
-            
-            AddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North);
 
-            // 大ギアは小ギア0に接続され、小ギアは小ギア1に接続されている。
-            // 発電機は2つあり、発電機0と発電機1である。
-            // 発電機0は大ギヤに、発電機1は小ギヤ1に電力を供給する。
-            // 大ギアは小ギア0に小ギア1よりも高い回転数を与えるはずである。
-            // 小歯車0と小歯車1が互いに異なる回転数で接続されているため、 ネットワークはロックされるべきである。
-            // 回転方向が異なるため、ネットワークはロックされるべきではない。
-            // big gear is connected to small gear 0 which is connected to small gear 1.
-            // there are two generators, generator 0 and generator 1.
-            // generator 0 powers the big gear and generator 1 powers the small gear 1.
-            // the big gear should give the small gear 0 a higher rpm than the small gear 1.
-            // the network should be locked because the small gear 0 and small gear 1 are connected to each other with a difference RPM.
-            // the network should not lock because of a different rotation direction.
+            AddBlock(ForUnitTestModBlockId.BigGear, smallGear2Pos, BlockDirection.North);
+
+            var smallGear1 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North);
+            var smallGear1Connector = smallGear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var smallGear1Transform = smallGear1.ComponentManager.GetComponent<IGearEnergyTransformer>();
+
+            var smallGear3 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear3Pos, BlockDirection.North);
+            var smallGear3Connector = smallGear3.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var smallGear3Transform = smallGear3.ComponentManager.GetComponent<IGearEnergyTransformer>();
+
+            //RPMが違う歯車同士を強制的に接続
+            //Force connection between gears with different RPM
+            ((List<IGearEnergyTransformer>)smallGear1Connector.ConnectTargets).Add(smallGear1Transform);
+            ((List<IGearEnergyTransformer>)smallGear3Connector.ConnectTargets).Add(smallGear3Transform);
 
             // find the network
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
@@ -110,6 +110,7 @@ namespace Tests.CombinedTest.Game
 
             // TODO: ネットワークがロックされているかどうかを確認する
             //Assert.IsTrue(gearNetwork.IsLocked);
+            Assert.IsTrue(false);
         }
 
         [Test]
@@ -151,10 +152,10 @@ namespace Tests.CombinedTest.Game
             //TODO 設置したら歯車NWが増える、歯車NWのマージのテスト、削除したら歯車NWが分割されるテスト
         }
 
-        private static IBlock AddBlock(int blockId,Vector3Int pos,BlockDirection direction)
+        private static IBlock AddBlock(int blockId, Vector3Int pos, BlockDirection direction)
         {
             var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
-            
+
             var posInfo = new BlockPositionInfo(pos, direction, config.BlockSize);
             var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), posInfo);
             ServerContext.WorldBlockDatastore.AddBlock(block);
