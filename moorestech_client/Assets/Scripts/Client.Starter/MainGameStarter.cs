@@ -21,7 +21,6 @@ using Client.Game.Skit;
 using Client.Game.Skit.Starter;
 using Client.Network.API;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -39,8 +38,7 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
-        [FormerlySerializedAs("chunkBlockGameObjectDataStore")] [SerializeField]
-        private BlockGameObjectDataStore blockGameObjectDataStore;
+        [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
         [SerializeField] private CommandUIInput commandUIInput;
