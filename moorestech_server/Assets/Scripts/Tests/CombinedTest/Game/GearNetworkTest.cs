@@ -167,21 +167,26 @@ namespace Tests.CombinedTest.Game
         public void DifferentDirectionGearNetworkToRockTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            
-            var generatorPositionA = new Vector3Int(0, 0, 0);
-            var generatorPositionB = new Vector3Int(1, 0, 0);
-            var gearPositionA = new Vector3Int(0, 1, 0);
-            var gearPositionB = new Vector3Int(1, 1, 0);
-            
-            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPositionA, BlockDirection.UpNorth);
-            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPositionB, BlockDirection.UpNorth);
-            AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.UpNorth);
-            AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.UpNorth);
-            
+
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 0);
+
+            var gearPosition3 = new Vector3Int(0, 0, -1);
+
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North);
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North);
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North);
+
+            //回転方向が違う歯車同士を強制的に接続
+            //Forced connection of gears with different directions of rotation
+            ForceConnectGear(gear2, gear3);
+
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks[0];
             gearNetwork.ManualUpdate();
-            
+
             // TODO: ネットワークがロックされているかどうかを確認する
             //Assert.IsTrue(gearNetwork.IsLocked);
             Assert.IsTrue(false);
@@ -228,6 +233,19 @@ namespace Tests.CombinedTest.Game
             var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), posInfo);
             ServerContext.WorldBlockDatastore.AddBlock(block);
             return block;
+        }
+
+        private static void ForceConnectGear(IBlock gear1, IBlock gear2)
+        {
+            var gear1Connector = gear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var gear1Transform = gear1.ComponentManager.GetComponent<IGearEnergyTransformer>();
+
+            var gear2Connector = gear2.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var gear2Transform = gear2.ComponentManager.GetComponent<IGearEnergyTransformer>();
+
+
+            ((List<IGearEnergyTransformer>)gear1Connector.ConnectTargets).Add(gear2Transform);
+            ((List<IGearEnergyTransformer>)gear2Connector.ConnectTargets).Add(gear1Transform);
         }
     }
 }
