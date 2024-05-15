@@ -151,7 +151,7 @@ namespace Client.Game.InGame.BlockSystem
             var placePoint = CalcPlacePoint();
             
             // ブロックが置けるか
-            if (IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
+            if (!IsBlockPlaceableDistance(5f) || IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
             {
                 _blockPlacePreview.SetActive(true);
                 _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
@@ -200,6 +200,14 @@ namespace Client.Game.InGame.BlockSystem
             {
                 // ブロックとterrainが重なっていること
                 return _detectCollisionTerrain.isCollisionTerrain;
+            }
+            
+            bool IsBlockPlaceableDistance(float maxDistance)
+            {
+                var placePosition = (Vector3)placePoint;
+                var playerPosition = _playerObjectController.transform.position;
+                
+                return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
             }
             
             Vector3Int CalcPlacePoint()
