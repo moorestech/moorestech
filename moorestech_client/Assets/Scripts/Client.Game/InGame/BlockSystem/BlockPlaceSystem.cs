@@ -23,6 +23,7 @@ namespace Client.Game.InGame.BlockSystem
     /// </summary>
     public class BlockPlaceSystem : IPostTickable
     {
+        private const float PlaceableMaxDistance = 100f;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly IBlockPlacePreview _blockPlacePreview;
         private readonly DetectCollisionTerrain _detectCollisionTerrain;
@@ -151,7 +152,7 @@ namespace Client.Game.InGame.BlockSystem
             var placePoint = CalcPlacePoint();
             
             // ブロックが置けるか
-            if (!IsBlockPlaceableDistance(5f) || IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
+            if (!IsBlockPlaceableDistance(PlaceableMaxDistance) || IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
             {
                 _blockPlacePreview.SetActive(true);
                 _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
