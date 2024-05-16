@@ -28,5 +28,11 @@ namespace Game.Block.Interface.State
             powerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
             this.processingRate = processingRate;
         }
+
+        public CommonMachineBlockStateChangeData(float powerRate, float processingRate)
+        {
+            this.powerRate = powerRate;
+            this.processingRate = processingRate;
+        }
     }
 }
