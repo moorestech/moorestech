@@ -53,7 +53,8 @@ namespace Client.Game.InGame.Context
                 //ブロックIDがないのでない時用のブロックを作る
                 Debug.LogError("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject, position, rotation, parent);
-                nothing.Initialize(blockConfig, blockPosition, direction, new NullBlockStateChangeProcessor());
+                var nothingBlockPosInfo = new BlockPositionInfo(blockPosition, direction, Vector3Int.one);
+                nothing.Initialize(blockConfig,nothingBlockPosInfo, new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
             
@@ -71,7 +72,8 @@ namespace Client.Game.InGame.Context
             
             var blockType = _blockObjectList[blockConfigIndex].Type;
             blockObj.gameObject.SetActive(true);
-            blockObj.Initialize(blockConfig, blockPosition, direction, GetBlockStateChangeProcessor(blockObj, blockType));
+            var posInfo = new BlockPositionInfo(blockPosition, direction, blockConfig.BlockSize);
+            blockObj.Initialize(blockConfig, posInfo, GetBlockStateChangeProcessor(blockObj, blockType));
             
             //ブロックが開けるものの場合はそのコンポーネントを付与する
             if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();

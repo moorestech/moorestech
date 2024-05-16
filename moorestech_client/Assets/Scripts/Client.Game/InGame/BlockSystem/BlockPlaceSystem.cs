@@ -184,12 +184,9 @@ namespace Client.Game.InGame.BlockSystem
             bool IsAlreadyExistingBlock(Vector3Int originPosition, Vector3Int size)
             {
                 // ブロックが既に存在しているかどうか
-                foreach (var position in BlockPositionInfo.GetBlockBoundingBox(originPosition, _currentBlockDirection, size))
-                {
-                    if (_blockGameObjectDataStore.ContainsBlockGameObject(position)) return true;
-                }
-                
-                return false;
+                var previewPositionInfo = new BlockPositionInfo(originPosition, _currentBlockDirection, size);
+
+                return _blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
             }
             
             bool IsTerrainOverlapBlock()

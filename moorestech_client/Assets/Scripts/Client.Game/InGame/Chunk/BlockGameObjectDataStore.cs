@@ -5,7 +5,7 @@ using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using Game.Context;
+using Game.Block.Interface.Extension;
 using UnityEngine;
 
 namespace Client.Game.InGame.Chunk
@@ -17,11 +17,11 @@ namespace Client.Game.InGame.Chunk
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
-
+        
 
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
-            return _blockObjectsDictionary.GetValueOrDefault(position);
+            return _blockObjectsDictionary.TryGetValue(position, out var value) ? value : null;
         }
 
         public bool ContainsBlockGameObject(Vector3Int position)
@@ -33,45 +33,25 @@ namespace Client.Game.InGame.Chunk
         public void PlaceBlock(Vector3Int blockPosition, int blockId, BlockDirection blockDirection)
         {
             //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
-            var blockConfig = ServerContext.BlockConfig;
-            var boundingBox = BlockPositionInfo.GetBlockBoundingBox(blockPosition, blockDirection, blockConfig.GetBlockConfig(blockId).BlockSize);
-            
-            foreach (var position in boundingBox)
+            if (_blockObjectsDictionary.ContainsKey(blockPosition))
             {
-                if (_blockObjectsDictionary.ContainsKey(position))
-                {
-                    // //IDが同じかつ全く同じ位置にあるオブジェクトの場合は再設置の必要がないため処理を終了
-                    if (_blockObjectsDictionary[position].BlockId == blockId && _blockObjectsDictionary[position].BlockPosition == blockPosition)
-                    {
-                        return;
-                    }
-                    
-                    //IDが違うため削除
-                    RemoveBlock(position);
-                }
+                //IDが同じ時は再設置の必要がないため処理を終了
+                if (_blockObjectsDictionary[blockPosition].BlockId == blockId) return;
+
+                //IDが違うため削除
+                Destroy(_blockObjectsDictionary[blockPosition].gameObject);
+                _blockObjectsDictionary.Remove(blockPosition);
             }
 
             //新しいブロックを設置
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
             var rot = blockDirection.GetRotation();
-
-            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(
-                blockId, 
-                pos, 
-                rot,
-                transform,
-                blockPosition, 
-                blockDirection
-            );
             
+            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition, blockDirection);
             //設置アニメーションを再生
             block.PlayPlaceAnimation().Forget();
             
-            foreach (var position in boundingBox)
-            {
-                _blockObjectsDictionary[position] = block;   
-            }
-            
+            _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);
         }
 
@@ -79,14 +59,18 @@ namespace Client.Game.InGame.Chunk
         {
             //すでにブロックが置かれている時のみブロックを削除する
             if (!_blockObjectsDictionary.ContainsKey(blockPosition)) return;
-            
-            var block = _blockObjectsDictionary[blockPosition];
-            var boundingBox = BlockPositionInfo.GetBlockBoundingBox(block.BlockPosition, block.BlockDirection, block.BlockConfig.BlockSize);
-            block.DestroyBlock().Forget();
-            foreach (var position in boundingBox)
+
+            _blockObjectsDictionary[blockPosition].DestroyBlock().Forget();
+            _blockObjectsDictionary.Remove(blockPosition);
+        }
+
+        public bool IsOverlapPositionInfo(BlockPositionInfo target)
+        {
+            foreach (var block in _blockObjectsDictionary.Values)
             {
-                _blockObjectsDictionary.Remove(position);
+                if (block.BlockPosInfo.IsOverlap(target)) return true;
             }
+            return false;
         }
     }
 }
