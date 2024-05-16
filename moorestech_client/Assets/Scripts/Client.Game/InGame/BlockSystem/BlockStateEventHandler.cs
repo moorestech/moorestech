@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem
             else
             {
                 var blockObject = _blockGameObjectDataStore.BlockGameObjectDictionary[pos];
-                blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateJsonData);
+                blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateData);
 
                 var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockObject.BlockId);
             }
