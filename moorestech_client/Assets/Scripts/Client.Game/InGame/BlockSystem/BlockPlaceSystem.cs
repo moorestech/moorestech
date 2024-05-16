@@ -152,7 +152,7 @@ namespace Client.Game.InGame.BlockSystem
             _blockPlacePreview.SetPreview(placeable, placePoint, _currentBlockDirection, holdingBlockConfig);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
+            if (placeable && InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
                 MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
@@ -171,7 +171,8 @@ namespace Client.Game.InGame.BlockSystem
             bool IsTerrainOverlapBlock()
             {
                 // ブロックとterrainが重なっていること
-                return _blockPlacePreview.IsCollisionGround;
+                //TODO ちゃんとできないから一旦放置 return _blockPlacePreview.IsCollisionGround;
+                return true;
             }
             
             bool IsBlockPlaceableDistance(float maxDistance)

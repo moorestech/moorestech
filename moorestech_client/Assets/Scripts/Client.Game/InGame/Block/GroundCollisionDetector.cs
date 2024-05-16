@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Chunk;
 using UnityEngine;
 
@@ -7,15 +8,17 @@ namespace Client.Game.InGame.Block
     {
         public bool IsCollision { get; private set; }
 
-        private void OnCollisionEnter(Collision other)
+
+        //TODO グラウンド検知
+        private void OnTriggerEnter(Collider other)
         {
             if (other.gameObject.TryGetComponent<GroundGameObject>(out _))
             {
                 IsCollision = true;
             }
         }
-        
-        private void OnCollisionExit(Collision other)
+
+        private void OnTriggerExit(Collider other)
         {
             if (other.gameObject.TryGetComponent<GroundGameObject>(out _))
             {
