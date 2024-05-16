@@ -4,7 +4,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.Interface.State;
-using Newtonsoft.Json;
+using MessagePack;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine
@@ -84,7 +84,7 @@ namespace Game.Block.Blocks.Machine
                 var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
                 ChangeState.OnNext(
                     new ChangedBlockState(CurrentState.ToStr(), _lastState.ToStr(),
-                        JsonConvert.SerializeObject(
+                        MessagePackSerializer.Serialize(
                             new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
                 _lastState = CurrentState;
             }
