@@ -1,4 +1,4 @@
-﻿using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Chunk;
 using Client.Game.InGame.Context;
 using Game.Context;
 using MessagePack;
@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem
             else
             {
                 var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
-                blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateJsonData);
+                blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateData);
 
                 var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockObject.BlockId);
             }
