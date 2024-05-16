@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Chunk;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -22,23 +23,36 @@ namespace Client.Game.InGame.BlockSystem
     /// </summary>
     public class BlockPlaceSystem : IPostTickable
     {
+        private const float PlaceableMaxDistance = 100f;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly IBlockPlacePreview _blockPlacePreview;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
+        private readonly PlayerObjectController _playerObjectController;
         private readonly UIStateControl _uiState;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         
         private int _heightOffset;
         
-        public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory, UIStateControl uiStateControl)
+        public BlockPlaceSystem(
+            Camera mainCamera,
+            HotBarView hotBarView,
+            IBlockPlacePreview blockPlacePreview,
+            ILocalPlayerInventory localPlayerInventory,
+            UIStateControl uiStateControl,
+            BlockGameObjectDataStore blockGameObjectDataStore,
+            PlayerObjectController playerObjectController
+        )
         {
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
             _uiState = uiStateControl;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _playerObjectController = playerObjectController;
         }
         
         public void PostTick()
@@ -113,7 +127,6 @@ namespace Client.Game.InGame.BlockSystem
         
         private void GroundClickControl()
         {
-            var blockConfig = ServerContext.BlockConfig;
             var selectIndex = _hotBarView.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             var hitPoint = Vector3.zero;
@@ -121,16 +134,22 @@ namespace Client.Game.InGame.BlockSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            //プレビュー表示判定
-            if (!IsDisplayPreviewBlock()) return;
+            if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return; // ブロックを設置するステートかどうか
+            if (!ServerContext.BlockConfig.IsBlock(itemId)) return; // 置けるブロックかどうか
+            if (!TryGetRayHitPosition(out hitPoint)) return; // ブロック設置用のrayが当たっているか
             
             //設置座標計算 calculate place point
-            var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
+            var holdingBlockConfig = ServerContext.BlockConfig.ItemIdToBlockConfig(itemId);
             var placePoint = CalcPlacePoint();
             
-            //プレビュー表示 display preview
             _blockPlacePreview.SetActive(true);
-            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
+            var placeable = 
+                !IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) && 
+                IsBlockPlaceableDistance(PlaceableMaxDistance) && 
+                !IsTerrainOverlapBlock();
+            
+            //プレビュー表示 display preview
+            _blockPlacePreview.SetPreview(placeable, placePoint, _currentBlockDirection, holdingBlockConfig);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
@@ -141,30 +160,40 @@ namespace Client.Game.InGame.BlockSystem
             
             #region Internal
             
-            bool IsDisplayPreviewBlock()
+            bool IsAlreadyExistingBlock(Vector3Int originPosition, Vector3Int size)
             {
-                //UIの状態が設置ステートか
-                if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return false;
+                // ブロックが既に存在しているかどうか
+                var previewPositionInfo = new BlockPositionInfo(originPosition, _currentBlockDirection, size);
+
+                return _blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
+            }
+            
+            bool IsTerrainOverlapBlock()
+            {
+                // ブロックとterrainが重なっていること
+                return _blockPlacePreview.IsCollisionGround;
+            }
+            
+            bool IsBlockPlaceableDistance(float maxDistance)
+            {
+                var placePosition = (Vector3)placePoint;
+                var playerPosition = _playerObjectController.transform.position;
                 
-                //持っているアイテムがブロックじゃなかったら何もしない
-                if (!blockConfig.IsBlock(itemId)) return false;
-                
-                //プレビューの座標を取得
-                return TryGetRayHitPosition(out hitPoint);
+                return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
             }
             
             Vector3Int CalcPlacePoint()
             {
-                var convertAction = _currentBlockDirection.GetCoordinateConvertAction();
-                var convertedSize = convertAction(holdingBlockConfig.BlockSize).Abs();
+                var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
+                var rotatedSize = rotateAction(holdingBlockConfig.BlockSize).Abs();
                 
                 var point = Vector3Int.zero;
-                point.x = Mathf.FloorToInt(hitPoint.x + (convertedSize.x % 2 == 0 ? 0.5f : 0));
-                point.z = Mathf.FloorToInt(hitPoint.z + (convertedSize.z % 2 == 0 ? 0.5f : 0));
+                point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
+                point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
                 point.y = Mathf.FloorToInt(hitPoint.y);
                 
                 point += new Vector3Int(0, _heightOffset, 0);
-                point -= new Vector3Int(convertedSize.x, 0, convertedSize.z) / 2;
+                point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
                 
                 return point;
             }
@@ -179,7 +208,7 @@ namespace Client.Game.InGame.BlockSystem
             var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
+            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
             //そのrayが地面のオブジェクトかブロックにヒットしてるか
             if (!hit.transform.TryGetComponent<GroundGameObject>(out _) && !hit.transform.TryGetComponent<BlockGameObjectChild>(out _)) return false;
             

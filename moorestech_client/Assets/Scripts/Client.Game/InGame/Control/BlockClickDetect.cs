@@ -15,7 +15,7 @@ namespace Client.Game.InGame.Control
             if (!TryGetCursorOnBlock(out var blockObject)) return false;
 
 
-            position = blockObject.BlockPosition;
+            position = blockObject.BlockPosInfo.OriginalPos;
 
             return true;
         }

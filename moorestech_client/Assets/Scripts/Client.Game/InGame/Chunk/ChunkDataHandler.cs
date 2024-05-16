@@ -21,12 +21,12 @@ namespace Client.Game.InGame.Chunk
     /// </summary>
     public class ChunkDataHandler : IInitializable
     {
-        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly EntityObjectDatastore _entitiesDatastore;
 
-        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, EntityObjectDatastore entitiesDatastore, InitialHandshakeResponse initialHandshakeResponse)
+        public ChunkDataHandler(BlockGameObjectDataStore blockGameObjectDataStore, EntityObjectDatastore entitiesDatastore, InitialHandshakeResponse initialHandshakeResponse)
         {
-            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
             MoorestechContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Chunk
 
             //viewにブロックがおかれたことを通知する
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
-            _chunkBlockGameObjectDataStore.RemoveBlock(data.Position);
+            _blockGameObjectDataStore.RemoveBlock(data.Position);
         }
 
         /// <summary>
@@ -120,11 +120,11 @@ namespace Client.Game.InGame.Chunk
         {
             if (id == BlockConstant.NullBlockId)
             {
-                _chunkBlockGameObjectDataStore.RemoveBlock(position);
+                _blockGameObjectDataStore.RemoveBlock(position);
                 return;
             }
 
-            _chunkBlockGameObjectDataStore.PlaceBlock(position, id, blockDirection);
+            _blockGameObjectDataStore.PlaceBlock(position, id, blockDirection);
         }
 
         /// <summary>

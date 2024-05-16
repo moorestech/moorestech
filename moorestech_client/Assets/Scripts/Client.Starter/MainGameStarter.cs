@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateChange;
 using Client.Game.InGame.Chunk;
@@ -37,7 +38,7 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
-        [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
+        [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
         [SerializeField] private CommandUIInput commandUIInput;
@@ -115,7 +116,7 @@ namespace Client.Starter
             
             
             //Hierarchy上にあるcomponent
-            builder.RegisterComponent(chunkBlockGameObjectDataStore);
+            builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             
             builder.RegisterComponent(mainCamera);
@@ -141,14 +142,14 @@ namespace Client.Starter
             
             builder.RegisterComponent(inGameCameraController);
             
-            builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
+            builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
             
             builder.RegisterBuildCallback(objectResolver => { });
             
             //依存関係を解決
             _resolver = builder.Build();
-            _resolver.Resolve<ChunkBlockGameObjectDataStore>();
+            _resolver.Resolve<BlockGameObjectDataStore>();
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();

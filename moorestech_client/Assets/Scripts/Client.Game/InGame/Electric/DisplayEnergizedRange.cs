@@ -22,23 +22,23 @@ namespace Client.Game.InGame.Electric
         [SerializeField] private EnergizedRangeObject rangePrefab;
         private readonly List<EnergizedRangeObject> rangeObjects = new();
 
-        private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private BlockGameObjectDataStore _blockGameObjectDataStore;
         private HotBarView _hotBarView;
         private ILocalPlayerInventory _localPlayerInventory;
 
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
+        public void Construct(HotBarView hotBarView, UIStateControl uiStateControl, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
         {
-            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
 
             _localPlayerInventory = localPlayerInventory;
             _hotBarView = hotBarView;
 
             hotBarView.OnSelectHotBar += OnSelectHotBar;
             uiStateControl.OnStateChanged += OnStateChanged;
-            chunkBlockGameObjectDataStore.OnPlaceBlock += OnPlaceBlock;
+            blockGameObjectDataStore.OnPlaceBlock += OnPlaceBlock;
         }
 
         private void OnSelectHotBar(int index)
@@ -116,7 +116,7 @@ namespace Client.Game.InGame.Electric
             List<BlockGameObject> GetElectricalPoles()
             {
                 var resultBlocks = new List<BlockGameObject>();
-                foreach (KeyValuePair<Vector3Int, BlockGameObject> blocks in _chunkBlockGameObjectDataStore.BlockGameObjectDictionary)
+                foreach (KeyValuePair<Vector3Int, BlockGameObject> blocks in _blockGameObjectDataStore.BlockGameObjectDictionary)
                 {
                     var blockType = blockConfig.GetBlockConfig(blocks.Value.BlockId).Type;
                     if (blockType != VanillaBlockType.ElectricPole) continue;

@@ -5,18 +5,19 @@ using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using UnityEngine;
 
 namespace Client.Game.InGame.Chunk
 {
-    public class ChunkBlockGameObjectDataStore : MonoBehaviour
+    public class BlockGameObjectDataStore : MonoBehaviour
     {
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
 
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
-
+        
 
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
@@ -45,11 +46,11 @@ namespace Client.Game.InGame.Chunk
             //新しいブロックを設置
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
             var rot = blockDirection.GetRotation();
-
-            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot, transform, blockPosition);
+            
+            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition, blockDirection);
             //設置アニメーションを再生
             block.PlayPlaceAnimation().Forget();
-
+            
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);
         }
@@ -61,6 +62,15 @@ namespace Client.Game.InGame.Chunk
 
             _blockObjectsDictionary[blockPosition].DestroyBlock().Forget();
             _blockObjectsDictionary.Remove(blockPosition);
+        }
+
+        public bool IsOverlapPositionInfo(BlockPositionInfo target)
+        {
+            foreach (var block in _blockObjectsDictionary.Values)
+            {
+                if (block.BlockPosInfo.IsOverlap(target)) return true;
+            }
+            return false;
         }
     }
 }

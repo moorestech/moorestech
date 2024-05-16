@@ -4,32 +4,26 @@ namespace Game.Block.Interface
 {
     public class BlockPositionInfo
     {
-        public BlockPositionInfo(Vector3Int originalPos, BlockDirection blockDirection, Vector3Int blockSize)
-        {
-            OriginalPos = originalPos;
-            BlockDirection = blockDirection;
-            BlockSize = blockSize;
-
-            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
-        }
         /// <summary>
         ///     オリジナル座標は常に左下（ブロックが専有する範囲の最小の座標）になる
         /// </summary>
         public Vector3Int OriginalPos { get; }
         public Vector3Int BlockSize { get; }
-
+        
         public Vector3Int MinPos => OriginalPos;
         public Vector3Int MaxPos { get; }
-
+        
         public BlockDirection BlockDirection { get; }
-
-        public bool IsContainPos(Vector3Int pos)
+        
+        public BlockPositionInfo(Vector3Int originalPos, BlockDirection blockDirection, Vector3Int blockSize)
         {
-            return OriginalPos.x <= pos.x && pos.x <= MaxPos.x &&
-                   OriginalPos.y <= pos.y && pos.y <= MaxPos.y &&
-                   OriginalPos.z <= pos.z && pos.z <= MaxPos.z;
+            OriginalPos = originalPos;
+            BlockDirection = blockDirection;
+            BlockSize = blockSize;
+            
+            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
         }
-
+        
         /// <summary>
         ///     サーバー側管理のブロックの最大座標を計算する
         ///     これはどのグリッドにブロックが存在しているかということに使われるため、サイズ 1,1 の場合、originとmaxの値はおなじになる
@@ -51,7 +45,7 @@ namespace Game.Block.Interface
                 case BlockDirection.DownWest:
                     addPos = new Vector3Int(blockSize.y, blockSize.z, blockSize.x);
                     break;
-
+                
                 case BlockDirection.North:
                 case BlockDirection.South:
                     addPos = new Vector3Int(blockSize.x, blockSize.y, blockSize.z);
@@ -61,7 +55,7 @@ namespace Game.Block.Interface
                     addPos = new Vector3Int(blockSize.z, blockSize.y, blockSize.x);
                     break;
             }
-
+            
             // block sizeは1からとなっているが、ここで求めるのはブロックが占める範囲の最大値なので、-1している
             return addPos + originPos - Vector3Int.one;
         }
