@@ -1,3 +1,4 @@
+using MessagePack;
 using System;
 
 namespace Game.Block.Interface.State
@@ -6,17 +7,20 @@ namespace Game.Block.Interface.State
     ///     機械、採掘機など基本的な機械のステートの詳細なデータ
     /// </summary>
     [Serializable]
+    [MessagePackObject]
     public class CommonMachineBlockStateChangeData
     {
         /// <summary>
         ///     必要な電力に対してどの程度電力が来ているかを表す
         ///     アニメーションを再生する速度に利用する
         /// </summary>
+        [Key(0)]
         public float powerRate;
 
         /// <summary>
         ///     アイテムの作成がどれくらい進んでいるかを表す
         /// </summary>
+        [Key(1)]
         public float processingRate;
 
         public CommonMachineBlockStateChangeData(float currentPower, float requestPower, float processingRate)
