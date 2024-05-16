@@ -28,16 +28,12 @@ namespace Client.Game.InGame.BlockSystem
         
         private GroundCollisionDetector[] _collisionDetectors;
         
-        public void SetPlaceablePreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
+        public void SetPreview(bool placeable,Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
             SetPreview(blockPosition, blockDirection, blockConfig);
-            SetMaterial(Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial));
-        }
-        
-        public void SetNotPlaceablePreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
-        {
-            SetMaterial(Resources.Load<Material>(MaterialConst.PreviewNotPlaceableBlockMaterial));
-            SetPreview(blockPosition, blockDirection, blockConfig);
+            
+            var materialPath = placeable ? MaterialConst.PreviewPlaceBlockMaterial : MaterialConst.PreviewNotPlaceableBlockMaterial;
+            SetMaterial(Resources.Load<Material>(materialPath));
         }
         
         public void SetActive(bool active)

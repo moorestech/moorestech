@@ -10,8 +10,7 @@ namespace Client.Game.InGame.BlockSystem
         
         bool IsCollisionGround { get; }
         
-        public void SetPlaceablePreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
-        public void SetNotPlaceablePreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
+        public void SetPreview(bool placeable,Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
         
         public void SetActive(bool active);
     }
