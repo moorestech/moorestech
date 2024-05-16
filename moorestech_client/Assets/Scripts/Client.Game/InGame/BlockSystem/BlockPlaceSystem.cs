@@ -127,7 +127,6 @@ namespace Client.Game.InGame.BlockSystem
         
         private void GroundClickControl()
         {
-            var blockConfig = ServerContext.BlockConfig;
             var selectIndex = _hotBarView.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             var hitPoint = Vector3.zero;
@@ -135,29 +134,22 @@ namespace Client.Game.InGame.BlockSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            // ブロックを設置するステートかどうか
-            if (!IsPlaceBlockState()) return;
-            
-            // ブロック設置用のrayが当たっているか
-            if (!TryGetRayHitPosition(out hitPoint)) return;
-            
-            // 置けるブロックかどうか
-            if (!IsPlaceableBlock()) return;
+            if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return; // ブロックを設置するステートかどうか
+            if (!ServerContext.BlockConfig.IsBlock(itemId)) return; // 置けるブロックかどうか
+            if (!TryGetRayHitPosition(out hitPoint)) return; // ブロック設置用のrayが当たっているか
             
             //設置座標計算 calculate place point
-            var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
+            var holdingBlockConfig = ServerContext.BlockConfig.ItemIdToBlockConfig(itemId);
             var placePoint = CalcPlacePoint();
             
             _blockPlacePreview.SetActive(true);
-            // ブロックが置けるか
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance) || IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) || IsTerrainOverlapBlock())
-            {
-                _blockPlacePreview.SetPreview(false, placePoint, _currentBlockDirection, holdingBlockConfig);
-                return;
-            }
-
+            var placeable = 
+                !IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) && 
+                IsBlockPlaceableDistance(PlaceableMaxDistance) && 
+                !IsTerrainOverlapBlock();
+            
             //プレビュー表示 display preview
-            _blockPlacePreview.SetPreview(true, placePoint, _currentBlockDirection, holdingBlockConfig);
+            _blockPlacePreview.SetPreview(placeable, placePoint, _currentBlockDirection, holdingBlockConfig);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
@@ -167,18 +159,6 @@ namespace Client.Game.InGame.BlockSystem
             }
             
             #region Internal
-            
-            bool IsPlaceableBlock()
-            {
-                // 持っているアイテムがブロックかどうか
-                return blockConfig.IsBlock(itemId);
-            }
-            
-            bool IsPlaceBlockState()
-            {
-                //UIの状態が設置ステートか
-                return _uiState.CurrentState == UIStateEnum.PlaceBlock;
-            }
             
             bool IsAlreadyExistingBlock(Vector3Int originPosition, Vector3Int size)
             {
