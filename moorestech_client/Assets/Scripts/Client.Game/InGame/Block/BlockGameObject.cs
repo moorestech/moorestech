@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -11,19 +12,19 @@ namespace Client.Game.InGame.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
+        public int BlockId { get; private set; }
+        public BlockConfigData BlockConfig { get; private set; }
+        public BlockPositionInfo BlockPosInfo { get; private set; }
+        public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
+        
         private BlockShaderAnimation _blockShaderAnimation;
-
         private bool _isShaderAnimationing;
         private List<RendererMaterialReplacer> _rendererMaterialReplacer;
         private List<VisualEffect> _visualEffects;
-        public int BlockId { get; private set; }
-        public BlockConfigData BlockConfig { get; private set; }
-        public Vector3Int BlockPosition { get; private set; } = Vector3Int.zero;
-        public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
 
-        public void Initialize(BlockConfigData blockConfig, Vector3Int position, IBlockStateChangeProcessor blockStateChangeProcessor)
+        public void Initialize(BlockConfigData blockConfig, BlockPositionInfo posInfo, IBlockStateChangeProcessor blockStateChangeProcessor)
         {
-            BlockPosition = position;
+            BlockPosInfo = posInfo;
             BlockId = blockConfig.BlockId;
             BlockConfig = blockConfig;
             BlockStateChangeProcessor = blockStateChangeProcessor;

@@ -16,7 +16,7 @@ using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
-using Newtonsoft.Json;
+using MessagePack;
 using UniRx;
 
 namespace Game.Block.Blocks.Miner
@@ -214,8 +214,8 @@ namespace Game.Block.Blocks.Miner
                 if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
 
                 var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
-                var jsonData = JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
-                var changeStateData = new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(), jsonData);
+                var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
+                var changeStateData = new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
                 _blockStateChangeSubject.OnNext(changeStateData);
             }
 

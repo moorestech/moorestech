@@ -14,7 +14,9 @@
     "UniRx",
     "Game.Context",
     "Game.Map.Interface",
-    "Game.Gear"
+    "Game.Gear",
+    "MessagePack",
+    "MessagePack.Annotations"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

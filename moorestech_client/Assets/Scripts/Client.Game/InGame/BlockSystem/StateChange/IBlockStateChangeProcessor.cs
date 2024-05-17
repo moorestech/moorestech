@@ -1,4 +1,4 @@
-﻿namespace Client.Game.InGame.BlockSystem.StateChange
+namespace Client.Game.InGame.BlockSystem.StateChange
 {
     /// <summary>
     ///     ステートの変更を受け取り、その変更に合わせてアニメーション、エフェクト、音を再生するためのinterface
@@ -10,6 +10,6 @@
         ///     ブロックのステートに基づいてアニメーションを再生する
         ///     タイプに応じてアニメーションを再生する
         /// </summary>
-        public void OnChangeState(string currentState, string previousState, string currentStateData);
+        public void OnChangeState(string currentState, string previousState, byte[] currentStateData);
     }
 }

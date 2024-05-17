@@ -1,4 +1,8 @@
-﻿using Client.Game.InGame.Block;
+using System.Collections.Generic;
+using System.Linq;
+using Client.Common;
+using System.Linq;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -9,33 +13,59 @@ namespace Client.Game.InGame.BlockSystem
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
         private BlockPreviewObject _previewBlock;
-
+        
         public bool IsActive => gameObject.activeSelf;
-
-        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
+        
+        public bool IsCollisionGround
+        {
+            get
+            {
+                if (_collisionDetectors == null) return false;
+                
+                return _collisionDetectors.Any(detector => detector.IsCollision);
+            }
+        }
+        
+        private GroundCollisionDetector[] _collisionDetectors;
+        
+        public void SetPreview(bool placeable,Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
+        {
+            SetPreview(blockPosition, blockDirection, blockConfig);
+            
+            var materialPath = placeable ? MaterialConst.PreviewPlaceBlockMaterial : MaterialConst.PreviewNotPlaceableBlockMaterial;
+            SetMaterial(Resources.Load<Material>(materialPath));
+        }
+        
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
+        
+        private void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockConfig.BlockId);
             var rot = blockDirection.GetRotation();
-
+            
             if (!_previewBlock || _previewBlock.BlockConfig.BlockId != blockConfig.BlockId) //TODO さっきと同じブロックだったら置き換え
             {
                 if (_previewBlock)
                     Destroy(_previewBlock.gameObject);
-
+                
                 //プレビューブロックを設置
                 _previewBlock = MoorestechContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
                 _previewBlock.transform.SetParent(transform);
                 _previewBlock.transform.localPosition = Vector3.zero;
-                //プレビューブロックのマテリアルを変更
+                _collisionDetectors = _previewBlock.GetComponentsInChildren<GroundCollisionDetector>();
             }
-
+            
             transform.position = pos;
             _previewBlock.transform.rotation = rot;
         }
-
-        public void SetActive(bool active)
+        
+        public void SetMaterial(Material material)
         {
-            gameObject.SetActive(active);
+            //プレビューブロックのマテリアルを変更
+            _previewBlock.SetMaterial(material);
         }
     }
 }

@@ -6,7 +6,9 @@
     "Core.Util",
     "Core.Const",
     "UniRx",
-    "Core.Inventory"
+    "Core.Inventory",
+    "MessagePack",
+    "MessagePack.Annotations"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

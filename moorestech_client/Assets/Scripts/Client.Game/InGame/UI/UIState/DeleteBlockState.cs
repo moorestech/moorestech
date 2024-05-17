@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.UIState
 
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
             {
-                var blockPosition = _removeTargetBlock.BlockPosition;
+                var blockPosition = _removeTargetBlock.BlockPosInfo.OriginalPos;
                 MoorestechContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
             }
             

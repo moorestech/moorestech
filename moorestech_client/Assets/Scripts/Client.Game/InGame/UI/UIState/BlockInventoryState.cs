@@ -18,16 +18,16 @@ namespace Client.Game.InGame.UI.UIState
     public class BlockInventoryState : IUIState
     {
         private readonly BlockInventoryView _blockInventoryView;
-        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
 
         private CancellationTokenSource _cancellationTokenSource;
 
         private Vector3Int _openBlockPos;
 
-        public BlockInventoryState(BlockInventoryView blockInventoryView, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, PlayerInventoryViewController playerInventoryViewController)
+        public BlockInventoryState(BlockInventoryView blockInventoryView, BlockGameObjectDataStore blockGameObjectDataStore, PlayerInventoryViewController playerInventoryViewController)
         {
-            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
 
@@ -44,7 +44,7 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             if (!BlockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos)) Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
-            if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(_openBlockPos)) return;
+            if (!_blockGameObjectDataStore.ContainsBlockGameObject(_openBlockPos)) return;
 
             InputManager.MouseCursorVisible(true);
 
@@ -55,7 +55,7 @@ namespace Client.Game.InGame.UI.UIState
 
 
             //ブロックインベントリのビューを設定する
-            var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
+            var id = _blockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
             var config = ServerContext.BlockConfig.GetBlockConfig(id);
 
             var type = config.Type switch
