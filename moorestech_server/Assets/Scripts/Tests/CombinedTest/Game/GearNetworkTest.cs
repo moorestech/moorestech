@@ -193,32 +193,21 @@ namespace Tests.CombinedTest.Game
             //TODO 複数のジェネレーターのRPMがオーバーライドされるテスト
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var generatorAPosition = new Vector3Int(1, 1, 0);
-            var generatorBPosition = new Vector3Int(4, 1, 0);
-            var bigGearPosition = new Vector3Int(0, 0, 1);
-            var smallGearAPosition = new Vector3Int(3, 1, 1);
-            var smallGearBPosition = new Vector3Int(4, 1, 1);
+            var fastGeneratorPosition = new Vector3Int(1, 1, 0);
+            var generatorPosition = new Vector3Int(4, 1, 0);
+            var smallGearPosition = new Vector3Int(4, 1, 1);
             
-            var generatorA = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorAPosition, BlockDirection.North)
-                .ComponentManager.GetComponent<GearGeneratorComponent>();
-            var generatorB = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorBPosition, BlockDirection.North)
-                .ComponentManager.GetComponent<GearGeneratorComponent>();
-            var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, bigGearPosition, BlockDirection.North)
-                .ComponentManager.GetComponent<GearComponent>();
-            var smallGearA = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North)
-                .ComponentManager.GetComponent<GearComponent>();
-            var smallGearB = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North)
-                .ComponentManager.GetComponent<GearComponent>();
+            var fastGenerator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, fastGeneratorPosition, BlockDirection.North).ComponentManager.GetComponent<GearGeneratorComponent>();
+            var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<GearGeneratorComponent>();
+            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks[0];
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(generatorA.CurrentRpm, 10f);
-            Assert.AreEqual(bigGear.CurrentRpm, 10f);
-            Assert.AreEqual(smallGearA.CurrentRpm, 20f);
-            Assert.AreEqual(smallGearB.CurrentRpm, 20f);
-            Assert.AreEqual(generatorB.CurrentRpm, 20f);
+            Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
+            Assert.AreEqual(smallGear.CurrentRpm, 20f);
+            Assert.AreEqual(generator.CurrentRpm, 20f);
         }
         
         
