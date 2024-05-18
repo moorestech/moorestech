@@ -578,6 +578,29 @@
         "z": 1
       },
       "param": {
+        "teethCount": 10,
+        "lossPower": 0,
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -591,6 +614,29 @@
         "z": 1
       },
       "param": {
+        "teethCount": 20,
+        "lossPower": 0,
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 1,
+              "y": 1,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -604,6 +650,28 @@
         "z": 1
       },
       "param": {
+        "lossPower": 0.1,
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -617,6 +685,33 @@
         "z": 1
       },
       "param": {
+        "inputSlot": 1,
+        "outputSlot": 2,
+        "teethCount": 10,
+        "lossPower": 0.1,
+        "requiredRpm": 10,
+        "requiredTorque": 1,
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -630,6 +725,31 @@
         "z": 1
       },
       "param": {
+        "teethCount": 10,
+        "generateRpm": 10,
+        "generateTorque": 1,
+        "lossPower": 0.1,
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            ]
+          }
+        ]
       }
     }
   ]

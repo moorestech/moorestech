@@ -8,27 +8,28 @@ namespace Game.Block.Config.LoadConfig.Param
     {
         public readonly int InputSlot;
         public readonly int OutputSlot;
-        public readonly int RequiredPower;
+        public readonly int TeethCount;
+
+        public readonly int RequiredRpm;
+        public readonly float RequiredTorque;
+
 
         public List<ConnectSettings> GearConnectSettings;
 
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
         {
-            int inputSlot = blockParam.inputSlot;
-            int outputSlot = blockParam.outputSlot;
-            int requiredPower = blockParam.requiredPower;
-
-            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects");
-
-            return new GearMachineConfigParam(inputSlot, outputSlot, requiredPower, gearConnectSettings);
+            return new GearMachineConfigParam(blockParam, itemConfig);
         }
 
-        private GearMachineConfigParam(int inputSlot, int outputSlot, int requiredPower, List<ConnectSettings> gearConnectSettings)
+        private GearMachineConfigParam(dynamic blockParam, IItemConfig itemConfig)
         {
-            InputSlot = inputSlot;
-            OutputSlot = outputSlot;
-            RequiredPower = requiredPower;
-            GearConnectSettings = gearConnectSettings;
+            InputSlot = blockParam.inputSlot;
+            OutputSlot = blockParam.outputSlot;
+            TeethCount = blockParam.teethCount;
+            RequiredRpm = blockParam.requiredRpm;
+            RequiredTorque = blockParam.requiredTorque;
+
+            GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects");
         }
     }
 }
