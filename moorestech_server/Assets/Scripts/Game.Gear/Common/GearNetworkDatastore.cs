@@ -20,7 +20,7 @@ namespace Game.Gear.Common
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public void AddGear(IGear gear)
+        public void AddGear(IGearEnergyTransformer gear)
         {
             var connectedNetworkIds = new HashSet<int>();
             foreach (var connectedGear in gear.ConnectingTransformers)
@@ -65,13 +65,13 @@ namespace Game.Gear.Common
 
             void MergeNetworks()
             {
-                var consumers = new List<IGearConsumer>();
+                var transformers = new List<IGearEnergyTransformer>();
                 var generators = new List<IGearGenerator>();
 
                 foreach (var networkId in connectedNetworkIds.ToList())
                 {
                     var network = _blockEntityToGearNetwork[networkId];
-                    consumers.AddRange(network.GearConsumers);
+                    transformers.AddRange(network.GearTransformers);
                     generators.AddRange(network.GearGenerators);
                     _blockEntityToGearNetwork.Remove(networkId);
                 }
@@ -79,9 +79,9 @@ namespace Game.Gear.Common
                 var newNetworkId = _random.Next(int.MinValue, int.MaxValue);
                 var newNetwork = new GearNetwork(newNetworkId);
 
-                foreach (var consumer in consumers)
+                foreach (var transformer in transformers)
                 {
-                    newNetwork.AddGear(consumer);
+                    newNetwork.AddGear(transformer);
                 }
                 foreach (var generator in generators)
                 {

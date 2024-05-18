@@ -106,8 +106,8 @@ namespace Game.Block.Config.LoadConfig
                 var inventorySlots = block.inventoryConnectors;
                 if (inventorySlots != null)
                 {
-                    inputConnector = GetConnectSettings(block, true);
-                    outputConnector = GetConnectSettings(block, false);
+                    inputConnector = GetConnectSettings(block, "inputConnects");
+                    outputConnector = GetConnectSettings(block, "outputConnects");
                 }
 
                 blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform, blockSize, inputConnector, outputConnector));
@@ -152,9 +152,8 @@ namespace Game.Block.Config.LoadConfig
             return modelTransform;
         }
 
-        public static List<ConnectSettings> GetConnectSettings(dynamic connectSettings, bool isInput)
+        public static List<ConnectSettings> GetConnectSettings(dynamic connectSettings, string connectorsName)
         {
-            var connectorsName = isInput ? "inputConnects" : "outputConnects";
             var connectors = connectSettings[connectorsName];
             if (connectors == null) return null;
 

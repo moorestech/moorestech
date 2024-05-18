@@ -10,14 +10,12 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly float GenerateRpm;
         public readonly float GenerateTorque;
 
-        public List<ConnectSettings> InputConnectSettings;
-        public List<ConnectSettings> OutputConnectSettings;
+        public List<ConnectSettings> GearConnectSettings;
 
-        private SimpleGearGeneratorParam(int teethCount, float generateRpm, float generateTorque, List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings)
+        private SimpleGearGeneratorParam(int teethCount, float generateRpm, float generateTorque, List<ConnectSettings> gearConnectSettings)
         {
             TeethCount = teethCount;
-            InputConnectSettings = inputConnectSettings;
-            OutputConnectSettings = outputConnectSettings;
+            GearConnectSettings = gearConnectSettings;
             GenerateRpm = generateRpm;
             GenerateTorque = generateTorque;
         }
@@ -28,11 +26,9 @@ namespace Game.Block.Config.LoadConfig.Param
             float generateRpm = blockParam.generateRpm;
             float generateTorque = blockParam.generateTorque;
 
-            var gearConnectors = blockParam.gearConnectors;
-            var inputConnectSettings = BlockConfigJsonLoad.GetConnectSettings(gearConnectors, true);
-            var outputConnectSettings = BlockConfigJsonLoad.GetConnectSettings(gearConnectors, false);
+            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects");
 
-            return new SimpleGearGeneratorParam(teethCount, generateRpm, generateTorque, inputConnectSettings, outputConnectSettings);
+            return new SimpleGearGeneratorParam(teethCount, generateRpm, generateTorque, gearConnectSettings);
         }
     }
 }

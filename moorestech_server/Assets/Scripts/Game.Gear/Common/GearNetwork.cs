@@ -7,29 +7,28 @@ namespace Game.Gear.Common
     {
         public readonly int NetworkId;
 
-        public IReadOnlyList<IGearEnergyTransformer> GearConsumers => _gearConsumers;
-        private readonly List<IGearEnergyTransformer> _gearConsumers = new();
+        public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
+        private readonly List<IGearEnergyTransformer> _gearTransformers = new();
 
         public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         private readonly List<IGearGenerator> _gearGenerators = new();
 
         private Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
-        private List<IGearEnergyTransformer> _gearEnergyTransformers = new();
 
         public GearNetwork(int networkId)
         {
             NetworkId = networkId;
         }
 
-        public void AddGear(IGear gear)
+        public void AddGear(IGearEnergyTransformer gear)
         {
             switch (gear)
             {
                 case IGearGenerator generator:
                     _gearGenerators.Add(generator);
                     break;
-                case IGearEnergyTransformer consumer:
-                    _gearConsumers.Add(consumer);
+                default:
+                    _gearTransformers.Add(gear);
                     break;
             }
         }
@@ -54,7 +53,7 @@ namespace Game.Gear.Common
             if (fastGenerator == null)
             {
                 //ジェネレーターがない場合はすべてにゼロを供給して終了
-                foreach (var consumer in GearConsumers)
+                foreach (var consumer in GearTransformers)
                 {
                     consumer.SupplyPower(0, 0, true);
                 }
@@ -64,11 +63,9 @@ namespace Game.Gear.Common
             //そのジェネレータと接続している各歯車コンポーネントを深さ優先度探索でたどり、RPMと回転方向を計算していく
             _checkedGearComponents.Clear();
             _checkedGearComponents = new();
-            _gearEnergyTransformers.Clear();
-            _gearEnergyTransformers = new();
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
             CalcGearInfo(fastGenerator, generatorGearRotationInfo);
-            
+
             //すべてのジェネレーターから生成GPを取得し、合算する
             var totalGeneratePower = 0f;
             foreach (var gearGenerator in GearGenerators)
@@ -78,14 +75,14 @@ namespace Game.Gear.Common
 
             //すべてのコンシューマーの必要GPを取得し、生成GPから割って分配率を計算する
             var totalRequiredPower = 0f;
-            foreach (var gearConsumer in GearConsumers)
+            foreach (var gearConsumer in GearTransformers)
             {
                 totalRequiredPower += gearConsumer.RequiredPower;
             }
 
             // 分配率をもとに、各コンシューマーに供給するGPを算出し、RPMから供給トルクを計算する
             var distributeRate = totalRequiredPower / totalGeneratePower;
-            foreach (var gearConsumer in GearConsumers)
+            foreach (var gearConsumer in GearTransformers)
             {
                 var info = _checkedGearComponents[gearConsumer.EntityId];
                 var supplyPower = gearConsumer.RequiredPower * distributeRate;
@@ -133,7 +130,6 @@ namespace Game.Gear.Common
                 // 計算済みとして登録
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
                 _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
-                _gearEnergyTransformers.Add(transformer);
 
                 // この歯車が接続している歯車を再帰的に計算する
                 foreach (var connectingGear in transformer.ConnectingTransformers)

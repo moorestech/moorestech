@@ -9,14 +9,12 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int TeethCount;
         public readonly float RequiredPower;
 
-        public List<ConnectSettings> InputConnectSettings;
-        public List<ConnectSettings> OutputConnectSettings;
+        public List<ConnectSettings> GearConnectSettings;
 
-        private GearConfigParam(int teethCount, float requiredPower, List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings)
+        private GearConfigParam(int teethCount, float requiredPower, List<ConnectSettings> gearConnectSettings)
         {
             TeethCount = teethCount;
-            InputConnectSettings = inputConnectSettings;
-            OutputConnectSettings = outputConnectSettings;
+            GearConnectSettings = gearConnectSettings;
             RequiredPower = requiredPower;
         }
 
@@ -26,10 +24,9 @@ namespace Game.Block.Config.LoadConfig.Param
             float lossPower = blockParam.lossPower;
 
             var gearConnectors = blockParam.gearConnectors;
-            var inputConnectSettings = BlockConfigJsonLoad.GetConnectSettings(gearConnectors, true);
-            var outputConnectSettings = BlockConfigJsonLoad.GetConnectSettings(gearConnectors, false);
+            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects");
 
-            return new GearConfigParam(teethCount, lossPower, inputConnectSettings, outputConnectSettings);
+            return new GearConfigParam(teethCount, lossPower, gearConnectSettings);
         }
     }
 }

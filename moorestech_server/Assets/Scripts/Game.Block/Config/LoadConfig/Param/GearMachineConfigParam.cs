@@ -10,8 +10,7 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int OutputSlot;
         public readonly int RequiredPower;
 
-        public List<ConnectSettings> InputConnectSettings;
-        public List<ConnectSettings> OutputConnectSettings;
+        public List<ConnectSettings> GearConnectSettings;
 
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
         {
@@ -19,20 +18,17 @@ namespace Game.Block.Config.LoadConfig.Param
             int outputSlot = blockParam.outputSlot;
             int requiredPower = blockParam.requiredPower;
 
-            var gearConnectors = blockParam.gearConnectors;
-            var inputConnectSettings = BlockConfigJsonLoad.GetConnectSettings(gearConnectors, true);
-            var outputConnectSettings = BlockConfigJsonLoad.GetConnectSettings(gearConnectors, false);
+            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects");
 
-            return new GearMachineConfigParam(inputSlot, outputSlot, requiredPower, inputConnectSettings, outputConnectSettings);
+            return new GearMachineConfigParam(inputSlot, outputSlot, requiredPower, gearConnectSettings);
         }
 
-        private GearMachineConfigParam(int inputSlot, int outputSlot, int requiredPower, List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings)
+        private GearMachineConfigParam(int inputSlot, int outputSlot, int requiredPower, List<ConnectSettings> gearConnectSettings)
         {
             InputSlot = inputSlot;
             OutputSlot = outputSlot;
             RequiredPower = requiredPower;
-            InputConnectSettings = inputConnectSettings;
-            OutputConnectSettings = outputConnectSettings;
+            GearConnectSettings = gearConnectSettings;
         }
     }
 }

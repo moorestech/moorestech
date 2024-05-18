@@ -4,21 +4,20 @@ using Game.Gear.Common;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearGeneratorComponent : IGearGenerator 
+    public class GearGeneratorComponent : IGearGenerator
     {
-        public float CurrentRpm { get; }
-        public bool IsCurrentClockwise { get; }
-        
-        
-        
         public bool IsDestroy { get; }
         public void Destroy()
         {
             throw new System.NotImplementedException();
         }
         public int EntityId { get; }
+        public float RequiredPower { get; }
+        public float CurrentRpm { get; }
+        public float CurrentTorque { get; }
+        public bool IsCurrentClockwise { get; }
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers { get; }
-        public void SupplyRotation(float rpm, bool isClockwise)
+        public void SupplyPower(float rpm, float torque, bool isClockwise)
         {
             throw new System.NotImplementedException();
         }
