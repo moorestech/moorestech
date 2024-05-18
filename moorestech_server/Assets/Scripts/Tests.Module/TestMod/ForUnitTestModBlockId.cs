@@ -18,5 +18,6 @@ namespace Tests.Module.TestMod
         public const int Shaft = 14;
         public const int GearMachine = 15;
         public const int SimpleGearGenerator = 16;
+        public const int SimpleFastGearGenerator = 17;
     }
 }

@@ -191,6 +191,23 @@ namespace Tests.CombinedTest.Game
         public void MultiGeneratorOverrideRpmTest()
         {
             //TODO 複数のジェネレーターのRPMがオーバーライドされるテスト
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var fastGeneratorPosition = new Vector3Int(1, 1, 0);
+            var generatorPosition = new Vector3Int(4, 1, 0);
+            var smallGearPosition = new Vector3Int(4, 1, 1);
+            
+            var fastGenerator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, fastGeneratorPosition, BlockDirection.North).ComponentManager.GetComponent<GearGeneratorComponent>();
+            var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<GearGeneratorComponent>();
+            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks[0];
+            gearNetwork.ManualUpdate();
+            
+            Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
+            Assert.AreEqual(smallGear.CurrentRpm, 20f);
+            Assert.AreEqual(generator.CurrentRpm, 20f);
         }
         
         
