@@ -30,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     RotationAxis.Z => new Vector3(0, 0, rotation),
                     _ => Vector3.zero
                 };
+                rotate *= _gearStateData.IsClockwise ? 1 : -1;
                 rotationInfo.RotationTransform.Rotate(rotate);
             }
             

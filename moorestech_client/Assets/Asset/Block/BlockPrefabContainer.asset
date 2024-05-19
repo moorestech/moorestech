@@ -29,3 +29,5 @@ MonoBehaviour:
     blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
   - blockName: campfire
     blockPrefab: {fileID: 5595802654781065204, guid: aec28d5cf61a6ce4db83c4c669c55eb7, type: 3}
+  - blockName: big gear
+    blockPrefab: {fileID: 6697832017047719167, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
-using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Factory.Extension;
 using Game.Block.Interface;
