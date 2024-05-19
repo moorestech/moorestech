@@ -53,9 +53,9 @@ namespace Game.Gear.Common
             if (fastGenerator == null)
             {
                 //ジェネレーターがない場合はすべてにゼロを供給して終了
-                foreach (var consumer in GearTransformers)
+                foreach (var transformer in GearTransformers)
                 {
-                    consumer.SupplyPower(0, 0, true);
+                    transformer.SupplyPower(0, 0, true);
                 }
                 return;
             }
@@ -64,7 +64,21 @@ namespace Game.Gear.Common
             _checkedGearComponents.Clear();
             _checkedGearComponents = new();
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
-            CalcGearInfo(fastGenerator, generatorGearRotationInfo);
+            var rocked = CalcGearInfo(fastGenerator, generatorGearRotationInfo);
+            if (rocked)
+            {
+                foreach (var transformer in GearTransformers)
+                {
+                    transformer.Rocked();
+                }
+                foreach (var generator in GearGenerators)
+                {
+                    generator.Rocked();
+                }
+                return;
+            }
+            
+            
 
             //すべてのジェネレーターから生成GPを取得し、合算する
             var totalGeneratePower = 0f;

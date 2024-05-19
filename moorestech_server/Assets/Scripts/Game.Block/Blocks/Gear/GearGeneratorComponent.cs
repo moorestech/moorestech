@@ -17,6 +17,10 @@ namespace Game.Block.Blocks.Gear
         public float CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers { get; }
+        public void Rocked()
+        {
+            throw new System.NotImplementedException();
+        }
         public void SupplyPower(float rpm, float torque, bool isClockwise)
         {
             throw new System.NotImplementedException();
