@@ -50,7 +50,8 @@
     "Game.Context",
     "Core.Item.Interface",
     "Client.Skit",
-    "Client.CutScene"
+    "Client.CutScene",
+    "Game.Gear"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

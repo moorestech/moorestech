@@ -4,7 +4,8 @@
     "references": [
         "Core.Update",
         "Game.Block.Interface",
-        "UniRx"
+        "UniRx",
+        "MessagePack.Annotations"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
