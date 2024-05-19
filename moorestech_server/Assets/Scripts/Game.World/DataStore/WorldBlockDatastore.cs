@@ -18,7 +18,7 @@ namespace Game.World.DataStore
     {
         //メインのデータストア
         public IReadOnlyDictionary<int, WorldBlockData> BlockMasterDictionary => _blockMasterDictionary;
-        private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
+        private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
 
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
@@ -69,6 +69,10 @@ namespace Game.World.DataStore
         public IBlock GetBlock(Vector3Int pos)
         {
             return GetBlockData(pos)?.Block;
+        }
+        public IBlock GetBlock(int entityId)
+        {
+            return _blockMasterDictionary.TryGetValue(entityId, out var data) ? data.Block : null;
         }
 
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)

@@ -29,6 +29,8 @@ namespace Tests.CombinedTest.Game
             var bigGear = AddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(-1, -1, 2), BlockDirection.North);
             var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 2), BlockDirection.North);
 
+            GearNetwork.WorldBlockDatastore = ServerContext.WorldBlockDatastore;
+
             //ネットワークをアップデート
             //Update the network
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();

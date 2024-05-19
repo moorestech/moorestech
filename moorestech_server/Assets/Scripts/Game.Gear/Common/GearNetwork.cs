@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Game.World.Interface.DataStore;
+using UnityEngine;
 
 namespace Game.Gear.Common
 {
@@ -32,6 +34,8 @@ namespace Game.Gear.Common
                     break;
             }
         }
+
+        public static IWorldBlockDatastore WorldBlockDatastore; // デバッグ用 後で消す
 
         public void ManualUpdate()
         {
@@ -77,8 +81,6 @@ namespace Game.Gear.Common
                 }
                 return;
             }
-            
-            
 
             //すべてのジェネレーターから生成GPを取得し、合算する
             var totalGeneratePower = 0f;
@@ -110,8 +112,13 @@ namespace Game.Gear.Common
 
             bool CalcGearInfo(IGearEnergyTransformer transformer, GearRotationInfo connectGearRotationInfo)
             {
+                //デバッグ用 後で消す
+                var name = WorldBlockDatastore.GetBlock(transformer.EntityId).BlockConfigData.Name;
+                var connectName = WorldBlockDatastore.GetBlock(connectGearRotationInfo.EnergyTransformer.EntityId).BlockConfigData.Name;
+
                 //RPMと回転方向を計算する
-                var isClockwise = transformer.IsReverseRotation ? !connectGearRotationInfo.IsClockwise : connectGearRotationInfo.IsClockwise;
+                var isReverseRotation = IsReverseRotation(transformer, connectGearRotationInfo);
+                var isClockwise = isReverseRotation ? !connectGearRotationInfo.IsClockwise : connectGearRotationInfo.IsClockwise;
                 var rpm = 0f;
                 if (transformer is IGear gear &&
                     connectGearRotationInfo.EnergyTransformer is IGear connectGear)
@@ -133,10 +140,15 @@ namespace Game.Gear.Common
                     {
                         return true;
                     }
+
+                    // 深さ優先度探索でループになったのでこの探索は終了
+                    return false;
                 }
 
-                // もしこれがジェネレーターである場合、回転方向が合っているかを確認し、合っていない場合はロックフラグを立てる
-                if (transformer is IGearGenerator generator && generator.GenerateIsClockwise != isClockwise)
+                if (transformer is IGearGenerator generator
+                    && generator.GenerateIsClockwise != isClockwise // もしこれがジェネレーターである場合、回転方向が合っているかを確認
+                    && fastGenerator.EntityId != transformer.EntityId // 上記が一番早い起点となるジェネレーターでない場合はロックをする
+                   )
                 {
                     return true;
                 }
@@ -144,6 +156,11 @@ namespace Game.Gear.Common
                 // 計算済みとして登録
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
                 _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
+
+                if (name == "SmallTestGear")
+                {
+                    Debug.Log(name);
+                }
 
                 // この歯車が接続している歯車を再帰的に計算する
                 foreach (var connectingGear in transformer.ConnectingTransformers)
@@ -154,6 +171,11 @@ namespace Game.Gear.Common
                 }
 
                 return false;
+            }
+
+            bool IsReverseRotation(IGearEnergyTransformer transformer, GearRotationInfo connectGearRotationInfo)
+            {
+                return transformer.IsReverseRotation && connectGearRotationInfo.EnergyTransformer.IsReverseRotation;
             }
 
             #endregion

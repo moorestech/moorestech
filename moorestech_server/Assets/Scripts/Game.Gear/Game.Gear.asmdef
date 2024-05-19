@@ -1,19 +1,20 @@
 {
-    "name": "Game.Gear",
-    "rootNamespace": "",
-    "references": [
-        "Core.Update",
-        "Game.Block.Interface",
-        "UniRx",
-        "MessagePack.Annotations"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.Gear",
+  "rootNamespace": "",
+  "references": [
+    "Core.Update",
+    "Game.Block.Interface",
+    "UniRx",
+    "MessagePack.Annotations",
+    "Game.World.Interface"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }
