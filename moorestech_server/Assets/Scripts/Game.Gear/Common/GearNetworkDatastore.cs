@@ -8,19 +8,27 @@ namespace Game.Gear.Common
 {
     public class GearNetworkDatastore
     {
-        public IReadOnlyList<GearNetwork> GearNetworks => _gearNetworks;
-        private readonly List<GearNetwork> _gearNetworks;
-        private readonly Dictionary<int, GearNetwork> _blockEntityToGearNetwork;
+        public IReadOnlyDictionary<int, GearNetwork> GearNetworks => _gearNetworks;
+        private readonly Dictionary<int, GearNetwork> _gearNetworks = new();
 
+        private readonly Dictionary<int, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
         private readonly Random _random = new(215180);
+
+        private static GearNetworkDatastore _instance;
 
         public GearNetworkDatastore()
         {
+            _instance = this;
             _blockEntityToGearNetwork = new Dictionary<int, GearNetwork>();
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
-        public void AddGear(IGearEnergyTransformer gear)
+        public static void AddGear(IGearEnergyTransformer gear)
+        {
+            _instance.AddGearInternal(gear);
+        }
+
+        private void AddGearInternal(IGearEnergyTransformer gear)
         {
             var connectedNetworkIds = new HashSet<int>();
             foreach (var connectedGear in gear.ConnectingTransformers)
@@ -52,19 +60,20 @@ namespace Game.Gear.Common
                 var network = new GearNetwork(networkId);
                 network.AddGear(gear);
                 _blockEntityToGearNetwork.Add(gear.EntityId, network);
-                _gearNetworks.Add(network);
+                _gearNetworks.Add(networkId, network);
             }
 
             void ConnectNetwork()
             {
                 var networkId = connectedNetworkIds.First();
-                var network = _blockEntityToGearNetwork[networkId];
+                var network = _gearNetworks[networkId];
                 network.AddGear(gear);
                 _blockEntityToGearNetwork.Add(gear.EntityId, network);
             }
 
             void MergeNetworks()
             {
+                // マージのために歯車を取得
                 var transformers = new List<IGearEnergyTransformer>();
                 var generators = new List<IGearGenerator>();
 
@@ -88,6 +97,7 @@ namespace Game.Gear.Common
                     newNetwork.AddGear(generator);
                 }
 
+                // マージしたNWに所属する歯車のNWを更新
                 for (int i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
                 {
                     var key = _blockEntityToGearNetwork.ElementAt(i).Key;
@@ -97,22 +107,25 @@ namespace Game.Gear.Common
                     }
                 }
 
-                _gearNetworks.Add(newNetwork);
-                for (int i = _gearNetworks.Count - 1; i >= 0; i--)
+                _gearNetworks.Add(newNetworkId, newNetwork);
+                foreach (var removeNetworkId in connectedNetworkIds)
                 {
-                    if (connectedNetworkIds.Contains(_gearNetworks[i].NetworkId))
-                    {
-                        _gearNetworks.RemoveAt(i);
-                    }
+                    _gearNetworks.Remove(removeNetworkId);
                 }
             }
 
             #endregion
         }
 
+        public static void RemoveGear(IGearEnergyTransformer gear)
+        {
+            //TODO
+            throw new NotImplementedException();
+        }
+
         private void Update()
         {
-            foreach (var gearNetwork in _gearNetworks)
+            foreach (var gearNetwork in _gearNetworks.Values) // TODO パフォーマンスがやばくなったらやめる
             {
                 gearNetwork.ManualUpdate();
             }

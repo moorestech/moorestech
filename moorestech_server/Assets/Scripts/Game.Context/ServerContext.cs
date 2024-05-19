@@ -5,10 +5,9 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
-using Game.Map.Interface;
+using Game.Gear.Common;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Vein;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 
 namespace Game.Context
@@ -31,8 +30,17 @@ namespace Game.Context
         public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
 
         public ServerContext(
-            IItemConfig itemConfig, IBlockConfig blockConfig, ICraftingConfig craftingConfig, IMachineRecipeConfig machineRecipeConfig, IMapObjectConfig mapObjectConfig,
-            IItemStackFactory itemStackFactory, IBlockFactory blockFactory, IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, IMapVeinDatastore mapVeinDatastore)
+            IItemConfig itemConfig,
+            IBlockConfig blockConfig,
+            ICraftingConfig craftingConfig,
+            IMachineRecipeConfig machineRecipeConfig,
+            IMapObjectConfig mapObjectConfig,
+            IItemStackFactory itemStackFactory,
+            IBlockFactory blockFactory,
+            IWorldBlockDatastore worldBlockDatastore,
+            IWorldBlockUpdateEvent worldBlockUpdateEvent,
+            IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent,
+            IMapVeinDatastore mapVeinDatastore)
         {
             ItemConfig = itemConfig;
             BlockConfig = blockConfig;

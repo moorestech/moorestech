@@ -11,13 +11,12 @@ namespace Game.Block.Blocks.Gear
         public int EntityId { get; }
         public bool IsReverseRotation { get; }
         public float RequiredPower { get; }
+
         public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers => _connectorComponent.ConnectTargets;
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
 
         public IObservable<ChangedBlockState> BlockStateChange => _simpleGearService.BlockStateChange;
-
         private readonly SimpleGearService _simpleGearService;
-
 
         public float CurrentRpm => _simpleGearService.CurrentRpm;
         public float CurrentTorque => _simpleGearService.CurrentTorque;
@@ -32,6 +31,8 @@ namespace Game.Block.Blocks.Gear
             _connectorComponent = connectorComponent;
             IsReverseRotation = isReverseRotation;
             _simpleGearService = new SimpleGearService();
+
+            GearNetworkDatastore.AddGear(this);
         }
 
         public void Rocked() { _simpleGearService.Rocked(); }
@@ -40,7 +41,8 @@ namespace Game.Block.Blocks.Gear
 
         public void Destroy()
         {
-            IsDestroy = false;
+            IsDestroy = true;
+            GearNetworkDatastore.RemoveGear(this);
             _simpleGearService.Destroy();
         }
     }

@@ -11,7 +11,6 @@ namespace Game.Block.Blocks.Gear
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private Subject<ChangedBlockState> _onBlockStateChange = new();
 
-
         public float CurrentRpm { get; private set; }
         public float CurrentTorque { get; private set; }
         public bool IsCurrentClockwise { get; private set; }
