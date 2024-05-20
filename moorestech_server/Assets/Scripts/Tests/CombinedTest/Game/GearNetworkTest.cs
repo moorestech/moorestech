@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Game
 
             //シャフトの回転は正しいか
             //Is the rotation of the shaft correct?
-            var shaftComponent = shaft.ComponentManager.GetComponent<GearComponent>();
+            var shaftComponent = shaft.ComponentManager.GetComponent<GearEnergyTransformer>();
             Assert.AreEqual(10.0f, shaftComponent.CurrentRpm);
             Assert.AreEqual(true, shaftComponent.IsCurrentClockwise);
 
