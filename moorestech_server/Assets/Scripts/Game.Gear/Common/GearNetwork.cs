@@ -90,8 +90,8 @@ namespace Game.Gear.Common
             bool CalcGearInfo(IGearEnergyTransformer transformer, GearRotationInfo connectGearRotationInfo)
             {
                 //デバッグ用 後で消す
-                var name = WorldBlockDatastore.GetBlock(transformer.EntityId).BlockConfigData.Name;
-                var connectName = WorldBlockDatastore.GetBlock(connectGearRotationInfo.EnergyTransformer.EntityId).BlockConfigData.Name;
+                var name = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(transformer.EntityId).BlockConfigData.Name;
+                var connectName = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(connectGearRotationInfo.EnergyTransformer.EntityId).BlockConfigData.Name;
 
                 //RPMと回転方向を計算する
                 var isReverseRotation = IsReverseRotation(transformer, connectGearRotationInfo);

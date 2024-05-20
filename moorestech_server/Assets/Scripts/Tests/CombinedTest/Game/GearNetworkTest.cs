@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Game
             var gearPositionB = new Vector3Int(1, 0, 0);
             var gearPositionC = new Vector3Int(0, 0, 1);
             var gearPositionD = new Vector3Int(1, 0, 1);
-            var generatorPosition = gearPositionA - new Vector3Int(0, 1, 0);
+            var generatorPosition = new Vector3Int(0, 0, -1);
 
             var generatorBlock = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
             var smallGearABlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.North);
