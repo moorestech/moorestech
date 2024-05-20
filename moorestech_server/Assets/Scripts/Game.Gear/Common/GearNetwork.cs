@@ -97,7 +97,7 @@ namespace Game.Gear.Common
             }
 
             // 分配率をもとに、各コンシューマーに供給するGPを算出し、RPMから供給トルクを計算する
-            var distributeRate = totalRequiredPower / totalGeneratePower;
+            var distributeRate = Math.Min(1, totalGeneratePower / totalRequiredPower);
             foreach (var gearConsumer in GearTransformers)
             {
                 var info = _checkedGearComponents[gearConsumer.EntityId];
@@ -106,6 +106,11 @@ namespace Game.Gear.Common
                 var distributeTorque = supplyPower / info.Rpm;
 
                 gearConsumer.SupplyPower(info.Rpm, distributeTorque, info.IsClockwise);
+            }
+            foreach (var generator in _gearGenerators)
+            {
+                var info = _checkedGearComponents[generator.EntityId];
+                generator.SupplyPower(info.Rpm, generator.GenerateTorque, info.IsClockwise);
             }
 
             #region Internal
@@ -134,8 +139,7 @@ namespace Game.Gear.Common
                 // もし既に計算済みの場合、新たな計算と一致するかを計算し、一致しない場合はロックフラグを立てる
                 if (_checkedGearComponents.TryGetValue(transformer.EntityId, out var info))
                 {
-                    if (transformer.IsReverseRotation && info.IsClockwise == isClockwise || // 回転方向を逆転するのに逆転できてない場合
-                        !transformer.IsReverseRotation && info.IsClockwise != isClockwise || // 回転方向を逆転しないのに逆転している場合
+                    if (info.IsClockwise != isClockwise || // 回転方向を逆転するのに逆転できてない場合
                         Math.Abs(info.Rpm - rpm) > 0.1f) // RPMが一致しない場合
                     {
                         return true;
