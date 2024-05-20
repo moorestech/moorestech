@@ -105,7 +105,7 @@ namespace Game.Gear.Common
                 // もし既に計算済みの場合、新たな計算と一致するかを計算し、一致しない場合はロックフラグを立てる
                 if (_checkedGearComponents.TryGetValue(transformer.EntityId, out var info))
                 {
-                    if (info.IsClockwise != isClockwise || // 回転方向を逆転するのに逆転できてない場合
+                    if (info.IsClockwise != isClockwise || // 回転方向が一致しない場合
                         Math.Abs(info.Rpm - rpm) > 0.1f) // RPMが一致しない場合
                     {
                         return true;
