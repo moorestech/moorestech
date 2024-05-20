@@ -67,8 +67,14 @@ namespace Game.Gear.Common
             //そのジェネレータと接続している各歯車コンポーネントを深さ優先度探索でたどり、RPMと回転方向を計算していく
             _checkedGearComponents.Clear();
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
-            
-            var rocked = CalcGearInfo(fastGenerator, generatorGearRotationInfo);
+            var rocked = false;
+            foreach (var connectingGear in fastGenerator.ConnectingTransformers)
+            {
+                rocked = CalcGearInfo(connectingGear, generatorGearRotationInfo);
+                //ロックを検知したので処理を終了
+                if (rocked) break;
+            }
+
             if (rocked)
             {
                 SetRocked();
@@ -127,7 +133,7 @@ namespace Game.Gear.Common
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
                 _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
 
-                if (name == "SmallTestGear")
+                if (name == "TestShaft")
                 {
                     Debug.Log(name);
                 }
