@@ -2,6 +2,17 @@
 
 namespace Game.Block.Config.LoadConfig.OptionLoader
 {
+    public class GearConnectOptionLoader : IConnectOptionLoader
+    {
+        public static readonly GearConnectOptionLoader Loader = new();
+        
+        public IConnectOption Load(dynamic connectorOption)
+        {
+            var reverse = (bool)connectorOption.isReverse;
+            return new GearConnectOption(reverse);
+        }
+    }
+    
     public class GearConnectOption : IConnectOption
     {
         public bool IsReverse;
@@ -9,13 +20,6 @@ namespace Game.Block.Config.LoadConfig.OptionLoader
         public GearConnectOption(bool isReverse)
         {
             IsReverse = isReverse;
-        }
-        
-        public static IConnectOption Loader(dynamic connectorOption)
-        {
-            var reverse = (bool)connectorOption.isReverse;
-            
-            return new GearConnectOption(reverse);
         }
     }
 }

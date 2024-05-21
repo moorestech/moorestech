@@ -24,14 +24,8 @@ namespace Game.Block.Config.LoadConfig.Param
             int teethCount = blockParam.teethCount;
             float lossPower = blockParam.lossPower;
             
-            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", ()GearConnectOption.Loader);
-            var a = Hoge(1, GearConnectOption.Loader);
+            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
             return new GearConfigParam(teethCount, lossPower, gearConnectSettings);
-        }
-        
-        public static int Hoge(dynamic hoge, dynamic loader = null)
-        {
-            return loader.Invoke(hoge);
         }
     }
 }

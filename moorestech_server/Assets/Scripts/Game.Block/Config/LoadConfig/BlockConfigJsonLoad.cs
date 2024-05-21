@@ -15,10 +15,6 @@ namespace Game.Block.Config.LoadConfig
     {
         public delegate IBlockConfigParam ConfigParamGenerator(dynamic blockParam, IItemConfig itemConfig);
         
-        public delegate IConnectOption ConnectSettingsOptionLoader(dynamic connectorOption);
-        
-        private readonly Dictionary<string, ConnectSettingsOptionLoader> _connectorOptionGenerators;
-        
         private readonly Dictionary<string, ConfigParamGenerator> _generators;
         private readonly IItemConfig _itemConfig;
         private readonly string _jsonPath;
@@ -42,8 +38,6 @@ namespace Game.Block.Config.LoadConfig
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
                 { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
             };
-            
-            _connectorOptionGenerators = new Dictionary<string, ConnectSettingsOptionLoader>();
         }
         
         public List<BlockConfigData> LoadFromJsons(Dictionary<string, string> blockJsons, List<string> mods)
@@ -159,7 +153,7 @@ namespace Game.Block.Config.LoadConfig
             return modelTransform;
         }
         
-        public static List<ConnectSettings> GetConnectSettings(dynamic connectSettings, string connectorsName, ConnectSettingsOptionLoader loader = default)
+        public static List<ConnectSettings> GetConnectSettings(dynamic connectSettings, string connectorsName, IConnectOptionLoader loader = default)
         {
             var connectors = connectSettings[connectorsName];
             if (connectors == null) return null;
@@ -195,7 +189,7 @@ namespace Game.Block.Config.LoadConfig
                 var option = connector.option;
                 if (option != null && loader != null)
                 {
-                    var result = (IConnectOption)loader.Invoke(option);
+                    var result = (IConnectOption)loader.Load(option);
                     connectSetting.Option = result;
                 }
             }
