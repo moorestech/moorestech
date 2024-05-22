@@ -4,6 +4,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine;
 using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -114,7 +115,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyors[3]);
 
             //繋がっているコネクターを取得
-            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)vanillaMachine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             Assert.AreEqual(4, connectInventory.Count);
 
