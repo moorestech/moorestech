@@ -186,10 +186,10 @@ namespace Game.Block.Config.LoadConfig
                 
                 connectSetting.ConnectorDirections = directionResult;
                 
-                var option = connector.option;
-                if (option != null && loader != null)
+                // TODO エラーログを出力する
+                if (loader != null)
                 {
-                    var result = (IConnectOption)loader.Load(option);
+                    var result = (IConnectOption)loader.Load(connector.option);
                     connectSetting.Option = result;
                 }
             }

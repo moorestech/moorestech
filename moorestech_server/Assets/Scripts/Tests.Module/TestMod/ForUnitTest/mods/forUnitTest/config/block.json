@@ -669,7 +669,10 @@
                 "y": 0,
                 "z": 1
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           },
           {
             "offset": {
@@ -683,7 +686,10 @@
                 "y": 0,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           },
           {
             "offset": {
@@ -697,7 +703,10 @@
                 "y": 0,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           },
           {
             "offset": {
@@ -711,7 +720,10 @@
                 "y": 1,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           },
           {
             "offset": {
@@ -725,7 +737,10 @@
                 "y": -1,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           }
         ]
       }
@@ -760,7 +775,10 @@
                 "y": 0,
                 "z": 1
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }
@@ -800,7 +818,10 @@
                 "y": 0,
                 "z": 1
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }
