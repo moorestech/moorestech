@@ -192,13 +192,13 @@ namespace Tests.UnitTest.Game
             world.AddBlock(chest);
 
             //機械のコネクターを取得
-            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var machineConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)machine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
 
             //チェストのコネクターを取得
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);
