@@ -5,16 +5,12 @@ using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
-using Game.World.Interface.Util;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -51,8 +47,8 @@ namespace Tests.CombinedTest.Core
             var dummyInventory = new DummyBlockInventory();
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
-            var minerConnectors = (List<IBlockInventory>)miner.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            minerConnectors.Add(dummyInventory);
+            var minerConnectors = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)miner.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            minerConnectors.Add(dummyInventory, (null, null));
 
             //電力の設定
             var segment = new EnergySegment();
@@ -83,7 +79,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(2, outputSlot.Count);
 
             //またコネクターをつなげる
-            minerConnectors.Add(dummyInventory);
+            minerConnectors.Add(dummyInventory, (null, null));
 
             //コネクターにアイテムを入れるためのアップデート
             GameUpdater.UpdateWithWait();
@@ -93,14 +89,14 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);
         }
 
-        (IMapVein mapVein, Vector3Int pos) GetMapVein()
+        private (IMapVein mapVein, Vector3Int pos) GetMapVein()
         {
             var pos = new Vector3Int(0, 0);
             for (var i = 0; i < 500; i++)
             {
                 for (var j = 0; j < 500; j++)
                 {
-                    var veins = ServerContext.MapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
+                    List<IMapVein> veins = ServerContext.MapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
                     if (veins.Count == 0) continue;
 
                     return (veins[0], new Vector3Int(i, j));
