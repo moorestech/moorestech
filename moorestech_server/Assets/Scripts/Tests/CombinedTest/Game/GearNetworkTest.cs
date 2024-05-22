@@ -106,11 +106,11 @@ namespace Tests.CombinedTest.Game
             
             // smallGearAの回転方向とRPMのテスト
             Assert.AreEqual(rpm, smallGearA.CurrentRpm);
-//            Assert.AreEqual(true, smallGearA.IsCurrentClockwise);
+            Assert.AreEqual(true, smallGearA.IsCurrentClockwise);
             
             // smallGearBの回転方向とRPMのテスト
             Assert.AreEqual(rpm, smallGearB.CurrentRpm);
-//            Assert.AreEqual(false, smallGearB.IsCurrentClockwise);
+            Assert.AreEqual(false, smallGearB.IsCurrentClockwise);
             
             // smallGearCの回転方向とRPMのテスト
             Assert.AreEqual(rpm, smallGearC.CurrentRpm);

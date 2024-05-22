@@ -17,7 +17,7 @@ namespace Game.Block.Component
         private readonly List<IDisposable> _blockUpdateEvents = new();
         private readonly Dictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> _connectTargets = new();
 
-        private readonly Dictionary<Vector3Int, (List<Vector3Int> positions, IConnectOption targetOption)> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
+        private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
         private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
 
         public BlockConnectorComponent(List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings, BlockPositionInfo blockPositionInfo)
@@ -57,12 +57,15 @@ namespace Game.Block.Component
                     List<Vector3Int> directions = inputConnectSetting.ConnectorDirections;
                     if (directions == null)
                     {
-                        _inputConnectPoss.Add(inputConnectorPos, (null, inputConnectSetting.Option));
+                        _inputConnectPoss.Add(inputConnectorPos, null);
                         continue;
                     }
 
-                    var targetPositions = directions.Select(c => blockPosConvertAction(c) + inputConnectorPos).ToList();
-                    _inputConnectPoss.Add(inputConnectorPos, (targetPositions, inputConnectSetting.Option));
+                    var targetPositions = directions.Select(c => (blockPosConvertAction(c) + inputConnectorPos, inputConnectSetting.Option)).ToList();
+                    if (!_inputConnectPoss.TryAdd(inputConnectorPos, targetPositions))
+                    {
+                        _inputConnectPoss[inputConnectorPos] = _inputConnectPoss[inputConnectorPos].Concat(targetPositions).ToList();
+                    }
                 }
             }
 
@@ -118,13 +121,13 @@ namespace Game.Block.Component
             var isConnect = false;
             IConnectOption selfOption = null;
             IConnectOption targetOption = null;
-            foreach (KeyValuePair<Vector3Int, (List<Vector3Int> positions, IConnectOption targetOption)> targetInput in targetConnector._inputConnectPoss)
+            foreach (KeyValuePair<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> targetInput in targetConnector._inputConnectPoss)
             {
                 // アウトプット先に、インプットのコネクターがあるかどうかをチェックする
                 if (targetInput.Key != outputTargetPos) continue;
 
                 // インプットがどこからでも接続できるならそのまま接続
-                if (targetInput.Value.positions == null)
+                if (targetInput.Value == null)
                 {
                     isConnect = true;
                     break;
@@ -134,12 +137,15 @@ namespace Game.Block.Component
                 var outputConnector = _outputTargetToOutputConnector[outputTargetPos];
 
                 // インプット先にアウトプットのコネクターがある場合は接続できる
-                if (targetInput.Value.positions.Any(inputTargetPosition => inputTargetPosition == outputConnector.position))
+                foreach (var target in targetInput.Value)
                 {
-                    isConnect = true;
-                    selfOption = outputConnector.selfOption;
-                    targetOption = targetInput.Value.targetOption;
-                    break;
+                    if (target.position == outputConnector.position)
+                    {
+                        isConnect = true;
+                        selfOption = outputConnector.selfOption;
+                        targetOption = target.targetOption;
+                        break;
+                    }
                 }
             }
             if (!isConnect)
