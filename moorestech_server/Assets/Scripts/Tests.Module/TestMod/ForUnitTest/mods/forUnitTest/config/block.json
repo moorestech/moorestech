@@ -843,7 +843,10 @@
                 "y": 0,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }
