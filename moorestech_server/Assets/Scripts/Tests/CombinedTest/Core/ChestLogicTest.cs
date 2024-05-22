@@ -65,8 +65,8 @@ namespace Tests.CombinedTest.Core
 
             chestComponent.SetItem(0, 1, 1);
 
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            chestConnectInventory.Add(beltConveyorComponent);
+            var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            chestConnectInventory.Add(beltConveyorComponent, (null, null));
             GameUpdater.UpdateWithWait();
 
 
