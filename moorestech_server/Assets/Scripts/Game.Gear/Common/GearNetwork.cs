@@ -7,20 +7,21 @@ namespace Game.Gear.Common
 {
     public class GearNetwork
     {
-        public readonly int NetworkId;
+        public static IWorldBlockDatastore WorldBlockDatastore; // デバッグ用 後で消す
 
-        public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
-        private readonly List<IGearEnergyTransformer> _gearTransformers = new();
-
-        public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
+        private readonly Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
-
-        private Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
+        private readonly List<IGearEnergyTransformer> _gearTransformers = new();
+        public readonly int NetworkId;
 
         public GearNetwork(int networkId)
         {
             NetworkId = networkId;
         }
+
+        public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
+
+        public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
 
         public void AddGear(IGearEnergyTransformer gear)
         {
@@ -34,8 +35,6 @@ namespace Game.Gear.Common
                     break;
             }
         }
-
-        public static IWorldBlockDatastore WorldBlockDatastore; // デバッグ用 後で消す
 
         public void ManualUpdate()
         {
@@ -68,9 +67,9 @@ namespace Game.Gear.Common
             _checkedGearComponents.Clear();
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
             var rocked = false;
-            foreach (var connectingGear in fastGenerator.ConnectingTransformers)
+            foreach (var connect in fastGenerator.Connects)
             {
-                rocked = CalcGearInfo(connectingGear, generatorGearRotationInfo);
+                rocked = CalcGearInfo(connect, generatorGearRotationInfo);
                 //ロックを検知したので処理を終了
                 if (rocked) break;
             }
@@ -87,14 +86,16 @@ namespace Game.Gear.Common
 
             #region Internal
 
-            bool CalcGearInfo(IGearEnergyTransformer transformer, GearRotationInfo connectGearRotationInfo)
+            bool CalcGearInfo(GearConnect gearConnect, GearRotationInfo connectGearRotationInfo)
             {
+                var transformer = gearConnect.Transformer;
+
                 //デバッグ用 後で消す
                 var name = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(transformer.EntityId).BlockConfigData.Name;
                 var connectName = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(connectGearRotationInfo.EnergyTransformer.EntityId).BlockConfigData.Name;
 
                 //RPMと回転方向を計算する
-                var isReverseRotation = IsReverseRotation(transformer, connectGearRotationInfo);
+                var isReverseRotation = IsReverseRotation(gearConnect);
                 var isClockwise = isReverseRotation ? !connectGearRotationInfo.IsClockwise : connectGearRotationInfo.IsClockwise;
                 var rpm = 0f;
                 if (transformer is IGear gear &&
@@ -139,9 +140,9 @@ namespace Game.Gear.Common
                 }
 
                 // この歯車が接続している歯車を再帰的に計算する
-                foreach (var connectingGear in transformer.ConnectingTransformers)
+                foreach (var connect in transformer.Connects)
                 {
-                    var isRocked = CalcGearInfo(connectingGear, gearRotationInfo);
+                    var isRocked = CalcGearInfo(connect, gearRotationInfo);
                     //ロックを検知したので処理を終了
                     if (isRocked) return true;
                 }
@@ -149,9 +150,9 @@ namespace Game.Gear.Common
                 return false;
             }
 
-            bool IsReverseRotation(IGearEnergyTransformer transformer, GearRotationInfo connectGearRotationInfo)
+            bool IsReverseRotation(GearConnect connect)
             {
-                return transformer.IsReverseRotation && connectGearRotationInfo.EnergyTransformer.IsReverseRotation;
+                return connect.Self.IsReverse && connect.Target.IsReverse;
             }
 
             void SetRocked()
@@ -209,9 +210,9 @@ namespace Game.Gear.Common
 
     public class GearRotationInfo
     {
-        public readonly float Rpm;
-        public readonly bool IsClockwise;
         public readonly IGearEnergyTransformer EnergyTransformer;
+        public readonly bool IsClockwise;
+        public readonly float Rpm;
         public GearRotationInfo(float rpm, bool isClockwise, IGearEnergyTransformer energyTransformer)
         {
             Rpm = rpm;

@@ -12,12 +12,11 @@ namespace Game.Block.Blocks.Gear
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _simpleGearService;
 
-        public GearEnergyTransformer(float lossPower, int entityId, bool isReverseRotation, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+        public GearEnergyTransformer(float lossPower, int entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             RequiredPower = lossPower;
             EntityId = entityId;
             _connectorComponent = connectorComponent;
-            IsReverseRotation = isReverseRotation;
             _simpleGearService = new SimpleGearService();
 
             GearNetworkDatastore.AddGear(this);
@@ -25,10 +24,16 @@ namespace Game.Block.Blocks.Gear
 
         public IObservable<ChangedBlockState> BlockStateChange => _simpleGearService.BlockStateChange;
         public int EntityId { get; }
-        public bool IsReverseRotation { get; }
         public float RequiredPower { get; }
 
-        public IReadOnlyList<IGearEnergyTransformer> ConnectingTransformers => _connectorComponent.ConnectTargets.Keys.ToArray();
+        public IReadOnlyList<GearConnect> Connects =>
+            _connectorComponent.ConnectTargets.Select(
+                target => new GearConnect(
+                    target.Key,
+                    (GearConnectOption)target.Value.selfOption,
+                    (GearConnectOption)target.Value.targetOption
+                )
+            ).ToArray();
 
         public float CurrentRpm => _simpleGearService.CurrentRpm;
         public float CurrentTorque => _simpleGearService.CurrentTorque;

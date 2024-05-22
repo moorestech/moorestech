@@ -24,10 +24,10 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock CreateGear(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = config.Param as ShaftConfigParam;
-            var connectSetting = configParam.GearConnectSettings;
+            List<ConnectSettings> connectSetting = configParam.GearConnectSettings;
 
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(configParam.LossPower, entityId, false, blockComponent);
+            var gearEnergyTransformer = new GearEnergyTransformer(configParam.LossPower, entityId, blockComponent);
 
             var components = new List<IBlockComponent>
             {
