@@ -239,7 +239,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(multiBlock);
 
             // マルチブロックのコネクターを取得
-            var connector = (List<IBlockInventory>)multiBlock.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var connector = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)multiBlock.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             // ベルトコンベアが正しく接続されているかをチェック
             Assert.AreEqual(2, connector.Count);
