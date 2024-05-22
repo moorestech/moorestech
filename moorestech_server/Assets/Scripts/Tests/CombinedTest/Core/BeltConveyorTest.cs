@@ -83,8 +83,8 @@ namespace Tests.CombinedTest.Core
             var beltConveyor = blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
 
-            var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            connectInventory.Add(dummy);
+            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            connectInventory.Add(dummy, (null, null));
 
             var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
             var outputItem = beltConveyorComponent.InsertItem(item);
