@@ -172,7 +172,7 @@ namespace Client.Game.InGame.BlockSystem
             {
                 // ブロックとterrainが重なっていること
                 //TODO ちゃんとできないから一旦放置 return _blockPlacePreview.IsCollisionGround;
-                return true;
+                return false;
             }
             
             bool IsBlockPlaceableDistance(float maxDistance)
