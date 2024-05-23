@@ -32,8 +32,6 @@ namespace Server.Boot
 
         public static (Thread serverUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
-            GameUpdater.ResetUpdate();
-
             //カレントディレクトリを表示
 #if DEBUG
             var serverDirectory = DebugServerDirectory;
