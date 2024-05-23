@@ -14,15 +14,11 @@ namespace Game.Block.Component
     [DisallowMultiple]
     public class BlockConnectorComponent<TTarget> : IBlockConnectorComponent<TTarget> where TTarget : IBlockComponent
     {
-        public IReadOnlyList<TTarget> ConnectTargets => _connectTargets;
-
-        public bool IsDestroy { get; private set; }
-
         private readonly List<IDisposable> _blockUpdateEvents = new();
-        private readonly List<TTarget> _connectTargets = new();
+        private readonly Dictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> _connectTargets = new();
 
-        private readonly Dictionary<Vector3Int, List<Vector3Int>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
-        private readonly Dictionary<Vector3Int, Vector3Int> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
+        private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
+        private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
 
         public BlockConnectorComponent(List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings, BlockPositionInfo blockPositionInfo)
         {
@@ -58,15 +54,18 @@ namespace Game.Block.Component
                     var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
 
                     var inputConnectorPos = blockPos + blockPosConvertAction(inputConnectSetting.ConnectorPosOffset);
-                    var directions = inputConnectSetting.ConnectorDirections;
+                    List<Vector3Int> directions = inputConnectSetting.ConnectorDirections;
                     if (directions == null)
                     {
                         _inputConnectPoss.Add(inputConnectorPos, null);
                         continue;
                     }
 
-                    var targetPoss = directions.Select(c => blockPosConvertAction(c) + inputConnectorPos).ToList();
-                    _inputConnectPoss.Add(inputConnectorPos, targetPoss);
+                    var targetPositions = directions.Select(c => (blockPosConvertAction(c) + inputConnectorPos, inputConnectSetting.Option)).ToList();
+                    if (!_inputConnectPoss.TryAdd(inputConnectorPos, targetPositions))
+                    {
+                        _inputConnectPoss[inputConnectorPos] = _inputConnectPoss[inputConnectorPos].Concat(targetPositions).ToList();
+                    }
                 }
             }
 
@@ -82,18 +81,21 @@ namespace Game.Block.Component
                     var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
 
                     var outputConnectorPos = blockPos + blockPosConvertAction(connectSetting.ConnectorPosOffset);
-                    var directions = connectSetting.ConnectorDirections;
+                    List<Vector3Int> directions = connectSetting.ConnectorDirections;
                     var targetPoss = directions.Select(c => blockPosConvertAction(c) + outputConnectorPos).ToList();
 
                     foreach (var targetPos in targetPoss)
                     {
-                        _outputTargetToOutputConnector.Add(targetPos, outputConnectorPos);
+                        _outputTargetToOutputConnector.Add(targetPos, (outputConnectorPos, connectSetting.Option));
                     }
                 }
             }
 
             #endregion
         }
+        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectTargets => _connectTargets;
+
+        public bool IsDestroy { get; private set; }
 
         public void Destroy()
         {
@@ -112,12 +114,14 @@ namespace Game.Block.Component
         {
             //接続先にBlockInventoryがなければ処理を終了
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            if (!worldBlockDatastore.TryGetBlock<BlockConnectorComponent<TTarget>>(outputTargetPos, out var targetConnector)) return;
+            if (!worldBlockDatastore.TryGetBlock(outputTargetPos, out BlockConnectorComponent<TTarget> targetConnector)) return;
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
 
             // アウトプット先にターゲットのインプットオブジェクトがあるかどうかをチェックする
             var isConnect = false;
-            foreach (var targetInput in targetConnector._inputConnectPoss)
+            IConnectOption selfOption = null;
+            IConnectOption targetOption = null;
+            foreach (KeyValuePair<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> targetInput in targetConnector._inputConnectPoss)
             {
                 // アウトプット先に、インプットのコネクターがあるかどうかをチェックする
                 if (targetInput.Key != outputTargetPos) continue;
@@ -130,13 +134,18 @@ namespace Game.Block.Component
                 }
 
                 // インプット先に制限がある場合、その座標にアウトプットのコネクターがあるかをチェックする
-                var outputConnectorPos = _outputTargetToOutputConnector[outputTargetPos];
+                var outputConnector = _outputTargetToOutputConnector[outputTargetPos];
 
                 // インプット先にアウトプットのコネクターがある場合は接続できる
-                if (targetInput.Value.Any(inputTargetPosition => inputTargetPosition == outputConnectorPos))
+                foreach (var target in targetInput.Value)
                 {
-                    isConnect = true;
-                    break;
+                    if (target.position == outputConnector.position)
+                    {
+                        isConnect = true;
+                        selfOption = outputConnector.selfOption;
+                        targetOption = target.targetOption;
+                        break;
+                    }
                 }
             }
             if (!isConnect)
@@ -145,9 +154,9 @@ namespace Game.Block.Component
             }
 
             //接続元ブロックと接続先ブロックを接続
-            if (!_connectTargets.Contains(targetComponent))
+            if (!_connectTargets.ContainsKey(targetComponent))
             {
-                _connectTargets.Add(targetComponent);
+                _connectTargets.Add(targetComponent, (selfOption, targetOption));
             }
         }
 

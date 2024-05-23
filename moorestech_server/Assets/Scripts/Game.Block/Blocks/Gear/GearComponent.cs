@@ -6,12 +6,11 @@ namespace Game.Block.Blocks.Gear
 {
     public class GearComponent : GearEnergyTransformer, IGear
     {
-        public int TeethCount { get; }
-
         public GearComponent(GearConfigParam gearConfigParam, int entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(gearConfigParam.LossPower, entityId, true, connectorComponent)
+            : base(gearConfigParam.LossPower, entityId, connectorComponent)
         {
             TeethCount = gearConfigParam.TeethCount;
         }
+        public int TeethCount { get; }
     }
 }

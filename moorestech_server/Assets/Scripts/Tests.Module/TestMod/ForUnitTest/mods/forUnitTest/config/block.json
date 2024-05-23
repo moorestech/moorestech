@@ -589,16 +589,6 @@
             },
             "directions": [
               {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
                 "x": 1,
                 "y": 0,
                 "z": 0
@@ -618,7 +608,32 @@
                 "y": -1,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
+          },
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              }
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }
@@ -654,7 +669,10 @@
                 "y": 0,
                 "z": 1
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           },
           {
             "offset": {
@@ -668,7 +686,10 @@
                 "y": 0,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           },
           {
             "offset": {
@@ -682,7 +703,10 @@
                 "y": 0,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           },
           {
             "offset": {
@@ -696,7 +720,10 @@
                 "y": 1,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           },
           {
             "offset": {
@@ -710,7 +737,10 @@
                 "y": -1,
                 "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": true
+            }
           }
         ]
       }
@@ -745,7 +775,10 @@
                 "y": 0,
                 "z": 1
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }
@@ -785,7 +818,10 @@
                 "y": 0,
                 "z": 1
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }
@@ -827,13 +863,11 @@
                 "x": 1,
                 "y": 0,
                 "z": 0
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
               }
-            ]
+            ],
+            "option": {
+              "isReverse": false
+            }
           }
         ]
       }

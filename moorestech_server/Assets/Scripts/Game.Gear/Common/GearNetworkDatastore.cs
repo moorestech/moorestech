@@ -8,13 +8,11 @@ namespace Game.Gear.Common
 {
     public class GearNetworkDatastore
     {
-        public IReadOnlyDictionary<int, GearNetwork> GearNetworks => _gearNetworks;
-        private readonly Dictionary<int, GearNetwork> _gearNetworks = new();
+        private static GearNetworkDatastore _instance;
 
         private readonly Dictionary<int, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
+        private readonly Dictionary<int, GearNetwork> _gearNetworks = new();
         private readonly Random _random = new(215180);
-
-        private static GearNetworkDatastore _instance;
 
         public GearNetworkDatastore()
         {
@@ -22,6 +20,7 @@ namespace Game.Gear.Common
             _blockEntityToGearNetwork = new Dictionary<int, GearNetwork>();
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
+        public IReadOnlyDictionary<int, GearNetwork> GearNetworks => _gearNetworks;
 
         public static void AddGear(IGearEnergyTransformer gear)
         {
@@ -31,10 +30,10 @@ namespace Game.Gear.Common
         private void AddGearInternal(IGearEnergyTransformer gear)
         {
             var connectedNetworkIds = new HashSet<int>();
-            foreach (var connectedGear in gear.ConnectingTransformers)
+            foreach (var connectedGear in gear.Connects)
             {
                 //新しく設置された歯車に接続している歯車は、すべて既存のNWに接続している前提
-                var networkId = _blockEntityToGearNetwork[connectedGear.EntityId].NetworkId;
+                var networkId = _blockEntityToGearNetwork[connectedGear.Transformer.EntityId].NetworkId;
                 connectedNetworkIds.Add(networkId);
             }
 
@@ -98,7 +97,7 @@ namespace Game.Gear.Common
                 }
 
                 // マージしたNWに所属する歯車のNWを更新
-                for (int i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
+                for (var i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
                 {
                     var key = _blockEntityToGearNetwork.ElementAt(i).Key;
                     if (connectedNetworkIds.Contains(key))
