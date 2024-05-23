@@ -118,8 +118,24 @@ namespace Game.Gear.Common
 
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
-            //TODO
-            throw new NotImplementedException();
+            //接続していた歯車ネットワークを破棄
+            var network = _instance._blockEntityToGearNetwork[gear.EntityId];
+            network.RemoveGear(gear);
+            _instance._blockEntityToGearNetwork[gear.EntityId] = null;
+            
+            //もともと接続していたブロックをすべてAddする
+            var transformers = network.GearTransformers;
+            var generators = network.GearGenerators;
+            
+            //重くなったらアルゴリズムを変える
+            foreach (var transformer in transformers)
+            {
+                AddGear(transformer);
+            }
+            foreach (var generator in generators)
+            {
+                AddGear(generator);
+            }
         }
 
         private void Update()
