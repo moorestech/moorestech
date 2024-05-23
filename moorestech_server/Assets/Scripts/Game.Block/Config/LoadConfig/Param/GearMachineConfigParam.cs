@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface.Config;
-using Game.Block.Config.LoadConfig.OptionLoader;
 using Game.Block.Interface.BlockConfig;
+using Game.Gear.Common;
 
 namespace Game.Block.Config.LoadConfig.Param
 {

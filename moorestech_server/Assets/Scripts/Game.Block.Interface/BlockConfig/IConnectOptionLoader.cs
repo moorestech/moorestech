@@ -1,6 +1,4 @@
-﻿using Game.Block.Interface.BlockConfig;
-
-namespace Game.Block.Config.LoadConfig
+﻿namespace Game.Block.Interface.BlockConfig
 {
     public interface IConnectOptionLoader
     {
