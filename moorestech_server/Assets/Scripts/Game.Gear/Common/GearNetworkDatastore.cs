@@ -121,12 +121,12 @@ namespace Game.Gear.Common
             //接続していた歯車ネットワークを破棄
             var network = _instance._blockEntityToGearNetwork[gear.EntityId];
             network.RemoveGear(gear);
-            _instance._blockEntityToGearNetwork[gear.EntityId] = null;
-            
+            _instance._blockEntityToGearNetwork.Remove(gear.EntityId);
+
             //もともと接続していたブロックをすべてAddする
             var transformers = network.GearTransformers;
             var generators = network.GearGenerators;
-            
+
             //重くなったらアルゴリズムを変える
             foreach (var transformer in transformers)
             {

@@ -244,8 +244,25 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void GearNetworkMergeTest()
         {
-            //TODO 設置したら歯車NWが増える、歯車NWのマージのテスト、削除したら歯車NWが分割されるテスト
-            throw new NotImplementedException();
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            var gearPosition1 = new Vector3Int(1, 0, 0);
+            var gearPosition2 = new Vector3Int(2, 0, 0);
+
+            // 2つのネットワークを作成
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+
+            // ネットワークをマージ
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            Assert.AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
+
+            // ネットワークの分離のテスト
+            ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition1);
+            Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
         }
 
         private static IBlock AddBlock(int blockId, Vector3Int pos, BlockDirection direction)
