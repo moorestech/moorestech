@@ -25,6 +25,7 @@ namespace Game.Block.Blocks.Gear
         public IObservable<ChangedBlockState> BlockStateChange => _simpleGearService.BlockStateChange;
         public int EntityId { get; }
         public float RequiredPower { get; }
+        public bool IsRocked => _simpleGearService.IsRocked;
 
         public IReadOnlyList<GearConnect> Connects =>
             _connectorComponent.ConnectTargets.Select(

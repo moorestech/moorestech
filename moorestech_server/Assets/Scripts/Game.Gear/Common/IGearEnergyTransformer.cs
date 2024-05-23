@@ -11,6 +11,8 @@ namespace Game.Gear.Common
         public int EntityId { get; }
         public float RequiredPower { get; }
 
+        public bool IsRocked { get; }
+
         public float CurrentRpm { get; }
         public float CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }

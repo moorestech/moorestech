@@ -14,10 +14,13 @@ namespace Game.Block.Blocks.Gear
         public float CurrentRpm { get; private set; }
         public float CurrentTorque { get; private set; }
         public bool IsCurrentClockwise { get; private set; }
+        public bool IsRocked { get; private set; }
+
         private string _currentState = IGearEnergyTransformer.WorkingStateName;
 
         public void Rocked()
         {
+            IsRocked = true;
             _currentState = IGearEnergyTransformer.RockedStateName;
             CurrentRpm = 0;
             CurrentTorque = 0;
@@ -28,6 +31,7 @@ namespace Game.Block.Blocks.Gear
 
         public void SupplyPower(float rpm, float torque, bool isClockwise)
         {
+            IsRocked = false;
             var isChanged =
                 Math.Abs(CurrentRpm - rpm) > 0.05f ||
                 Math.Abs(CurrentTorque - torque) > 0.05f ||

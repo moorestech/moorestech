@@ -70,5 +70,9 @@
   {
     "name": "TestSimpleGearGenerator",
     "maxStacks": 100
+  },
+  {
+    "name": "TestFastSimpleGearGenerator",
+    "maxStacks": 100
   }
 ]
