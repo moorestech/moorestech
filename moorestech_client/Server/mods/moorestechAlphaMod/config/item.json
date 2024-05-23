@@ -39,6 +39,26 @@
         "maxStacks": 100,
         "imagePath": "assets/item/coal.png"
     },
+  {
+    "name": "small test gear",
+    "maxStacks": 100,
+    "imagePath": "assets/item/coal.png"
+  },
+  {
+    "name": "big test gear",
+    "maxStacks": 100,
+    "imagePath": "assets/item/coal.png"
+  },
+  {
+    "name": "test shaft",
+    "maxStacks": 100,
+    "imagePath": "assets/item/coal.png"
+  },
+  {
+    "name": "test simple gear generator",
+    "maxStacks": 100,
+    "imagePath": "assets/item/coal.png"
+  },
     {
         "name": "coal powder",
         "maxStacks": 100,
