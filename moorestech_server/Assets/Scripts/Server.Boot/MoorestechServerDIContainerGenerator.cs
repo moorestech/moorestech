@@ -4,6 +4,7 @@ using Core.Item;
 using Core.Item.Interface;
 using Core.Item.Config;
 using Core.Item.Interface.Config;
+using Core.Update;
 using Game.Block.Component;
 using Game.Block.Config;
 using Game.Block.Event;
@@ -55,6 +56,8 @@ namespace Server.Boot
         //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
+            GameUpdater.ResetUpdate();
+
             //必要な各種インスタンスを手動で作成
             var initializerCollection = new ServiceCollection();
             var modDirectory = Path.Combine(serverDirectory, "mods");
