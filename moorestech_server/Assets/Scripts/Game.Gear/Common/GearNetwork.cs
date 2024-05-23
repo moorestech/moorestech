@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.World.Interface.DataStore;
-using UnityEngine;
 
 namespace Game.Gear.Common
 {
@@ -89,8 +88,6 @@ namespace Game.Gear.Common
             bool CalcGearInfo(GearConnect gearConnect, GearRotationInfo connectGearRotationInfo)
             {
                 var transformer = gearConnect.Transformer;
-                
-                Debug.Log(transformer.EntityId);
                 
                 //デバッグ用 後で消す
                 var name = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(transformer.EntityId).BlockConfigData.Name;
