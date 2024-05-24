@@ -3,6 +3,7 @@
     "com.annulusgames.debug-ui": "https://github.com/AnnulusGames/DebugUI.git?path=src/DebugUI/Assets/DebugUI",
     "com.annulusgames.tween-playables": "https://github.com/AnnulusGames/TweenPlayables.git?path=/Assets/TweenPlayables",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.harumak.unitydebugsheet": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet",
     "com.hecomi.ulipsync": "https://github.com/hecomi/uLipSync.git#upm",
     "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
