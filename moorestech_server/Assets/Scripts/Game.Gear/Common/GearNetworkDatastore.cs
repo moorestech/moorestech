@@ -96,6 +96,10 @@ namespace Game.Gear.Common
                     newNetwork.AddGear(generator);
                 }
 
+                transformers.Add(gear);
+                newNetwork.AddGear(gear);
+                _blockEntityToGearNetwork[gear.EntityId] = newNetwork;
+
                 // マージしたNWに所属する歯車のNWを更新
                 for (var i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
                 {
