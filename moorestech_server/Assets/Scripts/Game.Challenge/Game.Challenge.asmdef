@@ -1,7 +1,11 @@
 {
     "name": "Game.Challenge",
     "rootNamespace": "",
-    "references": ["GUID:ef51da6ab00ef46f19c50828f3a7b5a0","GUID:154cad6abe6f470cb148012122cf80da"],
+    "references": [
+        "Core.ConfigJson",
+        "Core.Item.Interface",
+        "UniRx"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

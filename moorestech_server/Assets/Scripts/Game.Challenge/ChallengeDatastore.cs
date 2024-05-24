@@ -8,12 +8,9 @@ namespace Game.Challenge
         private readonly Dictionary<int, List<CurrentChallenge>> _currentChallenges = new(); // Key: PlayerId Value: Current Challenge
         private readonly Dictionary<int,List<int>> _completedChallengeIds = new(); // Key: PlayerId Value: Completed Challenge Ids
 
-        public void Update()
+        public ChallengeDatastore(ChallengeConfig challengeConfig,Dictionary<int,List<int>> loadedCompletedChallengeIds)
         {
-            // check
-            
-            // notify client
-            
+            _completedChallengeIds = loadedCompletedChallengeIds;
         }
     }
 }

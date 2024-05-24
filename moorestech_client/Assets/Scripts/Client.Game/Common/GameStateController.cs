@@ -4,6 +4,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory;
 using Client.Input;
 using Client.Skit;
+using Client.Skit.Skit;
 using UnityEngine;
 
 namespace Client.Game.Common

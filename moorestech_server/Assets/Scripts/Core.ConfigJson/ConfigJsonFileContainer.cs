@@ -5,6 +5,8 @@ namespace Core.ConfigJson
 {
     public class ConfigJsonFileContainer
     {
+        public readonly List<string> SortedModIds;
+        
         /// <summary>
         ///     ブロックのコンフィグが入っている
         ///     Key modId : Value ConfigJson
@@ -23,7 +25,7 @@ namespace Core.ConfigJson
 
         public readonly List<string> SortedMapObjectConfigJsonList = new();
 
-        public readonly List<string> SortedModIds;
+        public readonly List<string> SortedChallengeConfigJsonList = new();
 
         public ConfigJsonFileContainer(Dictionary<string, ConfigJson> configs)
         {

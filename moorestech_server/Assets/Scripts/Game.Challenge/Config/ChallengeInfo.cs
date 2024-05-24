@@ -16,16 +16,16 @@ namespace Game.Challenge
         public readonly string SkitType;
         public readonly string FireSkitName;
 
-        public ChallengeInfo(int id, int previousId,List<int> nextIds,string taskCompletionType, IChallengeTaskParam taskParam, string summary, string skitType, string fireSkitName)
+        public ChallengeInfo(TmpChallengeInfo tmpChallengeInfo, List<int> nextIds)
         {
-            Id = id;
-            PreviousId = previousId;
+            Id = tmpChallengeInfo.Id;
+            PreviousId = tmpChallengeInfo.PreviousId;
             NextIds = nextIds;
-            TaskCompletionType = taskCompletionType;
-            TaskParam = taskParam;
-            Summary = summary;
-            SkitType = skitType;
-            FireSkitName = fireSkitName;
+            TaskCompletionType = tmpChallengeInfo.TaskCompletionType;
+            TaskParam = tmpChallengeInfo.TaskParam;
+            Summary = tmpChallengeInfo.Summary;
+            SkitType = tmpChallengeInfo.SkitType;
+            FireSkitName = tmpChallengeInfo.FireSkitName;
         }
     }
 

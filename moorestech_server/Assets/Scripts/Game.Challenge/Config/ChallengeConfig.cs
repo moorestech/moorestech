@@ -21,6 +21,21 @@ namespace Game.Challenge
             {
                 LoadTmpChallengeInfo(jsonText);
             }
+            var nextChallengeIds = new Dictionary<int, List<int>>();
+            foreach (var tmpChallenge in tmpChallenges.Values)
+            {
+                if (!nextChallengeIds.ContainsKey(tmpChallenge.PreviousId))
+                {
+                    nextChallengeIds.Add(tmpChallenge.PreviousId, new List<int>());
+                }
+                nextChallengeIds[tmpChallenge.PreviousId].Add(tmpChallenge.Id);
+            }
+            
+            foreach (var tmpChallenge in tmpChallenges.Values)
+            {
+                var nextIds = nextChallengeIds.TryGetValue(tmpChallenge.Id, out List<int> ids) ? ids : new List<int>();
+                _challengeInfos.Add(tmpChallenge.Id, new ChallengeInfo(tmpChallenge, nextIds));
+            }
 
             #region Intenral
 
@@ -50,18 +65,17 @@ namespace Game.Challenge
 
             #endregion
         }
-        
-        class TmpChallengeInfo
-        {
-            public int Id;
-            public int PreviousId;
+    }
+    public class TmpChallengeInfo
+    {
+        public int Id;
+        public int PreviousId;
 
-            public string TaskCompletionType;
-            public IChallengeTaskParam TaskParam;
+        public string TaskCompletionType;
+        public IChallengeTaskParam TaskParam;
 
-            public string Summary;
-            public string SkitType;
-            public string FireSkitName;
-        }
+        public string Summary;
+        public string SkitType;
+        public string FireSkitName;
     }
 }
