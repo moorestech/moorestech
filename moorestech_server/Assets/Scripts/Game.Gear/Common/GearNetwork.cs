@@ -11,9 +11,9 @@ namespace Game.Gear.Common
         private readonly Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
-        public readonly int NetworkId;
+        public readonly GearNetworkId NetworkId;
 
-        public GearNetwork(int networkId)
+        public GearNetwork(GearNetworkId networkId)
         {
             NetworkId = networkId;
         }
