@@ -124,8 +124,8 @@ namespace Game.Gear.Common
             _instance._blockEntityToGearNetwork.Remove(gear.EntityId);
 
             //もともと接続していたブロックをすべてAddする
-            var transformers = network.GearTransformers;
-            var generators = network.GearGenerators;
+            IReadOnlyList<IGearEnergyTransformer> transformers = network.GearTransformers;
+            IReadOnlyList<IGearGenerator> generators = network.GearGenerators;
 
             //重くなったらアルゴリズムを変える
             foreach (var transformer in transformers)
