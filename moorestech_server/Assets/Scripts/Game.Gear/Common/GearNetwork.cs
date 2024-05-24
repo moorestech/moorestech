@@ -103,10 +103,6 @@ namespace Game.Gear.Common
             {
                 var transformer = gearConnect.Transformer;
 
-                //デバッグ用 後で消す
-                var name = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(transformer.EntityId).BlockConfigData.Name;
-                var connectName = WorldBlockDatastore == null ? "" : WorldBlockDatastore.GetBlock(connectGearRotationInfo.EnergyTransformer.EntityId).BlockConfigData.Name;
-
                 //RPMと回転方向を計算する
                 var isReverseRotation = IsReverseRotation(gearConnect);
                 var isClockwise = isReverseRotation ? !connectGearRotationInfo.IsClockwise : connectGearRotationInfo.IsClockwise;
@@ -146,11 +142,6 @@ namespace Game.Gear.Common
                 // 計算済みとして登録
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
                 _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
-
-                // if (name == "TestShaft")
-                // {
-                //     Debug.Log(name);
-                // }
 
                 // この歯車が接続している歯車を再帰的に計算する
                 foreach (var connect in transformer.Connects)
