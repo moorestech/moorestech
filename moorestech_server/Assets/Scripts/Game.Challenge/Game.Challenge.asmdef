@@ -4,7 +4,8 @@
     "references": [
         "Core.ConfigJson",
         "Core.Item.Interface",
-        "UniRx"
+        "UniRx",
+        "Core.Update"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -5,16 +5,21 @@ namespace Game.Challenge.Task
 {
     public class CurrentChallenge
     {
-        public IObservable<ChallengeInfo> OnChallengeComplete => _onChallengeComplete;
-        private readonly Subject<ChallengeInfo> _onChallengeComplete = new();
+        public IObservable<CurrentChallenge> OnChallengeComplete => _onChallengeComplete;
+        private readonly Subject<CurrentChallenge> _onChallengeComplete = new();
 
         public readonly ChallengeInfo Config;
-        public readonly int Id;
+        public readonly int PlayerId;
 
-        public CurrentChallenge(ChallengeInfo config, int id)
+        public void ManualUpdate()
+        {
+            
+        }
+
+        public CurrentChallenge(int playerId, ChallengeInfo config)
         {
             Config = config;
-            Id = id;
+            PlayerId = playerId;
         }
     }
 }

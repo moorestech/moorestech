@@ -30,7 +30,7 @@ namespace Game.Challenge
                 }
                 nextChallengeIds[tmpChallenge.PreviousId].Add(tmpChallenge.Id);
             }
-            
+
             foreach (var tmpChallenge in tmpChallenges.Values)
             {
                 var nextIds = nextChallengeIds.TryGetValue(tmpChallenge.Id, out List<int> ids) ? ids : new List<int>();
@@ -65,7 +65,13 @@ namespace Game.Challenge
 
             #endregion
         }
+
+        public ChallengeInfo GetChallenge(int playerId)
+        {
+            return _challengeInfos[playerId];
+        }
     }
+
     public class TmpChallengeInfo
     {
         public int Id;
