@@ -122,10 +122,25 @@ namespace Game.Gear.Common
 
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
-            //接続していた歯車ネットワークを破棄
+            // 自身をnetworkから削除
             var network = _instance._blockEntityToGearNetwork[gear.EntityId];
             network.RemoveGear(gear);
-            _instance._blockEntityToGearNetwork.Remove(gear.EntityId);
+
+            //接続していた歯車ネットワークをデータベースから破棄
+            _instance._gearNetworks.Remove(network.NetworkId);
+
+            //gearに接続されている全てのgearをblockEntityToGearNetworkから削除
+            var gearStack = new Stack<IGearEnergyTransformer>();
+            gearStack.Push(gear);
+            while (gearStack.TryPop(out var stackGear))
+            {
+                foreach (var connectedGear in stackGear.Connects)
+                {
+                    gearStack.Push(connectedGear.Transformer);
+                }
+
+                _instance._blockEntityToGearNetwork.Remove(stackGear.EntityId);
+            }
 
             //もともと接続していたブロックをすべてAddする
             IReadOnlyList<IGearEnergyTransformer> transformers = network.GearTransformers;
