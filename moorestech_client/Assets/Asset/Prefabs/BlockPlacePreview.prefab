@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8246183721359946851}
   - component: {fileID: 9039188719334912408}
-  - component: {fileID: 9209199308504321348}
   - component: {fileID: 6189128353836319467}
   m_Layer: 0
   m_Name: BlockPlacePreview
@@ -46,19 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d834ee5c7f1d431d86c9e55d26aef150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &9209199308504321348
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8246183721359946876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 464e4f1b473a48108df4ab840a95e2d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isCollisionTerrain: 0
 --- !u!54 &6189128353836319467
 Rigidbody:
   m_ObjectHideFlags: 0

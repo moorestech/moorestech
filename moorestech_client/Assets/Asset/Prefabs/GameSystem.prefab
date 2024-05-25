@@ -90,6 +90,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forcePlay: 0
+  playCutscene: 1
+  playSkit: 1
+  playBackgroundSkit: 1
   timelinePlayer: {fileID: 2631860076997896039}
   initialSkit: {fileID: 4900000, guid: c6ae7c0160f19c6458b2e0f761acceda, type: 3}
   initialMovie: {fileID: 11400000, guid: 233bc6e7d7905df43829b4ee7a45a832, type: 2}
@@ -516,7 +519,6 @@ MonoBehaviour:
   craftInventoryView: {fileID: 3227045173603346395}
   playerInventoryViewController: {fileID: 5132210590052991366}
   blockPlacePreview: {fileID: 5250938589678043889}
-  previewDetectCollisionTerrain: {fileID: 5360153367838866989}
   saveButton: {fileID: 773343225977944571}
   backToMainMenu: {fileID: 7635949962361503415}
   networkDisconnectPresenter: {fileID: 3760452863612925393}
@@ -1566,17 +1568,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d834ee5c7f1d431d86c9e55d26aef150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5360153367838866989 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 9209199308504321348, guid: ecd6bdc7e6a738a4bb1e8d5e4f0135d9, type: 3}
-  m_PrefabInstance: {fileID: 3868225857689121641}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 464e4f1b473a48108df4ab840a95e2d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &5558877443884145861
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1744,15 +1735,15 @@ PrefabInstance:
       objectReference: {fileID: 4694271036350155273}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -25.050001
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 35.44707
+      value: 6.0290704
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -24.288925
+      value: 2.2410755
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalRotation.w
