@@ -80,7 +80,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
             var initializerProvider = initializerCollection.BuildServiceProvider();
-            new ServerContext(
+            var serverContext = new ServerContext(
                 initializerProvider.GetService<IItemConfig>(),
                 initializerProvider.GetService<IBlockConfig>(),
                 initializerProvider.GetService<ICraftingConfig>(),
@@ -155,6 +155,8 @@ namespace Server.Boot
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
+            
+            serverContext.SetServiceProvider(serviceProvider);
 
             return (packetResponse, serviceProvider);
         }

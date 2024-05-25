@@ -6,7 +6,10 @@
         "Core.Item.Interface",
         "UniRx",
         "Core.Update",
-        "Game.Crafting.Interface"
+        "Game.Crafting.Interface",
+        "Game.PlayerInventory.Interface",
+        "Game.Context",
+        "Core.Inventory"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
