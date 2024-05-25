@@ -53,11 +53,11 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
 
-        private static bool IsCraftable(IOpenableInventory mainInventory, IOpenableInventory grabInventory, CraftingConfigData craftingConfigData)
+        private static bool IsCraftable(IOpenableInventory mainInventory, IOpenableInventory grabInventory, CraftingConfigInfo craftingConfigInfo)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
             if (!mainInventory.InsertionCheck(new List<IItemStack>
-                    { craftingConfigData.ResultItem }))
+                    { craftingConfigInfo.ResultItem }))
             {
                 return false;
             }
@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigData.CraftItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {
@@ -115,12 +115,12 @@ namespace Server.Protocol.PacketResponse
         /// <summary>
         ///     クラフトしてアイテムを消費する
         /// </summary>
-        private static void SubItem(IOpenableInventory mainInventory, CraftingConfigData craftingConfigData)
+        private static void SubItem(IOpenableInventory mainInventory, CraftingConfigInfo craftingConfigInfo)
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigData.CraftItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {

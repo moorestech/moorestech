@@ -3,7 +3,7 @@ using Core.Item.Interface;
 
 namespace Game.Crafting.Interface
 {
-    public class CraftingConfigData
+    public class CraftingConfigInfo
     {
         public readonly List<CraftingItemData> CraftItemInfos;
 
@@ -11,7 +11,7 @@ namespace Game.Crafting.Interface
         public readonly int RecipeId;
         public readonly IItemStack ResultItem;
 
-        public CraftingConfigData(List<CraftingItemData> craftItemInfos, IItemStack resultItem, int recipeId)
+        public CraftingConfigInfo(List<CraftingItemData> craftItemInfos, IItemStack resultItem, int recipeId)
         {
             ResultItem = resultItem;
             RecipeId = recipeId;

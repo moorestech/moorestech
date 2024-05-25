@@ -17,11 +17,11 @@ namespace Game.Crafting.Config
             _itemStackFactory = itemStackFactory;
         }
 
-        public List<CraftingConfigData> Load(List<string> jsons)
+        public List<CraftingConfigInfo> Load(List<string> jsons)
         {
             var loadedData = jsons.SelectMany(JsonConvert.DeserializeObject<CraftConfigDataElement[]>).ToList();
 
-            var result = new List<CraftingConfigData>();
+            var result = new List<CraftingConfigInfo>();
 
             for (var i = 0; i < loadedData.Count; i++)
             {
@@ -46,7 +46,7 @@ namespace Game.Crafting.Config
                 var resultItem =
                     _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);
 
-                result.Add(new CraftingConfigData(items, resultItem, i));
+                result.Add(new CraftingConfigInfo(items, resultItem, i));
             }
 
             return result;
