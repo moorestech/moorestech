@@ -5,6 +5,9 @@ namespace Game.Challenge
 {
     public class ChallengeInfo
     {
+        public const string CreateItem = "createItem";
+        public const string InInventoryItem = "inInventoryItem";
+        
         public readonly int Id; // TODO 将来的にintはやめたい
         public readonly int PreviousId;
         public readonly List<int> NextIds;
