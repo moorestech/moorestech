@@ -11,8 +11,8 @@ namespace Game.Challenge.Task
 
         public readonly ChallengeInfo Config;
         public readonly int PlayerId;
-        
-        public CurrentChallenge(int playerId, ChallengeInfo config,CraftEvent craftEvent)
+
+        public CurrentChallenge(int playerId, CraftEvent craftEvent, ChallengeInfo config)
         {
             Config = config;
             PlayerId = playerId;
@@ -45,7 +45,6 @@ namespace Game.Challenge.Task
 
         private void InInventoryItem()
         {
-            
         }
     }
 }

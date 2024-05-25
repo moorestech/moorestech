@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigInfo.CraftItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftRequireItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {
@@ -120,7 +120,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigInfo.CraftItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftRequireItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {

@@ -5,7 +5,6 @@ using Core.Item.Interface;
 using Core.Item.Config;
 using Core.Item.Interface.Config;
 using Core.Update;
-using Game.Block.Component;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
@@ -22,7 +21,6 @@ using Game.Entity;
 using Game.Entity.Interface;
 using Game.Map;
 using Game.Map.Config;
-using Game.Map.Interface;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
@@ -38,7 +36,6 @@ using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
 using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
@@ -125,6 +122,7 @@ namespace Server.Boot
             //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
+            services.AddSingleton<CraftEvent, CraftEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();

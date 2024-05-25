@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Update;
 using Game.Challenge.Task;
+using Game.Crafting.Interface;
 using UniRx;
 
 namespace Game.Challenge
@@ -11,8 +12,9 @@ namespace Game.Challenge
         private readonly Dictionary<int, List<int>> _completedChallengeIds = new(); // Key: PlayerId Value: Completed Challenge Ids
 
         private readonly ChallengeConfig _challengeConfig;
+        private readonly CraftEvent _craftEvent;
 
-        public ChallengeDatastore(ChallengeConfig challengeConfig, Dictionary<int, List<int>> loadedCompletedChallengeIds)
+        public ChallengeDatastore(ChallengeConfig challengeConfig, CraftEvent craftEvent, Dictionary<int, List<int>> loadedCompletedChallengeIds)
         {
             GameUpdater.UpdateObservable.Subscribe(Update);
             _challengeConfig = challengeConfig;
@@ -30,7 +32,7 @@ namespace Game.Challenge
                     {
                         if (_completedChallengeIds[playerId].Contains(nextId)) continue;
 
-                        var currentChallenge = new CurrentChallenge(playerId, challengeConfig.ChallengeInfos[nextId]);
+                        var currentChallenge = new CurrentChallenge(playerId, craftEvent, challengeConfig.ChallengeInfos[nextId]);
                         currentChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
                         _currentChallenges[playerId].Add(currentChallenge);
                     }
@@ -49,7 +51,7 @@ namespace Game.Challenge
             {
                 var config = _challengeConfig.GetChallenge(nextId);
 
-                var nextChallenge = new CurrentChallenge(playerId, config);
+                var nextChallenge = new CurrentChallenge(playerId, _craftEvent, config);
                 nextChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
                 _currentChallenges[playerId].Add(nextChallenge);
             }
