@@ -5,7 +5,8 @@
         "Core.ConfigJson",
         "Core.Item.Interface",
         "UniRx",
-        "Core.Update"
+        "Core.Update",
+        "Game.Crafting.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

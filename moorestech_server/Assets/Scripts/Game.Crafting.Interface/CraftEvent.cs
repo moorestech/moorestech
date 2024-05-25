@@ -5,7 +5,7 @@ namespace Game.Crafting.Interface
 {
     public class CraftEvent
     {
-        public IObserver<CraftingConfigInfo> OnCraftItem => _onCraftItem;
+        public IObservable<CraftingConfigInfo> OnCraftItem => _onCraftItem;
         private readonly Subject<CraftingConfigInfo> _onCraftItem = new();
         
         public void InvokeCraftItem(CraftingConfigInfo craftConfig)
