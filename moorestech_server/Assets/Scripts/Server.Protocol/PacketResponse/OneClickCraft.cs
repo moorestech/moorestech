@@ -15,10 +15,12 @@ namespace Server.Protocol.PacketResponse
         public const string Tag = "va:oneClickCraft";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly CraftEvent _craftEvent;
 
         public OneClickCraft(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _craftEvent = serviceProvider.GetService<CraftEvent>();
         }
 
 
@@ -46,7 +48,8 @@ namespace Server.Protocol.PacketResponse
             //クラフト結果をプレイヤーインベントリに追加
             playerInventory.MainOpenableInventory.InsertItem(craftConfig.ResultItem);
 
-
+            _craftEvent.InvokeCraftItem(craftConfig);
+            
             return null;
         }
 

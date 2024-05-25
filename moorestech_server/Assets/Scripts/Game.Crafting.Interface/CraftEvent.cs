@@ -5,12 +5,12 @@ namespace Game.Crafting.Interface
 {
     public class CraftEvent
     {
-        public IObserver<CraftingItemData> OnCraftItem => _onCraftItem;
-        private readonly Subject<CraftingItemData> _onCraftItem = new();
+        public IObserver<CraftingConfigData> OnCraftItem => _onCraftItem;
+        private readonly Subject<CraftingConfigData> _onCraftItem = new();
         
-        public void InvokeCraftItem(CraftingItemData craftingItemData)
+        public void InvokeCraftItem(CraftingConfigData craftConfig)
         {
-            _onCraftItem.OnNext(craftingItemData);
+            _onCraftItem.OnNext(craftConfig);
         }
     }
 }
