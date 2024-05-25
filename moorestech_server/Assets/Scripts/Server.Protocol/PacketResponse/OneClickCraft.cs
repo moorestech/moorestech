@@ -49,7 +49,7 @@ namespace Server.Protocol.PacketResponse
             playerInventory.MainOpenableInventory.InsertItem(craftConfig.ResultItem);
 
             _craftEvent.InvokeCraftItem(craftConfig);
-            
+
             return null;
         }
 
@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigInfo.CraftRequireItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {
@@ -120,7 +120,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigInfo.CraftRequireItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {

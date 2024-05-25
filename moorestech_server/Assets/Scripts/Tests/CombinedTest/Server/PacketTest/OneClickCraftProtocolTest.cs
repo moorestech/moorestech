@@ -39,9 +39,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
 
             //必要なアイテムをインベントリに追加
-            for (var i = 0; i < craftConfig.CraftRequireItemInfos.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var info = craftConfig.CraftRequireItemInfos[i];
+                var info = craftConfig.CraftRequiredItemInfos[i];
                 playerInventoryData.MainOpenableInventory.SetItem(i, info.ItemStack);
             }
 
@@ -63,9 +63,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
 
             //必要なアイテムをインベントリに追加
-            for (var i = 0; i < craftConfig.CraftRequireItemInfos.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var info = craftConfig.CraftRequireItemInfos[i];
+                var info = craftConfig.CraftRequiredItemInfos[i];
                 playerInventoryData.MainOpenableInventory.SetItem(i, info.ItemStack);
             }
 
@@ -100,9 +100,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //必要なアイテムをインベントリに追加
-            for (var i = 0; i < craftConfig.CraftRequireItemInfos.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var info = craftConfig.CraftRequireItemInfos[i];
+                var info = craftConfig.CraftRequiredItemInfos[i];
                 playerInv.MainOpenableInventory.SetItem(i, info.ItemStack);
             }
 
@@ -111,9 +111,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
 
             //アイテムが維持されていることをテスト
-            for (var i = 0; i < craftConfig.CraftRequireItemInfos.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var info = craftConfig.CraftRequireItemInfos[i];
+                var info = craftConfig.CraftRequiredItemInfos[i];
                 Assert.AreEqual(info.ItemStack.Id, playerInv.MainOpenableInventory.GetItem(i).Id);
                 Assert.AreEqual(info.ItemStack.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
             }
