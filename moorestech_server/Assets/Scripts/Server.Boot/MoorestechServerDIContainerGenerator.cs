@@ -133,6 +133,7 @@ namespace Server.Boot
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
+            services.AddSingleton<CompletedChallengeEventPacket>();
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
@@ -152,6 +153,7 @@ namespace Server.Boot
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
+            serviceProvider.GetService<CompletedChallengeEventPacket>();
 
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
