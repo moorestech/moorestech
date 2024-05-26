@@ -24,9 +24,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // チャレンジを無理やりクリアする
             // Forced to complete a challenge
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            var currentChallenges = challengeDatastore.GetCurrentChallenges(PlayerId);
+            var playerChallengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
 
-            foreach (var challenge in currentChallenges)
+            foreach (var challenge in playerChallengeInfo.CurrentChallenges)
             {
                 var subject = (Subject<CurrentChallenge>)challenge.OnChallengeComplete;
                 subject.OnNext(challenge); // 無理やりクリア
@@ -41,11 +41,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 検証
             // Verification
             Assert.AreEqual(PlayerId, challengeInfo.PlayerId);
-            
+
             Assert.AreEqual(2, challengeInfo.CurrentChallengeIds.Count);
             Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1000));
             Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1010));
-            
+
             Assert.AreEqual(1, challengeInfo.CurrentChallengeIds.Count);
             Assert.IsTrue(challengeInfo.CurrentChallengeIds.Contains(1020));
         }
