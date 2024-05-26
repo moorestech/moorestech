@@ -6,8 +6,8 @@ namespace Game.World.Interface.DataStore
     {
         public Vector3Int WorldSpawnPoint { get; }
 
-        public WorldSettingSaveData GetSettingsSaveData();
+        public WorldSettingJsonObject GetSettingsSaveData();
         public void Initialize();
-        public void LoadSettingData(WorldSettingSaveData worldSettingSaveData);
+        public void LoadSettingData(WorldSettingJsonObject worldSettingJsonObject);
     }
 }

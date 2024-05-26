@@ -38,13 +38,13 @@ namespace Game.PlayerInventory
             return _playerInventoryData[playerId];
         }
 
-        public List<SaveInventoryData> GetSaveInventoryDataList()
+        public List<PlayerInventoryJsonObject> GetSaveInventoryDataList()
         {
-            var savePlayerInventoryList = new List<SaveInventoryData>();
+            var savePlayerInventoryList = new List<PlayerInventoryJsonObject>();
             //セーブデータに必要なデータをまとめる
             foreach (KeyValuePair<int, PlayerInventoryData> inventory in _playerInventoryData)
             {
-                var saveInventoryData = new SaveInventoryData(inventory.Key, inventory.Value);
+                var saveInventoryData = new PlayerInventoryJsonObject(inventory.Key, inventory.Value);
                 savePlayerInventoryList.Add(saveInventoryData);
             }
 
@@ -54,7 +54,7 @@ namespace Game.PlayerInventory
         /// <summary>
         ///     プレイヤーのデータを置き換える
         /// </summary>
-        public void LoadPlayerInventory(List<SaveInventoryData> saveInventoryDataList)
+        public void LoadPlayerInventory(List<PlayerInventoryJsonObject> saveInventoryDataList)
         {
             foreach (var saveInventory in saveInventoryDataList)
             {

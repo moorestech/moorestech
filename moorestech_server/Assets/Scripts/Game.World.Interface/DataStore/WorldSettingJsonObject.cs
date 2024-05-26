@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
-    public class WorldSettingSaveData
+    public class WorldSettingJsonObject
     {
         [JsonProperty("SpawnX")] public int SpawnX;
         [JsonProperty("SpawnY")] public int SpawnY;
 
-        public WorldSettingSaveData(Vector3Int spawnPoint)
+        public WorldSettingJsonObject(Vector3Int spawnPoint)
         {
             SpawnX = spawnPoint.x;
             SpawnY = spawnPoint.y;

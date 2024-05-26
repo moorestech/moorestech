@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Game.Map.Interface.Json
 {
     [Serializable]
-    public class SavedMapObject
+    public class MapObjectJsonObject
     {
         [JsonProperty("instanceId")] public int instanceId;
         [JsonProperty("isDestroyed")] public bool isDestroyed;
@@ -17,11 +17,11 @@ namespace Game.Map.Interface.Json
         [JsonProperty("z")] public float z;
 
         [Obsolete("Json用にのみ使用してください。")]
-        public SavedMapObject()
+        public MapObjectJsonObject()
         {
         }
 
-        public SavedMapObject(IMapObject mapObject)
+        public MapObjectJsonObject(IMapObject mapObject)
         {
             instanceId = mapObject.InstanceId;
             isDestroyed = mapObject.IsDestroyed;

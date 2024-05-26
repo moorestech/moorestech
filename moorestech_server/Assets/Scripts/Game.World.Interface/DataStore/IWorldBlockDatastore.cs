@@ -19,8 +19,8 @@ namespace Game.World.Interface.DataStore
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);
         public Vector3Int GetBlockPosition(int entityId);
         public BlockDirection GetBlockDirection(Vector3Int pos);
-        public List<SaveBlockData> GetSaveBlockDataList();
-        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);
+        public List<BlockJsonObject> GetSaveBlockDataList();
+        public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList);
     }
 
     public static class WorldBlockDatastoreExtension

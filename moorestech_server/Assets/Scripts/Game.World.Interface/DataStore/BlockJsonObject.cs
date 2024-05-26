@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
-    public class SaveBlockData
+    public class BlockJsonObject
     {
         [JsonProperty("blockHash")] public long BlockHash;
         [JsonProperty("direction")] public int Direction;
@@ -14,7 +14,7 @@ namespace Game.World.Interface.DataStore
         [JsonProperty("Y")] public int Y;
         [JsonProperty("Z")] public int Z;
 
-        public SaveBlockData(Vector3Int pos, long blocHash, int entityId, string state, int direction)
+        public BlockJsonObject(Vector3Int pos, long blocHash, int entityId, string state, int direction)
         {
             X = pos.x;
             Y = pos.y;

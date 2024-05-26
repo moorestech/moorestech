@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace Game.PlayerInventory.Interface
 {
-    public class SaveInventoryData
+    public class PlayerInventoryJsonObject
     {
         [JsonProperty("GrabItemCount")] public int GrabItemCount;
         [JsonProperty("GrabItemId")] public int GrabItemId;
@@ -13,11 +13,11 @@ namespace Game.PlayerInventory.Interface
         [JsonProperty("MainItemId")] public List<int> MainItemId;
         [JsonProperty("PlayerId")] public int PlayerId;
 
-        public SaveInventoryData()
+        public PlayerInventoryJsonObject()
         {
         }
 
-        public SaveInventoryData(int playerId, PlayerInventoryData playerInventoryData)
+        public PlayerInventoryJsonObject(int playerId, PlayerInventoryData playerInventoryData)
         {
             MainItemId = new List<int>();
             MainItemCount = new List<int>();

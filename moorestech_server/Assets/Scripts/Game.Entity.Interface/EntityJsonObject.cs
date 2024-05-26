@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Entity.Interface
 {
-    public class SaveEntityData
+    public class EntityJsonObject
     {
         [JsonProperty("InstanceId")] public long InstanceId;
         [JsonProperty("Type")] public string Type;
@@ -12,7 +12,7 @@ namespace Game.Entity.Interface
         [JsonProperty("Y")] public float Y;
         [JsonProperty("Z")] public float Z;
 
-        public SaveEntityData(string type, long instanceId, Vector3 serverVector3)
+        public EntityJsonObject(string type, long instanceId, Vector3 serverVector3)
         {
             Type = type;
             InstanceId = instanceId;

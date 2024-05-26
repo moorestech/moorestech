@@ -39,7 +39,7 @@ namespace Game.Map
 
         public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
 
-        public void LoadMapObject(List<SavedMapObject> savedMapObjects)
+        public void LoadMapObject(List<MapObjectJsonObject> savedMapObjects)
         {
             foreach (var savedMapObject in savedMapObjects)
             {
@@ -65,9 +65,9 @@ namespace Game.Map
             return _mapObjects[instanceId];
         }
 
-        public List<SavedMapObject> GetSettingsSaveData()
+        public List<MapObjectJsonObject> GetSaveData()
         {
-            return _mapObjects.Select(m => new SavedMapObject(m.Value)).ToList();
+            return _mapObjects.Select(m => new MapObjectJsonObject(m.Value)).ToList();
         }
     }
 }

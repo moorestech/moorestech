@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Update;
 using Game.Challenge.Task;
@@ -98,6 +99,12 @@ namespace Game.Challenge
             }
 
             #endregion
+        }
+
+
+        public string GetSaveData()
+        {
+            throw new NotImplementedException();
         }
     }
 
