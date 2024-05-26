@@ -65,5 +65,15 @@ namespace Game.Challenge
                 }
             }
         }
+        
+        public List<int> GetCompletedChallengeIds(int playerId)
+        {
+            return _completedChallengeIds[playerId];
+        }
+        
+        public List<CurrentChallenge> GetCurrentChallenges(int playerId)
+        {
+            return _currentChallenges[playerId];
+        }
     }
 }
