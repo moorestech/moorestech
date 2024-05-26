@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.ConfigJson;
 using Core.Item.Interface.Config;
 using Newtonsoft.Json.Linq;
@@ -9,6 +10,8 @@ namespace Game.Challenge
     {
         public IReadOnlyDictionary<int, ChallengeInfo> ChallengeInfos => _challengeInfos;
         private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
+
+        public readonly IReadOnlyList<ChallengeInfo> InitialChallenges;
 
         public ChallengeConfig(ConfigJsonFileContainer configJson, IItemConfig itemConfig)
         {
@@ -36,6 +39,8 @@ namespace Game.Challenge
                 var nextIds = nextChallengeIds.TryGetValue(tmpChallenge.Id, out List<int> ids) ? ids : new List<int>();
                 _challengeInfos.Add(tmpChallenge.Id, new ChallengeInfo(tmpChallenge, nextIds));
             }
+
+            InitialChallenges = _challengeInfos.Values.Where(challenge => challenge.PreviousId == -1).ToList();
 
             #region Intenral
 

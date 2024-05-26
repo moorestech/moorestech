@@ -21,11 +21,11 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
-            
-            var completedChallengeIds = _challengeDatastore.GetCompletedChallengeIds(data.PlayerId);
-            var currentChallengeIds = _challengeDatastore.GetCurrentChallenges(data.PlayerId).Select(c => c.Config.Id);
-            
-            return new ChallengeInfoMessagePack(data.PlayerId, currentChallengeIds.ToList(), completedChallengeIds);
+
+            var info = _challengeDatastore.GetChallengeInfo(data.PlayerId);
+            var currentChallengeIds = info.CurrentChallenges.Select(c => c.Config.Id).ToList();
+
+            return new ChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeIds);
         }
     }
 
@@ -44,16 +44,16 @@ namespace Server.Protocol.PacketResponse
             PlayerId = playerId;
         }
     }
-    
+
     [MessagePackObject]
     public class ChallengeInfoMessagePack : ProtocolMessagePackBase
     {
         [Key(0)]
         public int PlayerId { get; set; }
-        
+
         [Key(1)]
         public List<int> CurrentChallengeIds { get; set; }
-        
+
         [Key(2)]
         public List<int> CompletedChallengeIds { get; set; }
 
