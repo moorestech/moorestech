@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             var playerChallengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
 
-            foreach (var challenge in playerChallengeInfo.CurrentChallenges)
+            foreach (var challenge in playerChallengeInfo.CurrentChallenges.ToList())
             {
                 var subject = (Subject<CurrentChallenge>)challenge.OnChallengeComplete;
                 subject.OnNext(challenge); // 無理やりクリア

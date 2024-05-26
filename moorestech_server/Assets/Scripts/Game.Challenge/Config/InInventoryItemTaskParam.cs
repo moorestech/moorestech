@@ -20,10 +20,11 @@ namespace Game.Challenge
         {
             string itemModId = param.itemModId;
             string itemName = param.itemName;
+            int count = param.itemCount;
 
             var item = ServerContext.ItemConfig.GetItemId(itemModId, itemName);
 
-            return new InInventoryItemTaskParam(item, param.count);
+            return new InInventoryItemTaskParam(item, count);
         }
     }
 }

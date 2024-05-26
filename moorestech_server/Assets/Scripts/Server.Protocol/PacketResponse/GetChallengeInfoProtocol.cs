@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class RequestChallengeMessagePack : ProtocolMessagePackBase
     {
-        [Key(0)]
+        [Key(2)]
         public int PlayerId { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -48,13 +48,13 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class ChallengeInfoMessagePack : ProtocolMessagePackBase
     {
-        [Key(0)]
+        [Key(2)]
         public int PlayerId { get; set; }
 
-        [Key(1)]
+        [Key(3)]
         public List<int> CurrentChallengeIds { get; set; }
 
-        [Key(2)]
+        [Key(4)]
         public List<int> CompletedChallengeIds { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

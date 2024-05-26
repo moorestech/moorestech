@@ -40,6 +40,7 @@ namespace Core.ConfigJson
                 if (configs[key].CraftRecipeConfigJson != string.Empty) SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
                 if (configs[key].MachineRecipeConfigJson != string.Empty) SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
                 if (configs[key].MapObjectConfigJson != string.Empty) SortedMapObjectConfigJsonList.Add(configs[key].MapObjectConfigJson);
+                if (configs[key].ChallengeConfigJson != string.Empty) SortedChallengeConfigJsonList.Add(configs[key].ChallengeConfigJson);
             }
         }
     }

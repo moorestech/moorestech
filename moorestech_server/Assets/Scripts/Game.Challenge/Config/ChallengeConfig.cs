@@ -8,7 +8,6 @@ namespace Game.Challenge
 {
     public class ChallengeConfig
     {
-        public IReadOnlyDictionary<int, ChallengeInfo> ChallengeInfos => _challengeInfos;
         private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
 
         public readonly IReadOnlyList<ChallengeInfo> InitialChallenges;
@@ -46,24 +45,29 @@ namespace Game.Challenge
 
             void LoadTmpChallengeInfo(string jsonText)
             {
-                dynamic challenges = JObject.Parse(jsonText);
+                dynamic challengeJson = JObject.Parse(jsonText);
 
-                foreach (var challenge in challenges)
+                foreach (var challenge in challengeJson.challenges)
                 {
                     int id = challenge.id;
                     string taskCompletionType = challenge.taskCompletionType;
                     var taskParamLoader = challengeTaskParamLoader[taskCompletionType];
                     IChallengeTaskParam taskParam = taskParamLoader.Invoke(challenge.taskParam);
+                    
+                    int previousId = challenge.prevId;
+                    string summary = challenge.summary;
+                    string skitType = challenge.skitType;
+                    string fireSkitName = challenge.fireSkitName;
 
                     tmpChallenges.Add(id, new TmpChallengeInfo()
                     {
                         Id = id,
-                        PreviousId = challenge.previousId,
+                        PreviousId = previousId,
                         TaskCompletionType = taskCompletionType,
                         TaskParam = taskParam,
-                        Summary = challenge.summary,
-                        SkitType = challenge.skitType,
-                        FireSkitName = challenge.fireSkitName,
+                        Summary = summary,
+                        SkitType = skitType,
+                        FireSkitName = fireSkitName,
                     });
                 }
             }

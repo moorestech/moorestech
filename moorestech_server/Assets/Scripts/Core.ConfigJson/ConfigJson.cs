@@ -9,9 +9,10 @@ namespace Core.ConfigJson
         public readonly string ItemConfigJson;
         public readonly string MachineRecipeConfigJson;
         public readonly string MapObjectConfigJson;
+        public readonly string ChallengeConfigJson;
 
 
-        public ConfigJson(string modId, string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson, string mapObjectConfigJson)
+        public ConfigJson(string modId, string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson, string mapObjectConfigJson, string challengeConfigJson)
         {
             ModId = modId;
 
@@ -20,6 +21,7 @@ namespace Core.ConfigJson
             MachineRecipeConfigJson = machineRecipeConfigJson;
             CraftRecipeConfigJson = craftRecipeConfigJson;
             MapObjectConfigJson = mapObjectConfigJson;
+            ChallengeConfigJson = challengeConfigJson;
         }
     }
 }

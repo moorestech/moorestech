@@ -34,7 +34,7 @@ namespace Game.Challenge
 
                 var nextChallenge = new CurrentChallenge(playerId, config);
                 nextChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
-                challengeInfo.CurrentChallenges.Remove(currentChallenge);
+                challengeInfo.CurrentChallenges.Add(nextChallenge);
             }
 
             ServerContext.GetService<ChallengeEvent>().InvokeCraftItem(currentChallenge);
@@ -70,7 +70,9 @@ namespace Game.Challenge
                 var initialChallenges = new List<CurrentChallenge>();
                 foreach (var initialChallengeConfig in _challengeConfig.InitialChallenges)
                 {
-                    initialChallenges.Add(new CurrentChallenge(playerId, initialChallengeConfig));
+                    var initialChallenge = new CurrentChallenge(playerId, initialChallengeConfig);
+                    initialChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
+                    initialChallenges.Add(initialChallenge);
                 }
 
                 return new PlayerChallengeInfo(initialChallenges, new List<int>());
