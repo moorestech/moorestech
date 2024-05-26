@@ -28,7 +28,8 @@
     "Core.Update",
     "Server.Util",
     "Game.Context",
-    "Core.Item"
+    "Core.Item",
+    "Game.Challenge"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

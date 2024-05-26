@@ -13,7 +13,7 @@ namespace Game.Challenge
 
         public readonly IReadOnlyList<ChallengeInfo> InitialChallenges;
 
-        public ChallengeConfig(ConfigJsonFileContainer configJson, IItemConfig itemConfig)
+        public ChallengeConfig(ConfigJsonFileContainer configJson)
         {
             var challengeTaskParamLoader = new Dictionary<string, ChallengeTaskParamLoader>();
             challengeTaskParamLoader.Add(CreateItemTaskParam.TaskCompletionType, CreateItemTaskParam.Create);
@@ -53,7 +53,7 @@ namespace Game.Challenge
                     int id = challenge.id;
                     string taskCompletionType = challenge.taskCompletionType;
                     var taskParamLoader = challengeTaskParamLoader[taskCompletionType];
-                    IChallengeTaskParam taskParam = taskParamLoader.Invoke(challenge.taskParam, itemConfig);
+                    IChallengeTaskParam taskParam = taskParamLoader.Invoke(challenge.taskParam);
 
                     tmpChallenges.Add(id, new TmpChallengeInfo()
                     {

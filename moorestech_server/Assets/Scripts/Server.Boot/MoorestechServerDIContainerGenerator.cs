@@ -13,6 +13,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.RecipeConfig;
+using Game.Challenge;
 using Game.Context;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
@@ -61,7 +62,8 @@ namespace Server.Boot
 
             var modResource = new ModsResource(modDirectory);
             var configJsons = ModJsonStringLoader.GetConfigString(modResource);
-            initializerCollection.AddSingleton(new ConfigJsonFileContainer(configJsons));
+            var configJsonFileContainer = new ConfigJsonFileContainer(configJsons);
+            initializerCollection.AddSingleton(configJsonFileContainer);
             initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
             initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
             initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
@@ -110,8 +112,12 @@ namespace Server.Boot
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-
-
+            
+            services.AddSingleton(configJsonFileContainer);
+            services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
+            services.AddSingleton<ChallengeConfig, ChallengeConfig>();
+            services.AddSingleton<ChallengeEvent, ChallengeEvent>();
+            
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();

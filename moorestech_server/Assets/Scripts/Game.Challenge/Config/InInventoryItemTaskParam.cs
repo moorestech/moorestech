@@ -1,4 +1,5 @@
 using Core.Item.Interface.Config;
+using Game.Context;
 
 namespace Game.Challenge
 {
@@ -15,12 +16,12 @@ namespace Game.Challenge
             Count = count;
         }
 
-        public static IChallengeTaskParam Create(dynamic param, IItemConfig itemConfig)
+        public static IChallengeTaskParam Create(dynamic param)
         {
             string itemModId = param.itemModId;
             string itemName = param.itemName;
 
-            var item = itemConfig.GetItemId(itemModId, itemName);
+            var item = ServerContext.ItemConfig.GetItemId(itemModId, itemName);
 
             return new InInventoryItemTaskParam(item, param.count);
         }
