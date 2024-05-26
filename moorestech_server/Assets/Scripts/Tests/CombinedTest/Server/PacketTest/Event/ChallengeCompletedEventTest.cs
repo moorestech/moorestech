@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // クラフトの素材をインベントリに追加
             // Add crafting materials to the inventory
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            foreach (var craftInfo in ServerContext.CraftingConfig.GetCraftingConfigData(craftRecipeId).CraftItemInfos)
+            foreach (var craftInfo in ServerContext.CraftingConfig.GetCraftingConfigData(craftRecipeId).CraftRequiredItemInfos)
             {
                 var requiredItem = craftInfo.ItemStack;
                 playerInventoryData.MainOpenableInventory.InsertItem(requiredItem);

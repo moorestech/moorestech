@@ -1,6 +1,8 @@
 using System;
+using Game.Challenge;
 using Game.Challenge.Task;
 using MessagePack;
+using UniRx;
 
 namespace Server.Event.EventReceive
 {
@@ -10,10 +12,10 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public CompletedChallengeEventPacket(EventProtocolProvider eventProtocolProvider)
+        public CompletedChallengeEventPacket(EventProtocolProvider eventProtocolProvider, ChallengeEvent challengeEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            throw new NotImplementedException("チャレンジのサブスクライブ");
+            challengeEvent.OnCraftItem.Subscribe(OnCompletedChallenge);
         }
 
         private void OnCompletedChallenge(CurrentChallenge currentChallenge)

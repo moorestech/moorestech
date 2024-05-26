@@ -11,18 +11,19 @@ namespace Game.Challenge.Task
         public IObservable<CurrentChallenge> OnChallengeComplete => _onChallengeComplete;
         private readonly Subject<CurrentChallenge> _onChallengeComplete = new();
 
-        private bool _completed;
-        
         public readonly ChallengeInfo Config;
         public readonly int PlayerId;
 
-        public CurrentChallenge(int playerId, CraftEvent craftEvent, ChallengeInfo config)
+        private bool _completed;
+
+        public CurrentChallenge(int playerId, ChallengeInfo config)
         {
             Config = config;
             PlayerId = playerId;
 
             if (Config.TaskCompletionType == ChallengeInfo.CreateItem)
             {
+                var craftEvent = ServerContext.GetService<CraftEvent>();
                 craftEvent.OnCraftItem.Subscribe(CreateItem);
             }
         }
@@ -52,9 +53,9 @@ namespace Game.Challenge.Task
         }
 
         private IPlayerInventoryDataStore _playerInventoryDataStore;
-        private PlayerInventoryData _playerInventory; 
+        private PlayerInventoryData _playerInventory;
         private InInventoryItemTaskParam _inInventoryItemTaskParam;
-        
+
         private void InInventoryItem()
         {
             _inInventoryItemTaskParam ??= (InInventoryItemTaskParam)Config.TaskParam;
@@ -65,15 +66,15 @@ namespace Game.Challenge.Task
                 _playerInventory = _playerInventoryDataStore.GetInventoryData(PlayerId);
             }
             if (_playerInventory == null) return;
-            
+
             var itemCount = 0;
             foreach (var item in _playerInventory.MainOpenableInventory.Items)
             {
                 if (item.Id != _inInventoryItemTaskParam.ItemId) continue;
-                
+
                 itemCount += item.Count;
                 if (itemCount < _inInventoryItemTaskParam.Count) continue;
-                
+
                 _onChallengeComplete.OnNext(this);
                 _completed = true;
                 break;
