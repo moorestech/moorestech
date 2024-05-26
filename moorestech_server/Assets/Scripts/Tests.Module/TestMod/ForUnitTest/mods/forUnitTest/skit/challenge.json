@@ -1,0 +1,40 @@
+[
+  {
+    "id": 1000,
+    "prevId": -1,
+    "taskCompletionType": "createItem",
+    "taskParam": {
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test3"
+    },
+    "summary": "テスト1",
+    "skitType": "",
+    "fireSkitName": ""
+  },
+  {
+    "id": 1010,
+    "prevId": -1,
+    "taskCompletionType": "inInventoryItem",
+    "taskParam": {
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test1",
+      "itemCount": 3
+    },
+    "summary": "テスト2",
+    "skitType": "",
+    "fireSkitName": ""
+  },
+  {
+    "id": 1020,
+    "prevId": 1000,
+    "taskCompletionType": "inInventoryItem",
+    "taskParam": {
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test3",
+      "itemCount": 3
+    },
+    "summary": "テスト1をクリアしたら始まるチャレンジ",
+    "skitType": "",
+    "fireSkitName": ""
+  }
+]
