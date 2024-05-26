@@ -18,7 +18,7 @@ namespace Server.Event.EventReceive
 
         private void OnCompletedChallenge(CurrentChallenge currentChallenge)
         {
-            var messagePack = new CompletedChallenge(currentChallenge.Config.Id);
+            var messagePack = new CompletedChallengeEventMessage(currentChallenge.Config.Id);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             var playerId = currentChallenge.PlayerId;
@@ -27,15 +27,15 @@ namespace Server.Event.EventReceive
     }
 
     [MessagePackObject]
-    public class CompletedChallenge
+    public class CompletedChallengeEventMessage
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public CompletedChallenge() { }
+        public CompletedChallengeEventMessage() { }
 
         [Key(0)]
         public int CompletedChallengeId { get; set; }
 
-        public CompletedChallenge(int completedChallengeId)
+        public CompletedChallengeEventMessage(int completedChallengeId)
         {
             CompletedChallengeId = completedChallengeId;
         }
