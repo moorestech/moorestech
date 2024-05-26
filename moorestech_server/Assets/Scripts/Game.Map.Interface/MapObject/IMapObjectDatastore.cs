@@ -17,7 +17,7 @@ namespace Game.Map.Interface.MapObject
         public void Add(IMapObject mapObject);
         public IMapObject Get(int instanceId);
 
-        public List<MapObjectJsonObject> GetSaveData();
+        public List<MapObjectJsonObject> GetSaveJsonObject();
 
         public event Action<IMapObject> OnDestroyMapObject;
     }

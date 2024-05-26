@@ -111,7 +111,7 @@ namespace Game.World.DataStore
 
         #region Save&Load
 
-        public List<BlockJsonObject> GetSaveBlockDataList()
+        public List<BlockJsonObject> GetSaveJsonObject()
         {
             var list = new List<BlockJsonObject>();
             foreach (KeyValuePair<int, WorldBlockData> block in _blockMasterDictionary)

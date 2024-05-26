@@ -31,7 +31,7 @@ namespace Game.Entity
             return _entities[instanceId];
         }
 
-        public List<EntityJsonObject> GetSaveBlockDataList()
+        public List<EntityJsonObject> GetSaveJsonObject()
         {
             var saveData = new List<EntityJsonObject>();
             foreach (KeyValuePair<long, IEntity> entity in _entities)

@@ -38,7 +38,7 @@ namespace Game.PlayerInventory
             return _playerInventoryData[playerId];
         }
 
-        public List<PlayerInventoryJsonObject> GetSaveInventoryDataList()
+        public List<PlayerInventoryJsonObject> GetSaveJsonObject()
         {
             var savePlayerInventoryList = new List<PlayerInventoryJsonObject>();
             //セーブデータに必要なデータをまとめる

@@ -16,7 +16,7 @@ namespace Game.World.DataStore.WorldSettings
             WorldSpawnPoint = Vector3Int.zero;
         }
 
-        public WorldSettingJsonObject GetSettingsSaveData()
+        public WorldSettingJsonObject GetSaveJsonObject()
         {
             return new WorldSettingJsonObject(WorldSpawnPoint);
         }

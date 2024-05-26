@@ -30,11 +30,13 @@ namespace Game.SaveLoad.Json
         public string AssembleSaveJson()
         {
             var saveData = new WorldSaveAllInfoV1(
-                ServerContext.WorldBlockDatastore.GetSaveBlockDataList(),
-                _inventoryDataStore.GetSaveInventoryDataList(),
-                _entitiesDatastore.GetSaveBlockDataList(),
-                _worldSettingsDatastore.GetSettingsSaveData(),
-                _mapObjectDatastore.GetSaveData());
+                ServerContext.WorldBlockDatastore.GetSaveJsonObject(),
+                _inventoryDataStore.GetSaveJsonObject(),
+                _entitiesDatastore.GetSaveJsonObject(),
+                _worldSettingsDatastore.GetSaveJsonObject(),
+                _mapObjectDatastore.GetSaveJsonObject(),
+                _challengeDatastore.GetSaveJsonObject()
+                );
 
             return JsonConvert.SerializeObject(saveData);
         }

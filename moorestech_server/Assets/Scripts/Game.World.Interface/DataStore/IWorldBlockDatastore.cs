@@ -19,7 +19,7 @@ namespace Game.World.Interface.DataStore
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);
         public Vector3Int GetBlockPosition(int entityId);
         public BlockDirection GetBlockDirection(Vector3Int pos);
-        public List<BlockJsonObject> GetSaveBlockDataList();
+        public List<BlockJsonObject> GetSaveJsonObject();
         public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList);
     }
 
