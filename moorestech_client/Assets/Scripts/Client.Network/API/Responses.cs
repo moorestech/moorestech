@@ -11,17 +11,19 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
-        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory)
+        public Vector2 PlayerPos { get; }
+        public List<ChunkResponse> Chunks { get; }
+        public List<MapObjectsInfoMessagePack> MapObjects { get; }
+        public PlayerInventoryResponse Inventory { get; }
+        public ChallengeResponse Challenge { get; }
+        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge)
         {
             PlayerPos = response.PlayerPos;
             Chunks = chunks;
             MapObjects = mapObjects;
             Inventory = inventory;
+            Challenge = challenge;
         }
-        public Vector2 PlayerPos { get; }
-        public List<ChunkResponse> Chunks { get; }
-        public List<MapObjectsInfoMessagePack> MapObjects { get; }
-        public PlayerInventoryResponse Inventory { get; }
     }
 
     public class PlayerInventoryResponse

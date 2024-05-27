@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Control;
-using Client.Game.InGame.Player;
-using Client.Skit;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.SkitTrack;

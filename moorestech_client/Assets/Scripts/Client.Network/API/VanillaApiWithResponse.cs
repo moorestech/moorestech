@@ -41,12 +41,13 @@ namespace Client.Network.API
             List<MapObjectsInfoMessagePack> mapObjects = null;
             List<ChunkResponse> chunk = null;
             PlayerInventoryResponse inventory = null;
+            ChallengeResponse challenge = null;
 
 
             //必要なデータを取得する
-            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory());
+            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge());
 
-            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory);
+            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge);
 
             #region Internal
 
@@ -63,6 +64,11 @@ namespace Client.Network.API
             async UniTask GetInventory()
             {
                 inventory = await GetPlayerInventory(playerId, ct);
+            }
+
+            async UniTask GetChallenge()
+            {
+                challenge = await GetChallengeResponse(playerId, ct);
             }
 
             #endregion

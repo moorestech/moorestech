@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Request current challenge information
             var messagePack = new RequestChallengeMessagePack(PlayerId);
             var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            var challengeInfo = MessagePackSerializer.Deserialize<ChallengeInfoMessagePack>(response.ToArray());
+            var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
 
             // 検証
             // Verification

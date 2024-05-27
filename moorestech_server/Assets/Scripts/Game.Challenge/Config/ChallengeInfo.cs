@@ -7,13 +7,15 @@ namespace Game.Challenge
     {
         public const string CreateItem = "createItem";
         public const string InInventoryItem = "inInventoryItem";
-        
+
         public readonly int Id; // TODO 将来的にintはやめたい
         public readonly int PreviousId;
         public readonly List<int> NextIds;
 
         public readonly string TaskCompletionType;
         public readonly IChallengeTaskParam TaskParam;
+
+        public const string BackgroundSkitType = "backgroundSkit";
 
         public readonly string Summary;
         public readonly string SkitType;
