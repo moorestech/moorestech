@@ -7,12 +7,12 @@ namespace Game.Challenge
 {
     public class ChallengeEvent
     {
-        public IObservable<CurrentChallenge> OnCraftItem => _onCraftItem;
-        private readonly Subject<CurrentChallenge> _onCraftItem = new();
+        public IObservable<CurrentChallenge> OnCompleteChallenge => _onCompleteChallenge;
+        private readonly Subject<CurrentChallenge> _onCompleteChallenge = new();
 
-        public void InvokeCraftItem(CurrentChallenge craftConfig)
+        public void InvokeCompleteChallenge(CurrentChallenge craftConfig)
         {
-            _onCraftItem.OnNext(craftConfig);
+            _onCompleteChallenge.OnNext(craftConfig);
         }
     }
 }

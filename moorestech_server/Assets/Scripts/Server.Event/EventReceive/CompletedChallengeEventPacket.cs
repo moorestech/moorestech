@@ -15,7 +15,7 @@ namespace Server.Event.EventReceive
         public CompletedChallengeEventPacket(EventProtocolProvider eventProtocolProvider, ChallengeEvent challengeEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            challengeEvent.OnCraftItem.Subscribe(OnCompletedChallenge);
+            challengeEvent.OnCompleteChallenge.Subscribe(OnCompletedChallenge);
         }
 
         private void OnCompletedChallenge(CurrentChallenge currentChallenge)

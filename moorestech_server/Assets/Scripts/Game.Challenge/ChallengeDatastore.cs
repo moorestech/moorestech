@@ -37,7 +37,7 @@ namespace Game.Challenge
                 challengeInfo.CurrentChallenges.Add(nextChallenge);
             }
 
-            ServerContext.GetService<ChallengeEvent>().InvokeCraftItem(currentChallenge);
+            ServerContext.GetService<ChallengeEvent>().InvokeCompleteChallenge(currentChallenge);
         }
 
         private void Update(Unit unit)
