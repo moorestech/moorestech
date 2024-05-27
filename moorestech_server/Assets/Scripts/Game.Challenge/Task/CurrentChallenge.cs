@@ -30,7 +30,7 @@ namespace Game.Challenge.Task
 
         public void ManualUpdate()
         {
-            if (!_completed)
+            if (_completed)
             {
                 return;
             }

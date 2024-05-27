@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.Update;
+using Game.Challenge;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -21,9 +22,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         // Test to ensure that the item is created and that the challenge receives a completed event
         public void CreateItemChallengeClearTest()
         {
-            const int craftRecipeId = 2;
+            const int craftRecipeId = 1;
 
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            challengeDatastore.GetChallengeInfo(PlayerId);
 
             // クラフトの素材をインベントリに追加
             // Add crafting materials to the inventory
@@ -55,13 +59,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            // インベントリにアイテムを追加
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            challengeDatastore.GetChallengeInfo(PlayerId);
+
+            // インベントリに別々にアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var item1 = ServerContext.ItemStackFactory.Create("Test Author:forUniTest", "Test1", 2);
             playerInventoryData.MainOpenableInventory.SetItem(1, item1);
             var item2 = ServerContext.ItemStackFactory.Create("Test Author:forUniTest", "Test1", 1);
             playerInventoryData.MainOpenableInventory.SetItem(2, item2);
 
+            // アップデートしてチャレンジをコンプリートする
             GameUpdater.UpdateWithWait();
 
             // イベントを受け取り、テストする

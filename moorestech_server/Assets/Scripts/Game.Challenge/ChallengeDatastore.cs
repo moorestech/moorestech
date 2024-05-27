@@ -44,8 +44,9 @@ namespace Game.Challenge
         {
             foreach (var challengeInfo in _playerChallengeInfos.Values)
             {
-                foreach (var currentChallenge in challengeInfo.CurrentChallenges)
+                for (var i = challengeInfo.CurrentChallenges.Count - 1; i >= 0; i--)
                 {
+                    var currentChallenge = challengeInfo.CurrentChallenges[i];
                     currentChallenge.ManualUpdate();
                 }
             }
