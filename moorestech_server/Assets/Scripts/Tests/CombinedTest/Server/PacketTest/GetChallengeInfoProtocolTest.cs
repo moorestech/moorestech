@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Verification
             Assert.AreEqual(PlayerId, challengeInfo.PlayerId);
 
-            Assert.AreEqual(2, challengeInfo.CurrentChallengeIds.Count);
+            Assert.AreEqual(2, challengeInfo.CompletedChallengeIds.Count);
             Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1000));
             Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1010));
 

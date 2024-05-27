@@ -42,7 +42,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
-            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(eventMessagePack.Events[0].Payload);
+            var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
+            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
 
             Assert.AreEqual(1000, completedChallenge.CompletedChallengeId);
         }
@@ -67,7 +68,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
-            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(eventMessagePack.Events[0].Payload);
+            var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
+            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
 
             Assert.AreEqual(1010, completedChallenge.CompletedChallengeId);
         }
