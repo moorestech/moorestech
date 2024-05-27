@@ -46,6 +46,13 @@ namespace Client.Game.Sequence
                 var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == challengeInfo.FireSkitName);
                 backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset).Forget();
             }
+
+            if (challengeInfo.NextIds.Count != 0)
+            {
+                var nextId = challengeInfo.NextIds.First();
+                var nextChallenge = _challengeConfig.GetChallenge(nextId);
+                currentChallengeSummary.text = nextChallenge.Summary;
+            }
         }
     }
 

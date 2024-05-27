@@ -387,6 +387,8 @@ MonoBehaviour:
     TextAsset: {fileID: 4900000, guid: 2653811e9e4eff9409e76bd3ca81a889, type: 3}
   - SkitName: "\u67283\u500B"
     TextAsset: {fileID: 4900000, guid: c780983d49369904b8be7270e9d9c33a, type: 3}
+  - SkitName: "\u77F3\u65A7\u4F5C\u308A"
+    TextAsset: {fileID: 4900000, guid: a6719bf2c877fbc45b549ec79efb3cf8, type: 3}
 --- !u!1 &4643187565465294795
 GameObject:
   m_ObjectHideFlags: 0

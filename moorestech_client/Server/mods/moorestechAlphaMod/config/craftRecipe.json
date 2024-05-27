@@ -44,9 +44,9 @@
                 "isRemain": false
             },
             {
-                "itemName": "stone ax handle",
+                "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1,
+                "count": 3,
                 "isRemain": false
             }
         ],
