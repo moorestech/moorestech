@@ -16,14 +16,14 @@ namespace Game.World.DataStore.WorldSettings
             WorldSpawnPoint = Vector3Int.zero;
         }
 
-        public WorldSettingSaveData GetSettingsSaveData()
+        public WorldSettingJsonObject GetSaveJsonObject()
         {
-            return new WorldSettingSaveData(WorldSpawnPoint);
+            return new WorldSettingJsonObject(WorldSpawnPoint);
         }
 
-        public void LoadSettingData(WorldSettingSaveData worldSettingSaveData)
+        public void LoadSettingData(WorldSettingJsonObject worldSettingJsonObject)
         {
-            WorldSpawnPoint = new Vector3Int(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
+            WorldSpawnPoint = new Vector3Int(worldSettingJsonObject.SpawnX, worldSettingJsonObject.SpawnY);
         }
     }
 }

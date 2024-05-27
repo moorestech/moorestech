@@ -5,7 +5,6 @@ using Core.Item.Interface;
 using Core.Item.Config;
 using Core.Item.Interface.Config;
 using Core.Update;
-using Game.Block.Component;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
@@ -14,6 +13,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.RecipeConfig;
+using Game.Challenge;
 using Game.Context;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
@@ -22,7 +22,6 @@ using Game.Entity;
 using Game.Entity.Interface;
 using Game.Map;
 using Game.Map.Config;
-using Game.Map.Interface;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
@@ -38,7 +37,6 @@ using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
 using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
@@ -64,7 +62,8 @@ namespace Server.Boot
 
             var modResource = new ModsResource(modDirectory);
             var configJsons = ModJsonStringLoader.GetConfigString(modResource);
-            initializerCollection.AddSingleton(new ConfigJsonFileContainer(configJsons));
+            var configJsonFileContainer = new ConfigJsonFileContainer(configJsons);
+            initializerCollection.AddSingleton(configJsonFileContainer);
             initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
             initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
             initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
@@ -83,7 +82,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
             var initializerProvider = initializerCollection.BuildServiceProvider();
-            new ServerContext(
+            var serverContext = new ServerContext(
                 initializerProvider.GetService<IItemConfig>(),
                 initializerProvider.GetService<IBlockConfig>(),
                 initializerProvider.GetService<ICraftingConfig>(),
@@ -113,8 +112,12 @@ namespace Server.Boot
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-
-
+            
+            services.AddSingleton(configJsonFileContainer);
+            services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
+            services.AddSingleton<ChallengeConfig, ChallengeConfig>();
+            services.AddSingleton<ChallengeEvent, ChallengeEvent>();
+            
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
@@ -125,6 +128,7 @@ namespace Server.Boot
             //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
+            services.AddSingleton<CraftEvent, CraftEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
@@ -133,6 +137,7 @@ namespace Server.Boot
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
+            services.AddSingleton<CompletedChallengeEventPacket>();
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
@@ -152,11 +157,14 @@ namespace Server.Boot
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
+            serviceProvider.GetService<CompletedChallengeEventPacket>();
 
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
+            
+            serverContext.SetServiceProvider(serviceProvider);
 
             return (packetResponse, serviceProvider);
         }

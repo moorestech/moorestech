@@ -20,7 +20,7 @@ namespace Client.Game.InGame.BackgroundSkit
             {
                 var values = line.Split(',');
                 var characterName = values[0];
-                var text = values[1];
+                var text = values[1].Replace("\\n", "\n");
 
                 var voice = voiceDefine.GetVoiceClip(characterName, text);
 

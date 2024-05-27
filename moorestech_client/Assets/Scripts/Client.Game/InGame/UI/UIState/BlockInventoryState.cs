@@ -49,7 +49,7 @@ namespace Client.Game.InGame.UI.UIState
             InputManager.MouseCursorVisible(true);
 
             //サーバーのリクエスト
-            MoorestechContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
+            ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
             _cancellationTokenSource = new CancellationTokenSource();
             UpdateBlockInventory(_openBlockPos, _cancellationTokenSource.Token).Forget();
 
@@ -80,7 +80,7 @@ namespace Client.Game.InGame.UI.UIState
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
 
-            MoorestechContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
+            ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
 
             _blockInventoryView.SetActive(false);
             _playerInventoryViewController.SetActive(false);
@@ -88,7 +88,7 @@ namespace Client.Game.InGame.UI.UIState
 
         private async UniTask UpdateBlockInventory(Vector3Int pos, CancellationToken ct)
         {
-            List<IItemStack> response = await MoorestechContext.VanillaApi.Response.GetBlockInventory(pos, ct);
+            List<IItemStack> response = await ClientContext.VanillaApi.Response.GetBlockInventory(pos, ct);
             _blockInventoryView.SetItemList(response);
         }
     }

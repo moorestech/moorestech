@@ -10,7 +10,8 @@ using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
-using ServerServiceProvider;
+using Microsoft.Extensions.DependencyInjection;
+using Server.Boot;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -43,12 +44,12 @@ namespace Client.Starter
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
 
-            _proprieties ??= new InitializeProprieties(
-                false, null,
-                ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
+            _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
+
+            // DIコンテナによるServerContextの作成
+            new MoorestechServerDIContainerGenerator().Create(ServerConst.ServerDirectory);
 
             //Vanilla APIのロードに必要なものを作成
-            var serverServiceProvider = new MoorestechServerServiceProvider(ServerConst.ServerDirectory);
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             VanillaApi vanillaApi = null;
 
@@ -62,7 +63,7 @@ namespace Client.Starter
             await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets(), LoadItemAssets(), MainGameSceneLoad());
 
             //staticアクセスできるコンテキストの作成
-            new MoorestechContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi, serverServiceProvider);
+            new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
 
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;

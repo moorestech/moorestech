@@ -86,7 +86,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 var fromInfo = GetServerInventoryInfo(from, fromSlot);
                 var toInfo = GetServerInventoryInfo(to, toSlot);
-                MoorestechContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo, fromSlot, toInfo, toSlot);
+                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo, fromSlot, toInfo, toSlot);
             }
 
             ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType, int localSlot)

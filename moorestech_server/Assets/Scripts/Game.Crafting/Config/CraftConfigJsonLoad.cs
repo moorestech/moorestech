@@ -17,36 +17,36 @@ namespace Game.Crafting.Config
             _itemStackFactory = itemStackFactory;
         }
 
-        public List<CraftingConfigData> Load(List<string> jsons)
+        public List<CraftingConfigInfo> Load(List<string> jsons)
         {
             var loadedData = jsons.SelectMany(JsonConvert.DeserializeObject<CraftConfigDataElement[]>).ToList();
 
-            var result = new List<CraftingConfigData>();
+            var result = new List<CraftingConfigInfo>();
 
             for (var i = 0; i < loadedData.Count; i++)
             {
                 var config = loadedData[i];
-                var items = new List<CraftingItemData>();
-                foreach (var craftItem in config.Items)
+                var items = new List<CraftRequiredItemInfo>();
+                foreach (var craftItem in config.RequiredItems)
                 {
                     if (string.IsNullOrEmpty(craftItem.ItemName) || string.IsNullOrEmpty(craftItem.ModId))
                     {
-                        items.Add(new CraftingItemData(_itemStackFactory.CreatEmpty(), false));
+                        items.Add(new CraftRequiredItemInfo(_itemStackFactory.CreatEmpty(), false));
                         continue;
                     }
 
-                    items.Add(new CraftingItemData(
+                    items.Add(new CraftRequiredItemInfo(
                         _itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count),
                         craftItem.IsRemain));
                 }
 
                 //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
-                if (config.Result.ModId == null) Debug.Log(i + " : Result item is null");
+                if (config.ResultItem.ModId == null) Debug.Log(i + " : Result item is null");
 
                 var resultItem =
-                    _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);
+                    _itemStackFactory.Create(config.ResultItem.ModId, config.ResultItem.ItemName, config.ResultItem.Count);
 
-                result.Add(new CraftingConfigData(items, resultItem, i));
+                result.Add(new CraftingConfigInfo(items, resultItem, i));
             }
 
             return result;

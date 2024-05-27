@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
-            
+
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             var pos = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(4, pos.x);
@@ -71,15 +71,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, pos.y);
         }
 
-        private void BlockPlace(int x,int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
+        private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
         {
-            var posInfo = new BlockPositionInfo(new Vector3Int(x,y), BlockDirection.North, Vector3Int.one);
-            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next(),posInfo));
+            var posInfo = new BlockPositionInfo(new Vector3Int(x, y), BlockDirection.North, Vector3Int.one);
+            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next(), posInfo));
         }
 
-        private List<byte> EventRequestData(int plyaerID)
+        private List<byte> EventRequestData(int playerID)
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerID)).ToList();
         }
 
         private Vector3Int AnalysisResponsePacket(byte[] payload)

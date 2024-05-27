@@ -1,6 +1,6 @@
 [
   {
-    "items": [
+    "requiredItems": [
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
@@ -20,14 +20,14 @@
         "isRemain": false
       }
     ],
-    "result": {
+    "resultItem": {
       "itemName": "Test3",
       "modId": "Test Author:forUniTest",
       "count": 1
     }
   },
   {
-    "items": [
+    "requiredItems": [
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
@@ -35,14 +35,14 @@
         "isRemain": false
       }
     ],
-    "result": {
+    "resultItem": {
       "itemName": "Test3",
       "modId": "Test Author:forUniTest",
       "count": 2
     }
   },
   {
-    "items": [
+    "requiredItems": [
       {
         "itemName": "Test6",
         "modId": "Test Author:forUniTest",
@@ -50,14 +50,14 @@
         "isRemain": false
       }
     ],
-    "result": {
+    "resultItem": {
       "itemName": "Test6",
       "modId": "Test Author:forUniTest",
       "count": 80
     }
   },
   {
-    "items": [
+    "requiredItems": [
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
@@ -71,7 +71,7 @@
         "isRemain": false
       }
     ],
-    "result": {
+    "resultItem": {
       "itemName": "Test3",
       "modId": "Test Author:forUniTest",
       "count": 1

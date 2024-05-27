@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Challenge;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface;
@@ -18,14 +19,16 @@ namespace Game.SaveLoad.Json
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
-        private readonly SaveJsonFileName _saveJsonFileName;
-
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
+        private readonly ChallengeDatastore _challengeDatastore;
+        private readonly ChallengeJsonObject _challengeJsonObject;
+        
+        private readonly SaveJsonFileName _saveJsonFileName;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            IMapObjectDatastore mapObjectDatastore)
+            IMapObjectDatastore mapObjectDatastore, ChallengeDatastore challengeDatastore)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -33,6 +36,7 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
+            _challengeDatastore = challengeDatastore;
         }
 
         public void LoadOrInitialize()
@@ -68,8 +72,8 @@ namespace Game.SaveLoad.Json
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
-
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
+            _challengeDatastore.LoadChallenge(load.Challenge);
         }
 
         public void WorldInitialize()

@@ -5,6 +5,8 @@ namespace Core.ConfigJson
 {
     public class ConfigJsonFileContainer
     {
+        public readonly List<string> SortedModIds;
+        
         /// <summary>
         ///     ブロックのコンフィグが入っている
         ///     Key modId : Value ConfigJson
@@ -23,7 +25,7 @@ namespace Core.ConfigJson
 
         public readonly List<string> SortedMapObjectConfigJsonList = new();
 
-        public readonly List<string> SortedModIds;
+        public readonly List<string> SortedChallengeConfigJsonList = new();
 
         public ConfigJsonFileContainer(Dictionary<string, ConfigJson> configs)
         {
@@ -38,6 +40,7 @@ namespace Core.ConfigJson
                 if (configs[key].CraftRecipeConfigJson != string.Empty) SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
                 if (configs[key].MachineRecipeConfigJson != string.Empty) SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
                 if (configs[key].MapObjectConfigJson != string.Empty) SortedMapObjectConfigJsonList.Add(configs[key].MapObjectConfigJson);
+                if (configs[key].ChallengeConfigJson != string.Empty) SortedChallengeConfigJsonList.Add(configs[key].ChallengeConfigJson);
             }
         }
     }

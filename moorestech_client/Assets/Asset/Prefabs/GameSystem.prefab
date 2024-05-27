@@ -97,7 +97,7 @@ MonoBehaviour:
   initialSkit: {fileID: 4900000, guid: c6ae7c0160f19c6458b2e0f761acceda, type: 3}
   initialMovie: {fileID: 11400000, guid: 233bc6e7d7905df43829b4ee7a45a832, type: 2}
   skitManager: {fileID: 1951205481002623162}
-  backgroundSkit: {fileID: 4900000, guid: d5caf3a22668d6f4f9ee3e4e08b90ac9, type: 3}
+  backgroundSkit: {fileID: 4900000, guid: 2653811e9e4eff9409e76bd3ca81a889, type: 3}
   backgroundSkitManager: {fileID: 4371159159903290796}
 --- !u!1 &2450945537476807615
 GameObject:
@@ -339,6 +339,59 @@ MonoBehaviour:
   inGameCameraController: {fileID: 4843909587234544541}
   playerObjectController: {fileID: 8327004088713836899}
   hotBarView: {fileID: 1409822626637412669}
+--- !u!1 &4389934993263601908
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 166617857851957343}
+  - component: {fileID: 5423992904397564507}
+  m_Layer: 0
+  m_Name: ChallengeManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &166617857851957343
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4389934993263601908}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8466354111555762101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5423992904397564507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4389934993263601908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ce5bce8ad4a6399677cb6e8b5af01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentChallengeSummary: {fileID: 5197111008824840589}
+  backgroundSkitManager: {fileID: 4371159159903290796}
+  challengeTextAssets:
+  - SkitName: "\u77F3\u5668\u4F5C\u308A"
+    TextAsset: {fileID: 4900000, guid: 2653811e9e4eff9409e76bd3ca81a889, type: 3}
+  - SkitName: "\u67283\u500B"
+    TextAsset: {fileID: 4900000, guid: c780983d49369904b8be7270e9d9c33a, type: 3}
+  - SkitName: "\u77F3\u65A7\u4F5C\u308A"
+    TextAsset: {fileID: 4900000, guid: a6719bf2c877fbc45b549ec79efb3cf8, type: 3}
 --- !u!1 &4643187565465294795
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,6 +539,7 @@ Transform:
   - {fileID: 3329606519850311358}
   - {fileID: 6507186845973413263}
   - {fileID: 8619491189927761611}
+  - {fileID: 166617857851957343}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6110538852407209855
@@ -522,6 +576,7 @@ MonoBehaviour:
   saveButton: {fileID: 773343225977944571}
   backToMainMenu: {fileID: 7635949962361503415}
   networkDisconnectPresenter: {fileID: 3760452863612925393}
+  challengeManager: {fileID: 5423992904397564507}
   playerSkitStarterDetector: {fileID: 7828429637590761482}
   skitManager: {fileID: 1951205481002623162}
   displayEnergizedRange: {fileID: 6801616934556956278}
@@ -1133,6 +1188,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6777801048370280666, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.00012207031
+      objectReference: {fileID: 0}
     - target: {fileID: 7123843176113210566, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1337,6 +1396,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3b8c2b51da64853a42c24ceee8dda38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5197111008824840589 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7829554092552355307, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 2645848407441091686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &7499633600282642158 stripped

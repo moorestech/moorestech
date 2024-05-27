@@ -100,7 +100,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 }
                 SetItemList(itemList);
 
-                var outputImage = MoorestechContext.ItemImageContainer.GetItemView(minerParam.OutputSlot);
+                var outputImage = ClientContext.ItemImageContainer.GetItemView(minerParam.OutputSlot);
                 minerResourceSlot.SetItem(outputImage, 0);
             }
 

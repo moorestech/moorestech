@@ -111,11 +111,11 @@ namespace Game.World.DataStore
 
         #region Save&Load
 
-        public List<SaveBlockData> GetSaveBlockDataList()
+        public List<BlockJsonObject> GetSaveJsonObject()
         {
-            var list = new List<SaveBlockData>();
+            var list = new List<BlockJsonObject>();
             foreach (KeyValuePair<int, WorldBlockData> block in _blockMasterDictionary)
-                list.Add(new SaveBlockData(
+                list.Add(new BlockJsonObject(
                     block.Value.BlockPositionInfo.OriginalPos,
                     block.Value.Block.BlockHash,
                     block.Value.Block.EntityId,
@@ -126,7 +126,7 @@ namespace Game.World.DataStore
         }
 
         //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
-        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
+        public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList)
         {
             var blockFactory = ServerContext.BlockFactory;
             foreach (var blockSave in saveBlockDataList)

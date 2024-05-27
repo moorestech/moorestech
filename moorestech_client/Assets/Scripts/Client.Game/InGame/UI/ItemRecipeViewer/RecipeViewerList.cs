@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.ItemRecipeViewer
 
             foreach (var item in itemConfig.ItemConfigDataList)
             {
-                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.ItemId);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
 
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);

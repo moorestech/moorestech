@@ -39,10 +39,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
 
             //必要なアイテムをインベントリに追加
-            for (var i = 0; i < craftConfig.CraftItems.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var item = craftConfig.CraftItems[i];
-                playerInventoryData.MainOpenableInventory.SetItem(i, item);
+                var info = craftConfig.CraftRequiredItemInfos[i];
+                playerInventoryData.MainOpenableInventory.SetItem(i, info.ItemStack);
             }
 
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
@@ -63,10 +63,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId);
 
             //必要なアイテムをインベントリに追加
-            for (var i = 0; i < craftConfig.CraftItems.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var item = craftConfig.CraftItems[i];
-                playerInventoryData.MainOpenableInventory.SetItem(i, item);
+                var info = craftConfig.CraftRequiredItemInfos[i];
+                playerInventoryData.MainOpenableInventory.SetItem(i, info.ItemStack);
             }
 
             //一つのアイテムを消費
@@ -100,10 +100,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //必要なアイテムをインベントリに追加
-            for (var i = 0; i < craftConfig.CraftItems.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var item = craftConfig.CraftItems[i];
-                playerInv.MainOpenableInventory.SetItem(i, item);
+                var info = craftConfig.CraftRequiredItemInfos[i];
+                playerInv.MainOpenableInventory.SetItem(i, info.ItemStack);
             }
 
 
@@ -111,11 +111,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
 
             //アイテムが維持されていることをテスト
-            for (int i = 0; i < craftConfig.CraftItems.Count; i++)
+            for (var i = 0; i < craftConfig.CraftRequiredItemInfos.Count; i++)
             {
-                var item = craftConfig.CraftItems[i];
-                Assert.AreEqual(item.Id, playerInv.MainOpenableInventory.GetItem(i).Id);
-                Assert.AreEqual(item.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
+                var info = craftConfig.CraftRequiredItemInfos[i];
+                Assert.AreEqual(info.ItemStack.Id, playerInv.MainOpenableInventory.GetItem(i).Id);
+                Assert.AreEqual(info.ItemStack.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
             }
         }
     }

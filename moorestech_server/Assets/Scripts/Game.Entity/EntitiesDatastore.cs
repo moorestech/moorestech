@@ -31,19 +31,19 @@ namespace Game.Entity
             return _entities[instanceId];
         }
 
-        public List<SaveEntityData> GetSaveBlockDataList()
+        public List<EntityJsonObject> GetSaveJsonObject()
         {
-            var saveData = new List<SaveEntityData>();
+            var saveData = new List<EntityJsonObject>();
             foreach (KeyValuePair<long, IEntity> entity in _entities)
             {
                 var e = entity.Value;
-                saveData.Add(new SaveEntityData(e.EntityType, e.InstanceId, e.Position));
+                saveData.Add(new EntityJsonObject(e.EntityType, e.InstanceId, e.Position));
             }
 
             return saveData;
         }
 
-        public void LoadBlockDataList(List<SaveEntityData> saveBlockDataList)
+        public void LoadBlockDataList(List<EntityJsonObject> saveBlockDataList)
         {
             foreach (var save in saveBlockDataList)
             {

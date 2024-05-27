@@ -17,14 +17,14 @@ namespace Client.DebugSystem
             IReadOnlyList<IItemConfigData> items = ServerContext.ItemConfig.ItemConfigDataList;
             foreach (var itemConfig in items)
             {
-                var itemImage = MoorestechContext.ItemImageContainer.GetItemView(itemConfig.ItemId);
+                var itemImage = ClientContext.ItemImageContainer.GetItemView(itemConfig.ItemId);
                 var subText = $"Count:{itemConfig.MaxStack}";
 
                 AddButton(itemImage.ItemName, subText, icon: itemImage.ItemImage, clicked: () =>
                 {
-                    var playerId = MoorestechContext.PlayerConnectionSetting.PlayerId;
+                    var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
                     var command = $"give {playerId} {itemConfig.ItemId} {itemConfig.MaxStack}";
-                    MoorestechContext.VanillaApi.SendOnly.SendCommand(command);
+                    ClientContext.VanillaApi.SendOnly.SendCommand(command);
                 });
             }
 

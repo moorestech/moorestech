@@ -15,10 +15,12 @@ namespace Server.Protocol.PacketResponse
         public const string Tag = "va:oneClickCraft";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly CraftEvent _craftEvent;
 
         public OneClickCraft(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _craftEvent = serviceProvider.GetService<CraftEvent>();
         }
 
 
@@ -46,15 +48,16 @@ namespace Server.Protocol.PacketResponse
             //クラフト結果をプレイヤーインベントリに追加
             playerInventory.MainOpenableInventory.InsertItem(craftConfig.ResultItem);
 
+            _craftEvent.InvokeCraftItem(craftConfig);
 
             return null;
         }
 
-        private static bool IsCraftable(IOpenableInventory mainInventory, IOpenableInventory grabInventory, CraftingConfigData craftingConfigData)
+        private static bool IsCraftable(IOpenableInventory mainInventory, IOpenableInventory grabInventory, CraftingConfigInfo craftingConfigInfo)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
             if (!mainInventory.InsertionCheck(new List<IItemStack>
-                    { craftingConfigData.ResultItem }))
+                    { craftingConfigInfo.ResultItem }))
             {
                 return false;
             }
@@ -63,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigData.CraftItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {
@@ -112,12 +115,12 @@ namespace Server.Protocol.PacketResponse
         /// <summary>
         ///     クラフトしてアイテムを消費する
         /// </summary>
-        private static void SubItem(IOpenableInventory mainInventory, CraftingConfigData craftingConfigData)
+        private static void SubItem(IOpenableInventory mainInventory, CraftingConfigInfo craftingConfigInfo)
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<int, int>();
-            foreach (var itemData in craftingConfigData.CraftItemInfos)
+            foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
             {
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                 {

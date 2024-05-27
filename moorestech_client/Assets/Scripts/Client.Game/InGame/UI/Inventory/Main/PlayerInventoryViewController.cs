@@ -337,7 +337,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             for (var i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
             {
                 var item = _playerInventory.LocalPlayerInventory[i];
-                var itemView = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
+                var itemView = ClientContext.ItemImageContainer.GetItemView(item.Id);
 
                 if (i < mainInventorySlotObjects.Count)
                 {
@@ -350,7 +350,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 }
             }
             grabInventorySlotObject.SetActive(IsGrabItem);
-            var garbItemView = MoorestechContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
+            var garbItemView = ClientContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
             grabInventorySlotObject.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
         }
     }

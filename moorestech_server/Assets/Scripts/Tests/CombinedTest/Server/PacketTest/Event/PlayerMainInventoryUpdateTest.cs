@@ -22,8 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UpdateTest()
         {
-            var (packetResponse, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
@@ -32,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //インベントリにアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            playerInventoryData.MainOpenableInventory.SetItem(5,itemStackFactory.Create(1, 5));
+            playerInventoryData.MainOpenableInventory.SetItem(5, itemStackFactory.Create(1, 5));
 
             //追加時のイベントのキャッチ
             response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
@@ -52,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
 
             Assert.AreEqual(4, eventMessagePack.Events.Count);
-            
+
             var grabUp = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             var setMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[1].Payload);
             var outMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[2].Payload);
@@ -114,14 +113,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 var from = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
                 var to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
                 messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
-                    from,inventorySlot, to,0);
+                    from, inventorySlot, to, 0);
             }
             else
             {
                 var from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
                 var to = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
-                messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot, 
-                    from,0, to,inventorySlot);
+                messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
+                    from, 0, to, inventorySlot);
             }
 
             return MessagePackSerializer.Serialize(messagePack).ToList();

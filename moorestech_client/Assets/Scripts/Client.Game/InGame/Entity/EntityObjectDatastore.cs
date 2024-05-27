@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Entity
                 var item = Instantiate(itemPrefab, entity.Position, Quaternion.identity, transform);
 
                 var id = int.Parse(entity.State.Split(',')[0]);
-                var texture = MoorestechContext.ItemImageContainer.GetItemView(id).ItemTexture;
+                var texture = ClientContext.ItemImageContainer.GetItemView(id).ItemTexture;
                 item.SetTexture(texture);
                 return item;
             }

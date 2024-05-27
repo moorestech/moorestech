@@ -31,6 +31,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.Tag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.Tag, new MapObjectAcquisitionProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
+            _packetResponseDictionary.Add(GetChallengeInfoProtocol.Tag, new GetChallengeInfoProtocol(serviceProvider));
         }
 
         public List<List<byte>> GetPacketResponse(List<byte> payload)

@@ -20,9 +20,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         public void Initialize()
         {
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag, OnGrabInventoryUpdateEvent);
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag, OnMainInventoryUpdateEvent);
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag, OnGrabInventoryUpdateEvent);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag, OnMainInventoryUpdateEvent);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
         }
 
         /// <summary>

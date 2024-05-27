@@ -6,21 +6,22 @@ namespace Game.Crafting.Config
     [JsonObject]
     public class CraftConfigDataElement
     {
-        [JsonProperty("items")] private List<CraftItem> _items;
-        [JsonProperty("result")] private CraftItem _result;
+        [JsonProperty("requiredItems")] private List<CraftItem> _requiredItems;
+        [JsonProperty("resultItem")] private CraftItem _resultItem;
 
-        public List<CraftItem> Items => _items;
+        public List<CraftItem> RequiredItems => _requiredItems;
 
-        public CraftItem Result => _result;
+        public CraftItem ResultItem => _resultItem;
     }
 
     [JsonObject]
     public class CraftItem
     {
-        [JsonProperty("count")] private int _count;
-        [JsonProperty("isRemain")] private bool _isRemain;
         [JsonProperty("itemName")] private string _itemName;
         [JsonProperty("modId")] private string _modId;
+        
+        [JsonProperty("count")] private int _count;
+        [JsonProperty("isRemain")] private bool _isRemain;
 
         public string ItemName => _itemName;
         public string ModId => _modId;

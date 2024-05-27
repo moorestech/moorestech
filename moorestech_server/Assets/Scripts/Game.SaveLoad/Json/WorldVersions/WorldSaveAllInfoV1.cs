@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Game.Challenge;
 using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
@@ -11,21 +12,23 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         [JsonProperty("worldVersion")] public int WorldVersion = 1;
 
-        public WorldSaveAllInfoV1(List<SaveBlockData> world, List<SaveInventoryData> inventory,
-            List<SaveEntityData> entities, WorldSettingSaveData setting,
-            List<SavedMapObject> mapObjects)
+        [JsonProperty("world")] public List<BlockJsonObject> World { get; }
+        [JsonProperty("playerInventory")] public List<PlayerInventoryJsonObject> Inventory { get; }
+        [JsonProperty("entities")] public List<EntityJsonObject> Entities { get; }
+        [JsonProperty("setting")] public WorldSettingJsonObject Setting { get; }
+        [JsonProperty("mapObjects")] public List<MapObjectJsonObject> MapObjects { get; set; }
+        [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
+
+        public WorldSaveAllInfoV1(List<BlockJsonObject> world, List<PlayerInventoryJsonObject> inventory,
+            List<EntityJsonObject> entities, WorldSettingJsonObject setting,
+            List<MapObjectJsonObject> mapObjects, List<ChallengeJsonObject> challenge)
         {
             World = world;
             Inventory = inventory;
             Entities = entities;
             Setting = setting;
             MapObjects = mapObjects;
+            Challenge = challenge;
         }
-
-        [JsonProperty("world")] public List<SaveBlockData> World { get; }
-        [JsonProperty("playerInventory")] public List<SaveInventoryData> Inventory { get; }
-        [JsonProperty("entities")] public List<SaveEntityData> Entities { get; }
-        [JsonProperty("setting")] public WorldSettingSaveData Setting { get; }
-        [JsonProperty("mapObjects")] public List<SavedMapObject> MapObjects { get; set; }
     }
 }
