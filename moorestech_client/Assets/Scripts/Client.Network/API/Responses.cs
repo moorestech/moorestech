@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Game.Block.Interface;
+using Game.Challenge;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -77,6 +78,17 @@ namespace Client.Network.API
             Type = entityMessagePack.Type;
             Position = entityMessagePack.Position;
             State = entityMessagePack.State;
+        }
+    }
+
+    public class ChallengeResponse
+    {
+        public readonly List<ChallengeInfo> CurrentChallenges;
+        public readonly List<ChallengeInfo> CompletedChallenges;
+        public ChallengeResponse(List<ChallengeInfo> currentChallenges, List<ChallengeInfo> completedChallenges)
+        {
+            CurrentChallenges = currentChallenges;
+            CompletedChallenges = completedChallenges;
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Threading;
 using Client.Network.Settings;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
+using Game.Challenge;
 using Game.Context;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
@@ -140,6 +141,19 @@ namespace Client.Network.API
             }
 
             #endregion
+        }
+
+        public async UniTask<ChallengeResponse> GetChallengeResponse(int playerId, CancellationToken ct)
+        {
+            var request = new RequestChallengeMessagePack(playerId);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseChallengeInfoMessagePack>(request, ct);
+
+            var challengeConfig = ServerContext.GetService<ChallengeConfig>();
+
+            var current = response.CurrentChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
+            var completed = response.CompletedChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
+
+            return new ChallengeResponse(current, completed);
         }
     }
 }

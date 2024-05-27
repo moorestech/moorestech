@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse
             var info = _challengeDatastore.GetChallengeInfo(data.PlayerId);
             var currentChallengeIds = info.CurrentChallenges.Select(c => c.Config.Id).ToList();
 
-            return new ChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeIds);
+            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeIds);
         }
     }
 
@@ -46,7 +46,7 @@ namespace Server.Protocol.PacketResponse
     }
 
     [MessagePackObject]
-    public class ChallengeInfoMessagePack : ProtocolMessagePackBase
+    public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
     {
         [Key(2)]
         public int PlayerId { get; set; }
@@ -58,9 +58,9 @@ namespace Server.Protocol.PacketResponse
         public List<int> CompletedChallengeIds { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ChallengeInfoMessagePack() { }
+        public ResponseChallengeInfoMessagePack() { }
 
-        public ChallengeInfoMessagePack(int playerId, List<int> currentChallengeIds, List<int> completedChallengeIds)
+        public ResponseChallengeInfoMessagePack(int playerId, List<int> currentChallengeIds, List<int> completedChallengeIds)
         {
             Tag = GetChallengeInfoProtocol.Tag;
             PlayerId = playerId;

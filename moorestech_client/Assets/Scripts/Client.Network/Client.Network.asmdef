@@ -46,7 +46,8 @@
     "UniTask",
     "MessagePack",
     "Core.Item.Interface",
-    "Game.Context"
+    "Game.Context",
+    "Game.Challenge"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

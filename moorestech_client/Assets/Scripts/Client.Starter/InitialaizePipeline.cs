@@ -62,6 +62,7 @@ namespace Client.Starter
             await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets(), LoadItemAssets(), MainGameSceneLoad());
 
             //staticアクセスできるコンテキストの作成
+            a
             new MoorestechContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi, serverServiceProvider);
 
             //シーンに遷移し、初期データを渡す
