@@ -133,7 +133,7 @@ namespace Client.Game.InGame.Map.MapObject
 
                 if (isPickUpable)
                 {
-                    MoorestechContext.VanillaApi.SendOnly.AttackMapObject(instanceId, int.MaxValue); //TODO max valueじゃないものにしたい
+                    ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, int.MaxValue); //TODO max valueじゃないものにしたい
                     return;
                 }
 
@@ -148,7 +148,7 @@ namespace Client.Game.InGame.Map.MapObject
                 if (isMiningFinish)
                 {
                     var damage = miningToolInfo.Damage;
-                    MoorestechContext.VanillaApi.SendOnly.AttackMapObject(instanceId, damage);
+                    ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, damage);
                     PlaySoundEffect();
                 }
             }

@@ -17,7 +17,7 @@ namespace Client.Game.InGame.Chunk
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
-        
+
 
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
@@ -46,11 +46,11 @@ namespace Client.Game.InGame.Chunk
             //新しいブロックを設置
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
             var rot = blockDirection.GetRotation();
-            
-            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition, blockDirection);
+
+            var block = ClientContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot, transform, blockPosition, blockDirection);
             //設置アニメーションを再生
             block.PlayPlaceAnimation().Forget();
-            
+
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);
         }

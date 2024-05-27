@@ -46,7 +46,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 
             foreach (var item in itemConfig.ItemConfigDataList)
             {
-                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.ItemId);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
 
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);
@@ -71,7 +71,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             craftButton.OnCraftFinish.Subscribe(_ =>
             {
                 if (_currentCraftingConfigInfos?.Count == 0) return;
-                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigInfos[_currentCraftingConfigIndex].RecipeId);
+                ClientContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigInfos[_currentCraftingConfigIndex].RecipeId);
             }).AddTo(this);
         }
 
@@ -122,7 +122,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 foreach (var requiredItem in craftingConfigInfo.CraftRequiredItemInfos)
                 {
                     var item = requiredItem.ItemStack;
-                    var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
+                    var itemViewData = ClientContext.ItemImageContainer.GetItemView(item.Id);
 
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
                     itemSlotObject.SetItem(itemViewData, item.Count);
@@ -133,7 +133,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 
             void SetResultSlot()
             {
-                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(craftingConfigInfo.ResultItem.Id);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftingConfigInfo.ResultItem.Id);
                 _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
                 _craftResultSlot.SetItem(itemViewData, craftingConfigInfo.ResultItem.Count);
             }

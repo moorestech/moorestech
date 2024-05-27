@@ -69,7 +69,7 @@ namespace Client.Game.InGame.UI.UIState
         /// </summary>
         private async UniTask UpdatePlayerInventory(CancellationToken ct)
         {
-            var invResponse = await MoorestechContext.VanillaApi.Response.GetMyPlayerInventory(ct);
+            var invResponse = await ClientContext.VanillaApi.Response.GetMyPlayerInventory(ct);
 
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {

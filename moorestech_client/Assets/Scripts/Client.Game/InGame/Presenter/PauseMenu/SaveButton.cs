@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 
         private void Start()
         {
-            saveButton.onClick.AddListener(MoorestechContext.VanillaApi.SendOnly.Save);
+            saveButton.onClick.AddListener(ClientContext.VanillaApi.SendOnly.Save);
         }
     }
 }

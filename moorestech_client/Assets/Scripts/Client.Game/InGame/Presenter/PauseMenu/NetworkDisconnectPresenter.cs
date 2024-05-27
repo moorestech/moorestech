@@ -15,7 +15,7 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 
         private void Start()
         {
-            MoorestechContext.VanillaApi.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);
+            ClientContext.VanillaApi.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);
             goToMainMenuButton.onClick.AddListener(() => { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); });
         }
     }
