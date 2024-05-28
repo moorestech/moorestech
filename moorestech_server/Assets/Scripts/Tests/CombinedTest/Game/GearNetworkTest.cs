@@ -200,12 +200,22 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var fastGeneratorPosition = new Vector3Int(0, 0, 0);
-            var generatorPosition = new Vector3Int(1, 0, 0);
-            var smallGearPosition = new Vector3Int(2, 0, 0);
+            var fastGeneratorGearPosition = new Vector3Int(0, 0, 1);
+            var smallGearAPosition = new Vector3Int(1, 0, 1);
+            var generatorPosition = new Vector3Int(2, 0, 0);
+            var generatorGearPosition = new Vector3Int(2, 0, 1);
+            var smallGearBPosition = new Vector3Int(3, 0, 1);
 
             var fastGenerator = AddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, fastGeneratorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, fastGeneratorGearPosition, BlockDirection.North);
+
+            // SmallGearA
+            var smallGearA = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+
             var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
-            var smallGear = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, generatorGearPosition, BlockDirection.North);
+
+            var smallGearB = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
 
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
@@ -213,8 +223,9 @@ namespace Tests.CombinedTest.Game
             gearNetwork.ManualUpdate();
 
             Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
-            Assert.AreEqual(smallGear.CurrentRpm, 20f);
+            Assert.AreEqual(smallGearA.CurrentRpm, 20f);
             Assert.AreEqual(generator.CurrentRpm, 20f);
+            Assert.AreEqual(smallGearB.CurrentRpm, 20f);
         }
 
 
