@@ -18,30 +18,27 @@ using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange, IBlockSaveState
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
     {
         public BlockPositionInfo BlockPositionInfo { get; }
 
         public int EntityId { get; }
-        
+
         public bool IsDestroy { get; private set; }
-        
-        
+
+
         public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        
-        public IObservable<BlockState> OnChangeBlockState => _onBlockStateChange;
-        private readonly Subject<BlockState> _onBlockStateChange = new();
-        
+
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
 
         private readonly int _infinityPower;
         private readonly bool _isInfinityPower;
-        
+
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
-        
+
         private readonly IDisposable _updateObservable;
 
         public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
@@ -74,13 +71,11 @@ namespace Game.Block.Blocks.PowerGenerator
                 slot++;
             }
         }
-        
-        public BlockState GetBlockState() { return new BlockState(); }
 
         public string GetSaveState()
         {
             if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-            
+
             //フォーマット
             //_fuelItemId,_remainingFuelTime,_fuelItemId1,_fuelItemCount1,_fuelItemId2,_fuelItemCount2,_fuelItemId3,_fuelItemCount3...
             var saveState = $"{_fuelItemId},{_remainingFuelTime}";
@@ -93,7 +88,7 @@ namespace Game.Block.Blocks.PowerGenerator
         public IItemStack InsertItem(IItemStack itemStack)
         {
             if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-            
+
             return _itemDataStoreService.InsertItem(itemStack);
         }
 
@@ -213,7 +208,7 @@ namespace Game.Block.Blocks.PowerGenerator
             var properties = new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
-        
+
         public void Destroy()
         {
             IsDestroy = true;

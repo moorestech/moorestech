@@ -16,15 +16,10 @@ using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IBlockInventory, IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateChange
+    public class VanillaChestComponent : IBlockInventory, IOpenableBlockInventoryComponent, IBlockSaveState
     {
         public int EntityId { get; }
-
         public bool IsDestroy { get; private set; }
-
-        public IObservable<BlockState> OnChangeBlockState => _onBlockStateChange;
-        private readonly Subject<BlockState> _onBlockStateChange = new();
-        public BlockState GetBlockState() { return new BlockState(); }
 
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;

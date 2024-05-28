@@ -5,7 +5,7 @@ namespace Game.Block.Interface.State
     ///     <see cref="CurrentState" />や<see cref="PreviousState" />がStringなのは、ブロックの種類によって表現したいステートが異なり、
     ///     それらをパケットで取り扱う必要があるからです
     /// </summary>
-    public struct BlockState
+    public class BlockState
     {
         public readonly string CurrentState;
         public readonly string PreviousState;

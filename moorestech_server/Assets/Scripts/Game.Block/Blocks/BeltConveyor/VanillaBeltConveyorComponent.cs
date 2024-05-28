@@ -19,21 +19,17 @@ namespace Game.Block.Blocks.BeltConveyor
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IBlockStateChange
+    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState
     {
         public const float DefaultBeltConveyorHeight = 0.3f;
-        
+
         public readonly int InventoryItemNum;
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
-        
-        public IObservable<BlockState> OnChangeBlockState => _onBlockStateChange;
-        private readonly Subject<BlockState> _onBlockStateChange = new();
-        public BlockState GetBlockState() { return new BlockState(); }
-        
+
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
-        
+
         private readonly string _blockName;
 
         public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
