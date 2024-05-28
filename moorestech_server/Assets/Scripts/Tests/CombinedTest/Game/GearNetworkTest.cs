@@ -130,17 +130,20 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var generatorPos = new Vector3Int(1, 1, 0); // 大歯車を使ってRPMを変化させた側の歯車
+            var generatorPos = new Vector3Int(-1, -1, 0); // 大歯車を使ってRPMを変化させた側の歯車
             var bigGearPos = new Vector3Int(0, 0, 1); // Gears on the side that changed RPM with large gears
-            var smallGear1Pos = new Vector3Int(3, 1, 1);
+            var smallGear1Pos = new Vector3Int(2, 0, 1);
 
-            var smallGear2Pos = new Vector3Int(1, 1, 2); // RPMを変化させていない側の歯車（回転方向を変えないために2つの小歯車をつかう）
+            var smallGear2Pos = new Vector3Int(0, 0, -1); // RPMを変化させていない側の歯車（回転方向を変えないために2つの小歯車をつかう）
+            var smallGear3Pos = new Vector3Int(1, 0, -1); // Gears on the side not changing RPM (two small gears are used to keep the direction of rotation the same)
 
             AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North);
             AddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North);
 
+            AddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North);
+
             var smallGear1 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North);
-            var smallGear3 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North);
+            var smallGear3 = AddBlock(ForUnitTestModBlockId.SmallGear, smallGear3Pos, BlockDirection.North);
 
             //RPMが違う歯車同士を強制的に接続
             //Force connection between gears with different RPM
@@ -281,8 +284,8 @@ namespace Tests.CombinedTest.Game
             var gear2Transform = gear2.ComponentManager.GetComponent<IGearEnergyTransformer>();
 
 
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectTargets).Add(gear2Transform, (new GearConnectOption(false), new GearConnectOption(false)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectTargets).Add(gear1Transform, (new GearConnectOption(false), new GearConnectOption(false)));
         }
     }
 }
