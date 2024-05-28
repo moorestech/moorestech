@@ -19,7 +19,7 @@ namespace Game.Block.Blocks
         private readonly BlockComponentManager _blockComponentManager = new();
         public BlockPositionInfo BlockPositionInfo { get; }
 
-        public IObservable<BlockState> BlockStateChange => _blockStateChange.OnChangeBlockState;
+        public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<BlockState> _onBlockStateChange = new();
 
         private readonly IBlockStateChange _blockStateChange;
