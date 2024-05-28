@@ -17,6 +17,7 @@ namespace Client.Game.Common
         [SerializeField] private PlayerObjectController playerObjectController;
 
         [SerializeField] private HotBarView hotBarView;
+        [SerializeField] private GameObject challengeText;
 
         private static GameStateController _instance;
 
@@ -54,6 +55,7 @@ namespace Client.Game.Common
             playerObjectController.SetActive(true);
 
             hotBarView.SetActive(true);
+            challengeText.SetActive(true);
 
             InputManager.MouseCursorVisible(false);
         }
@@ -66,6 +68,7 @@ namespace Client.Game.Common
             playerObjectController.SetActive(false);
 
             hotBarView.SetActive(false);
+            challengeText.SetActive(false);
 
             InputManager.MouseCursorVisible(true);
         }
@@ -78,6 +81,7 @@ namespace Client.Game.Common
             playerObjectController.SetActive(false);
 
             hotBarView.SetActive(false);
+            challengeText.SetActive(false);
 
             InputManager.MouseCursorVisible(false);
         }
