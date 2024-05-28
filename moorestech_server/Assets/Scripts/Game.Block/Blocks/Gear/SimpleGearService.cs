@@ -8,8 +8,8 @@ namespace Game.Block.Blocks.Gear
 {
     public class SimpleGearService
     {
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private Subject<ChangedBlockState> _onBlockStateChange = new();
+        public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
+        private Subject<BlockState> _onBlockStateChange = new();
 
         public float CurrentRpm { get; private set; }
         public float CurrentTorque { get; private set; }
@@ -25,8 +25,15 @@ namespace Game.Block.Blocks.Gear
             CurrentRpm = 0;
             CurrentTorque = 0;
 
-            var state = new ChangedBlockState(IGearEnergyTransformer.RockedStateName, _currentState);
+            var state = new BlockState(IGearEnergyTransformer.RockedStateName, _currentState);
             _onBlockStateChange.OnNext(state);
+        }
+        
+        public BlockState GetBlockState()
+        {
+            var stateData = MessagePackSerializer.Serialize(new GearStateData(CurrentRpm, IsCurrentClockwise));
+            var state = new BlockState(IGearEnergyTransformer.WorkingStateName, _currentState, stateData);
+            return state;
         }
 
         public void SupplyPower(float rpm, float torque, bool isClockwise)
@@ -43,8 +50,7 @@ namespace Game.Block.Blocks.Gear
 
             if (isChanged)
             {
-                var stateData = MessagePackSerializer.Serialize(new GearStateData(rpm, isClockwise));
-                var state = new ChangedBlockState(IGearEnergyTransformer.WorkingStateName, _currentState, stateData);
+                var state = GetBlockState();
                 _onBlockStateChange.OnNext(state);
             }
             _currentState = IGearEnergyTransformer.WorkingStateName;

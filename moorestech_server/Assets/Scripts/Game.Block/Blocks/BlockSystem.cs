@@ -18,8 +18,8 @@ namespace Game.Block.Blocks
         public IBlockComponentManager ComponentManager => _blockComponentManager;
         private readonly BlockComponentManager _blockComponentManager = new();
         public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+        public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<BlockState> _onBlockStateChange = new();
 
 
         public BlockSystem(int entityId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
@@ -32,7 +32,7 @@ namespace Game.Block.Blocks
             _blockComponentManager.AddComponents(blockComponents);
 
             var stateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
-            stateChange?.BlockStateChange.Subscribe(state =>
+            stateChange?.OnChangeBlockState.Subscribe(state =>
             {
                 _onBlockStateChange.OnNext(state);
             });

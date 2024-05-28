@@ -11,7 +11,7 @@ namespace Game.World.Interface.DataStore
     {
         public IReadOnlyDictionary<int, WorldBlockData> BlockMasterDictionary { get; }
 
-        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
+        public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
 
         public bool AddBlock(IBlock block);
         public bool RemoveBlock(Vector3Int pos);

@@ -22,8 +22,9 @@ namespace Game.Block.Blocks.Chest
 
         public bool IsDestroy { get; private set; }
 
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+        public IObservable<BlockState> OnChangeBlockState => _onBlockStateChange;
+        private readonly Subject<BlockState> _onBlockStateChange = new();
+        public BlockState GetBlockState() { return new BlockState(); }
 
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;

@@ -22,7 +22,7 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
         }
 
-        private void ChangeState((ChangedBlockState state, WorldBlockData blockData) state)
+        private void ChangeState((BlockState state, WorldBlockData blockData) state)
         {
             var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
@@ -39,7 +39,7 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public ChangeBlockStateEventMessagePack(ChangedBlockState state, Vector3Int pos)
+        public ChangeBlockStateEventMessagePack(BlockState state, Vector3Int pos)
         {
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;

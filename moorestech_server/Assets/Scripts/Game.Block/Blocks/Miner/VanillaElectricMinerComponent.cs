@@ -23,10 +23,11 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
+        public int EntityId { get; }
         public bool IsDestroy { get; private set; }
 
-        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
-        private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new();
+        public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
+        private readonly Subject<BlockState> _blockStateChangeSubject = new();
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -101,9 +102,14 @@ namespace Game.Block.Blocks.Miner
             for (var i = 0; i < inventoryItems.Count; i++)
                 _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
         }
-
-
-        public int EntityId { get; }
+        
+        public BlockState GetBlockState()
+        {
+            var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
+            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
+            var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
+            return state;
+        }
 
         public string GetSaveState()
         {
@@ -212,11 +218,9 @@ namespace Game.Block.Blocks.Miner
             void InvokeChangeStateEvent()
             {
                 if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-
-                var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
-                var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
-                var changeStateData = new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
-                _blockStateChangeSubject.OnNext(changeStateData);
+                
+                var state = GetBlockState();
+                _blockStateChangeSubject.OnNext(state);
             }
 
 

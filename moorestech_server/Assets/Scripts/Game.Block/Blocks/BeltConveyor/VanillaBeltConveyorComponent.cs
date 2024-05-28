@@ -22,17 +22,19 @@ namespace Game.Block.Blocks.BeltConveyor
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IBlockStateChange
     {
         public const float DefaultBeltConveyorHeight = 0.3f;
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-
-        private readonly string _blockName;
-
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-
-        private readonly IDisposable _updateObservable;
-
+        
         public readonly int InventoryItemNum;
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        
+        public IObservable<BlockState> OnChangeBlockState => _onBlockStateChange;
+        private readonly Subject<BlockState> _onBlockStateChange = new();
+        public BlockState GetBlockState() { return new BlockState(); }
+        
+        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        private readonly IDisposable _updateObservable;
+        
+        private readonly string _blockName;
 
         public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
@@ -140,7 +142,6 @@ namespace Game.Block.Blocks.BeltConveyor
             return state.ToString();
         }
 
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
 
         /// <summary>
         ///     アイテムの搬出判定を行う

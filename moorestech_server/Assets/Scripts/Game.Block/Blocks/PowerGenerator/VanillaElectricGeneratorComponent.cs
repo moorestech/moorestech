@@ -30,8 +30,8 @@ namespace Game.Block.Blocks.PowerGenerator
         public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+        public IObservable<BlockState> OnChangeBlockState => _onBlockStateChange;
+        private readonly Subject<BlockState> _onBlockStateChange = new();
         
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
@@ -74,6 +74,8 @@ namespace Game.Block.Blocks.PowerGenerator
                 slot++;
             }
         }
+        
+        public BlockState GetBlockState() { return new BlockState(); }
 
         public string GetSaveState()
         {

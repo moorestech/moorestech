@@ -332,7 +332,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5880635445525047251
 Transform:
   m_ObjectHideFlags: 0
@@ -963,5 +963,5 @@ MonoBehaviour:
   rotationInfos:
   - rotationAxis: 2
     rotationTransform: {fileID: 8628083112779359352}
-  - rotationAxis: 0
+  - rotationAxis: 2
     rotationTransform: {fileID: 5880635445525047251}

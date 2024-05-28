@@ -1,14 +1,16 @@
 using UnitGenerator;
-using UnityEngine;
 
 namespace Game.Gear.Common
 {
     [UnitOf(typeof(int))]
     public readonly partial struct GearNetworkId
     {
+        private static readonly System.Random Random = new(123456);
+        
         public static GearNetworkId CreateNetworkId()
         {
-            return new GearNetworkId(Random.Range(int.MinValue, int.MaxValue));
+            // intの最小から最大までの乱数を生成
+            return new GearNetworkId(Random.Next(int.MinValue, int.MaxValue));
         }
     }
 }

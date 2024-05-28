@@ -19,8 +19,9 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public class VanillaElectricMachineComponent : IBlockInventory, IElectricConsumer, IOpenableBlockInventoryComponent, IBlockStateChange, IBlockSaveState
     {
-        public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
-        
+        public IObservable<BlockState> OnChangeBlockState => _vanillaMachineRunProcess.ChangeState;
+        public BlockState GetBlockState() { return _vanillaMachineRunProcess.GetBlockState(); }
+
         public bool IsDestroy { get; private set; }
         
         public int EntityId { get; }

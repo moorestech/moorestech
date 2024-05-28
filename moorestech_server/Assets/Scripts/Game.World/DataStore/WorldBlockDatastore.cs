@@ -22,10 +22,10 @@ namespace Game.World.DataStore
 
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
-        private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
+        private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
 
         //イベント
-        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
+        public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
 
         public bool AddBlock(IBlock block)
         {

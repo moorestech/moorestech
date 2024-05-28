@@ -10,8 +10,9 @@ using UniRx;
 namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineRunProcess
-    {
-        public readonly Subject<ChangedBlockState> ChangeState = new();
+    { 
+        public IObservable<BlockState> ChangeState => _changeState;
+        private readonly Subject<BlockState> _changeState = new();
         
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -81,11 +82,8 @@ namespace Game.Block.Blocks.Machine
             //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
             if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
             {
-                var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
-                ChangeState.OnNext(
-                    new ChangedBlockState(CurrentState.ToStr(), _lastState.ToStr(),
-                        MessagePackSerializer.Serialize(
-                            new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
+                var state = GetBlockState();
+                _changeState.OnNext(state);
                 _lastState = CurrentState;
             }
         }
@@ -122,6 +120,14 @@ namespace Game.Block.Blocks.Machine
             return CurrentState == ProcessState.Idle &&
                    _vanillaMachineInputInventory.IsAllowedToStartProcess &&
                    _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+        }
+
+        public BlockState GetBlockState()
+        {
+            var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
+            return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),
+                MessagePackSerializer.Serialize(
+                    new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate)));
         }
     }
 

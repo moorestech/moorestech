@@ -9,21 +9,15 @@ namespace Game.Block.Blocks.Gear
 {
     public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
     {
-        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
-        private readonly SimpleGearService _simpleGearService;
-
-        public GearEnergyTransformer(float lossPower, int entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-        {
-            RequiredPower = lossPower;
-            EntityId = entityId;
-            _connectorComponent = connectorComponent;
-            _simpleGearService = new SimpleGearService();
-
-            GearNetworkDatastore.AddGear(this);
-        }
-
-        public IObservable<ChangedBlockState> BlockStateChange => _simpleGearService.BlockStateChange;
         public int EntityId { get; }
+        public float CurrentRpm => _simpleGearService.CurrentRpm;
+        public float CurrentTorque => _simpleGearService.CurrentTorque;
+        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        public bool IsDestroy { get; private set; }
+        
+        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        public BlockState GetBlockState() { return _simpleGearService.GetBlockState(); }
+
         public float RequiredPower { get; }
         public bool IsRocked => _simpleGearService.IsRocked;
 
@@ -35,12 +29,20 @@ namespace Game.Block.Blocks.Gear
                     (GearConnectOption)target.Value.targetOption
                 )
             ).ToArray();
+        
+        
+        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
+        private readonly SimpleGearService _simpleGearService;
+        
+        public GearEnergyTransformer(float lossPower, int entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+        {
+            RequiredPower = lossPower;
+            EntityId = entityId;
+            _connectorComponent = connectorComponent;
+            _simpleGearService = new SimpleGearService();
 
-        public float CurrentRpm => _simpleGearService.CurrentRpm;
-        public float CurrentTorque => _simpleGearService.CurrentTorque;
-        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
-
-        public bool IsDestroy { get; private set; }
+            GearNetworkDatastore.AddGear(this);
+        }
 
         public void Rocked() { _simpleGearService.Rocked(); }
 
