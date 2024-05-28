@@ -108,8 +108,7 @@ namespace Game.Gear.Common
                 var isClockwise = isReverseRotation ? !connectGearRotationInfo.IsClockwise : connectGearRotationInfo.IsClockwise;
                 var rpm = 0f;
                 if (transformer is IGear gear &&
-                    connectGearRotationInfo.EnergyTransformer is IGear connectGear &&
-                    isReverseRotation)
+                    connectGearRotationInfo.EnergyTransformer is IGear connectGear)
                 {
                     var gearRate = (float)connectGear.TeethCount / gear.TeethCount;
                     rpm = connectGearRotationInfo.Rpm * gearRate;
