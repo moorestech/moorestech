@@ -702,7 +702,7 @@ Material:
     - _Shadow3rdReceive: 0
     - _ShadowBlur: 0.005
     - _ShadowBlurMaskLOD: 0
-    - _ShadowBorder: 0.2
+    - _ShadowBorder: 0.55
     - _ShadowBorderMaskLOD: 0
     - _ShadowBorderRange: 0
     - _ShadowCapBlend: 1

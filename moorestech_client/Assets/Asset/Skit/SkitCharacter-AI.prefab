@@ -5111,7 +5111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   updateMethod: 0
-  skinnedMeshRenderer: {fileID: 0}
+  skinnedMeshRenderer: {fileID: 9148413383943490696}
   blendShapes:
   - phoneme: A
     index: 14
