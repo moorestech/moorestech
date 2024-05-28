@@ -15,16 +15,20 @@ namespace Client.Game.InGame.BlockSystem
         public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
-            ClientContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag,
+                payload =>
+                {
+                    ChangeState(payload);
+                });
         }
 
         public void Initialize()
         {
         }
 
-        private void OnStateChange(byte[] payload)
+        private void ChangeState(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(payload);
+            var data = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payload);
 
             var pos = data.Position;
             if (!_blockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
@@ -35,8 +39,6 @@ namespace Client.Game.InGame.BlockSystem
             {
                 var blockObject = _blockGameObjectDataStore.BlockGameObjectDictionary[pos];
                 blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateData);
-
-                var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockObject.BlockId);
             }
         }
     }

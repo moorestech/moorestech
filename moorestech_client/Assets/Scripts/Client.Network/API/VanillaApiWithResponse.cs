@@ -6,6 +6,7 @@ using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Challenge;
 using Game.Context;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util.MessagePack;
@@ -160,6 +161,14 @@ namespace Client.Network.API
             var completed = response.CompletedChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
 
             return new ChallengeResponse(current, completed);
+        }
+
+        public async UniTask<List<ChangeBlockStateMessagePack>> GetCurrentBlockState(CancellationToken ct)
+        {
+            var request = new RequestBlockStateProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateProtocolMessagePack>(request, ct);
+
+            return response.StateList;
         }
     }
 }
