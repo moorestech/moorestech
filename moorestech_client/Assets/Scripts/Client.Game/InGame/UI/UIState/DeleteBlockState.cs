@@ -9,8 +9,8 @@ namespace Client.Game.InGame.UI.UIState
     public class DeleteBlockState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
-        private readonly InGameCameraController _inGameCameraController; 
-            
+        private readonly InGameCameraController _inGameCameraController;
+
         private BlockGameObject _removeTargetBlock;
 
         public DeleteBlockState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
@@ -48,9 +48,9 @@ namespace Client.Game.InGame.UI.UIState
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
             {
                 var blockPosition = _removeTargetBlock.BlockPosInfo.OriginalPos;
-                MoorestechContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
             }
-            
+
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetMouseButtonDown(1))
             {

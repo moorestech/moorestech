@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Game.Block.Blocks;
 using Game.Block.Interface;
 using Game.Context;
-using Game.World.Interface.DataStore;
 using MessagePack;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
@@ -23,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void DontBlockPlaceTest()
         {
             var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            
+
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
@@ -43,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, eventMessagePack.Events.Count);
 
             var random = new Random(1410);
-            
+
             //ランダムな位置にブロックを設置する
             var blocks = new List<TestBlockData>();
             for (var j = 0; j < 10; j++)
@@ -57,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 //設置したブロックを保持する
                 blocks.Add(new TestBlockData(pos, blockId, direction));
                 //ブロックの設置
-                var blockPosInfo = new BlockPositionInfo(pos, (BlockDirection)direction,Vector3Int.one);
+                var blockPosInfo = new BlockPositionInfo(pos, (BlockDirection)direction, Vector3Int.one);
                 var block = ServerContext.BlockFactory.Create(blockId, random.Next(1, 1000000), blockPosInfo);
                 worldBlockDataStore.AddBlock(block);
             }

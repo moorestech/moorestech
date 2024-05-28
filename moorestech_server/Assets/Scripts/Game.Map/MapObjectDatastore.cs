@@ -39,7 +39,18 @@ namespace Game.Map
 
         public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
 
-        public void LoadMapObject(List<SavedMapObject> savedMapObjects)
+        public void Add(IMapObject mapObject)
+        {
+            _mapObjects.Add(mapObject.InstanceId, mapObject);
+            mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
+        }
+
+        public IMapObject Get(int instanceId)
+        {
+            return _mapObjects[instanceId];
+        }
+
+        public void LoadMapObject(List<MapObjectJsonObject> savedMapObjects)
         {
             foreach (var savedMapObject in savedMapObjects)
             {
@@ -54,20 +65,9 @@ namespace Game.Map
             }
         }
 
-        public void Add(IMapObject mapObject)
+        public List<MapObjectJsonObject> GetSaveJsonObject()
         {
-            _mapObjects.Add(mapObject.InstanceId, mapObject);
-            mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
-        }
-
-        public IMapObject Get(int instanceId)
-        {
-            return _mapObjects[instanceId];
-        }
-
-        public List<SavedMapObject> GetSettingsSaveData()
-        {
-            return _mapObjects.Select(m => new SavedMapObject(m.Value)).ToList();
+            return _mapObjects.Select(m => new MapObjectJsonObject(m.Value)).ToList();
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Client.Game.InGame.BlockSystem
         public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
         }
 
         public void Initialize()

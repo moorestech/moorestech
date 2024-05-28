@@ -1,22 +1,22 @@
 {
-  "name": "Game.Block.Interface",
-  "rootNamespace": "",
-  "references": [
-    "Core.Item.Interface",
-    "Core.Util",
-    "Core.Const",
-    "UniRx",
-    "Core.Inventory",
-    "MessagePack",
-    "MessagePack.Annotations"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "Game.Block.Interface",
+    "rootNamespace": "",
+    "references": [
+        "Core.Item.Interface",
+        "Core.Util",
+        "Core.Const",
+        "UniRx",
+        "MessagePack",
+        "MessagePack.Annotations",
+        "Core.Inventory"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

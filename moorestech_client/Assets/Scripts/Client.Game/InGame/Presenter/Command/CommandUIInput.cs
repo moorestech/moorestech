@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Presenter.Command
 
         private void SubmitCommand()
         {
-            MoorestechContext.VanillaApi.SendOnly.SendCommand(commandInputField.text);
+            ClientContext.VanillaApi.SendOnly.SendCommand(commandInputField.text);
             commandInputField.text = string.Empty;
         }
     }

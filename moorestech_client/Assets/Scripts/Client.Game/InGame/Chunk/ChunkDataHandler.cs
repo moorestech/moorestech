@@ -29,8 +29,8 @@ namespace Client.Game.InGame.Chunk
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+            ClientContext.VanillaApi.Event.RegisterEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
 
             //初期ハンドシェイクのデータを適用する
             foreach (var chunk in initialHandshakeResponse.Chunks)
@@ -85,7 +85,7 @@ namespace Client.Game.InGame.Chunk
 
             async UniTask GetChunkAndApply()
             {
-                List<ChunkResponse> data = await MoorestechContext.VanillaApi.Response.GetChunkInfos(ct);
+                List<ChunkResponse> data = await ClientContext.VanillaApi.Response.GetChunkInfos(ct);
                 if (data == null)
                 {
                     return;

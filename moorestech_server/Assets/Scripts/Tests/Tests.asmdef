@@ -41,7 +41,9 @@
     "MessagePack",
     "MessagePack.Annotations",
     "Game.Context",
-    "Game.Gear"
+    "Game.Gear",
+    "Game.Challenge",
+    "UniRx"
   ],
   "includePlatforms": [
     "Editor"

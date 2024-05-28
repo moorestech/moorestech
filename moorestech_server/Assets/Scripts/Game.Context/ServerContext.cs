@@ -5,10 +5,10 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
-using Game.Gear.Common;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Vein;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Game.Context
 {
@@ -28,6 +28,8 @@ namespace Game.Context
 
         public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
         public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
+
+        private static ServiceProvider _serviceProvider;
 
         public ServerContext(
             IItemConfig itemConfig,
@@ -54,6 +56,16 @@ namespace Game.Context
             MapVeinDatastore = mapVeinDatastore;
             WorldBlockUpdateEvent = worldBlockUpdateEvent;
             BlockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
+        }
+        
+        public static TType GetService<TType>()
+        {
+            return _serviceProvider.GetService<TType>();
+        }
+        
+        public void SetServiceProvider(ServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
         }
     }
 }

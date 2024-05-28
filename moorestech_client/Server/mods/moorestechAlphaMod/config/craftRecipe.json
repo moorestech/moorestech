@@ -1,6 +1,6 @@
 [
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -14,14 +14,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "campfire",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -29,14 +29,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "stone tool",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "stone tool",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -44,20 +44,20 @@
                 "isRemain": false
             },
             {
-                "itemName": "stone ax handle",
+                "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1,
+                "count": 3,
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "stone ax",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -77,14 +77,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "charcoal kiln",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -92,14 +92,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bloomery",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "bloom",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -107,14 +107,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bellows rivet",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "bloom",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -122,14 +122,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bellows nozzle",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -155,28 +155,28 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bellow",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "cotton",
                 "modId": "sakastudio:moorestechAlphaMod",
                 "count": 10
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "cloth",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wooden axle",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -202,14 +202,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bloomery with bellows",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -217,14 +217,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bellows rivet",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 2
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -238,14 +238,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "bellows nozzle",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -259,14 +259,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "chisel",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -280,14 +280,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "iron ax",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -301,14 +301,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "iron pickaxe",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -322,14 +322,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "wooden gears",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "chisel",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -343,14 +343,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "wooden axle",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wooden gears",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -376,14 +376,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "wooden gearbox",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -403,14 +403,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "water wheel",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -418,14 +418,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "iron blade",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wooden gears",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -451,14 +451,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "wooden belt conveyor",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -478,14 +478,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "gear ore crusher",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wooden gears",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -511,14 +511,14 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "gear miner",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
     },
     {
-        "items": [
+        "requiredItems": [
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
@@ -526,7 +526,7 @@
                 "isRemain": false
             }
         ],
-        "result": {
+        "resultItem": {
             "itemName": "wooden chest",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1

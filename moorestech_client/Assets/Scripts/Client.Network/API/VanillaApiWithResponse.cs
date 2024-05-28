@@ -4,6 +4,7 @@ using System.Threading;
 using Client.Network.Settings;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
+using Game.Challenge;
 using Game.Context;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
@@ -40,12 +41,13 @@ namespace Client.Network.API
             List<MapObjectsInfoMessagePack> mapObjects = null;
             List<ChunkResponse> chunk = null;
             PlayerInventoryResponse inventory = null;
+            ChallengeResponse challenge = null;
 
 
             //必要なデータを取得する
-            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory());
+            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge());
 
-            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory);
+            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge);
 
             #region Internal
 
@@ -62,6 +64,11 @@ namespace Client.Network.API
             async UniTask GetInventory()
             {
                 inventory = await GetPlayerInventory(playerId, ct);
+            }
+
+            async UniTask GetChallenge()
+            {
+                challenge = await GetChallengeResponse(playerId, ct);
             }
 
             #endregion
@@ -140,6 +147,19 @@ namespace Client.Network.API
             }
 
             #endregion
+        }
+
+        public async UniTask<ChallengeResponse> GetChallengeResponse(int playerId, CancellationToken ct)
+        {
+            var request = new RequestChallengeMessagePack(playerId);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseChallengeInfoMessagePack>(request, ct);
+
+            var challengeConfig = ServerContext.GetService<ChallengeConfig>();
+
+            var current = response.CurrentChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
+            var completed = response.CompletedChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
+
+            return new ChallengeResponse(current, completed);
         }
     }
 }

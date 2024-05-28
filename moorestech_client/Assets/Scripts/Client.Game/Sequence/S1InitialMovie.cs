@@ -12,6 +12,10 @@ namespace Client.Game.Sequence
     public class S1InitialMovie : MonoBehaviour
     {
         [SerializeField] private bool forcePlay;
+        
+        [SerializeField] private bool playCutscene = true;
+        [SerializeField] private bool playSkit = true;
+        [SerializeField] private bool playBackgroundSkit = true;
 
         [SerializeField] private TimelinePlayer timelinePlayer;
         [SerializeField] private TextAsset initialSkit;
@@ -44,15 +48,23 @@ namespace Client.Game.Sequence
 
         private async UniTask InitialMovie()
         {
-            GameStateController.ChangeState(GameStateType.CutScene);
-            await timelinePlayer.Play(initialMovie);
+            if (playCutscene)
+            {
+                GameStateController.ChangeState(GameStateType.CutScene);
+                await timelinePlayer.Play(initialMovie);
+            }
 
-            GameStateController.ChangeState(GameStateType.Skit);
-            await skitManager.StartSkit(initialSkit);
+            if (playSkit)
+            {
+                GameStateController.ChangeState(GameStateType.Skit);
+                await skitManager.StartSkit(initialSkit);
+            }
 
-            GameStateController.ChangeState(GameStateType.InGame);
-
-            await backgroundSkitManager.StartBackgroundSkit(backgroundSkit);
+            if (playBackgroundSkit)
+            {
+                GameStateController.ChangeState(GameStateType.InGame);
+                await backgroundSkitManager.StartBackgroundSkit(backgroundSkit);
+            }
         }
     }
 }

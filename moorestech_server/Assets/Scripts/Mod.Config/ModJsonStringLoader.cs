@@ -13,6 +13,7 @@ namespace Mod.Config
         private const string MachineRecipeConfigPath = "config/machineRecipe.json";
         private const string CraftRecipeConfigPath = "config/craftRecipe.json";
         private const string MapObjectConfigPath = "config/mapObject.json";
+        private const string ChallengeConfigPath = "config/challenge.json";
 
         public static Dictionary<string, ConfigJson> GetConfigString(ModsResource modResource)
         {
@@ -29,9 +30,16 @@ namespace Mod.Config
                 var machineRecipeConfigJson = LoadConfigFile(extractedPath, MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFile(extractedPath, CraftRecipeConfigPath);
                 var mapObjectConfigJson = LoadConfigFile(extractedPath, MapObjectConfigPath);
+                var challengeConfigJson = LoadConfigFile(extractedPath, ChallengeConfigPath);
 
-                configDict.Add(modId,
-                    new ConfigJson(modId, itemConfigJson, blockConfigJson, machineRecipeConfigJson, craftRecipeConfigJson, mapObjectConfigJson));
+                configDict.Add(modId, new ConfigJson(
+                    modId, 
+                    itemConfigJson, 
+                    blockConfigJson, 
+                    machineRecipeConfigJson, 
+                    craftRecipeConfigJson, 
+                    mapObjectConfigJson, 
+                    challengeConfigJson));
             }
 
             return configDict;

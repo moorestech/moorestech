@@ -14,7 +14,7 @@ namespace Game.Entity.Interface
         public Vector3 GetPosition(long instanceId);
 
 
-        public List<SaveEntityData> GetSaveBlockDataList();
-        public void LoadBlockDataList(List<SaveEntityData> saveBlockDataList);
+        public List<EntityJsonObject> GetSaveJsonObject();
+        public void LoadBlockDataList(List<EntityJsonObject> saveBlockDataList);
     }
 }

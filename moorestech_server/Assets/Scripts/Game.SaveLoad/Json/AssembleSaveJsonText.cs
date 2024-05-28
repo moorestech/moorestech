@@ -1,3 +1,4 @@
+using Game.Challenge;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface;
@@ -15,23 +16,27 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
+        private readonly ChallengeDatastore _challengeDatastore;
 
-        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore)
+        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, ChallengeDatastore challengeDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
+            _challengeDatastore = challengeDatastore;
         }
 
         public string AssembleSaveJson()
         {
             var saveData = new WorldSaveAllInfoV1(
-                ServerContext.WorldBlockDatastore.GetSaveBlockDataList(),
-                _inventoryDataStore.GetSaveInventoryDataList(),
-                _entitiesDatastore.GetSaveBlockDataList(),
-                _worldSettingsDatastore.GetSettingsSaveData(),
-                _mapObjectDatastore.GetSettingsSaveData());
+                ServerContext.WorldBlockDatastore.GetSaveJsonObject(),
+                _inventoryDataStore.GetSaveJsonObject(),
+                _entitiesDatastore.GetSaveJsonObject(),
+                _worldSettingsDatastore.GetSaveJsonObject(),
+                _mapObjectDatastore.GetSaveJsonObject(),
+                _challengeDatastore.GetSaveJsonObject()
+                );
 
             return JsonConvert.SerializeObject(saveData);
         }

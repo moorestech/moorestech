@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private readonly List<ItemSlotObject> _itemListObjects = new();
         private ItemSlotObject _craftResultSlot;
 
-        private IReadOnlyList<CraftingConfigData> _currentCraftingConfigDataList;
+        private IReadOnlyList<CraftingConfigInfo> _currentCraftingConfigInfos;
         private int _currentCraftingConfigIndex;
 
         private ILocalPlayerInventory _localPlayerInventory;
@@ -46,7 +46,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 
             foreach (var item in itemConfig.ItemConfigDataList)
             {
-                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.ItemId);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
 
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);
@@ -57,29 +57,29 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             nextRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex++;
-                if (_currentCraftingConfigDataList.Count <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
+                if (_currentCraftingConfigInfos.Count <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
 
             prevRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex--;
-                if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = _currentCraftingConfigDataList.Count - 1;
+                if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = _currentCraftingConfigInfos.Count - 1;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
 
             craftButton.OnCraftFinish.Subscribe(_ =>
             {
-                if (_currentCraftingConfigDataList?.Count == 0) return;
-                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
+                if (_currentCraftingConfigInfos?.Count == 0) return;
+                ClientContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigInfos[_currentCraftingConfigIndex].RecipeId);
             }).AddTo(this);
         }
 
         private void OnClickItemList(ItemSlotObject slot)
         {
             var craftConfig = ServerContext.CraftingConfig;
-            _currentCraftingConfigDataList = craftConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
-            if (_currentCraftingConfigDataList.Count == 0) return;
+            _currentCraftingConfigInfos = craftConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
+            if (_currentCraftingConfigInfos.Count == 0) return;
 
             _currentCraftingConfigIndex = 0;
             DisplayRecipe(0);
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 
         private void DisplayRecipe(int index)
         {
-            var craftingConfigData = _currentCraftingConfigDataList[index];
+            var craftingConfigInfo = _currentCraftingConfigInfos[index];
 
             ClearSlotObject();
 
@@ -119,11 +119,13 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 
             void SetMaterialSlot()
             {
-                foreach (var material in craftingConfigData.CraftItems)
+                foreach (var requiredItem in craftingConfigInfo.CraftRequiredItemInfos)
                 {
-                    var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(material.Id);
+                    var item = requiredItem.ItemStack;
+                    var itemViewData = ClientContext.ItemImageContainer.GetItemView(item.Id);
+
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
-                    itemSlotObject.SetItem(itemViewData, material.Count);
+                    itemSlotObject.SetItem(itemViewData, item.Count);
                     itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                     _craftMaterialSlotList.Add(itemSlotObject);
                 }
@@ -131,17 +133,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 
             void SetResultSlot()
             {
-                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(craftingConfigData.ResultItem.Id);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftingConfigInfo.ResultItem.Id);
                 _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
-                _craftResultSlot.SetItem(itemViewData, craftingConfigData.ResultItem.Count);
+                _craftResultSlot.SetItem(itemViewData, craftingConfigInfo.ResultItem.Count);
             }
 
             void UpdateButtonAndText()
             {
-                prevRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
-                nextRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
-                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigDataList.Count}";
-                craftButton.UpdateInteractable(IsCraftable(craftingConfigData));
+                prevRecipeButton.interactable = _currentCraftingConfigInfos.Count != 1;
+                nextRecipeButton.interactable = _currentCraftingConfigInfos.Count != 1;
+                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigInfos.Count}";
+                craftButton.UpdateInteractable(IsCraftable(craftingConfigInfo));
             }
 
             #endregion
@@ -152,7 +154,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         ///     そのレシピがクラフト可能かどうかを返す
         ///     この処理はある1つのレシピに対してのみ使い、一気にすべてのアイテムがクラフト可能かチェックするには<see cref="IsAllItemCraftable" />を用いる
         /// </summary>
-        private bool IsCraftable(CraftingConfigData craftingConfigData)
+        private bool IsCraftable(CraftingConfigInfo craftingConfigInfo)
         {
             var itemPerCount = new Dictionary<int, int>();
             foreach (var item in _localPlayerInventory)
@@ -164,10 +166,12 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     itemPerCount.Add(item.Id, item.Count);
             }
 
-            foreach (var material in craftingConfigData.CraftItems)
+            foreach (var requiredItem in craftingConfigInfo.CraftRequiredItemInfos)
             {
-                if (!itemPerCount.ContainsKey(material.Id)) return false;
-                if (itemPerCount[material.Id] < material.Count) return false;
+                var item = requiredItem.ItemStack;
+
+                if (!itemPerCount.ContainsKey(item.Id)) return false;
+                if (itemPerCount[item.Id] < item.Count) return false;
             }
 
             return true;
@@ -193,12 +197,15 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 if (result.Contains(configData.ResultItem.Id)) continue; //すでにクラフト可能なアイテムならスキップ
                 var isCraftable = true;
-                foreach (var material in configData.CraftItems)
-                    if (!itemPerCount.ContainsKey(material.Id) || itemPerCount[material.Id] < material.Count)
+                foreach (var requiredItem in configData.CraftRequiredItemInfos)
+                {
+                    var item = requiredItem.ItemStack;
+                    if (!itemPerCount.ContainsKey(item.Id) || itemPerCount[item.Id] < item.Count)
                     {
                         isCraftable = false;
                         break;
                     }
+                }
 
                 if (isCraftable) result.Add(configData.ResultItem.Id);
             }

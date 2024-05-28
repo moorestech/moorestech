@@ -36,9 +36,9 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 
         private void Disconnect()
         {
-            MoorestechContext.VanillaApi.SendOnly.Save();
+            ClientContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
-            MoorestechContext.VanillaApi.Disconnect();
+            ClientContext.VanillaApi.Disconnect();
         }
     }
 }

@@ -26,6 +26,14 @@ namespace Client.Game.InGame.UI.Inventory
         public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
         public int SelectIndex { get; private set; }
 
+        public event Action<int> OnSelectHotBar;
+
+        [Inject]
+        public void Construct(ILocalPlayerInventory localPlayerInventory)
+        {
+            _localPlayerInventory = localPlayerInventory;
+        }
+
         private void Start()
         {
             SelectIndex = 0;
@@ -68,7 +76,7 @@ namespace Client.Game.InGame.UI.Inventory
 
                 if (slot < startHotBarSlot || PlayerInventoryConst.MainInventorySize <= slot) return;
 
-                var viewData = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
+                var viewData = ClientContext.ItemImageContainer.GetItemView(item.Id);
                 slot -= startHotBarSlot;
                 hotBarItems[slot].SetItem(viewData, item.Count);
             }
@@ -108,14 +116,6 @@ namespace Client.Game.InGame.UI.Inventory
             }
 
             #endregion
-        }
-
-        public event Action<int> OnSelectHotBar;
-
-        [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory)
-        {
-            _localPlayerInventory = localPlayerInventory;
         }
 
         private void UpdateSelectedView(int prevIndex, int nextIndex)
