@@ -43,12 +43,12 @@ namespace Client.Network.API
             List<ChunkResponse> chunk = null;
             PlayerInventoryResponse inventory = null;
             ChallengeResponse challenge = null;
-
+            List<ChangeBlockStateMessagePack> blockStates = null;
 
             //必要なデータを取得する
-            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge());
+            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge(), GetBlockStates());
 
-            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge);
+            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge, blockStates);
 
             #region Internal
 
@@ -70,6 +70,11 @@ namespace Client.Network.API
             async UniTask GetChallenge()
             {
                 challenge = await GetChallengeResponse(playerId, ct);
+            }
+
+            async UniTask GetBlockStates()
+            {
+                blockStates = await GetCurrentBlockState(ct);
             }
 
             #endregion

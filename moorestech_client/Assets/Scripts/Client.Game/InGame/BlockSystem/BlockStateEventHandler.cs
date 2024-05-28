@@ -1,6 +1,6 @@
 ﻿using Client.Game.InGame.Chunk;
 using Client.Game.InGame.Context;
-using Game.Context;
+using Client.Network.API;
 using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -8,29 +8,35 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.BlockSystem
 {
-    public class BlockStateEventHandler : IInitializable
+    public class BlockStateEventHandler : IPostStartable
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
-        public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore)
+        public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore, InitialHandshakeResponse initialHandshakeResponse)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _initialHandshakeResponse = initialHandshakeResponse;
+
             ClientContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag,
                 payload =>
                 {
-                    ChangeState(payload);
+                    var data = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payload);
+                    ChangeState(data);
                 });
         }
 
-        public void Initialize()
+        public void PostStart()
         {
+            foreach (var state in _initialHandshakeResponse.BlockStates)
+            {
+                ChangeState(state);
+            }
         }
 
-        private void ChangeState(byte[] payload)
+        private void ChangeState(ChangeBlockStateMessagePack state)
         {
-            var data = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payload);
-
-            var pos = data.Position;
+            var pos = state.Position;
             if (!_blockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
             {
                 Debug.Log("ブロックがない : " + pos);
@@ -38,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem
             else
             {
                 var blockObject = _blockGameObjectDataStore.BlockGameObjectDictionary[pos];
-                blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateData);
+                blockObject.BlockStateChangeProcessor.OnChangeState(state.CurrentState, state.PreviousState, state.CurrentStateData);
             }
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,17 +13,14 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:blockState";
 
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-
         public BlockStateProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var stateList = new List<ChangeBlockStateMessagePack>();
-            foreach (var block in _worldBlockDatastore.BlockMasterDictionary.Values)
+            foreach (var block in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
             {
                 var pos = block.BlockPositionInfo.OriginalPos;
                 var state = block.Block.GetBlockState();
