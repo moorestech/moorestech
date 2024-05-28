@@ -16,6 +16,6 @@ MonoBehaviour:
   - characterKey: "\u4E3B\u4EBA\u516C"
     characterPrefab: {fileID: 4236604353796821819, guid: 98233bd30e1e1394da8a91ad7499ea86, type: 3}
   - characterKey: AI
-    characterPrefab: {fileID: 4236604353796821819, guid: 98233bd30e1e1394da8a91ad7499ea86, type: 3}
+    characterPrefab: {fileID: 7132486887327385832, guid: f97abe6a1f4009a418b6d50e42e876e0, type: 3}
   - characterKey: "\u53CB\u4EBA"
     characterPrefab: {fileID: 4236604353796821819, guid: 98233bd30e1e1394da8a91ad7499ea86, type: 3}
