@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Game.World.Interface.DataStore
 {
     /// <summary>
-    /// TODO こういうのinterfaceにする
+    ///     TODO こういうのinterfaceにする
     /// </summary>
     public class WorldBlockData
     {
@@ -15,6 +15,7 @@ namespace Game.World.Interface.DataStore
             var blockSize = blockConfig.GetBlockConfig(block.BlockId).BlockSize;
             BlockPositionInfo = new BlockPositionInfo(originalPos, blockDirection, blockSize);
         }
+        
         public IBlock Block { get; }
         public BlockPositionInfo BlockPositionInfo { get; }
     }

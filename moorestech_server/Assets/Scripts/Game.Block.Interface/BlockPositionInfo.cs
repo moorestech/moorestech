@@ -4,17 +4,6 @@ namespace Game.Block.Interface
 {
     public class BlockPositionInfo
     {
-        /// <summary>
-        ///     オリジナル座標は常に左下（ブロックが専有する範囲の最小の座標）になる
-        /// </summary>
-        public Vector3Int OriginalPos { get; }
-        public Vector3Int BlockSize { get; }
-        
-        public Vector3Int MinPos => OriginalPos;
-        public Vector3Int MaxPos { get; }
-        
-        public BlockDirection BlockDirection { get; }
-        
         public BlockPositionInfo(Vector3Int originalPos, BlockDirection blockDirection, Vector3Int blockSize)
         {
             OriginalPos = originalPos;
@@ -23,6 +12,18 @@ namespace Game.Block.Interface
             
             MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
         }
+        
+        /// <summary>
+        ///     オリジナル座標は常に左下（ブロックが専有する範囲の最小の座標）になる
+        /// </summary>
+        public Vector3Int OriginalPos { get; }
+        
+        public Vector3Int BlockSize { get; }
+        
+        public Vector3Int MinPos => OriginalPos;
+        public Vector3Int MaxPos { get; }
+        
+        public BlockDirection BlockDirection { get; }
         
         /// <summary>
         ///     サーバー側管理のブロックの最大座標を計算する

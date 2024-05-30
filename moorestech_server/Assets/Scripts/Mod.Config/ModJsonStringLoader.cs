@@ -14,41 +14,41 @@ namespace Mod.Config
         private const string CraftRecipeConfigPath = "config/craftRecipe.json";
         private const string MapObjectConfigPath = "config/mapObject.json";
         private const string ChallengeConfigPath = "config/challenge.json";
-
+        
         public static Dictionary<string, ConfigJson> GetConfigString(ModsResource modResource)
         {
             var configDict = new Dictionary<string, ConfigJson>();
-
+            
             //zipファイルの中身のjsonファイルを読み込む
-            foreach (KeyValuePair<string, Loader.Mod> mod in modResource.Mods)
+            foreach (var mod in modResource.Mods)
             {
                 var modId = mod.Value.ModMetaJson.ModId;
                 var extractedPath = mod.Value.ExtractedPath;
-
+                
                 var itemConfigJson = LoadConfigFile(extractedPath, ItemConfigPath);
                 var blockConfigJson = LoadConfigFile(extractedPath, BlockConfigPath);
                 var machineRecipeConfigJson = LoadConfigFile(extractedPath, MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFile(extractedPath, CraftRecipeConfigPath);
                 var mapObjectConfigJson = LoadConfigFile(extractedPath, MapObjectConfigPath);
                 var challengeConfigJson = LoadConfigFile(extractedPath, ChallengeConfigPath);
-
+                
                 configDict.Add(modId, new ConfigJson(
-                    modId, 
-                    itemConfigJson, 
-                    blockConfigJson, 
-                    machineRecipeConfigJson, 
-                    craftRecipeConfigJson, 
-                    mapObjectConfigJson, 
+                    modId,
+                    itemConfigJson,
+                    blockConfigJson,
+                    machineRecipeConfigJson,
+                    craftRecipeConfigJson,
+                    mapObjectConfigJson,
                     challengeConfigJson));
             }
-
+            
             return configDict;
         }
-
+        
         private static string LoadConfigFile(string extractedPath, string configPath)
         {
             var fullPath = Path.Combine(extractedPath, configPath);
-
+            
             return !File.Exists(fullPath) ? string.Empty : File.ReadAllText(fullPath);
         }
     }

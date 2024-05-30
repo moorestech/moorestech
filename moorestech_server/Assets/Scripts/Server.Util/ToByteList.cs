@@ -14,7 +14,7 @@ namespace Server.Util
                 Array.Reverse(result);
             return result.ToList();
         }
-
+        
         public static List<byte> Convert(short sendData)
         {
             var result = BitConverter.GetBytes(sendData);
@@ -22,7 +22,7 @@ namespace Server.Util
                 Array.Reverse(result);
             return result.ToList();
         }
-
+        
         public static List<byte> Convert(float sendData)
         {
             var result = BitConverter.GetBytes(sendData);
@@ -30,7 +30,7 @@ namespace Server.Util
                 Array.Reverse(result);
             return result.ToList();
         }
-
+        
         public static List<byte> Convert(string sendData)
         {
             return Encoding.UTF8.GetBytes(sendData).ToList();

@@ -11,10 +11,11 @@ namespace Client.Game.InGame.Block
         ///     Do not replace materials if the game object's path contains any of the strings in this list.
         /// </summary>
         private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/" };
+        
         private readonly List<Material> _originalMaterials;
         private readonly Renderer _renderer;
         private readonly List<Material> _replacedMaterials = new();
-
+        
         public RendererMaterialReplacer(Renderer renderer)
         {
             var path = renderer.gameObject.GetFullPath();
@@ -23,62 +24,47 @@ namespace Client.Game.InGame.Block
                 if (!path.Contains(keyWord)) continue;
                 return;
             }
-
-
+            
+            
             _renderer = renderer;
             _originalMaterials = new List<Material>();
-            foreach (var material in renderer.sharedMaterials)
-            {
-                _originalMaterials.Add(material);
-            }
+            foreach (var material in renderer.sharedMaterials) _originalMaterials.Add(material);
         }
-
+        
         public void SetMaterial(Material placeMaterial)
         {
-            if (_renderer == null)
-            {
-                return;
-            }
-
+            if (_renderer == null) return;
+            
             foreach (var material in _renderer.sharedMaterials)
             {
                 var mainTexture = material.mainTexture;
                 var mainColor = material.color;
-
+                
                 var newMaterial = new Material(placeMaterial)
                 {
                     mainTexture = mainTexture,
                     mainTextureOffset = material.mainTextureOffset,
                     mainTextureScale = material.mainTextureScale,
-                    color = mainColor,
+                    color = mainColor
                 };
-
+                
                 _replacedMaterials.Add(newMaterial);
             }
-
+            
             _renderer.materials = _replacedMaterials.ToArray();
         }
-
+        
         public void SetPlaceMaterialProperty(string propertyName, float value)
         {
-            foreach (var material in _replacedMaterials)
-            {
-                material.SetFloat(propertyName, value);
-            }
+            foreach (var material in _replacedMaterials) material.SetFloat(propertyName, value);
         }
-
+        
         public void ResetMaterial()
         {
-            if (_renderer == null)
-            {
-                return;
-            }
-
+            if (_renderer == null) return;
+            
             //作ったプレビュー用のマテリアルを削除
-            foreach (var material in _replacedMaterials)
-            {
-                Object.Destroy(material);
-            }
+            foreach (var material in _replacedMaterials) Object.Destroy(material);
             _replacedMaterials.Clear();
             _renderer.materials = _originalMaterials.ToArray();
         }

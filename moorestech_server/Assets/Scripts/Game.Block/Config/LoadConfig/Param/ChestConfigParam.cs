@@ -8,7 +8,7 @@ namespace Game.Block.Config.LoadConfig.Param
         {
             ChestItemNum = chestItemNum;
         }
-
+        
         public int ChestItemNum { get; }
     }
 }

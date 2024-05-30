@@ -14,20 +14,20 @@ namespace Game.Block.Interface
         UpEast,
         UpSouth,
         UpWest,
-
+        
         North,
         East,
         South,
         West,
-
+        
         DownNorth,
         DownEast,
         DownSouth,
-        DownWest,
+        DownWest
     }
-
+    
     public delegate Vector3Int BlockPosConvertAction(Vector3Int pos);
-
+    
     public static class BlockDirectionExtension
     {
         public static Quaternion GetRotation(this BlockDirection direction)
@@ -42,7 +42,7 @@ namespace Game.Block.Interface
                     return Quaternion.Euler(-90, 0, 180);
                 case BlockDirection.UpWest:
                     return Quaternion.Euler(-90, 0, 270);
-
+                
                 case BlockDirection.North:
                     return Quaternion.Euler(0, 0, 0);
                 case BlockDirection.East:
@@ -51,7 +51,7 @@ namespace Game.Block.Interface
                     return Quaternion.Euler(0, 180, 0);
                 case BlockDirection.West:
                     return Quaternion.Euler(0, 270, 0);
-
+                
                 case BlockDirection.DownNorth:
                     return Quaternion.Euler(90, 0, 180);
                 case BlockDirection.DownEast:
@@ -60,12 +60,12 @@ namespace Game.Block.Interface
                     return Quaternion.Euler(90, 0, 0);
                 case BlockDirection.DownWest:
                     return Quaternion.Euler(90, 0, 270);
-
+                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
             }
         }
-
+        
         public static BlockPosConvertAction GetCoordinateConvertAction(this BlockDirection blockDirection)
         {
             switch (blockDirection)
@@ -78,7 +78,7 @@ namespace Game.Block.Interface
                     return p => new Vector3Int(-p.x, p.z, p.y);
                 case BlockDirection.UpWest:
                     return p => new Vector3Int(p.y, p.z, p.x);
-
+                
                 case BlockDirection.North:
                     return p => p;
                 case BlockDirection.East:
@@ -87,7 +87,7 @@ namespace Game.Block.Interface
                     return p => new Vector3Int(-p.x, p.y, -p.z);
                 case BlockDirection.West:
                     return p => new Vector3Int(-p.z, p.y, p.x);
-
+                
                 case BlockDirection.DownNorth:
                     return p => new Vector3Int(-p.x, -p.z, -p.y);
                 case BlockDirection.DownEast:
@@ -100,7 +100,7 @@ namespace Game.Block.Interface
                     throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null);
             }
         }
-
+        
         public static Vector3Int GetBlockOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
         {
             var addPos = Vector3Int.zero;
@@ -118,7 +118,7 @@ namespace Game.Block.Interface
                 case BlockDirection.UpWest:
                     addPos = new Vector3Int(0, 0, size.y);
                     break;
-
+                
                 case BlockDirection.North:
                     addPos = new Vector3Int(0, 0, 0);
                     break;
@@ -131,7 +131,7 @@ namespace Game.Block.Interface
                 case BlockDirection.West:
                     addPos = new Vector3Int(size.z, 0, 0);
                     break;
-
+                
                 case BlockDirection.DownNorth:
                     addPos = new Vector3Int(size.x, size.z, size.y);
                     break;
@@ -145,10 +145,10 @@ namespace Game.Block.Interface
                     addPos = new Vector3Int(0, size.z, size.x);
                     break;
             }
-
+            
             return pos + addPos;
         }
-
+        
         public static Vector3Int RotationPosition(this BlockDirection blockDirection, Vector3Int originPos, Vector3Int targetPos)
         {
             var originBaseTargetPos = targetPos - originPos;

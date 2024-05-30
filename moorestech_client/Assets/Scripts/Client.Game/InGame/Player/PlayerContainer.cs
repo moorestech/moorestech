@@ -7,7 +7,7 @@ namespace Client.Game.InGame.Player
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         [SerializeField] private PlayerObjectController playerObjectController;
         public PlayerGrabItemManager PlayerGrabItemManager => playerGrabItemManager;
-
+        
         public IPlayerObjectController PlayerObjectController => playerObjectController;
     }
 }

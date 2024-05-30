@@ -8,7 +8,7 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly List<MineItemSetting> MineItemSettings;
         public readonly int OutputSlot;
         public readonly int RequiredPower;
-
+        
         public MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
         {
             RequiredPower = requiredPower;
@@ -16,12 +16,12 @@ namespace Game.Block.Config.LoadConfig.Param
             OutputSlot = outputSlot;
         }
     }
-
+    
     public class MineItemSetting
     {
         public readonly int ItemId;
         public readonly int MiningTime;
-
+        
         public MineItemSetting(int miningTime, int itemId)
         {
             MiningTime = miningTime;

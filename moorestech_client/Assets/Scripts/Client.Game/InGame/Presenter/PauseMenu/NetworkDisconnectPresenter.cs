@@ -10,9 +10,9 @@ namespace Client.Game.InGame.Presenter.PauseMenu
     public class NetworkDisconnectPresenter : MonoBehaviour
     {
         [SerializeField] private GameObject disconnectPanel;
-
+        
         [SerializeField] private Button goToMainMenuButton;
-
+        
         private void Start()
         {
             ClientContext.VanillaApi.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);

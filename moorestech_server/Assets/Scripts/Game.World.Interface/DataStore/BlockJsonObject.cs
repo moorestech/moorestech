@@ -9,11 +9,11 @@ namespace Game.World.Interface.DataStore
         [JsonProperty("direction")] public int Direction;
         [JsonProperty("entityId")] public int EntityId;
         [JsonProperty("state")] public string State;
-
+        
         [JsonProperty("X")] public int X;
         [JsonProperty("Y")] public int Y;
         [JsonProperty("Z")] public int Z;
-
+        
         public BlockJsonObject(Vector3Int pos, long blocHash, int entityId, string state, int direction)
         {
             X = pos.x;
@@ -24,8 +24,7 @@ namespace Game.World.Interface.DataStore
             State = state;
             Direction = direction;
         }
-
-        [JsonIgnore]
-        public Vector3Int Pos => new(X, Y, Z);
+        
+        [JsonIgnore] public Vector3Int Pos => new(X, Y, Z);
     }
 }

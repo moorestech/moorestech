@@ -21,7 +21,7 @@ namespace Game.Block.Config.LoadConfig
             config.Add(VanillaBlockType.Generator, new PowerGeneratorConfigParamGenerator(itemConfig));
             config.Add(VanillaBlockType.Miner, new MinerConfigParamGenerator(itemConfig));
             config.Add(VanillaBlockType.Chest, new ChestConfigParamGenerator());
-
+            
             return config;
         }
     }

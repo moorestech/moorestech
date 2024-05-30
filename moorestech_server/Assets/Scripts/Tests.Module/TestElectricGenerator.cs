@@ -6,20 +6,22 @@ namespace Tests.Module
     public class TestElectricGenerator : IElectricGenerator
     {
         private readonly int _power;
-
+        
         public TestElectricGenerator(int power, int entityId)
         {
             _power = power;
             EntityId = entityId;
         }
-
+        
         public int EntityId { get; }
-
+        
         public int OutputEnergy()
         {
             return _power;
         }
+        
         public bool IsDestroy { get; }
+        
         public void Destroy()
         {
         }

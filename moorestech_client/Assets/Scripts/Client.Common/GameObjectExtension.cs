@@ -8,7 +8,7 @@ namespace Client.Common
         {
             return GetFullPath(obj.transform);
         }
-
+        
         public static string GetFullPath(this Transform t)
         {
             var path = t.name;
@@ -18,6 +18,7 @@ namespace Client.Common
                 path = $"{parent.name}/{path}";
                 parent = parent.parent;
             }
+            
             return path;
         }
     }

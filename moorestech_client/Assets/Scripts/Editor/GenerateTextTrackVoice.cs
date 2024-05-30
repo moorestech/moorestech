@@ -6,6 +6,7 @@ public class GenerateTextTrackVoice : EditorWindow
     private void CreateGUI()
     {
     }
+    
     [MenuItem("moorestech/GenerateTextTrackVoice")]
     private static void ShowWindow()
     {

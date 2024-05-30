@@ -30,9 +30,9 @@ namespace Client.Game.InGame.Context
         
         public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockPrefabContainer blockPrefabContainer, BlockGameObject nothingIndexBlockObject)
         {
-            List<BlockData> blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory);
+            var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory);
             
-            List<BlockData> prefabBlockData = blockPrefabContainer.GetBlockDataList();
+            var prefabBlockData = blockPrefabContainer.GetBlockDataList();
             blockObjectList.AddRange(prefabBlockData);
             
             //IDでソート
@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Context
                 Debug.LogError("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject, position, rotation, parent);
                 var nothingBlockPosInfo = new BlockPositionInfo(blockPosition, direction, Vector3Int.one);
-                nothing.Initialize(blockConfig,nothingBlockPosInfo, new NullBlockStateChangeProcessor());
+                nothing.Initialize(blockConfig, nothingBlockPosInfo, new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
             
@@ -83,10 +83,7 @@ namespace Client.Game.InGame.Context
         public BlockPreviewObject CreatePreviewBlock(int blockId)
         {
             var blockConfigIndex = blockId - 1;
-            if (blockConfigIndex < 0 || _blockObjectList.Count <= blockConfigIndex)
-            {
-                return null;
-            }
+            if (blockConfigIndex < 0 || _blockObjectList.Count <= blockConfigIndex) return null;
             
             //ブロックの作成とセットアップをして返す
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject, Vector3.zero, Quaternion.identity);
@@ -126,7 +123,7 @@ namespace Client.Game.InGame.Context
             return blockType switch
             {
                 VanillaBlockType.Machine => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
-                _ => new NullBlockStateChangeProcessor(),
+                _ => new NullBlockStateChangeProcessor()
             };
         }
     }

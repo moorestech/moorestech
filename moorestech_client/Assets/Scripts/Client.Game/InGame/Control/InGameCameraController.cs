@@ -1,5 +1,4 @@
 ﻿using Cinemachine;
-using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using UnityEngine;
 
@@ -13,10 +12,10 @@ namespace Client.Game.InGame.Control
         [SerializeField] private Vector2 sensitivity = Vector2.one;
         [SerializeField] private float lerpSpeed = 5.0f; // Adjust this to change the lerp speed
         
-        private bool _updateCameraAngle;
-        
         private CinemachineFramingTransposer _cinemachineFraming;
         private Quaternion _targetRotation; // The rotation to smoothly rotate towards
+        
+        private bool _updateCameraAngle;
         
         private void Awake()
         {
@@ -44,13 +43,8 @@ namespace Client.Game.InGame.Control
                 var rotation = _targetRotation.eulerAngles;
                 rotation.x -= delta.y * sensitivity.y;
                 if (90 < rotation.x && rotation.x < 180)
-                {
                     rotation.x = 90;
-                }
-                else if (180 < rotation.x && rotation.x < 270)
-                {
-                    rotation.x = 270;
-                }
+                else if (180 < rotation.x && rotation.x < 270) rotation.x = 270;
                 
                 rotation.y += delta.x * sensitivity.x;
                 rotation.z = 0;

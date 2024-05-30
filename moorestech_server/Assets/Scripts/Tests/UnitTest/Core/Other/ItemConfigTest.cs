@@ -1,6 +1,4 @@
-using Core.Item.Config;
 using Game.Context;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -22,7 +20,7 @@ namespace Tests.UnitTest.Core.Other
             var itemConfig = ServerContext.ItemConfig;
             Assert.AreEqual(stack, itemConfig.GetItemConfig(id).MaxStack);
         }
-
+        
         [TestCase(1, "Test1")]
         [TestCase(2, "Test2")]
         [TestCase(3, "Test3")]
@@ -37,15 +35,15 @@ namespace Tests.UnitTest.Core.Other
             var itemConfig = ServerContext.ItemConfig;
             Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
         }
-
+        
         [Test]
         public void ModIdToItemListTest()
         {
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = ServerContext.ItemConfig;
-
-
+            
+            
             Assert.AreEqual(13, itemConfig.GetItemIds("Test Author:forUniTest").Count);
         }
     }

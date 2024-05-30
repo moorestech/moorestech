@@ -17,16 +17,16 @@ namespace Tests.UnitTest.Mod
         {
             var modResource = new ModsResource(Path.Combine(TestModDirectory.ConfigOnlyDirectory, "mods"));
             var loaded = ModJsonStringLoader.GetConfigString(modResource);
-
+            
             Assert.AreEqual(loaded.Count, 2);
-
+            
             var test1modId = "Test Author 1:testMod1";
-
+            
             Assert.AreEqual("testItemJson1", loaded[test1modId].ItemConfigJson);
             Assert.AreEqual("testBlockJson1", loaded[test1modId].BlockConfigJson);
             Assert.AreEqual("", loaded[test1modId].MachineRecipeConfigJson);
             Assert.AreEqual("", loaded[test1modId].CraftRecipeConfigJson);
-
+            
             var test2modId = "Test Author 2:testMod2";
             Assert.AreEqual("", loaded[test2modId].ItemConfigJson);
             Assert.AreEqual("", loaded[test2modId].BlockConfigJson);

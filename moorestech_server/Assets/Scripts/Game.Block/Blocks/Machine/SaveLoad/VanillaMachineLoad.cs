@@ -8,7 +8,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
         private readonly int _requestPower;
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-
+        
         public VanillaMachineLoad(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
@@ -18,11 +18,11 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _requestPower = requestPower;
         }
-
+        
         public VanillaMachineRunProcess LoadVanillaMachineRunProcess(string loadString)
         {
             var split = loadString.Split(',');
-
+            
             var index = 1;
             var inventorySlot = 0;
             for (; split[index] != "outputSlot"; index += 2)
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
                 _vanillaMachineInputInventory.SetItem(inventorySlot, item);
                 inventorySlot++;
             }
-
+            
             inventorySlot = 0;
             for (index++; split[index] != "state"; index += 2)
             {
@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
                 _vanillaMachineOutputInventory.SetItem(inventorySlot, item);
                 inventorySlot++;
             }
-
+            
             index++;
             var state = (ProcessState)int.Parse(split[index]);
             index += 2;
@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             index += 2;
             var recipeId = int.Parse(split[index]);
             var processingRecipeData = ServerContext.MachineRecipeConfig.GetRecipeData(recipeId);
-
+            
             return new VanillaMachineRunProcess(_vanillaMachineInputInventory, _vanillaMachineOutputInventory, state,
                 remainingMillSecond, processingRecipeData, _requestPower);
         }

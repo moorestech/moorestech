@@ -9,7 +9,7 @@ namespace Game.World.DataStore
         where TSegment : EnergySegment, new()
     {
         private readonly List<TSegment> _segmentDictionary = new();
-
+        
         //電柱オブジェクトから所属している電力セグメントを取得する
         public TSegment GetEnergySegment(IElectricTransformer transformer)
         {
@@ -18,32 +18,32 @@ namespace Game.World.DataStore
                 if (!segment.EnergyTransformers.ContainsKey(transformer.EntityId)) continue;
                 return segment;
             }
-
+            
             throw new Exception("電力セグメントが見つかりませんでした");
         }
-
+        
         public TSegment GetEnergySegment(int index)
         {
             return _segmentDictionary[index];
         }
-
+        
         public TSegment CreateEnergySegment()
         {
             var electricSegment = new TSegment();
             _segmentDictionary.Add(electricSegment);
             return electricSegment;
         }
-
+        
         public void SetEnergySegment(TSegment energySegment)
         {
             _segmentDictionary.Add(energySegment);
         }
-
+        
         public void RemoveEnergySegment(TSegment energySegment)
         {
             _segmentDictionary.Remove(energySegment);
         }
-
+        
         public int GetEnergySegmentListCount()
         {
             return _segmentDictionary.Count;

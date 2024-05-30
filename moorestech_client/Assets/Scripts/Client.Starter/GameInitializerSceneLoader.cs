@@ -13,10 +13,7 @@ namespace Client.Starter
         public static void Init()
         {
             var loader = FindObjectOfType<GameInitializerSceneLoader>();
-            if (loader != null)
-            {
-                SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
-            }
+            if (loader != null) SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
         }
     }
 }

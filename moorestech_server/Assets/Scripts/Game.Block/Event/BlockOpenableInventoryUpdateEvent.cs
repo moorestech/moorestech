@@ -8,8 +8,10 @@ namespace Game.Block.Event
         public void Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent)
         {
             OnBlockInventoryUpdate += blockInventoryEvent;
-        }        public event Action<BlockOpenableInventoryUpdateEventProperties> OnBlockInventoryUpdate;
-
+        }
+        
+        public event Action<BlockOpenableInventoryUpdateEventProperties> OnBlockInventoryUpdate;
+        
         public void OnInventoryUpdateInvoke(BlockOpenableInventoryUpdateEventProperties properties)
         {
             OnBlockInventoryUpdate?.Invoke(properties);

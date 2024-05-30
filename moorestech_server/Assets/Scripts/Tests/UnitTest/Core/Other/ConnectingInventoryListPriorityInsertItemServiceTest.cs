@@ -22,9 +22,9 @@ namespace Tests.UnitTest.Core.Other
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
-
+            
             var inventoryList = new List<IBlockInventory>();
-
+            
             //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
             var inventory1 = new DummyBlockInventory(1, 1);
             var inventory2 = new DummyBlockInventory();
@@ -32,19 +32,19 @@ namespace Tests.UnitTest.Core.Other
             inventoryList.Add(inventory1);
             inventoryList.Add(inventory2);
             inventoryList.Add(inventory3);
-
+            
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(null, null, componentPos);
-
+            
             ((List<IBlockInventory>)inputConnectorComponent.ConnectTargets).AddRange(inventoryList);
-
+            
             var service = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
-
+            
             service.InsertItem(itemStackFactory.Create(1, 4));
             service.InsertItem(itemStackFactory.Create(2, 3));
             service.InsertItem(itemStackFactory.Create(3, 2));
             service.InsertItem(itemStackFactory.Create(4, 1));
-
+            
             Assert.AreEqual(itemStackFactory.Create(1, 4), inventory1.InsertedItems[0]);
             Assert.AreEqual(itemStackFactory.Create(2, 3), inventory2.InsertedItems[0]);
             Assert.AreEqual(itemStackFactory.Create(3, 2), inventory3.InsertedItems[0]);

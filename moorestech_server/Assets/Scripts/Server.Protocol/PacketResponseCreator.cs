@@ -12,7 +12,7 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
-
+        
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
@@ -33,20 +33,17 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.Tag, new GetChallengeInfoProtocol(serviceProvider));
         }
-
+        
         public List<List<byte>> GetPacketResponse(List<byte> payload)
         {
             var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
             var response = _packetResponseDictionary[request.Tag].GetResponse(payload);
-
-            if (response == null)
-            {
-                return new List<List<byte>>();
-            }
-
+            
+            if (response == null) return new List<List<byte>>();
+            
             response.SequenceId = request.SequenceId;
             var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
-
+            
             return new List<List<byte>> { responseBytes.ToList() };
         }
     }

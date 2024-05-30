@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Block
         
         public void SetMaterial(Material material)
         {
-            Renderer[] blockRenderer = GetComponentsInChildren<Renderer>();
+            var blockRenderer = GetComponentsInChildren<Renderer>();
             foreach (var renderer in blockRenderer)
             {
                 var replacer = new RendererMaterialReplacer(renderer);
@@ -28,11 +28,8 @@ namespace Client.Game.InGame.Block
         
         private void SetVfxActive(bool isActive)
         {
-            VisualEffect[] visualEffects = GetComponentsInChildren<VisualEffect>(isActive);
-            foreach (var visualEffect in visualEffects)
-            {
-                visualEffect.gameObject.SetActive(false);
-            }
+            var visualEffects = GetComponentsInChildren<VisualEffect>(isActive);
+            foreach (var visualEffect in visualEffects) visualEffect.gameObject.SetActive(false);
         }
     }
 }

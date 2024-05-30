@@ -13,11 +13,11 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         public IItemStack this[int index] { get; }
         public IObservable<int> OnItemChange { get; }
-
+        
         public int Count { get; }
         public bool IsItemExist(int itemId, int itemSlot);
     }
-
+    
     /// <summary>
     ///     メインインベントリとサブインベントリを統合して扱えるローカルのプレイヤーインベントリ
     /// </summary>
@@ -25,23 +25,21 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         private readonly List<IItemStack> _mainInventory;
         private readonly Subject<int> _onItemChange = new();
-
+        
         private ISubInventory _subInventory;
-
+        
         public LocalPlayerInventory()
         {
             _mainInventory = new List<IItemStack>();
-
+            
             var itemStackFactory = ServerContext.ItemStackFactory;
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-            {
-                _mainInventory.Add(itemStackFactory.CreatEmpty());
-            }
-
+            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
+            
             _subInventory = new EmptySubInventory();
         }
+        
         public IObservable<int> OnItemChange => _onItemChange;
-
+        
         public IEnumerator<IItemStack> GetEnumerator()
         {
             var merged = new List<IItemStack>();
@@ -49,29 +47,29 @@ namespace Client.Game.InGame.UI.Inventory.Main
             merged.AddRange(_subInventory.SubInventory);
             return merged.GetEnumerator();
         }
-
+        
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
-
-
+        
+        
         public int Count => _mainInventory.Count + _subInventory.Count;
-
+        
         public bool IsItemExist(int itemId, int itemSlot)
         {
             if (itemSlot < _mainInventory.Count) return _mainInventory[itemSlot].Id == itemId;
-
+            
             var subIndex = itemSlot - _mainInventory.Count;
             var subItemId = _subInventory.SubInventory[itemSlot - _mainInventory.Count].Id;
-
+            
             if (subIndex < _subInventory.Count) return subItemId == itemId;
-
+            
             Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + itemSlot);
             return false;
         }
-
-
+        
+        
         public IItemStack this[int index]
         {
             get
@@ -79,7 +77,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 if (index < _mainInventory.Count) return _mainInventory[index];
                 var subIndex = index - _mainInventory.Count;
                 if (subIndex < _subInventory.Count) return _subInventory.SubInventory[index - _mainInventory.Count];
-
+                
                 Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
                 return ServerContext.ItemStackFactory.CreatEmpty();
             }
@@ -91,7 +89,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                     _onItemChange.OnNext(index);
                     return;
                 }
-
+                
                 var subIndex = index - _mainInventory.Count;
                 if (subIndex < _subInventory.Count)
                 {
@@ -99,11 +97,11 @@ namespace Client.Game.InGame.UI.Inventory.Main
                     _onItemChange.OnNext(index);
                     return;
                 }
-
+                
                 Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
             }
         }
-
+        
         public void SetSubInventory(ISubInventory subInventory)
         {
             _subInventory = subInventory;

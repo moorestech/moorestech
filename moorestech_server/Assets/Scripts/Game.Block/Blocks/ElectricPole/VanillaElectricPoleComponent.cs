@@ -5,14 +5,14 @@ namespace Game.Block.Blocks.ElectricPole
 {
     public class VanillaElectricPoleComponent : IElectricTransformer, IBlockComponent
     {
-        public int EntityId { get; }
-        public bool IsDestroy { get; private set; }
-
         public VanillaElectricPoleComponent(int entityId)
         {
             EntityId = entityId;
         }
-
+        
+        public int EntityId { get; }
+        public bool IsDestroy { get; private set; }
+        
         public void Destroy()
         {
             IsDestroy = true;

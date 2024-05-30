@@ -16,15 +16,15 @@ namespace Client.Mod.Glb
                 Debug.Log($"{fullPath} not found");
                 return null;
             }
-
-
+            
+            
             var awaitCaller = new ImmediateCaller();
             using var data = new AutoGltfFileParser(fullPath).Parse();
-
+            
             using var loader = new ImporterContext(data);
             var load = await loader.LoadAsync(awaitCaller);
             load.ShowMeshes();
-
+            
             return load.Root;
         }
     }

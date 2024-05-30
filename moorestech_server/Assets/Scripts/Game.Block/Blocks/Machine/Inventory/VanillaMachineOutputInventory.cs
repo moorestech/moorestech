@@ -18,10 +18,10 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly int _entityId;
-
+        
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-
+        
         public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
@@ -32,13 +32,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
+        
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
-
+        
         private void Update()
         {
             InsertConnectInventory();
         }
-
+        
         /// <summary>
         ///     アウトプットスロットにアイテムを入れれるかチェック
         /// </summary>
@@ -51,13 +52,13 @@ namespace Game.Block.Blocks.Machine.Inventory
                 var itemOutput = machineRecipeData.ItemOutputs[i];
                 var isAllowed = OutputSlot.Aggregate(false,
                     (current, slot) => slot.IsAllowedToAdd(itemOutput.OutputItem) || current);
-
+                
                 if (!isAllowed) return false;
             }
-
+            
             return true;
         }
-
+        
         public void InsertOutputSlot(MachineRecipeData machineRecipeData)
         {
             //アウトプットスロットにアイテムを格納する
@@ -65,25 +66,25 @@ namespace Game.Block.Blocks.Machine.Inventory
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
                     if (!OutputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
-
+                    
                     var item = OutputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
                     _itemDataStoreService.SetItem(i, item);
                     break;
                 }
         }
-
+        
         private void InsertConnectInventory()
         {
             for (var i = 0; i < OutputSlot.Count; i++)
                 _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
         }
-
+        
         public void SetItem(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItem(slot, itemStack);
         }
-
-
+        
+        
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(

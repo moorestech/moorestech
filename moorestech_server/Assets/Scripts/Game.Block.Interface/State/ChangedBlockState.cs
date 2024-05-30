@@ -9,9 +9,9 @@ namespace Game.Block.Interface.State
     {
         public readonly string CurrentState;
         public readonly string PreviousState;
-
+        
         public readonly byte[] CurrentStateData;
-
+        
         public ChangedBlockState(string currentState, string previousState, byte[] currentStateData = null)
         {
             CurrentState = currentState;

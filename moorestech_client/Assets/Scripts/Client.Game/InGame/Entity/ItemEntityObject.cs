@@ -10,15 +10,15 @@ namespace Client.Game.InGame.Entity
         [SerializeField] private Material itemMaterial;
         private float _linerTime;
         private Vector3 _previousPosition;
-
+        
         private Vector3 _targetPosition;
-
+        
         private void Awake()
         {
             _targetPosition = transform.position;
             _previousPosition = transform.position;
         }
-
+        
         //Linerでポジションを補完させる
         private void Update()
         {
@@ -28,26 +28,26 @@ namespace Client.Game.InGame.Entity
             transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
             _linerTime += Time.deltaTime;
         }
-
+        
         public void SetDirectPosition(Vector3 position)
         {
             _targetPosition = position;
             _previousPosition = position;
             transform.position = position;
         }
-
+        
         public void SetInterpolationPosition(Vector3 position)
         {
             _previousPosition = transform.position;
             _targetPosition = position;
             _linerTime = 0;
         }
-
+        
         public void Destroy()
         {
             Destroy(gameObject);
         }
-
+        
         public void SetTexture(Texture texture)
         {
             var material = new Material(itemMaterial) { mainTexture = texture };

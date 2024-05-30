@@ -11,20 +11,20 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         private readonly BlockInventoryView _blockInventoryView;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
-
+        
         public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController, BlockInventoryView blockInventoryView)
         {
             _localPlayerInventoryController = localPlayerInventoryController;
             _blockInventoryView = blockInventoryView;
         }
-
+        
         public void Initialize()
         {
             ClientContext.VanillaApi.Event.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag, OnGrabInventoryUpdateEvent);
             ClientContext.VanillaApi.Event.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag, OnMainInventoryUpdateEvent);
             ClientContext.VanillaApi.Event.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
         }
-
+        
         /// <summary>
         ///     Grabインベントリの更新イベント
         /// </summary>
@@ -34,7 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetGrabItem(item);
         }
-
+        
         /// <summary>
         ///     メインインベントリの更新イベント
         /// </summary>
@@ -44,7 +44,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetMainItem(packet.Slot, item);
         }
-
+        
         /// <summary>
         ///     開いているブロックのインベントリの更新イベント
         /// </summary>

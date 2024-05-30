@@ -4,7 +4,7 @@
     {
         public readonly string IP;
         public readonly int Port;
-
+        
         public ConnectionServerConfig(string ip, int port)
         {
             IP = ip;

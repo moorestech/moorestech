@@ -11,7 +11,7 @@ namespace Server.Util.MessagePack
         public EntityMessagePack()
         {
         }
-
+        
         public EntityMessagePack(IEntity entity)
         {
             InstanceId = entity.InstanceId;
@@ -19,17 +19,13 @@ namespace Server.Util.MessagePack
             State = entity.State;
             Position = new Vector3MessagePack(entity.Position);
         }
-
-        [Key(0)]
-        public long InstanceId { get; set; }
-
-        [Key(1)]
-        public string Type { get; set; }
-
-        [Key(2)]
-        public Vector3MessagePack Position { get; set; }
-
-        [Key(3)]
-        public string State { get; set; }
+        
+        [Key(0)] public long InstanceId { get; set; }
+        
+        [Key(1)] public string Type { get; set; }
+        
+        [Key(2)] public Vector3MessagePack Position { get; set; }
+        
+        [Key(3)] public string State { get; set; }
     }
 }

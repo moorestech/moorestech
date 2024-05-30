@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.Chunk;
 using UnityEngine;
 
@@ -7,23 +6,17 @@ namespace Client.Game.InGame.Block
     public class GroundCollisionDetector : MonoBehaviour
     {
         public bool IsCollision { get; private set; }
-
-
+        
+        
         //TODO グラウンド検知
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject.TryGetComponent<GroundGameObject>(out _))
-            {
-                IsCollision = true;
-            }
+            if (other.gameObject.TryGetComponent<GroundGameObject>(out _)) IsCollision = true;
         }
-
+        
         private void OnTriggerExit(Collider other)
         {
-            if (other.gameObject.TryGetComponent<GroundGameObject>(out _))
-            {
-                IsCollision = false;
-            }
+            if (other.gameObject.TryGetComponent<GroundGameObject>(out _)) IsCollision = false;
         }
     }
 }

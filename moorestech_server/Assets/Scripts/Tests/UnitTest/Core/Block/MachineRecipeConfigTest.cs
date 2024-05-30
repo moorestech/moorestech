@@ -22,16 +22,16 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
             var machineRecipeConfig = ServerContext.MachineRecipeConfig;
-
+            
             var input = new List<IItemStack>();
             items.ToList().ForEach(
                 i => input.Add(itemStackFactory.Create(i, 1)));
-
+            
             var ans = machineRecipeConfig.GetRecipeData(BlocksId, input);
             Assert.AreEqual(output0Id, ans.ItemOutputs[0].OutputItem.Id);
             Assert.AreEqual(output0Percent, ans.ItemOutputs[0].Percent);
         }
-
+        
         [TestCase(3, new int[4] { 2, 1, 0, 5 }, 0)] //nullの時のテスト
         [TestCase(0, new int[3] { 2, 1, 0 }, 0)]
         [TestCase(3, new int[3] { 4, 1, 0 }, 0)]
@@ -45,15 +45,15 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
             var machineRecipeConfig = ServerContext.MachineRecipeConfig;
-
+            
             var input = new List<IItemStack>();
             items.ToList().ForEach(
                 i => input.Add(itemStackFactory.Create(i, 1)));
-
+            
             var ans = machineRecipeConfig.GetRecipeData(BlocksId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength, ans);
         }
-
+        
         [TestCase(1, new int[2] { 1, 2 }, new int[2] { 3, 1 }, true)]
         [TestCase(1, new int[2] { 2, 1 }, new int[2] { 1, 3 }, true)]
         [TestCase(1, new int[2] { 2, 1 }, new int[2] { 1, 30 }, true)]
@@ -69,10 +69,10 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
             var machineRecipeConfig = ServerContext.MachineRecipeConfig;
-
+            
             var itemStacks = new List<IItemStack>();
             for (var i = 0; i < items.Length; i++) itemStacks.Add(itemStackFactory.Create(items[i], itemcount[i]));
-
+            
             var a = machineRecipeConfig.GetRecipeData(blocksId, itemStacks).RecipeConfirmation(itemStacks, blocksId);
             Assert.AreEqual(ans, a);
         }

@@ -9,7 +9,7 @@ namespace Client.Common
         public readonly Vector3 Position;
         public readonly string State;
         public readonly string Type;
-
+        
         public EntityProperties(EntityMessagePack entityMessagePack)
         {
             InstanceId = entityMessagePack.InstanceId;

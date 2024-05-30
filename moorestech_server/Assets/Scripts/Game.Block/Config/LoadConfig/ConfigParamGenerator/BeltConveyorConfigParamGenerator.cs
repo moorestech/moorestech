@@ -9,7 +9,7 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
         {
             int slot = blockParam.slot;
             int time = blockParam.time;
-
+            
             return new BeltConveyorConfigParam(time, slot);
         }
     }

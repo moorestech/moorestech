@@ -5,7 +5,7 @@ namespace Game.Challenge
 {
     public class ChallengeJsonObject
     {
-        [JsonProperty("playerId")] public int PlayerId;
         [JsonProperty("completedIds")] public List<int> CompletedIds;
+        [JsonProperty("playerId")] public int PlayerId;
     }
 }

@@ -11,12 +11,12 @@ namespace Client.Network.API
     public class PacketSender
     {
         private readonly ServerCommunicator _serverCommunicator;
-
+        
         public PacketSender(ServerCommunicator serverCommunicator)
         {
             _serverCommunicator = serverCommunicator;
         }
-
+        
         public void Send(ProtocolMessagePackBase sendData)
         {
             _serverCommunicator.Send(MessagePackSerializer.Serialize(Convert.ChangeType(sendData, sendData.GetType())));
