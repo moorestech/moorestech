@@ -2,7 +2,6 @@ using System.Reflection;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
-using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory;

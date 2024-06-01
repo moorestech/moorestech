@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Chest
 
         public string GetSaveState()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var saveState = "";
@@ -62,28 +62,28 @@ namespace Game.Block.Blocks.Chest
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _itemDataStoreService.SetItem(slot, itemStack);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.InsertItem(itemStack);
         }
 
         public int GetSlotSize()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.GetSlotSize();
         }
 
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.GetItem(slot);
         }
@@ -93,48 +93,48 @@ namespace Game.Block.Blocks.Chest
 
         public void SetItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _itemDataStoreService.SetItem(slot, itemId, count);
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.ReplaceItem(slot, itemStack);
         }
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.ReplaceItem(slot, itemId, count);
         }
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.InsertItem(itemId, count);
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.InsertItem(itemStacks);
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             return _itemDataStoreService.InsertionCheck(itemStacks);
         }
 
         private void Update()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             for (var i = 0; i < _itemDataStoreService.Inventory.Count; i++)
                 _itemDataStoreService.SetItem(i,
@@ -143,7 +143,7 @@ namespace Game.Block.Blocks.Chest
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
             blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));

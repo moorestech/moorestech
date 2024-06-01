@@ -1,12 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Item.Interface;
-using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
 
-namespace Game.Block.Blocks.Machine.InventoryController
+namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineBlockInventory
+    public class VanillaMachineBlockInventory : IBlockInventory
     {
+        public bool IsDestroy { get; }
+        
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
@@ -21,6 +25,8 @@ namespace Game.Block.Blocks.Machine.InventoryController
         {
             get
             {
+                if (IsDestroy) throw BlockException.IsDestroyedException;
+                
                 var items = new List<IItemStack>();
                 items.AddRange(_vanillaMachineInputInventory.InputSlot);
                 items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
@@ -114,6 +120,11 @@ namespace Game.Block.Blocks.Machine.InventoryController
                 _vanillaMachineOutputInventory.SetItem(slot, itemStack);
                 return item;
             }
+        }
+
+        public void Destroy()
+        {
+            
         }
     }
 }
