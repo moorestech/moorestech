@@ -10,9 +10,9 @@ namespace Tests.Module
     public class DummyBlockInventory : IBlockInventory
     {
         private readonly List<IItemStack> _insertedItems;
-        
+
         private int _endInsertCnt;
-        
+
         public DummyBlockInventory(int insertToEndNum = 1, int maxSlot = 100)
         {
             IsItemExists = false;
@@ -20,9 +20,9 @@ namespace Tests.Module
             _endInsertCnt = 0;
             _insertedItems = CreateEmptyItemStacksList.Create(maxSlot).ToList();
         }
-        
+
         public bool IsItemExists { get; private set; }
-        
+
         public List<IItemStack> InsertedItems
         {
             get
@@ -32,9 +32,9 @@ namespace Tests.Module
                 return a.ToList();
             }
         }
-        
+
         private int InsertToEndNum { get; }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             for (var i = 0; i < _insertedItems.Count; i++)
@@ -44,40 +44,39 @@ namespace Tests.Module
                 _insertedItems[i] = r.ProcessResultItemStack;
                 _endInsertCnt++;
                 IsItemExists = InsertToEndNum <= _endInsertCnt;
-                
+
                 return r.RemainderItemStack;
             }
-            
+
             return itemStack;
         }
-        
+
         public IItemStack GetItem(int slot)
         {
             return _insertedItems[slot];
         }
-        
+
         public void SetItem(int slot, IItemStack itemStack)
         {
             _insertedItems[slot] = itemStack;
         }
-        
+
         public int GetSlotSize()
         {
             return _insertedItems.Count;
         }
-        
-        public bool IsDestroy => false;
-        
-        public void Destroy()
-        {
-        }
-        
+
         public void AddOutputConnector(IBlockInventory blockInventory)
         {
         }
-        
+
         public void RemoveOutputConnector(IBlockInventory blockInventory)
         {
+        }
+        public bool IsDestroy => false;
+        public void Destroy()
+        {
+            
         }
     }
 }

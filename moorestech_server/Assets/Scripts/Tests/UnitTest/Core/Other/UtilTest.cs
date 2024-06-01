@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Core.Other
             for (var i = 0; i < 10000; i++)
                 if (ProbabilityCalculator.DetectFromPercent(percent))
                     trueCnt++;
-            
+
             var truePercent = trueCnt / 10000.0;
             Assert.True(percent - 0.5 < truePercent);
             Assert.True(truePercent < percent + 0.5);

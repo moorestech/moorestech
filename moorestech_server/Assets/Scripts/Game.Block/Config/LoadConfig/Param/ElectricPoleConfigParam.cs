@@ -6,7 +6,7 @@ namespace Game.Block.Config.LoadConfig.Param
     {
         public readonly int machineConnectionRange;
         public readonly int poleConnectionRange;
-        
+
         public ElectricPoleConfigParam(int poleConnectionRange, int machineConnectionRange)
         {
             this.poleConnectionRange = poleConnectionRange;

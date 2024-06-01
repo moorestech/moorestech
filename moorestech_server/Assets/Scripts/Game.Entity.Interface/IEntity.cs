@@ -6,11 +6,11 @@ namespace Game.Entity.Interface
     {
         long InstanceId { get; }
         string EntityType { get; }
-        
+
         Vector3 Position { get; }
-        
+
         string State { get; }
-        
+
         void SetPosition(Vector3 serverVector3);
     }
 }

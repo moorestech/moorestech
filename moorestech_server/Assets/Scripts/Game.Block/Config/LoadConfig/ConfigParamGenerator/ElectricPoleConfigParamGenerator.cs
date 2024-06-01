@@ -9,7 +9,7 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
         {
             int poleConnectionRange = blockParam.poleConnectionRange;
             int machineConnectionRange = blockParam.machineConnectionRange;
-            
+
             return new ElectricPoleConfigParam(poleConnectionRange, machineConnectionRange);
         }
     }

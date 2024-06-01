@@ -11,7 +11,14 @@ namespace Game.SaveLoad.Json.WorldVersions
     public class WorldSaveAllInfoV1
     {
         [JsonProperty("worldVersion")] public int WorldVersion = 1;
-        
+
+        [JsonProperty("world")] public List<BlockJsonObject> World { get; }
+        [JsonProperty("playerInventory")] public List<PlayerInventoryJsonObject> Inventory { get; }
+        [JsonProperty("entities")] public List<EntityJsonObject> Entities { get; }
+        [JsonProperty("setting")] public WorldSettingJsonObject Setting { get; }
+        [JsonProperty("mapObjects")] public List<MapObjectJsonObject> MapObjects { get; set; }
+        [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
+
         public WorldSaveAllInfoV1(List<BlockJsonObject> world, List<PlayerInventoryJsonObject> inventory,
             List<EntityJsonObject> entities, WorldSettingJsonObject setting,
             List<MapObjectJsonObject> mapObjects, List<ChallengeJsonObject> challenge)
@@ -23,12 +30,5 @@ namespace Game.SaveLoad.Json.WorldVersions
             MapObjects = mapObjects;
             Challenge = challenge;
         }
-        
-        [JsonProperty("world")] public List<BlockJsonObject> World { get; }
-        [JsonProperty("playerInventory")] public List<PlayerInventoryJsonObject> Inventory { get; }
-        [JsonProperty("entities")] public List<EntityJsonObject> Entities { get; }
-        [JsonProperty("setting")] public WorldSettingJsonObject Setting { get; }
-        [JsonProperty("mapObjects")] public List<MapObjectJsonObject> MapObjects { get; set; }
-        [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
     }
 }

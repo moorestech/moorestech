@@ -10,7 +10,7 @@ namespace Tests.Module.TestMod
         public const int MinerId = 6;
         public const int ChestId = 7;
         public const int InfinityGeneratorId = 8;
-        
+
         public const int MultiBlockGeneratorId = 10;
     }
 }

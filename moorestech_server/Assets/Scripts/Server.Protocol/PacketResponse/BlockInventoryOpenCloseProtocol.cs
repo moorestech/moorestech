@@ -12,27 +12,27 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:blockInvOpen";
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenState;
-        
+
         public BlockInventoryOpenCloseProtocol(ServiceProvider serviceProvider)
         {
             _inventoryOpenState = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<BlockInventoryOpenCloseProtocolMessagePack>(payload.ToArray());
-            
+
             //開く、閉じるのセット
             if (data.IsOpen)
                 _inventoryOpenState.Open(data.PlayerId, data.Pos);
             else
                 _inventoryOpenState.Close(data.PlayerId);
-            
+
             return null;
         }
     }
-    
-    
+
+
     [MessagePackObject]
     public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
     {
@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
         public BlockInventoryOpenCloseProtocolMessagePack()
         {
         }
-        
+
         /// <summary>
         ///     TODO このプロトコル消していいのでは（どうせステートの変化を送るなら、それと一緒にインベントリの情報を送った方が設計的に楽なのでは？
         /// </summary>
@@ -55,11 +55,12 @@ namespace Server.Protocol.PacketResponse
             PlayerId = playerId;
             IsOpen = isOpen;
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public Vector3IntMessagePack Pos { get; set; }
-        
-        [Key(4)] public bool IsOpen { get; set; }
+
+        [Key(2)]
+        public int PlayerId { get; set; }
+        [Key(3)]
+        public Vector3IntMessagePack Pos { get; set; }
+        [Key(4)]
+        public bool IsOpen { get; set; }
     }
 }

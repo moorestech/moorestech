@@ -12,16 +12,20 @@ namespace Client.Game.InGame.Define
     public class ItemObjectContainer : ScriptableObject
     {
         [SerializeField] private ItemObjectData[] itemObjects;
-        
+
         public ItemObjectData GetItemPrefab(string modId, string name)
         {
             foreach (var itemObject in itemObjects)
+            {
                 if (itemObject.ModId == modId && itemObject.Name == name)
+                {
                     return itemObject;
+                }
+            }
             return null;
         }
     }
-    
+
     [Serializable]
     public class ItemObjectData
     {
@@ -31,13 +35,13 @@ namespace Client.Game.InGame.Define
         [SerializeField] private Vector3 position;
         [SerializeField] private Vector3 rotation;
         public string ModId => modId;
-        
+
         public string Name => name;
-        
+
         public GameObject ItemPrefab => itemPrefab;
-        
+
         public Vector3 Position => position;
-        
+
         public Vector3 Rotation => rotation;
     }
 }

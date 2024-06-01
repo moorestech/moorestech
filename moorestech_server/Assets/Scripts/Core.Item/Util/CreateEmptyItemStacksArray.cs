@@ -10,7 +10,7 @@ namespace Core.Item.Util
         {
             var a = new List<IItemStack>();
             for (var i = 0; i < count; i++) a.Add(ServerContext.ItemStackFactory.CreatEmpty());
-            
+
             return a;
         }
     }

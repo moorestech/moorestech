@@ -9,13 +9,13 @@ namespace Client.Game.InGame.Presenter.Command
     {
         [SerializeField] private TMP_InputField commandInputField;
         [SerializeField] private Button submitButton;
-        
-        
+
+
         private void Start()
         {
             submitButton.onClick.AddListener(SubmitCommand);
         }
-        
+
         private void SubmitCommand()
         {
             ClientContext.VanillaApi.SendOnly.SendCommand(commandInputField.text);

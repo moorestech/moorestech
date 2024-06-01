@@ -11,16 +11,16 @@ namespace Game.EnergySystem
             foreach (var electric in segments)
             {
                 //エネルギー供給者の結合
-                foreach (var generator in electric.Generators) newSegment.AddGenerator(generator.Value);
-                
+                foreach (KeyValuePair<int, IElectricGenerator> generator in electric.Generators) newSegment.AddGenerator(generator.Value);
+
                 //エネルギー消費者の結合
-                foreach (var consumer in electric.Consumers) newSegment.AddEnergyConsumer(consumer.Value);
-                
+                foreach (KeyValuePair<int, IElectricConsumer> consumer in electric.Consumers) newSegment.AddEnergyConsumer(consumer.Value);
+
                 //エネルギー輸送の結合
-                foreach (var transformer in electric.EnergyTransformers)
+                foreach (KeyValuePair<int, IElectricTransformer> transformer in electric.EnergyTransformers)
                     newSegment.AddEnergyTransformer(transformer.Value);
             }
-            
+
             return newSegment;
         }
     }

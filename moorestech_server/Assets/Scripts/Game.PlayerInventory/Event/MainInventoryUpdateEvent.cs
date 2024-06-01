@@ -9,9 +9,9 @@ namespace Game.PlayerInventory.Event
         {
             OnPlayerInventoryUpdate += updateInventoryEvent;
         }
-        
+
         public event UpdateInventoryEvent OnPlayerInventoryUpdate;
-        
+
         public void OnInventoryUpdateInvoke(
             PlayerInventoryUpdateEventProperties properties)
         {

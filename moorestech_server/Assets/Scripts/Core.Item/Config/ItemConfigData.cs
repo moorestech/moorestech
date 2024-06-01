@@ -7,6 +7,15 @@ namespace Core.Item.Config
 {
     public class ItemConfigData : IItemConfigData
     {
+        public long ItemHash { get; }
+        public int ItemId { get; }
+        
+        public string ModId { get; }
+        public string Name { get; }
+        
+        public int MaxStack { get; }
+        public string ImagePath { get; }
+
         internal ItemConfigData(ItemConfigJsonData jsonData, string modId, IxxHash xxHash, int itemId)
         {
             ModId = modId;
@@ -15,10 +24,10 @@ namespace Core.Item.Config
             MaxStack = jsonData.MaxStack;
             ImagePath = jsonData.ImagePath;
             ItemHash = 1;
-            
+
             ItemHash = BitConverter.ToInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
         }
-        
+
         /// <summary>
         ///     アイテムが定義されていないとき用のコンストラクタ
         /// </summary>
@@ -29,14 +38,5 @@ namespace Core.Item.Config
             ModId = modId;
             ItemId = itemId;
         }
-        
-        public long ItemHash { get; }
-        public int ItemId { get; }
-        
-        public string ModId { get; }
-        public string Name { get; }
-        
-        public int MaxStack { get; }
-        public string ImagePath { get; }
     }
 }

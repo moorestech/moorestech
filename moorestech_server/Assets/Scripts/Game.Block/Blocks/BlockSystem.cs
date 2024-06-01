@@ -11,31 +11,33 @@ namespace Game.Block.Blocks
 {
     public class BlockSystem : IBlock
     {
-        private readonly BlockComponentManager _blockComponentManager = new();
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-        
-        
-        public BlockSystem(int entityId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
-        {
-            EntityId = entityId;
-            BlockPositionInfo = blockPositionInfo;
-            BlockConfigData = ServerContext.BlockConfig.GetBlockConfig(blockId);
-            
-            _blockComponentManager = new BlockComponentManager();
-            _blockComponentManager.AddComponents(blockComponents);
-            
-            var stateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
-            stateChange?.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext(state); });
-        }
-        
         public int EntityId { get; }
         public int BlockId => BlockConfigData.BlockId;
         public long BlockHash => BlockConfigData.BlockHash;
         public BlockConfigData BlockConfigData { get; }
         public IBlockComponentManager ComponentManager => _blockComponentManager;
+        private readonly BlockComponentManager _blockComponentManager = new();
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+
+
+        public BlockSystem(int entityId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
+        {
+            EntityId = entityId;
+            BlockPositionInfo = blockPositionInfo;
+            BlockConfigData = ServerContext.BlockConfig.GetBlockConfig(blockId);
+
+            _blockComponentManager = new BlockComponentManager();
+            _blockComponentManager.AddComponents(blockComponents);
+
+            var stateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
+            stateChange?.BlockStateChange.Subscribe(state =>
+            {
+                _onBlockStateChange.OnNext(state);
+            });
+        }
+
         public string GetSaveState()
         {
             return _blockComponentManager.TryGetComponent<IBlockSaveState>(out var blockSaveState) ? blockSaveState.GetSaveState() : string.Empty;
@@ -45,7 +47,7 @@ namespace Game.Block.Blocks
         {
             _blockComponentManager.Destroy();
         }
-        
+
         public bool Equals(IBlock other)
         {
             if (other is null) return false;

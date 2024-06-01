@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Interface;
+using Core.Item.Config;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -19,7 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest
     {
         private const int MachineBlockId = 1;
         private const int PlayerId = 0;
-        
+
         [Test]
         public void RemoveTest()
         {
@@ -29,43 +32,43 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockFactory = ServerContext.BlockFactory;
             var blockConfig = ServerContext.BlockConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            
+
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            
+
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
             var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
-            
+
             //削除するためのブロックの生成
             worldBlock.AddBlock(block);
-            
+
             Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0, 0)).EntityId);
-            
+
             //プレイヤーインベントリに削除したブロックを追加
-            
-            
+
+
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
-            
-            
+
+
             //削除したブロックがワールドに存在しないことを確認
             Assert.False(worldBlock.Exists(new Vector3Int(0, 0)));
-            
-            
+
+
             var playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             //ブロック内のアイテムがインベントリに入っているか
             Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
-            
+
             //削除したブロックは次のスロットに入っているのでそれをチェック
             Assert.AreEqual(blockConfigData.ItemId,
                 playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Count);
         }
-        
-        
+
+
         //インベントリがいっぱいで一部のアイテムが残っている場合のテスト
         [Test]
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
@@ -76,20 +79,20 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockFactory = ServerContext.BlockFactory;
             var itemConfig = ServerContext.ItemConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            
+
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            
+
             //インベントリの2つのスロットを残してインベントリを満杯にする
             for (var i = 2; i < mainInventory.GetSlotSize(); i++)
                 mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
-            
+
             //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
             var id3MaxStack = itemConfig.GetItemConfig(3).MaxStack;
             mainInventory.SetItem(0, itemStackFactory.Create(3, id3MaxStack - 1));
             //二つめのスロットにはID4のアイテムを1つ入れておく
             mainInventory.SetItem(1, itemStackFactory.Create(4, 1));
-            
-            
+
+
             //削除するためのブロックの生成
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
@@ -98,27 +101,27 @@ namespace Tests.CombinedTest.Server.PacketTest
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
             blockInventory.SetItem(0, itemStackFactory.Create(3, 2));
             blockInventory.SetItem(1, itemStackFactory.Create(4, 5));
-            
+
             //ブロックを設置
             worldBlock.AddBlock(block);
-            
-            
+
+
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
-            
-            
+
+
             //削除したブロックがワールドに存在してることを確認
             Assert.True(worldBlock.Exists(new Vector3Int(0, 0)));
-            
+
             //プレイヤーのインベントリにブロック内のアイテムが入っているか確認
             Assert.AreEqual(itemStackFactory.Create(3, id3MaxStack), mainInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(4, 6), mainInventory.GetItem(1));
-            
+
             //ブロックのインベントリが減っているかを確認
             Assert.AreEqual(itemStackFactory.Create(3, 1), blockInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.CreatEmpty(), blockInventory.GetItem(1));
         }
-        
+
         //ブロックの中にアイテムはないけど、プレイヤーのインベントリが満杯でブロックを破壊できない時のテスト
         [Test]
         public void InventoryFullToCantRemoveBlockTest()
@@ -129,30 +132,30 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockFactory = ServerContext.BlockFactory;
             var itemConfig = ServerContext.ItemConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            
+
             var mainInventory =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
                     .MainOpenableInventory;
-            
+
             //インベントリを満杯にする
             for (var i = 0; i < mainInventory.GetSlotSize(); i++)
                 mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
-            
+
             //ブロックを設置
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, 0, blockPosInfo);
             worldBlock.AddBlock(block);
-            
-            
+
+
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
-            
-            
+
+
             //ブロックが削除できていないことを検証
             Assert.True(worldBlock.Exists(new Vector3Int(0, 0)));
         }
-        
-        
+
+
         private List<byte> RemoveBlock(Vector3Int pos, int playerId)
         {
             return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos)).ToList();

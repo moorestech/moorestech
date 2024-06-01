@@ -13,7 +13,6 @@ namespace ClassLibrary
                     return i;
                 i++;
             }
-            
             return -1;
         }
     }

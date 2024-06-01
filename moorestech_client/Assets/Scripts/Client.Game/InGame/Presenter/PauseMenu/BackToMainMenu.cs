@@ -11,29 +11,29 @@ namespace Client.Game.InGame.Presenter.PauseMenu
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
-        
+
         private void Start()
         {
             backToMainMenuButton.onClick.AddListener(Back);
         }
-        
+
         private void OnDestroy()
         {
             Disconnect();
         }
-        
+
         private void OnApplicationQuit()
         {
             Disconnect();
         }
-        
+
         private void Back()
         {
             Disconnect();
             SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
-        
-        
+
+
         private void Disconnect()
         {
             ClientContext.VanillaApi.SendOnly.Save();

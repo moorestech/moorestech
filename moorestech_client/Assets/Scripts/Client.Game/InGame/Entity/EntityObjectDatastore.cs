@@ -10,9 +10,9 @@ namespace Client.Game.InGame.Entity
     public class EntityObjectDatastore : MonoBehaviour
     {
         [SerializeField] private ItemEntityObject itemPrefab;
-        
+
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
-        
+
         /// <summary>
         ///     エンティティ最終更新時間をチェックし、一定時間経過していたら削除する
         /// </summary>
@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Entity
         {
             //1秒以上経過していたら削除
             var removeEntities = new List<long>();
-            foreach (var entity in _entities)
+            foreach (KeyValuePair<long, (DateTime lastUpdate, IEntityObject objectEntity)> entity in _entities)
                 if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1)
                     removeEntities.Add(entity.Key);
             foreach (var removeEntity in removeEntities)
@@ -29,13 +29,14 @@ namespace Client.Game.InGame.Entity
                 _entities.Remove(removeEntity);
             }
         }
-        
+
         /// <summary>
         ///     エンティティの生成、更新を行う
         /// </summary>
         public void OnEntitiesUpdate(List<EntityResponse> entities)
         {
             foreach (var entity in entities)
+            {
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
                     _entities[entity.InstanceId].objectEntity.SetInterpolationPosition(entity.Position);
@@ -46,8 +47,9 @@ namespace Client.Game.InGame.Entity
                     var entityObject = CreateEntity(entity);
                     _entities.Add(entity.InstanceId, (DateTime.Now, entityObject));
                 }
+            }
         }
-        
+
         /// <summary>
         ///     タイプに応じたエンティティの作成
         /// </summary>
@@ -56,13 +58,13 @@ namespace Client.Game.InGame.Entity
             if (entity.Type == VanillaEntityType.VanillaItem)
             {
                 var item = Instantiate(itemPrefab, entity.Position, Quaternion.identity, transform);
-                
+
                 var id = int.Parse(entity.State.Split(',')[0]);
                 var texture = ClientContext.ItemImageContainer.GetItemView(id).ItemTexture;
                 item.SetTexture(texture);
                 return item;
             }
-            
+
             throw new ArgumentException("エンティティタイプがありません");
         }
     }

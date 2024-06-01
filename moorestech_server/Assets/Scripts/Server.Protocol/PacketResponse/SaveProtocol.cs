@@ -9,14 +9,14 @@ namespace Server.Protocol.PacketResponse
     public class SaveProtocol : IPacketResponse
     {
         public const string Tag = "va:save";
-        
+
         private readonly IWorldSaveDataSaver _worldSaveDataSaver;
-        
+
         public SaveProtocol(ServiceProvider serviceProvider)
         {
             _worldSaveDataSaver = serviceProvider.GetService<IWorldSaveDataSaver>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             Debug.Log("セーブ開始");
@@ -25,8 +25,8 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
     }
-    
-    
+
+
     [MessagePackObject]
     public class SaveProtocolMessagePack : ProtocolMessagePackBase
     {

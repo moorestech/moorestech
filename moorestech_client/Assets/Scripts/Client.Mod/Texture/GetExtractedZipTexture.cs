@@ -11,14 +11,14 @@ namespace Client.Mod.Texture
         {
             //TODO ログ基盤
             var imgPath = Path.Combine(extractedModDirectory, path);
-            
+
             //そのパスにファイルがあるかを確認
             if (!File.Exists(imgPath))
             {
                 Debug.LogError($"画像ファイルが存在しません パス : {imgPath}");
                 return null;
             }
-            
+
             try
             {
                 var texture = new Texture2D(1, 1);

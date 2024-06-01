@@ -10,9 +10,9 @@ namespace Client.Skit.SkitTrack
             var isShow = parameters[0] == "TRUE";
             var duration = float.Parse(parameters[1]);
             storyContext.SkitUI.ShowTransition(isShow, duration);
-            
+
             await UniTask.Delay((int)(duration * 1000));
-            
+
             return null;
         }
     }

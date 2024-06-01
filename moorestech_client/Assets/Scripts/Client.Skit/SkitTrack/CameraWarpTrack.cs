@@ -10,9 +10,9 @@ namespace Client.Skit.SkitTrack
         {
             var pos = new Vector3(float.Parse(parameters[1]), float.Parse(parameters[2]), float.Parse(parameters[3]));
             var rot = new Vector3(float.Parse(parameters[5]), float.Parse(parameters[6]), float.Parse(parameters[7]));
-            
+
             storyContext.SkitCamera.SetTransform(pos, rot);
-            
+
             return null;
         }
     }

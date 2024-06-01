@@ -10,20 +10,20 @@ namespace Client.Skit.UI
     {
         [SerializeField] private Button button;
         [SerializeField] private TMP_Text buttonText;
-        
+
         private int _index;
-        
+
         public void SetButton(string text, int index)
         {
             buttonText.text = text;
             _index = index;
         }
-        
+
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
         }
-        
+
         public async UniTask<int> WaitClick(CancellationToken ct)
         {
             await button.OnClickAsync(ct);

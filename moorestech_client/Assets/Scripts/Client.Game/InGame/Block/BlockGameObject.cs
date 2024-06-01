@@ -12,15 +12,16 @@ namespace Client.Game.InGame.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
-        private BlockShaderAnimation _blockShaderAnimation;
-        private bool _isShaderAnimationing;
-        private List<RendererMaterialReplacer> _rendererMaterialReplacer;
-        private List<VisualEffect> _visualEffects;
         public int BlockId { get; private set; }
         public BlockConfigData BlockConfig { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
         
+        private BlockShaderAnimation _blockShaderAnimation;
+        private bool _isShaderAnimationing;
+        private List<RendererMaterialReplacer> _rendererMaterialReplacer;
+        private List<VisualEffect> _visualEffects;
+
         public void Initialize(BlockConfigData blockConfig, BlockPositionInfo posInfo, IBlockStateChangeProcessor blockStateChangeProcessor)
         {
             BlockPosInfo = posInfo;
@@ -29,13 +30,13 @@ namespace Client.Game.InGame.Block
             BlockStateChangeProcessor = blockStateChangeProcessor;
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
-            
+
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>()) child.Init(this);
-            
+
             _rendererMaterialReplacer = new List<RendererMaterialReplacer>();
             foreach (var renderer in GetComponentsInChildren<Renderer>()) _rendererMaterialReplacer.Add(new RendererMaterialReplacer(renderer));
         }
-        
+
         public async UniTask PlayPlaceAnimation()
         {
             _isShaderAnimationing = true;
@@ -44,20 +45,20 @@ namespace Client.Game.InGame.Block
             _isShaderAnimationing = false;
             SetVfxActive(true);
         }
-        
+
         public void SetRemovePreviewing()
         {
             if (_isShaderAnimationing) return;
             var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewRemoveBlockMaterial);
             foreach (var replacer in _rendererMaterialReplacer) replacer.SetMaterial(placePreviewMaterial);
         }
-        
+
         public void ResetMaterial()
         {
             if (_isShaderAnimationing) return;
             foreach (var replacer in _rendererMaterialReplacer) replacer.ResetMaterial();
         }
-        
+
         public async UniTask DestroyBlock()
         {
             _isShaderAnimationing = true;
@@ -65,10 +66,13 @@ namespace Client.Game.InGame.Block
             await _blockShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
         }
-        
+
         private void SetVfxActive(bool isActive)
         {
-            foreach (var vfx in _visualEffects) vfx.gameObject.SetActive(isActive);
+            foreach (var vfx in _visualEffects)
+            {
+                vfx.gameObject.SetActive(isActive);
+            }
         }
     }
 }

@@ -20,27 +20,27 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void DontBlockPlaceTest()
         {
             var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            
+
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
-        
+
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
         [Test]
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
-            
-            
+
+
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
-            
+
             var random = new Random(1410);
-            
+
             //ランダムな位置にブロックを設置する
             var blocks = new List<TestBlockData>();
             for (var j = 0; j < 10; j++)
@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 var pos = new Vector3Int(x, y);
                 var blockId = random.Next(1, 1000);
                 var direction = random.Next(0, 4);
-                
+
                 //設置したブロックを保持する
                 blocks.Add(new TestBlockData(pos, blockId, direction));
                 //ブロックの設置
@@ -58,12 +58,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 var block = ServerContext.BlockFactory.Create(blockId, random.Next(1, 1000000), blockPosInfo);
                 worldBlockDataStore.AddBlock(block);
             }
-            
-            
+
+
             //イベントパケットをリクエストする
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
-            
+
             //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
             foreach (var r in eventMessagePack.Events)
             {
@@ -72,36 +72,36 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                     if (b.Equals(blocks[j]))
                         blocks.RemoveAt(j);
             }
-            
+
             //設置したブロックリストが残ってなければすべてのイベントが返ってきた事がわかる
             Assert.AreEqual(0, blocks.Count);
-            
-            
+
+
             //イベントのリクエストを送ったので次は何も返ってこないテスト
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
-        
+
         private TestBlockData AnalysisResponsePacket(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload).BlockData;
-            
+
             return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
         }
-        
+
         private List<byte> EventRequestData(int plyaerID)
         {
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
         }
-        
+
         private class TestBlockData
         {
             public readonly BlockDirection BlockDirection;
             public readonly int id;
             public readonly int X;
             public readonly int Y;
-            
+
             public TestBlockData(Vector3Int pos, int id, int blockDirectionNum)
             {
                 X = pos.x;
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 this.id = id;
                 BlockDirection = (BlockDirection)blockDirectionNum;
             }
-            
+
             public override bool Equals(object? obj)
             {
                 var b = obj as TestBlockData;

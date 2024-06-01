@@ -9,9 +9,9 @@ namespace Game.Block.Interface.RecipeConfig
             OutputItem = outputItemMachine;
             Percent = percent;
         }
-        
+
         public IItemStack OutputItem { get; }
-        
+
         public double Percent { get; }
     }
 }

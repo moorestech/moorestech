@@ -6,10 +6,10 @@ namespace Game.Crafting.Interface
     public class CraftingConfigInfo
     {
         public readonly List<CraftRequiredItemInfo> CraftRequiredItemInfos;
-        
+
         public readonly int RecipeId;
         public readonly IItemStack ResultItem;
-        
+
         public CraftingConfigInfo(List<CraftRequiredItemInfo> craftRequiredItemInfos, IItemStack resultItem, int recipeId)
         {
             ResultItem = resultItem;
@@ -17,12 +17,12 @@ namespace Game.Crafting.Interface
             CraftRequiredItemInfos = craftRequiredItemInfos;
         }
     }
-    
+
     public class CraftRequiredItemInfo
     {
         public readonly bool IsRemain;
         public readonly IItemStack ItemStack;
-        
+
         public CraftRequiredItemInfo(IItemStack itemStack, bool isRemain)
         {
             ItemStack = itemStack;

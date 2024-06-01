@@ -29,13 +29,13 @@ namespace Client.Input
             Initialize();
         }
 #endif
-        
+
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            InputSystem.RegisterBindingComposite<HotBarKeyBoardComposite>();
+            UnityEngine.InputSystem.InputSystem.RegisterBindingComposite<HotBarKeyBoardComposite>();
         }
-        
+
         public override int ReadValue(ref InputBindingCompositeContext context)
         {
             if (context.ReadValueAsButton(select0)) return select0;
@@ -47,7 +47,7 @@ namespace Client.Input
             if (context.ReadValueAsButton(select6)) return select6;
             if (context.ReadValueAsButton(select7)) return select7;
             if (context.ReadValueAsButton(select8)) return select8;
-            
+
             return 0;
         }
     }

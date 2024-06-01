@@ -6,7 +6,7 @@ namespace Game.PlayerInventory.Interface
     {
         public readonly IOpenableInventory GrabInventory;
         public readonly IOpenableInventory MainOpenableInventory;
-        
+
         public PlayerInventoryData(IOpenableInventory mainOpenableInventory, IOpenableInventory grabInventory)
         {
             MainOpenableInventory = mainOpenableInventory;

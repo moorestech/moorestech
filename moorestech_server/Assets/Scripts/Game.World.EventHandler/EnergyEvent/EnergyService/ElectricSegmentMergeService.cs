@@ -23,7 +23,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                 var electricSegment = segmentDatastore.GetEnergySegment(pole);
                 electricSegments.Add(electricSegment);
             }
-            
+
             //電力セグメントをマージする
             var mergedElectricSegment = EnergySegmentExtension.Merge(electricSegments);
             //マージ前のセグメントを削除する
@@ -32,10 +32,10 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                 segmentDatastore.RemoveEnergySegment(electricSegments[i]);
                 electricSegments[i] = null;
             }
-            
+
             //マージ後のセグメントを追加する
             segmentDatastore.SetEnergySegment(mergedElectricSegment);
-            
+
             return mergedElectricSegment;
         }
     }

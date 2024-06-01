@@ -8,7 +8,7 @@ namespace Game.Block.Interface.RecipeConfig
         public MachineRecipeData GetRecipeData(int blockId, IReadOnlyList<IItemStack> inputItem);
         public MachineRecipeData GetEmptyRecipeData();
         public MachineRecipeData GetRecipeData(int id);
-        
+
         public IReadOnlyList<MachineRecipeData> GetAllRecipeData();
     }
 }

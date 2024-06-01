@@ -11,14 +11,17 @@ namespace Client.Skit.SkitTrack
             var characterName = parameters[0];
             var characterDisplayName = parameters[2] == string.Empty ? characterName : parameters[2];
             var text = parameters[1];
-            
+
             storyContext.SkitUI.SetText(characterDisplayName, text);
-            
+
             var voiceAudioClip = storyContext.VoiceDefine.GetVoiceClip(characterName, text);
-            
+
             var character = storyContext.GetCharacter(characterName);
-            if (voiceAudioClip != null) character.PlayVoice(voiceAudioClip);
-            
+            if (voiceAudioClip != null)
+            {
+                character.PlayVoice(voiceAudioClip);
+            }
+
             //クリックされるまで待機
             while (true)
             {
@@ -29,7 +32,6 @@ namespace Client.Skit.SkitTrack
                     character.StopVoice();
                     return null;
                 }
-                
                 await UniTask.Yield();
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -20,40 +21,43 @@ namespace Client.Network
     {
         private readonly IPAddress _ipAddress;
         private readonly Subject<Unit> _onDisconnect = new();
-        
+
         private readonly Socket _socket;
-        
+
         private ServerCommunicator(Socket connectedSocket)
         {
             //ソケットを作成
             _socket = connectedSocket;
         }
-        
+
         public IObservable<Unit> OnDisconnect => _onDisconnect;
-        
+
         public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerConfig connectionServerConfig)
         {
             //IPアドレスやポートを設定
-            if (!IPAddress.TryParse(connectionServerConfig.IP, out var ipAddress)) throw new ArgumentException("IP解析失敗");
-            
+            if (!IPAddress.TryParse(connectionServerConfig.IP, out var ipAddress))
+            {
+                throw new ArgumentException("IP解析失敗");
+            }
+
             var socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            
+
             //接続を行う
             socket.Connect(ipAddress, connectionServerConfig.Port);
-            
+
             // 接続に10秒かかったらエラーを出す
             await UniTask.WaitUntil(() => socket.Connected).Timeout(TimeSpan.FromSeconds(10));
-            
+
             Debug.Log("サーバーに接続しました");
-            
+
             return new ServerCommunicator(socket);
         }
-        
-        
+
+
         public Task StartCommunicat(PacketExchangeManager packetExchangeManager)
         {
             var buffer = new byte[4096];
-            
+
             var parser = new PacketBufferParser();
             try
             {
@@ -66,10 +70,10 @@ namespace Client.Network
                         Debug.LogError("ストリームがゼロによる切断");
                         break;
                     }
-                    
+
                     //解析をしてunity viewに送る
-                    var packets = parser.Parse(buffer, length);
-                    foreach (var packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
+                    List<List<byte>> packets = parser.Parse(buffer, length);
+                    foreach (List<byte> packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
                 }
             }
             catch (Exception e)
@@ -77,7 +81,7 @@ namespace Client.Network
                 Debug.LogError("エラーによりサーバーから切断されました");
                 Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
                 if (_socket.Connected) _socket.Close();
-                
+
                 try
                 {
                     var json = MessagePackSerializer.ConvertToJson(buffer);
@@ -87,7 +91,7 @@ namespace Client.Network
                 {
                     Debug.LogError("受信パケット内容 JSON:解析に失敗");
                 }
-                
+
                 throw;
             }
             finally
@@ -95,28 +99,28 @@ namespace Client.Network
                 Debug.Log("通信ループ終了");
                 InvokeDisconnect().Forget();
             }
-            
+
             return Task.CompletedTask;
         }
-        
+
         private async UniTask InvokeDisconnect()
         {
             await UniTask.SwitchToMainThread();
             _onDisconnect.OnNext(Unit.Default);
         }
-        
+
         public void Send(byte[] data)
         {
             //先頭にパケット長を設定して送信
-            var byteCount = ToByteList.Convert(data.Length);
+            List<byte> byteCount = ToByteList.Convert(data.Length);
             var newData = new byte[byteCount.Count + data.Length];
-            
+
             byteCount.CopyTo(newData, 0);
             data.CopyTo(newData, byteCount.Count);
-            
+
             _socket.Send(newData);
         }
-        
+
         public void Close()
         {
             _socket.Close();

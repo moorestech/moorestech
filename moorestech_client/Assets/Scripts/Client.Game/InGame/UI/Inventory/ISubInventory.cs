@@ -12,7 +12,7 @@ namespace Client.Game.InGame.UI.Inventory
         public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
     }
-    
+
     public class EmptySubInventory : ISubInventory
     {
         public EmptySubInventory()
@@ -22,7 +22,6 @@ namespace Client.Game.InGame.UI.Inventory
             SubInventory = new List<IItemStack>();
             ItemMoveInventoryInfo = null;
         }
-        
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
         public List<IItemStack> SubInventory { get; }
         public int Count { get; }

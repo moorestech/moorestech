@@ -12,11 +12,11 @@ namespace Game.PlayerInventory.Interface
         [JsonProperty("MainItemCount")] public List<int> MainItemCount;
         [JsonProperty("MainItemId")] public List<int> MainItemId;
         [JsonProperty("PlayerId")] public int PlayerId;
-        
+
         public PlayerInventoryJsonObject()
         {
         }
-        
+
         public PlayerInventoryJsonObject(int playerId, PlayerInventoryData playerInventoryData)
         {
             MainItemId = new List<int>();
@@ -26,14 +26,14 @@ namespace Game.PlayerInventory.Interface
                 MainItemId.Add(playerInventoryData.MainOpenableInventory.GetItem(i).Id);
                 MainItemCount.Add(playerInventoryData.MainOpenableInventory.GetItem(i).Count);
             }
-            
+
             GrabItemId = playerInventoryData.GrabInventory.GetItem(0).Id;
             GrabItemCount = playerInventoryData.GrabInventory.GetItem(0).Count;
-            
-            
+
+
             PlayerId = playerId;
         }
-        
+
         public (List<IItemStack> mainInventory, IItemStack grabItem) GetPlayerInventoryData()
         {
             var mainItemStack = new List<IItemStack>();
@@ -42,7 +42,6 @@ namespace Game.PlayerInventory.Interface
                 var item = ServerContext.ItemStackFactory.Create(MainItemId[i], MainItemCount[i]);
                 mainItemStack.Add(item);
             }
-            
             var grabItem = ServerContext.ItemStackFactory.Create(GrabItemId, GrabItemCount);
             return (mainItemStack, grabItem);
         }

@@ -8,7 +8,7 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
         public IBlockConfigParam Generate(dynamic blockParam)
         {
             int slot = blockParam.slot;
-            
+
             return new ChestConfigParam(slot);
         }
     }

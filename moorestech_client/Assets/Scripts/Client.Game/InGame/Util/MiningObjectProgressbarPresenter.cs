@@ -14,8 +14,8 @@ namespace Client.Game.InGame.Util
     {
         [SerializeField] private ProgressBarView progressBarView;
         public bool IsMining { get; private set; }
-        
-        
+
+
         /// <summary>
         ///     採掘を開始する
         ///     キャンセルさせるまで採掘し続ける
@@ -27,7 +27,7 @@ namespace Client.Game.InGame.Util
         public async UniTask StartMining(float miningTime, CancellationToken cancellationToken)
         {
             if (IsMining) throw new InvalidOperationException("採掘中に他の箇所から採掘開始を呼び出されました。IsMiningフラグを確認し、採掘中でないことを確認してください");
-            
+
             IsMining = true;
             try
             {
@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Util
                 IsMining = false;
             }
         }
-        
+
         private async UniTask MiningProgress(float miningTime, CancellationToken cancellationToken)
         {
             var now = DateTime.Now;
@@ -51,7 +51,7 @@ namespace Client.Game.InGame.Util
             {
                 var currentMineRate = (DateTime.Now - now).TotalSeconds / miningTime;
                 progressBarView.SetProgress((float)currentMineRate);
-                
+
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
         }

@@ -9,7 +9,7 @@ namespace Game.Block.Config.LoadConfig.Param
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BeltConveyorItemNum = beltConveyorItemNum;
         }
-        
+
         public int BeltConveyorItemNum { get; }
         public int TimeOfItemEnterToExit { get; }
     }

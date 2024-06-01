@@ -15,11 +15,11 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
-        
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly int _entityId;
+
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        
+
         public VanillaMachineInputInventory(int blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
         {
             _blockId = blockId;
@@ -27,9 +27,9 @@ namespace Game.Block.Blocks.Machine.Inventory
             _entityId = entityId;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot);
         }
-        
+
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.Inventory;
-        
+
         public bool IsAllowedToStartProcess
         {
             get
@@ -40,22 +40,22 @@ namespace Game.Block.Blocks.Machine.Inventory
                 return recipe.RecipeConfirmation(InputSlot, _blockId);
             }
         }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return _itemDataStoreService.InsertItem(itemStack);
         }
-        
+
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
             return _itemDataStoreService.InsertItem(itemStacks);
         }
-        
+
         public MachineRecipeData GetRecipeData()
         {
             return ServerContext.MachineRecipeConfig.GetRecipeData(_blockId, InputSlot);
         }
-        
+
         public void ReduceInputSlot(MachineRecipeData recipe)
         {
             //inputスロットからアイテムを減らす
@@ -68,17 +68,17 @@ namespace Game.Block.Blocks.Machine.Inventory
                     break;
                 }
         }
-        
+
         public void SetItem(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItem(slot, itemStack);
         }
-        
+
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             return _itemDataStoreService.InsertionCheck(itemStacks);
         }
-        
+
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(

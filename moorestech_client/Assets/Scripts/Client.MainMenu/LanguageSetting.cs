@@ -7,7 +7,7 @@ namespace Client.MainMenu
     public class LanguageSetting : MonoBehaviour
     {
         [SerializeField] private TMP_Dropdown tmpDropdown;
-        
+
         private void Start()
         {
             tmpDropdown.ClearOptions();
@@ -15,7 +15,7 @@ namespace Client.MainMenu
             tmpDropdown.value = Localize.LanguageCodes.IndexOf(Localize.CurrentLanguageCode);
             tmpDropdown.onValueChanged.AddListener(OnValueChanged);
         }
-        
+
         private void OnValueChanged(int index)
         {
             Localize.SetLanguage(Localize.LanguageCodes[index]);

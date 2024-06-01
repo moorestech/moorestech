@@ -28,21 +28,21 @@ namespace Client.Game.InGame.Map.MapObject
     {
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private float miningDistance = 1.5f;
-        
+
         private MapObjectGameObject _currentMapObjectGameObject;
-        
+
         private CancellationToken _gameObjectCancellationToken;
-        
+
         private ILocalPlayerInventory _localPlayerInventory;
         private IPlayerObjectController _playerObjectController;
         private UIStateControl _uiStateControl;
-        
-        
+
+
         private void Start()
         {
             ManualUpdate().Forget();
         }
-        
+
         private async UniTask ManualUpdate()
         {
             while (true)
@@ -51,36 +51,46 @@ namespace Client.Game.InGame.Map.MapObject
                 await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
             }
         }
-        
+
         private async UniTask MiningUpdate()
         {
             UpdateCurrentMapObject();
-            
+
             var miningToolInfo = GetMiningToolInfo();
             var isMinenable = IsStartMining();
             var isPickUpable = false;
-            
+
             if (_currentMapObjectGameObject != null)
             {
                 var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
                 isPickUpable = mapObjectConfig.MiningTools.Count == 0;
                 var text = string.Empty;
                 if (isMinenable)
+                {
                     text = isPickUpable ? "左クリックで取得" : "左クリック長押しで採掘";
+                }
                 else
+                {
                     text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType));
-                
+                }
+
                 MouseCursorExplainer.Instance.Show(text, isLocalize: false);
             }
-            
-            if (!isMinenable) return;
-            
-            if (!InputManager.Playable.ScreenLeftClick.GetKey) return;
-            
+
+            if (!isMinenable)
+            {
+                return;
+            }
+
+            if (!InputManager.Playable.ScreenLeftClick.GetKey)
+            {
+                return;
+            }
+
             await Mining();
-            
+
             #region Internal
-            
+
             void UpdateCurrentMapObject()
             {
                 var mapObject = GetMapObject();
@@ -91,47 +101,49 @@ namespace Client.Game.InGame.Map.MapObject
                         MouseCursorExplainer.Instance.Hide();
                         _currentMapObjectGameObject.OutlineEnable(false);
                     }
-                    
                     _currentMapObjectGameObject = null;
                     return;
                 }
-                
+
                 if (_currentMapObjectGameObject == mapObject) return;
-                
-                if (_currentMapObjectGameObject != null) _currentMapObjectGameObject.OutlineEnable(false);
+
+                if (_currentMapObjectGameObject != null)
+                {
+                    _currentMapObjectGameObject.OutlineEnable(false);
+                }
                 _currentMapObjectGameObject = mapObject;
                 _currentMapObjectGameObject.OutlineEnable(true);
             }
-            
+
             bool IsStartMining()
             {
                 if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return false;
-                
+
                 if (_currentMapObjectGameObject == null) return false;
-                
-                
+
+
                 var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
-                
+
                 return miningToolInfo != null || mapObjectConfig.MiningTools.Count == 0;
             }
-            
+
             async UniTask Mining()
             {
                 var instanceId = _currentMapObjectGameObject.InstanceId;
-                
+
                 if (isPickUpable)
                 {
                     ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, int.MaxValue); //TODO max valueじゃないものにしたい
                     return;
                 }
-                
+
                 //マイニングバーのUIを表示するやつを設定
                 _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
-                
+
                 var isMiningFinish = await IsMiningFinishWait(miningToolInfo.AttackSpeed);
-                
+
                 _playerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
-                
+
                 //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
                 if (isMiningFinish)
                 {
@@ -140,19 +152,22 @@ namespace Client.Game.InGame.Map.MapObject
                     PlaySoundEffect();
                 }
             }
-            
+
             MapObjectToolItemConfigInfo GetMiningToolInfo()
             {
-                if (_currentMapObjectGameObject == null) return null;
-                
+                if (_currentMapObjectGameObject == null)
+                {
+                    return null;
+                }
+
                 var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
                 var currentItem = _localPlayerInventory[slotIndex];
-                
+
                 var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
-                
+
                 return mapObjectConfig.MiningTools.FirstOrDefault(tool => tool.ToolItemId == currentItem.Id);
             }
-            
+
             List<string> GetRecommendItemId(string mapObjectType)
             {
                 var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(mapObjectType);
@@ -162,10 +177,9 @@ namespace Client.Game.InGame.Map.MapObject
                     var itemConfig = ServerContext.ItemConfig.GetItemConfig(tool.ToolItemId);
                     result.Add(itemConfig.Name);
                 }
-                
                 return result;
             }
-            
+
             async UniTask<bool> IsMiningFinishWait(float miningTime)
             {
                 //map objectがフォーカスされ、クリックされているので採掘を行う
@@ -176,14 +190,17 @@ namespace Client.Game.InGame.Map.MapObject
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
                     nowTime += Time.deltaTime;
-                    
+
                     //クリックが離されたら採掘を終了する か map objectが変わったら採掘を終了する
-                    if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _currentMapObjectGameObject != GetMapObject()) return false;
+                    if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _currentMapObjectGameObject != GetMapObject())
+                    {
+                        return false;
+                    }
                 }
-                
+
                 return true;
             }
-            
+
             void PlaySoundEffect()
             {
                 SoundEffectType soundEffectType;
@@ -200,13 +217,13 @@ namespace Client.Game.InGame.Map.MapObject
                         Debug.LogError("採掘音が設定されていません");
                         break;
                 }
-                
+
                 SoundEffectManager.Instance.PlaySoundEffect(soundEffectType);
             }
-            
+
             #endregion
         }
-        
+
         [Inject]
         public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
         {
@@ -215,20 +232,20 @@ namespace Client.Game.InGame.Map.MapObject
             _playerObjectController = playerObjectController;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
-        
+
         private MapObjectGameObject GetMapObject()
         {
             if (Camera.main == null) return null;
-            
+
             var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
             if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
-            
+
             var playerPos = _playerObjectController.Position;
             var mapObjectPos = mapObject.transform.position;
             if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
-            
+
             return mapObject;
         }
     }

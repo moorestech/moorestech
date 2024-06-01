@@ -15,12 +15,12 @@ namespace Game.Map.Interface.Json
         [JsonProperty("x")] public float x;
         [JsonProperty("y")] public float y;
         [JsonProperty("z")] public float z;
-        
+
         [Obsolete("Json用にのみ使用してください。")]
         public MapObjectJsonObject()
         {
         }
-        
+
         public MapObjectJsonObject(IMapObject mapObject)
         {
             instanceId = mapObject.InstanceId;
@@ -30,7 +30,8 @@ namespace Game.Map.Interface.Json
             y = mapObject.Position.y;
             z = mapObject.Position.z;
         }
-        
-        [JsonIgnore] public Vector3 Position => new(x, y, z);
+
+        [JsonIgnore]
+        public Vector3 Position => new(x, y, z);
     }
 }

@@ -1,6 +1,7 @@
 using Game.Challenge;
 using Game.Context;
 using Game.Entity.Interface;
+using Game.Map.Interface;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Json.WorldVersions;
@@ -11,12 +12,12 @@ namespace Game.SaveLoad.Json
 {
     public class AssembleSaveJsonText
     {
-        private readonly ChallengeDatastore _challengeDatastore;
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        
+        private readonly ChallengeDatastore _challengeDatastore;
+
         public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, ChallengeDatastore challengeDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
@@ -25,7 +26,7 @@ namespace Game.SaveLoad.Json
             _mapObjectDatastore = mapObjectDatastore;
             _challengeDatastore = challengeDatastore;
         }
-        
+
         public string AssembleSaveJson()
         {
             var saveData = new WorldSaveAllInfoV1(
@@ -35,8 +36,8 @@ namespace Game.SaveLoad.Json
                 _worldSettingsDatastore.GetSaveJsonObject(),
                 _mapObjectDatastore.GetSaveJsonObject(),
                 _challengeDatastore.GetSaveJsonObject()
-            );
-            
+                );
+
             return JsonConvert.SerializeObject(saveData);
         }
     }

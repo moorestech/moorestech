@@ -2,18 +2,19 @@ using System.Collections.Generic;
 using Core.Item.Interface.Config;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 
 namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class MinerConfigParamGenerator : IBlockConfigParamGenerator
-    {
+    { 
         private readonly IItemConfig _itemConfig;
-        
+
         public MinerConfigParamGenerator(IItemConfig itemConfig)
         {
             _itemConfig = itemConfig;
         }
-        
+
         public IBlockConfigParam Generate(dynamic blockParam)
         {
             int requiredPower = blockParam.requiredPower;
@@ -24,12 +25,12 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
                 int time = ore.time;
                 string itemModId = ore.itemModId;
                 string itemName = ore.itemName;
-                
+
                 var itemId = _itemConfig.GetItemId(itemModId, itemName);
-                
+
                 oreSetting.Add(new MineItemSetting(time, itemId));
             }
-            
+
             return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);
         }
     }

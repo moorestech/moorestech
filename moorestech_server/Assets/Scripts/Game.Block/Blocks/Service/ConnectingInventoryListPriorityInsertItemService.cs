@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
 using Game.Block.Component.IOConnector;
@@ -11,28 +12,28 @@ namespace Game.Block.Blocks.Service
     public class ConnectingInventoryListPriorityInsertItemService
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        
+
         private int _index = -1;
-        
+
         public ConnectingInventoryListPriorityInsertItemService(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockConnectorComponent = blockConnectorComponent;
         }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var inventories = _blockConnectorComponent.ConnectTargets;
-            
+            IReadOnlyList<IBlockInventory> inventories = _blockConnectorComponent.ConnectTargets;
+
             for (var i = 0; i < inventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
                 lock (inventories)
                 {
                     AddIndex();
                     itemStack = inventories[_index].InsertItem(itemStack);
                 }
-            
+
             return itemStack;
         }
-        
+
         private void AddIndex()
         {
             _index++;

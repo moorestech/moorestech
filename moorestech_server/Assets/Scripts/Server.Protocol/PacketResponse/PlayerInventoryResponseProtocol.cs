@@ -9,20 +9,20 @@ namespace Server.Protocol.PacketResponse
     public class PlayerInventoryResponseProtocol : IPacketResponse
     {
         public const string Tag = "va:playerInvRequest";
-        
+
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        
+
         public PlayerInventoryResponseProtocol(IPlayerInventoryDataStore playerInventoryDataStore)
         {
             _playerInventoryDataStore = playerInventoryDataStore;
         }
-        
+
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(payload.ToArray());
-            
+
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
-            
+
             //メインインベントリのアイテムを設定
             var mainItems = new List<ItemMessagePack>();
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
@@ -31,18 +31,18 @@ namespace Server.Protocol.PacketResponse
                 var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
                 mainItems.Add(new ItemMessagePack(id, count));
             }
-            
+
             //グラブインベントリのアイテムを設定
             var grabItem = new ItemMessagePack(
                 playerInventory.GrabInventory.GetItem(0).Id,
                 playerInventory.GrabInventory.GetItem(0).Count);
-            
-            
+
+
             return new PlayerInventoryResponseProtocolMessagePack(data.PlayerId, mainItems.ToArray(), grabItem);
         }
     }
-    
-    
+
+
     [MessagePackObject]
     public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
     {
@@ -50,17 +50,18 @@ namespace Server.Protocol.PacketResponse
         public RequestPlayerInventoryProtocolMessagePack()
         {
         }
-        
+
         public RequestPlayerInventoryProtocolMessagePack(int playerId)
         {
             Tag = PlayerInventoryResponseProtocol.Tag;
             PlayerId = playerId;
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
+
+        [Key(2)]
+        public int PlayerId { get; set; }
     }
-    
-    
+
+
     [MessagePackObject]
     public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
@@ -68,8 +69,8 @@ namespace Server.Protocol.PacketResponse
         public PlayerInventoryResponseProtocolMessagePack()
         {
         }
-        
-        
+
+
         public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab)
         {
             Tag = PlayerInventoryResponseProtocol.Tag;
@@ -77,11 +78,12 @@ namespace Server.Protocol.PacketResponse
             Main = main;
             Grab = grab;
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public ItemMessagePack[] Main { get; set; }
-        
-        [Key(4)] public ItemMessagePack Grab { get; set; }
+
+        [Key(2)]
+        public int PlayerId { get; set; }
+        [Key(3)]
+        public ItemMessagePack[] Main { get; set; }
+        [Key(4)]
+        public ItemMessagePack Grab { get; set; }
     }
 }

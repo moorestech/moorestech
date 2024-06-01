@@ -6,10 +6,10 @@ namespace Client.Game.InGame.BlockSystem
     {
         private static readonly List<string> deformationTypes = new()
         {
-            "BeltConveyor"
+            "BeltConveyor",
         };
-        
-        
+
+
         /// <summary>
         ///     傾斜によって角度や大きさが変わるブロックかどうかを取得するフラグ
         ///     ベルトコンベアなど変形するものはtrue、それ以外の通常のブロックはfalse

@@ -21,26 +21,26 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
             IOpenableInventory mainInventory, ItemMessagePack[] recipeItem)
         {
             //必要なアイテムがMainインベントリにあるかチェックするための必要アイテム数辞書を作成
-            var requiredItemCount = CreateRequiredItemCount(recipeItem);
-            
+            Dictionary<int, int> requiredItemCount = CreateRequiredItemCount(recipeItem);
+
             //必要なアイテム数があるかチェックするためにMainインベントリを走査
-            var mainInventoryRequiredItemCount = CreateMainInventoryRequiredItemCount(mainInventory, requiredItemCount);
-            
-            
+            Dictionary<int, int> mainInventoryRequiredItemCount = CreateMainInventoryRequiredItemCount(mainInventory, requiredItemCount);
+
+
             //アイテム数が足りているかチェックする
-            foreach (var item in requiredItemCount)
+            foreach (KeyValuePair<int, int> item in requiredItemCount)
             {
                 if (!mainInventoryRequiredItemCount.ContainsKey(item.Key))
                     return (false, mainInventoryRequiredItemCount);
-                
+
                 if (mainInventoryRequiredItemCount[item.Key] < item.Value)
                     return (false, mainInventoryRequiredItemCount);
             }
-            
+
             return (true, mainInventoryRequiredItemCount);
         }
-        
-        
+
+
         /// <summary>
         ///     レシピに必要なアイテム数の辞書を作成します
         /// </summary>
@@ -54,11 +54,11 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
                     requiredItemCount[item.Id] += item.Count;
                 else
                     requiredItemCount.Add(item.Id, item.Count);
-            
+
             return requiredItemCount;
         }
-        
-        
+
+
         /// <summary>
         ///     レシピに必要なアイテムがメインインベントリに何個あるかを計算します
         /// </summary>
@@ -73,13 +73,13 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
             {
                 var itemId = mainInventory.GetItem(i).Id;
                 if (!requiredItemCount.ContainsKey(itemId)) continue;
-                
+
                 if (mainInventoryRequiredItemCount.ContainsKey(itemId))
                     mainInventoryRequiredItemCount[itemId] += mainInventory.GetItem(i).Count;
                 else
                     mainInventoryRequiredItemCount.Add(itemId, mainInventory.GetItem(i).Count);
             }
-            
+
             return mainInventoryRequiredItemCount;
         }
     }

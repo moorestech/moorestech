@@ -8,8 +8,9 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo);
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo);
     }
-    
+
     public class BlockCreateProperties
     {
+        
     }
 }

@@ -1,23 +1,23 @@
 {
-  "name": "Game.Challenge",
-  "rootNamespace": "",
-  "references": [
-    "Core.ConfigJson",
-    "Core.Item.Interface",
-    "UniRx",
-    "Core.Update",
-    "Game.Crafting.Interface",
-    "Game.PlayerInventory.Interface",
-    "Game.Context",
-    "Core.Inventory"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": false,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "Game.Challenge",
+    "rootNamespace": "",
+    "references": [
+        "Core.ConfigJson",
+        "Core.Item.Interface",
+        "UniRx",
+        "Core.Update",
+        "Game.Crafting.Interface",
+        "Game.PlayerInventory.Interface",
+        "Game.Context",
+        "Core.Inventory"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

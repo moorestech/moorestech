@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Player
     {
         [SerializeField] private Transform leftHandParent;
         [SerializeField] private Transform rightHandParent;
-        
+
         public void SetItem(GameObject item, bool isLeft, Vector3 position = default, Quaternion rotation = default)
         {
             var parent = isLeft ? leftHandParent : rightHandParent;

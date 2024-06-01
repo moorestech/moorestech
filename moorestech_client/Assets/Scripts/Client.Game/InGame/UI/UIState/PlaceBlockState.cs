@@ -9,8 +9,8 @@ namespace Client.Game.InGame.UI.UIState
     public class PlaceBlockState : IUIState
     {
         private readonly IBlockPlacePreview _blockPlacePreview;
-        private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
+        private readonly InGameCameraController _inGameCameraController; 
         
         public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
         {
@@ -23,7 +23,6 @@ namespace Client.Game.InGame.UI.UIState
         {
             InputManager.MouseCursorVisible(true);
         }
-        
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
@@ -39,7 +38,6 @@ namespace Client.Game.InGame.UI.UIState
                 InputManager.MouseCursorVisible(false);
                 _inGameCameraController.SetUpdateCameraAngle(true);
             }
-            
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetMouseButtonUp(1))
             {
@@ -49,7 +47,6 @@ namespace Client.Game.InGame.UI.UIState
             
             return UIStateEnum.Current;
         }
-        
         public void OnExit()
         {
             InputManager.MouseCursorVisible(false);

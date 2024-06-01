@@ -20,22 +20,22 @@ namespace Game.Paths
                 throw new Exception("Unsupported OS");
             }
         }
-        
+
         public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "tmp");
         public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "extracted_mods");
         public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "saves");
-        
+
         public static string GetExtractedModDirectory(string folderName)
         {
             return DirectoryCreator(ExtractedModDirectory, folderName);
         }
-        
+
         public static string GetSaveFilePath(string fileName)
         {
             return Path.Combine(SaveFileDirectory, fileName);
         }
-        
-        
+
+
         private static string DirectoryCreator(params string[] paths)
         {
             var directory = Path.Combine(paths);

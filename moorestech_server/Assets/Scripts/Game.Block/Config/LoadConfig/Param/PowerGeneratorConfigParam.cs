@@ -9,7 +9,7 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int FuelSlot;
         public readonly int InfinityPower;
         public readonly bool IsInfinityPower;
-        
+
         public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot, bool isInfinityPower,
             int infinityPower)
         {
@@ -19,13 +19,13 @@ namespace Game.Block.Config.LoadConfig.Param
             InfinityPower = infinityPower;
         }
     }
-    
+
     public class FuelSetting
     {
         public readonly int ItemId;
         public readonly int Power;
         public readonly int Time;
-        
+
         public FuelSetting(int itemId, int time, int power)
         {
             ItemId = itemId;

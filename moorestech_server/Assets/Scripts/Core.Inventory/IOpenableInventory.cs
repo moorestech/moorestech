@@ -5,19 +5,19 @@ using Core.Item.Interface;
 namespace Core.Inventory
 {
     /// <summary>
-    ///     プレイヤーが開くことができるインベントリ系のインターフェース
-    ///     プレイヤーのインベントリやブロックのインベントリが該当する
+    /// プレイヤーが開くことができるインベントリ系のインターフェース
+    /// プレイヤーのインベントリやブロックのインベントリが該当する
     /// </summary>
     public interface IOpenableInventory
     {
         public ReadOnlyCollection<IItemStack> Items { get; }
-        
+
         public IItemStack GetItem(int slot);
         void SetItem(int slot, IItemStack itemStack);
         void SetItem(int slot, int itemId, int count);
         public IItemStack ReplaceItem(int slot, IItemStack itemStack);
         public IItemStack ReplaceItem(int slot, int itemId, int count);
-        
+
         public IItemStack InsertItem(IItemStack itemStack);
         public IItemStack InsertItem(int itemId, int count);
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks);

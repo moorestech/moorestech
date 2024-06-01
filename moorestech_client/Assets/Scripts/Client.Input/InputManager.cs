@@ -11,12 +11,12 @@ namespace Client.Input
         private static UIInputManager ui;
         private static MoorestechInputSettings _instance;
         public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
-        
+
         public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
-        
+
         public static UIInputManager UI => ui ??= new UIInputManager(Instance);
-        
-        
+
+
         private static MoorestechInputSettings Instance
         {
             get
@@ -26,24 +26,24 @@ namespace Client.Input
                     _instance = new MoorestechInputSettings();
                     _instance.Enable();
                 }
-                
+
                 return _instance;
             }
         }
-        
+
         public static void MouseCursorVisible(bool isVisible)
         {
             Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
         }
     }
-    
+
     public class PayerInputManager
     {
         public readonly InputKey Jump;
         public readonly InputKey Look;
         public readonly InputKey Move;
         public readonly InputKey Sprint;
-        
+
         public PayerInputManager(MoorestechInputSettings settings)
         {
             Move = new InputKey(settings.Player.Move);
@@ -52,14 +52,14 @@ namespace Client.Input
             Sprint = new InputKey(settings.Player.Sprint);
         }
     }
-    
+
     public class PlayableInputManager
     {
         public readonly InputKey BlockPlaceRotation;
         public readonly InputKey ClickPosition;
         public readonly InputKey ScreenLeftClick;
         public readonly InputKey ScreenRightClick;
-        
+
         public PlayableInputManager(MoorestechInputSettings settings)
         {
             ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
@@ -68,7 +68,7 @@ namespace Client.Input
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation);
         }
     }
-    
+
     public class UIInputManager
     {
         public readonly InputKey AllCraft;
@@ -83,7 +83,7 @@ namespace Client.Input
         public readonly InputKey OpenMenu;
         public readonly InputKey QuestUI;
         public readonly InputKey SwitchHotBar;
-        
+
         public UIInputManager(MoorestechInputSettings settings)
         {
             OpenMenu = new InputKey(settings.UI.OpenMenu);
@@ -100,12 +100,12 @@ namespace Client.Input
             ItemDirectMove = new InputKey(settings.UI.ItemDirectMove);
         }
     }
-    
+
     public class InputKey
     {
         private readonly InputAction _inputAction;
-        
-        
+
+
         public InputKey(InputAction key)
         {
             _inputAction = key;
@@ -113,15 +113,15 @@ namespace Client.Input
             key.performed += _ => { OnGetKey?.Invoke(); };
             key.canceled += _ => { OnGetKeyUp?.Invoke(); };
         }
-        
+
         public bool GetKeyDown => _inputAction.WasPressedThisFrame();
         public bool GetKey => _inputAction.IsPressed();
         public bool GetKeyUp => _inputAction.WasReleasedThisFrame();
-        
+
         public event Action OnGetKeyDown;
         public event Action OnGetKey;
         public event Action OnGetKeyUp;
-        
+
         public TValue ReadValue<TValue>() where TValue : struct
         {
             return _inputAction.ReadValue<TValue>();

@@ -1,3 +1,4 @@
+using System;
 using Client.CutScene;
 using Client.Game.Common;
 using Client.Game.InGame.BackgroundSkit;
@@ -10,23 +11,24 @@ namespace Client.Game.Sequence
 {
     public class S1InitialMovie : MonoBehaviour
     {
-        public const string S1InitialMoviePlayerPrefsKey = "S1InitialMoviePlayed"; //TODo そのうち保存先をワールドに変更する
         [SerializeField] private bool forcePlay;
         
         [SerializeField] private bool playCutscene = true;
         [SerializeField] private bool playSkit = true;
         [SerializeField] private bool playBackgroundSkit = true;
-        
+
         [SerializeField] private TimelinePlayer timelinePlayer;
         [SerializeField] private TextAsset initialSkit;
-        
+
         [SerializeField] private PlayableAsset initialMovie;
-        
+
         [SerializeField] private SkitManager skitManager;
-        
+
         [SerializeField] private TextAsset backgroundSkit;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
-        
+
+        public const string S1InitialMoviePlayerPrefsKey = "S1InitialMoviePlayed"; //TODo そのうち保存先をワールドに変更する
+
         private void Start()
         {
             if (forcePlay)
@@ -34,16 +36,16 @@ namespace Client.Game.Sequence
                 InitialMovie().Forget();
                 return;
             }
-            
+
             var hasPlayed = PlayerPrefs.GetInt(S1InitialMoviePlayerPrefsKey, 0);
             if (hasPlayed != 0) return;
-            
+
             PlayerPrefs.SetInt(S1InitialMoviePlayerPrefsKey, 1);
             PlayerPrefs.Save();
-            
+
             InitialMovie().Forget();
         }
-        
+
         private async UniTask InitialMovie()
         {
             if (playCutscene)
@@ -51,13 +53,13 @@ namespace Client.Game.Sequence
                 GameStateController.ChangeState(GameStateType.CutScene);
                 await timelinePlayer.Play(initialMovie);
             }
-            
+
             if (playSkit)
             {
                 GameStateController.ChangeState(GameStateType.Skit);
                 await skitManager.StartSkit(initialSkit);
             }
-            
+
             if (playBackgroundSkit)
             {
                 GameStateController.ChangeState(GameStateType.InGame);

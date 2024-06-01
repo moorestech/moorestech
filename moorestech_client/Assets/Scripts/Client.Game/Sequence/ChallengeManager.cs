@@ -19,32 +19,34 @@ namespace Client.Game.Sequence
     {
         [SerializeField] private TMP_Text currentChallengeSummary;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
-        
+
         [SerializeField] private List<ChallengeTextAsset> challengeTextAssets;
-        
+
         private ChallengeConfig _challengeConfig;
-        
+
         [Inject]
         public void Construct(InitialHandshakeResponse initialHandshakeResponse)
         {
             _challengeConfig = ServerContext.GetService<ChallengeConfig>();
             var currentChallenge = initialHandshakeResponse.Challenge.CurrentChallenges.First();
-            if (currentChallenge != null) currentChallengeSummary.text = currentChallenge.Summary;
-            
+            if (currentChallenge != null)
+            {
+                currentChallengeSummary.text = currentChallenge.Summary;
+            }
+
             ClientContext.VanillaApi.Event.RegisterEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
-        
         private void OnCompletedChallenge(byte[] packet)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(packet);
             var challengeInfo = _challengeConfig.GetChallenge(message.CompletedChallengeId);
-            
+
             if (challengeInfo.SkitType == ChallengeInfo.BackgroundSkitType)
             {
                 var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == challengeInfo.FireSkitName);
                 backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset).Forget();
             }
-            
+
             if (challengeInfo.NextIds.Count != 0)
             {
                 var nextId = challengeInfo.NextIds.First();
@@ -53,7 +55,7 @@ namespace Client.Game.Sequence
             }
         }
     }
-    
+
     [Serializable]
     public class ChallengeTextAsset
     {

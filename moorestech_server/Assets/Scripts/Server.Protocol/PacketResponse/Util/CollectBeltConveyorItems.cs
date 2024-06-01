@@ -6,6 +6,8 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
+using Game.World.Interface.DataStore;
+using Server.Protocol.PacketResponse.Const;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util
@@ -20,42 +22,45 @@ namespace Server.Protocol.PacketResponse.Util
             var result = new List<IEntity>();
             foreach (var collectChunk in collectChunks)
                 result.AddRange(CollectItemFromChunk(entityFactory));
-            
+
             return result;
         }
-        
-        
+
+
         public static List<IEntity> CollectItemFromChunk(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
-            
+
             //TODO 個々のパフォーマンス問題を何とかする
             foreach (var blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
             {
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
-                
+
                 var type = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Type;
-                
+
                 if (type != VanillaBlockType.BeltConveyor) continue;
-                
+
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
-                
+
                 result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.ComponentManager.GetComponent<VanillaBeltConveyorComponent>(), pos, direction));
             }
-            
+
             return result;
         }
-        
-        
+
+
         private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, VanillaBeltConveyorComponent vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < vanillaBeltConveyorComponent.InventoryItemNum; i++)
             {
                 var beltConveyorItem = vanillaBeltConveyorComponent.GetBeltConveyorItem(i);
-                if (beltConveyorItem == null) continue;
-                
+                if (beltConveyorItem == null)
+                {
+                    continue;
+                }
+
                 //残り時間をどこまで進んだかに変換するために 1- する
                 var percent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyorComponent.TimeOfItemEnterToExit);
                 float entityX = pos.x;
@@ -79,10 +84,10 @@ namespace Server.Protocol.PacketResponse.Util
                         entityZ += 0.5f;
                         break;
                 }
-                
+
                 //この0.3という値は仮
                 var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
-                
+
                 var block = ServerContext.WorldBlockDatastore.GetOriginPosBlock(pos);
                 if (block.Block.BlockConfigData.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
                 {
@@ -95,14 +100,14 @@ namespace Server.Protocol.PacketResponse.Util
                     y += 0.1f;
                     y++;
                 }
-                
+
                 var position = new Vector3(entityX, y, entityZ);
                 var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);
                 itemEntity.SetState(beltConveyorItem.ItemId, 1);
-                
+
                 result.Add(itemEntity);
             }
-            
+
             return result;
         }
     }
