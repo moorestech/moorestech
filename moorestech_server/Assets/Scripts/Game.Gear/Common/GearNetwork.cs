@@ -6,8 +6,6 @@ namespace Game.Gear.Common
 {
     public class GearNetwork
     {
-        public static IWorldBlockDatastore WorldBlockDatastore; // デバッグ用 後で消す
-        
         private readonly Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
