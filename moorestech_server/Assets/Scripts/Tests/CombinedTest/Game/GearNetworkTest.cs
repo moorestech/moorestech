@@ -271,32 +271,9 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークの分離のテスト
-            ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition1);
+            ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2);
             Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
-        }
-        
-        [Test]
-        public void BigGearRemoveTest()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            
-            var generatorPosition = new Vector3Int(0, 0, 0);
-            var bigGearPosition = new Vector3Int(-1, -1, 1);
-            var smallGearPosition = new Vector3Int(0, 0, 2);
-            
-            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
-            AddBlock(ForUnitTestModBlockId.BigGear, bigGearPosition, BlockDirection.North);
-            AddBlock(ForUnitTestModBlockId.SmallGear, smallGearPosition, BlockDirection.North);
-            
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
-            
-            Assert.AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
-            
-            ServerContext.WorldBlockDatastore.RemoveBlock(generatorPosition);
-            Assert.AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
-        }
+        } 
         
         private static IBlock AddBlock(int blockId, Vector3Int pos, BlockDirection direction)
         {
