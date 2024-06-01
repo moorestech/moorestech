@@ -14,15 +14,15 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class InitialHandshakeProtocolTest
     {
         private const int PlayerId = 1;
-
+        
         [Test]
         public void SpawnCoordinateTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-
+            
             //ワールド設定情報を初期化
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize();
-
+            
             //最初のハンドシェイクを実行
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             var handShakeResponse =
@@ -31,12 +31,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             //今のところ初期スポーンはゼロ固定
             Assert.AreEqual(0, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
-
-
+            
+            
             //プレイヤーの座標を変更
             packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector2Int(100, -100)));
-
-
+            
+            
             //再度ハンドシェイクを実行して座標が変更されていることを確認
             response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             handShakeResponse =
@@ -44,14 +44,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(-100, handShakeResponse.PlayerPos.Y);
         }
-
+        
         private List<byte> GetHandshakePacket(int playerId)
         {
             return MessagePackSerializer.Serialize(
                 new RequestInitialHandshakeMessagePack(playerId, "test player name")).ToList();
         }
-
-
+        
+        
         private List<byte> GetPlayerPositionPacket(int playerId, Vector2Int pos)
         {
             return MessagePackSerializer.Serialize(

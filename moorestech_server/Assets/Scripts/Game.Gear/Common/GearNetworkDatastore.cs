@@ -20,6 +20,7 @@ namespace Game.Gear.Common
             _blockEntityToGearNetwork = new Dictionary<int, GearNetwork>();
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
+        
         public IReadOnlyDictionary<GearNetworkId, GearNetwork> GearNetworks => _gearNetworks;
         
         public static void AddGear(IGearEnergyTransformer gear)
@@ -31,14 +32,12 @@ namespace Game.Gear.Common
         {
             var connectedNetworkIds = new HashSet<GearNetworkId>();
             foreach (var connectedGear in gear.Connects)
-            {
                 //新しく設置された歯車に接続している歯車は、すべて既存のNWに接続している前提
                 if (_blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.EntityId))
                 {
                     var networkId = _blockEntityToGearNetwork[connectedGear.Transformer.EntityId].NetworkId;
                     connectedNetworkIds.Add(networkId);
                 }
-            }
             
             //接続しているNWが1つもない場合は新規NWを作成
             switch (connectedNetworkIds.Count)
@@ -90,14 +89,8 @@ namespace Game.Gear.Common
                 var newNetworkId = GearNetworkId.CreateNetworkId();
                 var newNetwork = new GearNetwork(newNetworkId);
                 
-                foreach (var transformer in transformers)
-                {
-                    newNetwork.AddGear(transformer);
-                }
-                foreach (var generator in generators)
-                {
-                    newNetwork.AddGear(generator);
-                }
+                foreach (var transformer in transformers) newNetwork.AddGear(transformer);
+                foreach (var generator in generators) newNetwork.AddGear(generator);
                 
                 transformers.Add(gear);
                 newNetwork.AddGear(gear);
@@ -106,18 +99,12 @@ namespace Game.Gear.Common
                 // マージしたNWに所属する歯車のNWを更新
                 for (var i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
                 {
-                    KeyValuePair<int, GearNetwork> pair = _blockEntityToGearNetwork.ElementAt(i);
-                    if (connectedNetworkIds.Contains(pair.Value.NetworkId))
-                    {
-                        _blockEntityToGearNetwork[pair.Key] = newNetwork;
-                    }
+                    var pair = _blockEntityToGearNetwork.ElementAt(i);
+                    if (connectedNetworkIds.Contains(pair.Value.NetworkId)) _blockEntityToGearNetwork[pair.Key] = newNetwork;
                 }
                 
                 _gearNetworks.Add(newNetworkId, newNetwork);
-                foreach (var removeNetworkId in connectedNetworkIds)
-                {
-                    _gearNetworks.Remove(removeNetworkId);
-                }
+                foreach (var removeNetworkId in connectedNetworkIds) _gearNetworks.Remove(removeNetworkId);
             }
             
             #endregion
@@ -140,35 +127,23 @@ namespace Game.Gear.Common
                 _instance._blockEntityToGearNetwork.Remove(stackGear.EntityId);
                 
                 foreach (var connectedGear in stackGear.Connects)
-                {
                     if (_instance._blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.EntityId))
-                    {
                         gearStack.Push(connectedGear.Transformer);
-                    }
-                }
             }
-
+            
             //もともと接続していたブロックをすべてAddする
-            IReadOnlyList<IGearEnergyTransformer> transformers = network.GearTransformers;
-            IReadOnlyList<IGearGenerator> generators = network.GearGenerators;
+            var transformers = network.GearTransformers;
+            var generators = network.GearGenerators;
             
             //重くなったらアルゴリズムを変える
-            foreach (var transformer in transformers)
-            {
-                AddGear(transformer);
-            }
-            foreach (var generator in generators)
-            {
-                AddGear(generator);
-            }
+            foreach (var transformer in transformers) AddGear(transformer);
+            foreach (var generator in generators) AddGear(generator);
         }
         
         private void Update()
         {
             foreach (var gearNetwork in _gearNetworks.Values) // TODO パフォーマンスがやばくなったらやめる
-            {
                 gearNetwork.ManualUpdate();
-            }
         }
     }
 }

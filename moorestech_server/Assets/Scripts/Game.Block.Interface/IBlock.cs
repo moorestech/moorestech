@@ -12,18 +12,18 @@ namespace Game.Block.Interface
         public BlockConfigData BlockConfigData { get; }
         public IBlockComponentManager ComponentManager { get; }
         public BlockPositionInfo BlockPositionInfo { get; }
-
+        
         /// <summary>
         ///     ブロックで何らかのステートが変化したときに呼び出されます
         ///     例えば、動いている機械が止まったなど
         ///     クライアント側で稼働アニメーションや稼働音を実行するときに使用します
         /// </summary>
         public IObservable<BlockState> BlockStateChange { get; }
-
+        
         public BlockState GetBlockState();
-
+        
         public string GetSaveState();
-
+        
         public void Destroy();
     }
 }

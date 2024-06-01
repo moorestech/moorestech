@@ -36,7 +36,7 @@ namespace Game.Block.Config.LoadConfig
                 { VanillaBlockType.Gear, GearConfigParam.Generate },
                 { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
-                { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
+                { VanillaBlockType.Shaft, ShaftConfigParam.Generate }
             };
         }
         
@@ -63,7 +63,7 @@ namespace Game.Block.Config.LoadConfig
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
                 Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize,
+                HashSizeInBits = xxHashConst.DefaultSize
             });
             
             
@@ -88,10 +88,7 @@ namespace Game.Block.Config.LoadConfig
                 else
                     itemId = _itemConfig.GetItemId(itemModId, itemName);
                 
-                if (!_generators.TryGetValue(type, out var generator))
-                {
-                    throw new Exception($"存在しないタイプを指定しています。type  {type} block名 {name} modId {modId}");
-                }
+                if (!_generators.TryGetValue(type, out var generator)) throw new Exception($"存在しないタイプを指定しています。type  {type} block名 {name} modId {modId}");
                 
                 var blockParam = generator(block.param, _itemConfig);
                 

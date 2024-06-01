@@ -10,9 +10,9 @@ namespace Tests.Module.TestMod
         public const int MinerId = 6;
         public const int ChestId = 7;
         public const int InfinityGeneratorId = 8;
-
+        
         public const int MultiBlockGeneratorId = 10;
-
+        
         public const int SmallGear = 12;
         public const int BigGear = 13;
         public const int Shaft = 14;

@@ -21,10 +21,10 @@ namespace Game.Block.Factory.BlockTemplate
                 chestComponent,
                 inputConnectorComponent
             };
-
+            
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
-
+        
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             var chest = config.Param as ChestConfigParam;
@@ -35,7 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
                 chestComponent,
                 inputConnectorComponent
             };
-
+            
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
     }

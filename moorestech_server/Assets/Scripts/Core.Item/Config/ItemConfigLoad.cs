@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
 using System.Linq;
 using Core.Const;
@@ -16,21 +15,21 @@ namespace Core.Item.Config
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
                 Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize,
+                HashSizeInBits = xxHashConst.DefaultSize
             });
-
+            
             var itemConfigList = new List<ItemConfigData>();
             foreach (var mod in mods)
             {
                 if (!jsons.TryGetValue(mod, out var json)) continue;
-
+                
                 try
                 {
-                    ItemConfigJsonData[] itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
+                    var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
                     if (itemConfigData == null) continue;
-
-
-                    IEnumerable<ItemConfigData> configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash, itemConfigList.Count + 1));
+                    
+                    
+                    var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash, itemConfigList.Count + 1));
                     itemConfigList.AddRange(configList);
                 }
                 catch (Exception e)
@@ -39,20 +38,20 @@ namespace Core.Item.Config
                     Debug.Log(e.Message + "\n" + e.StackTrace + "\n アイテムコンフィグのロードに失敗しました mod id:" + mod);
                 }
             }
-
+            
             return itemConfigList;
         }
     }
-
+    
     [JsonObject("SpaceAssets")]
     internal class ItemConfigJsonData
     {
         [JsonProperty("imagePath")] private string _imagePath;
-
+        
         [JsonProperty("maxStacks")] private int _maxStack;
-
+        
         [JsonProperty("name")] private string _name;
-
+        
         public string Name => _name;
         public int MaxStack => _maxStack;
         public string ImagePath => _imagePath;

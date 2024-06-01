@@ -6,7 +6,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
     {
         public readonly ItemMoveInventoryType ItemMoveInventoryType;
         public readonly Vector3Int Pos;
-
+        
         /// <summary>
         ///     アイテム移動用のパラメータクラスです
         /// </summary>

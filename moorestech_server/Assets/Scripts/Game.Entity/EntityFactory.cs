@@ -10,9 +10,9 @@ namespace Game.Entity
         public IEntity CreateEntity(string entityType, long instanceId, Vector3 position = default)
         {
             if (entityType == VanillaEntityType.VanillaPlayer) return new PlayerEntity(instanceId, position);
-
+            
             if (entityType == VanillaEntityType.VanillaItem) return new ItemEntity(instanceId, position);
-
+            
             throw new KeyNotFoundException("Entity type not found : " + entityType);
         }
     }

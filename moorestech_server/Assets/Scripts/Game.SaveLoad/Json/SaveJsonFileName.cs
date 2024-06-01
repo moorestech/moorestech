@@ -11,7 +11,7 @@ namespace Game.SaveLoad.Json
         {
             FullSaveFilePath = GameSystemPaths.GetSaveFilePath(fileName);
         }
-
+        
         public string FullSaveFilePath { get; }
     }
 }

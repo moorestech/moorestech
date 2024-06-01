@@ -9,7 +9,14 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly List<MineItemSetting> MineItemSettings;
         public readonly int OutputSlot;
         public readonly int RequiredPower;
-
+        
+        private MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
+        {
+            RequiredPower = requiredPower;
+            MineItemSettings = mineItemSettings;
+            OutputSlot = outputSlot;
+        }
+        
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
         {
             int requiredPower = blockParam.requiredPower;
@@ -20,28 +27,21 @@ namespace Game.Block.Config.LoadConfig.Param
                 int time = ore.time;
                 string itemModId = ore.itemModId;
                 string itemName = ore.itemName;
-
+                
                 var itemId = itemConfig.GetItemId(itemModId, itemName);
-
+                
                 oreSetting.Add(new MineItemSetting(time, itemId));
             }
-
+            
             return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);
         }
-
-        private MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
-        {
-            RequiredPower = requiredPower;
-            MineItemSettings = mineItemSettings;
-            OutputSlot = outputSlot;
-        }
     }
-
+    
     public class MineItemSetting
     {
         public readonly int ItemId;
         public readonly int MiningTime;
-
+        
         public MineItemSetting(int miningTime, int itemId)
         {
             MiningTime = miningTime;

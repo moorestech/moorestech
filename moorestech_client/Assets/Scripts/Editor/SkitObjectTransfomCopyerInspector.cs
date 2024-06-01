@@ -1,10 +1,9 @@
-using Client.Skit;
 using Client.Skit.Skit;
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(SkitObjectTransfomCopyer))]
-public class SkitObjectTransfomCopyerInspector : UnityEditor.Editor
+public class SkitObjectTransfomCopyerInspector : Editor
 {
     public override void OnInspectorGUI()
     {

@@ -12,28 +12,28 @@ namespace Client.MainMenu
     public class StartLocal : MonoBehaviour
     {
         [SerializeField] private Button startLocalButton;
-
+        
         private Process _serverProcess;
-
-
+        
+        
         private void Start()
         {
             startLocalButton.onClick.AddListener(() => ConnectLocalServer().Forget());
         }
-
+        
         private async UniTask ConnectLocalServer()
         {
             Debug.Log("Server started");
-
+            
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
             SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
         }
-
+        
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
             var starter = FindObjectOfType<InitializeScenePipeline>();
-
+            
             starter.SetProperty(new InitializeProprieties(
                 true, _serverProcess,
                 ServerConst.LocalServerIp,

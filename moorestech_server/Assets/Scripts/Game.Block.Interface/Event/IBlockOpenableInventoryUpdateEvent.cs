@@ -11,13 +11,13 @@ namespace Game.Block.Interface.Event
     {
         public void Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent);
     }
-
+    
     public class BlockOpenableInventoryUpdateEventProperties
     {
         public readonly int EntityId;
         public readonly IItemStack ItemStack;
         public readonly int Slot;
-
+        
         public BlockOpenableInventoryUpdateEventProperties(int entityId, int slot, IItemStack itemStack)
         {
             ItemStack = itemStack;

@@ -10,17 +10,17 @@ namespace Game.World.DataStore.WorldSettings
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
         public Vector3Int WorldSpawnPoint { get; private set; }
-
+        
         public void Initialize()
         {
             WorldSpawnPoint = Vector3Int.zero;
         }
-
+        
         public WorldSettingJsonObject GetSaveJsonObject()
         {
             return new WorldSettingJsonObject(WorldSpawnPoint);
         }
-
+        
         public void LoadSettingData(WorldSettingJsonObject worldSettingJsonObject)
         {
             WorldSpawnPoint = new Vector3Int(worldSettingJsonObject.SpawnX, worldSettingJsonObject.SpawnY);

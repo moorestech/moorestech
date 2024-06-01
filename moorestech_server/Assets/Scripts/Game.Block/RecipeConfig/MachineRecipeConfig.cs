@@ -11,13 +11,13 @@ namespace Game.Block.RecipeConfig
     {
         private readonly Dictionary<string, MachineRecipeData> _recipeDataCache;
         private readonly List<MachineRecipeData> _recipedatas;
-
+        
         //IDからレシピデータを取得する
-        public MachineRecipeConfig(ConfigJsonFileContainer configJsonFileContainer,IBlockConfig blockConfig, IItemStackFactory itemStackFactory)
+        public MachineRecipeConfig(ConfigJsonFileContainer configJsonFileContainer, IBlockConfig blockConfig, IItemStackFactory itemStackFactory)
         {
             _recipedatas = new MachineRecipeJsonLoad().LoadConfig(blockConfig, itemStackFactory,
                 configJsonFileContainer.SortedMachineRecipeConfigJsonList);
-
+            
             _recipeDataCache = new Dictionary<string, MachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>
             {
@@ -26,24 +26,24 @@ namespace Game.Block.RecipeConfig
                     recipe);
             });
         }
-
-
+        
+        
         public IReadOnlyList<MachineRecipeData> GetAllRecipeData()
         {
             return _recipedatas;
         }
-
+        
         public MachineRecipeData GetEmptyRecipeData()
         {
             return MachineRecipeData.CreateEmptyRecipe();
         }
-
+        
         public MachineRecipeData GetRecipeData(int id)
         {
             return id == -1 ? MachineRecipeData.CreateEmptyRecipe() : _recipedatas[id];
         }
-
-
+        
+        
         /// <summary>
         ///     設置物IDと現在の搬入スロットからレシピを検索し、取得する
         ///     TODO ここ重めだからゼロアロケーションにする、というかこれ自体そもそも仕組みを変えたい
@@ -57,10 +57,10 @@ namespace Game.Block.RecipeConfig
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
             var key = GetRecipeDataCacheKey(BlockId, tmpInputItem);
             if (_recipeDataCache.ContainsKey(key)) return _recipeDataCache[key];
-
+            
             return MachineRecipeData.CreateEmptyRecipe();
         }
-
+        
         private string GetRecipeDataCacheKey(int blockId, List<IItemStack> itemId)
         {
             var items = "";

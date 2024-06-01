@@ -9,14 +9,14 @@ namespace Mod.Base
         {
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
-
+        
         /// <summary>
         ///     ゲームがアップデートされるたびに呼ばれます。
         /// </summary>
         private void Update()
         {
         }
-
+        
         /// <summary>
         ///     Modがロードされた時に呼ばれます
         /// </summary>

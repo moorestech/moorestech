@@ -14,18 +14,18 @@ namespace Game.Block.Factory.BlockTemplate
             var transformer = new VanillaElectricPoleComponent(entityId);
             var components = new List<IBlockComponent>
             {
-                transformer,
+                transformer
             };
             
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
-
+        
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             var transformer = new VanillaElectricPoleComponent(entityId);
             var components = new List<IBlockComponent>
             {
-                transformer,
+                transformer
             };
             
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);

@@ -11,6 +11,7 @@ namespace Game.Map
             VeinRangeMin = veinRangeMin;
             VeinRangeMax = veinRangeMax;
         }
+        
         public int VeinItemId { get; }
         public Vector3Int VeinRangeMin { get; }
         public Vector3Int VeinRangeMax { get; }

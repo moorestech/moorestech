@@ -7,7 +7,7 @@ namespace Game.PlayerInventory.Interface
         public const int MainInventoryColumns = 9;
         public const int MainInventoryRows = 5;
         public const int MainInventorySize = MainInventoryColumns * MainInventoryRows;
-
+        
         /// <summary>
         ///     ホットバーとなるインベントリのスロット
         /// </summary>
@@ -21,10 +21,10 @@ namespace Game.PlayerInventory.Interface
             HotBarSlotToInventorySlot(5),
             HotBarSlotToInventorySlot(6),
             HotBarSlotToInventorySlot(7),
-            HotBarSlotToInventorySlot(8),
+            HotBarSlotToInventorySlot(8)
         };
-
-
+        
+        
         /// <summary>
         ///     0〜8までのホットバーのIDをインベントリのスロットに変換します
         /// </summary>

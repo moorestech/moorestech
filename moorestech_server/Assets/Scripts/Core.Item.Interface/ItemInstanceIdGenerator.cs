@@ -6,7 +6,7 @@ namespace Core.Item.Interface
     {
         //TODO randomを全て一つのシードから生成するようにする
         private static readonly Random Random = new(1);
-
+        
         public static long Generate()
         {
             long result = Random.Next(int.MinValue, int.MaxValue);

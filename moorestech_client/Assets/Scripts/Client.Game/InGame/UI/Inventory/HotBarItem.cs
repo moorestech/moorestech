@@ -9,21 +9,21 @@ namespace Client.Game.InGame.UI.Inventory
     {
         [SerializeField] private ItemSlotObject itemSlotObject;
         [SerializeField] private TMP_Text keyBoardText;
-
+        
         private void Awake()
         {
         }
-
+        
         public void SetItem(ItemViewData itemViewData, int count)
         {
             itemSlotObject.SetItem(itemViewData, count);
         }
-
+        
         public void SetKeyBoardText(string text)
         {
             keyBoardText.text = text;
         }
-
+        
         public void SetSelect(bool isSelect)
         {
             itemSlotObject.SetHotBarSelect(isSelect);

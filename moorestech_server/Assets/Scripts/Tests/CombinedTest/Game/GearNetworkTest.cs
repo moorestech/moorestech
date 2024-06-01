@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.Gear;
@@ -344,7 +343,7 @@ namespace Tests.CombinedTest.Game
             // ネットワークの分離のテスト
             ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2);
             Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
-        } 
+        }
         
         private static IBlock AddBlock(int blockId, Vector3Int pos, BlockDirection direction)
         {
@@ -358,10 +357,10 @@ namespace Tests.CombinedTest.Game
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
         {
-            BlockConnectorComponent<IGearEnergyTransformer> gear1Connector = gear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var gear1Connector = gear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
             var gear1Transform = gear1.ComponentManager.GetComponent<IGearEnergyTransformer>();
             
-            BlockConnectorComponent<IGearEnergyTransformer> gear2Connector = gear2.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var gear2Connector = gear2.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
             var gear2Transform = gear2.ComponentManager.GetComponent<IGearEnergyTransformer>();
             
             

@@ -3,7 +3,6 @@ using System.IO;
 using Game.Challenge;
 using Game.Context;
 using Game.Entity.Interface;
-using Game.Map.Interface;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
@@ -16,16 +15,16 @@ namespace Game.SaveLoad.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
+        private readonly ChallengeDatastore _challengeDatastore;
+        private readonly ChallengeJsonObject _challengeJsonObject;
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly ChallengeDatastore _challengeDatastore;
-        private readonly ChallengeJsonObject _challengeJsonObject;
         
         private readonly SaveJsonFileName _saveJsonFileName;
-
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IWorldSettingsDatastore _worldSettingsDatastore;
+        
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             IMapObjectDatastore mapObjectDatastore, ChallengeDatastore challengeDatastore)
@@ -38,7 +37,7 @@ namespace Game.SaveLoad.Json
             _mapObjectDatastore = mapObjectDatastore;
             _challengeDatastore = challengeDatastore;
         }
-
+        
         public void LoadOrInitialize()
         {
             if (File.Exists(_saveJsonFileName.FullSaveFilePath))
@@ -59,15 +58,15 @@ namespace Game.SaveLoad.Json
                         $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
-
+            
             Debug.Log("セーブデータがありませんでした。新規作成します。");
             WorldInitialize();
         }
-
+        
         public void Load(string jsonText)
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
-
+            
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
@@ -75,7 +74,7 @@ namespace Game.SaveLoad.Json
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
             _challengeDatastore.LoadChallenge(load.Challenge);
         }
-
+        
         public void WorldInitialize()
         {
             _worldSettingsDatastore.Initialize();

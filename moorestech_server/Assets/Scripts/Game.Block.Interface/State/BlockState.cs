@@ -8,10 +8,10 @@ namespace Game.Block.Interface.State
     public class BlockState
     {
         public readonly string CurrentState;
-        public readonly string PreviousState;
-
+        
         public readonly byte[] CurrentStateData;
-
+        public readonly string PreviousState;
+        
         public BlockState(string currentState, string previousState, byte[] currentStateData = null)
         {
             CurrentState = currentState;

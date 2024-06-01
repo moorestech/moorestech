@@ -12,12 +12,12 @@ namespace Client.Game.InGame.BlockSystem
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
-
+        
         public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore, InitialHandshakeResponse initialHandshakeResponse)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _initialHandshakeResponse = initialHandshakeResponse;
-
+            
             ClientContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag,
                 payload =>
                 {
@@ -25,15 +25,12 @@ namespace Client.Game.InGame.BlockSystem
                     ChangeState(data);
                 });
         }
-
+        
         public void PostStart()
         {
-            foreach (var state in _initialHandshakeResponse.BlockStates)
-            {
-                ChangeState(state);
-            }
+            foreach (var state in _initialHandshakeResponse.BlockStates) ChangeState(state);
         }
-
+        
         private void ChangeState(ChangeBlockStateMessagePack state)
         {
             var pos = state.Position;

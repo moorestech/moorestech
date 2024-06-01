@@ -12,6 +12,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             return new BlockSystem(entityId, config.BlockId, new List<IBlockComponent>(), blockPositionInfo);
         }
+        
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             return new BlockSystem(entityId, config.BlockId, new List<IBlockComponent>(), blockPositionInfo);

@@ -14,6 +14,7 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = configParam.GenerateTorque;
             GenerateIsClockwise = true;
         }
+        
         public int TeethCount { get; }
         public float GenerateRpm { get; }
         public float GenerateTorque { get; }

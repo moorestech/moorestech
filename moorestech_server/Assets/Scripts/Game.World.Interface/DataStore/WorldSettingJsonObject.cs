@@ -7,7 +7,7 @@ namespace Game.World.Interface.DataStore
     {
         [JsonProperty("SpawnX")] public int SpawnX;
         [JsonProperty("SpawnY")] public int SpawnY;
-
+        
         public WorldSettingJsonObject(Vector3Int spawnPoint)
         {
             SpawnX = spawnPoint.x;

@@ -1,10 +1,7 @@
 using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using UniRx;
 using UnityEngine;
@@ -22,25 +19,25 @@ namespace Game.World.EventHandler.EnergyEvent
     {
         private readonly int _maxMachineConnectionRange;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
-
-
+        
+        
         public ConnectMachineToElectricSegment(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
-
+        
         private void OnBlockPlace(BlockUpdateProperties updateProperties)
         {
             //設置されたブロックが電柱だった時の処理
             var pos = updateProperties.Pos;
             var x = updateProperties.Pos.x;
             var y = updateProperties.Pos.y;
-
+            
             //設置されたブロックが発電機か機械以外はスルー処理
             if (!IsElectricMachine(pos)) return;
-
+            
             //最大の電柱の接続範囲を取得探索して接続する
             var startMachineX = x - _maxMachineConnectionRange / 2;
             var startMachineY = y - _maxMachineConnectionRange / 2;
@@ -49,28 +46,28 @@ namespace Game.World.EventHandler.EnergyEvent
             {
                 var polePos = new Vector3Int(i, j);
                 if (!ServerContext.WorldBlockDatastore.ExistsComponent<IElectricTransformer>(polePos)) continue;
-
+                
                 //範囲内に電柱がある場合
                 //電柱に接続
                 ConnectToElectricPole(polePos, pos);
             }
         }
-
+        
         private bool IsElectricMachine(Vector3Int pos)
         {
             return ServerContext.WorldBlockDatastore.ExistsComponent<TGenerator>(pos) ||
                    ServerContext.WorldBlockDatastore.ExistsComponent<TConsumer>(pos);
         }
-
-
+        
+        
         /// <summary>
         ///     電柱のセグメントに機械を接続する
         /// </summary>
         private void ConnectToElectricPole(Vector3Int polePos, Vector3Int machinePos)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-
+            
+            
             //電柱を取得
             var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
             var pole = block.ComponentManager.GetComponent<TTransformer>();
@@ -78,13 +75,13 @@ namespace Game.World.EventHandler.EnergyEvent
             var blockConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId);
             var configParam = blockConfig.Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
-
+            
             //その電柱から見て機械が範囲内に存在するか確認
             var poleX = polePos.x;
             var poleY = polePos.y;
             if (poleX - range / 2 > poleX || poleX > poleX + range / 2 || poleY - range / 2 > poleY ||
                 poleY > poleY + range / 2) return;
-
+            
             //在る場合は発電機か機械かを判定して接続
             //発電機を電力セグメントに追加
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);

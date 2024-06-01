@@ -5,26 +5,22 @@ namespace Game.Map.Interface.Config
 {
     public class MapObjectConfigInfo
     {
-        public readonly string Type;
-        public readonly int Hp;
-
         public readonly List<int> EarnItemHps = new();
         public readonly List<MapObjectEarnItemConfigInfo> EarnItems = new();
-
+        public readonly int Hp;
+        
         public readonly List<MapObjectToolItemConfigInfo> MiningTools = new();
-
+        public readonly string Type;
+        
         public MapObjectConfigInfo(MapObjectConfigJson configJson, IItemConfig itemConfig)
         {
             Type = configJson.Type;
             Hp = configJson.Hp;
-
+            
             EarnItemHps.AddRange(configJson.EarnItemHps);
-
-            foreach (var earnItemConfigJson in configJson.EarnItems)
-            {
-                EarnItems.Add(new MapObjectEarnItemConfigInfo(earnItemConfigJson, itemConfig));
-            }
-
+            
+            foreach (var earnItemConfigJson in configJson.EarnItems) EarnItems.Add(new MapObjectEarnItemConfigInfo(earnItemConfigJson, itemConfig));
+            
             foreach (var tool in configJson.MiningTools)
             {
                 var toolItemId = itemConfig.GetItemId(tool.ToolItemModId, tool.ToolItemName);
@@ -32,14 +28,14 @@ namespace Game.Map.Interface.Config
             }
         }
     }
-
+    
     public class MapObjectEarnItemConfigInfo
     {
         public readonly int ItemId;
-
-        public readonly int MinCount;
         public readonly int MaxCount;
-
+        
+        public readonly int MinCount;
+        
         public MapObjectEarnItemConfigInfo(MapObjectEarnItemConfigJson earnItemConfigJson, IItemConfig itemConfig)
         {
             ItemId = itemConfig.GetItemId(earnItemConfigJson.ModId, earnItemConfigJson.ItemName);
@@ -47,14 +43,14 @@ namespace Game.Map.Interface.Config
             MaxCount = earnItemConfigJson.MaxCount;
         }
     }
-
+    
     public class MapObjectToolItemConfigInfo
     {
-        public readonly int ToolItemId;
-
-        public readonly int Damage;
         public readonly float AttackSpeed;
-
+        
+        public readonly int Damage;
+        public readonly int ToolItemId;
+        
         public MapObjectToolItemConfigInfo(int toolItemId, int damage, float attackSpeed)
         {
             ToolItemId = toolItemId;

@@ -16,25 +16,26 @@ namespace Game.Block.Factory.BlockTemplate
         {
             return CreateGear(config, entityId, blockPositionInfo);
         }
+        
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             return CreateGear(config, entityId, blockPositionInfo);
         }
-
+        
         private IBlock CreateGear(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = config.Param as GearConfigParam;
             var connectSetting = configParam.GearConnectSettings;
-
+            
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var gearComponent = new GearComponent(configParam, entityId, blockComponent);
-
+            
             var components = new List<IBlockComponent>
             {
                 gearComponent,
-                blockComponent,
+                blockComponent
             };
-
+            
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
     }

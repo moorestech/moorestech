@@ -7,19 +7,19 @@ namespace Game.Block.Config.LoadConfig.Param
     {
         public readonly int machineConnectionRange;
         public readonly int poleConnectionRange;
-
-        public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
-        {
-            int poleConnectionRange = blockParam.poleConnectionRange;
-            int machineConnectionRange = blockParam.machineConnectionRange;
-
-            return new ElectricPoleConfigParam(poleConnectionRange, machineConnectionRange);
-        }
-
+        
         public ElectricPoleConfigParam(int poleConnectionRange, int machineConnectionRange)
         {
             this.poleConnectionRange = poleConnectionRange;
             this.machineConnectionRange = machineConnectionRange;
+        }
+        
+        public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
+        {
+            int poleConnectionRange = blockParam.poleConnectionRange;
+            int machineConnectionRange = blockParam.machineConnectionRange;
+            
+            return new ElectricPoleConfigParam(poleConnectionRange, machineConnectionRange);
         }
     }
 }

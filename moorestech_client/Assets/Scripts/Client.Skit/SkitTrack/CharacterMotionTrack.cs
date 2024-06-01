@@ -9,10 +9,10 @@ namespace Client.Skit.SkitTrack
         {
             var characterKey = parameters[0];
             var animationName = parameters[1];
-
+            
             var character = storyContext.GetCharacter(characterKey);
             character.PlayAnimation(animationName);
-
+            
             return null;
         }
     }

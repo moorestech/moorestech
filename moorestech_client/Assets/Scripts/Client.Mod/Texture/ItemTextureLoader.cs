@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
-using Core.Item.Config;
 using Core.Item.Interface.Config;
 using Game.Context;
 using Mod.Loader;
@@ -12,25 +11,25 @@ namespace Client.Mod.Texture
     public static class ItemTextureLoader
     {
         private const string ModTextureDirectory = "assets/item/";
-
+        
         public static List<ItemViewData> GetItemTexture(string modDirectory)
         {
             var textureList = new List<ItemViewData>();
-
+            
             var mods = new ModsResource(modDirectory);
-
-            foreach (KeyValuePair<string, global::Mod.Loader.Mod> mod in mods.Mods)
+            
+            foreach (var mod in mods.Mods)
             {
-                List<int> itemIds = ServerContext.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
+                var itemIds = ServerContext.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
                 var itemConfigs = itemIds.Select(ServerContext.ItemConfig.GetItemConfig).ToList();
-
+                
                 textureList.AddRange(GetTextures(itemConfigs, mod.Value));
             }
-
+            
             return textureList;
         }
-
-
+        
+        
         private static List<ItemViewData> GetTextures(List<IItemConfigData> itemConfigs, global::Mod.Loader.Mod mod)
         {
             var textureList = new List<ItemViewData>();
@@ -40,26 +39,26 @@ namespace Client.Mod.Texture
                 if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + config.Name);
                 textureList.Add(new ItemViewData(texture.ToSprite(), texture, config));
             }
-
+            
             return textureList;
         }
     }
-
-
-
+    
+    
     public class ItemViewData
     {
         public readonly IItemConfigData ItemConfigData;
-
+        
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
-
+        
         public ItemViewData(Sprite itemImage, UnityEngine.Texture itemTexture, IItemConfigData itemConfigData)
         {
             ItemImage = itemImage;
             ItemConfigData = itemConfigData;
             ItemTexture = itemTexture;
         }
+        
         public int ItemId => ItemConfigData.ItemId;
         public string ItemName => ItemConfigData.Name;
     }

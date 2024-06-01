@@ -1,5 +1,4 @@
-﻿using Game.Block.Interface.BlockConfig;
-using Game.EnergySystem;
+﻿using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 
@@ -18,7 +17,7 @@ namespace Game.World.EventHandler.EnergyEvent
         {
             new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
             new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, maxElectricPoleMachineConnectionRange);
-
+            
             new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
         }
     }

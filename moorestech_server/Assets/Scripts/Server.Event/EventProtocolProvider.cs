@@ -12,53 +12,53 @@ namespace Server.Event
     public class EventProtocolProvider
     {
         private readonly Dictionary<int, List<EventMessagePack>> _events = new();
-
+        
         public void AddEvent(int playerId, string tag, byte[] payload)
         {
             lock (_events)
             {
                 var eventMessagePack = new EventMessagePack(tag, payload);
-
-                if (_events.TryGetValue(playerId, out List<EventMessagePack> eventList))
+                
+                if (_events.TryGetValue(playerId, out var eventList))
                     eventList.Add(eventMessagePack);
                 else
                     _events.Add(playerId, new List<EventMessagePack> { eventMessagePack });
             }
         }
-
+        
         public void AddBroadcastEvent(string tag, byte[] payload)
         {
             lock (_events)
             {
                 var eventMessagePack = new EventMessagePack(tag, payload);
-
+                
                 foreach (var key in _events.Keys) _events[key].Add(eventMessagePack);
             }
         }
-
+        
         public List<EventMessagePack> GetEventBytesList(int playerId)
         {
             lock (_events)
             {
                 if (_events.ContainsKey(playerId))
                 {
-                    List<EventMessagePack> events = _events[playerId];
+                    var events = _events[playerId];
                     var data = new List<EventMessagePack>();
                     data.AddRange(events);
-
+                    
                     _events[playerId].Clear();
                     return data;
                 }
-
+                
                 //ブロードキャストイベントの時に使うので、何かしらリクエストがあった際はDictionaryにキーを追加しておく
                 _events.Add(playerId, new List<EventMessagePack>());
-
+                
                 return new List<EventMessagePack>();
             }
         }
     }
-
-
+    
+    
     [MessagePackObject]
     public class EventMessagePack
     {
@@ -67,12 +67,14 @@ namespace Server.Event
             Tag = tag;
             Payload = payload;
         }
-
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public EventMessagePack() { }
-        [Key(0)]
-        public string Tag { get; set; }
-        [Key(1)]
-        public byte[] Payload { get; set; }
+        public EventMessagePack()
+        {
+        }
+        
+        [Key(0)] public string Tag { get; set; }
+        
+        [Key(1)] public byte[] Payload { get; set; }
     }
 }

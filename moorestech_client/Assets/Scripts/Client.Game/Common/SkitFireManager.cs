@@ -9,22 +9,19 @@ namespace Client.Game.Common
     {
         [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
         [SerializeField] private SkitManager skitManager;
-
+        
         private void Update()
         {
-            if (playerSkitStarterDetector.IsStartReady && UnityEngine.Input.GetKeyDown(KeyCode.F))
-            {
-                PlayStory().Forget();
-            }
+            if (playerSkitStarterDetector.IsStartReady && UnityEngine.Input.GetKeyDown(KeyCode.F)) PlayStory().Forget();
         }
-
+        
         private async UniTask PlayStory()
         {
             GameStateController.ChangeState(GameStateType.Skit);
-
+            
             var csv = playerSkitStarterDetector.CurrentSkitStarterObject.ScenarioCsv;
             await skitManager.StartSkit(csv);
-
+            
             GameStateController.ChangeState(GameStateType.InGame);
         }
     }

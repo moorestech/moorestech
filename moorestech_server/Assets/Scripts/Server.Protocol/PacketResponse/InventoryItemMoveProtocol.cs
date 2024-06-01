@@ -20,34 +20,34 @@ namespace Server.Protocol.PacketResponse
     public class InventoryItemMoveProtocol : IPacketResponse
     {
         public const string Tag = "va:invItemMove";
-
+        
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-
+        
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
-
+        
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
-
+            
             var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.Pos);
             if (fromInventory == null) return null;
-
+            
             var fromSlot = data.FromInventory.Slot;
             if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
                 fromSlot -= PlayerInventoryConst.MainInventorySize;
-
-
+            
+            
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.Pos);
             if (toInventory == null) return null;
-
+            
             var toSlot = data.ToInventory.Slot;
             if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
                 toSlot -= PlayerInventoryConst.MainInventorySize;
-
-
+            
+            
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
@@ -57,10 +57,10 @@ namespace Server.Protocol.PacketResponse
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
             }
-
+            
             return null;
         }
-
+        
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, Vector3Int pos)
         {
             IOpenableInventory inventory = null;
@@ -78,12 +78,12 @@ namespace Server.Protocol.PacketResponse
                         : null;
                     break;
             }
-
+            
             return inventory;
         }
     }
-
-
+    
+    
     [MessagePackObject]
     public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
     {
@@ -91,7 +91,7 @@ namespace Server.Protocol.PacketResponse
         public InventoryItemMoveProtocolMessagePack()
         {
         }
-
+        
         public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
             ItemMoveInventoryInfo inventory, int fromSlot,
             ItemMoveInventoryInfo toInventory, int toSlot)
@@ -99,28 +99,25 @@ namespace Server.Protocol.PacketResponse
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             Count = count;
-
+            
             ItemMoveTypeId = (int)itemMoveType;
             FromInventory = new ItemMoveInventoryInfoMessagePack(inventory, fromSlot);
             ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory, toSlot);
         }
-
-        [Key(2)]
-        public int PlayerId { get; set; }
-        [Key(3)]
-        public int Count { get; set; }
-        [Key(4)]
-        public int ItemMoveTypeId { get; set; }
-
-        [IgnoreMember]
-        public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
-
-        [Key(5)]
-        public ItemMoveInventoryInfoMessagePack FromInventory { get; set; }
-        [Key(6)]
-        public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
+        
+        [Key(2)] public int PlayerId { get; set; }
+        
+        [Key(3)] public int Count { get; set; }
+        
+        [Key(4)] public int ItemMoveTypeId { get; set; }
+        
+        [IgnoreMember] public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
+        
+        [Key(5)] public ItemMoveInventoryInfoMessagePack FromInventory { get; set; }
+        
+        [Key(6)] public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
     }
-
+    
     [MessagePackObject]
     public class ItemMoveInventoryInfoMessagePack
     {
@@ -128,7 +125,7 @@ namespace Server.Protocol.PacketResponse
         public ItemMoveInventoryInfoMessagePack()
         {
         }
-
+        
         public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
         {
             //メッセージパックでenumは重いらしいのでintを使う
@@ -136,17 +133,15 @@ namespace Server.Protocol.PacketResponse
             Slot = slot;
             Pos = new Vector3IntMessagePack(info.Pos);
         }
-
+        
         [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
         [Key(2)]
         public int InventoryId { get; set; }
-
-        [IgnoreMember]
-        public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
-
-        [Key(3)]
-        public int Slot { get; set; }
-        [Key(4)]
-        public Vector3IntMessagePack Pos { get; set; }
+        
+        [IgnoreMember] public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
+        
+        [Key(3)] public int Slot { get; set; }
+        
+        [Key(4)] public Vector3IntMessagePack Pos { get; set; }
     }
 }

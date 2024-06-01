@@ -14,23 +14,8 @@ namespace Game.Context
 {
     public class ServerContext
     {
-        public static IItemConfig ItemConfig { get; private set; }
-        public static IBlockConfig BlockConfig { get; private set; }
-        public static ICraftingConfig CraftingConfig { get; private set; }
-        public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
-        public static IMapObjectConfig MapObjectConfig { get; private set; }
-
-        public static IItemStackFactory ItemStackFactory { get; private set; }
-        public static IBlockFactory BlockFactory { get; private set; }
-
-        public static IWorldBlockDatastore WorldBlockDatastore { get; private set; }
-        public static IMapVeinDatastore MapVeinDatastore { get; private set; }
-
-        public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
-        public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
-
         private static ServiceProvider _serviceProvider;
-
+        
         public ServerContext(
             IItemConfig itemConfig,
             IBlockConfig blockConfig,
@@ -49,7 +34,7 @@ namespace Game.Context
             CraftingConfig = craftingConfig;
             MachineRecipeConfig = machineRecipeConfig;
             MapObjectConfig = mapObjectConfig;
-
+            
             ItemStackFactory = itemStackFactory;
             BlockFactory = blockFactory;
             WorldBlockDatastore = worldBlockDatastore;
@@ -57,6 +42,21 @@ namespace Game.Context
             WorldBlockUpdateEvent = worldBlockUpdateEvent;
             BlockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
         }
+        
+        public static IItemConfig ItemConfig { get; private set; }
+        public static IBlockConfig BlockConfig { get; private set; }
+        public static ICraftingConfig CraftingConfig { get; private set; }
+        public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
+        public static IMapObjectConfig MapObjectConfig { get; private set; }
+        
+        public static IItemStackFactory ItemStackFactory { get; private set; }
+        public static IBlockFactory BlockFactory { get; private set; }
+        
+        public static IWorldBlockDatastore WorldBlockDatastore { get; private set; }
+        public static IMapVeinDatastore MapVeinDatastore { get; private set; }
+        
+        public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
+        public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
         
         public static TType GetService<TType>()
         {

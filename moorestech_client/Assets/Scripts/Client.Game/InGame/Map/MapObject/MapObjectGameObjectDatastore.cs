@@ -17,31 +17,28 @@ namespace Client.Game.InGame.Map.MapObject
     {
         [SerializeField] private List<MapObjectGameObject> mapObjects;
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
-
-
+        
+        
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
             //イベント登録
             ClientContext.VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
-
+            
             // mapObjectの破壊状況の初期設定
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
-
+            
             foreach (var mapObjectInfo in handshakeResponse.MapObjects)
             {
                 var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
-                if (mapObjectInfo.IsDestroyed)
-                {
-                    mapObject.DestroyMapObject();
-                }
+                if (mapObjectInfo.IsDestroyed) mapObject.DestroyMapObject();
             }
         }
-
+        
         private void OnUpdateMapObject(byte[] payLoad)
         {
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(payLoad);
-
+            
             switch (data.EventType)
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
@@ -51,10 +48,10 @@ namespace Client.Game.InGame.Map.MapObject
                     throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
             }
         }
-
+        
 #if UNITY_EDITOR
         public List<MapObjectGameObject> MapObjects => mapObjects;
-
+        
         public void FindMapObjects()
         {
             mapObjects = FindObjectsOfType<MapObjectGameObject>().ToList();

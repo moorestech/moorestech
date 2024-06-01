@@ -15,7 +15,7 @@ namespace Mod.Loader
     {
         private const string ModMetaFilePath = "modMeta.json";
         public readonly Dictionary<string, Mod> Mods;
-
+        
         /// <summary>
         ///     Mod内に格納されているリソースをロードする
         ///     TODO これもコンストラクタに入れる
@@ -23,9 +23,9 @@ namespace Mod.Loader
         public ModsResource(string modDirectory)
         {
             Mods = LoadModFromZip(modDirectory);
-            foreach (KeyValuePair<string, Mod> mod in LoadModFromFolder(modDirectory)) Mods.Add(mod.Key, mod.Value);
+            foreach (var mod in LoadModFromFolder(modDirectory)) Mods.Add(mod.Key, mod.Value);
         }
-
+        
         /// <summary>
         ///     Zipファイル形式のmodをロードする
         ///     Zipを展開して展開済みフォルダに入れ、そこからデータをロードする
@@ -38,23 +38,23 @@ namespace Mod.Loader
             {
                 var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
                 var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(LoadConfigFromZip(zip, ModMetaFilePath));
-
+                
                 if (modMeta == null)
                 {
                     Debug.Log("Mod meta file not found in " + zipFile);
                     continue;
                 }
-
+                
                 //extract zip
                 var extractedDir = ExtractModZip(zipFile, modMeta);
                 zip.Dispose();
-
+                
                 loadedMods.Add(modMeta.ModId, new Mod(modMeta, extractedDir));
             }
-
+            
             return loadedMods;
         }
-
+        
         /// <summary>
         ///     フォルダーのmodをロードする
         /// </summary>
@@ -72,15 +72,15 @@ namespace Mod.Loader
                     Debug.Log("Mod meta file not found in " + modDir);
                     continue;
                 }
-
+                
                 var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(File.ReadAllText(modMetaFile));
-
+                
                 loadedMods.Add(modMeta.ModId, new Mod(modMeta, modDir));
             }
-
+            
             return loadedMods;
         }
-
+        
         /// <summary>
         ///     Zipを展開せず中身のコンフィグファイルを読み込む
         /// </summary>
@@ -91,12 +91,12 @@ namespace Mod.Loader
         {
             var config = zip.GetEntry(configPath);
             if (config == null) return string.Empty;
-
+            
             using var itemJsonStream = config.Open();
             using var itemJsonString = new StreamReader(itemJsonStream);
             return itemJsonString.ReadToEnd();
         }
-
+        
         /// <summary>
         ///     Zipフォルダを展開し、指定されたフォルダにデータを移す
         /// </summary>
@@ -106,9 +106,9 @@ namespace Mod.Loader
             var fixModId = modMetaJson.ModId.ReplaceFileNotAvailableCharacter("-");
             var fixModVersion = modMetaJson.ModVersion.ReplaceFileNotAvailableCharacter("-");
             var sha1Hash = CalcFileHash.GetSha1Hash(zipPath);
-
+            
             var folderName = $"{fixModId}_ver_{fixModVersion}_sha1_{sha1Hash}";
-
+            
             var path = GameSystemPaths.GetExtractedModDirectory(folderName);
             //ディレクトリの中身をチェック
             if (Directory.EnumerateFileSystemEntries(path).Any())
@@ -119,33 +119,33 @@ namespace Mod.Loader
             return path;
         }
     }
-
+    
     public class Mod
     {
         public readonly string ExtractedPath;
-
+        
         public readonly List<MoorestechServerModEntryPoint> ModEntryPoints;
-
+        
         public readonly ModMetaJson ModMetaJson;
-
+        
         public Mod(ModMetaJson modMetaJson, string extractedPath)
         {
             ModMetaJson = modMetaJson;
             ExtractedPath = extractedPath;
             ModEntryPoints = LoadEntryPoints(extractedPath);
         }
-
+        
         private static List<MoorestechServerModEntryPoint> LoadEntryPoints(string modDirectory)
         {
             var entryPoints = new List<MoorestechServerModEntryPoint>();
-
+            
             try
             {
                 //modディレクトリの全てディレクトリでdllを全てロードし、ModBaseを継承しているクラスを探す
                 foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll", SearchOption.AllDirectories))
                 {
                     var assembly = Assembly.LoadFrom(dllPath);
-                    IEnumerable<Type> modBaseTypes = assembly.GetTypes()
+                    var modBaseTypes = assembly.GetTypes()
                         .Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
                     foreach (var modBaseType in modBaseTypes)
                     {
@@ -158,7 +158,7 @@ namespace Mod.Loader
             {
                 //クライアント側でエラーが出るので、ここでキャッチしておく
             }
-
+            
             return entryPoints;
         }
     }

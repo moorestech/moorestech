@@ -8,7 +8,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
-
+        
         public VanillaMachineSave(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _vanillaMachineRunProcess = vanillaMachineRunProcess;
         }
-
+        
         public string Save()
         {
             //フォーマット
@@ -27,19 +27,19 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             //インプットスロットを保存
             foreach (var item in _vanillaMachineInputInventory.InputSlot)
                 saveState.Append(item.Id + "," + item.Count + ",");
-
+            
             saveState.Append("outputSlot,");
             //アウトプットスロットを保存
             foreach (var item in _vanillaMachineOutputInventory.OutputSlot)
                 saveState.Append(item.Id + "," + item.Count + ",");
-
+            
             //状態を保存
             saveState.Append("state," + (int)_vanillaMachineRunProcess.CurrentState + ",");
             //現在の残り時間を保存
             saveState.Append("remainingTime," + _vanillaMachineRunProcess.RemainingMillSecond + ",");
             //レシピIDを保存
             saveState.Append("recipeId," + _vanillaMachineRunProcess.RecipeDataId);
-
+            
             return saveState.ToString();
         }
     }

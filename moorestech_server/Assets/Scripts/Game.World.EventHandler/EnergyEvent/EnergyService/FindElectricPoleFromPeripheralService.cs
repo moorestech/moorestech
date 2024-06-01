@@ -26,19 +26,19 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             blockDatastore.GetBlock(pos);
             var startElectricX = pos.x - poleRange / 2;
             var startElectricY = pos.y - poleRange / 2;
-
+            
             //実際の探索
             for (var i = startElectricX; i < startElectricX + poleRange; i++)
             for (var j = startElectricY; j < startElectricY + poleRange; j++)
             {
                 //範囲内に電柱がある場合 ただし自身のブロックは除く
                 var electricPolePos = new Vector3Int(i, j);
-                if (!blockDatastore.ExistsComponent<IElectricTransformer>(electricPolePos) || i == pos.x && j == pos.y) continue;
-
+                if (!blockDatastore.ExistsComponent<IElectricTransformer>(electricPolePos) || (i == pos.x && j == pos.y)) continue;
+                
                 //電柱を追加
                 electricPoles.Add(blockDatastore.GetBlock<IElectricTransformer>(electricPolePos));
             }
-
+            
             return electricPoles;
         }
     }

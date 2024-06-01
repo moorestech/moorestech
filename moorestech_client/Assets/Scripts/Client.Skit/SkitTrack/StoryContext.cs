@@ -12,7 +12,7 @@ namespace Client.Skit.SkitTrack
         public readonly ISkitCamera SkitCamera;
         public readonly SkitUI SkitUI;
         public readonly VoiceDefine VoiceDefine;
-
+        
         public StoryContext(SkitUI skitUI, Dictionary<string, SkitCharacter> characters, SkitCamera skitCamera, VoiceDefine voiceDefine)
         {
             SkitUI = skitUI;
@@ -20,18 +20,15 @@ namespace Client.Skit.SkitTrack
             SkitCamera = skitCamera;
             VoiceDefine = voiceDefine;
         }
-
+        
         public SkitCharacter GetCharacter(string characterKey)
         {
             return _characters[characterKey];
         }
-
+        
         public void DestroyCharacter()
         {
-            foreach (KeyValuePair<string, SkitCharacter> character in _characters)
-            {
-                Object.Destroy(character.Value.gameObject);
-            }
+            foreach (var character in _characters) Object.Destroy(character.Value.gameObject);
         }
     }
 }

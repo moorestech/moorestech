@@ -10,29 +10,26 @@ namespace Client.Game.InGame.UI.UIState
     {
         private readonly DeleteBarObject _deleteBarObject;
         private readonly InGameCameraController _inGameCameraController;
-
+        
         private BlockGameObject _removeTargetBlock;
-
+        
         public DeleteBlockState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
             _inGameCameraController = inGameCameraController;
             _deleteBarObject = deleteBarObject;
             deleteBarObject.gameObject.SetActive(false);
         }
-
+        
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.GameScreen;
-
+            
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
-
+            
             if (BlockClickDetect.TryGetCursorOnBlock(out var blockGameObject))
             {
-                if (_removeTargetBlock != null)
-                {
-                    _removeTargetBlock.ResetMaterial();
-                }
+                if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
                 _removeTargetBlock = blockGameObject;
                 _removeTargetBlock.SetRemovePreviewing();
             }
@@ -44,42 +41,40 @@ namespace Client.Game.InGame.UI.UIState
                     _removeTargetBlock = null;
                 }
             }
-
+            
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
             {
                 var blockPosition = _removeTargetBlock.BlockPosInfo.OriginalPos;
                 ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
             }
-
+            
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetMouseButtonDown(1))
             {
                 InputManager.MouseCursorVisible(false);
                 _inGameCameraController.SetUpdateCameraAngle(true);
             }
+            
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetMouseButtonUp(1))
             {
                 InputManager.MouseCursorVisible(true);
                 _inGameCameraController.SetUpdateCameraAngle(false);
             }
-
+            
             return UIStateEnum.Current;
         }
-
+        
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _deleteBarObject.gameObject.SetActive(true);
             InputManager.MouseCursorVisible(true);
             _inGameCameraController.SetUpdateCameraAngle(false);
         }
-
+        
         public void OnExit()
         {
-            if (_removeTargetBlock != null)
-            {
-                _removeTargetBlock.ResetMaterial();
-            }
+            if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
             _deleteBarObject.gameObject.SetActive(false);
             InputManager.MouseCursorVisible(false);
         }
