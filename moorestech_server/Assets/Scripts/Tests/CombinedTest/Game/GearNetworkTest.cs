@@ -192,11 +192,10 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(gearNetwork.GearGenerators.All(g => g.IsRocked));
         }
         
-        
         [Test]
         public void MultiGeneratorOverrideRpmTest()
         {
-            //TODO 複数のジェネレーターのRPMがオーバーライドされるテスト
+            // 複数のジェネレーターのRPMがオーバーライドされるテスト
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var fastGeneratorPosition = new Vector3Int(0, 0, 0);
@@ -228,12 +227,35 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(smallGearB.CurrentRpm, 20f);
         }
         
-        
         [Test]
         public void MultiGeneratorDifferentDirectionToRockTest()
         {
-            //TODO 複数のジェネレーターの回転方向が違うことでロックされるテスト
-            throw new NotImplementedException();
+            // 複数のジェネレーターの回転方向が違うことでロックされるテスト
+            // Gen1 - Gear1 このような構成になっている
+            //        Gear2
+            // Gen2 - Gear3
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var generator1Position = new Vector3Int(0, 0, 0);
+            var generator2Position = new Vector3Int(1, 0, 0);
+            
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            
+            var generator1 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator1Position, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var generator2 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator2Position, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
+            
+            gearNetwork.ManualUpdate();
+            
+            Assert.IsTrue(generator1.IsRocked);
+            Assert.IsTrue(generator2.IsRocked);
+            Assert.IsTrue(gear1.IsRocked);
+            Assert.IsTrue(gear2.IsRocked);
         }
         
         [Test]
