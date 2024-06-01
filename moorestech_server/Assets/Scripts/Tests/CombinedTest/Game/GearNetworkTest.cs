@@ -261,16 +261,63 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void ServeTorqueTest()
         {
-            //TODO 機械によってトルクが消費されるテスト（正しいトルクが供給されるかのテスト
-            //TODO 供給トルクが足りないときに稼働時間が長くなるテスト
-            throw new NotImplementedException();
+            // 機械によってトルクが消費されるテスト（正しいトルクが供給されるかのテスト
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            var gearPosition3 = new Vector3Int(2, 0, 1);
+            
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
+            
+            gearNetwork.ManualUpdate();
+            
+            Assert.AreEqual(10, gear1.CurrentPower);
+            Assert.AreEqual(10, gear2.CurrentPower);
+            Assert.AreEqual(10, gear3.CurrentPower);
         }
         
         [Test]
         public void ServeTorqueOverTest()
         {
-            //TODO トルクが多いとその分供給トルクが減るテスト
-            throw new NotImplementedException();
+            //トルクが多いとその分供給トルクが減るテスト
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            var gearPosition3 = new Vector3Int(2, 0, 1);
+            var gearPosition4 = new Vector3Int(3, 0, 1);
+            var gearPosition5 = new Vector3Int(4, 0, 1);
+            var gearPosition6 = new Vector3Int(5, 0, 1);
+            
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear4 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition4, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear5 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition5, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear6 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition6, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
+            gearNetwork.ManualUpdate();
+            
+            Assert.AreEqual(5, gear1.CurrentPower);
+            Assert.AreEqual(5, gear2.CurrentPower);
+            Assert.AreEqual(5, gear3.CurrentPower);
+            Assert.AreEqual(5, gear4.CurrentPower);
+            Assert.AreEqual(5, gear5.CurrentPower);
+            Assert.AreEqual(5, gear6.CurrentPower);
         }
         
         [Test]

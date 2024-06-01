@@ -74,5 +74,9 @@
   {
     "name": "TestFastSimpleGearGenerator",
     "maxStacks": 100
+  },
+  {
+    "name": "SmallLossPowerTestGear",
+    "maxStacks": 100
   }
 ]

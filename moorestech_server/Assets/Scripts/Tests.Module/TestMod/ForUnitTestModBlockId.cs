@@ -19,5 +19,6 @@ namespace Tests.Module.TestMod
         public const int GearMachine = 15;
         public const int SimpleGearGenerator = 16;
         public const int SimpleFastGearGenerator = 17;
+        public const int SmallLossPowerGear = 18;
     }
 }

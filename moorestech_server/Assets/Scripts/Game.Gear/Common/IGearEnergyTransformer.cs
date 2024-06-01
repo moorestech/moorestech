@@ -15,6 +15,7 @@ namespace Game.Gear.Common
 
         public float CurrentRpm { get; }
         public float CurrentTorque { get; }
+        public float CurrentPower => CurrentRpm * CurrentTorque;
         public bool IsCurrentClockwise { get; }
 
         public IReadOnlyList<GearConnect> Connects { get; }
