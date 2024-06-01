@@ -32,8 +32,17 @@ namespace Game.Context
         private static ServiceProvider _serviceProvider;
 
         public ServerContext(
-            IItemConfig itemConfig, IBlockConfig blockConfig, ICraftingConfig craftingConfig, IMachineRecipeConfig machineRecipeConfig, IMapObjectConfig mapObjectConfig,
-            IItemStackFactory itemStackFactory, IBlockFactory blockFactory, IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, IMapVeinDatastore mapVeinDatastore)
+            IItemConfig itemConfig,
+            IBlockConfig blockConfig,
+            ICraftingConfig craftingConfig,
+            IMachineRecipeConfig machineRecipeConfig,
+            IMapObjectConfig mapObjectConfig,
+            IItemStackFactory itemStackFactory,
+            IBlockFactory blockFactory,
+            IWorldBlockDatastore worldBlockDatastore,
+            IWorldBlockUpdateEvent worldBlockUpdateEvent,
+            IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent,
+            IMapVeinDatastore mapVeinDatastore)
         {
             ItemConfig = itemConfig;
             BlockConfig = blockConfig;

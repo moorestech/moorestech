@@ -1,20 +1,21 @@
 {
-    "name": "Game.Context",
-    "rootNamespace": "",
-    "references": [
-        "Core.Item.Interface",
-        "Game.World.Interface",
-        "Game.Block.Interface",
-        "Game.Crafting.Interface",
-        "Game.Map.Interface"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.Context",
+  "rootNamespace": "",
+  "references": [
+    "Core.Item.Interface",
+    "Game.World.Interface",
+    "Game.Block.Interface",
+    "Game.Crafting.Interface",
+    "Game.Map.Interface",
+    "Game.Gear"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

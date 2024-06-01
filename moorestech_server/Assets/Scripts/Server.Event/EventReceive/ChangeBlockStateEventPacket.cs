@@ -22,9 +22,9 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
         }
 
-        private void ChangeState((ChangedBlockState state, WorldBlockData blockData) state)
+        private void ChangeState((BlockState state, WorldBlockData blockData) state)
         {
-            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
+            var messagePack = new ChangeBlockStateMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
@@ -32,22 +32,8 @@ namespace Server.Event.EventReceive
     }
 
     [MessagePackObject]
-    public class ChangeBlockStateEventMessagePack
+    public class ChangeBlockStateMessagePack
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ChangeBlockStateEventMessagePack()
-        {
-        }
-
-        public ChangeBlockStateEventMessagePack(ChangedBlockState state, Vector3Int pos)
-        {
-            CurrentState = state.CurrentState;
-            PreviousState = state.PreviousState;
-
-            CurrentStateData = state.CurrentStateData;
-            Position = new Vector3IntMessagePack(pos);
-        }
-
         [Key(0)]
         public string CurrentState { get; set; }
         [Key(1)]
@@ -56,6 +42,20 @@ namespace Server.Event.EventReceive
         public byte[] CurrentStateData { get; set; }
         [Key(3)]
         public Vector3IntMessagePack Position { get; set; }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public ChangeBlockStateMessagePack()
+        {
+        }
+
+        public ChangeBlockStateMessagePack(BlockState state, Vector3Int pos)
+        {
+            CurrentState = state.CurrentState;
+            PreviousState = state.PreviousState;
+
+            CurrentStateData = state.CurrentStateData;
+            Position = new Vector3IntMessagePack(pos);
+        }
 
         public TBlockState GetStateData<TBlockState>()
         {

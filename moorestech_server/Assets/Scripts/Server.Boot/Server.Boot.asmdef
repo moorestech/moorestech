@@ -29,6 +29,7 @@
     "Server.Util",
     "Game.Context",
     "Core.Item",
+    "Game.Gear",
     "Game.Challenge"
   ],
   "includePlatforms": [],

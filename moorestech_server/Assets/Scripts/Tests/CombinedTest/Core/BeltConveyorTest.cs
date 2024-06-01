@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -54,8 +53,8 @@ namespace Tests.CombinedTest.Core
 
                 var dummy = new DummyBlockInventory();
 
-                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-                connectInventory.Add(dummy);
+                var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+                connectInventory.Add(dummy, (null, null));
                 GameUpdater.UpdateWithWait();
 
                 Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
@@ -79,13 +78,13 @@ namespace Tests.CombinedTest.Core
             const int count = 3;
             var item = itemStackFactory.Create(id, count);
             var dummy = new DummyBlockInventory();
-                
+
             // アイテムを挿入
             var beltConveyor = blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
 
-            var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            connectInventory.Add(dummy);
+            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            connectInventory.Add(dummy, (null, null));
 
             var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
             var outputItem = beltConveyorComponent.InsertItem(item);
@@ -93,7 +92,7 @@ namespace Tests.CombinedTest.Core
             //5秒以上経過したらループを抜ける 
             while (!dummy.IsItemExists) GameUpdater.UpdateWithWait();
 
-            
+
             //チェック
             Debug.Log($"{(DateTime.Now - expectedEndTime).TotalMilliseconds}");
 
@@ -127,9 +126,9 @@ namespace Tests.CombinedTest.Core
                 var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
                 var beltConveyor = blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
-                
-                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-                connectInventory.Add(dummy);
+
+                var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+                connectInventory.Add(dummy, (null, null));
 
                 while (!dummy.IsItemExists)
                 {

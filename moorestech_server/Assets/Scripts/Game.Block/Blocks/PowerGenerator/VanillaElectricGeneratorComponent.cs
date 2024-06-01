@@ -18,30 +18,27 @@ using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockStateChange, IBlockSaveState
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
     {
         public BlockPositionInfo BlockPositionInfo { get; }
 
         public int EntityId { get; }
-        
+
         public bool IsDestroy { get; private set; }
-        
-        
+
+
         public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-        
+
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
 
         private readonly int _infinityPower;
         private readonly bool _isInfinityPower;
-        
+
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
-        
+
         private readonly IDisposable _updateObservable;
 
         public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
@@ -77,8 +74,8 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public string GetSaveState()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-            
+            if (IsDestroy) throw BlockException.IsDestroyedException;
+
             //フォーマット
             //_fuelItemId,_remainingFuelTime,_fuelItemId1,_fuelItemCount1,_fuelItemId2,_fuelItemCount2,_fuelItemId3,_fuelItemCount3...
             var saveState = $"{_fuelItemId},{_remainingFuelTime}";
@@ -90,35 +87,35 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-            
+            if (IsDestroy) throw BlockException.IsDestroyedException;
+
             return _itemDataStoreService.InsertItem(itemStack);
         }
 
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.GetItem(slot);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _itemDataStoreService.SetItem(slot, itemStack);
         }
 
         public int GetSlotSize()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.GetSlotSize();
         }
 
         public int OutputEnergy()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             if (_isInfinityPower) return _infinityPower;
             if (_fuelSettings.TryGetValue(_fuelItemId, out var fuelSetting)) return fuelSetting.Power;
@@ -128,42 +125,42 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.ReplaceItem(slot, itemId, count);
         }
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.InsertItem(itemId, count);
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.InsertItem(itemStacks);
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.InsertionCheck(itemStacks);
         }
 
         public void SetItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _itemDataStoreService.SetItem(slot, itemId, count);
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _itemDataStoreService.ReplaceItem(slot, itemStack);
         }
@@ -171,7 +168,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
         private void Update()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             //現在燃料を消費しているか判定
             //燃料が在る場合は燃料残り時間をUpdate時間分減らす
@@ -205,13 +202,13 @@ namespace Game.Block.Blocks.PowerGenerator
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
             var properties = new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
-        
+
         public void Destroy()
         {
             IsDestroy = true;

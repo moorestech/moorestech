@@ -6,6 +6,7 @@ using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Challenge;
 using Game.Context;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util.MessagePack;
@@ -42,12 +43,12 @@ namespace Client.Network.API
             List<ChunkResponse> chunk = null;
             PlayerInventoryResponse inventory = null;
             ChallengeResponse challenge = null;
-
+            List<ChangeBlockStateMessagePack> blockStates = null;
 
             //必要なデータを取得する
-            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge());
+            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge(), GetBlockStates());
 
-            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge);
+            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge, blockStates);
 
             #region Internal
 
@@ -69,6 +70,11 @@ namespace Client.Network.API
             async UniTask GetChallenge()
             {
                 challenge = await GetChallengeResponse(playerId, ct);
+            }
+
+            async UniTask GetBlockStates()
+            {
+                blockStates = await GetCurrentBlockState(ct);
             }
 
             #endregion
@@ -160,6 +166,14 @@ namespace Client.Network.API
             var completed = response.CompletedChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
 
             return new ChallengeResponse(current, completed);
+        }
+
+        public async UniTask<List<ChangeBlockStateMessagePack>> GetCurrentBlockState(CancellationToken ct)
+        {
+            var request = new RequestBlockStateProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateProtocolMessagePack>(request, ct);
+
+            return response.StateList;
         }
     }
 }

@@ -1,9 +1,7 @@
 using System.Reflection;
-using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
-using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory;
@@ -86,7 +84,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             loadJsonFile.Load(json);
 
             var loadMachineBlock = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            var loadMachine = loadMachineBlock.ComponentManager.GetComponent< VanillaElectricMachineComponent>();
+            var loadMachine = loadMachineBlock.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             Debug.Log(machineComponent.GetHashCode());
             Debug.Log(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認

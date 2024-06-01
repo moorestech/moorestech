@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
-using Client.Game.InGame.BlockSystem.StateChange;
+using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Define;
 using Client.Mod.Glb;
 using Cysharp.Threading.Tasks;
@@ -123,6 +123,11 @@ namespace Client.Game.InGame.Context
         /// </summary>
         private IBlockStateChangeProcessor GetBlockStateChangeProcessor(BlockGameObject block, string blockType)
         {
+            if (block.TryGetComponent<IBlockStateChangeProcessor>(out var stateChangeProcessor))
+            {
+                return stateChangeProcessor;
+            }
+            
             return blockType switch
             {
                 VanillaBlockType.Machine => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),

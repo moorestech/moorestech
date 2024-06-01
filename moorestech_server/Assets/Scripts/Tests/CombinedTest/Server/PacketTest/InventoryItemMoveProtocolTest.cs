@@ -4,7 +4,6 @@ using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

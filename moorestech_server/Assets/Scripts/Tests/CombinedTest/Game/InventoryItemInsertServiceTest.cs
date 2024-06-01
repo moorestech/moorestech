@@ -16,8 +16,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void InsertTest()
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
@@ -45,7 +44,7 @@ namespace Tests.CombinedTest.Game
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
-            
+
             var id1MaxStack = ServerContext.ItemConfig.GetItemConfig(1).MaxStack;
 
             //インベントリをアイテムで満たす

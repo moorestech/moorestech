@@ -4,7 +4,7 @@ namespace Game.World.Interface.Util
 {
     public static class CreateBlockEntityId
     {
-        private static readonly Random Random = new();
+        private static readonly Random Random = new(130851);
 
         public static int Create()
         {

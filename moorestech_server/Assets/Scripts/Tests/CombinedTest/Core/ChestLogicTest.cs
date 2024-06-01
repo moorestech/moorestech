@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Core
             var id = random.Next(1, 11);
             var count = 1;
             var item = itemStackFactory.Create(id, count);
-            
+
             var chest = blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var chestComponent = chest.ComponentManager.GetComponent<VanillaChestComponent>();
 
@@ -40,8 +40,8 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item);
 
-            var beltConnectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            beltConnectInventory.Add(chestComponent);
+            var beltConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            beltConnectInventory.Add(chestComponent, (null, null));
 
 
             while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateWithWait();
@@ -59,14 +59,14 @@ namespace Tests.CombinedTest.Core
 
             var chest = blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var chestComponent = chest.ComponentManager.GetComponent<VanillaChestComponent>();
-            
+
             var beltconveyor = blockFactory.Create(3, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltconveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
 
             chestComponent.SetItem(0, 1, 1);
 
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            chestConnectInventory.Add(beltConveyorComponent);
+            var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            chestConnectInventory.Add(beltConveyorComponent, (null, null));
             GameUpdater.UpdateWithWait();
 
 

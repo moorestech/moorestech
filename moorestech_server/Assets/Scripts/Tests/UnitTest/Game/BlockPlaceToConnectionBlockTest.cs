@@ -1,18 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine;
-using Game.Block.Blocks.Machine.Inventory;
-using Game.Block.Blocks.Machine.InventoryController;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -81,7 +77,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyor);
 
             //繋がっているコネクターを取得
-            var connectedMachine = (VanillaElectricMachineComponent)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets[0];
+            var connectedMachine = (VanillaElectricMachineComponent)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets.First().Key;
 
             //それぞれのentityIdを返却
             return (vanillaMachine.EntityId, connectedMachine.EntityId);
@@ -111,7 +107,7 @@ namespace Tests.UnitTest.Game
                 blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(1, 0, 0), BlockDirection.North, Vector3Int.one)),
                 blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.East, Vector3Int.one)),
                 blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(-1, 0, 0), BlockDirection.South, Vector3Int.one)),
-                blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, -1), BlockDirection.West, Vector3Int.one))
+                blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, -1), BlockDirection.West, Vector3Int.one)),
             };
             world.AddBlock(beltConveyors[0]);
             world.AddBlock(beltConveyors[1]);
@@ -119,7 +115,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyors[3]);
 
             //繋がっているコネクターを取得
-            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)vanillaMachine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             Assert.AreEqual(4, connectInventory.Count);
 
@@ -171,7 +167,7 @@ namespace Tests.UnitTest.Game
 
             ServerContext.WorldBlockDatastore.AddBlock(northBeltConveyor);
 
-            var connector = (VanillaChestComponent)northBeltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets[0];
+            var connector = (VanillaChestComponent)northBeltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets.First().Key;
 
             Assert.AreEqual(targetChest.EntityId, connector.EntityId);
         }
@@ -196,13 +192,13 @@ namespace Tests.UnitTest.Game
             world.AddBlock(chest);
 
             //機械のコネクターを取得
-            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var machineConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)machine.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
 
             //チェストのコネクターを取得
-            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);
@@ -210,7 +206,7 @@ namespace Tests.UnitTest.Game
 
 
         /// <summary>
-        /// 大きさが1x1x1以上のブロックで複数のコネクターがある場合、正しく接続されるかをテスト
+        ///     大きさが1x1x1以上のブロックで複数のコネクターがある場合、正しく接続されるかをテスト
         /// </summary>
         [Test]
         public void MultiBlockConnectTest()
@@ -218,9 +214,9 @@ namespace Tests.UnitTest.Game
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
-            
+
             //ベルトコンベアを設置
-            
+
             //接続するベルトコンベア
             var belt1PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, 3), BlockDirection.North, Vector3Int.one);
             var belt1 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt1PosInfo);
@@ -228,7 +224,7 @@ namespace Tests.UnitTest.Game
             var belt2PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, -1), BlockDirection.South, Vector3Int.one);
             var belt2 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt2PosInfo);
             world.AddBlock(belt2);
-            
+
             //接続されないベルトコンベア
             var belt3PosInfo = new BlockPositionInfo(new Vector3Int(3, 0, 3), BlockDirection.North, Vector3Int.one);
             var belt3 = blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), belt3PosInfo);
@@ -241,10 +237,10 @@ namespace Tests.UnitTest.Game
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var multiBlock = blockFactory.Create(ForUnitTestModBlockId.MultiBlockGeneratorId, CreateBlockEntityId.Create(), machinePosInfo);
             world.AddBlock(multiBlock);
-            
+
             // マルチブロックのコネクターを取得
-            var connector = (List<IBlockInventory>)multiBlock.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
-            
+            var connector = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)multiBlock.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+
             // ベルトコンベアが正しく接続されているかをチェック
             Assert.AreEqual(2, connector.Count);
         }

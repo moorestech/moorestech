@@ -51,6 +51,7 @@
     "Core.Item.Interface",
     "Client.Skit",
     "Client.CutScene",
+    "Game.Gear",
     "Game.Challenge"
   ],
   "includePlatforms": [],

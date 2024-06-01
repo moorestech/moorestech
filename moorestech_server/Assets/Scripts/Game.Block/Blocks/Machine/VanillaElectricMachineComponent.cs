@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.Inventory;
 using Core.Item.Interface;
-using Game.Block.Blocks.Machine.InventoryController;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.SaveLoad;
-using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
@@ -21,8 +19,9 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public class VanillaElectricMachineComponent : IBlockInventory, IElectricConsumer, IOpenableBlockInventoryComponent, IBlockStateChange, IBlockSaveState
     {
-        public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
-        
+        public IObservable<BlockState> OnChangeBlockState => _vanillaMachineRunProcess.ChangeState;
+        public BlockState GetBlockState() { return _vanillaMachineRunProcess.GetBlockState(); }
+
         public bool IsDestroy { get; private set; }
         
         public int EntityId { get; }
@@ -44,14 +43,14 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _vanillaMachineBlockInventory.InsertItem(itemStack);
         }
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             var item = ServerContext.ItemStackFactory.Create(itemId, count);
             return _vanillaMachineBlockInventory.InsertItem(item);
@@ -59,14 +58,14 @@ namespace Game.Block.Blocks.Machine
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _vanillaMachineBlockInventory.InsertItem(itemStacks);
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             return _vanillaMachineBlockInventory.InsertionCheck(itemStacks);
         }
@@ -79,21 +78,21 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             return _vanillaMachineBlockInventory.GetItem(slot);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             _vanillaMachineBlockInventory.SetItem(slot, itemStack);
         }
 
         public void SetItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             var item = ServerContext.ItemStackFactory.Create(itemId, count);
             _vanillaMachineBlockInventory.SetItem(slot, item);
@@ -101,14 +100,14 @@ namespace Game.Block.Blocks.Machine
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             return _vanillaMachineBlockInventory.ReplaceItem(slot, itemStack);
         }
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             var item = ServerContext.ItemStackFactory.Create(itemId, count);
             return ReplaceItem(slot, item);
@@ -116,7 +115,7 @@ namespace Game.Block.Blocks.Machine
 
         public int GetSlotSize()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             return _vanillaMachineBlockInventory.GetSlotSize();
         }
@@ -129,7 +128,7 @@ namespace Game.Block.Blocks.Machine
 
         public void SupplyEnergy(int power)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             _vanillaMachineRunProcess.SupplyPower(power);
         }
@@ -138,7 +137,7 @@ namespace Game.Block.Blocks.Machine
         
         public string GetSaveState()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             
             return _vanillaMachineSave.Save();
         }

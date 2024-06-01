@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Game.Block.Blocks.PowerGenerator;
-using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface.Event;
@@ -28,6 +26,11 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(VanillaBlockType.Machine, new VanillaMachineTemplate(blockInventoryEvent));
             BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(blockInventoryEvent));
+
+            BlockTypesDictionary.Add(VanillaBlockType.Gear, new VanillaGearTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.Shaft, new VanillaShaftTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaGearMachineTemplate());
         }
     }
 }

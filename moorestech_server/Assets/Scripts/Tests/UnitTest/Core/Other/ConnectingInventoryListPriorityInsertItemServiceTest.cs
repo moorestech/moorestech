@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Game.Block.Blocks.Service;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using NUnit.Framework;
@@ -36,7 +37,12 @@ namespace Tests.UnitTest.Core.Other
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(null, null, componentPos);
 
-            ((List<IBlockInventory>)inputConnectorComponent.ConnectTargets).AddRange(inventoryList);
+            var targets = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)inputConnectorComponent.ConnectTargets;
+
+            foreach (var inventory in inventoryList)
+            {
+                targets.Add(inventory, (null, null));
+            }
 
             var service = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 

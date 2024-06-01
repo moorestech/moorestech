@@ -11,11 +11,12 @@ namespace Game.World.Interface.DataStore
     {
         public IReadOnlyDictionary<int, WorldBlockData> BlockMasterDictionary { get; }
 
-        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
+        public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
 
         public bool AddBlock(IBlock block);
         public bool RemoveBlock(Vector3Int pos);
         public IBlock GetBlock(Vector3Int pos);
+        public IBlock GetBlock(int entityId);
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);
         public Vector3Int GetBlockPosition(int entityId);
         public BlockDirection GetBlockDirection(Vector3Int pos);

@@ -7,7 +7,7 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -23,10 +23,11 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
+        public int EntityId { get; }
         public bool IsDestroy { get; private set; }
 
-        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
-        private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new();
+        public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
+        private readonly Subject<BlockState> _blockStateChangeSubject = new();
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -101,13 +102,18 @@ namespace Game.Block.Blocks.Miner
             for (var i = 0; i < inventoryItems.Count; i++)
                 _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
         }
-
-
-        public int EntityId { get; }
+        
+        public BlockState GetBlockState()
+        {
+            var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
+            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
+            var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
+            return state;
+        }
 
         public string GetSaveState()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var saveState = $"{_remainingMillSecond}";
@@ -119,21 +125,21 @@ namespace Game.Block.Blocks.Miner
 
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.GetItem(slot);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _openableInventoryItemDataStoreService.SetItem(slot, itemStack);
         }
 
         public int GetSlotSize()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.GetSlotSize();
         }
@@ -143,14 +149,14 @@ namespace Game.Block.Blocks.Miner
 
         public void SupplyEnergy(int power)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _currentPower = power;
         }
 
         private void Update()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             MinerProgressUpdate();
             CheckStateAndInvokeEventUpdate();
@@ -211,18 +217,16 @@ namespace Game.Block.Blocks.Miner
 
             void InvokeChangeStateEvent()
             {
-                if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-
-                var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
-                var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
-                var changeStateData = new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
-                _blockStateChangeSubject.OnNext(changeStateData);
+                if (IsDestroy) throw BlockException.IsDestroyedException;
+                
+                var state = GetBlockState();
+                _blockStateChangeSubject.OnNext(state);
             }
 
 
             void InsertConnectInventory()
             {
-                if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+                if (IsDestroy) throw BlockException.IsDestroyedException;
 
                 for (var i = 0; i < _openableInventoryItemDataStoreService.Items.Count; i++)
                 {
@@ -236,7 +240,7 @@ namespace Game.Block.Blocks.Miner
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _blockInventoryUpdate.OnInventoryUpdateInvoke(
                 new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
@@ -248,49 +252,49 @@ namespace Game.Block.Blocks.Miner
 
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.ReplaceItem(slot, itemId, count);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.InsertItem(itemStack);
         }
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.InsertItem(itemId, count);
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.InsertItem(itemStacks);
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.InsertionCheck(itemStacks);
         }
 
         public void SetItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             _openableInventoryItemDataStoreService.SetItem(slot, itemId, count);
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             return _openableInventoryItemDataStoreService.ReplaceItem(slot, itemStack);
         }

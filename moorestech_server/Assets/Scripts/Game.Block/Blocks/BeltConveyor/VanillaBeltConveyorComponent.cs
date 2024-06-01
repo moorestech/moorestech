@@ -1,40 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.Component.IOConnector;
+using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IBlockStateChange
+    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState
     {
-        public bool IsDestroy { get; private set; }
-
         public const float DefaultBeltConveyorHeight = 0.3f;
-
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
 
         public readonly int InventoryItemNum;
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        private readonly string _blockName;
-
+        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
+
+        private readonly string _blockName;
 
         public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
@@ -65,10 +61,59 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
             }
         }
+        public bool IsDestroy { get; private set; }
+
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            if (IsDestroy) throw BlockException.IsDestroyedException;
+
+            //新しく挿入可能か
+            if (_inventoryItems[^1] != null)
+                //挿入可能でない
+                return itemStack;
+
+            _inventoryItems[^1] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
+
+            //挿入したのでアイテムを減らして返す
+            return itemStack.SubItem(1);
+        }
+
+        public int GetSlotSize()
+        {
+            if (IsDestroy) throw BlockException.IsDestroyedException;
+
+            return _inventoryItems.Length;
+        }
+
+        public IItemStack GetItem(int slot)
+        {
+            if (IsDestroy) throw BlockException.IsDestroyedException;
+
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            if (_inventoryItems[slot] == null)
+            {
+                return itemStackFactory.CreatEmpty();
+            }
+            return itemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
+        }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            if (IsDestroy) throw BlockException.IsDestroyedException;
+
+            //TODO lockすべき？？
+            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
+        }
+
+        public void Destroy()
+        {
+            IsDestroy = true;
+            _updateObservable.Dispose();
+        }
 
         public string GetSaveState()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             if (_inventoryItems.Length == 0) return string.Empty;
 
@@ -93,47 +138,6 @@ namespace Game.Block.Blocks.BeltConveyor
             return state.ToString();
         }
 
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-
-            //新しく挿入可能か
-            if (_inventoryItems[^1] != null)
-                //挿入可能でない
-                return itemStack;
-
-            _inventoryItems[^1] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
-
-            //挿入したのでアイテムを減らして返す
-            return itemStack.SubItem(1);
-        }
-
-        public int GetSlotSize()
-        {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-
-            return _inventoryItems.Length;
-        }
-
-        public IItemStack GetItem(int slot)
-        {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            if (_inventoryItems[slot] == null)
-            {
-                return itemStackFactory.CreatEmpty();
-            }
-            return itemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
-
-            //TODO lockすべき？？
-            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
-        }
 
         /// <summary>
         ///     アイテムの搬出判定を行う
@@ -142,7 +146,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         private void Update()
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
 
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
@@ -185,8 +189,8 @@ namespace Game.Block.Blocks.BeltConveyor
 
                     if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
 
-                    var connector = _blockConnectorComponent.ConnectTargets[0];
-                    var output = connector.InsertItem(insertItem);
+                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectTargets.First();
+                    var output = connector.Key.InsertItem(insertItem);
 
 
                     //渡した結果がnullItemだったらそのアイテムを消す
@@ -202,14 +206,8 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public BeltConveyorInventoryItem GetBeltConveyorItem(int index)
         {
-            if (IsDestroy) throw new InvalidOperationException(BlockException.IsDestroyed);
+            if (IsDestroy) throw BlockException.IsDestroyedException;
             return _inventoryItems[index];
-        }
-
-        public void Destroy()
-        {
-            IsDestroy = true;
-            _updateObservable.Dispose();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Component;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;

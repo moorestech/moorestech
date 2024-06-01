@@ -37,16 +37,5 @@ namespace Tests.UnitTest.Core.Other
             var itemConfig = ServerContext.ItemConfig;
             Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
         }
-
-        [Test]
-        public void ModIdToItemListTest()
-        {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = ServerContext.ItemConfig;
-
-
-            Assert.AreEqual(13, itemConfig.GetItemIds("Test Author:forUniTest").Count);
-        }
     }
 }

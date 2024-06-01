@@ -7,6 +7,7 @@ namespace Game.Block.Interface.Component
     [DisallowMultiple]
     public interface IBlockStateChange : IBlockComponent
     {
-        public IObservable<ChangedBlockState> BlockStateChange { get; }
+        public IObservable<BlockState> OnChangeBlockState { get; }
+        public BlockState GetBlockState();
     }
 }

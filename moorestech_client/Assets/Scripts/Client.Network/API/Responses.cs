@@ -16,13 +16,16 @@ namespace Client.Network.API
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
         public PlayerInventoryResponse Inventory { get; }
         public ChallengeResponse Challenge { get; }
-        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge)
+        public List<ChangeBlockStateMessagePack> BlockStates { get; }
+
+        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge, List<ChangeBlockStateMessagePack> blockStates)
         {
             PlayerPos = response.PlayerPos;
             Chunks = chunks;
             MapObjects = mapObjects;
             Inventory = inventory;
             Challenge = challenge;
+            BlockStates = blockStates;
         }
     }
 

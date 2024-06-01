@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Factory.Extension;
 using Game.Block.Interface;
@@ -39,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             //TODo UP bletからの入力を受付?
             var beltParam = config.Param as BeltConveyorConfigParam;
-            
+
             var blockName = config.Name;
 
             var connectorComponent = config.CreateConnector(blockPositionInfo);
@@ -49,7 +48,7 @@ namespace Game.Block.Factory.BlockTemplate
                 beltComponent,
                 connectorComponent,
             };
-            
+
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
     }

@@ -18,8 +18,10 @@ namespace Game.Block.Interface
         ///     例えば、動いている機械が止まったなど
         ///     クライアント側で稼働アニメーションや稼働音を実行するときに使用します
         /// </summary>
-        public IObservable<ChangedBlockState> BlockStateChange { get; }
-        
+        public IObservable<BlockState> BlockStateChange { get; }
+
+        public BlockState GetBlockState();
+
         public string GetSaveState();
 
         public void Destroy();

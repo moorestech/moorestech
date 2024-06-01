@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -11,7 +10,6 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Tests.Module.TestMod;
-using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
