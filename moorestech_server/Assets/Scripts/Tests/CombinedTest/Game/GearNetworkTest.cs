@@ -260,10 +260,12 @@ namespace Tests.CombinedTest.Game
             var generatorPosition = new Vector3Int(0, 0, 0);
             var gearPosition1 = new Vector3Int(1, 0, 0);
             var gearPosition2 = new Vector3Int(2, 0, 0);
+            var gearPosition3 = new Vector3Int(3, 0, 0);
             
             // 2つのネットワークを作成
             AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
             AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
             Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークをマージ
