@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Context;
 using MessagePack;
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
             var machine = ServerContext.BlockFactory.Create(MachineBlockId, 5, machinePosInfo);
-            var machineComponent = machine.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var machineComponent = machine.ComponentManager.GetComponent<VanillaMachineBlockInventory>();
             machineComponent.SetItem(0, itemStackFactory.Create(1, 2));
             machineComponent.SetItem(2, itemStackFactory.Create(4, 5));
             

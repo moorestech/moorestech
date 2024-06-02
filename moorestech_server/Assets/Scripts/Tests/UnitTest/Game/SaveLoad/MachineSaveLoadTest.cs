@@ -46,14 +46,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //リフレクションで機械の状態を設定
             //機械のレシピの残り時間設定
-            var vanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaElectricMachineComponent)
+            var vanillaMachineRunProcess = (VanillaMachineProcessorComponent)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machineComponent);
-            typeof(VanillaMachineRunProcess)
+            typeof(VanillaMachineProcessorComponent)
                 .GetProperty("RemainingMillSecond")
                 .SetValue(vanillaMachineRunProcess, 300);
             //ステータスをセット
-            typeof(VanillaMachineRunProcess)
+            typeof(VanillaMachineProcessorComponent)
                 .GetProperty("CurrentState")
                 .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
             
@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             
             //機械のレシピの残り時間のチェック
-            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaElectricMachineComponent)
+            var loadVanillaMachineRunProcess = (VanillaMachineProcessorComponent)typeof(VanillaElectricMachineComponent)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             Assert.AreEqual(300, loadVanillaMachineRunProcess.RemainingMillSecond);

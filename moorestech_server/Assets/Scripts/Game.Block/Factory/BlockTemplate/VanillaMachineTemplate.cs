@@ -29,14 +29,17 @@ namespace Game.Block.Factory.BlockTemplate
             var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
             
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
-            var runProcess = new VanillaMachineRunProcess(input, output, emptyRecipe, machineParam.RequiredPower);
+            var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, machineParam.RequiredPower);
             
             var blockInventory = new VanillaMachineBlockInventory(input, output);
-            var machineSave = new VanillaMachineSave(input, output, runProcess);
-            var machineComponent = new VanillaElectricMachineComponent(entityId, blockInventory, machineSave, runProcess);
+            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+            var machineComponent = new VanillaElectricMachineComponent(entityId, processor);
             
             var components = new List<IBlockComponent>
             {
+                blockInventory,
+                machineSave,
+                processor,
                 machineComponent,
                 inputConnectorComponent
             };
@@ -52,8 +55,8 @@ namespace Game.Block.Factory.BlockTemplate
             var runProcess = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
             
             var blockInventory = new VanillaMachineBlockInventory(input, output);
-            var machineSave = new VanillaMachineSave(input, output, runProcess);
-            var machineComponent = new VanillaElectricMachineComponent(entityId, blockInventory, machineSave, runProcess);
+            var machineSave = new VanillaMachineSaveComponent(input, output, runProcess);
+            var machineComponent = new VanillaElectricMachineComponent(entityId, runProcess);
             
             var components = new List<IBlockComponent>
             {
