@@ -185,7 +185,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
                     
-                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectTargets.First();
+                    var connector = _blockConnectorComponent.ConnectTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
                     
                     
