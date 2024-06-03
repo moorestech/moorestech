@@ -6,7 +6,7 @@ using Game.Block.Interface.Component;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class VanillaGearBeltConveyorTest : IBlockTemplate
+    public class VanillaGearBeltConveyorTemplate : IBlockTemplate
     {
         public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
