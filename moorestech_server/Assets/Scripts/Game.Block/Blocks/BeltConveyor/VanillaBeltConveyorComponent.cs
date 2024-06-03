@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Core.Const;
@@ -7,6 +8,7 @@ using Core.Update;
 using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using UniRx;
@@ -27,7 +29,6 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly IDisposable _updateObservable;
         
         public readonly int InventoryItemNum;
-        public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
         public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
@@ -58,6 +59,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
             }
         }
+        public double TimeOfItemEnterToExit { get; private set; } //ベルトコンベアにアイテムが入って出るまでの時間
         
         public bool IsDestroy { get; private set; }
         
@@ -133,6 +135,11 @@ namespace Game.Block.Blocks.BeltConveyor
             return state.ToString();
         }
         
+        public void SetTimeOfItemEnterToExit(double time)
+        {
+            TimeOfItemEnterToExit = time;
+        }
+        
         
         /// <summary>
         ///     アイテムの搬出判定を行う
@@ -178,7 +185,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
                     
-                    var connector = _blockConnectorComponent.ConnectTargets.First();
+                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
                     
                     
