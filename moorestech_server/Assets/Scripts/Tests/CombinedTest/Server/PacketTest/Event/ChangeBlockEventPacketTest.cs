@@ -1,5 +1,6 @@
 using Core.Update;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -34,14 +35,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 3);
             var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 1);
             
-            var machineComponent = machine.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var blockInventory = machine.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
             
-            machineComponent.InsertItem(item1);
-            machineComponent.InsertItem(item2);
+            blockInventory.InsertItem(item1);
+            blockInventory.InsertItem(item2);
             
             
             //稼働用の電気を供給する
-            machineComponent.SupplyEnergy(100);
+            var electricMachineComponent = machine.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            electricMachineComponent.SupplyEnergy(100);
             
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));

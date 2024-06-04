@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             _requestPower = requestPower;
         }
         
-        public VanillaMachineRunProcess LoadVanillaMachineRunProcess(string loadString)
+        public VanillaMachineProcessorComponent LoadVanillaMachineRunProcess(string loadString)
         {
             var split = loadString.Split(',');
             
@@ -52,7 +52,7 @@ namespace Game.Block.Blocks.Machine.SaveLoad
             var recipeId = int.Parse(split[index]);
             var processingRecipeData = ServerContext.MachineRecipeConfig.GetRecipeData(recipeId);
             
-            return new VanillaMachineRunProcess(_vanillaMachineInputInventory, _vanillaMachineOutputInventory, state,
+            return new VanillaMachineProcessorComponent(_vanillaMachineInputInventory, _vanillaMachineOutputInventory, state,
                 remainingMillSecond, processingRecipeData, _requestPower);
         }
     }
