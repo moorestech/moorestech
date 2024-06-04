@@ -25,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
             
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
@@ -46,7 +46,7 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
             
             var runProcess = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);

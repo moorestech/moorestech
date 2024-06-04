@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var generatorParam = config.Param as PowerGeneratorConfigParam;
             var properties = new VanillaPowerGeneratorProperties(entityId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent);
@@ -32,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var generatorParam = config.Param as PowerGeneratorConfigParam;
             var properties = new VanillaPowerGeneratorProperties(entityId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent);

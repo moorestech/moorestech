@@ -24,7 +24,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var (requestPower, outputSlot) = GetData(config);
             
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var minerComponent = new VanillaElectricMinerComponent(config.BlockId, entityId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
             {
@@ -39,7 +39,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var (requestPower, outputSlot) = GetData(config);
             
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var minerComponent = new VanillaElectricMinerComponent(state, config.BlockId, entityId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
             {

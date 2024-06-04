@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             var chest = config.Param as ChestConfigParam;
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var chestComponent = new VanillaChestComponent(entityId, chest.ChestItemNum, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {
@@ -28,7 +28,7 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
         {
             var chest = config.Param as ChestConfigParam;
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var chestComponent = new VanillaChestComponent(state, entityId, chest.ChestItemNum, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {

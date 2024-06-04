@@ -22,7 +22,7 @@ namespace Game.Block.Factory.BlockTemplate
             var beltParam = config.Param as BeltConveyorConfigParam;
             var blockName = ServerContext.BlockConfig.GetBlockConfig(config.BlockHash).Name;
             
-            var connectorComponent = config.CreateConnector(blockPositionInfo);
+            var connectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
             var components = new List<IBlockComponent>
             {
@@ -40,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var blockName = config.Name;
             
-            var connectorComponent = config.CreateConnector(blockPositionInfo);
+            var connectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
             var components = new List<IBlockComponent>
             {
