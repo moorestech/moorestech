@@ -7,12 +7,12 @@ using Game.Context;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineBlockInventory : IOpenableBlockInventoryComponent
+    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         
-        public VanillaMachineBlockInventory(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
+        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;

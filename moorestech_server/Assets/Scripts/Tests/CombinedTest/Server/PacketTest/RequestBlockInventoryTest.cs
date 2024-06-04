@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
             var machine = ServerContext.BlockFactory.Create(MachineBlockId, 5, machinePosInfo);
-            var machineComponent = machine.ComponentManager.GetComponent<VanillaMachineBlockInventory>();
+            var machineComponent = machine.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
             machineComponent.SetItem(0, itemStackFactory.Create(1, 2));
             machineComponent.SetItem(2, itemStackFactory.Create(4, 5));
             
