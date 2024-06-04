@@ -5,7 +5,6 @@ using System.Reflection;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
-using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Context;
@@ -33,9 +32,9 @@ namespace Tests.CombinedTest.Core
             
             
             var block = blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var machineComponent = block.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var blockInventory = block.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.ItemInputs)
-                machineComponent.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
+                blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
             
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
@@ -43,18 +42,15 @@ namespace Tests.CombinedTest.Core
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //検証
-            var (input, output) = GetInputOutputSlot(machineComponent);
+            var (input, output) = GetInputOutputSlot(blockInventory);
             
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
             
             for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i], output[i]);
         }
         
-        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaElectricMachineComponent electricMachineComponent)
+        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
         {
-            var vanillaMachineInventory = (VanillaMachineBlockInventoryComponent)typeof(VanillaElectricMachineComponent)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(electricMachineComponent);
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachineInventory);

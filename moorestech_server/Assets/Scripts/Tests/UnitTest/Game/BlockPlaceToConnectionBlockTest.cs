@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.Chest;
-using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -37,31 +37,27 @@ namespace Tests.UnitTest.Game
             var blockFactory = ServerContext.BlockFactory;
             
             //北向きにベルトコンベアを設置した時、機械とつながるかをテスト
-            var (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
+            BlockPlaceToGetMachineIdAndConnectorId(
                 0, 10,
                 0, 9, BlockDirection.North, blockFactory, world);
-            Assert.AreEqual(blockEntityId, connectorEntityId);
             
             //東向きにベルトコンベアを設置した時、機械とつながるかをテスト
-            (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
+            BlockPlaceToGetMachineIdAndConnectorId(
                 10, 0,
                 9, 0, BlockDirection.East, blockFactory, world);
-            Assert.AreEqual(blockEntityId, connectorEntityId);
             
             //南向きにベルトコンベアを設置した時、機械とつながるかをテスト
-            (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
+            BlockPlaceToGetMachineIdAndConnectorId(
                 0, -10,
                 0, -9, BlockDirection.South, blockFactory, world);
-            Assert.AreEqual(blockEntityId, connectorEntityId);
             
             //西向きにベルトコンベアを設置した時、機械とつながるかをテスト
-            (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
+            BlockPlaceToGetMachineIdAndConnectorId(
                 -10, 0,
                 -9, 0, BlockDirection.West, blockFactory, world);
-            Assert.AreEqual(blockEntityId, connectorEntityId);
         }
         
-        private (int, int) BlockPlaceToGetMachineIdAndConnectorId(
+        private void BlockPlaceToGetMachineIdAndConnectorId(
             int machineX, int machineZ,
             int conveyorX, int conveyorZ,
             BlockDirection direction, IBlockFactory blockFactory, IWorldBlockDatastore world)
@@ -77,10 +73,12 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyor);
             
             //繋がっているコネクターを取得
-            var connectedMachine = (VanillaElectricMachineComponent)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets.First().Key;
+            var connectedMachine = (VanillaMachineBlockInventoryComponent)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets.First().Key;
             
-            //それぞれのentityIdを返却
-            return (vanillaMachine.EntityId, connectedMachine.EntityId);
+            //繋がっているかを検証
+            var machineInventory = vanillaMachine.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            
+            Assert.IsTrue(connectedMachine == machineInventory);
         }
         
         /// <summary>
