@@ -144,7 +144,56 @@
       },
       "param": {
         "slot": 3,
-        "time": 10000
+        "time": 10000,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -162,55 +211,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": -1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -367,7 +367,49 @@
         "z": 1
       },
       "param": {
-        "slot": 5
+        "slot": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -385,48 +427,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -508,7 +508,61 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500
+        "time": 2500,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -526,60 +580,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": -1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": 1
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -594,7 +594,46 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500
+        "time": 2500,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -612,45 +651,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": -1
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 1,
-                "z": 1
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -665,7 +665,46 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500
+        "time": 2500,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 1,
+                  "z": -1
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": 1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -683,45 +722,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 1,
-                "z": -1
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": -1,
-                "z": 1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -736,7 +736,56 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500
+        "time": 2500,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -754,55 +803,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": -1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -817,7 +817,56 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500
+        "time": 2500,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       },
       "modelTransform": {
         "position": {
@@ -835,55 +884,6 @@
           "y": 1,
           "z": 1
         }
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": -1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              }
-            ]
-          }
-        ]
       }
     },
     {
