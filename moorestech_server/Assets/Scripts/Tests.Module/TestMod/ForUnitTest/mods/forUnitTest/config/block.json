@@ -13,49 +13,49 @@
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
-        "requiredPower": 100
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "requiredPower": 100,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -82,56 +82,56 @@
       },
       "param": {
         "slot": 4,
-        "time": 2000
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "time": 2000,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": -1,
-                "z": -1
-              },
-              {
-                "x": 1,
                 "y": 0,
                 "z": 0
               },
-              {
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
                 "x": 0,
                 "y": 0,
-                "z": 1
-              }
-            ]
-          }
-        ]
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -176,49 +176,49 @@
             "time": 2000,
             "power": 200
           }
-        ]
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
         ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -240,49 +240,49 @@
             "itemModId": "Test Author:forUniTest",
             "itemName": "Test1"
           }
-        ]
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
         ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -296,49 +296,49 @@
         "z": 1
       },
       "param": {
-        "slot": 5
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "slot": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -355,49 +355,49 @@
         "isInfinityPower": true,
         "infinityPower": 10,
         "fuelSlot": 0,
-        "fuel": []
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "fuel": [],
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -414,49 +414,49 @@
         "isInfinityPower": true,
         "infinityPower": 10,
         "fuelSlot": 0,
-        "fuel": []
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "fuel": [],
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -473,39 +473,39 @@
         "isInfinityPower": true,
         "infinityPower": 10,
         "fuelSlot": 0,
-        "fuel": []
-      },
-      "inventoryConnectors": {
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 2,
-              "y": 0,
-              "z": 2
-            },
-            "directions": [
-              {
-                "x": 0,
+        "fuel": [],
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 2,
                 "y": 0,
-                "z": 1
-              }
-            ]
-          },
-          {
-            "offset": {
-              "x": 2,
-              "y": 0,
-              "z": 0
+                "z": 2
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
             },
-            "directions": [
-              {
-                "x": 0,
+            {
+              "offset": {
+                "x": 2,
                 "y": 0,
-                "z": -1
-              }
-            ]
-          }
-        ]
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
@@ -522,49 +522,49 @@
         "isInfinityPower": true,
         "infinityPower": 10,
         "fuelSlot": 0,
-        "fuel": []
-      },
-      "inventoryConnectors": {
-        "inputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            }
-          }
-        ],
-        "outputConnects": [
-          {
-            "offset": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "directions": [
-              {
+        "fuel": [],
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
                 "x": 0,
-                "y": 0,
-                "z": -1
-              },
-              {
-                "x": 0,
-                "y": 0,
-                "z": 1
-              },
-              {
-                "x": 1,
-                "y": 0,
-                "z": 0
-              },
-              {
-                "x": -1,
                 "y": 0,
                 "z": 0
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ]
+        }
       }
     },
     {
