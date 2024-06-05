@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -11,9 +12,9 @@ namespace Game.PlayerInventory
     public class BlockInventoryOpenStateDataStore : IBlockInventoryOpenStateDataStore
     {
         //key playerId, value block entity id
-        private readonly Dictionary<int, int> _openCoordinates = new();
+        private readonly Dictionary<int, EntityID> _openCoordinates = new();
         
-        public List<int> GetBlockInventoryOpenPlayers(int blockEntityId)
+        public List<int> GetBlockInventoryOpenPlayers(EntityID blockEntityId)
         {
             return _openCoordinates.Where(x => x.Value == blockEntityId).Select(x => x.Key).ToList();
         }
