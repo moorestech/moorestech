@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Game
             //存在する電柱の数の確認
             Assert.AreEqual(6, electricPoles.Count);
             //存在している電柱のIDの確認
-            for (var i = 0; i < 6; i++) Assert.AreEqual(i, electricPoles[new EntityID(i)].EntityId);
+            for (var i = 0; i < 6; i++) Assert.AreEqual(i, electricPoles[new EntityID(i)].EntityId.AsPrimitive());
             
             //存在しない電柱のIDの確認
             for (var i = 10; i < 13; i++) Assert.AreEqual(false, electricPoles.ContainsKey(new EntityID(i)));
@@ -68,8 +68,8 @@ namespace Tests.CombinedTest.Game
             //存在する電柱の数の確認
             Assert.AreEqual(8, electricPoles.Count);
             //マージされた電柱のIDの確認
-            Assert.AreEqual(10, electricPoles[new EntityID(10)].EntityId);
-            Assert.AreEqual(15, electricPoles[new EntityID(15)].EntityId);
+            Assert.AreEqual(10, electricPoles[new EntityID(10)].EntityId.AsPrimitive());
+            Assert.AreEqual(15, electricPoles[new EntityID(15)].EntityId.AsPrimitive());
         }
         
         //電柱を設置した後に機械、発電機を設置するテスト
@@ -110,10 +110,10 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(2, electricBlocks.Count);
             Assert.AreEqual(2, powerGeneratorBlocks.Count);
             //存在している機械のIDの確認
-            Assert.AreEqual(1, electricBlocks[new EntityID(1)].EntityId);
-            Assert.AreEqual(2, electricBlocks[new EntityID(2)].EntityId);
-            Assert.AreEqual(3, powerGeneratorBlocks[new EntityID(3)].EntityId);
-            Assert.AreEqual(4, powerGeneratorBlocks[new EntityID(4)].EntityId);
+            Assert.AreEqual(1, electricBlocks[new EntityID(1)].EntityId.AsPrimitive());
+            Assert.AreEqual(2, electricBlocks[new EntityID(2)].EntityId.AsPrimitive());
+            Assert.AreEqual(3, powerGeneratorBlocks[new EntityID(3)].EntityId.AsPrimitive());
+            Assert.AreEqual(4, powerGeneratorBlocks[new EntityID(4)].EntityId.AsPrimitive());
             
             //範囲外の機械、発電機が繋がるように電柱を設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, new EntityID(20), new BlockPositionInfo(new Vector3Int(3, 1), BlockDirection.North, Vector3Int.one)));
@@ -127,8 +127,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(3, electricBlocks.Count);
             Assert.AreEqual(3, powerGeneratorBlocks.Count);
             //追加されたIDの確認
-            Assert.AreEqual(10, electricBlocks[new EntityID(10)].EntityId);
-            Assert.AreEqual(12, powerGeneratorBlocks[new EntityID(12)].EntityId);
+            Assert.AreEqual(10, electricBlocks[new EntityID(10)].EntityId.AsPrimitive());
+            Assert.AreEqual(12, powerGeneratorBlocks[new EntityID(12)].EntityId.AsPrimitive());
         }
         
         //機械、発電機を設置した後に電柱を設置するテスト
@@ -172,10 +172,10 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(2, electricBlocks.Count);
             Assert.AreEqual(2, powerGeneratorBlocks.Count);
             //存在している機械のIDの確認
-            Assert.AreEqual(1, electricBlocks[new EntityID(1)].EntityId);
-            Assert.AreEqual(2, electricBlocks[new EntityID(2)].EntityId);
-            Assert.AreEqual(3, powerGeneratorBlocks[new EntityID(3)].EntityId);
-            Assert.AreEqual(4, powerGeneratorBlocks[new EntityID(4)].EntityId);
+            Assert.AreEqual(1, electricBlocks[new EntityID(1)].EntityId.AsPrimitive());
+            Assert.AreEqual(2, electricBlocks[new EntityID(2)].EntityId.AsPrimitive());
+            Assert.AreEqual(3, powerGeneratorBlocks[new EntityID(3)].EntityId.AsPrimitive());
+            Assert.AreEqual(4, powerGeneratorBlocks[new EntityID(4)].EntityId.AsPrimitive());
         }
         
         //別々のセグメント同士を電柱でつなぐテスト
