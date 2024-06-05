@@ -6,7 +6,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Context;
 using Game.Gear.Common;
-using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -348,17 +347,17 @@ namespace Tests.CombinedTest.Game
             var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
             
             var posInfo = new BlockPositionInfo(pos, direction, config.BlockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), posInfo);
+            var block = ServerContext.BlockFactory.Create(blockId, EntityID.Create(), posInfo);
             ServerContext.WorldBlockDatastore.AddBlock(block);
             return block;
         }
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
         {
-            var gear1Connector = gear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            BlockConnectorComponent<IGearEnergyTransformer> gear1Connector = gear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
             var gear1Transform = gear1.ComponentManager.GetComponent<IGearEnergyTransformer>();
             
-            var gear2Connector = gear2.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            BlockConnectorComponent<IGearEnergyTransformer> gear2Connector = gear2.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
             var gear2Transform = gear2.ComponentManager.GetComponent<IGearEnergyTransformer>();
             
             
