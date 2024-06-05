@@ -23,9 +23,9 @@ namespace Game.Block.Factory.BlockTemplate
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
             
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
@@ -41,15 +41,15 @@ namespace Game.Block.Factory.BlockTemplate
                 machineSave,
                 processor,
                 machineComponent,
-                inputConnectorComponent
+                inputConnectorComponent,
             };
             
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
             
             var processor = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
@@ -65,13 +65,13 @@ namespace Game.Block.Factory.BlockTemplate
                 machineSave,
                 processor,
                 machineComponent,
-                inputConnectorComponent
+                inputConnectorComponent,
             };
             
             return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
         }
         
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, EntityID entityId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
             
