@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Const;
 using Core.Inventory;
 using Core.Item.Interface;
@@ -13,12 +14,15 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.EnergySystem;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
     {
+        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+        
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         
@@ -28,7 +32,7 @@ namespace Game.Block.Blocks.PowerGenerator
         
         private readonly IDisposable _updateObservable;
         
-        private int _fuelItemId = ItemConst.EmptyItemId;
+        private int _currentFuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
         
         public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
@@ -47,18 +51,15 @@ namespace Game.Block.Blocks.PowerGenerator
         
         public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data, string state) : this(data)
         {
-            var split = state.Split(',');
-            _fuelItemId = int.Parse(split[0]);
-            _remainingFuelTime = double.Parse(split[1]);
+            var saveData = JsonConvert.DeserializeObject<VanillaElectricGeneratorSaveJsonObject>(state);
             
-            var slot = 0;
-            for (var i = 2; i < split.Length; i += 2)
+            var itemId = ServerContext.ItemConfig.GetItemId(saveData.CurrentFuelItemHash);
+            _currentFuelItemId = itemId;
+            _remainingFuelTime = saveData.RemainingFuelTime;
+            
+            for (int i = 0; i < saveData.Items.Count; i++)
             {
-                var itemHash = long.Parse(split[i]);
-                var count = int.Parse(split[i + 1]);
-                var item = ServerContext.ItemStackFactory.Create(itemHash, count);
-                _itemDataStoreService.SetItem(slot, item);
-                slot++;
+                _itemDataStoreService.SetItem(i, saveData.Items[i].ToItem());
             }
         }
         
@@ -96,13 +97,14 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
-            //フォーマット
-            //_fuelItemId,_remainingFuelTime,_fuelItemId1,_fuelItemCount1,_fuelItemId2,_fuelItemCount2,_fuelItemId3,_fuelItemCount3...
-            var saveState = $"{_fuelItemId},{_remainingFuelTime}";
-            foreach (var itemStack in _itemDataStoreService.Inventory)
-                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
+            var saveData = new VanillaElectricGeneratorSaveJsonObject
+            {
+                CurrentFuelItemHash = _currentFuelItemId,
+                RemainingFuelTime = _remainingFuelTime,
+                Items = _itemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
+            };
             
-            return saveState;
+            return JsonConvert.SerializeObject(saveData);
         }
         
         public EntityID EntityId { get; }
@@ -114,7 +116,7 @@ namespace Game.Block.Blocks.PowerGenerator
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
             if (_isInfinityPower) return _infinityPower;
-            if (_fuelSettings.TryGetValue(_fuelItemId, out var fuelSetting)) return fuelSetting.Power;
+            if (_fuelSettings.TryGetValue(_currentFuelItemId, out var fuelSetting)) return fuelSetting.Power;
             
             return 0;
         }
@@ -125,8 +127,6 @@ namespace Game.Block.Blocks.PowerGenerator
             _updateObservable.Dispose();
         }
         
-        
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
@@ -177,12 +177,12 @@ namespace Game.Block.Blocks.PowerGenerator
             
             //現在燃料を消費しているか判定
             //燃料が在る場合は燃料残り時間をUpdate時間分減らす
-            if (_fuelItemId != ItemConst.EmptyItemId)
+            if (_currentFuelItemId != ItemConst.EmptyItemId)
             {
                 _remainingFuelTime -= GameUpdater.UpdateMillSecondTime;
                 
                 //残り時間が0以下の時は燃料の設定をNullItemIdにする
-                if (_remainingFuelTime <= 0) _fuelItemId = ItemConst.EmptyItemId;
+                if (_remainingFuelTime <= 0) _currentFuelItemId = ItemConst.EmptyItemId;
                 
                 return;
             }
@@ -196,7 +196,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
-                _fuelItemId = _fuelSettings[slotItemId].ItemId;
+                _currentFuelItemId = _fuelSettings[slotItemId].ItemId;
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす
@@ -213,5 +213,17 @@ namespace Game.Block.Blocks.PowerGenerator
             var properties = new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
+    }
+    
+    public class VanillaElectricGeneratorSaveJsonObject
+    {
+        [JsonProperty("currentFuelItemHash")]
+        public long CurrentFuelItemHash;
+        
+        [JsonProperty("remainingFuelTime")]
+        public double RemainingFuelTime;
+        
+        [JsonProperty("inventory")]
+        public List<ItemStackJsonObject> Items;
     }
 }
