@@ -18,6 +18,7 @@ using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
 using MessagePack;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Miner
@@ -80,20 +81,12 @@ namespace Game.Block.Blocks.Miner
         public VanillaElectricMinerComponent(string saveData, int blockId, EntityID entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
             : this(blockId, entityId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
-            //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
-            var split = saveData.Split(',');
-            _remainingMillSecond = int.Parse(split[0]);
-            var inventoryItems = new List<IItemStack>();
-            for (var i = 1; i < split.Length; i += 2)
+            var items = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
+            for (var i = 0; i < items.Count; i++)
             {
-                var itemHash = long.Parse(split[i]);
-                var itemCount = int.Parse(split[i + 1]);
-                var item = ServerContext.ItemStackFactory.Create(itemHash, itemCount);
-                inventoryItems.Add(item);
+                var itemStack = items[i].ToItem();
+                _openableInventoryItemDataStoreService.SetItem(i, itemStack);
             }
-            
-            for (var i = 0; i < inventoryItems.Count; i++)
-                _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
         }
         
         public IItemStack GetItem(int slot)
@@ -121,12 +114,13 @@ namespace Game.Block.Blocks.Miner
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
-            //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
-            var saveState = $"{_remainingMillSecond}";
-            foreach (var itemStack in _openableInventoryItemDataStoreService.Items)
-                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
+            var result = new List<ItemStackJsonObject>();
+            foreach (var item in _openableInventoryItemDataStoreService.Inventory)
+            {
+                result.Add(new ItemStackJsonObject(item));
+            }
             
-            return saveState;
+            return JsonConvert.SerializeObject(result); 
         }
         
         public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
