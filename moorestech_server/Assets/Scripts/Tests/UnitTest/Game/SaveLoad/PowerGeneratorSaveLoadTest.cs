@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //検証元の発電機を作成
             var type = typeof(VanillaElectricGeneratorComponent);
-            type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+            type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, fuelItemId);
             type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, remainingFuelTime);
@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedPowerGeneratorBlock = blockFactory.Load(blockHash, new EntityID(10), saveText, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             //発電機を再作成した結果を検証
-            var loadedFuelItemId = (int)type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadedFuelItemId = (int)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
             Assert.AreEqual(fuelItemId, loadedFuelItemId);
             

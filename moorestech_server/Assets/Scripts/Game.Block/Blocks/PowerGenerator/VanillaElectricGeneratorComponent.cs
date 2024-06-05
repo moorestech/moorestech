@@ -97,9 +97,10 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
+            var itemHash = ServerContext.ItemConfig.GetItemConfig(_currentFuelItemId).ItemHash;
             var saveData = new VanillaElectricGeneratorSaveJsonObject
             {
-                CurrentFuelItemHash = _currentFuelItemId,
+                CurrentFuelItemHash = itemHash,
                 RemainingFuelTime = _remainingFuelTime,
                 Items = _itemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
             };
