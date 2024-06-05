@@ -14,6 +14,7 @@
     "com.unity.render-pipelines.universal": "14.0.10",
     "com.unity.test-framework": "1.1.33",
     "com.unity.textmeshpro": "3.0.6",
+    "com.unity.toolchain.macos-arm64-linux-x86_64": "2.0.3",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualscripting": "1.9.1",
     "com.vrmc.gltf": "https://github.com/vrm-c/UniVRM.git?path=/Assets/UniGLTF#v0.99.0",
