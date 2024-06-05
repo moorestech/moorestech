@@ -12,8 +12,6 @@ namespace Game.Block.Blocks.Machine
 {
     /// <summary>
     ///     機械を表すクラス
-    ///     具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
-    ///     TODO この処理周辺のコンポーネントの分離をいい感じにする
     /// </summary>
     public class VanillaElectricMachineComponent : IElectricConsumer
     {
