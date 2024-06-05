@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //削除するためのブロックの生成
             worldBlock.AddBlock(block);
             
-            Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0, 0)).EntityId);
+            Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0, 0)).EntityId.AsPrimitive());
             
             //プレイヤーインベントリに削除したブロックを追加
             
