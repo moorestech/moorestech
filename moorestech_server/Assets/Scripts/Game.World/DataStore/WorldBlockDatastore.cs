@@ -125,7 +125,7 @@ namespace Game.World.DataStore
                 list.Add(new BlockJsonObject(
                     block.Value.BlockPositionInfo.OriginalPos,
                     block.Value.Block.BlockHash,
-                    block.Value.Block.EntityId,
+                    block.Value.Block.EntityId.AsPrimitive(),
                     block.Value.Block.GetSaveState(),
                     (int)block.Value.BlockPositionInfo.BlockDirection));
             
@@ -142,7 +142,8 @@ namespace Game.World.DataStore
                 var direction = (BlockDirection)blockSave.Direction;
                 var size = ServerContext.BlockConfig.GetBlockConfig(blockSave.BlockHash).BlockSize;
                 var blockData = new BlockPositionInfo(pos, direction, size);
-                var block = blockFactory.Load(blockSave.BlockHash, blockSave.EntityId, blockSave.State, blockData);
+                Debug.Log($"BlockLoad {blockSave.EntityId}");
+                var block = blockFactory.Load(blockSave.BlockHash, new EntityID(blockSave.EntityId), blockSave.State, blockData);
                 
                 AddBlock(block);
             }
