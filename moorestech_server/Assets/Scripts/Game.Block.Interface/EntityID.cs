@@ -3,7 +3,7 @@ using UnitGenerator;
 
 namespace Game.Block.Interface
 {
-    [UnitOf(typeof(int))]
+    [UnitOf(typeof(int), UnitGenerateOptions.MessagePackFormatter | UnitGenerateOptions.Comparable)]
     public readonly partial struct EntityID
     {
         private static readonly Random Random = new(130851);
