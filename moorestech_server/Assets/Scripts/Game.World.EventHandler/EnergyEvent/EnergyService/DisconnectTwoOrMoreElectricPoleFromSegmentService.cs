@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
 
@@ -38,9 +39,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                     GetElectricPoles(
                         connectedElectricPoles[0],
                         removedElectricPole,
-                        new Dictionary<int, IElectricTransformer>(),
-                        new Dictionary<int, IElectricConsumer>(),
-                        new Dictionary<int, IElectricGenerator>(), container);
+                        new Dictionary<EntityID, IElectricTransformer>(),
+                        new Dictionary<EntityID, IElectricConsumer>(),
+                        new Dictionary<EntityID, IElectricGenerator>(), container);
                 
                 
                 //新しいセグメントに電柱、ブロック、発電機を追加する
@@ -58,14 +59,14 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         }
         
         //再帰的に電柱を探索する 
-        private static (Dictionary<int, IElectricTransformer>, Dictionary<int, IElectricConsumer>,
-            Dictionary<int, IElectricGenerator>)
+        private static (Dictionary<EntityID, IElectricTransformer>, Dictionary<EntityID, IElectricConsumer>,
+            Dictionary<EntityID, IElectricGenerator>)
             GetElectricPoles(
                 IElectricTransformer electricPole,
                 IElectricTransformer removedElectricPole,
-                Dictionary<int, IElectricTransformer> electricPoles,
-                Dictionary<int, IElectricConsumer> blockElectrics,
-                Dictionary<int, IElectricGenerator> powerGenerators,
+                Dictionary<EntityID, IElectricTransformer> electricPoles,
+                Dictionary<EntityID, IElectricConsumer> blockElectrics,
+                Dictionary<EntityID, IElectricGenerator> powerGenerators,
                 EnergyServiceDependencyContainer<TSegment> container)
         {
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
