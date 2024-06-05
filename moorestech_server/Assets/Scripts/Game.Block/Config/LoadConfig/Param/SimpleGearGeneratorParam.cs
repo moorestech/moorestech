@@ -27,7 +27,7 @@ namespace Game.Block.Config.LoadConfig.Param
             float generateRpm = blockParam.generateRpm;
             float generateTorque = blockParam.generateTorque;
             
-            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
+            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, GearConnectConst.GearConnectOptionKey, GearConnectOptionLoader.Loader);
             
             return new SimpleGearGeneratorParam(teethCount, generateRpm, generateTorque, gearConnectSettings);
         }

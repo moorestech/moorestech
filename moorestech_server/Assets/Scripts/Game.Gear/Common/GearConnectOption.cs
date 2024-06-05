@@ -14,7 +14,6 @@ namespace Game.Gear.Common
     
     public class GearConnectOptionLoader : IConnectOptionLoader
     {
-        public const string GearConnectOptionKey = "gearConnects";
         public static readonly GearConnectOptionLoader Loader = new();
         
         public IConnectOption Load(dynamic connectorOption)
