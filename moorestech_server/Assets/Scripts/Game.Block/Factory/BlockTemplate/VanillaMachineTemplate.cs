@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
-using Game.Block.Blocks.Machine.SaveLoad;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Newtonsoft.Json;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -49,15 +50,14 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(string state, BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
         {
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
             
-            var processor = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
+            var processor = LoadState(state, input, output, machineParam.RequiredPower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             var machineComponent = new VanillaElectricMachineComponent(entityId, processor);
-            
             
             var components = new List<IBlockComponent>
             {
@@ -84,6 +84,39 @@ namespace Game.Block.Factory.BlockTemplate
                 machineParam.InputSlot, blockConnectorComponent);
             
             return (input, output, machineParam);
+        }
+        
+        private VanillaMachineProcessorComponent LoadState(
+            string state,
+            VanillaMachineInputInventory vanillaMachineInputInventory,
+            VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            int requestPower)
+        {
+            var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
+            
+            var inputItems = jsonObject.InputSlot.Select(item => item.ToItem()).ToList();
+            for (int i = 0; i < inputItems.Count; i++)
+            {
+                vanillaMachineInputInventory.SetItem(i, inputItems[i]);
+            }
+            
+            var outputItems = jsonObject.OutputSlot.Select(item => item.ToItem()).ToList();
+            for (int i = 0; i < outputItems.Count; i++)
+            {
+                vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
+            }
+            
+            var recipe = ServerContext.MachineRecipeConfig.GetRecipeData(jsonObject.RecipeId);
+            
+            var processor = new VanillaMachineProcessorComponent(
+                vanillaMachineInputInventory,
+                vanillaMachineOutputInventory,
+                (ProcessState)jsonObject.State,
+                jsonObject.RemainingTime,
+                recipe,
+                requestPower);
+            
+            return processor;
         }
     }
 }
