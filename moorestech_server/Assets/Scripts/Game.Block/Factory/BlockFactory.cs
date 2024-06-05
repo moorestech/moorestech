@@ -29,8 +29,8 @@ namespace Game.Block.Factory
         public IBlock Load(long blockHash, EntityID entityId, string state, BlockPositionInfo blockPositionInfo)
         {
             var config = _blockConfig.GetBlockConfig(blockHash);
-            if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].Load(state, config, entityId, blockPositionInfo);
+            if (_blockTypesDictionary.TryGetValue(config.Type, out var value))
+                return value.Load(state, config, entityId, blockPositionInfo);
             
             throw new Exception("Block type not found :" + config.Type);
         }
