@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Core.Update;
+using Game.Block.Interface;
 using UniRx;
 
 namespace Game.EnergySystem
@@ -9,20 +10,20 @@ namespace Game.EnergySystem
     /// </summary>
     public class EnergySegment
     {
-        private readonly Dictionary<int, IElectricConsumer> _consumers = new();
-        private readonly Dictionary<int, IElectricTransformer> _energyTransformers = new();
-        private readonly Dictionary<int, IElectricGenerator> _generators = new();
+        private readonly Dictionary<EntityID, IElectricConsumer> _consumers = new();
+        private readonly Dictionary<EntityID, IElectricTransformer> _energyTransformers = new();
+        private readonly Dictionary<EntityID, IElectricGenerator> _generators = new();
         
         public EnergySegment()
         {
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public IReadOnlyDictionary<int, IElectricConsumer> Consumers => _consumers;
+        public IReadOnlyDictionary<EntityID, IElectricConsumer> Consumers => _consumers;
         
-        public IReadOnlyDictionary<int, IElectricGenerator> Generators => _generators;
+        public IReadOnlyDictionary<EntityID, IElectricGenerator> Generators => _generators;
         
-        public IReadOnlyDictionary<int, IElectricTransformer> EnergyTransformers => _energyTransformers;
+        public IReadOnlyDictionary<EntityID, IElectricTransformer> EnergyTransformers => _energyTransformers;
         
         private void Update()
         {
