@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.Chest
         
         private readonly IDisposable _updateObservable;
         
-        public VanillaChestComponent(int entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaChestComponent(EntityID entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             EntityId = entityId;
             
@@ -32,7 +32,7 @@ namespace Game.Block.Blocks.Chest
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public VanillaChestComponent(string saveData, int entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
+        public VanillaChestComponent(string saveData, EntityID entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
             this(entityId, slotNum, blockConnectorComponent)
         {
             var split = saveData.Split(',');
@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.Chest
             }
         }
         
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         public bool IsDestroy { get; private set; }
         
         public void SetItem(int slot, IItemStack itemStack)
