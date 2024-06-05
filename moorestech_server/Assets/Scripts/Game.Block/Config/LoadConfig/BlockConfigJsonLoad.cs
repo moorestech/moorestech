@@ -101,11 +101,11 @@ namespace Game.Block.Config.LoadConfig
                 
                 var inputConnector = new List<ConnectSettings>();
                 var outputConnector = new List<ConnectSettings>();
-                var inventorySlots = block.inventoryConnectors;
+                var inventorySlots = block.param.inventoryConnectors;
                 if (inventorySlots != null)
                 {
-                    inputConnector = GetConnectSettings(inventorySlots, "inputConnects");
-                    outputConnector = GetConnectSettings(inventorySlots, "outputConnects");
+                    inputConnector = GetConnectSettings(inventorySlots, InventoryConnectConst.InputConnects);
+                    outputConnector = GetConnectSettings(inventorySlots, InventoryConnectConst.OutputConnects);
                 }
                 
                 blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform, blockSize, inputConnector, outputConnector));
