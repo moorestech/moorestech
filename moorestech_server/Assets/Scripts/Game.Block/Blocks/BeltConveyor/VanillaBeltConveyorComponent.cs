@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Core.Const;
@@ -9,6 +10,7 @@ using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -47,15 +49,14 @@ namespace Game.Block.Blocks.BeltConveyor
             //stateから復元
             //データがないときは何もしない
             if (state == string.Empty) return;
-            var stateList = state.Split(',');
-            for (var i = 0; i < _inventoryItems.Length; i++)
+            
+            var items = JsonConvert.DeserializeObject<List<BeltConveyorItemJsonObject>>(state);
+            for (var i = 0; i < items.Count; i++)
             {
-                var saveIndex = i * 2;
-                var id = int.Parse(stateList[saveIndex]);
-                var remainTime = double.Parse(stateList[saveIndex + 1]);
-                if (id == -1) continue;
+                if (items[i].ItemStack == null) continue;
                 
-                _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
+                var itemStack = items[i].ItemStack.ToItem();
+                _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, items[i].RemainingTime, itemStack.ItemInstanceId);
             }
         }
         
@@ -112,25 +113,13 @@ namespace Game.Block.Blocks.BeltConveyor
             
             if (_inventoryItems.Length == 0) return string.Empty;
             
-            //stateの定義 ItemId,RemainingTime,LimitTime,InstanceId...
-            var state = new StringBuilder();
+            var saveItems = new List<BeltConveyorItemJsonObject>();
             foreach (var t in _inventoryItems)
             {
-                if (t == null)
-                {
-                    state.Append("-1,-1,");
-                    continue;
-                }
-                
-                state.Append(t.ItemId);
-                state.Append(',');
-                state.Append(t.RemainingTime);
-                state.Append(',');
+                saveItems.Add(new BeltConveyorItemJsonObject(t));
             }
             
-            //最後のカンマを削除
-            state.Remove(state.Length - 1, 1);
-            return state.ToString();
+            return JsonConvert.SerializeObject(saveItems);
         }
         
         
@@ -197,6 +186,29 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             return _inventoryItems[index];
+        }
+    }
+    
+    public class BeltConveyorItemJsonObject
+    {
+        [JsonProperty("itemStack")]
+        public ItemStackJsonObject ItemStack;
+        
+        [JsonProperty("remainingTime")]
+        public double RemainingTime;
+        
+        public BeltConveyorItemJsonObject(BeltConveyorInventoryItem beltConveyorInventoryItem)
+        {
+            if (beltConveyorInventoryItem == null)
+            {
+                ItemStack = null;
+                RemainingTime = 0;
+                return;
+            }
+            
+            var item = ServerContext.ItemStackFactory.Create(beltConveyorInventoryItem.ItemId, 1);
+            ItemStack = new ItemStackJsonObject(item);
+            RemainingTime = beltConveyorInventoryItem.RemainingTime;
         }
     }
 }
