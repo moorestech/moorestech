@@ -1,4 +1,5 @@
 using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 
@@ -6,7 +7,7 @@ namespace Game.Block.Blocks.Gear
 {
     public class SimpleGearGeneratorComponent : GearEnergyTransformer, IGearGenerator
     {
-        public SimpleGearGeneratorComponent(SimpleGearGeneratorParam configParam, int entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
+        public SimpleGearGeneratorComponent(SimpleGearGeneratorParam configParam, EntityID entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             base(0, entityId, connectorComponent)
         {
             TeethCount = configParam.TeethCount;
