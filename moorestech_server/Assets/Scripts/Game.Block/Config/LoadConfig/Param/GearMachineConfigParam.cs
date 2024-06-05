@@ -10,8 +10,10 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int InputSlot;
         public readonly int OutputSlot;
         
+        public float RequiredPower => RequiredRpm * RequiredTorque;
         public readonly int RequiredRpm;
         public readonly float RequiredTorque;
+        
         public readonly int TeethCount;
         
         
