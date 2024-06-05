@@ -141,7 +141,7 @@ namespace Tests.CombinedTest.Server
             var itemsStackFactory = ServerContext.ItemStackFactory;
             var worldDataStore = ServerContext.WorldBlockDatastore;
             
-            var belt2 = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1,
+            var belt2 = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new EntityID(1),
                 new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one));
             //二つのベルトコンベアを繋がるように設置
             worldDataStore.AddBlock(belt2);
@@ -164,7 +164,7 @@ namespace Tests.CombinedTest.Server
         
         private IBlock CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection)
         {
-            var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1,
+            var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new EntityID(1),
                 new BlockPositionInfo(pos, blockDirection, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
             
