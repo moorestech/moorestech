@@ -6,6 +6,7 @@ using Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Event;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
@@ -17,13 +18,13 @@ namespace Game.Block.Blocks.Machine.Inventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
-        private readonly int _entityId;
+        private readonly EntityID _entityId;
         
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
         public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, EntityID entityId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;

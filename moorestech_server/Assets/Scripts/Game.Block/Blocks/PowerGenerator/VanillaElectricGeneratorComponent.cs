@@ -105,7 +105,7 @@ namespace Game.Block.Blocks.PowerGenerator
             return saveState;
         }
         
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         
         public bool IsDestroy { get; private set; }
         

@@ -1,6 +1,5 @@
 using Game.Block.Interface;
 using Game.Context;
-using Game.World.Interface.Util;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -20,7 +19,7 @@ namespace Tests.UnitTest.Game
             var random = new Random(131513);
             for (var i = 0; i < 10; i++)
             {
-                var entityId = CreateBlockEntityId.Create();
+                var entityId = EntityID.Create();
                 
                 var x = random.Next(-1000, 1000);
                 var z = random.Next(-1000, 1000);
@@ -41,7 +40,7 @@ namespace Tests.UnitTest.Game
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = ServerContext.WorldBlockDatastore;
             
-            var entityId = CreateBlockEntityId.Create();
+            var entityId = EntityID.Create();
             
             var block = CreateMachine(entityId, new Vector3Int(1, 1), BlockDirection.North);
             worldData.AddBlock(block);
@@ -58,15 +57,15 @@ namespace Tests.UnitTest.Game
             
             var worldData = ServerContext.WorldBlockDatastore;
             
-            var block = CreateMachine(CreateBlockEntityId.Create(), new Vector3Int(1, 1), BlockDirection.North);
+            var block = CreateMachine(EntityID.Create(), new Vector3Int(1, 1), BlockDirection.North);
             worldData.AddBlock(block);
             
             //座標だけ変えてintIDは同じ
-            var block2 = CreateMachine(CreateBlockEntityId.Create(), new Vector3Int(1, 1), BlockDirection.North);
+            var block2 = CreateMachine(EntityID.Create(), new Vector3Int(1, 1), BlockDirection.North);
             Assert.False(worldData.AddBlock(block2));
         }
         
-        private IBlock CreateMachine(int entityId, Vector3Int pos, BlockDirection direction)
+        private IBlock CreateMachine(EntityID entityId, Vector3Int pos, BlockDirection direction)
         {
             var posInfo = new BlockPositionInfo(pos, direction, Vector3Int.one);
             var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, entityId, posInfo);

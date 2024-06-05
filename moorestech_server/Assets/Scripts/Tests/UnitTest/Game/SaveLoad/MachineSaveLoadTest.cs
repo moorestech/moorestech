@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             GameUpdater.ResetUpdate();
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var machineBlock = blockFactory.Create(1, 10, machinePosInfo);
+            var machineBlock = blockFactory.Create(1, new EntityID(10), machinePosInfo);
             var machineInventory = machineBlock.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
             worldBlockDatastore.AddBlock(machineBlock);
             

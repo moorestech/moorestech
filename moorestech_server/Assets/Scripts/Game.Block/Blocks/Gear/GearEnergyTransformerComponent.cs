@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
@@ -12,7 +13,7 @@ namespace Game.Block.Blocks.Gear
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _simpleGearService;
         
-        public GearEnergyTransformer(float lossPower, int entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+        public GearEnergyTransformer(float lossPower, EntityID entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             RequiredPower = lossPower;
             EntityId = entityId;
@@ -29,7 +30,7 @@ namespace Game.Block.Blocks.Gear
             return _simpleGearService.GetBlockState();
         }
         
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         public float CurrentRpm => _simpleGearService.CurrentRpm;
         public float CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;

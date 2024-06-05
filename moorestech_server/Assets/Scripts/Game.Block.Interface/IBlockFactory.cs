@@ -2,7 +2,7 @@
 {
     public interface IBlockFactory
     {
-        public IBlock Create(int blockId, int entityId, BlockPositionInfo blockPositionInfo);
-        public IBlock Load(long blockHash, int entityId, string state, BlockPositionInfo blockPositionInfo);
+        public IBlock Create(int blockId, EntityID entityId, BlockPositionInfo blockPositionInfo);
+        public IBlock Load(long blockHash, EntityID entityId, string state, BlockPositionInfo blockPositionInfo);
     }
 }

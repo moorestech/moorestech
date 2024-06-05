@@ -23,13 +23,13 @@ namespace Tests.CombinedTest.Game
             var blockFactory = ServerContext.BlockFactory;
             
             var inputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 0), BlockDirection.North, Vector3Int.one);
-            var inputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, 1, inputChestPosInfo);
+            var inputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new EntityID(1), inputChestPosInfo);
             
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 2, beltPosInfo);
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new EntityID(2), beltPosInfo);
             
             var outputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 2), BlockDirection.North, Vector3Int.one);
-            var outputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, 3, outputChestPosInfo);
+            var outputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new EntityID(3), outputChestPosInfo);
             
             //それぞれを設置
             worldBlockDatastore.AddBlock(inputChest);

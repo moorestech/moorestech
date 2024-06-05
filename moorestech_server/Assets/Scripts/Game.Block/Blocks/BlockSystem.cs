@@ -17,7 +17,7 @@ namespace Game.Block.Blocks
         private readonly Subject<BlockState> _onBlockStateChange = new();
         
         
-        public BlockSystem(int entityId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
+        public BlockSystem(EntityID entityId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
         {
             EntityId = entityId;
             BlockPositionInfo = blockPositionInfo;
@@ -30,7 +30,7 @@ namespace Game.Block.Blocks
             _blockStateChange?.OnChangeBlockState.Subscribe(state => { _onBlockStateChange.OnNext(state); });
         }
         
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         public int BlockId => BlockConfigData.BlockId;
         public long BlockHash => BlockConfigData.BlockHash;
         public BlockConfigData BlockConfigData { get; }

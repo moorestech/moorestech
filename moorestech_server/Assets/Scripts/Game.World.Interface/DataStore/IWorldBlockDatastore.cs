@@ -9,16 +9,16 @@ namespace Game.World.Interface.DataStore
 {
     public interface IWorldBlockDatastore
     {
-        public IReadOnlyDictionary<int, WorldBlockData> BlockMasterDictionary { get; }
+        public IReadOnlyDictionary<EntityID, WorldBlockData> BlockMasterDictionary { get; }
         
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
         
         public bool AddBlock(IBlock block);
         public bool RemoveBlock(Vector3Int pos);
         public IBlock GetBlock(Vector3Int pos);
-        public IBlock GetBlock(int entityId);
+        public IBlock GetBlock(EntityID entityId);
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);
-        public Vector3Int GetBlockPosition(int entityId);
+        public Vector3Int GetBlockPosition(EntityID entityId);
         public BlockDirection GetBlockDirection(Vector3Int pos);
         public List<BlockJsonObject> GetSaveJsonObject();
         public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList);

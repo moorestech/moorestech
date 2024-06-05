@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
+using Game.Block.Interface;
 using UniRx;
 using Random = System.Random;
 
@@ -10,14 +11,14 @@ namespace Game.Gear.Common
     {
         private static GearNetworkDatastore _instance;
         
-        private readonly Dictionary<int, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
+        private readonly Dictionary<EntityID, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
         private readonly Dictionary<GearNetworkId, GearNetwork> _gearNetworks = new();
         private readonly Random _random = new(215180);
         
         public GearNetworkDatastore()
         {
             _instance = this;
-            _blockEntityToGearNetwork = new Dictionary<int, GearNetwork>();
+            _blockEntityToGearNetwork = new Dictionary<EntityID, GearNetwork>();
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         

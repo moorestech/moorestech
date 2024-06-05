@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 
 namespace Game.Gear.Common
@@ -8,7 +9,7 @@ namespace Game.Gear.Common
         public const string WorkingStateName = "Working";
         public const string RockedStateName = "Rocked";
         
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         public float RequiredPower { get; }
         
         public bool IsRocked { get; }

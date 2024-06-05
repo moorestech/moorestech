@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -26,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //機械のブロックを作る
             var posInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
-            var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, 1, posInfo);
+            var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, new EntityID(1), posInfo);
             //機械のブロックを配置
             ServerContext.WorldBlockDatastore.AddBlock(machine);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ステートが実行中になっているかをチェック
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            List<List<byte>> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var payLoad = eventMessagePack.Events[0].Payload;
             

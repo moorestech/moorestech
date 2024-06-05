@@ -16,6 +16,7 @@ using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Map.Interface.Vein;
 using MessagePack;
 using UniRx;
 
@@ -26,6 +27,7 @@ namespace Game.Block.Blocks.Miner
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
+        private readonly List<IItemStack> _miningItems = new();
         
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
         
@@ -37,10 +39,9 @@ namespace Game.Block.Blocks.Miner
         private int _defaultMiningTime = int.MaxValue;
         
         private VanillaMinerState _lastMinerState;
-        private readonly List<IItemStack> _miningItems = new();
         private int _remainingMillSecond = int.MaxValue;
         
-        public VanillaElectricMinerComponent(int blockId, int entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(int blockId, EntityID entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
             EntityId = entityId;
             RequestEnergy = requestPower;
@@ -59,7 +60,7 @@ namespace Game.Block.Blocks.Miner
             
             void SetMiningItem()
             {
-                var veins = ServerContext.MapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
+                List<IMapVein> veins = ServerContext.MapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
                 
@@ -76,7 +77,7 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaElectricMinerComponent(string saveData, int blockId, int entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(string saveData, int blockId, EntityID entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
             : this(blockId, entityId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
@@ -138,7 +139,7 @@ namespace Game.Block.Blocks.Miner
             return state;
         }
         
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         public bool IsDestroy { get; private set; }
         
         public int RequestEnergy { get; }
@@ -308,7 +309,7 @@ namespace Game.Block.Blocks.Miner
     public enum VanillaMinerState
     {
         Idle,
-        Mining
+        Mining,
     }
     
     public static class VanillaMinerBlockStateConst
@@ -329,7 +330,7 @@ namespace Game.Block.Blocks.Miner
             {
                 VanillaMinerState.Idle => VanillaMinerBlockStateConst.IdleState,
                 VanillaMinerState.Mining => VanillaMinerBlockStateConst.MiningState,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
     }
