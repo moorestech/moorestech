@@ -6,7 +6,7 @@ namespace Game.Block.Interface
 {
     public interface IBlock : IEquatable<IBlock>
     {
-        public int EntityId { get; }
+        public EntityID EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
         public BlockConfigData BlockConfigData { get; }
