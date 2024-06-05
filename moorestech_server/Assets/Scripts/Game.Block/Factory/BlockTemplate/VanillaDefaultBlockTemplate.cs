@@ -8,12 +8,12 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaDefaultBlock : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
         {
             return new BlockSystem(entityId, config.BlockId, new List<IBlockComponent>(), blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
         {
             return new BlockSystem(entityId, config.BlockId, new List<IBlockComponent>(), blockPositionInfo);
         }
