@@ -8,6 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Gear.Common;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -18,20 +19,25 @@ namespace Game.Block.Factory.BlockTemplate
             var gearBeltConveyorConfigParam = config.Param as GearBeltConveyorConfigParam;
             var blockName = ServerContext.BlockConfig.GetBlockConfig(config.BlockHash).Name;
             
-            BlockConnectorComponent<IBlockInventory> connector = config.CreateConnector(blockPositionInfo);
+            var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
+                gearBeltConveyorConfigParam!.GearConnectSettings,
+                gearBeltConveyorConfigParam!.GearConnectSettings,
+                blockPositionInfo
+            );
             var vanillaBeltConveyorComponent = new VanillaBeltConveyorComponent(
                 gearBeltConveyorConfigParam!.BeltConveyorItemNum,
                 gearBeltConveyorConfigParam!.TimeOfItemEnterToExit,
-                connector,
+                config.CreateConnector(blockPositionInfo),
                 blockName
             );
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, gearBeltConveyorConfigParam.RequiredTorque, connector);
+            
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, entityId, gearBeltConveyorConfigParam.RequiredPower, gearEnergyTransformerConnector);
             
             var blockComponents = new List<IBlockComponent>
             {
                 gearBeltConveyorComponent,
                 vanillaBeltConveyorComponent,
-                connector,
+                gearEnergyTransformerConnector,
             };
             return new BlockSystem(entityId, config.BlockId, blockComponents, blockPositionInfo);
         }

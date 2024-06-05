@@ -1,30 +1,27 @@
 using System;
 using Core.Update;
+using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
+using Game.Gear.Common;
 using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class GearBeltConveyorComponent : IBlockComponent
+    public class GearBeltConveyorComponent : GearEnergyTransformer
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        private readonly float _requiredTorque;
+        private readonly BlockConnectorComponent<IGearEnergyTransformer> _blockConnectorComponent;
+        private readonly float _requiredPower;
         private readonly IDisposable _updateObservable;
         
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, float requiredTorque, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, int entityId, float requiredPower, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+            : base(requiredPower, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
-            _requiredTorque = requiredTorque;
+            _requiredPower = requiredPower;
             _blockConnectorComponent = blockConnectorComponent;
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
-        }
-        public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
         }
         
         private void Update()
