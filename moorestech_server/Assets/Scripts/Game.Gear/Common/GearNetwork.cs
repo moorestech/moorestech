@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Game.World.Interface.DataStore;
+using Game.Block.Interface;
 
 namespace Game.Gear.Common
 {
     public class GearNetwork
     {
-        private readonly Dictionary<int, GearRotationInfo> _checkedGearComponents = new();
+        private readonly Dictionary<EntityID, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         public readonly GearNetworkId NetworkId;
