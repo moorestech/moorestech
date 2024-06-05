@@ -36,7 +36,7 @@ namespace Game.Block.Config.LoadConfig
                 { VanillaBlockType.Gear, GearConfigParam.Generate },
                 { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
-                { VanillaBlockType.Shaft, ShaftConfigParam.Generate }
+                { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
             };
         }
         
@@ -63,7 +63,7 @@ namespace Game.Block.Config.LoadConfig
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
                 Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize
+                HashSizeInBits = xxHashConst.DefaultSize,
             });
             
             
