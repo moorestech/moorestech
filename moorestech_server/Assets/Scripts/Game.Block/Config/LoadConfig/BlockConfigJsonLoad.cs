@@ -101,7 +101,7 @@ namespace Game.Block.Config.LoadConfig
                 
                 var inputConnector = new List<ConnectSettings>();
                 var outputConnector = new List<ConnectSettings>();
-                var inventorySlots = block.inventoryConnectors;
+                var inventorySlots = block.param.inventoryConnectors;
                 if (inventorySlots != null)
                 {
                     inputConnector = GetConnectSettings(inventorySlots, "inputConnects");
