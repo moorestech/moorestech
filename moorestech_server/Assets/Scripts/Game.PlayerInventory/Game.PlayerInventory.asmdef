@@ -9,8 +9,7 @@
         "Core.Inventory",
         "Game.Block.Interface",
         "Game.Context",
-        "Game.Block",
-        "Game.Block.Interface"
+        "Game.Block"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
