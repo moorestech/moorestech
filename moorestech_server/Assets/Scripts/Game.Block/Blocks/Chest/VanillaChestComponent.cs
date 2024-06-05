@@ -11,11 +11,12 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IBlockInventory, IOpenableBlockInventoryComponent, IBlockSaveState
+    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
@@ -35,13 +36,11 @@ namespace Game.Block.Blocks.Chest
         public VanillaChestComponent(string saveData, EntityID entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
             this(entityId, slotNum, blockConnectorComponent)
         {
-            var split = saveData.Split(',');
-            for (var i = 0; i < split.Length; i += 2)
+            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
+            for (var i = 0; i < itemJsons.Count; i++)
             {
-                var itemHash = long.Parse(split[i]);
-                var itemCount = int.Parse(split[i + 1]);
-                var item = ServerContext.ItemStackFactory.Create(itemHash, itemCount);
-                _itemDataStoreService.SetItem(i / 2, item);
+                var itemStack = itemJsons[i].ToItem();
+                _itemDataStoreService.SetItem(i, itemStack);
             }
         }
         
@@ -86,11 +85,13 @@ namespace Game.Block.Blocks.Chest
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
-            //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
-            var saveState = "";
-            foreach (var itemStack in _itemDataStoreService.Inventory)
-                saveState += $"{itemStack.ItemHash},{itemStack.Count},";
-            return saveState.TrimEnd(',');
+            var itemJson = new List<ItemStackJsonObject>();
+            foreach (var item in _itemDataStoreService.Inventory)
+            {
+                itemJson.Add(new ItemStackJsonObject(item));
+            }
+            
+            return JsonConvert.SerializeObject(itemJson);
         }
         
         
