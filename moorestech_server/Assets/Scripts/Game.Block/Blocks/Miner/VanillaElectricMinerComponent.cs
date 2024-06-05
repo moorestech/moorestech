@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
@@ -25,6 +26,10 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
+        public EntityID EntityId { get; }
+        public bool IsDestroy { get; private set; }
+        public int RequestEnergy { get; }
+        
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -81,12 +86,14 @@ namespace Game.Block.Blocks.Miner
         public VanillaElectricMinerComponent(string saveData, int blockId, EntityID entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
             : this(blockId, entityId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
-            var items = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
-            for (var i = 0; i < items.Count; i++)
+            var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
+            for (var i = 0; i < saveJsonObject.Items.Count; i++)
             {
-                var itemStack = items[i].ToItem();
+                var itemStack = saveJsonObject.Items[i].ToItem();
                 _openableInventoryItemDataStoreService.SetItem(i, itemStack);
             }
+            
+            _remainingMillSecond = saveJsonObject.RemainingMillSecond;
         }
         
         public IItemStack GetItem(int slot)
@@ -114,13 +121,13 @@ namespace Game.Block.Blocks.Miner
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
-            var result = new List<ItemStackJsonObject>();
-            foreach (var item in _openableInventoryItemDataStoreService.Inventory)
+            var saveData = new VanillaElectricMinerSaveJsonObject
             {
-                result.Add(new ItemStackJsonObject(item));
-            }
+                RemainingMillSecond = _remainingMillSecond,
+                Items = _openableInventoryItemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
+            };
             
-            return JsonConvert.SerializeObject(result); 
+            return JsonConvert.SerializeObject(saveData);
         }
         
         public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
@@ -132,11 +139,6 @@ namespace Game.Block.Blocks.Miner
             var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
             return state;
         }
-        
-        public EntityID EntityId { get; }
-        public bool IsDestroy { get; private set; }
-        
-        public int RequestEnergy { get; }
         
         
         public void SupplyEnergy(int power)
@@ -327,5 +329,14 @@ namespace Game.Block.Blocks.Miner
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
+    }
+    
+    public class VanillaElectricMinerSaveJsonObject
+    {
+        [JsonProperty("remainingMillSecond")]
+        public int RemainingMillSecond;
+        
+        [JsonProperty("items")]
+        public List<ItemStackJsonObject> Items;
     }
 }

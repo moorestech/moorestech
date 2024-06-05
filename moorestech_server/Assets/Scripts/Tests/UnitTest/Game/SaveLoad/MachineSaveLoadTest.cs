@@ -78,7 +78,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             loadJsonFile.Load(json);
             
             var loadMachineBlock = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            var loadMachine = loadMachineBlock.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             
             //ブロックID、intIDが同じであることを確認
             Assert.AreEqual(machineBlock.BlockId, loadMachineBlock.BlockId);
