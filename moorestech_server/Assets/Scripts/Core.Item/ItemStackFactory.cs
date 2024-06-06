@@ -13,7 +13,8 @@ namespace Core.Item
         public ItemStackFactory(IItemConfig itemConfig)
         {
             _itemConfig = itemConfig;
-            _nullItem = new NullItemStack(this);
+            _nullItem = new NullItemStack();
+            new InternalItemContext(this, itemConfig);
         }
         
         public IItemStack Create(int id, int count)
@@ -22,7 +23,7 @@ namespace Core.Item
             
             if (count < 1) return CreatEmpty();
             
-            return new ItemStack(id, count, _itemConfig, this);
+            return new ItemStack(id, count);
         }
         
         public IItemStack Create(int id, int count, long instanceId)
@@ -31,7 +32,7 @@ namespace Core.Item
             
             if (count < 1) return CreatEmpty();
             
-            return new ItemStack(id, count, _itemConfig, this, instanceId);
+            return new ItemStack(id, count, instanceId);
         }
         
         public IItemStack Create(long itemHash, int count)
@@ -41,7 +42,7 @@ namespace Core.Item
             var id = _itemConfig.GetItemId(itemHash);
             if (id == ItemConst.EmptyItemId) return CreatEmpty();
             
-            return new ItemStack(id, count, _itemConfig, this);
+            return new ItemStack(id, count);
         }
         
         public IItemStack CreatEmpty()
