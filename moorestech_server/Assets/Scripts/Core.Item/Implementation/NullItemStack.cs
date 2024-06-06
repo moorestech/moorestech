@@ -35,6 +35,22 @@ namespace Core.Item.Implementation
             return true;
         }
         
+        public ItemStackMetaData GetMeta(string key)
+        {
+            //TODO ログに入れる
+            throw new InvalidOperationException("空のアイテムにメタデータは存在しません");
+        }
+        
+        public bool TryGetMeta(string key, out ItemStackMetaData value)
+        {
+            throw new InvalidOperationException("空のアイテムにメタデータは存在しません");
+        }
+        
+        public IItemStack SetMeta(string key, ItemStackMetaData value)
+        {
+            throw new InvalidOperationException("空のアイテムにメタデータは入れられません");
+        }
+        
         public IItemStack Clone()
         {
             return  InternalItemContext.ItemStackFactory.CreatEmpty();
