@@ -31,5 +31,9 @@
         /// </summary>
         /// <returns>あまりが出ても追加できるときはtrue</returns>
         bool IsAllowedToAddWithRemain(IItemStack item);
+        
+        public ItemStackMetaData GetMeta(string key);
+        public bool TryGetMeta(string key, out ItemStackMetaData value);
+        public IItemStack SetMeta(string key, ItemStackMetaData value);
     }
 }

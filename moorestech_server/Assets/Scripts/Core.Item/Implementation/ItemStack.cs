@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Item.Interface.Config;
@@ -8,23 +9,29 @@ namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
+        public int Id { get; }
+        public int Count { get; }
+        public long ItemHash { get; }
+        public long ItemInstanceId { get; }
+        
+        private readonly Dictionary<string, ItemStackMetaData> _metaData = new();
+        
+        
         private readonly IItemConfig _itemConfig;
         private readonly IItemStackFactory _itemStackFactory;
         
         public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory)
         {
-            _itemConfig = itemConfig;
-            _itemStackFactory = itemStackFactory;
-            ItemInstanceId = ItemInstanceIdGenerator.Generate();
-            ItemHash = itemConfig.GetItemConfig(id).ItemHash;
             if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
-            
             if (count < 1) throw new ArgumentOutOfRangeException();
-            
             if (itemConfig.GetItemConfig(id).MaxStack < count)
                 throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count +
                                                       " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
             
+            _itemConfig = itemConfig;
+            _itemStackFactory = itemStackFactory;
+            ItemInstanceId = ItemInstanceIdGenerator.Generate();
+            ItemHash = itemConfig.GetItemConfig(id).ItemHash;
             Id = id;
             Count = count;
         }
@@ -34,11 +41,6 @@ namespace Core.Item.Implementation
         {
             ItemInstanceId = instanceId;
         }
-        
-        public int Id { get; }
-        public int Count { get; }
-        public long ItemHash { get; }
-        public long ItemInstanceId { get; }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
@@ -92,18 +94,48 @@ namespace Core.Item.Implementation
             return Id == item.Id || item.Id == ItemConst.EmptyItemId;
         }
         
+        public ItemStackMetaData GetMeta(string key)
+        {
+            return _metaData.GetValueOrDefault(key);
+        }
+        
+        public bool TryGetMeta(string key, out ItemStackMetaData value)
+        {
+            return _metaData.TryGetValue(key, out value);
+        }
+        
+        public IItemStack SetMeta(string key, ItemStackMetaData value)
+        {
+            var copiedMeta = new Dictionary<string, ItemStackMetaData>(_metaData);
+            return new ItemStack(Id, Count, _itemConfig, _itemStackFactory)
+            {
+                _metaData = copiedMeta
+            };
+        }
+        
         
         public override bool Equals(object? obj)
         {
             if (typeof(ItemStack) != obj?.GetType()) return false;
-            return ((ItemStack)obj).Id == Id && ((ItemStack)obj).Count == Count;
+            var other = (ItemStack)obj;
+            
+            return Id == other.Id &&
+                   Count == other.Count &&
+                   ItemHash == other.ItemHash &&
+                   CompareMeta(other);
         }
         
-        protected bool Equals(ItemStack other)
+        private bool CompareMeta(ItemStack other)
         {
-            return Equals(_itemConfig, other._itemConfig) && Equals(_itemStackFactory, other._itemStackFactory) &&
-                   Id == other.Id && Count == other.Count && ItemHash == other.ItemHash &&
-                   ItemInstanceId == other.ItemInstanceId;
+            if (_metaData.Count != other._metaData.Count) return false;
+            
+            foreach (var (key, value) in _metaData)
+            {
+                if (!other._metaData.TryGetValue(key, out var otherValue)) return false;
+                if (!value.Equals(otherValue)) return false;
+            }
+            
+            return true;
         }
         
         public override int GetHashCode()
