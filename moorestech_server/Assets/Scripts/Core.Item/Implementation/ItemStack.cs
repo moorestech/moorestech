@@ -13,9 +13,9 @@ namespace Core.Item.Implementation
         public long ItemHash { get; }
         public long ItemInstanceId { get; }
         
-        private readonly Dictionary<string, ItemStackMetaData> _metaData = new();
+        private readonly Dictionary<string, ItemStackMetaData> _metaData;
         
-        public ItemStack(int id, int count)
+        public ItemStack(int id, int count, Dictionary<string, ItemStackMetaData> metaData)
         {
             var config = InternalItemContext.ItemConfig;
             if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
@@ -23,14 +23,14 @@ namespace Core.Item.Implementation
             if (config.GetItemConfig(id).MaxStack < count)
                 throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{config.GetItemConfig(id).MaxStack}");
             
+            _metaData = metaData;
             ItemInstanceId = ItemInstanceIdGenerator.Generate();
             ItemHash = config.GetItemConfig(id).ItemHash;
             Id = id;
             Count = count;
         }
         
-        public ItemStack(int id, int count, long instanceId)
-            : this(id, count)
+        public ItemStack(int id, int count, long instanceId, Dictionary<string, ItemStackMetaData> metaData) : this(id, count, metaData)
         {
             ItemInstanceId = instanceId;
         }
@@ -42,14 +42,14 @@ namespace Core.Item.Implementation
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
                 // インスタンスIDが同じだとベルトコンベアなどの輸送時に問題が生じるので、新しいインスタンスを生成する
-                var newItem = factory.Create(Id, Count);
+                var newItem = factory.Create(Id, Count, _metaData);
                 return new ItemProcessResult(newItem, factory.CreatEmpty());
             }
             
             //IDが違うならそれぞれで返す
             if (((ItemStack)receiveItemStack).Id != Id)
             {
-                var newItem = factory.Create(Id, Count);
+                var newItem = factory.Create(Id, Count, _metaData);
                 return new ItemProcessResult(newItem, receiveItemStack);
             }
             
@@ -61,8 +61,8 @@ namespace Core.Item.Implementation
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
             {
-                var tmpItem = factory.Create(Id, tmpStack);
-                var tmpReceive = factory.Create(Id, newCount - tmpStack);
+                var tmpItem = factory.Create(Id, tmpStack, _metaData);
+                var tmpReceive = factory.Create(Id, newCount - tmpStack, _metaData);
                 
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
@@ -73,7 +73,7 @@ namespace Core.Item.Implementation
         public IItemStack SubItem(int subCount)
         {
             var factory = InternalItemContext.ItemStackFactory;
-            if (0 < Count - subCount) return factory.Create(Id, Count - subCount);
+            if (0 < Count - subCount) return factory.Create(Id, Count - subCount, _metaData);
             
             return factory.CreatEmpty();
         }
@@ -103,8 +103,11 @@ namespace Core.Item.Implementation
         
         public IItemStack SetMeta(string key, ItemStackMetaData value)
         {
-            var copiedMeta = new Dictionary<string, ItemStackMetaData>(_metaData);
-            return new ItemStack(Id, Count);
+            var copiedMeta = new Dictionary<string, ItemStackMetaData>(_metaData)
+            {
+                [key] = value
+            };
+            return new ItemStack(Id, Count, copiedMeta);
         }
         
         

@@ -6,5 +6,7 @@ namespace Tests.UnitTest.Core.Other
         // Addできる、できないの評価
         
         // セーブ、ロードの評価
+        
+        //ベルトコンベアのメタ設定
     }
 }
