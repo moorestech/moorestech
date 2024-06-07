@@ -15,7 +15,7 @@ namespace Core.Item.Implementation
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
-            ItemInstanceId = ItemInstanceIdGenerator.Generate();
+            ItemInstanceId = ItemInstanceId.Create();
             ItemHash = itemConfig.GetItemConfig(id).ItemHash;
             if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
             
@@ -29,7 +29,7 @@ namespace Core.Item.Implementation
             Count = count;
         }
         
-        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory, long instanceId)
+        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory, ItemInstanceId instanceId)
             : this(id, count, itemConfig, itemStackFactory)
         {
             ItemInstanceId = instanceId;
@@ -38,7 +38,7 @@ namespace Core.Item.Implementation
         public int Id { get; }
         public int Count { get; }
         public long ItemHash { get; }
-        public long ItemInstanceId { get; }
+        public ItemInstanceId ItemInstanceId { get; }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {

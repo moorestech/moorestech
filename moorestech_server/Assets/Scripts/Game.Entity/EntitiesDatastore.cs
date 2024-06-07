@@ -34,7 +34,7 @@ namespace Game.Entity
         public List<EntityJsonObject> GetSaveJsonObject()
         {
             var saveData = new List<EntityJsonObject>();
-            foreach (var entity in _entities)
+            foreach (KeyValuePair<long, IEntity> entity in _entities)
             {
                 var e = entity.Value;
                 saveData.Add(new EntityJsonObject(e.EntityType, e.InstanceId, e.Position));

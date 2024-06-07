@@ -12,13 +12,13 @@ namespace Core.Item.Implementation
         public NullItemStack(IItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
-            ItemInstanceId = ItemInstanceIdGenerator.Generate();
+            ItemInstanceId = ItemInstanceId.Create();
         }
+        public ItemInstanceId ItemInstanceId { get; }
         
         public int Id => ItemConst.EmptyItemId;
         public int Count => 0;
         public long ItemHash => 0;
-        public long ItemInstanceId { get; }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
