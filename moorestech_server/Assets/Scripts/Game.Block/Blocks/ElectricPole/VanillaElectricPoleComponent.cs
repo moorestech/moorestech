@@ -6,12 +6,12 @@ namespace Game.Block.Blocks.ElectricPole
 {
     public class VanillaElectricPoleComponent : IElectricTransformer, IBlockComponent
     {
-        public VanillaElectricPoleComponent(EntityID entityId)
+        public VanillaElectricPoleComponent(BlockInstanceId blockInstanceId)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public bool IsDestroy { get; private set; }
         
         public void Destroy()

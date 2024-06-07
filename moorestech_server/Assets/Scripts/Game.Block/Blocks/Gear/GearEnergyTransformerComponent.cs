@@ -13,10 +13,10 @@ namespace Game.Block.Blocks.Gear
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _simpleGearService;
         
-        public GearEnergyTransformer(float lossPower, EntityID entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+        public GearEnergyTransformer(float lossPower, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             RequiredPower = lossPower;
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _simpleGearService = new SimpleGearService();
             
@@ -30,7 +30,7 @@ namespace Game.Block.Blocks.Gear
             return _simpleGearService.GetBlockState();
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public float CurrentRpm => _simpleGearService.CurrentRpm;
         public float CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;

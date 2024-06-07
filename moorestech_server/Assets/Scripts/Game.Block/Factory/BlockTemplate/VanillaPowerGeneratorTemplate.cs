@@ -12,11 +12,11 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaPowerGeneratorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var generatorParam = config.Param as PowerGeneratorConfigParam;
-            var properties = new VanillaPowerGeneratorProperties(entityId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
+            var properties = new VanillaPowerGeneratorProperties(blockInstanceId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent);
             
             var generatorComponent = new VanillaElectricGeneratorComponent(properties);
@@ -27,14 +27,14 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var generatorParam = config.Param as PowerGeneratorConfigParam;
-            var properties = new VanillaPowerGeneratorProperties(entityId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
+            var properties = new VanillaPowerGeneratorProperties(blockInstanceId, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, generatorParam.FuelSettings, blockPositionInfo, inputConnectorComponent);
             
             var generatorComponent = new VanillaElectricGeneratorComponent(properties, state);
@@ -45,14 +45,14 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
     }
     
     public class VanillaPowerGeneratorProperties
     {
         public readonly BlockPositionInfo BlockPositionInfo;
-        public readonly EntityID EntityId;
+        public readonly BlockInstanceId BlockInstanceId;
         public readonly int FuelItemSlot;
         
         public readonly Dictionary<int, FuelSetting> FuelSettings;
@@ -60,10 +60,10 @@ namespace Game.Block.Factory.BlockTemplate
         public readonly BlockConnectorComponent<IBlockInventory> InventoryInputConnectorComponent;
         public readonly bool IsInfinityPower;
         
-        public VanillaPowerGeneratorProperties(EntityID entityId, int fuelItemSlot,
+        public VanillaPowerGeneratorProperties(BlockInstanceId blockInstanceId, int fuelItemSlot,
             bool isInfinityPower, int infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             FuelItemSlot = fuelItemSlot;
             IsInfinityPower = isInfinityPower;
             InfinityPower = infinityPower;

@@ -10,20 +10,20 @@ namespace Game.EnergySystem
     /// </summary>
     public class EnergySegment
     {
-        private readonly Dictionary<EntityID, IElectricConsumer> _consumers = new();
-        private readonly Dictionary<EntityID, IElectricTransformer> _energyTransformers = new();
-        private readonly Dictionary<EntityID, IElectricGenerator> _generators = new();
+        private readonly Dictionary<BlockInstanceId, IElectricConsumer> _consumers = new();
+        private readonly Dictionary<BlockInstanceId, IElectricTransformer> _energyTransformers = new();
+        private readonly Dictionary<BlockInstanceId, IElectricGenerator> _generators = new();
         
         public EnergySegment()
         {
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public IReadOnlyDictionary<EntityID, IElectricConsumer> Consumers => _consumers;
+        public IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> Consumers => _consumers;
         
-        public IReadOnlyDictionary<EntityID, IElectricGenerator> Generators => _generators;
+        public IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> Generators => _generators;
         
-        public IReadOnlyDictionary<EntityID, IElectricTransformer> EnergyTransformers => _energyTransformers;
+        public IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> EnergyTransformers => _energyTransformers;
         
         private void Update()
         {
@@ -46,38 +46,38 @@ namespace Game.EnergySystem
         
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)
         {
-            if (_consumers.ContainsKey(electricConsumer.EntityId)) return;
-            _consumers.Add(electricConsumer.EntityId, electricConsumer);
+            if (_consumers.ContainsKey(electricConsumer.BlockInstanceId)) return;
+            _consumers.Add(electricConsumer.BlockInstanceId, electricConsumer);
         }
         
         public void RemoveEnergyConsumer(IElectricConsumer electricConsumer)
         {
-            if (!_consumers.ContainsKey(electricConsumer.EntityId)) return;
-            _consumers.Remove(electricConsumer.EntityId);
+            if (!_consumers.ContainsKey(electricConsumer.BlockInstanceId)) return;
+            _consumers.Remove(electricConsumer.BlockInstanceId);
         }
         
         public void AddGenerator(IElectricGenerator generator)
         {
-            if (_generators.ContainsKey(generator.EntityId)) return;
-            _generators.Add(generator.EntityId, generator);
+            if (_generators.ContainsKey(generator.BlockInstanceId)) return;
+            _generators.Add(generator.BlockInstanceId, generator);
         }
         
         public void RemoveGenerator(IElectricGenerator generator)
         {
-            if (!_generators.ContainsKey(generator.EntityId)) return;
-            _generators.Remove(generator.EntityId);
+            if (!_generators.ContainsKey(generator.BlockInstanceId)) return;
+            _generators.Remove(generator.BlockInstanceId);
         }
         
         public void AddEnergyTransformer(IElectricTransformer electricTransformer)
         {
-            if (_energyTransformers.ContainsKey(electricTransformer.EntityId)) return;
-            _energyTransformers.Add(electricTransformer.EntityId, electricTransformer);
+            if (_energyTransformers.ContainsKey(electricTransformer.BlockInstanceId)) return;
+            _energyTransformers.Add(electricTransformer.BlockInstanceId, electricTransformer);
         }
         
         public void RemoveEnergyTransformer(IElectricTransformer electricTransformer)
         {
-            if (!_energyTransformers.ContainsKey(electricTransformer.EntityId)) return;
-            _energyTransformers.Remove(electricTransformer.EntityId);
+            if (!_energyTransformers.ContainsKey(electricTransformer.BlockInstanceId)) return;
+            _energyTransformers.Remove(electricTransformer.BlockInstanceId);
         }
     }
 }

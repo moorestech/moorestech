@@ -1,11 +1,13 @@
-﻿namespace Game.Block.Blocks.BeltConveyor
+﻿using Core.Item.Interface;
+
+namespace Game.Block.Blocks.BeltConveyor
 {
     public class BeltConveyorInventoryItem
     {
         public readonly int ItemId;
-        public readonly long ItemInstanceId;
+        public readonly ItemInstanceId ItemInstanceId;
         
-        public BeltConveyorInventoryItem(int itemId, double remainingTime, long itemInstanceId)
+        public BeltConveyorInventoryItem(int itemId, double remainingTime, ItemInstanceId itemInstanceId)
         {
             ItemId = itemId;
             RemainingTime = remainingTime;

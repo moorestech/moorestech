@@ -18,14 +18,14 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly int _blockId;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly EntityID _entityId;
+        private readonly BlockInstanceId _blockInstanceId;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public VanillaMachineInputInventory(int blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, EntityID entityId)
+        public VanillaMachineInputInventory(int blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
         {
             _blockId = blockId;
             _blockInventoryUpdate = blockInventoryUpdate;
-            _entityId = entityId;
+            _blockInstanceId = blockInstanceId;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot);
         }
         
@@ -83,7 +83,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId, slot, itemStack));
+                _blockInstanceId, slot, itemStack));
         }
     }
 }

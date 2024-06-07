@@ -8,7 +8,7 @@ namespace Game.EnergySystem
     /// </summary>
     public interface IElectricConsumer : IBlockComponent
     {
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public int RequestEnergy { get; }
         void SupplyEnergy(int power);
     }

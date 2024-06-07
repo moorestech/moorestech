@@ -12,12 +12,12 @@ namespace Game.Block.Blocks.Machine
     {
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
         
-        public VanillaElectricMachineComponent(EntityID entityId, VanillaMachineProcessorComponent vanillaMachineProcessorComponent)
+        public VanillaElectricMachineComponent(BlockInstanceId blockInstanceId, VanillaMachineProcessorComponent vanillaMachineProcessorComponent)
         {
             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
         }
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         
         public bool IsDestroy { get; private set; }
         

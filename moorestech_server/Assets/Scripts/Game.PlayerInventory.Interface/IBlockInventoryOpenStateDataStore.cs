@@ -6,7 +6,7 @@ namespace Game.PlayerInventory.Interface
 {
     public interface IBlockInventoryOpenStateDataStore
     {
-        public List<int> GetBlockInventoryOpenPlayers(EntityID blockEntityId);
+        public List<int> GetBlockInventoryOpenPlayers(BlockInstanceId blockBlockInstanceId);
         public void Open(int playerId, Vector3Int pos);
         public void Close(int playerId);
     }

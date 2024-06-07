@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
@@ -50,7 +50,7 @@ namespace Game.Block.Blocks.BeltConveyor
             //データがないときは何もしない
             if (state == string.Empty) return;
             
-            var items = JsonConvert.DeserializeObject<List<BeltConveyorItemJsonObject>>(state);
+            List<BeltConveyorItemJsonObject> items = JsonConvert.DeserializeObject<List<BeltConveyorItemJsonObject>>(state);
             for (var i = 0; i < items.Count; i++)
             {
                 if (items[i].ItemStack == null) continue;
@@ -135,7 +135,7 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
             
-            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(4, TimeOfItemEnterToExit, ItemInstanceIdGenerator.Generate());
+            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(4, TimeOfItemEnterToExit, ItemInstanceId.Create());
             
             for (var i = 0; i < count; i++)
             {
@@ -167,7 +167,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
                     
-                    var connector = _blockConnectorComponent.ConnectTargets.First();
+                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
                     
                     

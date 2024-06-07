@@ -6,7 +6,7 @@ namespace Game.Gear.Common
 {
     public class GearNetwork
     {
-        private readonly Dictionary<EntityID, GearRotationInfo> _checkedGearComponents = new();
+        private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         public readonly GearNetworkId NetworkId;
@@ -71,7 +71,7 @@ namespace Game.Gear.Common
             //そのジェネレータと接続している各歯車コンポーネントを深さ優先度探索でたどり、RPMと回転方向を計算していく
             _checkedGearComponents.Clear();
             var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
-            _checkedGearComponents.Add(fastGenerator.EntityId, generatorGearRotationInfo);
+            _checkedGearComponents.Add(fastGenerator.BlockInstanceId, generatorGearRotationInfo);
             var rocked = false;
             foreach (var connect in fastGenerator.Connects)
             {
@@ -113,7 +113,7 @@ namespace Game.Gear.Common
                 }
                 
                 // もし既に計算済みの場合、新たな計算と一致するかを計算し、一致しない場合はロックフラグを立てる
-                if (_checkedGearComponents.TryGetValue(transformer.EntityId, out var info))
+                if (_checkedGearComponents.TryGetValue(transformer.BlockInstanceId, out var info))
                 {
                     if (info.IsClockwise != isClockwise || // 回転方向が一致しない場合
                         Math.Abs(info.Rpm - rpm) > 0.1f) // RPMが一致しない場合
@@ -125,13 +125,13 @@ namespace Game.Gear.Common
                 
                 if (transformer is IGearGenerator generator
                     && generator.GenerateIsClockwise != isClockwise // もしこれがジェネレーターである場合、回転方向が合っているかを確認
-                    && fastGenerator.EntityId != transformer.EntityId // 上記が一番早い起点となるジェネレーターでない場合はロックをする
+                    && fastGenerator.BlockInstanceId != transformer.BlockInstanceId // 上記が一番早い起点となるジェネレーターでない場合はロックをする
                    )
                     return true;
                 
                 // 計算済みとして登録
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
-                _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
+                _checkedGearComponents.Add(transformer.BlockInstanceId, gearRotationInfo);
                 
                 // この歯車が接続している歯車を再帰的に計算する
                 foreach (var connect in transformer.Connects)
@@ -172,7 +172,7 @@ namespace Game.Gear.Common
             {
                 foreach (var gearConsumer in GearTransformers)
                 {
-                    var info = _checkedGearComponents[gearConsumer.EntityId];
+                    var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     var supplyPower = gearConsumer.RequiredPower * rate;
                     
                     var distributeTorque = supplyPower / info.Rpm;
@@ -182,7 +182,7 @@ namespace Game.Gear.Common
                 
                 foreach (var generator in _gearGenerators)
                 {
-                    var info = _checkedGearComponents[generator.EntityId];
+                    var info = _checkedGearComponents[generator.BlockInstanceId];
                     generator.SupplyPower(info.Rpm, generator.GenerateTorque, info.IsClockwise);
                 }
             }

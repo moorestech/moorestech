@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Core.Block
             var minerHash = ServerContext.BlockConfig.GetBlockConfig(MinerId).BlockHash;
             
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var originalMiner = blockFactory.Create(MinerId, new EntityID(1), minerPosInfo);
+            var originalMiner = blockFactory.Create(MinerId, new BlockInstanceId(1), minerPosInfo);
             var originalMinerComponent = originalMiner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
             var originalRemainingMillSecond = 350;
             
@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Core.Block
             Debug.Log(json);
             
             
-            var loadedMiner = blockFactory.Load(minerHash, new EntityID(1), json, minerPosInfo);
+            var loadedMiner = blockFactory.Load(minerHash, new BlockInstanceId(1), json, minerPosInfo);
             var loadedMinerComponent = loadedMiner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
             var loadedInventory =
                 (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)

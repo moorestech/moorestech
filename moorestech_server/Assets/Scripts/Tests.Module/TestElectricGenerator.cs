@@ -8,13 +8,13 @@ namespace Tests.Module
     {
         private readonly int _power;
         
-        public TestElectricGenerator(int power, EntityID entityId)
+        public TestElectricGenerator(int power, BlockInstanceId blockInstanceId)
         {
             _power = power;
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         
         public int OutputEnergy()
         {
