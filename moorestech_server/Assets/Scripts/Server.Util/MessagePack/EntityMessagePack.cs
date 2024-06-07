@@ -14,7 +14,7 @@ namespace Server.Util.MessagePack
         
         public EntityMessagePack(IEntity entity)
         {
-            InstanceId = entity.InstanceId;
+            InstanceId = entity.InstanceId.AsPrimitive();
             Type = entity.EntityType;
             State = entity.State;
             Position = new Vector3MessagePack(entity.Position);

@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server
             Assert.AreEqual(defaultY, itemEntity.Position.y); //2次元座標から3次元座標に変換されているため、Y座標は0となる
             Assert.AreEqual(0.75, itemEntity.Position.z); //4秒のベルトコンベアで残り1秒の時の座標のため、1の3/4の位置にある
             //エンティティを検証
-            Assert.AreEqual(ItemInstanceId, itemEntity.InstanceId);
+            Assert.AreEqual(ItemInstanceId, itemEntity.InstanceId.AsPrimitive());
             Assert.AreEqual(VanillaEntityType.VanillaItem, itemEntity.EntityType);
             
             

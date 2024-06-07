@@ -4,7 +4,7 @@ namespace Game.Entity.Interface.EntityInstance
 {
     public class PlayerEntity : IEntity
     {
-        public PlayerEntity(long instanceId, Vector3 position)
+        public PlayerEntity(EntityInstanceId instanceId, Vector3 position)
         {
             InstanceId = instanceId;
             Position = position;
@@ -12,7 +12,7 @@ namespace Game.Entity.Interface.EntityInstance
         
         public Vector3 Position { get; private set; }
         
-        public long InstanceId { get; }
+        public EntityInstanceId InstanceId { get; }
         public string EntityType => VanillaEntityType.VanillaPlayer;
         public string State => string.Empty;
         

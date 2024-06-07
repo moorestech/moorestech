@@ -31,7 +31,7 @@ namespace Server.Protocol.PacketResponse.Util
             var result = new List<IEntity>();
             
             //TODO 個々のパフォーマンス問題を何とかする
-            foreach (KeyValuePair<EntityID, WorldBlockData> blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
+            foreach (KeyValuePair<BlockInstanceId, WorldBlockData> blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
             {
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
@@ -98,7 +98,7 @@ namespace Server.Protocol.PacketResponse.Util
                 }
                 
                 var position = new Vector3(entityX, y, entityZ);
-                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId.AsPrimitive(), position);
+                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, new EntityInstanceId(beltConveyorItem.ItemInstanceId.AsPrimitive()), position);
                 itemEntity.SetState(beltConveyorItem.ItemId, 1);
                 
                 result.Add(itemEntity);

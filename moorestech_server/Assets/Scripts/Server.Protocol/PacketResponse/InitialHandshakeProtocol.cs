@@ -28,13 +28,13 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload.ToArray());
             
             
-            var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(data.PlayerId));
+            var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(new EntityInstanceId(data.PlayerId)));
             
             return response;
         }
         
         
-        private Vector2MessagePack GetPlayerPosition(int playerId)
+        private Vector2MessagePack GetPlayerPosition(EntityInstanceId playerId)
         {
             if (_entitiesDatastore.Exists(playerId))
             {
