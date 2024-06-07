@@ -38,9 +38,9 @@ namespace Tests.CombinedTest.Server.PacketTest
                 
                 IBlock b = null;
                 if (random.Next(0, 3) == 1)
-                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), EntityID.Create(), posInfo);
+                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), BlockInstanceId.Create(), posInfo);
                 else
-                    b = blockFactory.Create(random.Next(1, 500), EntityID.Create(), posInfo);
+                    b = blockFactory.Create(random.Next(1, 500), BlockInstanceId.Create(), posInfo);
                 
                 
                 worldBlock.AddBlock(b);
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //ブロックの設置
             var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var b = blockFactory.Create(Block_1x4_Id, new EntityID(1), posInfo);
+            var b = blockFactory.Create(Block_1x4_Id, new BlockInstanceId(1), posInfo);
             worldBlock.AddBlock(b);
             
             var requestChunks = new List<Vector2IntMessagePack> { new(new Vector2Int(0, 0)) };

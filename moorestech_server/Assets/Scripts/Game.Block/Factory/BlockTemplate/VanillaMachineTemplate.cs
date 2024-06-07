@@ -24,17 +24,17 @@ namespace Game.Block.Factory.BlockTemplate
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
+            var (input, output, machineParam) = GetDependencies(config, blockInstanceId, inputConnectorComponent);
             
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
             var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, machineParam.RequiredPower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
-            var machineComponent = new VanillaElectricMachineComponent(entityId, processor);
+            var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             
             var components = new List<IBlockComponent>
             {
@@ -45,19 +45,19 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
+            var (input, output, machineParam) = GetDependencies(config, blockInstanceId, inputConnectorComponent);
             
             var processor = LoadState(state, input, output, machineParam.RequiredPower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
-            var machineComponent = new VanillaElectricMachineComponent(entityId, processor);
+            var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             
             var components = new List<IBlockComponent>
             {
@@ -68,19 +68,19 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, EntityID entityId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
             
             var input = new VanillaMachineInputInventory(
                 param.BlockId, machineParam.InputSlot,
-                _blockInventoryUpdateEvent, entityId);
+                _blockInventoryUpdateEvent, blockInstanceId);
             
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, entityId,
+                machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, blockInstanceId,
                 machineParam.InputSlot, blockConnectorComponent);
             
             return (input, output, machineParam);

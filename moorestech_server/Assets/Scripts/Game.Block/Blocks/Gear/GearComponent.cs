@@ -7,8 +7,8 @@ namespace Game.Block.Blocks.Gear
 {
     public class GearComponent : GearEnergyTransformer, IGear
     {
-        public GearComponent(GearConfigParam gearConfigParam, EntityID entityId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(gearConfigParam.LossPower, entityId, connectorComponent)
+        public GearComponent(GearConfigParam gearConfigParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+            : base(gearConfigParam.LossPower, blockInstanceId, connectorComponent)
         {
             TeethCount = gearConfigParam.TeethCount;
         }

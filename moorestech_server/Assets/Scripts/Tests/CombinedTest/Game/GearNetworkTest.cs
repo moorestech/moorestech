@@ -347,7 +347,7 @@ namespace Tests.CombinedTest.Game
             var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
             
             var posInfo = new BlockPositionInfo(pos, direction, config.BlockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, EntityID.Create(), posInfo);
+            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), posInfo);
             ServerContext.WorldBlockDatastore.AddBlock(block);
             return block;
         }

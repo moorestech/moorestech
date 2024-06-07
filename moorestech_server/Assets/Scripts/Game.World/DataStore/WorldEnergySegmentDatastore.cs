@@ -15,7 +15,7 @@ namespace Game.World.DataStore
         {
             foreach (var segment in _segmentDictionary)
             {
-                if (!segment.EnergyTransformers.ContainsKey(transformer.EntityId)) continue;
+                if (!segment.EnergyTransformers.ContainsKey(transformer.BlockInstanceId)) continue;
                 return segment;
             }
             
