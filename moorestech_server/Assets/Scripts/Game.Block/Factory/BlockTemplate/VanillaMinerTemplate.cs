@@ -21,34 +21,34 @@ namespace Game.Block.Factory.BlockTemplate
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var (requestPower, outputSlot) = GetData(config);
             
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var minerComponent = new VanillaElectricMinerComponent(config.BlockId, entityId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var minerComponent = new VanillaElectricMinerComponent(config.BlockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
             {
                 minerComponent,
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, EntityID entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var (requestPower, outputSlot) = GetData(config);
             
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var minerComponent = new VanillaElectricMinerComponent(state, config.BlockId, entityId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var minerComponent = new VanillaElectricMinerComponent(state, config.BlockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
             {
                 minerComponent,
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
         private (int requestPower, int outputSlot) GetData(BlockConfigData param)

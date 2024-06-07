@@ -8,6 +8,6 @@ namespace Game.EnergySystem
     /// </summary>
     public interface IElectricTransformer : IBlockComponent
     {
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
     }
 }

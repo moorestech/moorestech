@@ -9,7 +9,7 @@ namespace Game.Gear.Common
         public const string WorkingStateName = "Working";
         public const string RockedStateName = "Rocked";
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public float RequiredPower { get; }
         
         public bool IsRocked { get; }

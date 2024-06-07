@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var blockFactory = ServerContext.BlockFactory;
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new EntityID(1), beltPosInfo);
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(1), beltPosInfo);
             
             var belt = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得

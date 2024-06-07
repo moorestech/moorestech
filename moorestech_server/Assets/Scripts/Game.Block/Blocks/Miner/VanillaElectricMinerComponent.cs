@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public bool IsDestroy { get; private set; }
         public int RequestEnergy { get; }
         
@@ -47,9 +47,9 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private int _remainingMillSecond = int.MaxValue;
         
-        public VanillaElectricMinerComponent(int blockId, EntityID entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(int blockId, BlockInstanceId blockInstanceId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
             
             _blockInventoryUpdate = openableInventoryUpdateEvent;
@@ -83,8 +83,8 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaElectricMinerComponent(string saveData, int blockId, EntityID entityId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
-            : this(blockId, entityId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
+        public VanillaElectricMinerComponent(string saveData, int blockId, BlockInstanceId blockInstanceId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+            : this(blockId, blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
             for (var i = 0; i < saveJsonObject.Items.Count; i++)
@@ -243,7 +243,7 @@ namespace Game.Block.Blocks.Miner
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
             _blockInventoryUpdate.OnInventoryUpdateInvoke(
-                new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
+                new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
         }
         
         #region Implimantion IOpenableInventory

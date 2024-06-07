@@ -32,10 +32,10 @@ namespace Server.Event.EventReceive
         private void InventoryUpdateEvent(BlockOpenableInventoryUpdateEventProperties properties)
         {
             //そのブロックを開いているプレイヤーをリストアップ
-            var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
+            var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.BlockInstanceId);
             if (playerIds.Count == 0) return;
             
-            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(properties.EntityId);
+            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(properties.BlockInstanceId);
             var messagePack = new OpenableBlockInventoryUpdateEventMessagePack(pos, properties.Slot, properties.ItemStack);
             var payload = MessagePackSerializer.Serialize(messagePack);
             

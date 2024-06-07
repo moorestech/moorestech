@@ -101,7 +101,7 @@ namespace Tests.UnitTest.Game
         private void PlaceBlock(int blockId, Vector3Int position, BlockDirection direction)
         {
             var posInfo = new BlockPositionInfo(position, direction, Vector3Int.one);
-            var block = _blockFactory.Create(blockId, EntityID.Create(), posInfo);
+            var block = _blockFactory.Create(blockId, BlockInstanceId.Create(), posInfo);
             
             worldDatastore.AddBlock(block);
         }
