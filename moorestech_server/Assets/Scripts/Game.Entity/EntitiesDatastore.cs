@@ -7,7 +7,7 @@ namespace Game.Entity
 {
     public class EntitiesDatastore : IEntitiesDatastore
     {
-        private readonly Dictionary<long, IEntity> _entities = new();
+        private readonly Dictionary<EntityInstanceId, IEntity> _entities = new();
         
         private readonly IEntityFactory _entityFactory;
         
@@ -21,12 +21,12 @@ namespace Game.Entity
             _entities.Add(entity.InstanceId, entity);
         }
         
-        public bool Exists(long instanceId)
+        public bool Exists(EntityInstanceId instanceId)
         {
             return _entities.ContainsKey(instanceId);
         }
         
-        public IEntity Get(long instanceId)
+        public IEntity Get(EntityInstanceId instanceId)
         {
             return _entities[instanceId];
         }
@@ -34,10 +34,10 @@ namespace Game.Entity
         public List<EntityJsonObject> GetSaveJsonObject()
         {
             var saveData = new List<EntityJsonObject>();
-            foreach (var entity in _entities)
+            foreach (KeyValuePair<EntityInstanceId, IEntity> entity in _entities)
             {
                 var e = entity.Value;
-                saveData.Add(new EntityJsonObject(e.EntityType, e.InstanceId, e.Position));
+                saveData.Add(new EntityJsonObject(e.EntityType, e.InstanceId.AsPrimitive(), e.Position));
             }
             
             return saveData;
@@ -47,15 +47,15 @@ namespace Game.Entity
         {
             foreach (var save in saveBlockDataList)
             {
-                var entity = _entityFactory.CreateEntity(save.Type, save.InstanceId);
+                var entity = _entityFactory.CreateEntity(save.Type, new EntityInstanceId(save.InstanceId));
                 _entities.Add(entity.InstanceId, entity);
                 
                 var pos = new Vector3(save.X, save.Y, save.Z);
-                SetPosition(save.InstanceId, pos);
+                SetPosition(new EntityInstanceId(save.InstanceId), pos);
             }
         }
         
-        public void SetPosition(long instanceId, Vector3 position)
+        public void SetPosition(EntityInstanceId instanceId, Vector3 position)
         {
             if (_entities.TryGetValue(instanceId, out var entity))
             {
@@ -66,7 +66,7 @@ namespace Game.Entity
             throw new Exception("Entity not found " + instanceId);
         }
         
-        public Vector3 GetPosition(long instanceId)
+        public Vector3 GetPosition(EntityInstanceId instanceId)
         {
             if (_entities.TryGetValue(instanceId, out var entity)) return entity.Position;
             throw new Exception("Entity not found " + instanceId);

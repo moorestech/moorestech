@@ -4,7 +4,7 @@ namespace Game.Entity.Interface
 {
     public interface IEntity
     {
-        long InstanceId { get; }
+        EntityInstanceId InstanceId { get; }
         string EntityType { get; }
         
         Vector3 Position { get; }
