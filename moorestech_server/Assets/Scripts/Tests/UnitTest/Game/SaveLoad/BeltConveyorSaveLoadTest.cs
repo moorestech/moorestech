@@ -1,4 +1,5 @@
 using System.Reflection;
+using Core.Item.Interface;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -29,9 +30,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var timeOfItemEnterToExit = belt.TimeOfItemEnterToExit;
             //アイテムを設定
-            inventoryItems[0] = new BeltConveyorInventoryItem(1, timeOfItemEnterToExit - 700, 0);
-            inventoryItems[2] = new BeltConveyorInventoryItem(2, timeOfItemEnterToExit - 500, 0);
-            inventoryItems[3] = new BeltConveyorInventoryItem(5, timeOfItemEnterToExit, 0);
+            inventoryItems[0] = new BeltConveyorInventoryItem(1, timeOfItemEnterToExit - 700, new ItemInstanceId(0));
+            inventoryItems[2] = new BeltConveyorInventoryItem(2, timeOfItemEnterToExit - 500, new ItemInstanceId(0));
+            inventoryItems[3] = new BeltConveyorInventoryItem(5, timeOfItemEnterToExit, new ItemInstanceId(0));
             
             
             //セーブデータ取得
