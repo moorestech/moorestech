@@ -202,7 +202,11 @@ namespace Game.Gear.Common
                 foreach (var generator in _gearGenerators)
                 {
                     var info = _checkedGearComponents[generator.BlockInstanceId];
-                    generator.SupplyPower(info.Rpm, generator.GenerateTorque, info.IsClockwise);
+                    
+                    var ratedDistributeTorque = info.DistributeTorque * distributeTorqueRate;
+                    var ratedDistributionRpm = info.Rpm / distributeToConsumerTorque;
+                    
+                    generator.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
             }
             
