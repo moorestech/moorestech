@@ -159,38 +159,44 @@ namespace Game.Gear.Common
                 var totalGenerateTorque = 0f;
                 foreach (var gearGenerator in GearGenerators) totalGenerateTorque += gearGenerator.GenerateTorque;
                 
-                //すべてのコンシューマーの必要GPを取得し、生成GPから割って分配率を計算する
-                var totalRequiredTorque = 0f;
-                foreach (var gearConsumer in GearTransformers)
-                {
-                    var rpm = _checkedGearComponents[gearConsumer.BlockInstanceId].Rpm;
-                    var isClockwise = _checkedGearComponents[gearConsumer.BlockInstanceId].IsClockwise;
-                    totalRequiredTorque += gearConsumer.GetRequiredTorque(rpm, isClockwise);
-                }
-                
-                // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
-                var distributeTorqueRate = Math.Min(1, totalGenerateTorque / totalRequiredTorque);
-                
                 // 歯車一つあたりに供給するトルク
                 var distributeToConsumerTorque = totalGenerateTorque / GearTransformers.Count;
                 // 起点となるジェネレーターのRPM
                 var originRpm = fastestOriginGenerator.GenerateRpm;
                 
+                
+                //すべてのコンシューマーの必要GPを取得し、生成GPから割って分配率を計算する
+                var totalDistributeTorque = 0f;
                 foreach (var gearConsumer in GearTransformers)
                 {
                     var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
+                    var rpm =info.Rpm;
+                    var isClockwise = info.IsClockwise;
+                    
                     // このコンシューマーに供給できる最大のトルク
-                    var maxDistributeTorque = (fastestOriginGenerator.GenerateRpm / info.Rpm) * distributeToConsumerTorque;
+                    var maximumDistributeTorque = (originRpm / rpm) * distributeToConsumerTorque;
+                    // このコンシューマーが要求するトルク
+                    var requiredTorque = gearConsumer.GetRequiredTorque(rpm, isClockwise);
+                        
+                    // 実際に供給するトルクは、最大供給トルクと要求トルクの小さい方
+                    var distributeTorque = Math.Min(maximumDistributeTorque, requiredTorque);
                     
-                    var requiredTorque = gearConsumer.GetRequiredTorque(info.Rpm, info.IsClockwise);
+                    info.DistributeTorque = distributeTorque;
+                    totalDistributeTorque += distributeTorque;
+                }
+                
+                // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
+                var distributeTorqueRate = Math.Min(1, totalGenerateTorque / totalDistributeTorque);
+                
+                foreach (var gearConsumer in GearTransformers)
+                {
+                    var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
+                    var ratedDistributeTorque = info.DistributeTorque * distributeTorqueRate;
+                    var ratedDistributionRpm = info.Rpm / distributeToConsumerTorque;
                     
-                    
-                    var supplyPower = gearConsumer. * rate;
-                    
-                    
-                    gearConsumer.SupplyPower(info.Rpm, distributeTorque, info.IsClockwise);
+                    gearConsumer.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
                 
                 foreach (var generator in _gearGenerators)
@@ -209,6 +215,8 @@ namespace Game.Gear.Common
         public readonly IGearEnergyTransformer EnergyTransformer;
         public readonly bool IsClockwise;
         public readonly float Rpm;
+        
+        public float DistributeTorque { get; set; }
         
         public GearRotationInfo(float rpm, bool isClockwise, IGearEnergyTransformer energyTransformer)
         {
