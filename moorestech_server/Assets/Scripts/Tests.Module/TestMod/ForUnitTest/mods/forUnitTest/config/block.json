@@ -998,6 +998,57 @@
           }
         ]
       }
+    },
+    {
+      "name": "InfinityTestSimpleGearGenerator",
+      "type": "SimpleGearGenerator",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "InfinityTestSimpleGearGenerator",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "teethCount": 10,
+        "generateRpm": 10,
+        "generateTorque": 1000000,
+        "lossPower": 0.1,
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": -1
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "z": 1
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "z": 0
+              },
+              {
+                "x": -1,
+                "y": 0,
+                "z": 0
+              }
+            ],
+            "option": {
+              "isReverse": false
+            }
+          }
+        ]
+      }
     }
   ]
 }
