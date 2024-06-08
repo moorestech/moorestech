@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using UnityEngine;
 
 namespace Game.Gear.Common
 {
@@ -166,28 +167,27 @@ namespace Game.Gear.Common
                 
                 
                 //すべてのコンシューマーの必要GPを取得し、生成GPから割って分配率を計算する
-                var totalDistributeTorque = 0f;
+                var totalRequiredTorque = 0f;
                 foreach (var gearConsumer in GearTransformers)
                 {
                     var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
-                    var rpm =info.Rpm;
+                    var rpm = info.Rpm;
                     var isClockwise = info.IsClockwise;
                     
                     // このコンシューマーに供給できる最大のトルク
-                    var maximumDistributeTorque = (originRpm / rpm) * distributeToConsumerTorque;
+                    var maximumDistributeTorque = originRpm / rpm * distributeToConsumerTorque;
                     // このコンシューマーが要求するトルク
                     var requiredTorque = gearConsumer.GetRequiredTorque(rpm, isClockwise);
-                        
+                    totalRequiredTorque += requiredTorque;
+                    
                     // 実際に供給するトルクは、最大供給トルクと要求トルクの小さい方
                     var distributeTorque = Math.Min(maximumDistributeTorque, requiredTorque);
-                    
                     info.DistributeTorque = distributeTorque;
-                    totalDistributeTorque += distributeTorque;
                 }
                 
                 // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
-                var distributeRate = Math.Min(1, totalGenerateTorque / totalDistributeTorque);
+                var distributeRate = Math.Min(1, totalGenerateTorque / totalRequiredTorque);
                 
                 foreach (var gearConsumer in GearTransformers)
                 {
@@ -220,13 +220,13 @@ namespace Game.Gear.Common
         public readonly bool IsClockwise;
         public readonly float Rpm;
         
-        public float DistributeTorque { get; set; }
-        
         public GearRotationInfo(float rpm, bool isClockwise, IGearEnergyTransformer energyTransformer)
         {
             Rpm = rpm;
             IsClockwise = isClockwise;
             EnergyTransformer = energyTransformer;
         }
+        
+        public float DistributeTorque { get; set; }
     }
 }

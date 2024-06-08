@@ -20,6 +20,7 @@ namespace Tests.Module.TestMod
         public const int SimpleGearGenerator = 16;
         public const int SimpleFastGearGenerator = 17;
         public const int SmallLossPowerGear = 18;
-        public const int InfinityTorqueSimpleGearGenerator = 19;
+        public const int BigLossPowerGear = 19;
+        public const int InfinityTorqueSimpleGearGenerator = 20;
     }
 }
