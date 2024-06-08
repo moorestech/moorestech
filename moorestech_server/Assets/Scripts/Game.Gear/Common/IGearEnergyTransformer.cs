@@ -10,16 +10,17 @@ namespace Game.Gear.Common
         public const string RockedStateName = "Rocked";
         
         public BlockInstanceId BlockInstanceId { get; }
-        public float RequiredPower { get; }
         
         public bool IsRocked { get; }
         
+        public float CurrentPower => CurrentRpm * CurrentTorque;
         public float CurrentRpm { get; }
         public float CurrentTorque { get; }
-        public float CurrentPower => CurrentRpm * CurrentTorque;
         public bool IsCurrentClockwise { get; }
         
         public IReadOnlyList<GearConnect> Connects { get; }
+        
+        public float GetRequiredTorque(float rpm, bool isClockwise);
         
         public void Rocked();
         public void SupplyPower(float rpm, float torque, bool isClockwise);
