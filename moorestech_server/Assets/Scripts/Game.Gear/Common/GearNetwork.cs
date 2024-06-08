@@ -187,14 +187,14 @@ namespace Game.Gear.Common
                 }
                 
                 // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
-                var distributeTorqueRate = Math.Min(1, totalGenerateTorque / totalDistributeTorque);
+                var distributeRate = Math.Min(1, totalGenerateTorque / totalDistributeTorque);
                 
                 foreach (var gearConsumer in GearTransformers)
                 {
                     var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
-                    var ratedDistributeTorque = info.DistributeTorque * distributeTorqueRate;
-                    var ratedDistributionRpm = info.Rpm / distributeToConsumerTorque;
+                    var ratedDistributeTorque = info.DistributeTorque * distributeRate;
+                    var ratedDistributionRpm = info.Rpm * distributeRate;
                     
                     gearConsumer.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
@@ -203,8 +203,8 @@ namespace Game.Gear.Common
                 {
                     var info = _checkedGearComponents[generator.BlockInstanceId];
                     
-                    var ratedDistributeTorque = info.DistributeTorque * distributeTorqueRate;
-                    var ratedDistributionRpm = info.Rpm / distributeToConsumerTorque;
+                    var ratedDistributeTorque = info.DistributeTorque * distributeRate;
+                    var ratedDistributionRpm = info.Rpm * distributeRate;
                     
                     generator.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
