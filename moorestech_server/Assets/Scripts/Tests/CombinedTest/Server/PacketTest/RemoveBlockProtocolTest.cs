@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -34,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(0), blockPosInfo);
-            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
+            var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
             
@@ -93,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //削除するためのブロックの生成
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(0), blockPosInfo);
-            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
+            var blockInventory = block.GetComponent<IBlockInventory>();
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
             blockInventory.SetItem(0, itemStackFactory.Create(3, 2));

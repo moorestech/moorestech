@@ -9,6 +9,7 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Block.Interface.RecipeConfig;
 using Game.Context;
 using NUnit.Framework;
@@ -36,11 +37,11 @@ namespace Tests.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[GearMachineRecipeIndex];
             
             var block = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var blockInventory = block.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.ItemInputs)
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
-            var gearMachineComponent = block.ComponentManager.GetComponent<VanillaGearMachineComponent>();
+            var gearMachineComponent = block.GetComponent<VanillaGearMachineComponent>();
             var gearMachineParam = (GearMachineConfigParam)block.BlockConfigData.Param;
             
             //最大クラフト時間を超過するまでクラフトする
@@ -72,8 +73,8 @@ namespace Tests.CombinedTest.Core
             var lackRpmBlock = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var lackTorqueBlock = blockFactory.Create(recipe.BlockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.zero));
             
-            var lackRpmInventory = lackRpmBlock.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
-            var lackTorqueInventory = lackTorqueBlock.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var lackRpmInventory = lackRpmBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var lackTorqueInventory = lackTorqueBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             foreach (var inputItem in recipe.ItemInputs)
             {
@@ -81,8 +82,8 @@ namespace Tests.CombinedTest.Core
                 lackTorqueInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             }
             
-            var lackRpmGearMachine = lackRpmBlock.ComponentManager.GetComponent<VanillaGearMachineComponent>();
-            var lackTorqueGearMachine = lackTorqueBlock.ComponentManager.GetComponent<VanillaGearMachineComponent>();
+            var lackRpmGearMachine = lackRpmBlock.GetComponent<VanillaGearMachineComponent>();
+            var lackTorqueGearMachine = lackTorqueBlock.GetComponent<VanillaGearMachineComponent>();
             var gearMachineParam = (GearMachineConfigParam)lackRpmBlock.BlockConfigData.Param;
             
             //最大クラフト時間を超過するまでクラフトする

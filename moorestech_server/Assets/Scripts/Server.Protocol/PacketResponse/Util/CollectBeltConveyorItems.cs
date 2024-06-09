@@ -3,6 +3,7 @@ using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
@@ -42,7 +43,7 @@ namespace Server.Protocol.PacketResponse.Util
                 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
                 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.ComponentManager.GetComponent<VanillaBeltConveyorComponent>(), pos, direction));
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.GetComponent<VanillaBeltConveyorComponent>(), pos, direction));
             }
             
             return result;
