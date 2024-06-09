@@ -42,20 +42,20 @@ namespace Server.Protocol.PacketResponse.Util
                 if (type != VanillaBlockType.BeltConveyor) continue;
                 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
+                var component = block.GetComponent<IItemCollectableBeltConveyor>();
                 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.GetComponent<VanillaBeltConveyorComponent>(), pos, direction));
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, component, pos, direction));
             }
             
             return result;
         }
         
-        
-        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, VanillaBeltConveyorComponent vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
+        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, IItemCollectableBeltConveyor vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
-            for (var i = 0; i < vanillaBeltConveyorComponent.InventoryItemNum; i++)
+            for (var i = 0; i < vanillaBeltConveyorComponent.BeltConveyorItems.Count; i++)
             {
-                var beltConveyorItem = vanillaBeltConveyorComponent.GetBeltConveyorItem(i);
+                var beltConveyorItem = vanillaBeltConveyorComponent.BeltConveyorItems[i];
                 if (beltConveyorItem == null) continue;
                 
                 //残り時間をどこまで進んだかに変換するために 1- する

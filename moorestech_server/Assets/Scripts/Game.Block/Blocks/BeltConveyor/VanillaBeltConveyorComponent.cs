@@ -18,8 +18,13 @@ namespace Game.Block.Blocks.BeltConveyor
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState
+    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        public bool IsDestroy { get; private set; }
+        
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        
         public const float DefaultBeltConveyorHeight = 0.3f;
         
         public readonly int InventoryItemNum;
@@ -27,7 +32,6 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
         private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
@@ -60,8 +64,6 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, items[i].RemainingTime, itemStack.ItemInstanceId, _timeOfItemEnterToExit);
             }
         }
-        
-        public bool IsDestroy { get; private set; }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
