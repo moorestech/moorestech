@@ -794,7 +794,7 @@
         "z": 1
       },
       "param": {
-        "inputSlot": 1,
+        "inputSlot": 2,
         "outputSlot": 2,
         "teethCount": 10,
         "lossPower": 0.1,
