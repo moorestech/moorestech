@@ -8,6 +8,10 @@ namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
+        public int Id { get; }
+        public int Count { get; }
+        public long ItemHash { get; }
+        public ItemInstanceId ItemInstanceId { get; }
         private readonly Dictionary<string, ItemStackMetaData> _metaData;
         
         public ItemStack(int id, int count, Dictionary<string, ItemStackMetaData> metaData)
@@ -30,11 +34,6 @@ namespace Core.Item.Implementation
         {
             ItemInstanceId = instanceId;
         }
-        
-        public int Id { get; }
-        public int Count { get; }
-        public long ItemHash { get; }
-        public ItemInstanceId ItemInstanceId { get; }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
