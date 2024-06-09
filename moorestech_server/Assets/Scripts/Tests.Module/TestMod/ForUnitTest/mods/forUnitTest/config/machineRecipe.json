@@ -87,7 +87,7 @@
   },
   {
     "blockModId": "Test Author:forUniTest",
-    "blockName": "GearMachine",
+    "blockName": "TestGearMachine",
     "time": 1500,
     "input": [
       {
