@@ -1,4 +1,6 @@
+using Game.Block.Blocks.ItemShooter;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -31,12 +33,12 @@ namespace Tests.UnitTest.Core.Block
             var horizonShooter4 = new Vector3Int(0, 0, 6);
             
             var chest = AddBlock(ForUnitTestModBlockId.ChestId, chestPosition);
-            var shooter1 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter1).ComponentManager.;
-            var down = AddBlock(ForUnitTestModBlockId.ItemShooter, downShooter);
-            var shooter2 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter2);
-            var up = AddBlock(ForUnitTestModBlockId.ItemShooter, upShooter);
-            var shooter3 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter3);
-            var shooter4 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter4);
+            var shooter1 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter1).GetComponent<ItemShooterComponent>();
+            var down = AddBlock(ForUnitTestModBlockId.ItemShooter, downShooter).GetComponent<ItemShooterComponent>();
+            var shooter2 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter2).GetComponent<ItemShooterComponent>();
+            var up = AddBlock(ForUnitTestModBlockId.ItemShooter, upShooter).GetComponent<ItemShooterComponent>();
+            var shooter3 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter3).GetComponent<ItemShooterComponent>();
+            var shooter4 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter4).GetComponent<ItemShooterComponent>();
             
             
             
