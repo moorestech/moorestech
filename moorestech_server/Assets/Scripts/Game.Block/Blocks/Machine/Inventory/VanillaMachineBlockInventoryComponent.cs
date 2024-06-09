@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             get
             {
-                if (IsDestroy) throw BlockException.IsDestroyedException;
+                BlockException.CheckDestroy(this);
                 
                 var items = new List<IItemStack>();
                 items.AddRange(_vanillaMachineInputInventory.InputSlot);
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             var item = ServerContext.ItemStackFactory.Create(itemId, count);
             return ReplaceItem(slot, item);
@@ -41,7 +41,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
             var item = _vanillaMachineInputInventory.InsertItem(itemStack);
@@ -55,7 +55,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
                 return _vanillaMachineInputInventory.InputSlot[slot];
@@ -66,7 +66,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
             {
@@ -81,7 +81,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public void SetItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             var item = ServerContext.ItemStackFactory.Create(itemId, count);
             SetItem(slot, item);
@@ -89,14 +89,14 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public int GetSlotSize()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count;
         }
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
             return _vanillaMachineInputInventory.InsertItem(itemStacks);
@@ -104,7 +104,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _vanillaMachineInputInventory.InsertionCheck(itemStacks);
         }
@@ -117,7 +117,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <returns></returns>
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             ItemProcessResult result;
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)

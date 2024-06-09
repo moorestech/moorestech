@@ -71,7 +71,7 @@ namespace Game.Block.Blocks.Machine
         
         private void Update()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             switch (CurrentState)
             {
@@ -127,7 +127,7 @@ namespace Game.Block.Blocks.Machine
         
         public BlockState GetBlockState()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
             return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),

@@ -3,10 +3,10 @@ using Game.Block.Interface.Component;
 
 namespace Game.Block.Interface
 {
-    public class BlockException
+    public static class BlockException
     {
         private const string IsDestroyed = "This component is already destroyed";
-        public static readonly InvalidOperationException IsDestroyedException = new(IsDestroyed);
+        private static readonly InvalidOperationException IsDestroyedException = new(IsDestroyed);
         
         public static void CheckDestroy(IBlockComponent blockComponent)
         {

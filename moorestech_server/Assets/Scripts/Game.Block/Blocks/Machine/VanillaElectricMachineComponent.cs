@@ -30,7 +30,7 @@ namespace Game.Block.Blocks.Machine
         
         public void SupplyEnergy(int power)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             _vanillaMachineProcessorComponent.SupplyPower(power);
         }
