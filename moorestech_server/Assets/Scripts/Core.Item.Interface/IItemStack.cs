@@ -31,5 +31,9 @@
         /// </summary>
         /// <returns>あまりが出ても追加できるときはtrue</returns>
         bool IsAllowedToAddWithRemain(IItemStack item);
+        
+        public ItemStackMetaData GetMeta(string key); // ひとまず追加はしたが、用途がないので放置。 moddingとかに使うかもしれないので取っておいてはいるが、動作はサポートしていないです。
+        public bool TryGetMeta(string key, out ItemStackMetaData value); // I added it for the time being, but left it alone because I have no use for it. I'm keeping it because I might use it for modding or something, but I don't support its operation.
+        public IItemStack SetMeta(string key, ItemStackMetaData value);
     }
 }
