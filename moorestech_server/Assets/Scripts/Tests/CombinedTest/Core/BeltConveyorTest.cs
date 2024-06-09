@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
                 var id = random.Next(0, 10);
                 
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
-                var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+                var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
                 
                 var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Core
             var dummy = new DummyBlockInventory();
             
             // アイテムを挿入
-            var beltConveyor = blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
             
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Core
                 var id = random.Next(1, 11);
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
-                var beltConveyor = blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+                var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
                 
                 var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Core
                 var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
                 var item2 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
                 
-                var beltConveyor = blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+                var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
                 
                 var item1Out = beltConveyorComponent.InsertItem(item1);

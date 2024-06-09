@@ -10,7 +10,6 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -24,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             //イベントキューにIDを登録する
-            var response = packetResponse.GetPacketResponse(EventRequestData(0));
+            List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             var worldBlock = ServerContext.WorldBlockDatastore;
@@ -72,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
         {
             var posInfo = new BlockPositionInfo(new Vector3Int(x, y), BlockDirection.North, Vector3Int.one);
-            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next(), posInfo));
+            worldBlock.AddBlock(blockFactory.Create(id, BlockInstanceId.Create(), posInfo));
         }
         
         private List<byte> EventRequestData(int playerID)

@@ -1,87 +1,86 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
-using Core.Item.Interface.Config;
 
 namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
-        private readonly IItemConfig _itemConfig;
-        private readonly IItemStackFactory _itemStackFactory;
+        public int Id { get; }
+        public int Count { get; }
+        public long ItemHash { get; }
+        public ItemInstanceId ItemInstanceId { get; }
+        private readonly Dictionary<string, ItemStackMetaData> _metaData;
         
-        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory)
+        public ItemStack(int id, int count, Dictionary<string, ItemStackMetaData> metaData)
         {
-            _itemConfig = itemConfig;
-            _itemStackFactory = itemStackFactory;
-            ItemInstanceId = ItemInstanceIdGenerator.Generate();
-            ItemHash = itemConfig.GetItemConfig(id).ItemHash;
+            var config = InternalItemContext.ItemConfig;
             if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
-            
             if (count < 1) throw new ArgumentOutOfRangeException();
+            if (config.GetItemConfig(id).MaxStack < count)
+                throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{config.GetItemConfig(id).MaxStack}");
             
-            if (itemConfig.GetItemConfig(id).MaxStack < count)
-                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count +
-                                                      " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
-            
+            _metaData = metaData;
+            ItemInstanceId = ItemInstanceId.Create();
+            ;
+            ItemHash = config.GetItemConfig(id).ItemHash;
             Id = id;
             Count = count;
         }
         
-        public ItemStack(int id, int count, IItemConfig itemConfig, IItemStackFactory itemStackFactory, long instanceId)
-            : this(id, count, itemConfig, itemStackFactory)
+        public ItemStack(int id, int count, ItemInstanceId instanceId, Dictionary<string, ItemStackMetaData> metaData) : this(id, count, metaData)
         {
             ItemInstanceId = instanceId;
         }
         
-        public int Id { get; }
-        public int Count { get; }
-        public long ItemHash { get; }
-        public long ItemInstanceId { get; }
-        
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
+            var factory = InternalItemContext.ItemStackFactory;
             //加算するアイテムがnullならそのまま追加して返す
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
                 // インスタンスIDが同じだとベルトコンベアなどの輸送時に問題が生じるので、新しいインスタンスを生成する
-                var newItem = _itemStackFactory.Create(Id, Count);
-                return new ItemProcessResult(newItem, _itemStackFactory.CreatEmpty());
+                var newItem = factory.Create(Id, Count, _metaData);
+                return new ItemProcessResult(newItem, factory.CreatEmpty());
             }
             
-            //IDが違うならそれぞれで返す
-            if (((ItemStack)receiveItemStack).Id != Id)
+            // アイテムが同じでない場合は追加できない
+            if (!Equals(receiveItemStack))
             {
-                var newItem = _itemStackFactory.Create(Id, Count);
+                var newItem = factory.Create(Id, Count, _metaData);
                 return new ItemProcessResult(newItem, receiveItemStack);
             }
             
+            var config = InternalItemContext.ItemConfig;
+            
             var newCount = ((ItemStack)receiveItemStack).Count + Count;
-            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
+            var tmpStack = config.GetItemConfig(Id).MaxStack;
             
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
             {
-                var tmpItem = _itemStackFactory.Create(Id, tmpStack);
-                var tmpReceive = _itemStackFactory.Create(Id, newCount - tmpStack);
+                var tmpItem = factory.Create(Id, tmpStack, _metaData);
+                var tmpReceive = factory.Create(Id, newCount - tmpStack, _metaData);
                 
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
             
-            return new ItemProcessResult(_itemStackFactory.Create(Id, newCount), _itemStackFactory.CreatEmpty());
+            return new ItemProcessResult(factory.Create(Id, newCount), factory.CreatEmpty());
         }
         
         public IItemStack SubItem(int subCount)
         {
-            if (0 < Count - subCount) return _itemStackFactory.Create(Id, Count - subCount);
+            var factory = InternalItemContext.ItemStackFactory;
+            if (0 < Count - subCount) return factory.Create(Id, Count - subCount, _metaData);
             
-            return _itemStackFactory.CreatEmpty();
+            return factory.CreatEmpty();
         }
         
         public bool IsAllowedToAdd(IItemStack item)
         {
-            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
+            var tmpStack = InternalItemContext.ItemConfig.GetItemConfig(Id).MaxStack;
             
             return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
                    item.Count + Count <= tmpStack;
@@ -92,23 +91,58 @@ namespace Core.Item.Implementation
             return Id == item.Id || item.Id == ItemConst.EmptyItemId;
         }
         
+        public ItemStackMetaData GetMeta(string key)
+        {
+            return _metaData.GetValueOrDefault(key);
+        }
+        
+        public bool TryGetMeta(string key, out ItemStackMetaData value)
+        {
+            return _metaData.TryGetValue(key, out value);
+        }
+        
+        public IItemStack SetMeta(string key, ItemStackMetaData value)
+        {
+            var copiedMeta = new Dictionary<string, ItemStackMetaData>(_metaData)
+            {
+                [key] = value
+            };
+            return new ItemStack(Id, Count, copiedMeta);
+        }
+        
         
         public override bool Equals(object? obj)
         {
             if (typeof(ItemStack) != obj?.GetType()) return false;
-            return ((ItemStack)obj).Id == Id && ((ItemStack)obj).Count == Count;
+            var other = (ItemStack)obj;
+            
+            return Id == other.Id &&
+                   Count == other.Count &&
+                   ItemHash == other.ItemHash &&
+                   CompareMeta(other);
         }
         
-        protected bool Equals(ItemStack other)
+        private bool CompareMeta(ItemStack other)
         {
-            return Equals(_itemConfig, other._itemConfig) && Equals(_itemStackFactory, other._itemStackFactory) &&
-                   Id == other.Id && Count == other.Count && ItemHash == other.ItemHash &&
-                   ItemInstanceId == other.ItemInstanceId;
+            if (_metaData.Count != other._metaData.Count) return false;
+            
+            foreach (var (key, value) in _metaData)
+            {
+                if (!other._metaData.TryGetValue(key, out var otherValue)) return false;
+                if (!value.Equals(otherValue)) return false;
+            }
+            foreach (var (key, value) in other._metaData)
+            {
+                if (!_metaData.TryGetValue(key, out var otherValue)) return false;
+                if (!value.Equals(otherValue)) return false;
+            }
+            
+            return true;
         }
         
         public override int GetHashCode()
         {
-            return HashCode.Combine(_itemConfig, _itemStackFactory, Id, Count, ItemHash, ItemInstanceId);
+            return HashCode.Combine(Id, Count, ItemHash, ItemInstanceId);
         }
         
         public override string ToString()

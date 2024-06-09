@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -11,11 +12,11 @@ namespace Game.PlayerInventory
     public class BlockInventoryOpenStateDataStore : IBlockInventoryOpenStateDataStore
     {
         //key playerId, value block entity id
-        private readonly Dictionary<int, int> _openCoordinates = new();
+        private readonly Dictionary<int, BlockInstanceId> _openCoordinates = new();
         
-        public List<int> GetBlockInventoryOpenPlayers(int blockEntityId)
+        public List<int> GetBlockInventoryOpenPlayers(BlockInstanceId blockBlockInstanceId)
         {
-            return _openCoordinates.Where(x => x.Value == blockEntityId).Select(x => x.Key).ToList();
+            return _openCoordinates.Where(x => x.Value == blockBlockInstanceId).Select(x => x.Key).ToList();
         }
         
         public void Open(int playerId, Vector3Int pos)
@@ -23,7 +24,7 @@ namespace Game.PlayerInventory
             //開けるインベントリのブロックが存在していなかったらそのまま終了
             if (!ServerContext.WorldBlockDatastore.TryGetBlock<IOpenableBlockInventoryComponent>(pos, out _)) return;
             
-            var entityId = ServerContext.WorldBlockDatastore.GetBlock(pos).EntityId;
+            var entityId = ServerContext.WorldBlockDatastore.GetBlock(pos).BlockInstanceId;
             _openCoordinates[playerId] = entityId;
         }
         

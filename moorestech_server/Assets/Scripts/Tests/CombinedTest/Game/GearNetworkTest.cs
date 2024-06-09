@@ -6,7 +6,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Context;
 using Game.Gear.Common;
-using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -82,7 +81,7 @@ namespace Tests.CombinedTest.Game
             var gearPositionD = new Vector3Int(1, 0, 1);
             var generatorPosition = new Vector3Int(0, 0, -1);
             
-            var generatorBlock = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            var generatorBlock = AddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North);
             var smallGearABlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.North);
             var smallGearBBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.North);
             var smallGearCBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.North);
@@ -292,29 +291,37 @@ namespace Tests.CombinedTest.Game
             AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
             
             var gearPosition1 = new Vector3Int(0, 0, 1);
-            var gearPosition2 = new Vector3Int(1, 0, 1);
-            var gearPosition3 = new Vector3Int(2, 0, 1);
-            var gearPosition4 = new Vector3Int(3, 0, 1);
-            var gearPosition5 = new Vector3Int(4, 0, 1);
-            var gearPosition6 = new Vector3Int(5, 0, 1);
+            var gearPosition2 = new Vector3Int(0, 0, 2);
+            var gearPosition3 = new Vector3Int(1, 0, 2);
+            var gearPosition4 = new Vector3Int(2, 0, 2);
+            var gearPosition5 = new Vector3Int(2, 0, 3);
+            var gearPosition6 = new Vector3Int(3, 0, 3);
             
             var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear2 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.BigLossPowerGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
             var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
             var gear4 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition4, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear5 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition5, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear5 = AddBlock(ForUnitTestModBlockId.BigLossPowerGear, gearPosition5, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
             var gear6 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition6, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(5, gear1.CurrentPower);
-            Assert.AreEqual(5, gear2.CurrentPower);
-            Assert.AreEqual(5, gear3.CurrentPower);
-            Assert.AreEqual(5, gear4.CurrentPower);
-            Assert.AreEqual(5, gear5.CurrentPower);
-            Assert.AreEqual(5, gear6.CurrentPower);
+            Assert.AreEqual(5, gear1.CurrentRpm);
+            Assert.AreEqual(5, gear2.CurrentRpm);
+            Assert.AreEqual(0.25f, gear1.CurrentTorque);
+            Assert.AreEqual(0.25f, gear2.CurrentTorque);
+            
+            Assert.AreEqual(10, gear3.CurrentRpm);
+            Assert.AreEqual(10, gear4.CurrentRpm);
+            Assert.AreEqual(10, gear5.CurrentRpm);
+            Assert.AreEqual(0.125f, gear3.CurrentTorque);
+            Assert.AreEqual(0.125f, gear4.CurrentTorque);
+            Assert.AreEqual(0.125f, gear5.CurrentTorque);
+            
+            Assert.AreEqual(20, gear6.CurrentRpm);
+            Assert.AreEqual(0.125f / 2f, gear6.CurrentTorque);
         }
         
         [Test]
@@ -348,7 +355,7 @@ namespace Tests.CombinedTest.Game
             var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
             
             var posInfo = new BlockPositionInfo(pos, direction, config.BlockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), posInfo);
+            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), posInfo);
             ServerContext.WorldBlockDatastore.AddBlock(block);
             return block;
         }

@@ -21,7 +21,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         public static void Disconnect(IElectricTransformer removedElectricPole, EnergyServiceDependencyContainer<TSegment> container)
         {
             //必要なデータを取得
-            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(removedElectricPole.EntityId);
+            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(removedElectricPole.BlockInstanceId);
             var removedBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
             var poleConfig = ServerContext.BlockConfig.GetBlockConfig(removedBlock.BlockId).Param as ElectricPoleConfigParam;
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
@@ -44,7 +44,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             
             
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
-            var connectedPos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPoles[0].EntityId);
+            var connectedPos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPoles[0].BlockInstanceId);
             var connectedBlock = ServerContext.WorldBlockDatastore.GetBlock(connectedPos);
             var connectedPoleConfig = ServerContext.BlockConfig.GetBlockConfig(connectedBlock.BlockId).Param as ElectricPoleConfigParam;
             (var connectedBlocks, var connectedGenerators) =

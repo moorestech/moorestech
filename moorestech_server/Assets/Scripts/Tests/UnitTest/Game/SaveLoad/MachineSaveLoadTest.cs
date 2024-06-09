@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             GameUpdater.ResetUpdate();
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var machineBlock = blockFactory.Create(1, 10, machinePosInfo);
+            var machineBlock = blockFactory.Create(1, new BlockInstanceId(10), machinePosInfo);
             var machineInventory = machineBlock.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
             worldBlockDatastore.AddBlock(machineBlock);
             
@@ -78,11 +78,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             loadJsonFile.Load(json);
             
             var loadMachineBlock = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            var loadMachine = loadMachineBlock.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             
             //ブロックID、intIDが同じであることを確認
             Assert.AreEqual(machineBlock.BlockId, loadMachineBlock.BlockId);
-            Assert.AreEqual(machineBlock.EntityId, loadMachineBlock.EntityId);
+            Assert.AreEqual(machineBlock.BlockInstanceId, loadMachineBlock.BlockInstanceId);
             
             
             //機械のレシピの残り時間のチェック

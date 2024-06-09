@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Core
             
             //手動で鉱石の設定を行う
             var (mapVein, pos) = GetMapVein();
-            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1, new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, new BlockInstanceId(1), new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
             
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Core
             //電力の設定
             var segment = new EnergySegment();
             segment.AddEnergyConsumer(miner.ComponentManager.GetComponent<IElectricConsumer>());
-            segment.AddGenerator(new TestElectricGenerator(10000, 10));
+            segment.AddGenerator(new TestElectricGenerator(10000, new BlockInstanceId(10)));
             
             var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);
             
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < 500; i++)
             for (var j = 0; j < 500; j++)
             {
-                var veins = ServerContext.MapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
+                List<IMapVein> veins = ServerContext.MapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
                 if (veins.Count == 0) continue;
                 
                 return (veins[0], new Vector3Int(i, j));

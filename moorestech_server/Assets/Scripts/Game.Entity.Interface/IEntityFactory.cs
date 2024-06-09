@@ -4,6 +4,6 @@ namespace Game.Entity.Interface
 {
     public interface IEntityFactory
     {
-        public IEntity CreateEntity(string entityType, long instanceId, Vector3 serverPosition = default);
+        public IEntity CreateEntity(string entityType, EntityInstanceId instanceId, Vector3 serverPosition = default);
     }
 }

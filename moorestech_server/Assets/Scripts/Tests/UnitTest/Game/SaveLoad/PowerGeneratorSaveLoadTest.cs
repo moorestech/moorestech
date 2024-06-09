@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var fuelSlotCount = (ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var powerGeneratorBlock = blockFactory.Create(PowerGeneratorId, 10, generatorPosInfo);
+            var powerGeneratorBlock = blockFactory.Create(PowerGeneratorId, new BlockInstanceId(10), generatorPosInfo);
             var powerGenerator = powerGeneratorBlock.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             
             const int fuelItemId = 5;
@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //検証元の発電機を作成
             var type = typeof(VanillaElectricGeneratorComponent);
-            type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+            type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, fuelItemId);
             type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, remainingFuelTime);
@@ -50,10 +50,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var blockHash = ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).BlockHash;
             //発電機を再作成
-            var loadedPowerGeneratorBlock = blockFactory.Load(blockHash, 10, saveText, generatorPosInfo);
+            var loadedPowerGeneratorBlock = blockFactory.Load(blockHash, new BlockInstanceId(10), saveText, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             //発電機を再作成した結果を検証
-            var loadedFuelItemId = (int)type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadedFuelItemId = (int)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
             Assert.AreEqual(fuelItemId, loadedFuelItemId);
             

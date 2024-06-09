@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Core
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(PowerGeneratorId, 10, posInfo);
+            var powerGenerator = blockFactory.Create(PowerGeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
@@ -51,11 +51,13 @@ namespace Tests.CombinedTest.Core
             
             //燃料の枯渇までループ
             while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
+            {
                 GameUpdater.UpdateWithWait();
+            }
             
             //燃料が枯渇しているか確認
             //リフレクションで現在の燃料を取得
-            var fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_fuelItemId",
+            var fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_currentFuelItemId",
                     BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(generatorComponent);
             Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
@@ -69,7 +71,7 @@ namespace Tests.CombinedTest.Core
             while (endTime1.AddSeconds(0.3).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //2個の燃料が入っていることを確認
-            fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_fuelItemId",
+            fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_currentFuelItemId",
                     BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(generatorComponent);
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId, fuelItemId);
@@ -79,7 +81,7 @@ namespace Tests.CombinedTest.Core
             while (endTime2.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //2個目の燃料が枯渇しているか確認
-            fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_fuelItemId",
+            fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_currentFuelItemId",
                     BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(generatorComponent);
             Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
@@ -93,7 +95,7 @@ namespace Tests.CombinedTest.Core
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.InfinityGeneratorId, 10, posInfo);
+            var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.InfinityGeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             
             var blockConfig = ServerContext.BlockConfig;

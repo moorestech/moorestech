@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
+using Game.World.Interface.DataStore;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util
@@ -30,7 +31,7 @@ namespace Server.Protocol.PacketResponse.Util
             var result = new List<IEntity>();
             
             //TODO 個々のパフォーマンス問題を何とかする
-            foreach (var blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
+            foreach (KeyValuePair<BlockInstanceId, WorldBlockData> blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
             {
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
@@ -97,7 +98,7 @@ namespace Server.Protocol.PacketResponse.Util
                 }
                 
                 var position = new Vector3(entityX, y, entityZ);
-                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);
+                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, new EntityInstanceId(beltConveyorItem.ItemInstanceId.AsPrimitive()), position);
                 itemEntity.SetState(beltConveyorItem.ItemId, 1);
                 
                 result.Add(itemEntity);

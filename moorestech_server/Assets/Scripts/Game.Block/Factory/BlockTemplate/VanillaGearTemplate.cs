@@ -12,31 +12,31 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(config, entityId, blockPositionInfo);
+            return CreateGear(config, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(config, entityId, blockPositionInfo);
+            return CreateGear(config, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateGear(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateGear(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = config.Param as GearConfigParam;
-            var connectSetting = configParam.GearConnectSettings;
+            List<ConnectSettings> connectSetting = configParam.GearConnectSettings;
             
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearComponent = new GearComponent(configParam, entityId, blockComponent);
+            var gearComponent = new GearComponent(configParam, blockInstanceId, blockComponent);
             
             var components = new List<IBlockComponent>
             {
                 gearComponent,
-                blockComponent
+                blockComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
     }
 }

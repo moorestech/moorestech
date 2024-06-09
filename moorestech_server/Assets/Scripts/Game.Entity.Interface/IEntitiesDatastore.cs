@@ -6,12 +6,12 @@ namespace Game.Entity.Interface
     public interface IEntitiesDatastore
     {
         public void Add(IEntity entity);
-        public bool Exists(long instanceId);
-        public IEntity Get(long instanceId);
+        public bool Exists(EntityInstanceId instanceId);
+        public IEntity Get(EntityInstanceId instanceId);
         
-        public void SetPosition(long instanceId, Vector3 position);
+        public void SetPosition(EntityInstanceId instanceId, Vector3 position);
         
-        public Vector3 GetPosition(long instanceId);
+        public Vector3 GetPosition(EntityInstanceId instanceId);
         
         
         public List<EntityJsonObject> GetSaveJsonObject();

@@ -1,9 +1,12 @@
-using System.Text;
+using System.Collections.Generic;
+using System.Linq;
+using Core.Item.Interface;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Newtonsoft.Json;
 
-namespace Game.Block.Blocks.Machine.SaveLoad
+namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineSaveComponent : IBlockSaveState
     {
@@ -32,26 +35,32 @@ namespace Game.Block.Blocks.Machine.SaveLoad
         {
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
-            //フォーマット
-            //inputSlot,item1 id,item1 count,item2 id,item2 count,outputSlot,item1 id,item1 count,item2 id,item2 count,state,0 or 1,remainingTime,500
-            var saveState = new StringBuilder("inputSlot,");
-            //インプットスロットを保存
-            foreach (var item in _vanillaMachineInputInventory.InputSlot)
-                saveState.Append(item.Id + "," + item.Count + ",");
+            // JsonObjectにリファクタ
+            var jsonObject = new VanillaMachineJsonObject
+            {
+                InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackJsonObject(item)).ToList(),
+                OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackJsonObject(item)).ToList(),
+                State = (int)_vanillaMachineProcessorComponent.CurrentState,
+                RemainingTime = _vanillaMachineProcessorComponent.RemainingMillSecond,
+                RecipeId = _vanillaMachineProcessorComponent.RecipeDataId,
+            };
             
-            saveState.Append("outputSlot,");
-            //アウトプットスロットを保存
-            foreach (var item in _vanillaMachineOutputInventory.OutputSlot)
-                saveState.Append(item.Id + "," + item.Count + ",");
-            
-            //状態を保存
-            saveState.Append("state," + (int)_vanillaMachineProcessorComponent.CurrentState + ",");
-            //現在の残り時間を保存
-            saveState.Append("remainingTime," + _vanillaMachineProcessorComponent.RemainingMillSecond + ",");
-            //レシピIDを保存
-            saveState.Append("recipeId," + _vanillaMachineProcessorComponent.RecipeDataId);
-            
-            return saveState.ToString();
+            return JsonConvert.SerializeObject(jsonObject);
         }
+    }
+    
+    public class VanillaMachineJsonObject
+    {
+        [JsonProperty("inputSlot")]
+        public List<ItemStackJsonObject> InputSlot;
+        [JsonProperty("outputSlot")]
+        public List<ItemStackJsonObject> OutputSlot;
+        
+        [JsonProperty("state")]
+        public int State;
+        [JsonProperty("remainingTime")]
+        public double RemainingTime;
+        [JsonProperty("recipeId")]
+        public int RecipeId;
     }
 }

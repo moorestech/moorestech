@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using Core.Item.Interface;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Block.Interface.State;
-using Game.Context;
 using Game.EnergySystem;
 
 namespace Game.Block.Blocks.Machine
@@ -15,15 +8,14 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public class VanillaElectricMachineComponent : IElectricConsumer
     {
-        public int EntityId { get; }
-        
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
         
-        public VanillaElectricMachineComponent(int entityId, VanillaMachineProcessorComponent vanillaMachineProcessorComponent)
+        public VanillaElectricMachineComponent(BlockInstanceId blockInstanceId, VanillaMachineProcessorComponent vanillaMachineProcessorComponent)
         {
             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
         }
+        public BlockInstanceId BlockInstanceId { get; }
         
         public bool IsDestroy { get; private set; }
         
