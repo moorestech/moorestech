@@ -28,7 +28,7 @@ namespace Core.Item
             return new ItemStack(id, count, metaData);
         }
         
-        public IItemStack Create(int id, int count, long instanceId, Dictionary<string, ItemStackMetaData> metaData = null)
+        public IItemStack Create(int id, int count, ItemInstanceId instanceId, Dictionary<string, ItemStackMetaData> metaData = null)
         {
             if (id == ItemConst.EmptyItemId) return CreatEmpty();
             

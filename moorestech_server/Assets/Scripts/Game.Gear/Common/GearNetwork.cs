@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using UnityEngine;
 
 namespace Game.Gear.Common
 {
     public class GearNetwork
     {
-        private readonly Dictionary<EntityID, GearRotationInfo> _checkedGearComponents = new();
+        private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         public readonly GearNetworkId NetworkId;
@@ -48,20 +49,20 @@ namespace Game.Gear.Common
         
         public void ManualUpdate()
         {
-            //もっとも早いジェネレーターを選定、RPMを取得
-            IGearGenerator fastGenerator = null;
+            //もっとも早いジェネレーターを選定し、そのジェネレーターを起点として、各歯車コンポーネントのRPMと回転方向を計算していく
+            IGearGenerator fastestOriginGenerator = null;
             foreach (var gearGenerator in GearGenerators)
             {
-                if (fastGenerator == null)
+                if (fastestOriginGenerator == null)
                 {
-                    fastGenerator = gearGenerator;
+                    fastestOriginGenerator = gearGenerator;
                     continue;
                 }
                 
-                if (gearGenerator.GenerateRpm > fastGenerator.GenerateRpm) fastGenerator = gearGenerator;
+                if (gearGenerator.GenerateRpm > fastestOriginGenerator.GenerateRpm) fastestOriginGenerator = gearGenerator;
             }
             
-            if (fastGenerator == null)
+            if (fastestOriginGenerator == null)
             {
                 //ジェネレーターがない場合はすべてにゼロを供給して終了
                 foreach (var transformer in GearTransformers) transformer.SupplyPower(0, 0, true);
@@ -70,10 +71,10 @@ namespace Game.Gear.Common
             
             //そのジェネレータと接続している各歯車コンポーネントを深さ優先度探索でたどり、RPMと回転方向を計算していく
             _checkedGearComponents.Clear();
-            var generatorGearRotationInfo = new GearRotationInfo(fastGenerator.GenerateRpm, fastGenerator.GenerateIsClockwise, fastGenerator);
-            _checkedGearComponents.Add(fastGenerator.EntityId, generatorGearRotationInfo);
+            var generatorGearRotationInfo = new GearRotationInfo(fastestOriginGenerator.GenerateRpm, fastestOriginGenerator.GenerateIsClockwise, fastestOriginGenerator);
+            _checkedGearComponents.Add(fastestOriginGenerator.BlockInstanceId, generatorGearRotationInfo);
             var rocked = false;
-            foreach (var connect in fastGenerator.Connects)
+            foreach (var connect in fastestOriginGenerator.Connects)
             {
                 rocked = CalcGearInfo(connect, generatorGearRotationInfo);
                 //ロックを検知したので処理を終了
@@ -87,8 +88,7 @@ namespace Game.Gear.Common
             }
             
             //すべてのジェネレーターから生成GPを取得し、合算する
-            var distributeRate = CalcDistributeRate();
-            DistributeGearPower(distributeRate);
+            DistributeGearPower();
             
             #region Internal
             
@@ -113,7 +113,7 @@ namespace Game.Gear.Common
                 }
                 
                 // もし既に計算済みの場合、新たな計算と一致するかを計算し、一致しない場合はロックフラグを立てる
-                if (_checkedGearComponents.TryGetValue(transformer.EntityId, out var info))
+                if (_checkedGearComponents.TryGetValue(transformer.BlockInstanceId, out var info))
                 {
                     if (info.IsClockwise != isClockwise || // 回転方向が一致しない場合
                         Math.Abs(info.Rpm - rpm) > 0.1f) // RPMが一致しない場合
@@ -125,13 +125,13 @@ namespace Game.Gear.Common
                 
                 if (transformer is IGearGenerator generator
                     && generator.GenerateIsClockwise != isClockwise // もしこれがジェネレーターである場合、回転方向が合っているかを確認
-                    && fastGenerator.EntityId != transformer.EntityId // 上記が一番早い起点となるジェネレーターでない場合はロックをする
+                    && fastestOriginGenerator.BlockInstanceId != transformer.BlockInstanceId // 上記が一番早い起点となるジェネレーターでない場合はロックをする
                    )
                     return true;
                 
                 // 計算済みとして登録
                 var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
-                _checkedGearComponents.Add(transformer.EntityId, gearRotationInfo);
+                _checkedGearComponents.Add(transformer.BlockInstanceId, gearRotationInfo);
                 
                 // この歯車が接続している歯車を再帰的に計算する
                 foreach (var connect in transformer.Connects)
@@ -155,35 +155,58 @@ namespace Game.Gear.Common
                 foreach (var generator in GearGenerators) generator.Rocked();
             }
             
-            float CalcDistributeRate()
+            void DistributeGearPower()
             {
-                var totalGeneratePower = 0f;
-                foreach (var gearGenerator in GearGenerators) totalGeneratePower += gearGenerator.GeneratePower;
+                var totalGenerateTorque = 0f;
+                foreach (var gearGenerator in GearGenerators) totalGenerateTorque += gearGenerator.GenerateTorque;
+                
+                // 歯車一つあたりに供給するトルク
+                var distributeToConsumerTorque = totalGenerateTorque / GearTransformers.Count;
+                // 起点となるジェネレーターのRPM
+                var originRpm = fastestOriginGenerator.GenerateRpm;
+                
                 
                 //すべてのコンシューマーの必要GPを取得し、生成GPから割って分配率を計算する
-                var totalRequiredPower = 0f;
-                foreach (var gearConsumer in GearTransformers) totalRequiredPower += gearConsumer.RequiredPower;
-                
-                // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
-                return Math.Min(1, totalGeneratePower / totalRequiredPower);
-            }
-            
-            void DistributeGearPower(float rate)
-            {
+                var totalRequiredTorque = 0f;
                 foreach (var gearConsumer in GearTransformers)
                 {
-                    var info = _checkedGearComponents[gearConsumer.EntityId];
-                    var supplyPower = gearConsumer.RequiredPower * rate;
+                    var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
-                    var distributeTorque = supplyPower / info.Rpm;
+                    var rpm = info.Rpm;
+                    var isClockwise = info.IsClockwise;
                     
-                    gearConsumer.SupplyPower(info.Rpm, distributeTorque, info.IsClockwise);
+                    // このコンシューマーに供給できる最大のトルク
+                    var maximumDistributeTorque = originRpm / rpm * distributeToConsumerTorque;
+                    // このコンシューマーが要求するトルク
+                    var requiredTorque = gearConsumer.GetRequiredTorque(rpm, isClockwise);
+                    totalRequiredTorque += requiredTorque;
+                    
+                    // 実際に供給するトルクは、最大供給トルクと要求トルクの小さい方
+                    var distributeTorque = Math.Min(maximumDistributeTorque, requiredTorque);
+                    info.DistributeTorque = distributeTorque;
+                }
+                
+                // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
+                var distributeRate = Math.Min(1, totalGenerateTorque / totalRequiredTorque);
+                
+                foreach (var gearConsumer in GearTransformers)
+                {
+                    var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
+                    
+                    var ratedDistributeTorque = info.DistributeTorque * distributeRate;
+                    var ratedDistributionRpm = info.Rpm * distributeRate;
+                    
+                    gearConsumer.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
                 
                 foreach (var generator in _gearGenerators)
                 {
-                    var info = _checkedGearComponents[generator.EntityId];
-                    generator.SupplyPower(info.Rpm, generator.GenerateTorque, info.IsClockwise);
+                    var info = _checkedGearComponents[generator.BlockInstanceId];
+                    
+                    var ratedDistributeTorque = info.DistributeTorque * distributeRate;
+                    var ratedDistributionRpm = info.Rpm * distributeRate;
+                    
+                    generator.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
             }
             
@@ -203,5 +226,7 @@ namespace Game.Gear.Common
             IsClockwise = isClockwise;
             EnergyTransformer = energyTransformer;
         }
+        
+        public float DistributeTorque { get; set; }
     }
 }

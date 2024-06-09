@@ -8,11 +8,6 @@ namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
-        public int Id { get; }
-        public int Count { get; }
-        public long ItemHash { get; }
-        public long ItemInstanceId { get; }
-        
         private readonly Dictionary<string, ItemStackMetaData> _metaData;
         
         public ItemStack(int id, int count, Dictionary<string, ItemStackMetaData> metaData)
@@ -24,16 +19,22 @@ namespace Core.Item.Implementation
                 throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{config.GetItemConfig(id).MaxStack}");
             
             _metaData = metaData;
-            ItemInstanceId = ItemInstanceIdGenerator.Generate();
+            ItemInstanceId = ItemInstanceId.Create();
+            ;
             ItemHash = config.GetItemConfig(id).ItemHash;
             Id = id;
             Count = count;
         }
         
-        public ItemStack(int id, int count, long instanceId, Dictionary<string, ItemStackMetaData> metaData) : this(id, count, metaData)
+        public ItemStack(int id, int count, ItemInstanceId instanceId, Dictionary<string, ItemStackMetaData> metaData) : this(id, count, metaData)
         {
             ItemInstanceId = instanceId;
         }
+        
+        public int Id { get; }
+        public int Count { get; }
+        public long ItemHash { get; }
+        public ItemInstanceId ItemInstanceId { get; }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
@@ -46,8 +47,8 @@ namespace Core.Item.Implementation
                 return new ItemProcessResult(newItem, factory.CreatEmpty());
             }
             
-            //IDが違うならそれぞれで返す
-            if (((ItemStack)receiveItemStack).Id != Id)
+            // アイテムが同じでない場合は追加できない
+            if (!Equals(receiveItemStack))
             {
                 var newItem = factory.Create(Id, Count, _metaData);
                 return new ItemProcessResult(newItem, receiveItemStack);
@@ -129,6 +130,11 @@ namespace Core.Item.Implementation
             foreach (var (key, value) in _metaData)
             {
                 if (!other._metaData.TryGetValue(key, out var otherValue)) return false;
+                if (!value.Equals(otherValue)) return false;
+            }
+            foreach (var (key, value) in other._metaData)
+            {
+                if (!_metaData.TryGetValue(key, out var otherValue)) return false;
                 if (!value.Equals(otherValue)) return false;
             }
             

@@ -11,7 +11,7 @@
         ///     新しいインスタンスが生成されるたびにかわる
         ///     基本的にメモリ上でアイテムをエンティティとして扱うために使われるID、「今のところ」保存しなくてよい
         /// </summary>
-        long ItemInstanceId { get; }
+        ItemInstanceId ItemInstanceId { get; }
         
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subCount);

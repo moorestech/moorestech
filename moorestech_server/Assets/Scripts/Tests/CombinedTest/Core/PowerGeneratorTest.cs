@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Core
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(PowerGeneratorId, new EntityID(10), posInfo);
+            var powerGenerator = blockFactory.Create(PowerGeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Core
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.InfinityGeneratorId, new EntityID(10), posInfo);
+            var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.InfinityGeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
             
             var blockConfig = ServerContext.BlockConfig;

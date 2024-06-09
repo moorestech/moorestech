@@ -4,13 +4,13 @@ using UnitGenerator;
 namespace Game.Block.Interface
 {
     [UnitOf(typeof(int), UnitGenerateOptions.MessagePackFormatter | UnitGenerateOptions.Comparable)]
-    public readonly partial struct EntityID
+    public readonly partial struct BlockInstanceId
     {
         private static readonly Random Random = new(130851);
         
-        public static EntityID Create()
+        public static BlockInstanceId Create()
         {
-            return new EntityID(Random.Next(int.MinValue, int.MaxValue));
+            return new BlockInstanceId(Random.Next(int.MinValue, int.MaxValue));
         }
     }
 }

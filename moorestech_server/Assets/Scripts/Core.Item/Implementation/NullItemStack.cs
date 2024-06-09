@@ -10,13 +10,13 @@ namespace Core.Item.Implementation
         public int Id => ItemConst.EmptyItemId;
         public int Count => 0;
         public long ItemHash => 0;
-        public long ItemInstanceId { get; } = ItemInstanceIdGenerator.Generate();
+        public ItemInstanceId ItemInstanceId { get; }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
             //そのまま足すとインスタスIDが同じになってベルトコンベアなどで運ぶときに問題が生じるので、新しいインスタンスを生成する
-            var tmpItem =  InternalItemContext.ItemStackFactory.Create(receiveItemStack.Id, receiveItemStack.Count);
-            var empty =  InternalItemContext.ItemStackFactory.CreatEmpty();
+            var tmpItem = InternalItemContext.ItemStackFactory.Create(receiveItemStack.Id, receiveItemStack.Count);
+            var empty = InternalItemContext.ItemStackFactory.CreatEmpty();
             return new ItemProcessResult(tmpItem, empty);
         }
         
@@ -53,7 +53,7 @@ namespace Core.Item.Implementation
         
         public IItemStack Clone()
         {
-            return  InternalItemContext.ItemStackFactory.CreatEmpty();
+            return InternalItemContext.ItemStackFactory.CreatEmpty();
         }
         
         public override bool Equals(object? obj)

@@ -14,8 +14,8 @@ namespace Tests.UnitTest.Core.Block
             GameUpdater.ResetUpdate();
             var segment = new EnergySegment();
             
-            var electric = new BlockElectricConsumer(100, new EntityID(0));
-            var generate = new TestElectricGenerator(100, new EntityID(0));
+            var electric = new BlockElectricConsumer(100, new BlockInstanceId(0));
+            var generate = new TestElectricGenerator(100, new BlockInstanceId(0));
             
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric);
@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Core.Block
             GameUpdater.UpdateWithWait();
             Assert.AreEqual(0, electric.NowPower);
             
-            var electric2 = new BlockElectricConsumer(300, new EntityID(1));
+            var electric2 = new BlockElectricConsumer(300, new BlockInstanceId(1));
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric2);
             GameUpdater.UpdateWithWait();
@@ -45,13 +45,13 @@ namespace Tests.UnitTest.Core.Block
         public int NowPower;
         
         
-        public BlockElectricConsumer(int requestPower, EntityID entityId)
+        public BlockElectricConsumer(int requestPower, BlockInstanceId blockInstanceId)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public int RequestEnergy　{ get; }
         
         public void SupplyEnergy(int power)

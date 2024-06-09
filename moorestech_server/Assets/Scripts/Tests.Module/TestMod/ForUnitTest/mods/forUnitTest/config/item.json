@@ -78,5 +78,13 @@
   {
     "name": "SmallLossPowerTestGear",
     "maxStacks": 100
+  },
+  {
+    "name": "BigLossPowerTestGear",
+    "maxStacks": 100
+  },
+  {
+    "name": "InfinityTestSimpleGearGenerator",
+    "maxStacks": 100
   }
 ]

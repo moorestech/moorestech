@@ -17,9 +17,9 @@ namespace Game.Block.Blocks
         private readonly Subject<BlockState> _onBlockStateChange = new();
         
         
-        public BlockSystem(EntityID entityId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
+        public BlockSystem(BlockInstanceId blockInstanceId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             BlockPositionInfo = blockPositionInfo;
             BlockConfigData = ServerContext.BlockConfig.GetBlockConfig(blockId);
             
@@ -30,7 +30,7 @@ namespace Game.Block.Blocks
             _blockStateChange?.OnChangeBlockState.Subscribe(state => { _onBlockStateChange.OnNext(state); });
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public int BlockId => BlockConfigData.BlockId;
         public long BlockHash => BlockConfigData.BlockHash;
         public BlockConfigData BlockConfigData { get; }
@@ -57,7 +57,7 @@ namespace Game.Block.Blocks
         public bool Equals(IBlock other)
         {
             if (other is null) return false;
-            return EntityId == other.EntityId;
+            return BlockInstanceId == other.BlockInstanceId;
         }
     }
 }

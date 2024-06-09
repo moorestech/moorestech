@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.PowerGenerator
         public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
         {
             BlockPositionInfo = data.BlockPositionInfo;
-            EntityId = data.EntityId;
+            BlockInstanceId = data.BlockInstanceId;
             _fuelSettings = data.FuelSettings;
             _isInfinityPower = data.IsInfinityPower;
             _infinityPower = data.InfinityPower;
@@ -108,7 +108,7 @@ namespace Game.Block.Blocks.PowerGenerator
             return JsonConvert.SerializeObject(saveData);
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         
         public bool IsDestroy { get; private set; }
         
@@ -211,7 +211,7 @@ namespace Game.Block.Blocks.PowerGenerator
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
-            var properties = new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack);
+            var properties = new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
     }

@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
             var blockId = blockConfig.ItemIdToBlockId(item.Id);
             var blockSize = blockConfig.GetBlockConfig(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection, blockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, EntityID.Create(), blockPositionInfo);
+            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             //ブロックの設置
             ServerContext.WorldBlockDatastore.AddBlock(block);
             

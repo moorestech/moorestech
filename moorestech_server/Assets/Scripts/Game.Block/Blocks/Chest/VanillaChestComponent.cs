@@ -23,9 +23,9 @@ namespace Game.Block.Blocks.Chest
         
         private readonly IDisposable _updateObservable;
         
-        public VanillaChestComponent(EntityID entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaChestComponent(BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
@@ -33,8 +33,8 @@ namespace Game.Block.Blocks.Chest
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public VanillaChestComponent(string saveData, EntityID entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
-            this(entityId, slotNum, blockConnectorComponent)
+        public VanillaChestComponent(string saveData, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
+            this(blockInstanceId, slotNum, blockConnectorComponent)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
             for (var i = 0; i < itemJsons.Count; i++)
@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.Chest
             }
         }
         
-        public EntityID EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public bool IsDestroy { get; private set; }
         
         public void SetItem(int slot, IItemStack itemStack)
@@ -152,7 +152,7 @@ namespace Game.Block.Blocks.Chest
             if (IsDestroy) throw BlockException.IsDestroyedException;
             
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
-            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
+            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
         }
     }
 }

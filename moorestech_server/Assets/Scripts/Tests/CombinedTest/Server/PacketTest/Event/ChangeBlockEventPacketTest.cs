@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //機械のブロックを作る
             var posInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
-            var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, new EntityID(1), posInfo);
+            var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, new BlockInstanceId(1), posInfo);
             //機械のブロックを配置
             ServerContext.WorldBlockDatastore.AddBlock(machine);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する

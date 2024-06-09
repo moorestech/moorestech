@@ -14,15 +14,15 @@ namespace Game.Block.Interface.Event
     
     public class BlockOpenableInventoryUpdateEventProperties
     {
-        public readonly EntityID EntityId;
+        public readonly BlockInstanceId BlockInstanceId;
         public readonly IItemStack ItemStack;
         public readonly int Slot;
         
-        public BlockOpenableInventoryUpdateEventProperties(EntityID entityId, int slot, IItemStack itemStack)
+        public BlockOpenableInventoryUpdateEventProperties(BlockInstanceId blockInstanceId, int slot, IItemStack itemStack)
         {
             ItemStack = itemStack;
             Slot = slot;
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
         }
     }
 }

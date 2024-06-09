@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
             
             
-            var block = blockFactory.Create(recipe.BlockId, new EntityID(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var block = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.ItemInputs)
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
