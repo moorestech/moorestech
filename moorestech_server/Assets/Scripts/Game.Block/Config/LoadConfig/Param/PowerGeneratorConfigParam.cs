@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 
 namespace Game.Block.Config.LoadConfig.Param
 {
@@ -48,7 +49,7 @@ namespace Game.Block.Config.LoadConfig.Param
     public class FuelSetting
     {
         public readonly int ItemId;
-        public readonly int Power;
+        public readonly ElectricPower Power;
         public readonly int Time;
         
         public FuelSetting(int itemId, int time, int power)

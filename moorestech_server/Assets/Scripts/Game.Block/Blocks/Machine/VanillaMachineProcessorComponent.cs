@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.Interface.State;
+using Game.EnergySystem;
 using MessagePack;
 using UniRx;
 
@@ -28,7 +29,7 @@ namespace Game.Block.Blocks.Machine
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         
-        private int _currentPower;
+        private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeData _processingRecipeData;
         
@@ -64,7 +65,7 @@ namespace Game.Block.Blocks.Machine
             UpdateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public void SupplyPower(int power)
+        public void SupplyPower(ElectricPower power)
         {
             _currentPower = power;
         }

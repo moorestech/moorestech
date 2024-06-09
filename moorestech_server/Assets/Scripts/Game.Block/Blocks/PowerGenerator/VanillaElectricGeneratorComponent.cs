@@ -112,7 +112,7 @@ namespace Game.Block.Blocks.PowerGenerator
         
         public bool IsDestroy { get; private set; }
         
-        public int OutputEnergy()
+        public ElectricPower OutputEnergy()
         {
             BlockException.CheckDestroy(this);
             

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 
 namespace Game.Block.Config.LoadConfig.Param
 {
@@ -8,7 +9,7 @@ namespace Game.Block.Config.LoadConfig.Param
     {
         public readonly List<MineItemSetting> MineItemSettings;
         public readonly int OutputSlot;
-        public readonly int RequiredPower;
+        public readonly ElectricPower RequiredPower;
         
         private MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
         {

@@ -20,29 +20,29 @@ namespace Tests.UnitTest.Core.Block
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric);
             GameUpdater.UpdateWithWait();
-            Assert.AreEqual(100, electric.NowPower);
+            Assert.AreEqual(100, electric.CurrentPower.AsPrimitive());
             
             segment.RemoveGenerator(generate);
             GameUpdater.UpdateWithWait();
-            Assert.AreEqual(0, electric.NowPower);
+            Assert.AreEqual(0, electric.CurrentPower.AsPrimitive());
             
             var electric2 = new BlockElectricConsumer(300, new BlockInstanceId(1));
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric2);
             GameUpdater.UpdateWithWait();
-            Assert.AreEqual(25, electric.NowPower);
-            Assert.AreEqual(75, electric2.NowPower);
+            Assert.AreEqual(25, electric.CurrentPower.AsPrimitive());
+            Assert.AreEqual(75, electric2.CurrentPower.AsPrimitive());
             
             segment.RemoveEnergyConsumer(electric);
             GameUpdater.UpdateWithWait();
-            Assert.AreEqual(25, electric.NowPower);
-            Assert.AreEqual(100, electric2.NowPower);
+            Assert.AreEqual(25, electric.CurrentPower.AsPrimitive());
+            Assert.AreEqual(100, electric2.CurrentPower.AsPrimitive());
         }
     }
     
     internal class BlockElectricConsumer : IElectricConsumer
     {
-        public int NowPower;
+        public ElectricPower CurrentPower;
         
         
         public BlockElectricConsumer(int requestPower, BlockInstanceId blockInstanceId)
@@ -52,11 +52,11 @@ namespace Tests.UnitTest.Core.Block
         }
         
         public BlockInstanceId BlockInstanceId { get; }
-        public float RequestEnergy　{ get; }
+        public ElectricPower RequestEnergy　{ get; }
         
-        public void SupplyEnergy(int power)
+        public void SupplyEnergy(ElectricPower power)
         {
-            NowPower = power;
+            CurrentPower = power;
         }
         
         public bool IsDestroy { get; }

@@ -9,6 +9,6 @@ namespace Game.EnergySystem
     public interface IElectricGenerator : IBlockComponent
     {
         public BlockInstanceId BlockInstanceId { get; }
-        int OutputEnergy();
+        ElectricPower OutputEnergy();
     }
 }
