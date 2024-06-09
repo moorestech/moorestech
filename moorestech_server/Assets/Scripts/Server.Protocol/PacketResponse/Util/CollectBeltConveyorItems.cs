@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse.Util
                 if (beltConveyorItem == null) continue;
                 
                 //残り時間をどこまで進んだかに変換するために 1- する
-                var percent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyorComponent.TimeOfItemEnterToExit);
+                var percent = 1 - beltConveyorItem.RemainingPercent;
                 float entityX = pos.x;
                 float entityZ = pos.z;
                 switch (blockDirection)

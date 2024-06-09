@@ -3,7 +3,7 @@ using UnitGenerator;
 
 namespace Core.Item.Interface
 {
-    [UnitOf(typeof(long))]
+    [UnitOf(typeof(long), UnitGenerateOptions.DapperTypeHandler)]
     public partial struct ItemInstanceId
     {
         //TODO randomを全て一つのシードから生成するようにする
