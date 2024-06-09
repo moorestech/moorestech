@@ -18,6 +18,8 @@ namespace Game.Block.Blocks.Chest
 {
     public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
+        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+        
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
@@ -93,9 +95,6 @@ namespace Game.Block.Blocks.Chest
             
             return JsonConvert.SerializeObject(itemJson);
         }
-        
-        
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         
         public void SetItem(int slot, int itemId, int count)
         {

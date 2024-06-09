@@ -47,7 +47,7 @@ namespace Core.Item.Implementation
             }
             
             // アイテムが同じでない場合は追加できない
-            if (!Equals(receiveItemStack))
+            if (!Addable((ItemStack)receiveItemStack))
             {
                 var newItem = factory.Create(Id, Count, _metaData);
                 return new ItemProcessResult(newItem, receiveItemStack);
@@ -110,6 +110,10 @@ namespace Core.Item.Implementation
             return new ItemStack(Id, Count, copiedMeta);
         }
         
+        private bool Addable(ItemStack target)
+        {
+            return Id == target.Id && CompareMeta(target);
+        }
         
         public override bool Equals(object? obj)
         {
