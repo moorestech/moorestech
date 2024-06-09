@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Core
 {
     public class GearMachineIoTest
     {
-        public int GearMachineRecipeIndex = 1;
+        public int GearMachineRecipeIndex = 3;
         
         //アイテムが通常通り処理されるかのテスト
         [Test]
