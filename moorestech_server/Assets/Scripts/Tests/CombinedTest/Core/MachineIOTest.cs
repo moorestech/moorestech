@@ -5,6 +5,7 @@ using System.Reflection;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
+using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Context;
@@ -36,17 +37,24 @@ namespace Tests.CombinedTest.Core
             foreach (var inputItem in recipe.ItemInputs)
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
+            var blockMachineComponent = block.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
             
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
+            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            {
+                blockMachineComponent.SupplyEnergy(10000);
+                GameUpdater.UpdateWithWait();
+            }
             
             //検証
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(blockInventory);
             
+            Assert.AreEqual(0, input.Count);
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
             
-            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i], output[i]);
+            Assert.AreNotEqual(0, output.Count);
+            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i].OutputItem, output[i]);
         }
         
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)

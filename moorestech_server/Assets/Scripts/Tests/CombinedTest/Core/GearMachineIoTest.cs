@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Core
         // RPM、トルクが足りないときに処理に時間がかかるテスト
         public void NotEnoughTorqueOrRpmTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
             
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -86,8 +86,8 @@ namespace Tests.CombinedTest.Core
             var gearMachineParam = (GearMachineConfigParam)lackRpmBlock.BlockConfigData.Param;
             
             //最大クラフト時間を超過するまでクラフトする
-            var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            var craftTime = DateTime.Now.AddMilliseconds(recipe.Time * 2);
+            while (craftTime.AddSeconds(0.3).CompareTo(DateTime.Now) == 1)
             {
                 lackRpmGearMachine.SupplyPower(gearMachineParam.RequiredRpm / 2f, gearMachineParam.RequiredTorque, true);
                 lackTorqueGearMachine.SupplyPower(gearMachineParam.RequiredRpm, gearMachineParam.RequiredTorque / 2f, true);
@@ -103,9 +103,11 @@ namespace Tests.CombinedTest.Core
         {
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(inventory);
             
+            Assert.AreEqual(0, input.Count);
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
             
-            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i], output[i]);
+            Assert.AreNotEqual(0, output.Count);
+            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i].OutputItem, output[i]);
         }
         
         private (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
