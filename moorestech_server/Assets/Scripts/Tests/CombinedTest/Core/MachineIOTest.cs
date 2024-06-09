@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
-    public class MachineIoTest
+    public class MachineIOTest
     {
         //アイテムが通常通り処理されるかのテスト
         [Test]
