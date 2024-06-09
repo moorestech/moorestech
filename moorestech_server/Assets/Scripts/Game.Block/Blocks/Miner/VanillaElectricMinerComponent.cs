@@ -28,7 +28,7 @@ namespace Game.Block.Blocks.Miner
     {
         public BlockInstanceId BlockInstanceId { get; }
         public bool IsDestroy { get; private set; }
-        public int RequestEnergy { get; }
+        public float RequestEnergy { get; }
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();

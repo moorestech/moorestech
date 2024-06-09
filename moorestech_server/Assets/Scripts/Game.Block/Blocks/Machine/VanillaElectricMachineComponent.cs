@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.Machine
         
         #region IBlockElectric implementation
         
-        public int RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
+        public float RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
         
         public void SupplyEnergy(int power)
         {

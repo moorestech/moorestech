@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.Machine
         
         public int RecipeDataId => _processingRecipeData.RecipeId;
         
-        public readonly int RequestPower;
+        public readonly float RequestPower;
         
         private readonly IDisposable UpdateObservable;
         
@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineRecipeData machineRecipeData, int requestPower)
+            MachineRecipeData machineRecipeData, float requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Machine
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState currentState, double remainingMillSecond, MachineRecipeData processingRecipeData,
-            int requestPower)
+            float requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;

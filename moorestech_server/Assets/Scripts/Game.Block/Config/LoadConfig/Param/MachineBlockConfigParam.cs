@@ -3,10 +3,16 @@ using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config.LoadConfig.Param
 {
-    public class MachineBlockConfigParam : IBlockConfigParam
+    public interface IMachineBlockParam
     {
-        public readonly int InputSlot;
-        public readonly int OutputSlot;
+        public int InputSlot { get; }
+        public int OutputSlot { get; }
+    }
+    
+    public class MachineBlockConfigParam : IBlockConfigParam, IMachineBlockParam
+    {
+        public int InputSlot { get; }
+        public int OutputSlot { get; }
         public readonly int RequiredPower;
         
         private MachineBlockConfigParam(int inputSlot, int outputSlot, int requiredPower)

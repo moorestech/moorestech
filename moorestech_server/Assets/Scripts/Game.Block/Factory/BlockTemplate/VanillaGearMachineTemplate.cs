@@ -26,9 +26,10 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output, machineParam) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
-            var vanillaGearParam = config.Param as GearMachineConfigParam;
-            var connectSetting = vanillaGearParam.GearConnectSettings;
+            var (input, output) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var machineParam = (GearMachineConfigParam)config.Param;
+
+            var connectSetting = machineParam.GearConnectSettings;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
 
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
@@ -37,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             
-            var machineComponent = new VanillaGearMachineComponent(vanillaGearParam,processor,gearConnector,blockInstanceId);
+            var machineComponent = new VanillaGearMachineComponent(machineParam,processor,gearConnector,blockInstanceId);
             
             var components = new List<IBlockComponent>
             {
@@ -54,7 +55,9 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output, machineParam) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var machineParam = (GearMachineConfigParam)config.Param;
+            
             var vanillaGearParam = config.Param as GearMachineConfigParam;
             var connectSetting = vanillaGearParam.GearConnectSettings;
             

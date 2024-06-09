@@ -27,7 +27,8 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output, machineParam) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var machineParam = (MachineBlockConfigParam)config.Param;
             
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
             var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, machineParam.RequiredPower);
@@ -51,7 +52,8 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output, machineParam) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var machineParam = (MachineBlockConfigParam)config.Param;
             
             var processor = LoadState(state, input, output, machineParam.RequiredPower);
             
@@ -71,13 +73,13 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public static(VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(
+        public static(VanillaMachineInputInventory, VanillaMachineOutputInventory) GetDependencies(
             BlockConfigData param, 
             BlockInstanceId blockInstanceId, 
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            var machineParam = param.Param as MachineBlockConfigParam;
+            var machineParam = param.Param as IMachineBlockParam;
             
             var input = new VanillaMachineInputInventory(
                 param.BlockId, machineParam.InputSlot,
@@ -87,14 +89,14 @@ namespace Game.Block.Factory.BlockTemplate
                 machineParam.OutputSlot, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 machineParam.InputSlot, blockConnectorComponent);
             
-            return (input, output, machineParam);
+            return (input, output);
         }
         
         public static VanillaMachineProcessorComponent LoadState(
             string state,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            int requestPower)
+            float requestPower)
         {
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
             

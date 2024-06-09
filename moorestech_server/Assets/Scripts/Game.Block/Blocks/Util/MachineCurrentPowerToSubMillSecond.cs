@@ -7,7 +7,7 @@ namespace Game.Block.Blocks.Util
     /// </summary>
     public static class MachineCurrentPowerToSubMillSecond
     {
-        public static int GetSubMillSecond(int currentPower, int requiredPower)
+        public static int GetSubMillSecond(int currentPower, float requiredPower)
         {
             //必要電力が0の時はそのフレームの時間を返す
             if (requiredPower == 0) return (int)GameUpdater.UpdateMillSecondTime;
