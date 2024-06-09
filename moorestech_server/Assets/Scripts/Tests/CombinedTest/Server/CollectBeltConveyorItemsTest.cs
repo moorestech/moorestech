@@ -5,6 +5,7 @@ using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Entity.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -156,7 +157,7 @@ namespace Tests.CombinedTest.Server
             
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventory2Items = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.ComponentManager.GetComponent<VanillaBeltConveyorComponent>());
+            var inventory2Items = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.GetComponent<VanillaBeltConveyorComponent>());
             
             //InstanceIdが変化していないことを検証
             Assert.AreEqual(ItemInstanceId, inventory2Items[3].ItemInstanceId.AsPrimitive());
@@ -167,7 +168,7 @@ namespace Tests.CombinedTest.Server
         {
             var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(1),
                 new BlockPositionInfo(pos, blockDirection, Vector3Int.one));
-            var beltConveyorComponent = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
+            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
