@@ -1,4 +1,5 @@
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
@@ -69,8 +70,8 @@ namespace Tests.CombinedTest.Game
             //両端の電柱が別のセグメントであることを確認する
             var segment1Block = worldBlockDatastore.GetBlock(new Vector3Int(0, 0));
             var segment2Block = worldBlockDatastore.GetBlock(new Vector3Int(6, 0));
-            var electricityTransformer1 = segment1Block.ComponentManager.GetComponent<IElectricTransformer>();
-            var electricityTransformer2 = segment2Block.ComponentManager.GetComponent<IElectricTransformer>();
+            var electricityTransformer1 = segment1Block.GetComponent<IElectricTransformer>();
+            var electricityTransformer2 = segment2Block.GetComponent<IElectricTransformer>();
             var segment1 = worldElectricSegment.GetEnergySegment(electricityTransformer1);
             var segment2 = worldElectricSegment.GetEnergySegment(electricityTransformer2);
             

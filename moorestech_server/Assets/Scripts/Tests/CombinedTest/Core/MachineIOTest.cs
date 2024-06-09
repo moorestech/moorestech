@@ -8,6 +8,7 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -33,11 +34,11 @@ namespace Tests.CombinedTest.Core
             
             
             var block = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var blockInventory = block.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.ItemInputs)
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
-            var blockMachineComponent = block.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
