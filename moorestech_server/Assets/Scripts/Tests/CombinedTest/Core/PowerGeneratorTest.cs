@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core
             GameUpdater.UpdateWithWait();
             
             //供給電力の確認
-            Assert.AreEqual(generatorConfigParam.InfinityPower, generatorComponent.OutputEnergy());
+            Assert.AreEqual(generatorConfigParam.InfinityPower, generatorComponent.OutputEnergy().AsPrimitive());
         }
     }
 }

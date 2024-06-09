@@ -9,6 +9,7 @@ using Game.Block.Factory.Extension;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
+using Game.EnergySystem;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -51,7 +52,7 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        private (int requestPower, int outputSlot) GetData(BlockConfigData param)
+        private (ElectricPower requestPower, int outputSlot) GetData(BlockConfigData param)
         {
             var minerParam = param.Param as MinerBlockConfigParam;
             

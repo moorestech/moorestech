@@ -1,4 +1,5 @@
 using Core.Update;
+using Game.EnergySystem;
 
 namespace Game.Block.Blocks.Util
 {
@@ -7,7 +8,7 @@ namespace Game.Block.Blocks.Util
     /// </summary>
     public static class MachineCurrentPowerToSubMillSecond
     {
-        public static int GetSubMillSecond(int currentPower, float requiredPower)
+        public static int GetSubMillSecond(ElectricPower currentPower, ElectricPower requiredPower)
         {
             //必要電力が0の時はそのフレームの時間を返す
             if (requiredPower == 0) return (int)GameUpdater.UpdateMillSecondTime;

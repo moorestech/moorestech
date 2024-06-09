@@ -16,7 +16,7 @@ namespace Tests.Module
         
         public BlockInstanceId BlockInstanceId { get; }
         
-        public int OutputEnergy()
+        public ElectricPower OutputEnergy()
         {
             return _power;
         }
