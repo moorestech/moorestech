@@ -30,7 +30,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(VanillaBlockType.Gear, new VanillaGearTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Shaft, new VanillaShaftTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaGearMachineTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaGearMachineTemplate(blockInventoryEvent));
         }
     }
 }

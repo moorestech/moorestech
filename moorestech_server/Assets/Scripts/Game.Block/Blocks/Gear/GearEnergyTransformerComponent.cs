@@ -10,12 +10,15 @@ namespace Game.Block.Blocks.Gear
 {
     public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
     {
-        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
         public BlockInstanceId BlockInstanceId { get; }
         public float CurrentRpm => _simpleGearService.CurrentRpm;
         public float CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        
+        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        
         public bool IsRocked => _simpleGearService.IsRocked;
+        
         public bool IsDestroy { get; private set; }
         
         public IReadOnlyList<GearConnect> Connects =>
@@ -52,7 +55,7 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService.Rocked();
         }
         
-        public void SupplyPower(float rpm, float torque, bool isClockwise)
+        public virtual void SupplyPower(float rpm, float torque, bool isClockwise)
         {
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
         }

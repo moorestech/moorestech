@@ -32,7 +32,7 @@ namespace Game.EnergySystem
             foreach (var key in _generators.Keys) powers += _generators[key].OutputEnergy();
             
             //エネルギーの需要量の算出
-            var requester = 0;
+            var requester = 0f;
             foreach (var key in _consumers.Keys) requester += _consumers[key].RequestEnergy;
             
             //エネルギー供給の割合の算出

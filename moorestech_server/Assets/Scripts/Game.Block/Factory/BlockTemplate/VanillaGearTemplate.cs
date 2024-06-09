@@ -27,13 +27,13 @@ namespace Game.Block.Factory.BlockTemplate
             var configParam = config.Param as GearConfigParam;
             List<ConnectSettings> connectSetting = configParam.GearConnectSettings;
             
-            var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearComponent = new GearComponent(configParam, blockInstanceId, blockComponent);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+            var gearComponent = new GearComponent(configParam, blockInstanceId, gearConnector);
             
             var components = new List<IBlockComponent>
             {
                 gearComponent,
-                blockComponent,
+                gearConnector,
             };
             
             return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);

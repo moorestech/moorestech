@@ -64,7 +64,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //新しく挿入可能か
             if (_inventoryItems[^1] != null)
@@ -79,14 +79,14 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public int GetSlotSize()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _inventoryItems.Length;
         }
         
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             if (_inventoryItems[slot] == null) return itemStackFactory.CreatEmpty();
@@ -95,7 +95,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //TODO lockすべき？？
             _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
@@ -109,7 +109,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public string GetSaveState()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             if (_inventoryItems.Length == 0) return string.Empty;
             
@@ -130,7 +130,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         private void Update()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
@@ -184,7 +184,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public BeltConveyorInventoryItem GetBeltConveyorItem(int index)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             return _inventoryItems[index];
         }
     }

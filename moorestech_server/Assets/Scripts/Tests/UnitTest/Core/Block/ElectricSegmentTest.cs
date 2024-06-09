@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Core.Block
         }
         
         public BlockInstanceId BlockInstanceId { get; }
-        public int RequestEnergy　{ get; }
+        public float RequestEnergy　{ get; }
         
         public void SupplyEnergy(int power)
         {

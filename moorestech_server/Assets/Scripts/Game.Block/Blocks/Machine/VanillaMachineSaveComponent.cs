@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Machine
         
         public string GetSaveState()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             // JsonObjectにリファクタ
             var jsonObject = new VanillaMachineJsonObject

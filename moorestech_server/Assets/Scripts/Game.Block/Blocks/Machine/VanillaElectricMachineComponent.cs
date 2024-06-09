@@ -5,8 +5,6 @@ namespace Game.Block.Blocks.Machine
 {
     /// <summary>
     ///     機械を表すクラス
-    ///     具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
-    ///     TODO この処理周辺のコンポーネントの分離をいい感じにする
     /// </summary>
     public class VanillaElectricMachineComponent : IElectricConsumer
     {
@@ -28,11 +26,11 @@ namespace Game.Block.Blocks.Machine
         
         #region IBlockElectric implementation
         
-        public int RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
+        public float RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
         
         public void SupplyEnergy(int power)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             _vanillaMachineProcessorComponent.SupplyPower(power);
         }
