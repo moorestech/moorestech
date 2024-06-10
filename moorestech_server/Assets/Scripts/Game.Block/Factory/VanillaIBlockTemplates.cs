@@ -31,6 +31,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(VanillaBlockType.Shaft, new VanillaShaftTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaGearMachineTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(VanillaBlockType.GearBeltConveyor, new VanillaGearBeltConveyorTemplate());
         }
     }
 }
