@@ -29,7 +29,18 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            throw new System.NotImplementedException();
+            var itemShooter = config.Param as ItemShooterConfigParam;
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            
+            var direction = blockPositionInfo.BlockDirection;
+            var chestComponent = new ItemShooterComponent(state, direction, inputConnectorComponent, itemShooter);
+            var components = new List<IBlockComponent>
+            {
+                chestComponent,
+                inputConnectorComponent,
+            };
+            
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
     }
 }
