@@ -25,12 +25,12 @@ namespace Game.Block.Factory.BlockTemplate
             );
             var vanillaBeltConveyorComponent = new VanillaBeltConveyorComponent(
                 gearBeltConveyorConfigParam!.BeltConveyorItemNum,
-                gearBeltConveyorConfigParam!.TimeOfItemEnterToExit,
+                double.MaxValue,
                 new BlockConnectorComponent<IBlockInventory>(config.InputConnectSettings, config.OutputConnectSettings, blockPositionInfo),
                 blockName
             );
             
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, entityId, gearBeltConveyorConfigParam.RequiredTorque, gearEnergyTransformerConnector);
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, entityId, gearBeltConveyorConfigParam.BeltConveyorSpeed, gearBeltConveyorConfigParam.RequiredTorque, gearEnergyTransformerConnector);
             
             var blockComponents = new List<IBlockComponent>
             {

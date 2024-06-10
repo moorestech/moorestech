@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, double timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
             _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
