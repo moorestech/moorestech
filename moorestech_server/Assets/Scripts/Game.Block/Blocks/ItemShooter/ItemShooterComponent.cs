@@ -10,12 +10,13 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
 {
-    public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory
+    public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState
     {
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly ShooterInventoryItem[] _inventoryItems;
@@ -25,7 +26,7 @@ namespace Game.Block.Blocks.ItemShooter
         private readonly BlockDirection _blockDirection;
         private readonly ItemShooterConfigParam _configParam;
         
-        private IDisposable _updateObservable;
+        private readonly IDisposable _updateObservable;
         
         public ItemShooterComponent(BlockDirection blockDirection, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
         {
@@ -35,6 +36,25 @@ namespace Game.Block.Blocks.ItemShooter
             
             _inventoryItems = new ShooterInventoryItem[_configParam.InventoryItemNum];
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
+        }
+        
+        public ItemShooterComponent(string state, BlockDirection blockDirection, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam):
+            this(blockDirection, blockConnectorComponent, configParam)
+        {
+            if (state == string.Empty) return;
+            
+            var items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(state);
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item.ItemStack == null) continue;
+                
+                var id = ServerContext.ItemConfig.GetItemId(item.ItemStack.ItemHash);
+                _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
+                {
+                    RemainingPercent = (float)items[i].RemainingPercent
+                };
+            }
         }
         
         private void Update()
@@ -141,6 +161,40 @@ namespace Game.Block.Blocks.ItemShooter
             IsDestroy = true;
             _updateObservable.Dispose();
         }
-
+        
+        public string GetSaveState()
+        {
+            BlockException.CheckDestroy(this);
+            var items = _inventoryItems.Select(item => new ItemShooterItemJsonObject(item)).ToList();
+            return JsonConvert.SerializeObject(items);
+        }
+    }
+    
+    public class ItemShooterItemJsonObject
+    {
+        [JsonProperty("itemStack")]
+        public ItemStackJsonObject ItemStack;
+        
+        [JsonProperty("remainingTime")]
+        public double RemainingPercent;
+        
+        [JsonProperty("currentSpeed")]
+        public double CurrentSpeed;
+        
+        public ItemShooterItemJsonObject(ShooterInventoryItem shooterInventoryItem)
+        {
+            if (shooterInventoryItem == null)
+            {
+                ItemStack = null;
+                RemainingPercent = 0;
+                CurrentSpeed = 0;
+                return;
+            }
+            
+            var item = ServerContext.ItemStackFactory.Create(shooterInventoryItem.ItemId, 1);
+            ItemStack = new ItemStackJsonObject(item);
+            RemainingPercent = shooterInventoryItem.RemainingPercent;
+            CurrentSpeed = shooterInventoryItem.CurrentSpeed;
+        }
     }
 }

@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Game.Block.Blocks;
-using Game.Block.Blocks.Chest;
-using Game.Block.Component;
+using Game.Block.Blocks.ItemShooter;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Factory.Extension;
 using Game.Block.Interface;
@@ -10,13 +9,15 @@ using Game.Block.Interface.Component;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class VanillaChestTemplate : IBlockTemplate
+    public class VanillaItemShooterTemplate : IBlockTemplate
     {
         public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var chest = config.Param as ChestConfigParam;
+            var itemShooter = config.Param as ItemShooterConfigParam;
             var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var chestComponent = new VanillaChestComponent(blockInstanceId, chest.ChestItemNum, inputConnectorComponent);
+            
+            var direction = blockPositionInfo.BlockDirection;
+            var chestComponent = new ItemShooterComponent(direction, inputConnectorComponent, itemShooter);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
@@ -28,16 +29,7 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var chest = config.Param as ChestConfigParam;
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var chestComponent = new VanillaChestComponent(state, blockInstanceId, chest.ChestItemNum, inputConnectorComponent);
-            var components = new List<IBlockComponent>
-            {
-                chestComponent,
-                inputConnectorComponent,
-            };
-            
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            throw new System.NotImplementedException();
         }
     }
 }
