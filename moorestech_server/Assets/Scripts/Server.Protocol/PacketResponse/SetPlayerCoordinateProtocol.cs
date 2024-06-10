@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             
             //プレイヤーの座標を更新する
             var newPosition = new Vector3(data.Pos.X, 0, data.Pos.Y);
-            _entitiesDatastore.SetPosition(data.PlayerId, newPosition);
+            _entitiesDatastore.SetPosition(new EntityInstanceId(data.PlayerId), newPosition);
             
             return null;
         }

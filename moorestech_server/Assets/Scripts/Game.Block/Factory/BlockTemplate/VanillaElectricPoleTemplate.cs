@@ -9,26 +9,26 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaElectricPoleTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var transformer = new VanillaElectricPoleComponent(entityId);
+            var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>
             {
-                transformer
+                transformer,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var transformer = new VanillaElectricPoleComponent(entityId);
+            var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>
             {
-                transformer
+                transformer,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
     }
 }

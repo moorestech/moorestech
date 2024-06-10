@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -66,8 +67,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var chestPosition = new Vector3Int(5, 10);
             
             var chestPosInfo = new BlockPositionInfo(chestPosition, BlockDirection.North, Vector3Int.one);
-            var chest = ServerContext.BlockFactory.Create(ChestBlockId, 1, chestPosInfo);
-            var chestComponent = chest.ComponentManager.GetComponent<VanillaChestComponent>();
+            var chest = ServerContext.BlockFactory.Create(ChestBlockId, new BlockInstanceId(1), chestPosInfo);
+            var chestComponent = chest.GetComponent<VanillaChestComponent>();
             worldDataStore.AddBlock(chest);
             
             //ブロックインベントリの設定

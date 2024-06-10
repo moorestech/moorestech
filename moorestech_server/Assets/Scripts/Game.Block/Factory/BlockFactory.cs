@@ -17,20 +17,20 @@ namespace Game.Block.Factory
             _blockTypesDictionary = vanillaIBlockTemplates.BlockTypesDictionary;
         }
         
-        public IBlock Create(int blockId, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Create(int blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var config = _blockConfig.GetBlockConfig(blockId);
             if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].New(config, entityId, blockPositionInfo);
+                return _blockTypesDictionary[config.Type].New(config, blockInstanceId, blockPositionInfo);
             
             throw new Exception("Block type not found :" + config.Type);
         }
         
-        public IBlock Load(long blockHash, int entityId, string state, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(long blockHash, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo)
         {
             var config = _blockConfig.GetBlockConfig(blockHash);
-            if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].Load(state, config, entityId, blockPositionInfo);
+            if (_blockTypesDictionary.TryGetValue(config.Type, out var value))
+                return value.Load(state, config, blockInstanceId, blockPositionInfo);
             
             throw new Exception("Block type not found :" + config.Type);
         }

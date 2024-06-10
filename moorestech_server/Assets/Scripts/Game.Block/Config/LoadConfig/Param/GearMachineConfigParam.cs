@@ -5,13 +5,15 @@ using Game.Gear.Common;
 
 namespace Game.Block.Config.LoadConfig.Param
 {
-    public class GearMachineConfigParam : IBlockConfigParam
+    public class GearMachineConfigParam : IBlockConfigParam, IMachineBlockParam
     {
-        public readonly int InputSlot;
-        public readonly int OutputSlot;
+        public int InputSlot { get; }
+        public int OutputSlot { get; }
         
+        public float RequiredPower => RequiredRpm * RequiredTorque;
         public readonly int RequiredRpm;
         public readonly float RequiredTorque;
+        
         public readonly int TeethCount;
         
         
@@ -25,7 +27,7 @@ namespace Game.Block.Config.LoadConfig.Param
             RequiredRpm = blockParam.requiredRpm;
             RequiredTorque = blockParam.requiredTorque;
             
-            GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
+            GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, GearConnectConst.GearConnectOptionKey, GearConnectOptionLoader.Loader);
         }
         
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)

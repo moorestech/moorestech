@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
 
@@ -38,9 +39,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                     GetElectricPoles(
                         connectedElectricPoles[0],
                         removedElectricPole,
-                        new Dictionary<int, IElectricTransformer>(),
-                        new Dictionary<int, IElectricConsumer>(),
-                        new Dictionary<int, IElectricGenerator>(), container);
+                        new Dictionary<BlockInstanceId, IElectricTransformer>(),
+                        new Dictionary<BlockInstanceId, IElectricConsumer>(),
+                        new Dictionary<BlockInstanceId, IElectricGenerator>(), container);
                 
                 
                 //新しいセグメントに電柱、ブロック、発電機を追加する
@@ -58,17 +59,17 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         }
         
         //再帰的に電柱を探索する 
-        private static (Dictionary<int, IElectricTransformer>, Dictionary<int, IElectricConsumer>,
-            Dictionary<int, IElectricGenerator>)
+        private static (Dictionary<BlockInstanceId, IElectricTransformer>, Dictionary<BlockInstanceId, IElectricConsumer>,
+            Dictionary<BlockInstanceId, IElectricGenerator>)
             GetElectricPoles(
                 IElectricTransformer electricPole,
                 IElectricTransformer removedElectricPole,
-                Dictionary<int, IElectricTransformer> electricPoles,
-                Dictionary<int, IElectricConsumer> blockElectrics,
-                Dictionary<int, IElectricGenerator> powerGenerators,
+                Dictionary<BlockInstanceId, IElectricTransformer> electricPoles,
+                Dictionary<BlockInstanceId, IElectricConsumer> blockElectrics,
+                Dictionary<BlockInstanceId, IElectricGenerator> powerGenerators,
                 EnergyServiceDependencyContainer<TSegment> container)
         {
-            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
+            var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPole.BlockInstanceId);
             var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
             var poleConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Param as ElectricPoleConfigParam;
             
@@ -79,14 +80,14 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //ブロックと発電機を追加
             foreach (var newBlock in newBlocks)
             {
-                if (blockElectrics.ContainsKey(newBlock.EntityId)) continue;
-                blockElectrics.Add(newBlock.EntityId, newBlock);
+                if (blockElectrics.ContainsKey(newBlock.BlockInstanceId)) continue;
+                blockElectrics.Add(newBlock.BlockInstanceId, newBlock);
             }
             
             foreach (var generator in newGenerators)
             {
-                if (powerGenerators.ContainsKey(generator.EntityId)) continue;
-                powerGenerators.Add(generator.EntityId, generator);
+                if (powerGenerators.ContainsKey(generator.BlockInstanceId)) continue;
+                powerGenerators.Add(generator.BlockInstanceId, generator);
             }
             
             
@@ -96,7 +97,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //削除された電柱は除く
             peripheralElectricPoles.Remove(removedElectricPole);
             //自身の電柱は追加する
-            electricPoles.Add(electricPole.EntityId, electricPole);
+            electricPoles.Add(electricPole.BlockInstanceId, electricPole);
             //周辺に電柱がない場合は終了
             if (peripheralElectricPoles.Count == 0) return (electricPoles, blockElectrics, powerGenerators);
             
@@ -105,7 +106,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             foreach (var peripheralElectricPole in peripheralElectricPoles)
             {
                 //もしもすでに追加されていた電柱ならスキップ
-                if (electricPoles.ContainsKey(peripheralElectricPole.EntityId)) continue;
+                if (electricPoles.ContainsKey(peripheralElectricPole.BlockInstanceId)) continue;
                 //追加されていない電柱なら追加
                 (electricPoles, blockElectrics, powerGenerators) =
                     GetElectricPoles(peripheralElectricPole, removedElectricPole, electricPoles, blockElectrics,

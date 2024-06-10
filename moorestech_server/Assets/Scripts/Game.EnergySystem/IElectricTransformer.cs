@@ -1,4 +1,5 @@
-﻿using Game.Block.Interface.Component;
+﻿using Game.Block.Interface;
+using Game.Block.Interface.Component;
 
 namespace Game.EnergySystem
 {
@@ -7,6 +8,6 @@ namespace Game.EnergySystem
     /// </summary>
     public interface IElectricTransformer : IBlockComponent
     {
-        public int EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
     }
 }

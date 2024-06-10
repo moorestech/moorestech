@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using MessagePack;
 using NUnit.Framework;
@@ -37,8 +38,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //ブロックをセットアップ
             var blockPositionInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, 1, blockPositionInfo);
-            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
+            var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), blockPositionInfo);
+            var blockInventory = block.GetComponent<IBlockInventory>();
             worldBlockDataStore.AddBlock(block);
             
             
@@ -50,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていることをチェック
             //イベントパケットを取得
-            var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
+            List<List<byte>> eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
             
             
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0].ToArray());
@@ -93,13 +94,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //ブロック1をセットアップ
             var block1PosInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
-            var block1 = blockFactory.Create(MachineBlockId, 1, block1PosInfo);
-            var block1Inventory = block1.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var block1 = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), block1PosInfo);
             worldBlockDataStore.AddBlock(block1);
             
             //ブロック2をセットアップ
             var block2PosInfo = new BlockPositionInfo(new Vector3Int(10, 20), BlockDirection.North, Vector3Int.one);
-            var block2 = blockFactory.Create(MachineBlockId, 2, block2PosInfo);
+            var block2 = blockFactory.Create(MachineBlockId, new BlockInstanceId(2), block2PosInfo);
             worldBlockDataStore.AddBlock(block2);
             
             
@@ -110,11 +110,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //一つ目のブロックインベントリにアイテムを入れる
+            var block1Inventory = block1.GetComponent<VanillaMachineBlockInventoryComponent>();
             block1Inventory.SetItem(2, itemStackFactory.Create(4, 8));
             
             
             //パケットが送られていないことをチェック
-            var response = packetResponse.GetPacketResponse(GetEventPacket());
+            List<List<byte>> response = packetResponse.GetPacketResponse(GetEventPacket());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }

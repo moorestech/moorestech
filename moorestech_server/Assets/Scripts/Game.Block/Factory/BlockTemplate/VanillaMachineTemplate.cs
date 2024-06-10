@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
-using Game.Block.Blocks.Machine.SaveLoad;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Newtonsoft.Json;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -23,60 +24,105 @@ namespace Game.Block.Factory.BlockTemplate
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
-            var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
+            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var (input, output) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var machineParam = (MachineBlockConfigParam)config.Param;
             
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
-            var runProcess = new VanillaMachineRunProcess(input, output, emptyRecipe, machineParam.RequiredPower);
+            var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, machineParam.RequiredPower);
             
-            var blockInventory = new VanillaMachineBlockInventory(input, output);
-            var machineSave = new VanillaMachineSave(input, output, runProcess);
-            var machineComponent = new VanillaElectricMachineComponent(entityId, blockInventory, machineSave, runProcess);
-            
-            var components = new List<IBlockComponent>
-            {
-                machineComponent,
-                inputConnectorComponent
-            };
-            
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
-        }
-        
-        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
-        {
-            var inputConnectorComponent = config.CreateConnector(blockPositionInfo);
-            var (input, output, machineParam) = GetDependencies(config, entityId, inputConnectorComponent);
-            
-            var runProcess = new VanillaMachineLoad(input, output, machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
-            
-            var blockInventory = new VanillaMachineBlockInventory(input, output);
-            var machineSave = new VanillaMachineSave(input, output, runProcess);
-            var machineComponent = new VanillaElectricMachineComponent(entityId, blockInventory, machineSave, runProcess);
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
+            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+            var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             
             var components = new List<IBlockComponent>
             {
+                blockInventory,
+                machineSave,
+                processor,
                 machineComponent,
-                inputConnectorComponent
+                inputConnectorComponent,
             };
             
-            return new BlockSystem(entityId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetDependencies(BlockConfigData param, int entityId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var machineParam = param.Param as MachineBlockConfigParam;
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var (input, output) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var machineParam = (MachineBlockConfigParam)config.Param;
+            
+            var processor = LoadState(state, input, output, machineParam.RequiredPower);
+            
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
+            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+            var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
+            
+            var components = new List<IBlockComponent>
+            {
+                blockInventory,
+                machineSave,
+                processor,
+                machineComponent,
+                inputConnectorComponent,
+            };
+            
+            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+        }
+        
+        public static(VanillaMachineInputInventory, VanillaMachineOutputInventory) GetDependencies(
+            BlockConfigData param, 
+            BlockInstanceId blockInstanceId, 
+            BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
+        {
+            var machineParam = param.Param as IMachineBlockParam;
             
             var input = new VanillaMachineInputInventory(
                 param.BlockId, machineParam.InputSlot,
-                _blockInventoryUpdateEvent, entityId);
+                blockInventoryUpdateEvent, blockInstanceId);
             
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, ServerContext.ItemStackFactory, _blockInventoryUpdateEvent, entityId,
+                machineParam.OutputSlot, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 machineParam.InputSlot, blockConnectorComponent);
             
-            return (input, output, machineParam);
+            return (input, output);
+        }
+        
+        public static VanillaMachineProcessorComponent LoadState(
+            string state,
+            VanillaMachineInputInventory vanillaMachineInputInventory,
+            VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            float requestPower)
+        {
+            var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
+            
+            var inputItems = jsonObject.InputSlot.Select(item => item.ToItem()).ToList();
+            for (int i = 0; i < inputItems.Count; i++)
+            {
+                vanillaMachineInputInventory.SetItem(i, inputItems[i]);
+            }
+            
+            var outputItems = jsonObject.OutputSlot.Select(item => item.ToItem()).ToList();
+            for (int i = 0; i < outputItems.Count; i++)
+            {
+                vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
+            }
+            
+            var recipe = ServerContext.MachineRecipeConfig.GetRecipeData(jsonObject.RecipeId);
+            
+            var processor = new VanillaMachineProcessorComponent(
+                vanillaMachineInputInventory,
+                vanillaMachineOutputInventory,
+                (ProcessState)jsonObject.State,
+                jsonObject.RemainingTime,
+                recipe,
+                requestPower);
+            
+            return processor;
         }
     }
 }

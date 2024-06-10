@@ -84,5 +84,30 @@
         "percent": 1
       }
     ]
+  },
+  {
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestGearMachine",
+    "time": 1500,
+    "input": [
+      {
+        "itemName": "Test1",
+        "modId": "Test Author:forUniTest",
+        "count": 3
+      },
+      {
+        "itemName": "Test2",
+        "modId": "Test Author:forUniTest",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName": "Test3",
+        "modId": "Test Author:forUniTest",
+        "count": 1,
+        "percent": 1
+      }
+    ]
   }
 ]

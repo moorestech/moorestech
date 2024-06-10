@@ -88,7 +88,7 @@ namespace Game.Block.Config
             }
             
             //TODO ログ基盤に入れる
-            throw new Exception("Mod id or block name not found:" + modId + " " + blockName);
+            throw new Exception("Mod id or block name not found modId:" + modId + " blockName:" + blockName);
         }
         
         public int GetBlockConfigCount()

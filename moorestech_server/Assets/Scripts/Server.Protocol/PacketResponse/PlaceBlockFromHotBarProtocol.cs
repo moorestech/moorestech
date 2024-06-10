@@ -4,7 +4,6 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Util;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
@@ -40,7 +39,7 @@ namespace Server.Protocol.PacketResponse
             var blockId = blockConfig.ItemIdToBlockId(item.Id);
             var blockSize = blockConfig.GetBlockConfig(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection, blockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, CreateBlockEntityId.Create(), blockPositionInfo);
+            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             //ブロックの設置
             ServerContext.WorldBlockDatastore.AddBlock(block);
             

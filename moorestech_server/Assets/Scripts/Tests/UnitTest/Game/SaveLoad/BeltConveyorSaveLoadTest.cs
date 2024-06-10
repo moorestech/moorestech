@@ -1,8 +1,11 @@
 using System.Reflection;
+using Core.Item.Interface;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -20,18 +23,18 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var blockFactory = ServerContext.BlockFactory;
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, 1, beltPosInfo);
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(1), beltPosInfo);
             
-            var belt = beltConveyor.ComponentManager.GetComponent<VanillaBeltConveyorComponent>();
+            var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
-            var timeOfItemEnterToExit = belt.TimeOfItemEnterToExit;
+            var timeOfItemEnterToExit = ((BeltConveyorConfigParam)beltConveyor.BlockConfigData.Param).TimeOfItemEnterToExit;
             //アイテムを設定
-            inventoryItems[0] = new BeltConveyorInventoryItem(1, timeOfItemEnterToExit - 700, 0);
-            inventoryItems[2] = new BeltConveyorInventoryItem(2, timeOfItemEnterToExit - 500, 0);
-            inventoryItems[3] = new BeltConveyorInventoryItem(5, timeOfItemEnterToExit, 0);
+            inventoryItems[0] = new BeltConveyorInventoryItem(1, timeOfItemEnterToExit - 700, new (0), timeOfItemEnterToExit);
+            inventoryItems[2] = new BeltConveyorInventoryItem(2, timeOfItemEnterToExit - 500, new (0), timeOfItemEnterToExit);
+            inventoryItems[3] = new BeltConveyorInventoryItem(5, timeOfItemEnterToExit, new (0), timeOfItemEnterToExit);
             
             
             //セーブデータ取得

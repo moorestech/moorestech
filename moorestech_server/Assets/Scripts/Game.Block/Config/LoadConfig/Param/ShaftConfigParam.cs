@@ -13,7 +13,11 @@ namespace Game.Block.Config.LoadConfig.Param
         private ShaftConfigParam(dynamic blockParam, IItemConfig itemConfig)
         {
             LossPower = blockParam.lossPower;
-            GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
+            GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(
+                blockParam,
+                GearConnectConst.GearConnectOptionKey,
+                GearConnectOptionLoader.Loader
+            );
         }
         
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)

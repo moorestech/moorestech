@@ -11,20 +11,23 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IBlockInventory, IOpenableBlockInventoryComponent, IBlockSaveState
+    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
+        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+        
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
         private readonly IDisposable _updateObservable;
         
-        public VanillaChestComponent(int entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaChestComponent(BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
             
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
@@ -32,46 +35,44 @@ namespace Game.Block.Blocks.Chest
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public VanillaChestComponent(string saveData, int entityId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
-            this(entityId, slotNum, blockConnectorComponent)
+        public VanillaChestComponent(string saveData, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
+            this(blockInstanceId, slotNum, blockConnectorComponent)
         {
-            var split = saveData.Split(',');
-            for (var i = 0; i < split.Length; i += 2)
+            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
+            for (var i = 0; i < itemJsons.Count; i++)
             {
-                var itemHash = long.Parse(split[i]);
-                var itemCount = int.Parse(split[i + 1]);
-                var item = ServerContext.ItemStackFactory.Create(itemHash, itemCount);
-                _itemDataStoreService.SetItem(i / 2, item);
+                var itemStack = itemJsons[i].ToItem();
+                _itemDataStoreService.SetItem(i, itemStack);
             }
         }
         
-        public int EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         public bool IsDestroy { get; private set; }
         
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             _itemDataStoreService.SetItem(slot, itemStack);
         }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.InsertItem(itemStack);
         }
         
         public int GetSlotSize()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.GetSlotSize();
         }
         
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.GetItem(slot);
         }
@@ -84,62 +85,61 @@ namespace Game.Block.Blocks.Chest
         
         public string GetSaveState()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
-            //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
-            var saveState = "";
-            foreach (var itemStack in _itemDataStoreService.Inventory)
-                saveState += $"{itemStack.ItemHash},{itemStack.Count},";
-            return saveState.TrimEnd(',');
+            var itemJson = new List<ItemStackJsonObject>();
+            foreach (var item in _itemDataStoreService.Inventory)
+            {
+                itemJson.Add(new ItemStackJsonObject(item));
+            }
+            
+            return JsonConvert.SerializeObject(itemJson);
         }
-        
-        
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         
         public void SetItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             _itemDataStoreService.SetItem(slot, itemId, count);
         }
         
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.ReplaceItem(slot, itemStack);
         }
         
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.ReplaceItem(slot, itemId, count);
         }
         
         public IItemStack InsertItem(int itemId, int count)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.InsertItem(itemId, count);
         }
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.InsertItem(itemStacks);
         }
         
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             return _itemDataStoreService.InsertionCheck(itemStacks);
         }
         
         private void Update()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             for (var i = 0; i < _itemDataStoreService.Inventory.Count; i++)
                 _itemDataStoreService.SetItem(i,
@@ -148,10 +148,10 @@ namespace Game.Block.Blocks.Chest
         
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
-            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
+            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Linq;
 using Core.Const;
 using Game.Block.Interface;
 using Game.Context;
-using Game.World.Interface.Util;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -39,9 +38,9 @@ namespace Tests.CombinedTest.Server.PacketTest
                 
                 IBlock b = null;
                 if (random.Next(0, 3) == 1)
-                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), CreateBlockEntityId.Create(), posInfo);
+                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), BlockInstanceId.Create(), posInfo);
                 else
-                    b = blockFactory.Create(random.Next(1, 500), CreateBlockEntityId.Create(), posInfo);
+                    b = blockFactory.Create(random.Next(1, 500), BlockInstanceId.Create(), posInfo);
                 
                 
                 worldBlock.AddBlock(b);
@@ -53,11 +52,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new(new Vector2Int(0, 0)),
                 new(new Vector2Int(0, ChunkResponseConst.ChunkSize)),
                 new(new Vector2Int(ChunkResponseConst.ChunkSize, 0)),
-                new(new Vector2Int(ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize))
+                new(new Vector2Int(ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize)),
             };
             var requestBytes = MessagePackSerializer.Serialize(new RequestChunkDataMessagePack(requestChunks));
-            var responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
-            var responseChunks = MessagePackSerializer.Deserialize<ResponseChunkDataMessagePack>(responseBytes.ToArray()).ChunkData;
+            List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
+            ChunkDataMessagePack[] responseChunks = MessagePackSerializer.Deserialize<ResponseChunkDataMessagePack>(responseBytes.ToArray()).ChunkData;
             
             //検証
             foreach (var r in responseChunks)
@@ -88,13 +87,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //ブロックの設置
             var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var b = blockFactory.Create(Block_1x4_Id, 1, posInfo);
+            var b = blockFactory.Create(Block_1x4_Id, new BlockInstanceId(1), posInfo);
             worldBlock.AddBlock(b);
             
             var requestChunks = new List<Vector2IntMessagePack> { new(new Vector2Int(0, 0)) };
             var requestBytes = MessagePackSerializer.Serialize(new RequestChunkDataMessagePack(requestChunks));
-            var responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
-            var responseChunks = MessagePackSerializer.Deserialize<ResponseChunkDataMessagePack>(responseBytes.ToArray()).ChunkData;
+            List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
+            ChunkDataMessagePack[] responseChunks = MessagePackSerializer.Deserialize<ResponseChunkDataMessagePack>(responseBytes.ToArray()).ChunkData;
             
             var chunkData = responseChunks[0];
             
