@@ -12,14 +12,14 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
         private readonly BlockConnectorComponent<IGearEnergyTransformer> _blockConnectorComponent;
-        private readonly float _requiredPower;
+        private readonly float _requiredTorque;
         private readonly IDisposable _updateObservable;
         
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, float requiredPower, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
-            : base(requiredPower, entityId, blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, float requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+            : base(requiredTorque, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
-            _requiredPower = requiredPower;
+            _requiredTorque = requiredTorque;
             _blockConnectorComponent = blockConnectorComponent;
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }

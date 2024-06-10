@@ -3,7 +3,6 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Factory.Extension;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
@@ -31,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
                 blockName
             );
             
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, entityId, gearBeltConveyorConfigParam.RequiredPower, gearEnergyTransformerConnector);
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, entityId, gearBeltConveyorConfigParam.RequiredTorque, gearEnergyTransformerConnector);
             
             var blockComponents = new List<IBlockComponent>
             {

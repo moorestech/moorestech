@@ -7,17 +7,17 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class GearBeltConveyorConfigParam : IBlockConfigParam
     {
-        public GearBeltConveyorConfigParam(int beltConveyorItemNum, int timeOfItemEnterToExit, float requiredPower, List<ConnectSettings> gearConnectSettings)
+        public GearBeltConveyorConfigParam(int beltConveyorItemNum, int timeOfItemEnterToExit, float requiredTorque, List<ConnectSettings> gearConnectSettings)
         {
             BeltConveyorItemNum = beltConveyorItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
-            RequiredPower = requiredPower;
+            RequiredTorque = requiredTorque;
             GearConnectSettings = gearConnectSettings;
         }
         public List<ConnectSettings> GearConnectSettings { get; }
         public int BeltConveyorItemNum { get; }
         public int TimeOfItemEnterToExit { get; }
-        public float RequiredPower { get; }
+        public float RequiredTorque { get; }
         
         
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
