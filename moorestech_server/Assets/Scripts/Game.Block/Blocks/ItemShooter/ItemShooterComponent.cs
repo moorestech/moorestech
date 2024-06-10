@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
@@ -9,6 +10,7 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
@@ -16,12 +18,24 @@ namespace Game.Block.Blocks.ItemShooter
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory
     {
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private ShooterInventoryItem[] _inventoryItems;
+        private readonly ShooterInventoryItem[] _inventoryItems;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly BlockDirection _blockDirection;
-        private ItemShooterConfigParam _configParam;
+        private readonly ItemShooterConfigParam _configParam;
+        
+        private IDisposable _updateObservable;
+        
+        public ItemShooterComponent(BlockDirection blockDirection, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
+        {
+            _blockDirection = blockDirection;
+            _blockConnectorComponent = blockConnectorComponent;
+            _configParam = configParam;
+            
+            _inventoryItems = new ShooterInventoryItem[_configParam.InventoryItemNum];
+            _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
+        }
         
         private void Update()
         {
@@ -71,6 +85,8 @@ namespace Game.Block.Blocks.ItemShooter
         
         private ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
         {
+            BlockException.CheckDestroy(this);
+            
             for (var i = 0; i < _inventoryItems.Length; i++)
             {
                 if (_inventoryItems[i] != null) continue;
@@ -82,27 +98,49 @@ namespace Game.Block.Blocks.ItemShooter
             return inventoryItem;
         }
         
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            
+            //新しく挿入可能か
+            for (var i = 0; i < _inventoryItems.Length; i++)
+            {
+                if (_inventoryItems[i] != null) continue;
+                
+                _inventoryItems[i] =  new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _configParam.InitialShootSpeed);
+                return itemStack.SubItem(1);
+            }
+            
+            //挿入したのでアイテムを減らして返す
+            return itemStack.SubItem(1);
+        }
+        
+        public IItemStack GetItem(int slot)
+        {
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var item = _inventoryItems[slot];
+            return item == null ? 
+                itemStackFactory.CreatEmpty() : 
+                itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+        }
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _configParam.InitialShootSpeed);
+        }
+        
+        public int GetSlotSize()
+        {
+            BlockException.CheckDestroy(this); 
+            return _inventoryItems.Length;
+        }
         
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             IsDestroy = true;
+            _updateObservable.Dispose();
         }
-    }
-    
-    public class ShooterInventoryItem : IOnBeltConveyorItem
-    {
-        public int ItemId { get; }
-        public ItemInstanceId ItemInstanceId { get; }
-        
-        public float RemainingPercent { get; set; }
-        
-        public float CurrentSpeed { get; set; }
-        
-        public ShooterInventoryItem(int itemId, ItemInstanceId itemInstanceId)
-        {
-            ItemId = itemId;
-            ItemInstanceId = itemInstanceId;
-        }
+
     }
 }

@@ -6,6 +6,8 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class ItemShooterConfigParam : IBlockConfigParam
     {
+        public readonly float InitialShootSpeed;
+        
         public readonly int InventoryItemNum;
         public readonly float ItemShootSpeed;
         
