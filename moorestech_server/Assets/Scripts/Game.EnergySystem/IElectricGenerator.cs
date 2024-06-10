@@ -1,4 +1,5 @@
-﻿using Game.Block.Interface.Component;
+﻿using Game.Block.Interface;
+using Game.Block.Interface.Component;
 
 namespace Game.EnergySystem
 {
@@ -7,7 +8,7 @@ namespace Game.EnergySystem
     /// </summary>
     public interface IElectricGenerator : IBlockComponent
     {
-        public int EntityId { get; }
-        int OutputEnergy();
+        public BlockInstanceId BlockInstanceId { get; }
+        ElectricPower OutputEnergy();
     }
 }

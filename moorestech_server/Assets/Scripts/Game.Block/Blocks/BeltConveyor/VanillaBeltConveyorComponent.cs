@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Update;
@@ -11,6 +10,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -18,23 +18,29 @@ namespace Game.Block.Blocks.BeltConveyor
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState
+    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        public bool IsDestroy { get; private set; }
+        
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        
         public const float DefaultBeltConveyorHeight = 0.3f;
+        
+        public readonly int InventoryItemNum;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
-        public readonly int InventoryItemNum;
+        private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
         public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
             _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
-            TimeOfItemEnterToExit = timeOfItemEnterToExit;
+            _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _blockConnectorComponent = blockConnectorComponent;
             
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
@@ -48,31 +54,28 @@ namespace Game.Block.Blocks.BeltConveyor
             //stateから復元
             //データがないときは何もしない
             if (state == string.Empty) return;
-            var stateList = state.Split(',');
-            for (var i = 0; i < _inventoryItems.Length; i++)
+            
+            List<BeltConveyorItemJsonObject> items = JsonConvert.DeserializeObject<List<BeltConveyorItemJsonObject>>(state);
+            for (var i = 0; i < items.Count; i++)
             {
-                var saveIndex = i * 2;
-                var id = int.Parse(stateList[saveIndex]);
-                var remainTime = double.Parse(stateList[saveIndex + 1]);
-                if (id == -1) continue;
+                if (items[i].ItemStack == null) continue;
                 
-                _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
+                var itemStack = items[i].ItemStack.ToItem();
+                _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, items[i].RemainingTime, itemStack.ItemInstanceId, _timeOfItemEnterToExit);
             }
         }
         public double TimeOfItemEnterToExit { get; private set; } //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public bool IsDestroy { get; private set; }
-        
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //新しく挿入可能か
             if (_inventoryItems[^1] != null)
                 //挿入可能でない
                 return itemStack;
             
-            _inventoryItems[^1] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
+            _inventoryItems[^1] = new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, itemStack.ItemInstanceId, _timeOfItemEnterToExit);
             
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
@@ -80,14 +83,14 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public int GetSlotSize()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             return _inventoryItems.Length;
         }
         
         public IItemStack GetItem(int slot)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             if (_inventoryItems[slot] == null) return itemStackFactory.CreatEmpty();
@@ -96,10 +99,10 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //TODO lockすべき？？
-            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
+            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, itemStack.ItemInstanceId, _timeOfItemEnterToExit);
         }
         
         public void Destroy()
@@ -110,29 +113,17 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public string GetSaveState()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             if (_inventoryItems.Length == 0) return string.Empty;
             
-            //stateの定義 ItemId,RemainingTime,LimitTime,InstanceId...
-            var state = new StringBuilder();
+            var saveItems = new List<BeltConveyorItemJsonObject>();
             foreach (var t in _inventoryItems)
             {
-                if (t == null)
-                {
-                    state.Append("-1,-1,");
-                    continue;
-                }
-                
-                state.Append(t.ItemId);
-                state.Append(',');
-                state.Append(t.RemainingTime);
-                state.Append(',');
+                saveItems.Add(new BeltConveyorItemJsonObject(t));
             }
             
-            //最後のカンマを削除
-            state.Remove(state.Length - 1, 1);
-            return state.ToString();
+            return JsonConvert.SerializeObject(saveItems);
         }
         
         public void SetTimeOfItemEnterToExit(double time)
@@ -148,20 +139,22 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         private void Update()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
             
-            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(4, TimeOfItemEnterToExit, ItemInstanceIdGenerator.Generate());
-            
+            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null)
+            {
+                 _inventoryItems[0] = new BeltConveyorInventoryItem(4, _timeOfItemEnterToExit, ItemInstanceId.Create(), _timeOfItemEnterToExit);
+            }
             for (var i = 0; i < count; i++)
             {
                 var item = _inventoryItems[i];
                 if (item == null) continue;
                 
                 //次のインデックスに入れる時間かどうかをチェックする
-                var nextIndexStartTime = i * (TimeOfItemEnterToExit / InventoryItemNum);
+                var nextIndexStartTime = i * (_timeOfItemEnterToExit / InventoryItemNum);
                 var isNextInsertable = item.RemainingTime <= nextIndexStartTime;
                 
                 //次に空きがあれば次に移動する
@@ -185,7 +178,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
                     
-                    var connector = _blockConnectorComponent.ConnectTargets.First();
+                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
                     
                     
@@ -202,8 +195,31 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public BeltConveyorInventoryItem GetBeltConveyorItem(int index)
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
             return _inventoryItems[index];
+        }
+    }
+    
+    public class BeltConveyorItemJsonObject
+    {
+        [JsonProperty("itemStack")]
+        public ItemStackJsonObject ItemStack;
+        
+        [JsonProperty("remainingTime")]
+        public double RemainingTime;
+        
+        public BeltConveyorItemJsonObject(BeltConveyorInventoryItem beltConveyorInventoryItem)
+        {
+            if (beltConveyorInventoryItem == null)
+            {
+                ItemStack = null;
+                RemainingTime = 0;
+                return;
+            }
+            
+            var item = ServerContext.ItemStackFactory.Create(beltConveyorInventoryItem.ItemId, 1);
+            ItemStack = new ItemStackJsonObject(item);
+            RemainingTime = beltConveyorInventoryItem.RemainingTime;
         }
     }
 }

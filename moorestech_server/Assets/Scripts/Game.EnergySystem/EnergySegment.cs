@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Core.Update;
+using Game.Block.Interface;
 using UniRx;
 
 namespace Game.EnergySystem
@@ -9,29 +10,29 @@ namespace Game.EnergySystem
     /// </summary>
     public class EnergySegment
     {
-        private readonly Dictionary<int, IElectricConsumer> _consumers = new();
-        private readonly Dictionary<int, IElectricTransformer> _energyTransformers = new();
-        private readonly Dictionary<int, IElectricGenerator> _generators = new();
+        private readonly Dictionary<BlockInstanceId, IElectricConsumer> _consumers = new();
+        private readonly Dictionary<BlockInstanceId, IElectricTransformer> _energyTransformers = new();
+        private readonly Dictionary<BlockInstanceId, IElectricGenerator> _generators = new();
         
         public EnergySegment()
         {
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public IReadOnlyDictionary<int, IElectricConsumer> Consumers => _consumers;
+        public IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> Consumers => _consumers;
         
-        public IReadOnlyDictionary<int, IElectricGenerator> Generators => _generators;
+        public IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> Generators => _generators;
         
-        public IReadOnlyDictionary<int, IElectricTransformer> EnergyTransformers => _energyTransformers;
+        public IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> EnergyTransformers => _energyTransformers;
         
         private void Update()
         {
             //供給されてる合計エネルギー量の算出
-            var powers = 0;
+            ElectricPower powers = 0;
             foreach (var key in _generators.Keys) powers += _generators[key].OutputEnergy();
             
             //エネルギーの需要量の算出
-            var requester = 0;
+            ElectricPower requester = 0;
             foreach (var key in _consumers.Keys) requester += _consumers[key].RequestEnergy;
             
             //エネルギー供給の割合の算出
@@ -40,43 +41,43 @@ namespace Game.EnergySystem
             
             //エネルギーを供給
             foreach (var key in _consumers.Keys)
-                _consumers[key].SupplyEnergy((int)(_consumers[key].RequestEnergy * powerRate));
+                _consumers[key].SupplyEnergy((_consumers[key].RequestEnergy * (ElectricPower)powerRate));
         }
         
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)
         {
-            if (_consumers.ContainsKey(electricConsumer.EntityId)) return;
-            _consumers.Add(electricConsumer.EntityId, electricConsumer);
+            if (_consumers.ContainsKey(electricConsumer.BlockInstanceId)) return;
+            _consumers.Add(electricConsumer.BlockInstanceId, electricConsumer);
         }
         
         public void RemoveEnergyConsumer(IElectricConsumer electricConsumer)
         {
-            if (!_consumers.ContainsKey(electricConsumer.EntityId)) return;
-            _consumers.Remove(electricConsumer.EntityId);
+            if (!_consumers.ContainsKey(electricConsumer.BlockInstanceId)) return;
+            _consumers.Remove(electricConsumer.BlockInstanceId);
         }
         
         public void AddGenerator(IElectricGenerator generator)
         {
-            if (_generators.ContainsKey(generator.EntityId)) return;
-            _generators.Add(generator.EntityId, generator);
+            if (_generators.ContainsKey(generator.BlockInstanceId)) return;
+            _generators.Add(generator.BlockInstanceId, generator);
         }
         
         public void RemoveGenerator(IElectricGenerator generator)
         {
-            if (!_generators.ContainsKey(generator.EntityId)) return;
-            _generators.Remove(generator.EntityId);
+            if (!_generators.ContainsKey(generator.BlockInstanceId)) return;
+            _generators.Remove(generator.BlockInstanceId);
         }
         
         public void AddEnergyTransformer(IElectricTransformer electricTransformer)
         {
-            if (_energyTransformers.ContainsKey(electricTransformer.EntityId)) return;
-            _energyTransformers.Add(electricTransformer.EntityId, electricTransformer);
+            if (_energyTransformers.ContainsKey(electricTransformer.BlockInstanceId)) return;
+            _energyTransformers.Add(electricTransformer.BlockInstanceId, electricTransformer);
         }
         
         public void RemoveEnergyTransformer(IElectricTransformer electricTransformer)
         {
-            if (!_energyTransformers.ContainsKey(electricTransformer.EntityId)) return;
-            _energyTransformers.Remove(electricTransformer.EntityId);
+            if (!_energyTransformers.ContainsKey(electricTransformer.BlockInstanceId)) return;
+            _energyTransformers.Remove(electricTransformer.BlockInstanceId);
         }
     }
 }

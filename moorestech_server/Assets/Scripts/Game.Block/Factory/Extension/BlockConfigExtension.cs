@@ -7,7 +7,7 @@ namespace Game.Block.Factory.Extension
 {
     public static class BlockConfigExtension
     {
-        public static BlockConnectorComponent<IBlockInventory> CreateConnector(this BlockConfigData config, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IBlockInventory> CreateInventoryConnector(this BlockConfigData config, BlockPositionInfo blockPositionInfo)
         {
             return new BlockConnectorComponent<IBlockInventory>(config.InputConnectSettings, config.OutputConnectSettings, blockPositionInfo);
         }

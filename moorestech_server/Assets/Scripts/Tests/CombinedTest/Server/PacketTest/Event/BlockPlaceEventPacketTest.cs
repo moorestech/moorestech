@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var response = packetResponse.GetPacketResponse(EventRequestData(0));
+            List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //イベントキューにIDを登録する
-            var response = packetResponse.GetPacketResponse(EventRequestData(0));
+            List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 blocks.Add(new TestBlockData(pos, blockId, direction));
                 //ブロックの設置
                 var blockPosInfo = new BlockPositionInfo(pos, (BlockDirection)direction, Vector3Int.one);
-                var block = ServerContext.BlockFactory.Create(blockId, random.Next(1, 1000000), blockPosInfo);
+                var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPosInfo);
                 worldBlockDataStore.AddBlock(block);
             }
             

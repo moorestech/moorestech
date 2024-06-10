@@ -5,7 +5,6 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Tests.UnitTest.Game
 {
@@ -102,7 +101,7 @@ namespace Tests.UnitTest.Game
         private void PlaceBlock(int blockId, Vector3Int position, BlockDirection direction)
         {
             var posInfo = new BlockPositionInfo(position, direction, Vector3Int.one);
-            var block = _blockFactory.Create(blockId, new Random().Next(0, 10000), posInfo);
+            var block = _blockFactory.Create(blockId, BlockInstanceId.Create(), posInfo);
             
             worldDatastore.AddBlock(block);
         }

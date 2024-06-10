@@ -612,7 +612,7 @@ Shader "Hidden/lilToonMultiOutline"
         HLSLINCLUDE
             #define LIL_SRP_VERSION_MAJOR 14
             #define LIL_SRP_VERSION_MINOR 0
-            #define LIL_SRP_VERSION_PATCH 8
+            #define LIL_SRP_VERSION_PATCH 10
 
             #pragma target 4.5
             #pragma fragmentoption ARB_precision_hint_fastest
@@ -1134,7 +1134,7 @@ Shader "Hidden/lilToonMultiOutline"
         HLSLINCLUDE
             #define LIL_SRP_VERSION_MAJOR 14
             #define LIL_SRP_VERSION_MINOR 0
-            #define LIL_SRP_VERSION_PATCH 8
+            #define LIL_SRP_VERSION_PATCH 10
 
             #pragma target 3.5
             #pragma fragmentoption ARB_precision_hint_fastest

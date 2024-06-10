@@ -24,7 +24,7 @@ namespace Game.Block.Config.LoadConfig.Param
             int teethCount = blockParam.teethCount;
             float lossPower = blockParam.lossPower;
             
-            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
+            var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, GearConnectConst.GearConnectOptionKey, GearConnectOptionLoader.Loader);
             return new GearConfigParam(teethCount, lossPower, gearConnectSettings);
         }
     }

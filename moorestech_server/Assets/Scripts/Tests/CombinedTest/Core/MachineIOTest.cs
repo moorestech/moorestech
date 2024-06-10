@@ -8,6 +8,7 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -16,7 +17,7 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
-    public class MachineIoTest
+    public class MachineIOTest
     {
         //アイテムが通常通り処理されるかのテスト
         [Test]
@@ -32,33 +33,37 @@ namespace Tests.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
             
             
-            var block = blockFactory.Create(recipe.BlockId, 1, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var machineComponent = block.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var block = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.ItemInputs)
-                machineComponent.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
+                blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
+            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
+            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            {
+                blockMachineComponent.SupplyEnergy(10000);
+                GameUpdater.UpdateWithWait();
+            }
             
             //検証
-            var (input, output) = GetInputOutputSlot(machineComponent);
+            (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(blockInventory);
             
+            Assert.AreEqual(0, input.Count);
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
             
-            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i], output[i]);
+            Assert.AreNotEqual(0, output.Count);
+            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i].OutputItem, output[i]);
         }
         
-        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaElectricMachineComponent electricMachineComponent)
+        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
         {
-            var vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaElectricMachineComponent)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(electricMachineComponent);
-            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
+            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachineInventory);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachineInventory);
             

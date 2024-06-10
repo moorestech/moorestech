@@ -1,3 +1,4 @@
+using Game.Block.Interface;
 using Game.EnergySystem;
 
 namespace Tests.Module
@@ -7,15 +8,15 @@ namespace Tests.Module
     {
         private readonly int _power;
         
-        public TestElectricGenerator(int power, int entityId)
+        public TestElectricGenerator(int power, BlockInstanceId blockInstanceId)
         {
             _power = power;
-            EntityId = entityId;
+            BlockInstanceId = blockInstanceId;
         }
         
-        public int EntityId { get; }
+        public BlockInstanceId BlockInstanceId { get; }
         
-        public int OutputEnergy()
+        public ElectricPower OutputEnergy()
         {
             return _power;
         }

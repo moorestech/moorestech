@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
+using Game.Block.Interface;
 using UniRx;
 using Random = System.Random;
 
@@ -10,14 +11,14 @@ namespace Game.Gear.Common
     {
         private static GearNetworkDatastore _instance;
         
-        private readonly Dictionary<int, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
+        private readonly Dictionary<BlockInstanceId, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
         private readonly Dictionary<GearNetworkId, GearNetwork> _gearNetworks = new();
         private readonly Random _random = new(215180);
         
         public GearNetworkDatastore()
         {
             _instance = this;
-            _blockEntityToGearNetwork = new Dictionary<int, GearNetwork>();
+            _blockEntityToGearNetwork = new Dictionary<BlockInstanceId, GearNetwork>();
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
@@ -33,9 +34,9 @@ namespace Game.Gear.Common
             var connectedNetworkIds = new HashSet<GearNetworkId>();
             foreach (var connectedGear in gear.Connects)
                 //新しく設置された歯車に接続している歯車は、すべて既存のNWに接続している前提
-                if (_blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.EntityId))
+                if (_blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.BlockInstanceId))
                 {
-                    var networkId = _blockEntityToGearNetwork[connectedGear.Transformer.EntityId].NetworkId;
+                    var networkId = _blockEntityToGearNetwork[connectedGear.Transformer.BlockInstanceId].NetworkId;
                     connectedNetworkIds.Add(networkId);
                 }
             
@@ -60,7 +61,7 @@ namespace Game.Gear.Common
                 var networkId = GearNetworkId.CreateNetworkId();
                 var network = new GearNetwork(networkId);
                 network.AddGear(gear);
-                _blockEntityToGearNetwork.Add(gear.EntityId, network);
+                _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
                 _gearNetworks.Add(networkId, network);
             }
             
@@ -69,7 +70,7 @@ namespace Game.Gear.Common
                 var networkId = connectedNetworkIds.First();
                 var network = _gearNetworks[networkId];
                 network.AddGear(gear);
-                _blockEntityToGearNetwork.Add(gear.EntityId, network);
+                _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
             }
             
             void MergeNetworks()
@@ -94,7 +95,7 @@ namespace Game.Gear.Common
                 
                 transformers.Add(gear);
                 newNetwork.AddGear(gear);
-                _blockEntityToGearNetwork[gear.EntityId] = newNetwork;
+                _blockEntityToGearNetwork[gear.BlockInstanceId] = newNetwork;
                 
                 // マージしたNWに所属する歯車のNWを更新
                 for (var i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
@@ -113,7 +114,7 @@ namespace Game.Gear.Common
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
             // 自身をnetworkから削除
-            var network = _instance._blockEntityToGearNetwork[gear.EntityId];
+            var network = _instance._blockEntityToGearNetwork[gear.BlockInstanceId];
             network.RemoveGear(gear);
             
             //接続していた歯車ネットワークをデータベースから破棄
@@ -124,10 +125,10 @@ namespace Game.Gear.Common
             gearStack.Push(gear);
             while (gearStack.TryPop(out var stackGear))
             {
-                _instance._blockEntityToGearNetwork.Remove(stackGear.EntityId);
+                _instance._blockEntityToGearNetwork.Remove(stackGear.BlockInstanceId);
                 
                 foreach (var connectedGear in stackGear.Connects)
-                    if (_instance._blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.EntityId))
+                    if (_instance._blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.BlockInstanceId))
                         gearStack.Push(connectedGear.Transformer);
             }
             

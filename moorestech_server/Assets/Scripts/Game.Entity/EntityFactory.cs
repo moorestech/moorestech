@@ -7,7 +7,7 @@ namespace Game.Entity
 {
     public class EntityFactory : IEntityFactory
     {
-        public IEntity CreateEntity(string entityType, long instanceId, Vector3 position = default)
+        public IEntity CreateEntity(string entityType, EntityInstanceId instanceId, Vector3 position = default)
         {
             if (entityType == VanillaEntityType.VanillaPlayer) return new PlayerEntity(instanceId, position);
             
