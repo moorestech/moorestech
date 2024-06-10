@@ -33,7 +33,6 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public override void SupplyPower(float rpm, float torque, bool isClockwise)
         {
-            //TODO BeltConveyorComponentの速度を計算する
             var torqueRate = torque / _requiredTorque;
             _beltConveyorComponent.SetTimeOfItemEnterToExit(torqueRate * rpm * _beltConveyorSpeed);
         }
