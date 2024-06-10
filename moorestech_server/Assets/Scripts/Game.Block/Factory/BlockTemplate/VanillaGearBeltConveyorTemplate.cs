@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearBeltConveyorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockConfigData config, BlockInstanceId entityId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltConveyorConfigParam = config.Param as GearBeltConveyorConfigParam;
             var blockName = ServerContext.BlockConfig.GetBlockConfig(config.BlockHash).Name;
@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
             var vanillaBeltConveyorComponent = new VanillaBeltConveyorComponent(
                 gearBeltConveyorConfigParam!.BeltConveyorItemNum,
                 gearBeltConveyorConfigParam!.TimeOfItemEnterToExit,
-                config.CreateConnector(blockPositionInfo),
+                new BlockConnectorComponent<IBlockInventory>(config.InputConnectSettings, config.OutputConnectSettings, blockPositionInfo),
                 blockName
             );
             
@@ -41,7 +41,7 @@ namespace Game.Block.Factory.BlockTemplate
             };
             return new BlockSystem(entityId, config.BlockId, blockComponents, blockPositionInfo);
         }
-        public IBlock Load(string state, BlockConfigData config, int entityId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockConfigData config, BlockInstanceId entityId, BlockPositionInfo blockPositionInfo)
         {
             var blockComponents = new List<IBlockComponent>();
             return new BlockSystem(entityId, config.BlockId, blockComponents, blockPositionInfo);

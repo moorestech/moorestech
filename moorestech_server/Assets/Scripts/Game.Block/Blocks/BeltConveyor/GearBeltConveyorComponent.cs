@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly float _requiredPower;
         private readonly IDisposable _updateObservable;
         
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, int entityId, float requiredPower, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, float requiredPower, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
             : base(requiredPower, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         private void Update()
         {
-            if (IsDestroy) throw BlockException.IsDestroyedException;
+            BlockException.CheckDestroy(this);
         }
     }
 }
