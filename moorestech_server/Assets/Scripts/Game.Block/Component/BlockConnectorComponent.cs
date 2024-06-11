@@ -14,14 +14,19 @@ namespace Game.Block.Component
     [DisallowMultiple]
     public class BlockConnectorComponent<TTarget> : IBlockConnectorComponent<TTarget> where TTarget : IBlockComponent
     {
-        private readonly List<IDisposable> _blockUpdateEvents = new();
+        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectTargets => _connectTargets;
         private readonly Dictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> _connectTargets = new();
+        
+        private readonly List<IDisposable> _blockUpdateEvents = new();
         
         private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
         private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
         
+        private readonly BlockPositionInfo _blockPositionInfo;
+        
         public BlockConnectorComponent(List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings, BlockPositionInfo blockPositionInfo)
         {
+            _blockPositionInfo = blockPositionInfo;
             var blockPos = blockPositionInfo.OriginalPos;
             var blockDirection = blockPositionInfo.BlockDirection;
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
@@ -78,8 +83,6 @@ namespace Game.Block.Component
             
             #endregion
         }
-        
-        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectTargets => _connectTargets;
         
         public bool IsDestroy { get; private set; }
         
