@@ -2,6 +2,7 @@ using System.Reflection;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.ItemShooter;
 using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -25,10 +26,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var shooter = itemShooter.GetComponent<ItemShooterComponent>();
             //リフレクションで_inventoryItemsを取得
-            var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var inventoryItemsField = typeof(ItemShooterComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(shooter);
             
-            var timeOfItemEnterToExit = ((BeltConveyorConfigParam)itemShooter.BlockConfigData.Param).TimeOfItemEnterToExit;
             //アイテムを設定
             var item1Speed = 1.5f;
             var item2Speed = 2.2f;
@@ -48,11 +48,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var str = shooter.GetSaveState();
             Debug.Log(str);
             
-            
             //セーブデータをロード
             var newShooter = blockFactory.Load(itemShooter.BlockConfigData.BlockHash, new(0), str, posInfo).GetComponent<ItemShooterComponent>();
             var newInventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(newShooter);
-            
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);

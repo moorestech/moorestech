@@ -1123,7 +1123,7 @@
     },
     {
       "name": "TestItemShooter",
-      "type": "BeltConveyor",
+      "type": "ItemShooter",
       "itemModId": "Test Author:forUniTest",
       "itemName": "TestItemShooter",
       "size": {
