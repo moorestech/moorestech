@@ -1120,6 +1120,76 @@
           }
         ]
       }
+    },
+    {
+      "name": "TestItemShooter",
+      "type": "BeltConveyor",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "TestItemShooter",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "inventoryItemNum": 4,
+        "initialShootSpeed": 1,
+        "itemShootSpeed" : 1,
+        
+        "downAcceleration": 0.2,
+        "upDeceleration": 0.35,
+        "horizontalDeceleration": 0.05,
+        
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
     }
   ]
 }
