@@ -18,6 +18,8 @@ namespace Game.Block.Config.LoadConfig.Param
         public ItemShooterConfigParam(dynamic blockParam)
         {
             InventoryItemNum = blockParam.inventoryItemNum;
+            
+            InitialShootSpeed = blockParam.initialShootSpeed;
             ItemShootSpeed = blockParam.itemShootSpeed;
             
             DownAcceleration = blockParam.downAcceleration;

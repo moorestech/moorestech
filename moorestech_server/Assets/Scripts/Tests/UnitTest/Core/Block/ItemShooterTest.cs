@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             
-            // アイテムシューターは、以下のように、一度下がり、再び上がるような構造になっている
+            // アイテムシューターのテストは、以下のように、一度下がり、再び上がるような構造になっている
             // ↓ チェスト　 
             // □ ＿ 　　　　 ＿ ＿ → アイテムの流れ
             //     ＼ ＿ ／
