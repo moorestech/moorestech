@@ -23,10 +23,11 @@ namespace Game.Block.Config.LoadConfig.Param
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
         {
             int slot = blockParam.slot;
-            int beltConveyorSpeed = blockParam.beltConveyorSpeed;
+            double beltConveyorSpeed = blockParam.beltConveyorSpeed;
             float requiredTorque = blockParam.requiredTorque;
+            List<ConnectSettings> connectsSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
             
-            return new GearBeltConveyorConfigParam(slot, beltConveyorSpeed, requiredTorque, BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader));
+            return new GearBeltConveyorConfigParam(slot, beltConveyorSpeed, requiredTorque, connectsSettings);
         }
     }
 }

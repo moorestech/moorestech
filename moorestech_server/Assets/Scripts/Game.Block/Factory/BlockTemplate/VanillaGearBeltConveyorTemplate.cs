@@ -23,10 +23,15 @@ namespace Game.Block.Factory.BlockTemplate
                 gearBeltConveyorConfigParam!.GearConnectSettings,
                 blockPositionInfo
             );
+            var inventoryConnector = new BlockConnectorComponent<IBlockInventory>(
+                config.InputConnectSettings,
+                config.OutputConnectSettings,
+                blockPositionInfo
+            );
             var vanillaBeltConveyorComponent = new VanillaBeltConveyorComponent(
                 gearBeltConveyorConfigParam!.BeltConveyorItemNum,
-                double.MaxValue,
-                new BlockConnectorComponent<IBlockInventory>(config.InputConnectSettings, config.OutputConnectSettings, blockPositionInfo),
+                0,
+                inventoryConnector,
                 blockName
             );
             
@@ -37,6 +42,7 @@ namespace Game.Block.Factory.BlockTemplate
                 gearBeltConveyorComponent,
                 vanillaBeltConveyorComponent,
                 gearEnergyTransformerConnector,
+                inventoryConnector,
             };
             return new BlockSystem(entityId, config.BlockId, blockComponents, blockPositionInfo);
         }

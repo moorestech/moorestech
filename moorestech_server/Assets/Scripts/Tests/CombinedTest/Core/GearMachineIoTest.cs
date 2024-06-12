@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Core
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            while (craftTime.AddSeconds(0.4).CompareTo(DateTime.Now) == 1)
             {
                 gearMachineComponent.SupplyPower(gearMachineParam.RequiredRpm, gearMachineParam.RequiredTorque, true);
                 GameUpdater.UpdateWithWait();

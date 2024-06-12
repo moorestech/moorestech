@@ -22,5 +22,6 @@ namespace Tests.Module.TestMod
         public const int SmallLossPowerGear = 18;
         public const int BigLossPowerGear = 19;
         public const int InfinityTorqueSimpleGearGenerator = 20;
+        public const int GearBeltConveyor = 21;
     }
 }

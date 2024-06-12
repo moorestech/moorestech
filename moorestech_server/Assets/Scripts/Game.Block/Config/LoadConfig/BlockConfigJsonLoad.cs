@@ -37,6 +37,7 @@ namespace Game.Block.Config.LoadConfig
                 { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
                 { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
+                { VanillaBlockType.GearBeltConveyor, GearBeltConveyorConfigParam.Generate },
             };
         }
         

@@ -20,21 +20,17 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
-        public bool IsDestroy { get; private set; }
-        
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        
         public const float DefaultBeltConveyorHeight = 0.3f;
-        
-        public readonly int InventoryItemNum;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
-        private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        public readonly int InventoryItemNum;
+        
+        private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
         public VanillaBeltConveyorComponent(int inventoryItemNum, double timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
@@ -64,7 +60,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, items[i].RemainingTime, itemStack.ItemInstanceId, _timeOfItemEnterToExit);
             }
         }
-        public double TimeOfItemEnterToExit { get; private set; } //ベルトコンベアにアイテムが入って出るまでの時間
+        public bool IsDestroy { get; private set; }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -126,9 +122,11 @@ namespace Game.Block.Blocks.BeltConveyor
             return JsonConvert.SerializeObject(saveItems);
         }
         
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        
         public void SetTimeOfItemEnterToExit(double time)
         {
-            TimeOfItemEnterToExit = time;
+            _timeOfItemEnterToExit = time;
         }
         
         
@@ -146,7 +144,7 @@ namespace Game.Block.Blocks.BeltConveyor
             
             if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null)
             {
-                 _inventoryItems[0] = new BeltConveyorInventoryItem(4, _timeOfItemEnterToExit, ItemInstanceId.Create(), _timeOfItemEnterToExit);
+                _inventoryItems[0] = new BeltConveyorInventoryItem(4, _timeOfItemEnterToExit, ItemInstanceId.Create(), _timeOfItemEnterToExit);
             }
             for (var i = 0; i < count; i++)
             {
