@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var itemShooter = blockFactory.Create(ForUnitTestModBlockId.ItemShooter, new BlockInstanceId(1), posInfo);
+            var itemShooter = blockFactory.Create(ForUnitTestModBlockId.StraightItemShooter, new BlockInstanceId(1), posInfo);
             
             var shooter = itemShooter.GetComponent<ItemShooterComponent>();
             //リフレクションで_inventoryItemsを取得
@@ -36,11 +36,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item1RemainingPercent = 0.5f;
             var item2RemainingPercent = 0.3f;
             var item3RemainingPercent = 0.0f;
-            inventoryItems[0] = new ShooterInventoryItem(1, new (0), item1Speed);
+            inventoryItems[0] = new ShooterInventoryItem(1, new(0), item1Speed);
             inventoryItems[0].RemainingPercent = item1RemainingPercent;
-            inventoryItems[2] = new ShooterInventoryItem(2, new (0), item2Speed);
+            inventoryItems[2] = new ShooterInventoryItem(2, new(0), item2Speed);
             inventoryItems[2].RemainingPercent = item2RemainingPercent;
-            inventoryItems[3] = new ShooterInventoryItem(5, new (0), item3Speed);
+            inventoryItems[3] = new ShooterInventoryItem(5, new(0), item3Speed);
             inventoryItems[3].RemainingPercent = item3RemainingPercent;
             
             

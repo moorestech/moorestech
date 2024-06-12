@@ -1122,10 +1122,10 @@
       }
     },
     {
-      "name": "TestItemShooter",
+      "name": "StraightTestItemShooter",
       "type": "ItemShooter",
       "itemModId": "Test Author:forUniTest",
-      "itemName": "TestItemShooter",
+      "itemName": "StraightTestItemShooter",
       "size": {
         "x": 1,
         "y": 1,
@@ -1134,12 +1134,8 @@
       "param": {
         "inventoryItemNum": 4,
         "initialShootSpeed": 1,
-        "itemShootSpeed" : 1,
-        
-        "downAcceleration": 0.2,
-        "upDeceleration": 0.35,
-        "horizontalDeceleration": 0.05,
-        
+        "itemShootSpeed": 1,
+        "acceleration": -0.2,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -1188,6 +1184,118 @@
                 {
                   "x": 0,
                   "y": -1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "DownTestItemShooter",
+      "type": "ItemShooter",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "DownTestItemShooter",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "inventoryItemNum": 4,
+        "initialShootSpeed": 1,
+        "itemShootSpeed": 1,
+        "acceleration": 0.5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 1,
+                  "z": -1
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "UpTestItemShooter",
+      "type": "ItemShooter",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "UpTestItemShooter",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "inventoryItemNum": 4,
+        "initialShootSpeed": 1,
+        "itemShootSpeed": 1,
+        "acceleration": -0.7,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 1,
                   "z": 1
                 }
               ]

@@ -88,7 +88,15 @@
     "maxStacks": 100
   },
   {
-    "name": "TestItemShooter",
+    "name": "StraightTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "DownTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "UpTestItemShooter",
     "maxStacks": 100
   }
 ]

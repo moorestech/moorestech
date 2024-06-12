@@ -22,15 +22,11 @@ namespace Game.Block.Blocks.ItemShooter
         private readonly ShooterInventoryItem[] _inventoryItems;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        
-        private readonly BlockDirection _blockDirection;
         private readonly ItemShooterConfigParam _configParam;
-        
         private readonly IDisposable _updateObservable;
         
-        public ItemShooterComponent(BlockDirection blockDirection, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
+        public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
         {
-            _blockDirection = blockDirection;
             _blockConnectorComponent = blockConnectorComponent;
             _configParam = configParam;
             
@@ -38,8 +34,8 @@ namespace Game.Block.Blocks.ItemShooter
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
-        public ItemShooterComponent(string state, BlockDirection blockDirection, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam):
-            this(blockDirection, blockConnectorComponent, configParam)
+        public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam) :
+            this(blockConnectorComponent, configParam)
         {
             if (state == string.Empty) return;
             
@@ -92,13 +88,12 @@ namespace Game.Block.Blocks.ItemShooter
                 }
                 
                 //時間を減らす
-                var deltaTime = (float)GameUpdater.UpdateMillSecondTime; // floatとdobuleが混在しているの気持ち悪いから改善したい
+                var deltaTime = (float)GameUpdater.UpdateMillSecondTime / 1000f; // floatとdobuleが混在しているの気持ち悪いから改善したい
                 item.RemainingPercent -= deltaTime * _configParam.ItemShootSpeed * item.CurrentSpeed;
                 item.RemainingPercent = Mathf.Clamp(item.RemainingPercent, 0, 1);
                 
                 // velocityを更新する
-                var acceleration = _configParam.GetAcceleration(_blockDirection);
-                item.CurrentSpeed += acceleration * deltaTime;
+                item.CurrentSpeed += _configParam.Acceleration * deltaTime;
                 item.CurrentSpeed = Mathf.Clamp(item.CurrentSpeed, 0, float.MaxValue);
             }
         }
@@ -112,6 +107,7 @@ namespace Game.Block.Blocks.ItemShooter
                 if (_inventoryItems[i] != null) continue;
                 
                 _inventoryItems[i] = inventoryItem;
+                _inventoryItems[i].RemainingPercent = 1;
                 return null;
             }
             
@@ -127,7 +123,7 @@ namespace Game.Block.Blocks.ItemShooter
             {
                 if (_inventoryItems[i] != null) continue;
                 
-                _inventoryItems[i] =  new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _configParam.InitialShootSpeed);
+                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _configParam.InitialShootSpeed);
                 return itemStack.SubItem(1);
             }
             
@@ -139,9 +135,7 @@ namespace Game.Block.Blocks.ItemShooter
         {
             var itemStackFactory = ServerContext.ItemStackFactory;
             var item = _inventoryItems[slot];
-            return item == null ? 
-                itemStackFactory.CreatEmpty() : 
-                itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+            return item == null ? itemStackFactory.CreatEmpty() : itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
         }
         public void SetItem(int slot, IItemStack itemStack)
         {
@@ -151,7 +145,7 @@ namespace Game.Block.Blocks.ItemShooter
         
         public int GetSlotSize()
         {
-            BlockException.CheckDestroy(this); 
+            BlockException.CheckDestroy(this);
             return _inventoryItems.Length;
         }
         

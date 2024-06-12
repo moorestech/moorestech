@@ -17,7 +17,7 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
-            var chestComponent = new ItemShooterComponent(direction, inputConnectorComponent, itemShooter);
+            var chestComponent = new ItemShooterComponent(inputConnectorComponent, itemShooter);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
-            var chestComponent = new ItemShooterComponent(state, direction, inputConnectorComponent, itemShooter);
+            var chestComponent = new ItemShooterComponent(state, inputConnectorComponent, itemShooter);
             var components = new List<IBlockComponent>
             {
                 chestComponent,

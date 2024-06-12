@@ -23,6 +23,8 @@ namespace Tests.Module.TestMod
         public const int BigLossPowerGear = 19;
         public const int InfinityTorqueSimpleGearGenerator = 20;
         
-        public const int ItemShooter = 21;
+        public const int StraightItemShooter = 21;
+        public const int DownItemShooter = 22;
+        public const int UpItemShooter = 23;
     }
 }

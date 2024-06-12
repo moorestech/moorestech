@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Core.Const;
 using Core.Update;
 using Game.Block.Blocks.Chest;
@@ -16,7 +17,6 @@ namespace Tests.UnitTest.Core.Block
 {
     public class ItemShooterTest
     {
-        
         [Test]
         public void ShooterTest()
         {
@@ -25,28 +25,33 @@ namespace Tests.UnitTest.Core.Block
             
             // アイテムシューターのテストは、以下のように、一度下がり、再び上がるような構造になっている
             // ↓ チェスト
-            // □ ＿        ＿ ＿ → アイテムの流れ
-            //     ＼ ＿ ／
+            // □ ＿ 
+            //     ＼         ＿ ＿ → アイテムの流れ
+            //        ＼ ＿ ／
             //   ↑  ↑ アイテムシューター
-            var chestPosition = new Vector3Int(0,0, 0);
+            var chestPosition = new Vector3Int(0, 0, 0);
             var horizonShooter1 = new Vector3Int(0, 0, 1);
-            var downShooter = new Vector3Int(0, -1, 2);
-            var horizonShooter2 = new Vector3Int(0, -1, 3);
-            var upShooter = new Vector3Int(0, 0, 4);
-            var horizonShooter3 = new Vector3Int(0, 0, 5);
-            var horizonShooter4 = new Vector3Int(0, 0, 6);
+            var downShooter1 = new Vector3Int(0, -1, 2);
+            var downShooter2 = new Vector3Int(0, -2, 3);
+            var horizonShooter2 = new Vector3Int(0, -2, 4);
+            var upShooter = new Vector3Int(0, -2, 5);
+            var horizonShooter3 = new Vector3Int(0, -1, 6);
+            var horizonShooter4 = new Vector3Int(0, -1, 7);
             
             var chest = AddBlock(ForUnitTestModBlockId.ChestId, chestPosition).GetComponent<VanillaChestComponent>();
-            var shooter1 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter1).GetComponent<ItemShooterComponent>();
-            var down = AddBlock(ForUnitTestModBlockId.ItemShooter, downShooter, BlockDirection.DownNorth).GetComponent<ItemShooterComponent>();
-            var shooter2 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter2).GetComponent<ItemShooterComponent>();
-            var up = AddBlock(ForUnitTestModBlockId.ItemShooter, upShooter, BlockDirection.UpNorth).GetComponent<ItemShooterComponent>();
-            var shooter3 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter3).GetComponent<ItemShooterComponent>();
-            var shooter4 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter4).GetComponent<ItemShooterComponent>();
+            var shooter1 = AddBlock(ForUnitTestModBlockId.StraightItemShooter, horizonShooter1).GetComponent<ItemShooterComponent>();
+            var down1 = AddBlock(ForUnitTestModBlockId.DownItemShooter, downShooter1).GetComponent<ItemShooterComponent>();
+            var down2 = AddBlock(ForUnitTestModBlockId.DownItemShooter, downShooter2).GetComponent<ItemShooterComponent>();
+            var shooter2 = AddBlock(ForUnitTestModBlockId.StraightItemShooter, horizonShooter2).GetComponent<ItemShooterComponent>();
+            var up = AddBlock(ForUnitTestModBlockId.UpItemShooter, upShooter).GetComponent<ItemShooterComponent>();
+            var shooter3 = AddBlock(ForUnitTestModBlockId.StraightItemShooter, horizonShooter3).GetComponent<ItemShooterComponent>();
+            var shooter4 = AddBlock(ForUnitTestModBlockId.StraightItemShooter, horizonShooter4).GetComponent<ItemShooterComponent>();
             
-            chest.InsertItem(itemFactory.Create(1,1));
+            chest.InsertItem(itemFactory.Create(1, 1));
             
-            GameUpdater.Update();
+            // チェストのUpdateをリフレクションで無理やり呼び出し
+            chest.GetType().GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(chest, null);
+            
             
             // デフォルトでインサートされる速度の検証
             var shooterItem1 = GetShooterItem(shooter1);
@@ -54,12 +59,17 @@ namespace Tests.UnitTest.Core.Block
             Assert.AreEqual(1, shooterItem1.CurrentSpeed);
             Assert.AreEqual(1, shooterItem1.RemainingPercent);
             
-            WaitInsertItem(down);
+            WaitInsertItem(down1,"1");
+            WaitInsertItem(down2,"Down1");
+            WaitInsertItem(shooter2,"Down2");
+            WaitInsertItem(up,"2");
+            WaitInsertItem(shooter3,"Up",up);
+            WaitInsertItem(shooter4,"3");
             
             Assert.Fail();
         }
         
-        private void WaitInsertItem(ItemShooterComponent waitTarget)
+        private void WaitInsertItem(ItemShooterComponent waitTarget,string tag, ItemShooterComponent waitFrom = null)
         {
             var currentTime = DateTime.Now;
             while (true)
@@ -67,6 +77,12 @@ namespace Tests.UnitTest.Core.Block
                 var item = waitTarget.GetItem(0);
                 if (item.Id != ItemConst.EmptyItemId)
                 {
+                    // アイテム挿入時間を出力
+                    var shooterItem = GetShooterItem(waitTarget);
+                    var totalSeconds = (DateTime.Now - currentTime).TotalSeconds;
+                    var currentSpeed = shooterItem.CurrentSpeed;
+                    // 下2桁表示
+                    Debug.Log($"{tag} Time: {totalSeconds:F2} Speed: {currentSpeed:F2}");
                     break;
                 }
                 GameUpdater.Update();
@@ -74,7 +90,7 @@ namespace Tests.UnitTest.Core.Block
                 // 5秒経過したら失敗
                 if ((DateTime.Now - currentTime).TotalSeconds > 5)
                 {
-                    Assert.Fail();
+                    Assert.Fail("インサートができていません");
                 }
             }
         }
@@ -85,12 +101,12 @@ namespace Tests.UnitTest.Core.Block
             return item as ShooterInventoryItem;
         }
         
-        private IBlock AddBlock(int blockId, Vector3Int position, BlockDirection direction = BlockDirection.North)
+        private IBlock AddBlock(int blockId, Vector3Int position)
         {
             var blockFactory = ServerContext.BlockFactory;
             var world = ServerContext.WorldBlockDatastore;
             
-            var block = blockFactory.Create(blockId, BlockInstanceId.Create(), new BlockPositionInfo(position, direction, Vector3Int.one));
+            var block = blockFactory.Create(blockId, BlockInstanceId.Create(), new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one));
             world.AddBlock(block);
             
             return block;
