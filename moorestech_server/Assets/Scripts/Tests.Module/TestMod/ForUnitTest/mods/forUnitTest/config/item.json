@@ -86,5 +86,17 @@
   {
     "name": "InfinityTestSimpleGearGenerator",
     "maxStacks": 100
+  },
+  {
+    "name": "StraightTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "DownTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "UpTestItemShooter",
+    "maxStacks": 100
   }
 ]

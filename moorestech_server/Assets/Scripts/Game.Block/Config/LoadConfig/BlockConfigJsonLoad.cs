@@ -33,6 +33,8 @@ namespace Game.Block.Config.LoadConfig
                 { VanillaBlockType.Miner, MinerBlockConfigParam.Generate },
                 { VanillaBlockType.Chest, ChestConfigParam.Generate },
                 
+                { VanillaBlockType.ItemShooter, ItemShooterConfigParam.Generate },
+                
                 { VanillaBlockType.Gear, GearConfigParam.Generate },
                 { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
