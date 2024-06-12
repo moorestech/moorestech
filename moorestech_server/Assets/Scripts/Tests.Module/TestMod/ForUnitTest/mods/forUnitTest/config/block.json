@@ -1206,7 +1206,7 @@
         "inventoryItemNum": 4,
         "initialShootSpeed": 1,
         "itemShootSpeed": 1,
-        "acceleration": 0.5,
+        "acceleration": 0.7,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -1262,7 +1262,7 @@
         "inventoryItemNum": 4,
         "initialShootSpeed": 1,
         "itemShootSpeed": 1,
-        "acceleration": -0.7,
+        "acceleration": -0.9,
         "inventoryConnectors": {
           "inputConnects": [
             {
