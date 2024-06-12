@@ -14,8 +14,8 @@ namespace Game.Block.Component
     [DisallowMultiple]
     public class BlockConnectorComponent<TTarget> : IBlockConnectorComponent<TTarget> where TTarget : IBlockComponent
     {
-        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectTargets => _connectTargets;
-        private readonly Dictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> _connectTargets = new();
+        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectedTargets => _connectedTargets;
+        private readonly Dictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> _connectedTargets = new();
         
         private readonly List<IDisposable> _blockUpdateEvents = new();
         
@@ -88,7 +88,7 @@ namespace Game.Block.Component
         
         public void Destroy()
         {
-            _connectTargets.Clear();
+            _connectedTargets.Clear();
             _blockUpdateEvents.ForEach(x => x.Dispose());
             _blockUpdateEvents.Clear();
             IsDestroy = true;
@@ -139,7 +139,7 @@ namespace Game.Block.Component
             if (!isConnect) return;
             
             //接続元ブロックと接続先ブロックを接続
-            if (!_connectTargets.ContainsKey(targetComponent)) _connectTargets.Add(targetComponent, (selfOption, targetOption));
+            if (!_connectedTargets.ContainsKey(targetComponent)) _connectedTargets.Add(targetComponent, (selfOption, targetOption));
         }
         
         private void OnRemoveBlock(BlockUpdateProperties updateProperties)
@@ -147,7 +147,7 @@ namespace Game.Block.Component
             //削除されたブロックがInputConnectorComponentでない場合、処理を終了する
             if (!ServerContext.WorldBlockDatastore.TryGetBlock<TTarget>(updateProperties.Pos, out var component)) return;
             
-            _connectTargets.Remove(component);
+            _connectedTargets.Remove(component);
         }
     }
 }

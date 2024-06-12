@@ -5,6 +5,6 @@ namespace Game.Block.Interface.Component
 {
     public interface IBlockConnectorComponent<TTarget> : IBlockComponent where TTarget : IBlockComponent
     {
-        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectTargets { get; }
+        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectedTargets { get; }
     }
 }

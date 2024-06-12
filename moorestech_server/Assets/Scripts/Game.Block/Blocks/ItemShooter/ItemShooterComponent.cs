@@ -72,9 +72,9 @@ namespace Game.Block.Blocks.ItemShooter
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
+                    if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    var connector = _blockConnectorComponent.ConnectTargets.First();
+                    var connector = _blockConnectorComponent.ConnectedTargets.First();
                     var target = connector.Key;
                     if (target is ItemShooterComponent shooter)
                     {

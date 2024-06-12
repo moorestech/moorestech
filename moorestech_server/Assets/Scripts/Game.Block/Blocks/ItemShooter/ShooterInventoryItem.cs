@@ -18,6 +18,7 @@ namespace Game.Block.Blocks.ItemShooter
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;
             CurrentSpeed = currentSpeed;
+            RemainingPercent = 1;
         }
     }
 }

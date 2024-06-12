@@ -24,8 +24,8 @@ namespace Tests.UnitTest.Core.Block
             var itemFactory = ServerContext.ItemStackFactory;
             
             // アイテムシューターのテストは、以下のように、一度下がり、再び上がるような構造になっている
-            // ↓ チェスト　 
-            // □ ＿ 　　　　 ＿ ＿ → アイテムの流れ
+            // ↓ チェスト
+            // □ ＿        ＿ ＿ → アイテムの流れ
             //     ＼ ＿ ／
             //   ↑  ↑ アイテムシューター
             var chestPosition = new Vector3Int(0,0, 0);
@@ -38,9 +38,9 @@ namespace Tests.UnitTest.Core.Block
             
             var chest = AddBlock(ForUnitTestModBlockId.ChestId, chestPosition).GetComponent<VanillaChestComponent>();
             var shooter1 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter1).GetComponent<ItemShooterComponent>();
-            var down = AddBlock(ForUnitTestModBlockId.ItemShooter, downShooter).GetComponent<ItemShooterComponent>();
+            var down = AddBlock(ForUnitTestModBlockId.ItemShooter, downShooter, BlockDirection.DownNorth).GetComponent<ItemShooterComponent>();
             var shooter2 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter2).GetComponent<ItemShooterComponent>();
-            var up = AddBlock(ForUnitTestModBlockId.ItemShooter, upShooter).GetComponent<ItemShooterComponent>();
+            var up = AddBlock(ForUnitTestModBlockId.ItemShooter, upShooter, BlockDirection.UpNorth).GetComponent<ItemShooterComponent>();
             var shooter3 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter3).GetComponent<ItemShooterComponent>();
             var shooter4 = AddBlock(ForUnitTestModBlockId.ItemShooter, horizonShooter4).GetComponent<ItemShooterComponent>();
             
@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Core.Block
             var shooterItem1 = GetShooterItem(shooter1);
             Assert.AreEqual(1, shooterItem1.ItemId);
             Assert.AreEqual(1, shooterItem1.CurrentSpeed);
-            Assert.AreEqual(0, shooterItem1.RemainingPercent);
+            Assert.AreEqual(1, shooterItem1.RemainingPercent);
             
             WaitInsertItem(down);
             
@@ -85,12 +85,12 @@ namespace Tests.UnitTest.Core.Block
             return item as ShooterInventoryItem;
         }
         
-        private IBlock AddBlock(int blockId, Vector3Int position)
+        private IBlock AddBlock(int blockId, Vector3Int position, BlockDirection direction = BlockDirection.North)
         {
             var blockFactory = ServerContext.BlockFactory;
             var world = ServerContext.WorldBlockDatastore;
             
-            var block = blockFactory.Create(blockId, BlockInstanceId.Create(), new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one));
+            var block = blockFactory.Create(blockId, BlockInstanceId.Create(), new BlockPositionInfo(position, direction, Vector3Int.one));
             world.AddBlock(block);
             
             return block;
