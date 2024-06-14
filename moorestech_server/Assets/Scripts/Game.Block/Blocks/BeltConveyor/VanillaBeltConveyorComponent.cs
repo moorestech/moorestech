@@ -20,6 +20,9 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        public int InventoryItemNum { get; }
+        public bool IsDestroy { get; private set; }
+        
         public const float DefaultBeltConveyorHeight = 0.3f;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
@@ -56,10 +59,9 @@ namespace Game.Block.Blocks.BeltConveyor
                 
                 var itemStack = items[i].ItemStack.ToItem();
                 _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+                _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }
         }
-        public int InventoryItemNum { get; }
-        public bool IsDestroy { get; private set; }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -146,8 +148,8 @@ namespace Game.Block.Blocks.BeltConveyor
                 if (item == null) continue;
                 
                 //次のインデックスに入れる時間かどうかをチェックする
-                var nextIndexStartTime = i * (_timeOfItemEnterToExit / InventoryItemNum);
-                var isNextInsertable = item.RemainingPercent <= 0;
+                var nextIndexStartTime = i * (1f / InventoryItemNum);
+                var isNextInsertable = item.RemainingPercent <= nextIndexStartTime;
                 
                 //次に空きがあれば次に移動する
                 if (isNextInsertable && i != 0)
@@ -203,7 +205,7 @@ namespace Game.Block.Blocks.BeltConveyor
         public ItemStackJsonObject ItemStack;
         
         [JsonProperty("remainingTime")]
-        public double RemainingPercent;
+        public float RemainingPercent;
         
         public BeltConveyorItemJsonObject(BeltConveyorInventoryItem beltConveyorInventoryItem)
         {

@@ -179,6 +179,8 @@ namespace Tests.CombinedTest.Server
             inventoryItems[2] = null;
             inventoryItems[3] = null;
             
+            inventoryItems[0].RemainingPercent = 0.25f;
+            
             return beltConveyor;
         }
     }
