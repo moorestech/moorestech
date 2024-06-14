@@ -839,7 +839,7 @@
       "param": {
         "teethCount": 10,
         "generateRpm": 10,
-        "generateTorque": 300,
+        "generateTorque": 3,
         "lossPower": 0.1,
         "gearConnects": [
           {
