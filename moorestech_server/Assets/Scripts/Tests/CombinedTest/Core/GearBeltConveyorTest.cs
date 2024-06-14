@@ -64,7 +64,8 @@ namespace Tests.CombinedTest.Core
             
             const int torqueRate = 1;
             const int generatorRpm = 10;
-            var expectedEndTime = DateTime.Now.AddSeconds(1f / (generatorRpm * torqueRate * config.BeltConveyorSpeed));
+            var duration = 1f / (generatorRpm * torqueRate * config.BeltConveyorSpeed);
+            var expectedEndTime = DateTime.Now.AddSeconds(duration);
             var startTime = DateTime.Now;
             beltConveyorComponent.InsertItem(item);
             
@@ -72,17 +73,19 @@ namespace Tests.CombinedTest.Core
             // {
             //     GameUpdater.UpdateWithWait();
             // }
+            var c = 0;
             while (!dummy.IsItemExists)
             {
+                c++;
                 GameUpdater.UpdateWithWait();
                 var elapsed = DateTime.Now - startTime;
-                if (elapsed.TotalSeconds > 5) Assert.Fail();
+                if (elapsed.TotalSeconds > 20) Assert.Fail();
             }
             
             Assert.True(dummy.IsItemExists);
             
             var now = DateTime.Now;
-            Debug.Log($"{now} {expectedEndTime} {now - expectedEndTime}");
+            Debug.Log($"{now} {expectedEndTime}\n{(now - startTime).TotalSeconds}\n{(expectedEndTime - now).TotalSeconds}\n{duration}\n{c}");
             Assert.True(now <= expectedEndTime.AddSeconds(0.2));
             Assert.True(expectedEndTime.AddSeconds(-0.2) <= now);
         }

@@ -187,7 +187,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 
                 //時間を減らす 
-                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
+                item.RemainingTime -= GameUpdater.UpdateMillSecondTime / 1000f;
             }
         }
         

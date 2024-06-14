@@ -1157,7 +1157,7 @@
           }
         ],
         "slot": 4,
-        "beltConveyorSpeed": 0.1,
+        "beltConveyorSpeed": 0.01,
         "requiredTorque": 1
       }
     }
