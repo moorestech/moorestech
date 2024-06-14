@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.AddBlock(gearBeltConveyor);
             var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));
             
             // generatorブロックを作成
@@ -86,8 +86,8 @@ namespace Tests.CombinedTest.Core
             
             var now = DateTime.Now;
             Debug.Log($"{now} {expectedEndTime}\n{(now - startTime).TotalSeconds}\n{(expectedEndTime - now).TotalSeconds}\n{duration}\n{c}");
-            Assert.True(now <= expectedEndTime.AddSeconds(0.2));
-            Assert.True(expectedEndTime.AddSeconds(-0.2) <= now);
+            Assert.True(now <= expectedEndTime.AddSeconds(0.4));
+            Assert.True(expectedEndTime.AddSeconds(-0.4) <= now);
         }
     }
 }

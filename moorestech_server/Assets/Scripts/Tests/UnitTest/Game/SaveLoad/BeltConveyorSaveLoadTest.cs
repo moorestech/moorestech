@@ -32,9 +32,18 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var timeOfItemEnterToExit = ((BeltConveyorConfigParam)beltConveyor.BlockConfigData.Param).TimeOfItemEnterToExit;
             //アイテムを設定
-            inventoryItems[0] = new BeltConveyorInventoryItem(1, timeOfItemEnterToExit - 700, new (0), timeOfItemEnterToExit);
-            inventoryItems[2] = new BeltConveyorInventoryItem(2, timeOfItemEnterToExit - 500, new (0), timeOfItemEnterToExit);
-            inventoryItems[3] = new BeltConveyorInventoryItem(5, timeOfItemEnterToExit, new (0), timeOfItemEnterToExit);
+            inventoryItems[0] = new BeltConveyorInventoryItem(1, new ItemInstanceId(0))
+            {
+                RemainingPercent = 0.3f,
+            };
+            inventoryItems[2] = new BeltConveyorInventoryItem(2, new ItemInstanceId(0))
+            {
+                RemainingPercent = 0.5f,
+            };
+            inventoryItems[3] = new BeltConveyorInventoryItem(5, new ItemInstanceId(0))
+            {
+                RemainingPercent = 1f,
+            };
             
             
             //セーブデータ取得
@@ -50,11 +59,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId);
-            Assert.AreEqual(timeOfItemEnterToExit - 700, newInventoryItems[0].RemainingTime);
+            Assert.AreEqual(0.3f, newInventoryItems[0].RemainingPercent);
             Assert.AreEqual(2, newInventoryItems[2].ItemId);
-            Assert.AreEqual(timeOfItemEnterToExit - 500, newInventoryItems[2].RemainingTime);
+            Assert.AreEqual(0.5f, newInventoryItems[2].RemainingPercent);
             Assert.AreEqual(5, newInventoryItems[3].ItemId);
-            Assert.AreEqual(timeOfItemEnterToExit, newInventoryItems[3].RemainingTime);
+            Assert.AreEqual(1f, newInventoryItems[3].RemainingPercent);
         }
     }
 }
