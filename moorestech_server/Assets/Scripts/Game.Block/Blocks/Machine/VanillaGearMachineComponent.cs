@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.Machine
         public bool IsRocked => _simpleGearService.IsRocked;
         
         public IReadOnlyList<GearConnect> Connects =>
-            _connectorComponent.ConnectTargets.Select(
+            _connectorComponent.ConnectedTargets.Select(
                 target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
             ).ToArray();
         

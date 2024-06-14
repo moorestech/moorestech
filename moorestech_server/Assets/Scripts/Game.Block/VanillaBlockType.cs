@@ -10,6 +10,8 @@ namespace Game.Block
         public const string ElectricPole = "ElectricPole";
         public const string Chest = "Chest";
         
+        public const string ItemShooter = "ItemShooter";
+        
         public const string Gear = "Gear";
         public const string Shaft = "Shaft";
         public const string GearMachine = "GearMachine";

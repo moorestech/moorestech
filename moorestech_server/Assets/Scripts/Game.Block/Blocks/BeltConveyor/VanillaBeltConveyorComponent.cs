@@ -20,7 +20,14 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        public bool IsDestroy { get; private set; }
+        
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        
         public const float DefaultBeltConveyorHeight = 0.3f;
+        
+        public readonly int InventoryItemNum;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
@@ -28,14 +35,13 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
-        public readonly int InventoryItemNum;
+        private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        private readonly int _inventoryItemNum;
         
-        private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
-        
-        public VanillaBeltConveyorComponent(int inventoryItemNum, double timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
             _blockName = blockName;
-            InventoryItemNum = inventoryItemNum;
+            _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _blockConnectorComponent = blockConnectorComponent;
             
@@ -60,7 +66,6 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, items[i].RemainingTime, itemStack.ItemInstanceId, _timeOfItemEnterToExit);
             }
         }
-        public bool IsDestroy { get; private set; }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -122,13 +127,6 @@ namespace Game.Block.Blocks.BeltConveyor
             return JsonConvert.SerializeObject(saveItems);
         }
         
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        
-        public void SetTimeOfItemEnterToExit(double time)
-        {
-            _timeOfItemEnterToExit = time;
-        }
-        
         
         /// <summary>
         ///     アイテムの搬出判定を行う
@@ -144,7 +142,7 @@ namespace Game.Block.Blocks.BeltConveyor
             
             if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null)
             {
-                _inventoryItems[0] = new BeltConveyorInventoryItem(4, _timeOfItemEnterToExit, ItemInstanceId.Create(), _timeOfItemEnterToExit);
+                 _inventoryItems[0] = new BeltConveyorInventoryItem(4, _timeOfItemEnterToExit, ItemInstanceId.Create(), _timeOfItemEnterToExit);
             }
             for (var i = 0; i < count; i++)
             {
@@ -187,7 +185,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 
                 //時間を減らす 
-                item.RemainingTime -= GameUpdater.UpdateMillSecondTime / 1000f;
+                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
             }
         }
         

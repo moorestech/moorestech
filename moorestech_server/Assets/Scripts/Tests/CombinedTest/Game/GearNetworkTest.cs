@@ -370,8 +370,8 @@ namespace Tests.CombinedTest.Game
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectedTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectedTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
         }
     }
 }
