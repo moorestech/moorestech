@@ -20,6 +20,9 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        
         public int InventoryItemNum { get; }
         public bool IsDestroy { get; private set; }
         
@@ -28,7 +31,6 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
@@ -62,6 +64,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }
         }
+        public double TimeOfItemEnterToExit { get; private set; } //ベルトコンベアにアイテムが入って出るまでの時間
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -122,9 +125,6 @@ namespace Game.Block.Blocks.BeltConveyor
             
             return JsonConvert.SerializeObject(saveItems);
         }
-        
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        
         
         /// <summary>
         ///     アイテムの搬出判定を行う
