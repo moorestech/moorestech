@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Core
                 
                 var dummy = new DummyBlockInventory();
                 
-                var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+                var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
                 connectInventory.Add(dummy, (null, null));
                 GameUpdater.UpdateWithWait();
                 
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Core
             var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             
-            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));
             
             var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
@@ -128,7 +128,7 @@ namespace Tests.CombinedTest.Core
                 var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
-                var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+                var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
                 connectInventory.Add(dummy, (null, null));
                 
                 while (!dummy.IsItemExists)

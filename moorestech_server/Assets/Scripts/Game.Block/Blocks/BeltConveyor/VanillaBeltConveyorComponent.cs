@@ -27,19 +27,18 @@ namespace Game.Block.Blocks.BeltConveyor
         
         public const float DefaultBeltConveyorHeight = 0.3f;
         
-        public readonly int InventoryItemNum;
-        
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
         private readonly IDisposable _updateObservable;
         
         private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        private readonly int _inventoryItemNum;
         
         public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
             _blockName = blockName;
-            InventoryItemNum = inventoryItemNum;
+            _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _blockConnectorComponent = blockConnectorComponent;
             
@@ -154,7 +153,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 if (item == null) continue;
                 
                 //次のインデックスに入れる時間かどうかをチェックする
-                var nextIndexStartTime = i * (_timeOfItemEnterToExit / InventoryItemNum);
+                var nextIndexStartTime = i * (_timeOfItemEnterToExit / _inventoryItemNum);
                 var isNextInsertable = item.RemainingTime <= nextIndexStartTime;
                 
                 //次に空きがあれば次に移動する
@@ -176,9 +175,9 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    if (_blockConnectorComponent.ConnectTargets.Count == 0) continue;
+                    if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectTargets.First();
+                    var connector = _blockConnectorComponent.ConnectedTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
                     
                     
