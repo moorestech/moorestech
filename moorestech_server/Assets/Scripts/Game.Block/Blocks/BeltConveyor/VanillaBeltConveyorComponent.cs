@@ -12,7 +12,6 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -38,7 +37,6 @@ namespace Game.Block.Blocks.BeltConveyor
             _timeOfItemEnterToExit = timeOfItemEnterToExit / 1000f; //TODO int・double単位統一
             _blockConnectorComponent = blockConnectorComponent;
             
-            Debug.Log(inventoryItemNum);
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
             
             _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
@@ -66,8 +64,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
-            Debug.Log(_inventoryItems.Length);
             
             //新しく挿入可能か
             if (_inventoryItems[^1] != null)
@@ -136,8 +132,6 @@ namespace Game.Block.Blocks.BeltConveyor
         private void Update()
         {
             BlockException.CheckDestroy(this);
-            
-            Debug.Log($"VanillaBeltConveyorUpdate {GameUpdater.UpdateMillSecondTime} {_timeOfItemEnterToExit} {(float)(GameUpdater.UpdateMillSecondTime / 1000f * (1f / (float)_timeOfItemEnterToExit))}");
             
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
