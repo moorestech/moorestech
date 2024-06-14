@@ -28,7 +28,6 @@ namespace Tests.CombinedTest.Core
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var blockConfig = ServerContext.BlockConfig;
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
@@ -67,7 +66,6 @@ namespace Tests.CombinedTest.Core
         public void InsertBeltConveyorTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var blockConfig = ServerContext.BlockConfig;
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
@@ -111,7 +109,6 @@ namespace Tests.CombinedTest.Core
         public void FullInsertBeltConveyorTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             
             var blockConfig = ServerContext.BlockConfig;

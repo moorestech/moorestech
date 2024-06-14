@@ -24,7 +24,6 @@ namespace Tests.CombinedTest.Core
         public void ItemProcessingOutputTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;

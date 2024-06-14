@@ -2,7 +2,9 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.EnergySystem;
 using NUnit.Framework;
+using Server.Boot;
 using Tests.Module;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Core.Block
 {
@@ -11,7 +13,8 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void ElectricEnergyTest()
         {
-            GameUpdater.ResetUpdate();
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
             var segment = new EnergySegment();
             
             var electric = new BlockElectricConsumer(100, new BlockInstanceId(0));
