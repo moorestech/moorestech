@@ -16,5 +16,6 @@ namespace Game.Block
         public const string Shaft = "Shaft";
         public const string GearMachine = "GearMachine";
         public const string SimpleGearGenerator = "SimpleGearGenerator";
+        public const string GearBeltConveyor = "GearBeltConveyor";
     }
 }

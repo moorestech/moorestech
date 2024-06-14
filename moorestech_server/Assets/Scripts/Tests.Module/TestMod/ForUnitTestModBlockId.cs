@@ -22,9 +22,10 @@ namespace Tests.Module.TestMod
         public const int SmallLossPowerGear = 18;
         public const int BigLossPowerGear = 19;
         public const int InfinityTorqueSimpleGearGenerator = 20;
+        public const int GearBeltConveyor = 21;
         
-        public const int StraightItemShooter = 21;
-        public const int DownItemShooter = 22;
-        public const int UpItemShooter = 23;
+        public const int StraightItemShooter = 22;
+        public const int DownItemShooter = 23;
+        public const int UpItemShooter = 24;
     }
 }
