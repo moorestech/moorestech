@@ -611,6 +611,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8327004088713836899}
     - target: {fileID: 3483818303739046987, guid: 7e8e975bee48acc4d9fb7ce1a351ad57, type: 3}
+      propertyPath: uiStateControl
+      value: 
+      objectReference: {fileID: 4694271036350155273}
+    - target: {fileID: 3483818303739046987, guid: 7e8e975bee48acc4d9fb7ce1a351ad57, type: 3}
       propertyPath: backgroundSkitUI
       value: 
       objectReference: {fileID: 4055601118342188232}
@@ -1811,15 +1815,15 @@ PrefabInstance:
       objectReference: {fileID: 4694271036350155273}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.05
+      value: -25.050001
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 6.0290704
+      value: 35.44707
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2.2410755
+      value: -24.288925
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalRotation.w
