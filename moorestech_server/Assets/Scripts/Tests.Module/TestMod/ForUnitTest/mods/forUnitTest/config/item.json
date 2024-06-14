@@ -98,5 +98,9 @@
   {
     "name": "UpTestItemShooter",
     "maxStacks": 100
+  },
+  {
+    "name": "GearBeltConveyor",
+    "maxStacks": 100
   }
 ]
