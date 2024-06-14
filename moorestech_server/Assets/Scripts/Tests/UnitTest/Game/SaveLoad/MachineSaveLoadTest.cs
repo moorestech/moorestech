@@ -28,7 +28,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             //機械の追加
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
-            GameUpdater.ResetUpdate();
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var machineBlock = blockFactory.Create(1, new BlockInstanceId(10), machinePosInfo);
@@ -114,8 +113,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;

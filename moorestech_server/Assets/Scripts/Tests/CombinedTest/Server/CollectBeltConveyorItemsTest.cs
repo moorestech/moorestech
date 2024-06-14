@@ -138,7 +138,6 @@ namespace Tests.CombinedTest.Server
         public void ItemInstanceIdTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var itemsStackFactory = ServerContext.ItemStackFactory;
             var worldDataStore = ServerContext.WorldBlockDatastore;

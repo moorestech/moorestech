@@ -22,7 +22,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void MachineChangeStateEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             Vector3Int pos = new(0, 0);
             

@@ -27,7 +27,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             //機械の追加
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
-            GameUpdater.ResetUpdate();
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var gearMachineBlock = blockFactory.Create(ForUnitTestModBlockId.GearMachine, new BlockInstanceId(10), machinePosInfo);
