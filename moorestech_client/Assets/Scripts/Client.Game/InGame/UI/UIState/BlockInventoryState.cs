@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;

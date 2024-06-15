@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Chunk;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;

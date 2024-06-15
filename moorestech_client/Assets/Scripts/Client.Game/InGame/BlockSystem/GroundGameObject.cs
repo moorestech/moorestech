@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.Chunk
+namespace Client.Game.InGame.BlockSystem
 {
     public class GroundGameObject : MonoBehaviour
     {

@@ -1,6 +1,7 @@
 using System.Threading;
 using Client.Common;
 using Client.Common.Server;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.SoundEffect;
@@ -12,32 +13,29 @@ using Server.Event.EventReceive;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.Chunk
+namespace Client.Game.InGame.World
 {
     /// <summary>
     ///     サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
     ///     IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しています
     /// </summary>
-    public class ChunkDataHandler : IInitializable
+    public class WorldDataHandler : IInitializable
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly EntityObjectDatastore _entitiesDatastore;
         
-        public ChunkDataHandler(BlockGameObjectDataStore blockGameObjectDataStore, EntityObjectDatastore entitiesDatastore, InitialHandshakeResponse initialHandshakeResponse)
+        public WorldDataHandler(BlockGameObjectDataStore blockGameObjectDataStore, EntityObjectDatastore entitiesDatastore, InitialHandshakeResponse initialHandshakeResponse)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
             ClientContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
             ClientContext.VanillaApi.Event.RegisterEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
-            
-            //初期ハンドシェイクのデータを適用する
-            foreach (var chunk in initialHandshakeResponse.Chunks) ApplyChunkData(chunk);
         }
         
         public void Initialize()
         {
-            OnChunkUpdate().Forget();
+            UpdateWorldData().Forget();
         }
         
         /// <summary>
@@ -65,43 +63,42 @@ namespace Client.Game.InGame.Chunk
         }
         
         /// <summary>
-        ///     0.5秒に1回のチャンクの更新イベント
+        ///     0.5秒に1回のワールドの更新をリクエストし、適用する
         /// </summary>
-        private async UniTask OnChunkUpdate()
+        private async UniTask UpdateWorldData()
         {
             var ct = new CancellationTokenSource().Token;
             
             while (true)
             {
-                await GetChunkAndApply();
+                await GetAndApplyWorldData();
                 await UniTask.Delay(NetworkConst.UpdateIntervalMilliseconds, cancellationToken: ct); //TODO 本当に0.5秒に1回でいいのか？
             }
             
             #region Internal
             
-            async UniTask GetChunkAndApply()
+            async UniTask GetAndApplyWorldData()
             {
-                var data = await ClientContext.VanillaApi.Response.GetChunkInfos(ct);
+                var data = await ClientContext.VanillaApi.Response.GetWorldData(ct);
                 if (data == null) return;
                 
-                foreach (var chunk in data) ApplyChunkData(chunk);
+                ApplyWorldData(data);
             }
             
             #endregion
         }
         
         
-        private void ApplyChunkData(ChunkResponse chunk)
+        private void ApplyWorldData(WorldDataResponse worldData)
         {
-            foreach (var block in chunk.Blocks) PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection);
+            foreach (var block in worldData.Blocks) PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection);
             
-            if (chunk.Entities == null)
+            if (worldData.Entities == null)
             {
-                Debug.Log("chunk.Entities is null");
                 return;
             }
             
-            _entitiesDatastore.OnEntitiesUpdate(chunk.Entities);
+            _entitiesDatastore.OnEntitiesUpdate(worldData.Entities);
         }
         
         private void PlaceBlock(Vector3Int position, int id, BlockDirection blockDirection)
@@ -113,23 +110,6 @@ namespace Client.Game.InGame.Chunk
             }
             
             _blockGameObjectDataStore.PlaceBlock(position, id, blockDirection);
-        }
-        
-        /// <summary>
-        ///     ブロックの座標とチャンクの座標から、IDの配列のインデックスを取得する
-        /// </summary>
-        private Vector2Int GetBlockArrayIndex(Vector2Int chunkPos, Vector2Int blockPos)
-        {
-            var (x, y) = (
-                GetBlockArrayIndex(chunkPos.x, blockPos.x),
-                GetBlockArrayIndex(chunkPos.y, blockPos.y));
-            return new Vector2Int(x, y);
-        }
-        
-        private int GetBlockArrayIndex(int chunkPos, int blockPos)
-        {
-            if (0 <= chunkPos) return blockPos - chunkPos;
-            return -chunkPos - -blockPos;
         }
     }
 }

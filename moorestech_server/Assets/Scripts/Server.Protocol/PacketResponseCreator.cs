@@ -17,7 +17,7 @@ namespace Server.Protocol
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag, new InitialHandshakeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(RequestChunkDataProtocol.Tag, new RequestChunkDataProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RequestWorldDataProtocol.Tag, new RequestWorldDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.Tag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(EventProtocol.Tag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
