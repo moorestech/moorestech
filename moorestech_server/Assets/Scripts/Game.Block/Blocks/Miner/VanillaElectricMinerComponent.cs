@@ -113,7 +113,6 @@ namespace Game.Block.Blocks.Miner
         public int GetSlotSize()
         {
             BlockException.CheckDestroy(this);
-            
             return _openableInventoryItemDataStoreService.GetSlotSize();
         }
         
@@ -124,7 +123,7 @@ namespace Game.Block.Blocks.Miner
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
                 RemainingMillSecond = _remainingMillSecond,
-                Items = _openableInventoryItemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -228,9 +227,9 @@ namespace Game.Block.Blocks.Miner
             {
                 BlockException.CheckDestroy(this);
                 
-                for (var i = 0; i < _openableInventoryItemDataStoreService.Items.Count; i++)
+                for (var i = 0; i < _openableInventoryItemDataStoreService.InventoryItems.Count; i++)
                 {
-                    var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.Items[i]);
+                    var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.InventoryItems[i]);
                     _openableInventoryItemDataStoreService.SetItem(i, insertedItem);
                 }
             }
@@ -248,7 +247,7 @@ namespace Game.Block.Blocks.Miner
         
         #region Implimantion IOpenableInventory
         
-        public ReadOnlyCollection<IItemStack> Items => _openableInventoryItemDataStoreService.Items;
+        public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryItemDataStoreService.InventoryItems;
         
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
@@ -297,6 +296,12 @@ namespace Game.Block.Blocks.Miner
             BlockException.CheckDestroy(this);
             
             return _openableInventoryItemDataStoreService.ReplaceItem(slot, itemStack);
+        }
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _openableInventoryItemDataStoreService.CreateCopiedItems();
         }
         
         #endregion

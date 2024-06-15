@@ -10,7 +10,7 @@ namespace Core.Inventory
     /// </summary>
     public interface IOpenableInventory
     {
-        public ReadOnlyCollection<IItemStack> Items { get; }
+        public IReadOnlyList<IItemStack> InventoryItems { get; }
         
         public IItemStack GetItem(int slot);
         void SetItem(int slot, IItemStack itemStack);
@@ -23,5 +23,7 @@ namespace Core.Inventory
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks);
         public bool InsertionCheck(List<IItemStack> itemStacks);
         public int GetSlotSize();
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems();
     }
 }

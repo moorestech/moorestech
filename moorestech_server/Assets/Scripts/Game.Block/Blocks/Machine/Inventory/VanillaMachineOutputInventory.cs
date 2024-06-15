@@ -16,6 +16,8 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineOutputInventory
     {
+        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
+        
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly BlockInstanceId _blockInstanceId;
@@ -33,8 +35,6 @@ namespace Game.Block.Blocks.Machine.Inventory
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
-        
-        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
         
         private void Update()
         {

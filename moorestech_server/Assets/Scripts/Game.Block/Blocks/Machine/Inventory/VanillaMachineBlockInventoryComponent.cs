@@ -9,6 +9,18 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent
     {
+        public IReadOnlyList<IItemStack> InventoryItems
+        {
+            get
+            {
+                BlockException.CheckDestroy(this);
+                var items = new List<IItemStack>();
+                items.AddRange(_vanillaMachineInputInventory.InputSlot);
+                items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
+                return items;
+            }
+        }
+        
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         
@@ -16,19 +28,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-        }
-        
-        public ReadOnlyCollection<IItemStack> Items
-        {
-            get
-            {
-                BlockException.CheckDestroy(this);
-                
-                var items = new List<IItemStack>();
-                items.AddRange(_vanillaMachineInputInventory.InputSlot);
-                items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
-                return new ReadOnlyCollection<IItemStack>(items);
-            }
         }
         
         public IItemStack ReplaceItem(int slot, int itemId, int count)
@@ -50,7 +49,10 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public IItemStack InsertItem(int itemId, int count)
         {
-            throw new System.NotImplementedException();
+            BlockException.CheckDestroy(this);
+            
+            var item = ServerContext.ItemStackFactory.Create(itemId, count);
+            return _vanillaMachineInputInventory.InsertItem(item);
         }
         
         public IItemStack GetItem(int slot)
@@ -92,6 +94,16 @@ namespace Game.Block.Blocks.Machine.Inventory
             BlockException.CheckDestroy(this);
             
             return _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count;
+        }
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            
+            var items = new List<IItemStack>();
+            items.AddRange(_vanillaMachineInputInventory.InputSlot);
+            items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
+            return new ReadOnlyCollection<IItemStack>(items);
         }
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)

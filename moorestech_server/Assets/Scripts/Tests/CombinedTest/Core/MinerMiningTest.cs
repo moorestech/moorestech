@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Core
             while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石2個が残っているかチェック
-            var outputSlot = miner.GetComponent<VanillaElectricMinerComponent>().Items[0];
+            var outputSlot = miner.GetComponent<VanillaElectricMinerComponent>().InventoryItems[0];
             Assert.AreEqual(miningItemId, outputSlot.Id);
             Assert.AreEqual(2, outputSlot.Count);
             
