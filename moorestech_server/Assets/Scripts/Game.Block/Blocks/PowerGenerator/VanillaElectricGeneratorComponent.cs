@@ -21,7 +21,8 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
     {
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
@@ -63,8 +64,6 @@ namespace Game.Block.Blocks.PowerGenerator
             }
         }
         
-        public BlockPositionInfo BlockPositionInfo { get; }
-        
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
@@ -89,8 +88,13 @@ namespace Game.Block.Blocks.PowerGenerator
         public int GetSlotSize()
         {
             BlockException.CheckDestroy(this);
-            
             return _itemDataStoreService.GetSlotSize();
+        }
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _itemDataStoreService.CreateCopiedItems();
         }
         
         public string GetSaveState()
@@ -102,7 +106,7 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 CurrentFuelItemHash = itemHash,
                 RemainingFuelTime = _remainingFuelTime,
-                Items = _itemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _itemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -193,7 +197,7 @@ namespace Game.Block.Blocks.PowerGenerator
             for (var i = 0; i < _itemDataStoreService.GetSlotSize(); i++)
             {
                 //スロットに燃料がある場合
-                var slotItemId = _itemDataStoreService.Inventory[i].Id;
+                var slotItemId = _itemDataStoreService.InventoryItems[i].Id;
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
@@ -201,7 +205,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす
-                _itemDataStoreService.SetItem(i, _itemDataStoreService.Inventory[i].SubItem(1));
+                _itemDataStoreService.SetItem(i, _itemDataStoreService.InventoryItems[i].SubItem(1));
                 return;
             }
         }

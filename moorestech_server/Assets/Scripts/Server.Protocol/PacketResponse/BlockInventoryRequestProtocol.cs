@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
             
-            foreach (var item in blockDatastore.GetBlock<IOpenableBlockInventoryComponent>(data.Pos).Items)
+            foreach (var item in blockDatastore.GetBlock<IOpenableBlockInventoryComponent>(data.Pos).InventoryItems)
             {
                 itemIds.Add(item.Id);
                 itemCounts.Add(item.Count);

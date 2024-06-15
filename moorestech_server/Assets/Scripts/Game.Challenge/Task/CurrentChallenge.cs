@@ -60,7 +60,7 @@ namespace Game.Challenge.Task
             if (_playerInventory == null) return;
             
             var itemCount = 0;
-            foreach (var item in _playerInventory.MainOpenableInventory.Items)
+            foreach (var item in _playerInventory.MainOpenableInventory.InventoryItems)
             {
                 if (item.Id != _inInventoryItemTaskParam.ItemId) continue;
                 

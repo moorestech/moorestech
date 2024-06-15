@@ -70,7 +70,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             //燃料スロットの検証
             Assert.AreEqual(fuelItemStacks.GetSlotSize(), loadedFuelItemStacks.GetSlotSize());
             for (var i = 0; i < fuelSlotCount; i++)
-                Assert.AreEqual(fuelItemStacks.Inventory[i], loadedFuelItemStacks.Inventory[i]);
+                Assert.AreEqual(fuelItemStacks.InventoryItems[i], loadedFuelItemStacks.InventoryItems[i]);
         }
     }
 }
