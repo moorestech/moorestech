@@ -17,17 +17,16 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItem(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
-            foreach (var collectChunk in collectChunks)
-                result.AddRange(CollectItemFromChunk(entityFactory));
+            result.AddRange(CollectItemFromWorld(entityFactory));
             
             return result;
         }
         
         
-        public static List<IEntity> CollectItemFromChunk(IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromWorld(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             

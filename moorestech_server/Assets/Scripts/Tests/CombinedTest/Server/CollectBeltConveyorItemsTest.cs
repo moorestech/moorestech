@@ -11,7 +11,6 @@ using Game.Entity.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -21,12 +20,8 @@ namespace Tests.CombinedTest.Server
     public class CollectBeltConveyorItemsTest
     {
         //4秒で入って出るベルトコンベアで残り1秒で出る時の座標が正しいかどうかをテストする
-        private const int TimeOfItemEnterToExit = 2000;
         private const int RemainingTime = 500;
         private const int ItemInstanceId = 100;
-        
-        private readonly List<Vector2Int> _minusPlayerCoordinate = new()
-            { new Vector2Int(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
         
         private readonly List<Vector2Int> _plusPlayerCoordinate = new() { new Vector2Int(0, 0) };
         
@@ -46,7 +41,7 @@ namespace Tests.CombinedTest.Server
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North));
             
             //エンティティを取得
-            var itemEntity = CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, entityFactory)[0];
+            var itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
             const float defaultY = VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
             Assert.AreEqual(0.5, itemEntity.Position.x); //0,0に設置してベルトコンベアの中心にアイテムがあるため、Z座標は0.5となる 
@@ -60,7 +55,7 @@ namespace Tests.CombinedTest.Server
             //東向きに設置
             worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.East));
-            itemEntity = CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
             Assert.AreEqual(0.75, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);
@@ -70,7 +65,7 @@ namespace Tests.CombinedTest.Server
             //ブロックを削除し南向きに設置
             worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.South));
-            itemEntity = CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
             Assert.AreEqual(0.5, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);
@@ -80,7 +75,7 @@ namespace Tests.CombinedTest.Server
             //ブロックを削除し西向きに設置
             worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.West));
-            itemEntity = CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //ブロックを削除し座標を検証
             Assert.AreEqual(0.25, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);
@@ -93,7 +88,7 @@ namespace Tests.CombinedTest.Server
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.North));
             
             //エンティティを取得
-            itemEntity = CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
             Assert.AreEqual(-0.5, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);
@@ -103,7 +98,7 @@ namespace Tests.CombinedTest.Server
             //東向きに設置
             worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1));
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.East));
-            itemEntity = CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
             Assert.AreEqual(-0.25, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);
@@ -113,7 +108,7 @@ namespace Tests.CombinedTest.Server
             //ブロックを削除し南向きに設置
             worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1));
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.South));
-            itemEntity = CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
             Assert.AreEqual(-0.5, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);
@@ -123,7 +118,7 @@ namespace Tests.CombinedTest.Server
             //ブロックを削除し西向きに設置
             worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1));
             worldDataStore.AddBlock(CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.West));
-            itemEntity = CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, entityFactory)[0];
+            itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //ブロックを削除し座標を検証
             Assert.AreEqual(-0.75, itemEntity.Position.x);
             Assert.AreEqual(defaultY, itemEntity.Position.y);

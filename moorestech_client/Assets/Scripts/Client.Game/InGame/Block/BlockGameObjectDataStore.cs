@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
@@ -8,7 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using UnityEngine;
 
-namespace Client.Game.InGame.Chunk
+namespace Client.Game.InGame.Block
 {
     public class BlockGameObjectDataStore : MonoBehaviour
     {
