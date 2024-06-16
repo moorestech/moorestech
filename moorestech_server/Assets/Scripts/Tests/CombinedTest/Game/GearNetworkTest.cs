@@ -289,7 +289,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var generatorPosition = new Vector3Int(0, 0, 0);
-            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).GetComponent<SimpleGearGeneratorComponent>();
             
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(0, 0, 2);
@@ -311,18 +311,18 @@ namespace Tests.CombinedTest.Game
             
             Assert.AreEqual(5, gear1.CurrentRpm);
             Assert.AreEqual(5, gear2.CurrentRpm);
-            Assert.AreEqual(0.25f, gear1.CurrentTorque);
-            Assert.AreEqual(0.25f, gear2.CurrentTorque);
+            Assert.AreEqual(0.5f, gear1.CurrentTorque);
+            Assert.AreEqual(0.5f, gear2.CurrentTorque);
             
             Assert.AreEqual(10, gear3.CurrentRpm);
             Assert.AreEqual(10, gear4.CurrentRpm);
             Assert.AreEqual(10, gear5.CurrentRpm);
-            Assert.AreEqual(0.125f, gear3.CurrentTorque);
-            Assert.AreEqual(0.125f, gear4.CurrentTorque);
-            Assert.AreEqual(0.125f, gear5.CurrentTorque);
+            Assert.AreEqual(0.25f, gear3.CurrentTorque);
+            Assert.AreEqual(0.25f, gear4.CurrentTorque);
+            Assert.AreEqual(0.25f, gear5.CurrentTorque);
             
             Assert.AreEqual(20, gear6.CurrentRpm);
-            Assert.AreEqual(0.125f / 2f, gear6.CurrentTorque);
+            Assert.AreEqual(0.125f, gear6.CurrentTorque);
         }
         
         [Test]

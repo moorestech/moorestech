@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using UnityEngine;
 
 namespace Game.Gear.Common
 {
@@ -159,14 +160,11 @@ namespace Game.Gear.Common
                 var totalGenerateTorque = 0f;
                 foreach (var gearGenerator in GearGenerators) totalGenerateTorque += gearGenerator.GenerateTorque;
                 
-                // 歯車一つあたりに供給するトルク
-                var distributeToConsumerTorque = totalGenerateTorque / GearTransformers.Count;
                 // 起点となるジェネレーターのRPM
                 var originRpm = fastestOriginGenerator.GenerateRpm;
+                //すべてのコンシューマーの必要トルクを取得し、生成トルクから割って分配率を計算する
+                var totalRequiredTorquePerOriginRpm = 0f;
                 
-                
-                //すべてのコンシューマーの必要GPを取得し、生成GPから割って分配率を計算する
-                var totalRequiredTorque = 0f;
                 foreach (var gearConsumer in GearTransformers)
                 {
                     var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
@@ -175,25 +173,26 @@ namespace Game.Gear.Common
                     var isClockwise = info.IsClockwise;
                     
                     // このコンシューマーに供給できる最大のトルク
-                    var maximumDistributeTorque = originRpm / rpm * distributeToConsumerTorque;
                     // このコンシューマーが要求するトルク
                     var requiredTorque = gearConsumer.GetRequiredTorque(rpm, isClockwise);
-                    totalRequiredTorque += requiredTorque;
+                    info.RequiredTorque = requiredTorque;
                     
-                    // 実際に供給するトルクは、最大供給トルクと要求トルクの小さい方
-                    var distributeTorque = Math.Min(maximumDistributeTorque, requiredTorque);
-                    info.DistributeTorque = distributeTorque;
+                    // RPMの比によって供給するトルクを調整する
+                    // RPMが倍であれば、その歯車に必要なトルクは倍になるし、RPMが半分であれば、その歯車に必要なトルクは半分になる
+                    var distributeTorque = rpm / originRpm * requiredTorque;
+                    totalRequiredTorquePerOriginRpm += distributeTorque;
                 }
                 
                 // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
-                var distributeRate = Math.Min(1, totalGenerateTorque / totalRequiredTorque);
+                // 歯車とトルク両方に分配するため、平方根を取る
+                var distributeGearPowerRate = Mathf.Sqrt(Mathf.Min(1, totalGenerateTorque / totalRequiredTorquePerOriginRpm));
                 
                 foreach (var gearConsumer in GearTransformers)
                 {
                     var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
-                    var ratedDistributeTorque = info.DistributeTorque * distributeRate;
-                    var ratedDistributionRpm = info.Rpm * distributeRate;
+                    var ratedDistributeTorque = info.RequiredTorque * distributeGearPowerRate * (originRpm / info.Rpm);
+                    var ratedDistributionRpm = info.Rpm * distributeGearPowerRate;
                     
                     gearConsumer.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
@@ -202,8 +201,8 @@ namespace Game.Gear.Common
                 {
                     var info = _checkedGearComponents[generator.BlockInstanceId];
                     
-                    var ratedDistributeTorque = info.DistributeTorque * distributeRate;
-                    var ratedDistributionRpm = info.Rpm * distributeRate;
+                    var ratedDistributeTorque = info.RequiredTorque * distributeGearPowerRate;
+                    var ratedDistributionRpm = info.Rpm * distributeGearPowerRate;
                     
                     generator.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
                 }
@@ -219,13 +218,13 @@ namespace Game.Gear.Common
         public readonly bool IsClockwise;
         public readonly float Rpm;
         
+        public float RequiredTorque { get; set; }
+        
         public GearRotationInfo(float rpm, bool isClockwise, IGearEnergyTransformer energyTransformer)
         {
             Rpm = rpm;
             IsClockwise = isClockwise;
             EnergyTransformer = energyTransformer;
         }
-        
-        public float DistributeTorque { get; set; }
     }
 }
