@@ -9,8 +9,6 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: mat_face
   m_Shader: {fileID: 4800000, guid: efa77a80ca0344749b4f19fdd5891cbe, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -19,7 +17,6 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -528,7 +525,7 @@ Material:
     - _OutlineVectorScale: 1
     - _OutlineVectorUVMode: 0
     - _OutlineVertexR2Width: 0
-    - _OutlineWidth: 0.05
+    - _OutlineWidth: 0.096
     - _OutlineZBias: 0
     - _OutlineZClip: 1
     - _OutlineZTest: 2
@@ -569,9 +566,9 @@ Material:
     - _Shadow3rdBorder: 0.25
     - _Shadow3rdNormalStrength: 1
     - _Shadow3rdReceive: 0
-    - _ShadowBlur: 0
+    - _ShadowBlur: 0.044
     - _ShadowBlurMaskLOD: 0
-    - _ShadowBorder: 0.174
+    - _ShadowBorder: 0.5
     - _ShadowBorderMaskLOD: 0
     - _ShadowBorderRange: 0.08
     - _ShadowColorType: 0
@@ -599,9 +596,9 @@ Material:
     - _SrcBlendFA: 1
     - _StencilComp: 8
     - _StencilFail: 0
-    - _StencilPass: 0
+    - _StencilPass: 2
     - _StencilReadMask: 255
-    - _StencilRef: 0
+    - _StencilRef: 51
     - _StencilWriteMask: 255
     - _StencilZFail: 0
     - _SubpassCutoff: 0.5
@@ -661,7 +658,7 @@ Material:
     - _egci: 2
     - _lilDirectionalLightStrength: 1
     - _lilShadowCasterBias: 0
-    - _lilToonVersion: 35
+    - _lilToonVersion: 43
     m_Colors:
     - _AudioLinkDefaultValue: {r: 0, g: 0, b: 2, a: 0.75}
     - _AudioLinkLocalMapParams: {r: 120, g: 1, b: 0, a: 0}
@@ -720,7 +717,7 @@ Material:
     - _MatCap2ndColor: {r: 1, g: 1, b: 1, a: 1}
     - _MatCapBlendUV1: {r: 0, g: 0, b: 0, a: 0}
     - _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineColor: {r: 0.3207547, g: 0.04092746, b: 0.01966893, a: 1}
     - _OutlineLitColor: {r: 1, g: 0.19999996, b: 0, a: 0}
     - _OutlineTexHSVG: {r: 0, g: 1, b: 1, a: 1}
     - _OutlineTex_ScrollRotate: {r: 0, g: 0, b: 0, a: 0}

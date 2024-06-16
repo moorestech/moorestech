@@ -645,7 +645,7 @@ Material:
     - _UsePOM: 0
     - _UseParallax: 0
     - _UseReflection: 0
-    - _UseRim: 0
+    - _UseRim: 1
     - _UseRimShade: 0
     - _UseShadow: 1
     - _VertexLightStrength: 0
