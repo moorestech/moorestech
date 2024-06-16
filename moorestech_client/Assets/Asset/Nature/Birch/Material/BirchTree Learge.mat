@@ -22,9 +22,14 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _MainReaf:
+        m_Texture: {fileID: 2800000, guid: fedb3e0abc562484eba319af605a8dee, type: 3}
+        m_Scale: {x: 4, y: 4}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _NormalStrength: 0.274
     m_Colors: []
   m_BuildTextureStacks: []
 --- !u!114 &8393386868993657079
