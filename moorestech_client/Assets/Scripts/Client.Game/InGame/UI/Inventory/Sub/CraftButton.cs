@@ -44,7 +44,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void Update()
         {
-            
             if (_isButtonDown && _isCursorStay) _buttonDownElapsed += Time.deltaTime;
             
             if (_buttonDownElapsed >= TmpDuration)

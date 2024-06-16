@@ -58,7 +58,7 @@ namespace Client.Skit.Skit
                 return emotionType switch
                 {
                     EmotionType.Normal => new Dictionary<int, float> { { 11, 0f } },
-                    EmotionType.Happy => new Dictionary<int, float> { { 11, 100 } }
+                    EmotionType.Happy => new Dictionary<int, float> { { 11, 100 } },
                 };
             }
             

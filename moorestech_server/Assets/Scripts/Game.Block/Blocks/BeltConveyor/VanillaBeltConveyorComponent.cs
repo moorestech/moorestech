@@ -64,7 +64,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }
         }
-        public double TimeOfItemEnterToExit { get; private set; } //ベルトコンベアにアイテムが入って出るまでの時間
+        public double TimeOfItemEnterToExit { get; } //ベルトコンベアにアイテムが入って出るまでの時間
         
         public IItemStack InsertItem(IItemStack itemStack)
         {

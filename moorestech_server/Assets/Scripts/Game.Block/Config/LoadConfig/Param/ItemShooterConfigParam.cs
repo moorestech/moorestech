@@ -1,5 +1,4 @@
 ﻿using Core.Item.Interface.Config;
-using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config.LoadConfig.Param

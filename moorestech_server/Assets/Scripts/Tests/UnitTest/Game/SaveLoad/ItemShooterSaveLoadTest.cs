@@ -1,8 +1,6 @@
 using System.Reflection;
-using Game.Block.Blocks.BeltConveyor;
+using Core.Item.Interface;
 using Game.Block.Blocks.ItemShooter;
-using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -36,11 +34,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item1RemainingPercent = 0.5f;
             var item2RemainingPercent = 0.3f;
             var item3RemainingPercent = 0.0f;
-            inventoryItems[0] = new ShooterInventoryItem(1, new(0), item1Speed);
+            inventoryItems[0] = new ShooterInventoryItem(1, new ItemInstanceId(0), item1Speed);
             inventoryItems[0].RemainingPercent = item1RemainingPercent;
-            inventoryItems[2] = new ShooterInventoryItem(2, new(0), item2Speed);
+            inventoryItems[2] = new ShooterInventoryItem(2, new ItemInstanceId(0), item2Speed);
             inventoryItems[2].RemainingPercent = item2RemainingPercent;
-            inventoryItems[3] = new ShooterInventoryItem(5, new(0), item3Speed);
+            inventoryItems[3] = new ShooterInventoryItem(5, new ItemInstanceId(0), item3Speed);
             inventoryItems[3].RemainingPercent = item3RemainingPercent;
             
             
@@ -49,7 +47,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(str);
             
             //セーブデータをロード
-            var newShooter = blockFactory.Load(itemShooter.BlockConfigData.BlockHash, new(0), str, posInfo).GetComponent<ItemShooterComponent>();
+            var newShooter = blockFactory.Load(itemShooter.BlockConfigData.BlockHash, new BlockInstanceId(0), str, posInfo).GetComponent<ItemShooterComponent>();
             var newInventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(newShooter);
             
             //アイテムが一致するかチェック

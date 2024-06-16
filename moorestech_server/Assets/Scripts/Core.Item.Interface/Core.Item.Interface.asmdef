@@ -1,17 +1,17 @@
 {
-    "name": "Core.Item.Interface",
-    "rootNamespace": "",
-    "references": [
-        "MessagePack",
-        "MessagePack.Annotations"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Core.Item.Interface",
+  "rootNamespace": "",
+  "references": [
+    "MessagePack",
+    "MessagePack.Annotations"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

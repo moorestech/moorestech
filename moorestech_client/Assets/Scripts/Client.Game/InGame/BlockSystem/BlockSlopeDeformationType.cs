@@ -6,7 +6,7 @@ namespace Client.Game.InGame.BlockSystem
     {
         private static readonly List<string> deformationTypes = new()
         {
-            "BeltConveyor"
+            "BeltConveyor",
         };
         
         

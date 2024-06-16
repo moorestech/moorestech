@@ -64,7 +64,7 @@ namespace Game.World.EventHandler.EnergyEvent
                 1 => _worldEnergySegmentDatastore.GetEnergySegment(electricPoles[0]),
                 //電柱が2つ以上の時はマージする
                 _ => ElectricSegmentMergeService.MergeAndSetDatastoreElectricSegments(_worldEnergySegmentDatastore,
-                    electricPoles)
+                    electricPoles),
             };
             //電柱と電力セグメントを接続する
             electricSegment.AddEnergyTransformer(blockElectric);

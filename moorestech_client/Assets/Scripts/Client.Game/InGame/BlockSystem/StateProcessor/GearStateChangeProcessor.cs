@@ -24,7 +24,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     RotationAxis.X => new Vector3(rotation, 0, 0),
                     RotationAxis.Y => new Vector3(0, rotation, 0),
                     RotationAxis.Z => new Vector3(0, 0, rotation),
-                    _ => Vector3.zero
+                    _ => Vector3.zero,
                 };
                 rotate *= _gearStateData.IsClockwise ? 1 : -1;
                 rotationInfo.RotationTransform.Rotate(rotate);
@@ -50,6 +50,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     {
         X,
         Y,
-        Z
+        Z,
     }
 }

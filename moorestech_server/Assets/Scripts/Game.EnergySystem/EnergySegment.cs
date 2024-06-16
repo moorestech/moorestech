@@ -41,7 +41,7 @@ namespace Game.EnergySystem
             
             //エネルギーを供給
             foreach (var key in _consumers.Keys)
-                _consumers[key].SupplyEnergy((_consumers[key].RequestEnergy * (ElectricPower)powerRate));
+                _consumers[key].SupplyEnergy(_consumers[key].RequestEnergy * (ElectricPower)powerRate);
         }
         
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)

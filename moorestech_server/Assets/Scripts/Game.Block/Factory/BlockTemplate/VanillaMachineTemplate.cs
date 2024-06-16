@@ -73,9 +73,9 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public static(VanillaMachineInputInventory, VanillaMachineOutputInventory) GetDependencies(
-            BlockConfigData param, 
-            BlockInstanceId blockInstanceId, 
+        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetDependencies(
+            BlockConfigData param,
+            BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {

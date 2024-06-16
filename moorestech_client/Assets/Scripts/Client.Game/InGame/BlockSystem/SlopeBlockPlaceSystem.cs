@@ -71,7 +71,7 @@ namespace Client.Game.InGame.BlockSystem
                 GetGroundPoint(new Vector2(minPos.x, minPos.y), Color.red).y,
                 GetGroundPoint(new Vector2(minPos.x, maxPos.y), Color.magenta).y,
                 GetGroundPoint(new Vector2(maxPos.x, minPos.y), Color.cyan).y,
-                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).y
+                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).y,
             };
             
             return Mathf.Max(heights.ToArray());
@@ -85,7 +85,7 @@ namespace Client.Game.InGame.BlockSystem
                 BlockDirection.East => new Vector3(0.5f, 0, 0),
                 BlockDirection.South => new Vector3(0, 0, -0.5f),
                 BlockDirection.West => new Vector3(-0.5f, 0, 0),
-                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null),
             };
         }
         

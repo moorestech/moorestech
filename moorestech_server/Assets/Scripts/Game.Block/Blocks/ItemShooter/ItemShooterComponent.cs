@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.ItemShooter
                 var id = ServerContext.ItemConfig.GetItemId(item.ItemStack.ItemHash);
                 _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
                 {
-                    RemainingPercent = (float)items[i].RemainingPercent
+                    RemainingPercent = (float)items[i].RemainingPercent,
                 };
             }
         }

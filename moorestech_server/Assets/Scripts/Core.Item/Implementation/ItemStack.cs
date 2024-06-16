@@ -105,7 +105,7 @@ namespace Core.Item.Implementation
         {
             var copiedMeta = new Dictionary<string, ItemStackMetaData>(_metaData)
             {
-                [key] = value
+                [key] = value,
             };
             return new ItemStack(Id, Count, copiedMeta);
         }

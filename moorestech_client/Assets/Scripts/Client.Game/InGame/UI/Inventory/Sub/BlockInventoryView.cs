@@ -194,6 +194,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         Chest,
         Miner,
         Machine,
-        Generator
+        Generator,
     }
 }

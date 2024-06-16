@@ -46,7 +46,8 @@ namespace Tests.CombinedTest.Core.Generate
                 do
                 {
                     id = r.Next(1, 1001);
-                } while (tmpInput.Find(x => x.ID == id) != null);
+                }
+                while (tmpInput.Find(x => x.ID == id) != null);
                 
                 tmpInput.Add(new InputItem(id, r.Next(1, 101)));
             }

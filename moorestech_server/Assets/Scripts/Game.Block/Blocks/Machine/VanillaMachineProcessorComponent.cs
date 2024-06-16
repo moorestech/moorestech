@@ -147,7 +147,7 @@ namespace Game.Block.Blocks.Machine
     public enum ProcessState
     {
         Idle,
-        Processing
+        Processing,
     }
     
     public static class ProcessStateExtension
@@ -162,7 +162,7 @@ namespace Game.Block.Blocks.Machine
             {
                 ProcessState.Idle => VanillaMachineBlockStateConst.IdleState,
                 ProcessState.Processing => VanillaMachineBlockStateConst.ProcessingState,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
     }

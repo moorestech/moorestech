@@ -125,7 +125,7 @@ namespace Client.Game.InGame.Context
             return blockType switch
             {
                 VanillaBlockType.Machine => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
-                _ => new NullBlockStateChangeProcessor()
+                _ => new NullBlockStateChangeProcessor(),
             };
         }
     }

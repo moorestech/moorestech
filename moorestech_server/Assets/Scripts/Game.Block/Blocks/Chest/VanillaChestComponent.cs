@@ -147,7 +147,7 @@ namespace Game.Block.Blocks.Chest
             for (var i = 0; i < _itemDataStoreService.InventoryItems.Count; i++)
             {
                 var setItem = _connectInventoryService.InsertItem(_itemDataStoreService.InventoryItems[i]);
-                _itemDataStoreService.SetItem(i,setItem);
+                _itemDataStoreService.SetItem(i, setItem);
             }
         }
         

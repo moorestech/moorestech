@@ -46,6 +46,6 @@ namespace Client.Game.InGame.SoundEffect
         DestroyStone,
         DestroyTree,
         DestroyBush,
-        PlaceBlock
+        PlaceBlock,
     }
 }

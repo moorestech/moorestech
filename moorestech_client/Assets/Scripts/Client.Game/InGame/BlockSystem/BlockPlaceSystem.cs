@@ -89,7 +89,7 @@ namespace Client.Game.InGame.BlockSystem
                     BlockDirection.DownSouth => BlockDirection.DownWest,
                     BlockDirection.DownWest => BlockDirection.DownNorth,
                     
-                    _ => _currentBlockDirection
+                    _ => _currentBlockDirection,
                 };
             
             //TODo シフトはインプットマネージャーに入れる
@@ -111,7 +111,7 @@ namespace Client.Game.InGame.BlockSystem
                     BlockDirection.DownSouth => BlockDirection.South,
                     BlockDirection.DownWest => BlockDirection.West,
                     
-                    _ => _currentBlockDirection
+                    _ => _currentBlockDirection,
                 };
         }
         

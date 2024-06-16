@@ -9,7 +9,6 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -60,26 +59,26 @@ namespace Tests.UnitTest.Core.Block
             Assert.AreEqual(1, shooterItem1.RemainingPercent);
             
             // 個々の値は実際の値をみて検証し、極端にかわってなければOKとする
-            var shootedItem = WaitInsertItem(down1,"1");
+            var shootedItem = WaitInsertItem(down1, "1");
             Assert.IsTrue(0.7f <= shootedItem.CurrentSpeed && shootedItem.CurrentSpeed <= 0.8f);
             
-            shootedItem = WaitInsertItem(down2,"Down1");
+            shootedItem = WaitInsertItem(down2, "Down1");
             Assert.IsTrue(1.2f <= shootedItem.CurrentSpeed && shootedItem.CurrentSpeed <= 1.5f);
             
-            shootedItem = WaitInsertItem(shooter2,"Down2");
+            shootedItem = WaitInsertItem(shooter2, "Down2");
             Assert.IsTrue(1.7f <= shootedItem.CurrentSpeed && shootedItem.CurrentSpeed <= 2.0f);
             
-            shootedItem = WaitInsertItem(up,"2");
+            shootedItem = WaitInsertItem(up, "2");
             Assert.IsTrue(1.4f <= shootedItem.CurrentSpeed && shootedItem.CurrentSpeed <= 1.8f);
             
-            shootedItem = WaitInsertItem(shooter3,"Up",up);
+            shootedItem = WaitInsertItem(shooter3, "Up", up);
             Assert.IsTrue(0.9f <= shootedItem.CurrentSpeed && shootedItem.CurrentSpeed <= 1.3f);
             
-            shootedItem = WaitInsertItem(shooter4,"3");
+            shootedItem = WaitInsertItem(shooter4, "3");
             Assert.IsTrue(0.6f <= shootedItem.CurrentSpeed && shootedItem.CurrentSpeed <= 1.1f);
         }
         
-        private ShooterInventoryItem WaitInsertItem(ItemShooterComponent waitTarget,string tag, ItemShooterComponent waitFrom = null)
+        private ShooterInventoryItem WaitInsertItem(ItemShooterComponent waitTarget, string tag, ItemShooterComponent waitFrom = null)
         {
             var currentTime = DateTime.Now;
             while (true)

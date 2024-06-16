@@ -112,7 +112,7 @@ namespace Server.Util
                     bytes[startIndex],
                     bytes[startIndex + 1],
                     bytes[startIndex + 2],
-                    bytes[startIndex + 3]
+                    bytes[startIndex + 3],
                 };
             }
             

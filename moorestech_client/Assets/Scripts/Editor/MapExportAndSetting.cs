@@ -16,7 +16,7 @@ public class MapExportAndSetting : EditorWindow
         var mapObjectConfig = new MapInfoJson
         {
             MapObjects = SetUpMapObjectInfos(),
-            MapVeins = GetMapVeinInfo()
+            MapVeins = GetMapVeinInfo(),
         };
         
         // jsonに変換
@@ -48,7 +48,7 @@ public class MapExportAndSetting : EditorWindow
                     InstanceId = mapObject.InstanceId,
                     X = mapObject.GetPosition().x,
                     Y = mapObject.GetPosition().y,
-                    Z = mapObject.GetPosition().z
+                    Z = mapObject.GetPosition().z,
                 };
                 result.Add(config);
             }
@@ -70,7 +70,7 @@ public class MapExportAndSetting : EditorWindow
                     XMin = vein.VeinRangeMinPos.x,
                     YMin = vein.VeinRangeMinPos.y,
                     XMax = vein.VeinRangeMaxPos.x,
-                    YMax = vein.VeinRangeMaxPos.y
+                    YMax = vein.VeinRangeMaxPos.y,
                 };
                 result.Add(config);
             }

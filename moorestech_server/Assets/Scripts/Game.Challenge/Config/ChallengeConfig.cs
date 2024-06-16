@@ -60,7 +60,7 @@ namespace Game.Challenge
                         TaskParam = taskParam,
                         Summary = summary,
                         SkitType = skitType,
-                        FireSkitName = fireSkitName
+                        FireSkitName = fireSkitName,
                     });
                 }
             }

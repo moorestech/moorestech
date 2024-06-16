@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.UIState
                 VanillaBlockType.Miner => BlockInventoryType.Miner,
                 VanillaBlockType.Machine => BlockInventoryType.Machine,
                 VanillaBlockType.Generator => BlockInventoryType.Generator,
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(),
             };
             
             _blockInventoryView.SetBlockInventoryType(type, _openBlockPos, config.Param, id);

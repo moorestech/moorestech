@@ -42,8 +42,7 @@ namespace Game.Block.Blocks.Machine
         public float GetRequiredTorque(float rpm, bool isClockwise)
         {
             BlockException.CheckDestroy(this);
-            return _vanillaMachineProcessorComponent.CurrentState is ProcessState.Processing ? 
-                _configParam.RequiredTorque : 0;
+            return _vanillaMachineProcessorComponent.CurrentState is ProcessState.Processing ? _configParam.RequiredTorque : 0;
         }
         
         public void Rocked()
