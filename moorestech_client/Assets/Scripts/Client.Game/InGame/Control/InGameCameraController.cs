@@ -6,6 +6,8 @@ namespace Client.Game.InGame.Control
 {
     public class InGameCameraController : MonoBehaviour
     {
+        public Vector3 Position => transform.position;
+        
         [SerializeField] private Camera mainCamera;
         
         [SerializeField] private CinemachineVirtualCamera virtualCamera;

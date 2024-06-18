@@ -25,6 +25,9 @@ namespace Client.Game.InGame.Player
     
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
     {
+        public Vector3 Position => transform.position;
+        public Vector2 Position2d => new(transform.position.x, transform.position.z);
+        
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
         
@@ -32,9 +35,6 @@ namespace Client.Game.InGame.Player
         {
             if (transform.localPosition.y < -10) SetPlayerPosition(new Vector2(transform.localPosition.x, transform.localPosition.z));
         }
-        
-        public Vector3 Position => transform.position;
-        public Vector2 Position2d => new(transform.position.x, transform.position.z);
         
         /// <summary>
         ///     注意：アップデートのタイミングによってはThirdPersonController.csによる戻しが発生する可能性がある
@@ -46,7 +46,6 @@ namespace Client.Game.InGame.Player
             var height = SlopeBlockPlaceSystem.GetGroundPoint(playerPos).y;
             controller.Warp(new Vector3(playerPos.x, height, playerPos.y));
         }
-        
         
         public void SetActive(bool active)
         {
