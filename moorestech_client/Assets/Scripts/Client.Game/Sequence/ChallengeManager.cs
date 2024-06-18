@@ -46,7 +46,7 @@ namespace Client.Game.Sequence
             {
                 var nextId = challengeInfo.NextIds.First();
                 var nextChallenge = _challengeConfig.GetChallenge(nextId);
-            
+                
                 currentChallengeSummary.text = nextChallenge.Summary;
             }
         }
@@ -60,6 +60,8 @@ namespace Client.Game.Sequence
                 if (challengeInfo.FireSkitType == ChallengeInfo.BackgroundSkitType)
                 {
                     var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == challengeInfo.FireSkitName);
+                    if (challengeTextAsset == null) continue;
+                    
                     await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
                 }
             }
