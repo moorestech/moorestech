@@ -12,7 +12,17 @@
             "taskParam": {
                 "itemModId": "sakastudio:moorestechAlphaMod",
                 "itemName": "stone tool"
-            }
+            },
+
+            "tutorials": [
+                {
+                    "tutorialType": "mapObjectPin",
+                    "tutorialParam": {
+                        "mapObjectType" : "stone",
+                        "pinText" : "左クリックで石を採掘"
+                    }
+                }
+            ]
         },
         {
             "id": 1010,
