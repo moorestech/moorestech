@@ -10,7 +10,7 @@
             },
             "summary": "石を集めて石器を作ろう",
 
-            "skitType": "backgroundSkit",
+            "fireSkitType": "backgroundSkit",
             "fireSkitName": "木3個"
         },
         {
@@ -24,7 +24,7 @@
             },
             "summary": "木を3個手に入れよう",
 
-            "skitType": "backgroundSkit",
+            "fireSkitType": "backgroundSkit",
             "fireSkitName": "石斧作り"
         },
         {
@@ -37,7 +37,7 @@
             },
             "summary": "木を3個手に入れよう",
 
-            "skitType": "backgroundSkit",
+            "fireSkitType": "backgroundSkit",
             "fireSkitName": "木3個"
         }
     ]
