@@ -1,5 +1,6 @@
 using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 
 namespace Game.Block.Config.LoadConfig.Param
 {
@@ -11,23 +12,23 @@ namespace Game.Block.Config.LoadConfig.Param
     
     public class MachineBlockConfigParam : IBlockConfigParam, IMachineBlockParam
     {
-        public int InputSlot { get; }
-        public int OutputSlot { get; }
-        public readonly int RequiredPower;
+        public readonly ElectricPower RequiredPower;
         
-        private MachineBlockConfigParam(int inputSlot, int outputSlot, int requiredPower)
+        private MachineBlockConfigParam(int inputSlot, int outputSlot, ElectricPower requiredPower)
         {
             InputSlot = inputSlot;
             OutputSlot = outputSlot;
             RequiredPower = requiredPower;
         }
+        public int InputSlot { get; }
+        public int OutputSlot { get; }
         
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
         {
             int inputSlot = blockParam.inputSlot;
             int outputSlot = blockParam.outputSlot;
-            int requiredPower = blockParam.requiredPower;
-            return new MachineBlockConfigParam(inputSlot, outputSlot, requiredPower);
+            float requiredPower = blockParam.requiredPower;
+            return new MachineBlockConfigParam(inputSlot, outputSlot, new ElectricPower(requiredPower));
         }
     }
 }

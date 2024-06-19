@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Core
             //電力の設定
             var segment = new EnergySegment();
             segment.AddEnergyConsumer(miner.GetComponent<IElectricConsumer>());
-            segment.AddGenerator(new TestElectricGenerator(10000, new BlockInstanceId(10)));
+            segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             
             var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);
             

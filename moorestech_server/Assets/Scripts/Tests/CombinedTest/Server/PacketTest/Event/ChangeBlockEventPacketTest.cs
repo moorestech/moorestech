@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.EnergySystem;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -44,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //稼働用の電気を供給する
             var electricMachineComponent = machine.GetComponent<VanillaElectricMachineComponent>();
-            electricMachineComponent.SupplyEnergy(100);
+            electricMachineComponent.SupplyEnergy(new ElectricPower(100));
             
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));

@@ -4,6 +4,7 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.EnergySystem;
 using Game.Gear.Common;
 using UnityEngine;
 
@@ -49,7 +50,7 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
             _simpleGearService.Rocked();
-            _vanillaMachineProcessorComponent.SupplyPower(0);
+            _vanillaMachineProcessorComponent.SupplyPower(new ElectricPower(0));
         }
         
         public bool IsDestroy { get; private set; }
@@ -67,7 +68,7 @@ namespace Game.Block.Blocks.Machine
             var rpmRate = Mathf.Min((rpm / _configParam.RequiredRpm).AsPrimitive(), 1);
             var torqueRate = Mathf.Min((torque / _configParam.RequiredTorque).AsPrimitive(), 1);
             var powerRate = rpmRate * torqueRate;
-            _vanillaMachineProcessorComponent.SupplyPower((int)(_configParam.RequiredPower * powerRate));
+            _vanillaMachineProcessorComponent.SupplyPower(_configParam.RequiredPower * powerRate);
         }
     }
 }

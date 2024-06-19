@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 using Game.Gear.Common;
 
 namespace Game.Block.Config.LoadConfig.Param
@@ -26,7 +27,7 @@ namespace Game.Block.Config.LoadConfig.Param
             GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, GearConnectConst.GearConnectOptionKey, GearConnectOptionLoader.Loader);
         }
         
-        public float RequiredPower => RequiredRpm.AsPrimitive() * RequiredTorque.AsPrimitive();
+        public ElectricPower RequiredPower => new(RequiredRpm.AsPrimitive() * RequiredTorque.AsPrimitive());
         public int InputSlot { get; }
         public int OutputSlot { get; }
         
