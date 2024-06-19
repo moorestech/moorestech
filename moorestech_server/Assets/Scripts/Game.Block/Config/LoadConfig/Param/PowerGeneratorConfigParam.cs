@@ -9,11 +9,11 @@ namespace Game.Block.Config.LoadConfig.Param
     {
         public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int FuelSlot;
-        public readonly int InfinityPower;
+        public readonly ElectricPower InfinityPower;
         public readonly bool IsInfinityPower;
         
         private PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot, bool isInfinityPower,
-            int infinityPower)
+            ElectricPower infinityPower)
         {
             FuelSettings = fuelSettings;
             FuelSlot = fuelSlot;
@@ -35,14 +35,14 @@ namespace Game.Block.Config.LoadConfig.Param
                 
                 var itemId = itemConfig.GetItemId(itemModId, idItemName);
                 
-                fuelSettings.Add(itemId, new FuelSetting(itemId, time, power));
+                fuelSettings.Add(itemId, new FuelSetting(itemId, time, new ElectricPower(power)));
             }
             
             int fuelSlot = blockParam.fuelSlot;
             bool isInfinityPower = blockParam.isInfinityPower;
             int infinityPower = blockParam.infinityPower;
             
-            return new PowerGeneratorConfigParam(fuelSettings, fuelSlot, isInfinityPower, infinityPower);
+            return new PowerGeneratorConfigParam(fuelSettings, fuelSlot, isInfinityPower, new ElectricPower(infinityPower));
         }
     }
     
@@ -52,7 +52,7 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly ElectricPower Power;
         public readonly int Time;
         
-        public FuelSetting(int itemId, int time, int power)
+        public FuelSetting(int itemId, int time, ElectricPower power)
         {
             ItemId = itemId;
             Time = time;

@@ -7,6 +7,7 @@ using Game.Block.Factory.Extension;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
+using Game.EnergySystem;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -51,17 +52,17 @@ namespace Game.Block.Factory.BlockTemplate
     
     public class VanillaPowerGeneratorProperties
     {
-        public readonly BlockPositionInfo BlockPositionInfo;
         public readonly BlockInstanceId BlockInstanceId;
+        public readonly BlockPositionInfo BlockPositionInfo;
         public readonly int FuelItemSlot;
         
         public readonly Dictionary<int, FuelSetting> FuelSettings;
-        public readonly int InfinityPower;
+        public readonly ElectricPower InfinityPower;
         public readonly BlockConnectorComponent<IBlockInventory> InventoryInputConnectorComponent;
         public readonly bool IsInfinityPower;
         
         public VanillaPowerGeneratorProperties(BlockInstanceId blockInstanceId, int fuelItemSlot,
-            bool isInfinityPower, int infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+            bool isInfinityPower, ElectricPower infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             BlockInstanceId = blockInstanceId;
             FuelItemSlot = fuelItemSlot;

@@ -12,10 +12,10 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
         private readonly double _beltConveyorSpeed;
-        private readonly float _requiredTorque;
+        private readonly Torque _requiredTorque;
         private readonly IDisposable _updateObservable;
         
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, float requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, Torque requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
             : base(requiredTorque, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
@@ -29,11 +29,11 @@ namespace Game.Block.Blocks.BeltConveyor
             BlockException.CheckDestroy(this);
         }
         
-        public override void SupplyPower(float rpm, float torque, bool isClockwise)
+        public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             base.SupplyPower(rpm, torque, isClockwise);
             var torqueRate = torque / _requiredTorque;
-            var speed = torqueRate * rpm * _beltConveyorSpeed;
+            var speed = torqueRate.AsPrimitive() * rpm.AsPrimitive() * _beltConveyorSpeed;
             _beltConveyorComponent.SetTimeOfItemEnterToExit(1 / speed);
         }
     }

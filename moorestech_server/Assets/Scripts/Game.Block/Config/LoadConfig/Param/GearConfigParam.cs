@@ -7,12 +7,12 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class GearConfigParam : IBlockConfigParam
     {
-        public readonly float RequireTorque;
+        public readonly Torque RequireTorque;
         public readonly int TeethCount;
         
         public List<ConnectSettings> GearConnectSettings;
         
-        private GearConfigParam(int teethCount, float requireTorque, List<ConnectSettings> gearConnectSettings)
+        private GearConfigParam(int teethCount, Torque requireTorque, List<ConnectSettings> gearConnectSettings)
         {
             TeethCount = teethCount;
             GearConnectSettings = gearConnectSettings;
@@ -25,7 +25,7 @@ namespace Game.Block.Config.LoadConfig.Param
             float requireTorque = blockParam.requireTorque;
             
             var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, GearConnectConst.GearConnectOptionKey, GearConnectOptionLoader.Loader);
-            return new GearConfigParam(teethCount, requireTorque, gearConnectSettings);
+            return new GearConfigParam(teethCount, new Torque(requireTorque), gearConnectSettings);
         }
     }
 }

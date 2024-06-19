@@ -5,6 +5,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Gear.Common;
 using Game.PlayerInventory;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -39,7 +40,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             machineInventory.InsertItem(itemStackFactory.Create(2, 1));
             
             //処理を開始
-            gearMachineBlock.GetComponent<VanillaGearMachineComponent>().SupplyPower(1000, 1000, true);
+            gearMachineBlock.GetComponent<VanillaGearMachineComponent>().SupplyPower(new RPM(1000), new Torque(1000), true);
             GameUpdater.UpdateWithWait();
             //別のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(5, 6));
