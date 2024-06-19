@@ -157,7 +157,7 @@ namespace Game.Gear.Common
             
             void DistributeGearPower()
             {
-                var totalGenerateTorque = 0f;
+                var totalGenerateTorque = new Torque(0);
                 foreach (var gearGenerator in GearGenerators) totalGenerateTorque += gearGenerator.GenerateTorque;
                 
                 // 起点となるジェネレーターのRPM
@@ -185,7 +185,7 @@ namespace Game.Gear.Common
                 
                 // 分配率をもとに、供給するGPを算出し、RPMから供給トルクを計算する
                 // 歯車とトルク両方に分配するため、平方根を取る
-                var distributeGearPowerRate = Mathf.Sqrt(Mathf.Min(1, totalGenerateTorque / totalRequiredTorquePerOriginRpm));
+                var distributeGearPowerRate = Mathf.Sqrt(Mathf.Min(1, totalGenerateTorque.AsPrimitive() / totalRequiredTorquePerOriginRpm));
                 
                 foreach (var gearConsumer in GearTransformers)
                 {
