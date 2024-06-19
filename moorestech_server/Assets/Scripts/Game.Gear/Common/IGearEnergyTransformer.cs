@@ -13,7 +13,7 @@ namespace Game.Gear.Common
         
         public bool IsRocked { get; }
         
-        public float CurrentPower => CurrentRpm.AsPrimitive() * CurrentTorque.AsPrimitive();
+        public GearPower CurrentPower => new(CurrentRpm.AsPrimitive() * CurrentTorque.AsPrimitive());
         public RPM CurrentRpm { get; }
         public Torque CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }

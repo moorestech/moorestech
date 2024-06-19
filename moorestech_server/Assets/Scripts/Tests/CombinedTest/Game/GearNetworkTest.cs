@@ -277,9 +277,9 @@ namespace Tests.CombinedTest.Game
             
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(10, gear1.CurrentPower);
-            Assert.AreEqual(10, gear2.CurrentPower);
-            Assert.AreEqual(10, gear3.CurrentPower);
+            Assert.AreEqual(10, gear1.CurrentPower.AsPrimitive());
+            Assert.AreEqual(10, gear2.CurrentPower.AsPrimitive());
+            Assert.AreEqual(10, gear3.CurrentPower.AsPrimitive());
         }
         
         [Test]
