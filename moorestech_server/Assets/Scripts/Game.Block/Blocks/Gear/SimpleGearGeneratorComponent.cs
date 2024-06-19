@@ -8,7 +8,7 @@ namespace Game.Block.Blocks.Gear
     public class SimpleGearGeneratorComponent : GearEnergyTransformer, IGearGenerator
     {
         public SimpleGearGeneratorComponent(SimpleGearGeneratorParam configParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(0, blockInstanceId, connectorComponent)
+            base(new Torque(0), blockInstanceId, connectorComponent)
         {
             TeethCount = configParam.TeethCount;
             GenerateRpm = configParam.GenerateRpm;

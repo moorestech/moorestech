@@ -311,18 +311,18 @@ namespace Tests.CombinedTest.Game
             
             Assert.AreEqual(5, gear1.CurrentRpm.AsPrimitive());
             Assert.AreEqual(5, gear2.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.5f, gear1.CurrentTorque);
-            Assert.AreEqual(0.5f, gear2.CurrentTorque);
+            Assert.AreEqual(0.5f, gear1.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.5f, gear2.CurrentTorque.AsPrimitive());
             
             Assert.AreEqual(10, gear3.CurrentRpm.AsPrimitive());
             Assert.AreEqual(10, gear4.CurrentRpm.AsPrimitive());
             Assert.AreEqual(10, gear5.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.25f, gear3.CurrentTorque);
-            Assert.AreEqual(0.25f, gear4.CurrentTorque);
-            Assert.AreEqual(0.25f, gear5.CurrentTorque);
+            Assert.AreEqual(0.25f, gear3.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear4.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear5.CurrentTorque.AsPrimitive());
             
             Assert.AreEqual(20, gear6.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.125f, gear6.CurrentTorque);
+            Assert.AreEqual(0.125f, gear6.CurrentTorque.AsPrimitive());
         }
         
         [Test]

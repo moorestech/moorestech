@@ -12,10 +12,10 @@ namespace Game.Block.Blocks.Gear
     {
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         
-        private readonly float _requiredTorque;
+        private readonly Torque _requiredTorque;
         private readonly SimpleGearService _simpleGearService;
         
-        public GearEnergyTransformer(float requiredTorque, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+        public GearEnergyTransformer(Torque requiredTorque, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _requiredTorque = requiredTorque;
             BlockInstanceId = blockInstanceId;
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Gear
         }
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
-        public float CurrentTorque => _simpleGearService.CurrentTorque;
+        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
         
         public bool IsRocked => _simpleGearService.IsRocked;
@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.Gear
                 target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
             ).ToArray();
         
-        public float GetRequiredTorque(RPM rpm, bool isClockwise)
+        public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
             return _requiredTorque;
         }
@@ -55,7 +55,7 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService.Rocked();
         }
         
-        public virtual void SupplyPower(RPM rpm, float torque, bool isClockwise)
+        public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
         }

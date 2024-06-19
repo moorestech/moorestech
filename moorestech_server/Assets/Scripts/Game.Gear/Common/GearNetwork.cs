@@ -65,7 +65,7 @@ namespace Game.Gear.Common
             if (fastestOriginGenerator == null)
             {
                 //ジェネレーターがない場合はすべてにゼロを供給して終了
-                foreach (var transformer in GearTransformers) transformer.SupplyPower(new RPM(0), 0, true);
+                foreach (var transformer in GearTransformers) transformer.SupplyPower(new RPM(0), new Torque(0), true);
                 return;
             }
             
@@ -179,7 +179,7 @@ namespace Game.Gear.Common
                     
                     // RPMの比によって供給するトルクを調整する
                     // RPMが倍であれば、その歯車に必要なトルクは倍になるし、RPMが半分であれば、その歯車に必要なトルクは半分になる
-                    var distributeTorque = rpm.AsPrimitive() / originRpm.AsPrimitive() * requiredTorque;
+                    var distributeTorque = rpm.AsPrimitive() / originRpm.AsPrimitive() * requiredTorque.AsPrimitive();
                     totalRequiredTorquePerOriginRpm += distributeTorque;
                 }
                 
@@ -191,7 +191,7 @@ namespace Game.Gear.Common
                 {
                     var info = _checkedGearComponents[gearConsumer.BlockInstanceId];
                     
-                    var ratedDistributeTorque = info.RequiredTorque * distributeGearPowerRate * (originRpm / info.Rpm).AsPrimitive();
+                    var ratedDistributeTorque = new Torque(info.RequiredTorque.AsPrimitive() * distributeGearPowerRate * (originRpm / info.Rpm).AsPrimitive());
                     var ratedDistributionRpm = info.Rpm * distributeGearPowerRate;
                     
                     gearConsumer.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
@@ -201,7 +201,7 @@ namespace Game.Gear.Common
                 {
                     var info = _checkedGearComponents[generator.BlockInstanceId];
                     
-                    var ratedDistributeTorque = info.RequiredTorque * distributeGearPowerRate;
+                    var ratedDistributeTorque = new Torque(info.RequiredTorque.AsPrimitive() * distributeGearPowerRate);
                     var ratedDistributionRpm = info.Rpm * distributeGearPowerRate;
                     
                     generator.SupplyPower(ratedDistributionRpm, ratedDistributeTorque, info.IsClockwise);
@@ -225,6 +225,6 @@ namespace Game.Gear.Common
             EnergyTransformer = energyTransformer;
         }
         
-        public float RequiredTorque { get; set; }
+        public Torque RequiredTorque { get; set; }
     }
 }

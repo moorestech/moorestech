@@ -7,7 +7,7 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class GearBeltConveyorConfigParam : IBlockConfigParam
     {
-        public GearBeltConveyorConfigParam(int beltConveyorItemNum, double beltConveyorSpeed, float requiredTorque, List<ConnectSettings> gearConnectSettings)
+        public GearBeltConveyorConfigParam(int beltConveyorItemNum, double beltConveyorSpeed, Torque requiredTorque, List<ConnectSettings> gearConnectSettings)
         {
             BeltConveyorItemNum = beltConveyorItemNum;
             BeltConveyorSpeed = beltConveyorSpeed;
@@ -17,7 +17,7 @@ namespace Game.Block.Config.LoadConfig.Param
         public List<ConnectSettings> GearConnectSettings { get; }
         public int BeltConveyorItemNum { get; }
         public double BeltConveyorSpeed { get; }
-        public float RequiredTorque { get; }
+        public Torque RequiredTorque { get; }
         
         
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
@@ -27,7 +27,7 @@ namespace Game.Block.Config.LoadConfig.Param
             float requiredTorque = blockParam.requiredTorque;
             List<ConnectSettings> connectsSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, "gearConnects", GearConnectOptionLoader.Loader);
             
-            return new GearBeltConveyorConfigParam(slot, beltConveyorSpeed, requiredTorque, connectsSettings);
+            return new GearBeltConveyorConfigParam(slot, beltConveyorSpeed, new Torque(requiredTorque), connectsSettings);
         }
     }
 }

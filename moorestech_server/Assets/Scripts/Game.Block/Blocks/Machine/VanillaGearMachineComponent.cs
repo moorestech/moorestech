@@ -27,10 +27,10 @@ namespace Game.Block.Blocks.Machine
             _connectorComponent = connectorComponent;
             _simpleGearService = new SimpleGearService();
         }
+        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
         public int TeethCount => _configParam.TeethCount;
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
-        public float CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
         public bool IsRocked => _simpleGearService.IsRocked;
         
@@ -39,10 +39,10 @@ namespace Game.Block.Blocks.Machine
                 target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
             ).ToArray();
         
-        public float GetRequiredTorque(RPM rpm, bool isClockwise)
+        public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
             BlockException.CheckDestroy(this);
-            return _vanillaMachineProcessorComponent.CurrentState is ProcessState.Processing ? _configParam.RequiredTorque : 0;
+            return _vanillaMachineProcessorComponent.CurrentState is ProcessState.Processing ? _configParam.RequiredTorque : new Torque(0);
         }
         
         public void Rocked()
@@ -52,22 +52,22 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineProcessorComponent.SupplyPower(0);
         }
         
-        public void SupplyPower(RPM rpm, float torque, bool isClockwise)
-        {
-            BlockException.CheckDestroy(this);
-            _simpleGearService.SupplyPower(rpm, torque, isClockwise);
-            
-            var rpmRate = Mathf.Min((rpm / _configParam.RequiredRpm).AsPrimitive(), 1);
-            var torqueRate = Mathf.Min(torque / _configParam.RequiredTorque, 1);
-            var powerRate = rpmRate * torqueRate;
-            _vanillaMachineProcessorComponent.SupplyPower((int)(_configParam.RequiredPower * powerRate));
-        }
-        
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             BlockException.CheckDestroy(this);
             IsDestroy = true;
+        }
+        
+        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
+        {
+            BlockException.CheckDestroy(this);
+            _simpleGearService.SupplyPower(rpm, torque, isClockwise);
+            
+            var rpmRate = Mathf.Min((rpm / _configParam.RequiredRpm).AsPrimitive(), 1);
+            var torqueRate = Mathf.Min((torque / _configParam.RequiredTorque).AsPrimitive(), 1);
+            var powerRate = rpmRate * torqueRate;
+            _vanillaMachineProcessorComponent.SupplyPower((int)(_configParam.RequiredPower * powerRate));
         }
     }
 }

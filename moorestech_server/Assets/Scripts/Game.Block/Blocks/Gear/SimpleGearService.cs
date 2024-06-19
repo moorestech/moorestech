@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.Gear
         public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
         
         public RPM CurrentRpm { get; private set; }
-        public float CurrentTorque { get; private set; }
+        public Torque CurrentTorque { get; private set; }
         public bool IsCurrentClockwise { get; private set; }
         public bool IsRocked { get; private set; }
         
@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.Gear
             IsRocked = true;
             _currentState = IGearEnergyTransformer.RockedStateName;
             CurrentRpm = new RPM(0);
-            CurrentTorque = 0;
+            CurrentTorque = new Torque(0);
             
             var state = new BlockState(IGearEnergyTransformer.RockedStateName, _currentState);
             _onBlockStateChange.OnNext(state);
@@ -35,12 +35,12 @@ namespace Game.Block.Blocks.Gear
             return state;
         }
         
-        public void SupplyPower(RPM rpm, float torque, bool isClockwise)
+        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             IsRocked = false;
             var isChanged =
                 Math.Abs((CurrentRpm - rpm).AsPrimitive()) > 0.05f ||
-                Math.Abs(CurrentTorque - torque) > 0.05f ||
+                Math.Abs((CurrentTorque - torque).AsPrimitive()) > 0.05f ||
                 IsCurrentClockwise != isClockwise;
             
             CurrentRpm = rpm;
