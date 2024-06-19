@@ -19,8 +19,8 @@ namespace Tests.Module.TestMod
         public const int GearMachine = 15;
         public const int SimpleGearGenerator = 16;
         public const int SimpleFastGearGenerator = 17;
-        public const int SmallLossPowerGear = 18;
-        public const int BigLossPowerGear = 19;
+        public const int SmallRequireTorqueGear = 18;
+        public const int BigRequireTorqueGear = 19;
         public const int InfinityTorqueSimpleGearGenerator = 20;
         public const int GearBeltConveyor = 21;
         

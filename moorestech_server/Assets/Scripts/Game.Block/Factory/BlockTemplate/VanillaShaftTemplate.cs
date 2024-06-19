@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
             List<ConnectSettings> connectSetting = configParam.GearConnectSettings;
             
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(configParam.LossPower, blockInstanceId, blockComponent);
+            var gearEnergyTransformer = new GearEnergyTransformer(configParam.RequireTorque, blockInstanceId, blockComponent);
             
             var components = new List<IBlockComponent>
             {
