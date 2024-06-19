@@ -29,11 +29,11 @@ namespace Game.Block.Blocks.BeltConveyor
             BlockException.CheckDestroy(this);
         }
         
-        public override void SupplyPower(float rpm, float torque, bool isClockwise)
+        public override void SupplyPower(RPM rpm, float torque, bool isClockwise)
         {
             base.SupplyPower(rpm, torque, isClockwise);
             var torqueRate = torque / _requiredTorque;
-            var speed = torqueRate * rpm * _beltConveyorSpeed;
+            var speed = torqueRate * rpm.AsPrimitive() * _beltConveyorSpeed;
             _beltConveyorComponent.SetTimeOfItemEnterToExit(1 / speed);
         }
     }

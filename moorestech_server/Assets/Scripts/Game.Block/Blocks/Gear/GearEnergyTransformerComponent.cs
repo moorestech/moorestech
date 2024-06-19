@@ -10,24 +10,9 @@ namespace Game.Block.Blocks.Gear
 {
     public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
     {
-        public BlockInstanceId BlockInstanceId { get; }
-        public float CurrentRpm => _simpleGearService.CurrentRpm;
-        public float CurrentTorque => _simpleGearService.CurrentTorque;
-        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
-        
-        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
-        
-        public bool IsRocked => _simpleGearService.IsRocked;
-        
-        public bool IsDestroy { get; private set; }
-        
-        public IReadOnlyList<GearConnect> Connects =>
-            _connectorComponent.ConnectedTargets.Select(
-                target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
-            ).ToArray();
+        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         
         private readonly float _requiredTorque;
-        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _simpleGearService;
         
         public GearEnergyTransformer(float requiredTorque, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
@@ -40,12 +25,27 @@ namespace Game.Block.Blocks.Gear
             GearNetworkDatastore.AddGear(this);
         }
         
+        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        
         public BlockState GetBlockState()
         {
             return _simpleGearService.GetBlockState();
         }
+        public BlockInstanceId BlockInstanceId { get; }
+        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
+        public float CurrentTorque => _simpleGearService.CurrentTorque;
+        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
         
-        public float GetRequiredTorque(float rpm, bool isClockwise)
+        public bool IsRocked => _simpleGearService.IsRocked;
+        
+        public bool IsDestroy { get; private set; }
+        
+        public IReadOnlyList<GearConnect> Connects =>
+            _connectorComponent.ConnectedTargets.Select(
+                target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
+            ).ToArray();
+        
+        public float GetRequiredTorque(RPM rpm, bool isClockwise)
         {
             return _requiredTorque;
         }
@@ -55,7 +55,7 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService.Rocked();
         }
         
-        public virtual void SupplyPower(float rpm, float torque, bool isClockwise)
+        public virtual void SupplyPower(RPM rpm, float torque, bool isClockwise)
         {
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
         }

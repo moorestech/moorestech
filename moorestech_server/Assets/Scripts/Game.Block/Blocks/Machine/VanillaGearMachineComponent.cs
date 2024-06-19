@@ -14,9 +14,22 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public class VanillaGearMachineComponent : IGear
     {
+        private readonly GearMachineConfigParam _configParam;
+        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
+        
+        private readonly SimpleGearService _simpleGearService;
+        private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
+        public VanillaGearMachineComponent(GearMachineConfigParam configParam, VanillaMachineProcessorComponent vanillaMachineProcessorComponent, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, BlockInstanceId blockInstanceId)
+        {
+            BlockInstanceId = blockInstanceId;
+            _configParam = configParam;
+            _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
+            _connectorComponent = connectorComponent;
+            _simpleGearService = new SimpleGearService();
+        }
         public int TeethCount => _configParam.TeethCount;
         public BlockInstanceId BlockInstanceId { get; }
-        public float CurrentRpm => _simpleGearService.CurrentRpm;
+        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
         public float CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
         public bool IsRocked => _simpleGearService.IsRocked;
@@ -26,20 +39,7 @@ namespace Game.Block.Blocks.Machine
                 target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
             ).ToArray();
         
-        private readonly SimpleGearService _simpleGearService;
-        private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
-        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
-        private readonly GearMachineConfigParam _configParam;
-        public VanillaGearMachineComponent(GearMachineConfigParam configParam, VanillaMachineProcessorComponent vanillaMachineProcessorComponent, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, BlockInstanceId blockInstanceId)
-        {
-            BlockInstanceId = blockInstanceId;
-            _configParam = configParam;
-            _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
-            _connectorComponent = connectorComponent;
-            _simpleGearService = new SimpleGearService();
-        }
-        
-        public float GetRequiredTorque(float rpm, bool isClockwise)
+        public float GetRequiredTorque(RPM rpm, bool isClockwise)
         {
             BlockException.CheckDestroy(this);
             return _vanillaMachineProcessorComponent.CurrentState is ProcessState.Processing ? _configParam.RequiredTorque : 0;
@@ -52,12 +52,12 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineProcessorComponent.SupplyPower(0);
         }
         
-        public void SupplyPower(float rpm, float torque, bool isClockwise)
+        public void SupplyPower(RPM rpm, float torque, bool isClockwise)
         {
             BlockException.CheckDestroy(this);
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
             
-            var rpmRate = Mathf.Min(rpm / _configParam.RequiredRpm, 1);
+            var rpmRate = Mathf.Min((rpm / _configParam.RequiredRpm).AsPrimitive(), 1);
             var torqueRate = Mathf.Min(torque / _configParam.RequiredTorque, 1);
             var powerRate = rpmRate * torqueRate;
             _vanillaMachineProcessorComponent.SupplyPower((int)(_configParam.RequiredPower * powerRate));

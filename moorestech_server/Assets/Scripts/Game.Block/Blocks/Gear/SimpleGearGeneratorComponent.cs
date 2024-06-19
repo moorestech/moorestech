@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.Gear
         }
         
         public int TeethCount { get; }
-        public float GenerateRpm { get; }
+        public RPM GenerateRpm { get; }
         public float GenerateTorque { get; }
         public bool GenerateIsClockwise { get; }
     }

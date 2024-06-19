@@ -13,17 +13,17 @@ namespace Game.Gear.Common
         
         public bool IsRocked { get; }
         
-        public float CurrentPower => CurrentRpm * CurrentTorque;
-        public float CurrentRpm { get; }
+        public float CurrentPower => CurrentRpm.AsPrimitive() * CurrentTorque;
+        public RPM CurrentRpm { get; }
         public float CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }
         
         public IReadOnlyList<GearConnect> Connects { get; }
         
-        public float GetRequiredTorque(float rpm, bool isClockwise);
+        public float GetRequiredTorque(RPM rpm, bool isClockwise);
         
         public void Rocked();
-        public void SupplyPower(float rpm, float torque, bool isClockwise);
+        public void SupplyPower(RPM rpm, float torque, bool isClockwise);
     }
     
     public readonly struct GearConnect
