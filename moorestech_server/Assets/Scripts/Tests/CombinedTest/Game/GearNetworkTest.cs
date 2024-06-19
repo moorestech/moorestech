@@ -268,9 +268,9 @@ namespace Tests.CombinedTest.Game
             var gearPosition2 = new Vector3Int(1, 0, 1);
             var gearPosition3 = new Vector3Int(2, 0, 1);
             
-            var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear2 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition3, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
@@ -298,12 +298,12 @@ namespace Tests.CombinedTest.Game
             var gearPosition5 = new Vector3Int(2, 0, 3);
             var gearPosition6 = new Vector3Int(3, 0, 3);
             
-            var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear2 = AddBlock(ForUnitTestModBlockId.BigLossPowerGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear4 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition4, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear5 = AddBlock(ForUnitTestModBlockId.BigLossPowerGear, gearPosition5, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
-            var gear6 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition6, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.BigRequireTorqueGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition3, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear4 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition4, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear5 = AddBlock(ForUnitTestModBlockId.BigRequireTorqueGear, gearPosition5, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear6 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition6, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
@@ -363,10 +363,10 @@ namespace Tests.CombinedTest.Game
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
         {
-            var gear1Connector = gear1.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            BlockConnectorComponent<IGearEnergyTransformer> gear1Connector = gear1.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
             var gear1Transform = gear1.GetComponent<IGearEnergyTransformer>();
             
-            var gear2Connector = gear2.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            BlockConnectorComponent<IGearEnergyTransformer> gear2Connector = gear2.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             

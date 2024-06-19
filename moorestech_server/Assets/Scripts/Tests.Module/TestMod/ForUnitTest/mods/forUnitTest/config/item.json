@@ -76,11 +76,11 @@
     "maxStacks": 100
   },
   {
-    "name": "SmallLossPowerTestGear",
+    "name": "SmallRequireTorqueTestGear",
     "maxStacks": 100
   },
   {
-    "name": "BigLossPowerTestGear",
+    "name": "BigRequireTorqueTestGear",
     "maxStacks": 100
   },
   {
