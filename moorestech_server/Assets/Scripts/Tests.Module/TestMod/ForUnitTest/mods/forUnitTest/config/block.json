@@ -1,8 +1,8 @@
 ﻿{
   "Blocks": [
     {
-      "name": "TestMachine",
-      "type": "Machine",
+      "name": "TestElectricMachine",
+      "type": "ElectricMachine",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
       "size": {
@@ -150,8 +150,8 @@
       }
     },
     {
-      "name": "TestGenerator",
-      "type": "Generator",
+      "name": "TestElectricGenerator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test5",
       "size": {
@@ -222,8 +222,8 @@
       }
     },
     {
-      "name": "TestMiner",
-      "type": "Miner",
+      "name": "TestElectricMiner",
+      "type": "ElectricMiner",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test6",
       "size": {
@@ -342,8 +342,8 @@
       }
     },
     {
-      "name": "TestInfinityGenerator",
-      "type": "Generator",
+      "name": "TestInfinityElectricGenerator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test8",
       "size": {
@@ -402,7 +402,7 @@
     },
     {
       "name": "MultiBlock1",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test9",
       "size": {
@@ -461,7 +461,7 @@
     },
     {
       "name": "MultiBlock2",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test10",
       "size": {
@@ -510,7 +510,7 @@
     },
     {
       "name": "MultiBlock3",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test11",
       "size": {

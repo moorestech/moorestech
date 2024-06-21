@@ -1,8 +1,8 @@
 ﻿{
   "Blocks": [
     {
-      "name": "TestMachine",
-      "type": "Machine",
+      "name": "TestElectricMachine",
+      "type": "ElectricMachine",
       "itemModId": "Test Author 2:testMod2",
       "itemName": "Test1",
       "size": {
@@ -17,8 +17,8 @@
       }
     },
     {
-      "name": "TestMachine1",
-      "type": "Machine",
+      "name": "TestElectricMachine1",
+      "type": "ElectricMachine",
       "itemModId": "Test Author 2:testMod2",
       "itemName": "Test2",
       "size": {
@@ -33,8 +33,8 @@
       }
     },
     {
-      "name": "TestMachine2",
-      "type": "Machine",
+      "name": "TestElectricMachine2",
+      "type": "ElectricMachine",
       "itemModId": "Test Author 2:testMod2",
       "itemName": "Test3",
       "size": {
