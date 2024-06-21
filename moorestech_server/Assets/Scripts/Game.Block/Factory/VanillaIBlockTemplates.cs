@@ -23,9 +23,9 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Chest, new VanillaChestTemplate());
             
-            BlockTypesDictionary.Add(VanillaBlockType.Machine, new VanillaMachineTemplate(blockInventoryEvent));
-            BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(VanillaBlockType.ElectricMachine, new VanillaMachineTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(VanillaBlockType.ElectricGenerator, new VanillaPowerGeneratorTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.ElectricMiner, new VanillaMinerTemplate(blockInventoryEvent));
             
             BlockTypesDictionary.Add(VanillaBlockType.ItemShooter, new VanillaItemShooterTemplate());
             
