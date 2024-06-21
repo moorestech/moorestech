@@ -1,7 +1,7 @@
 ﻿[
   {
     "blockModId": "Test Author 2:testMod2",
-    "blockName": "TestMachine",
+    "blockName": "TestElectricMachine",
     "time": 1500,
     "input": [
       {
@@ -26,7 +26,7 @@
   },
   {
     "blockModId": "Test Author 2:testMod2",
-    "blockName": "TestMachine1",
+    "blockName": "TestElectricMachine1",
     "time": 1500,
     "input": [
       {
@@ -51,7 +51,7 @@
   },
   {
     "blockModId": "Test Author 2:testMod2",
-    "blockName": "TestMachine2",
+    "blockName": "TestElectricMachine2",
     "time": 1500,
     "input": [
       {

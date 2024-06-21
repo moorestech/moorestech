@@ -3,10 +3,10 @@ namespace Game.Block
     public static class VanillaBlockType
     {
         public const string Block = "Block";
-        public const string Machine = "Machine";
+        public const string ElectricMachine = "ElectricMachine";
         public const string BeltConveyor = "BeltConveyor";
-        public const string Miner = "Miner";
-        public const string Generator = "Generator";
+        public const string ElectricMiner = "ElectricMiner";
+        public const string ElectricGenerator = "ElectricGenerator";
         public const string ElectricPole = "ElectricPole";
         public const string Chest = "Chest";
         
