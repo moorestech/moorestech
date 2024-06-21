@@ -21,13 +21,10 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
     {
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
-        
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         
-        private readonly int _infinityPower;
+        private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
@@ -58,11 +55,12 @@ namespace Game.Block.Blocks.PowerGenerator
             _currentFuelItemId = itemId;
             _remainingFuelTime = saveData.RemainingFuelTime;
             
-            for (int i = 0; i < saveData.Items.Count; i++)
+            for (var i = 0; i < saveData.Items.Count; i++)
             {
                 _itemDataStoreService.SetItem(i, saveData.Items[i].ToItem());
             }
         }
+        public BlockPositionInfo BlockPositionInfo { get; }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -91,12 +89,6 @@ namespace Game.Block.Blocks.PowerGenerator
             return _itemDataStoreService.GetSlotSize();
         }
         
-        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
-        {
-            BlockException.CheckDestroy(this);
-            return _itemDataStoreService.CreateCopiedItems();
-        }
-        
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
@@ -123,13 +115,20 @@ namespace Game.Block.Blocks.PowerGenerator
             if (_isInfinityPower) return _infinityPower;
             if (_fuelSettings.TryGetValue(_currentFuelItemId, out var fuelSetting)) return fuelSetting.Power;
             
-            return 0;
+            return new ElectricPower(0);
         }
         
         public void Destroy()
         {
             IsDestroy = true;
             _updateObservable.Dispose();
+        }
+        public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _itemDataStoreService.CreateCopiedItems();
         }
         
         
@@ -225,10 +224,10 @@ namespace Game.Block.Blocks.PowerGenerator
         [JsonProperty("currentFuelItemHash")]
         public long CurrentFuelItemHash;
         
-        [JsonProperty("remainingFuelTime")]
-        public double RemainingFuelTime;
-        
         [JsonProperty("inventory")]
         public List<ItemStackJsonObject> Items;
+        
+        [JsonProperty("remainingFuelTime")]
+        public double RemainingFuelTime;
     }
 }

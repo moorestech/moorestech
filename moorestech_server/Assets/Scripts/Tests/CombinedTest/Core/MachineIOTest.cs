@@ -10,6 +10,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.EnergySystem;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -43,7 +44,7 @@ namespace Tests.CombinedTest.Core
             //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
-                blockMachineComponent.SupplyEnergy(10000);
+                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
                 GameUpdater.UpdateWithWait();
             }
             

@@ -38,25 +38,25 @@ namespace Tests.CombinedTest.Game
             //ジェネレーターの供給が正しいか
             //Is the generator supply correct?
             var generatorComponent = generator.GetComponent<IGearGenerator>();
-            Assert.AreEqual(10.0f, generatorComponent.CurrentRpm);
+            Assert.AreEqual(10.0f, generatorComponent.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, generatorComponent.GenerateIsClockwise);
             
             //シャフトの回転は正しいか
             //Is the rotation of the shaft correct?
             var shaftComponent = shaft.GetComponent<GearEnergyTransformer>();
-            Assert.AreEqual(10.0f, shaftComponent.CurrentRpm);
+            Assert.AreEqual(10.0f, shaftComponent.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, shaftComponent.IsCurrentClockwise);
             
             //BigGearの回転は正しいか
             //Is the rotation of BigGear correct?
             var bigGearComponent = bigGear.GetComponent<GearComponent>();
-            Assert.AreEqual(10.0f, bigGearComponent.CurrentRpm);
+            Assert.AreEqual(10.0f, bigGearComponent.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, bigGearComponent.IsCurrentClockwise);
             
             //SmallGearの回転は正しいか
             //Is the rotation of SmallGear correct?
             var smallGearComponent = smallGear.GetComponent<GearComponent>();
-            Assert.AreEqual(20.0f, smallGearComponent.CurrentRpm); // ギア比2:1 Gear ratio 2:1
+            Assert.AreEqual(20.0f, smallGearComponent.CurrentRpm.AsPrimitive()); // ギア比2:1 Gear ratio 2:1
             Assert.AreEqual(false, smallGearComponent.IsCurrentClockwise); // 回転が反転する Rotation is reversed
         }
         
@@ -100,23 +100,23 @@ namespace Tests.CombinedTest.Game
             gearNetwork.ManualUpdate();
             
             // Generatorの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, generator.CurrentRpm);
+            Assert.AreEqual(rpm, generator.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, generator.IsCurrentClockwise);
             
             // smallGearAの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearA.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearA.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, smallGearA.IsCurrentClockwise);
             
             // smallGearBの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearB.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearB.CurrentRpm.AsPrimitive());
             Assert.AreEqual(false, smallGearB.IsCurrentClockwise);
             
             // smallGearCの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearC.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearC.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, smallGearC.IsCurrentClockwise);
             
             // smallGearDの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearD.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearD.CurrentRpm.AsPrimitive());
             Assert.AreEqual(false, smallGearD.IsCurrentClockwise);
         }
         
@@ -277,9 +277,9 @@ namespace Tests.CombinedTest.Game
             
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(10, gear1.CurrentPower);
-            Assert.AreEqual(10, gear2.CurrentPower);
-            Assert.AreEqual(10, gear3.CurrentPower);
+            Assert.AreEqual(10, gear1.CurrentPower.AsPrimitive());
+            Assert.AreEqual(10, gear2.CurrentPower.AsPrimitive());
+            Assert.AreEqual(10, gear3.CurrentPower.AsPrimitive());
         }
         
         [Test]
@@ -309,20 +309,20 @@ namespace Tests.CombinedTest.Game
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(5, gear1.CurrentRpm);
-            Assert.AreEqual(5, gear2.CurrentRpm);
-            Assert.AreEqual(0.5f, gear1.CurrentTorque);
-            Assert.AreEqual(0.5f, gear2.CurrentTorque);
+            Assert.AreEqual(5, gear1.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(5, gear2.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.5f, gear1.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.5f, gear2.CurrentTorque.AsPrimitive());
             
-            Assert.AreEqual(10, gear3.CurrentRpm);
-            Assert.AreEqual(10, gear4.CurrentRpm);
-            Assert.AreEqual(10, gear5.CurrentRpm);
-            Assert.AreEqual(0.25f, gear3.CurrentTorque);
-            Assert.AreEqual(0.25f, gear4.CurrentTorque);
-            Assert.AreEqual(0.25f, gear5.CurrentTorque);
+            Assert.AreEqual(10, gear3.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(10, gear4.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(10, gear5.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.25f, gear3.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear4.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear5.CurrentTorque.AsPrimitive());
             
-            Assert.AreEqual(20, gear6.CurrentRpm);
-            Assert.AreEqual(0.125f, gear6.CurrentTorque);
+            Assert.AreEqual(20, gear6.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.125f, gear6.CurrentTorque.AsPrimitive());
         }
         
         [Test]

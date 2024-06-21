@@ -11,7 +11,7 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int OutputSlot;
         public readonly ElectricPower RequiredPower;
         
-        private MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
+        private MinerBlockConfigParam(ElectricPower requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
         {
             RequiredPower = requiredPower;
             MineItemSettings = mineItemSettings;
@@ -34,7 +34,7 @@ namespace Game.Block.Config.LoadConfig.Param
                 oreSetting.Add(new MineItemSetting(time, itemId));
             }
             
-            return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);
+            return new MinerBlockConfigParam(new ElectricPower(requiredPower), oreSetting, outputSlot);
         }
     }
     

@@ -1,9 +1,11 @@
+// ReSharper disable InconsistentNaming
+
 using UnitGenerator;
 
-namespace Game.EnergySystem
+namespace Game.Gear.Common
 {
     [UnitOf(typeof(float), UnitGenerateOptions.ArithmeticOperator | UnitGenerateOptions.ValueArithmeticOperator | UnitGenerateOptions.Comparable)]
-    public readonly partial struct ElectricPower
+    public partial struct RPM
     {
     }
 }

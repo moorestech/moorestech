@@ -26,10 +26,6 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
-        public BlockInstanceId BlockInstanceId { get; }
-        public bool IsDestroy { get; private set; }
-        public ElectricPower RequestEnergy { get; }
-        
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -134,10 +130,13 @@ namespace Game.Block.Blocks.Miner
         public BlockState GetBlockState()
         {
             var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
-            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
+            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate));
             var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
             return state;
         }
+        public BlockInstanceId BlockInstanceId { get; }
+        public bool IsDestroy { get; private set; }
+        public ElectricPower RequestEnergy { get; }
         
         
         public void SupplyEnergy(ElectricPower power)
@@ -192,7 +191,7 @@ namespace Game.Block.Blocks.Miner
                     _openableInventoryItemDataStoreService.InsertItem(_miningItems);
                 }
                 
-                _currentPower = 0;
+                _currentPower = new ElectricPower(0);
                 InsertConnectInventory();
             }
             
@@ -338,10 +337,9 @@ namespace Game.Block.Blocks.Miner
     
     public class VanillaElectricMinerSaveJsonObject
     {
-        [JsonProperty("remainingMillSecond")]
-        public int RemainingMillSecond;
-        
         [JsonProperty("items")]
         public List<ItemStackJsonObject> Items;
+        [JsonProperty("remainingMillSecond")]
+        public int RemainingMillSecond;
     }
 }
