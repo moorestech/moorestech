@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": [ "items" ],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "itemId", "itemStack" ],
+
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "pattern": "@guid"
+          },
+          "maxStack": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}
