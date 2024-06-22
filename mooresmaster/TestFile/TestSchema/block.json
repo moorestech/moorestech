@@ -1,0 +1,118 @@
+{
+  "type": "object",
+  "properties": {
+    "required": [ "blocks" ],
+
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+
+          "required": [ "blockId", "itemId", "blockType"],
+
+          "blockId": {
+            "type": "string",
+            "pattern": "@guid"
+          },
+
+          "itemId": {
+            "type": "string",
+            "pattern": "@guid",
+            "format": "@foreignKey:items.itemId"
+          },
+
+          "blockType": {
+            "type": "string"
+          },
+
+          "blockParam": {
+            "oneOf": [
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "typeA"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "paramA": {
+                      "type": "string"
+                    },
+                    "paramB": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [ "paramA", "paramB" ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "typeB"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "paramC": {
+                      "type": "boolean"
+                    },
+                    "paramD": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [ "paramC", "paramD" ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "arrayTest": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "objectTest": {
+      "type": "object"
+    },
+    "vector2Test": {
+      "type": "array",
+      "pattern": "@vector2",
+      "items": {
+        "type": "number"
+      }
+    },
+    "vector3Test": {
+      "type": "array",
+      "pattern": "@vector3",
+      "items": {
+        "type": "number"
+      }
+    },
+    "vector4IntTest": {
+      "type": "array",
+      "pattern": "@vector4Int",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "boolTest": {
+      "type": "boolean"
+    },
+    "intTest": {
+      "type": "integer"
+    },
+    "floatTest": {
+      "type": "number"
+    }
+  }
+}
