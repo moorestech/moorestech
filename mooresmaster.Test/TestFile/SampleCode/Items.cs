@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using mooresmaster.Common;
 using Newtonsoft.Json.Linq;
 
 namespace mooresmaster.Test.TestFile.SampleCode
@@ -33,7 +34,7 @@ namespace mooresmaster.Test.TestFile.SampleCode
             
             foreach (var config in sortedConfigs)
             {
-                if (!config.ConfigJson.TryGetValue("item",out var jsonText)) continue;
+                if (!config.ConfigJsons.TryGetValue("item",out var jsonText)) continue;
                 
                 dynamic jsonObject = JObject.Parse(jsonText);
 

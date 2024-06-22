@@ -19,7 +19,7 @@
           "itemId": {
             "type": "string",
             "pattern": "@guid",
-            "format": "@foreignKey:items.itemId"
+            "format": "@foreignKey:itemId"
           },
 
           "blockType": {
@@ -32,7 +32,7 @@
                 "if": {
                   "properties": {
                     "blockType": {
-                      "const": "typeA"
+                      "const": "TypeA"
                     }
                   }
                 },
@@ -53,21 +53,21 @@
                 "if": {
                   "properties": {
                     "blockType": {
-                      "const": "typeB"
+                      "const": "TypeB"
                     }
                   }
                 },
                 "then": {
                   "type": "object",
                   "properties": {
-                    "paramC": {
+                    "paramA": {
                       "type": "boolean"
                     },
-                    "paramD": {
+                    "paramB": {
                       "type": "number"
                     }
                   },
-                  "required": [ "paramC", "paramD" ]
+                  "required": [ "paramA", "paramB" ]
                 }
               }
             ]
@@ -91,18 +91,18 @@
         "type": "number"
       }
     },
-    "vector3Test": {
+    "vector3IntTest": {
       "type": "array",
-      "pattern": "@vector3",
-      "items": {
-        "type": "number"
-      }
-    },
-    "vector4IntTest": {
-      "type": "array",
-      "pattern": "@vector4Int",
+      "pattern": "@vector3Int",
       "items": {
         "type": "integer"
+      }
+    },
+    "vector4Test": {
+      "type": "array",
+      "pattern": "@vector4",
+      "items": {
+        "type": "number"
       }
     },
     "boolTest": {

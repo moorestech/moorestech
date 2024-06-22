@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
-namespace mooresmaster.Test.TestFile.SampleCode
+namespace mooresmaster.Common
 {
     public class ModConfigInfo
     {
         public string ModId;
-        public Dictionary<string, string> ConfigJson;
+        public Dictionary<string, string> ConfigJsons;
     }
 }
