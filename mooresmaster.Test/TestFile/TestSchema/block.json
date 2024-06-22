@@ -71,48 +71,50 @@
                 }
               }
             ]
+          },
+
+
+          "arrayTest": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objectTest": {
+            "type": "object"
+          },
+          "vector2Test": {
+            "type": "array",
+            "pattern": "@vector2",
+            "items": {
+              "type": "number"
+            }
+          },
+          "vector3IntTest": {
+            "type": "array",
+            "pattern": "@vector3Int",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "vector4Test": {
+            "type": "array",
+            "pattern": "@vector4",
+            "items": {
+              "type": "number"
+            }
+          },
+          "boolTest": {
+            "type": "boolean"
+          },
+          "intTest": {
+            "type": "integer"
+          },
+          "floatTest": {
+            "type": "number"
           }
         }
       }
-    },
-    "arrayTest": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "objectTest": {
-      "type": "object"
-    },
-    "vector2Test": {
-      "type": "array",
-      "pattern": "@vector2",
-      "items": {
-        "type": "number"
-      }
-    },
-    "vector3IntTest": {
-      "type": "array",
-      "pattern": "@vector3Int",
-      "items": {
-        "type": "integer"
-      }
-    },
-    "vector4Test": {
-      "type": "array",
-      "pattern": "@vector4",
-      "items": {
-        "type": "number"
-      }
-    },
-    "boolTest": {
-      "type": "boolean"
-    },
-    "intTest": {
-      "type": "integer"
-    },
-    "floatTest": {
-      "type": "number"
     }
   }
 }

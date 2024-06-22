@@ -39,12 +39,12 @@ namespace mooresmaster.Test.TestFile.SampleCode
                 dynamic jsonObject = JObject.Parse(jsonText);
 
 
-                foreach (var jsonItemsElement in jsonObject.items)
+                foreach (var itemsJsonElement in jsonObject.items)
                 {
-                    string ItemIdStr = jsonItemsElement.itemId;
+                    string ItemIdStr = itemsJsonElement.itemId;
                     ItemId ItemId = new ItemId(new Guid(ItemIdStr));
 
-                    int MaxStack = jsonItemsElement.maxStack;
+                    int MaxStack = itemsJsonElement.maxStack;
 
                     ItemsElement itemsElementObject = new ItemsElement()
                     {
