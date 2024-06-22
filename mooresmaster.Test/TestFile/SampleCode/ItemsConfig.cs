@@ -3,63 +3,60 @@ using System.Collections.Generic;
 using mooresmaster.Common;
 using Newtonsoft.Json.Linq;
 
-namespace mooresmaster.Test.TestFile.SampleCode
+public class ItemConfig
 {
-    public class ItemConfig
+    public List<ItemsElement> Items { get; init; }
+}
+
+public class ItemsElement
+{
+    public ItemId ItemId { get; init; }
+    public int MaxStack { get; init; }
+}
+
+public struct ItemId
+{
+    private readonly Guid value;
+
+    public ItemId(Guid value)
     {
-        public List<ItemsElement> Items { get; init; }
+        this.value = value;
     }
+}
 
-    public class ItemsElement
+public static class ItemLoader
+{
+    public static ItemConfig LoadItemConfig(List<ModConfigInfo> sortedConfigs)
     {
-        public ItemId ItemId { get; init; }
-        public int MaxStack { get; init; }
-    }
+        List<ItemsElement> items = new List<ItemsElement>();
 
-    public struct ItemId
-    {
-        private readonly Guid value;
-
-        public ItemId(Guid value)
+        foreach (var config in sortedConfigs)
         {
-            this.value = value;
-        }
-    }
+            if (!config.ConfigJsons.TryGetValue("item", out var jsonText)) continue;
 
-    public static class ItemLoader
-    {
-        public static ItemConfig LoadItemConfig(List<ModConfigInfo> sortedConfigs)
-        {
-            List<ItemsElement> items = new List<ItemsElement>();
-            
-            foreach (var config in sortedConfigs)
+            dynamic jsonObject = JObject.Parse(jsonText);
+
+
+            foreach (var itemsJsonElement in jsonObject.items)
             {
-                if (!config.ConfigJsons.TryGetValue("item",out var jsonText)) continue;
-                
-                dynamic jsonObject = JObject.Parse(jsonText);
+                string ItemIdStr = itemsJsonElement.itemId;
+                ItemId ItemId = new ItemId(new Guid(ItemIdStr));
 
+                int MaxStack = itemsJsonElement.maxStack;
 
-                foreach (var itemsJsonElement in jsonObject.items)
+                ItemsElement itemsElementObject = new ItemsElement()
                 {
-                    string ItemIdStr = itemsJsonElement.itemId;
-                    ItemId ItemId = new ItemId(new Guid(ItemIdStr));
+                    ItemId = ItemId,
+                    MaxStack = MaxStack,
+                };
 
-                    int MaxStack = itemsJsonElement.maxStack;
-
-                    ItemsElement itemsElementObject = new ItemsElement()
-                    {
-                        ItemId = ItemId,
-                        MaxStack = MaxStack,
-                    };
-
-                    items.Add(itemsElementObject);
-                }
+                items.Add(itemsElementObject);
             }
-
-            return new ItemConfig()
-            {
-                Items = items,
-            };
         }
+
+        return new ItemConfig()
+        {
+            Items = items,
+        };
     }
 }
