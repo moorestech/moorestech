@@ -1,10 +1,10 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7518cb54_002D1eeb_002D416e_002Daf7f_002D2b96e2ff5263/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GenerateTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7518cb54_002D1eeb_002D416e_002Daf7f_002D2b96e2ff5263/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GenerateTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::A14A4E4A-CE99-4DAA-BF96-CF80E84AFD38::net6.0::mooresmaster.CodeGenerateTest.GenerateTest&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::A1985B69-CB0C-4F11-A0DD-475B638C3077::net6.0::mooresmaster.Test.ItemJsonCodeGenerateTest&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8c4a6adf_002D6135_002D4692_002Da10e_002D1501d6ee1f47/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GenerateTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8c4a6adf_002D6135_002D4692_002Da10e_002D1501d6ee1f47/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GenerateTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::A14A4E4A-CE99-4DAA-BF96-CF80E84AFD38::net6.0::mooresmaster.CodeGenerateTest.GenerateTest&lt;/TestId&gt;
   &lt;/TestAncestor&gt;

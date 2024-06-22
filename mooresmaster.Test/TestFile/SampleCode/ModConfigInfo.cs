@@ -1,4 +1,6 @@
-namespace mooresmaster.TestFile.SampleCode
+using System.Collections.Generic;
+
+namespace mooresmaster.Test.TestFile.SampleCode
 {
     public class ModConfigInfo
     {

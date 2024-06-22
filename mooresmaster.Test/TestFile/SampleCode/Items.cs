@@ -1,6 +1,8 @@
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-namespace mooresmaster.TestFile.SampleCode
+namespace mooresmaster.Test.TestFile.SampleCode
 {
     public class ItemConfig
     {
