@@ -59,6 +59,7 @@ namespace Client.Game.InGame.Control
                 if (0.1f < rotationDiff.magnitude)
                 {
                     _currentSequence?.Kill();
+                    _currentSequence = null;
                     _targetRotation = Quaternion.Euler(rotation);
                 }
             }
