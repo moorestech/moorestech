@@ -28,10 +28,13 @@ namespace Client.Game.Sequence
         public void Construct(InitialHandshakeResponse initialHandshakeResponse)
         {
             _challengeConfig = ServerContext.GetService<ChallengeConfig>();
-            var currentChallenge = initialHandshakeResponse.Challenge.CurrentChallenges.First();
-            if (currentChallenge != null) currentChallengeSummary.text = currentChallenge.Summary;
-            
-            ClientContext.VanillaApi.Event.RegisterEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
+            if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
+            {
+                var currentChallenge = initialHandshakeResponse.Challenge.CurrentChallenges.First();
+                if (currentChallenge != null) currentChallengeSummary.text = currentChallenge.Summary;
+                
+                ClientContext.VanillaApi.Event.RegisterEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
+            }
         }
         
         private void OnCompletedChallenge(byte[] packet)

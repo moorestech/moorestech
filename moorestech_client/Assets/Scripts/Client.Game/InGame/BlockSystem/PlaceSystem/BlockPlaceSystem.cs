@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.Block;
@@ -16,7 +17,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.BlockSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
@@ -33,6 +34,7 @@ namespace Client.Game.InGame.BlockSystem
         private readonly UIStateControl _uiState;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
+        private Vector3Int? _clickStartPosition;
         
         private int _heightOffset;
         
@@ -60,60 +62,28 @@ namespace Client.Game.InGame.BlockSystem
             UpdateHeightOffset();
             BlockDirectionControl();
             GroundClickControl();
-        }
-        
-        private void UpdateHeightOffset()
-        {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
-                _heightOffset--;
-            else if (UnityEngine.Input.GetKeyDown(KeyCode.E)) _heightOffset++;
-        }
-        
-        private void BlockDirectionControl()
-        {
-            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                // 東西南北の向きを変更する
-                _currentBlockDirection = _currentBlockDirection switch
-                {
-                    BlockDirection.UpNorth => BlockDirection.UpEast,
-                    BlockDirection.UpEast => BlockDirection.UpSouth,
-                    BlockDirection.UpSouth => BlockDirection.UpWest,
-                    BlockDirection.UpWest => BlockDirection.UpNorth,
-                    
-                    BlockDirection.North => BlockDirection.East,
-                    BlockDirection.East => BlockDirection.South,
-                    BlockDirection.South => BlockDirection.West,
-                    BlockDirection.West => BlockDirection.North,
-                    
-                    BlockDirection.DownNorth => BlockDirection.DownEast,
-                    BlockDirection.DownEast => BlockDirection.DownSouth,
-                    BlockDirection.DownSouth => BlockDirection.DownWest,
-                    BlockDirection.DownWest => BlockDirection.DownNorth,
-                    
-                    _ => _currentBlockDirection
-                };
             
-            //TODo シフトはインプットマネージャーに入れる
-            if (UnityEngine.Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                _currentBlockDirection = _currentBlockDirection switch
-                {
-                    BlockDirection.UpNorth => BlockDirection.DownNorth,
-                    BlockDirection.UpEast => BlockDirection.DownEast,
-                    BlockDirection.UpSouth => BlockDirection.DownSouth,
-                    BlockDirection.UpWest => BlockDirection.DownWest,
-                    
-                    BlockDirection.North => BlockDirection.UpNorth,
-                    BlockDirection.East => BlockDirection.UpEast,
-                    BlockDirection.South => BlockDirection.UpSouth,
-                    BlockDirection.West => BlockDirection.UpWest,
-                    
-                    BlockDirection.DownNorth => BlockDirection.North,
-                    BlockDirection.DownEast => BlockDirection.East,
-                    BlockDirection.DownSouth => BlockDirection.South,
-                    BlockDirection.DownWest => BlockDirection.West,
-                    
-                    _ => _currentBlockDirection
-                };
+            #region Internal
+            
+            void UpdateHeightOffset()
+            {
+                if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
+                    _heightOffset--;
+                else if (UnityEngine.Input.GetKeyDown(KeyCode.E)) _heightOffset++;
+            }
+            
+            void BlockDirectionControl()
+            {
+                if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+                    // 東西南北の向きを変更する
+                    _currentBlockDirection = _currentBlockDirection.HorizonRotation();
+                
+                //TODo シフトはインプットマネージャーに入れる
+                if (UnityEngine.Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+                    _currentBlockDirection = _currentBlockDirection.VerticalRotation();
+            }
+            
+            #endregion
         }
         
         private void GroundClickControl()
@@ -139,11 +109,19 @@ namespace Client.Game.InGame.BlockSystem
                 IsBlockPlaceableDistance(PlaceableMaxDistance) &&
                 !IsTerrainOverlapBlock();
             
-            //プレビュー表示 display preview
-            _blockPlacePreview.SetPreview(placeable, placePoint, _currentBlockDirection, holdingBlockConfig);
-            
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (placeable && InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
+            {
+                _clickStartPosition = placePoint;
+            }
+            
+            //プレビュー表示 display preview
+            if (_clickStartPosition.HasValue)
+            {
+                _blockPlacePreview.SetPreview(placeable, _clickStartPosition.Value, placePoint, _currentBlockDirection, holdingBlockConfig);
+            }
+            
+            if (_clickStartPosition.HasValue && InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);

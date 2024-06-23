@@ -2,7 +2,7 @@
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public interface IBlockPlacePreview
     {
@@ -10,7 +10,7 @@ namespace Client.Game.InGame.BlockSystem
         
         bool IsCollisionGround { get; }
         
-        public void SetPreview(bool placeable, Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
+        public void SetPreview(bool placeable, Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockConfigData blockConfig);
         
         public void SetActive(bool active);
     }

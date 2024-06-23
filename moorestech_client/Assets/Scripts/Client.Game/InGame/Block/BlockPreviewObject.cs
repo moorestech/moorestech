@@ -37,5 +37,10 @@ namespace Client.Game.InGame.Block
             var childrenColliders = GetComponentsInChildren<Collider>();
             foreach (var childrenCollider in childrenColliders) childrenCollider.isTrigger = isTrigger;
         }
+        
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
     }
 }
