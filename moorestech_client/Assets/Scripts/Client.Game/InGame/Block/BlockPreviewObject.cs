@@ -31,5 +31,11 @@ namespace Client.Game.InGame.Block
             var visualEffects = GetComponentsInChildren<VisualEffect>(isActive);
             foreach (var visualEffect in visualEffects) visualEffect.gameObject.SetActive(false);
         }
+        
+        public void SetTriggerCollider(bool isTrigger)
+        {
+            var childrenColliders = GetComponentsInChildren<Collider>();
+            foreach (var childrenCollider in childrenColliders) childrenCollider.isTrigger = isTrigger;
+        }
     }
 }

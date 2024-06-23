@@ -90,10 +90,13 @@ namespace Client.Game.InGame.Context
             block.SetActive(true);
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
+            previewGameObject.SetTriggerCollider(true);
             previewGameObject.Initialize(
                 ServerContext.BlockConfig.GetBlockConfig(blockId),
                 Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial)
             );
+            
+            
             return previewGameObject;
         }
         
