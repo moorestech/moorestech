@@ -18,7 +18,7 @@ namespace Client.Game.InGame.UI.UIState
         private Vector3 _targetCameraRotation;
         
         private const float TargetCameraDistance = 9;
-        private const float TweenDuration = 0.5f;
+        private const float TweenDuration = 0.25f;
         
         public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
         {

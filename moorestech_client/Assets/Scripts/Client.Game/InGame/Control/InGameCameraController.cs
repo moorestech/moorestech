@@ -68,6 +68,13 @@ namespace Client.Game.InGame.Control
                 var resultRotation = Quaternion.Lerp(transform.rotation, _targetRotation, lerpSpeed * Time.deltaTime);
                 resultRotation = Quaternion.Euler(resultRotation.eulerAngles.x, resultRotation.eulerAngles.y, 0);
                 transform.rotation = resultRotation;
+                
+                if (_currentSequence != null && _currentSequence.IsComplete() && 
+                    Quaternion.Angle(transform.rotation, _targetRotation) < 0.1f)
+                {
+                    _currentSequence?.Kill();
+                    _currentSequence = null;
+                }
             }
             
             #endregion
@@ -90,8 +97,7 @@ namespace Client.Game.InGame.Control
             _currentSequence?.Kill();
             _currentSequence = DOTween.Sequence()
                 .Append(DOTween.To(() => _targetRotation, x => _targetRotation = x, targetRotation, duration).SetEase(Ease.InOutQuad))
-                .Join(DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, duration).SetEase(Ease.InOutQuad))
-                .OnComplete(() => _currentSequence = null); 
+                .Join(DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, duration).SetEase(Ease.InOutQuad));
         }
     }
 }
