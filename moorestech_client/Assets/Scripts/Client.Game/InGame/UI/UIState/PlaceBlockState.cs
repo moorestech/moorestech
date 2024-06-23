@@ -12,6 +12,14 @@ namespace Client.Game.InGame.UI.UIState
         private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
         
+        private Vector3 _startCameraRotation;
+        private float _startCameraDistance;
+        
+        private Vector3 _targetCameraRotation;
+        
+        private const float TargetCameraDistance = 9;
+        private const float TweenDuration = 0.5f;
+        
         public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
         {
             _skitManager = skitManager;
@@ -22,6 +30,14 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             InputManager.MouseCursorVisible(true);
+            var currentRotation = _inGameCameraController.CameraEulerAngle;
+            _startCameraRotation = currentRotation;
+            _targetCameraRotation = currentRotation;
+            _startCameraDistance = _inGameCameraController.CameraDistance;
+            
+            _targetCameraRotation.x = 80f;
+            _targetCameraRotation.y = 0f;
+            _inGameCameraController.StartTweenCamera(_targetCameraRotation, TargetCameraDistance, TweenDuration);
         }
         
         public UIStateEnum GetNext()
@@ -53,6 +69,18 @@ namespace Client.Game.InGame.UI.UIState
         public void OnExit()
         {
             InputManager.MouseCursorVisible(false);
+            
+            // カメラの位置がターゲットからあまり変わっていなければ元の座標に戻す
+            var isResetDistance = Mathf.Abs(_inGameCameraController.CameraDistance - TargetCameraDistance) < 1f;
+            var isResetRotation = Quaternion.Angle(Quaternion.Euler(_inGameCameraController.CameraEulerAngle), Quaternion.Euler(_targetCameraRotation)) < 25f;
+            
+            if (isResetDistance || isResetRotation)
+            {
+                var targetRotation = isResetRotation ? _startCameraRotation : _inGameCameraController.CameraEulerAngle;
+                var targetDistance = isResetDistance ? _startCameraDistance : _inGameCameraController.CameraDistance;
+                
+                _inGameCameraController.StartTweenCamera(targetRotation, targetDistance, TweenDuration);
+            }
         }
         
         private bool IsClickOpenableBlock()
