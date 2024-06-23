@@ -31,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             CreatePreviewObjects(startPoint, endPoint, blockDirection, blockConfig);
             
             var materialPath = placeable ? MaterialConst.PreviewPlaceBlockMaterial : MaterialConst.PreviewNotPlaceableBlockMaterial;
-            SetMaterial(Resources.Load<Material>(materialPath));
+            //SetMaterial(Resources.Load<Material>(materialPath));
         }
         
         public void SetActive(bool active)

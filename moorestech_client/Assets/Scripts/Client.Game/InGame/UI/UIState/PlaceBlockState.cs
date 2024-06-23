@@ -37,7 +37,7 @@ namespace Client.Game.InGame.UI.UIState
             
             var currentRotation = _inGameCameraController.CameraEulerAngle;
             _targetCameraRotation = currentRotation;
-            _targetCameraRotation.x = 80f;
+            _targetCameraRotation.x = 70f;
             _targetCameraRotation.y = currentRotation.y switch
             {
                 var y when y < 45 => 0,
