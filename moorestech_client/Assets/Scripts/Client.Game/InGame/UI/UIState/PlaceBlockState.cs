@@ -30,13 +30,21 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             InputManager.MouseCursorVisible(true);
-            var currentRotation = _inGameCameraController.CameraEulerAngle;
-            _startCameraRotation = currentRotation;
-            _targetCameraRotation = currentRotation;
-            _startCameraDistance = _inGameCameraController.CameraDistance;
             
+            _startCameraDistance = _inGameCameraController.CameraDistance;
+            _startCameraRotation = _inGameCameraController.CameraEulerAngle;
+            
+            var currentRotation = _inGameCameraController.CameraEulerAngle;
+            _targetCameraRotation = currentRotation;
             _targetCameraRotation.x = 80f;
-            _targetCameraRotation.y = 0f;
+            _targetCameraRotation.y = currentRotation.y switch
+            {
+                var y when y < 45 => 0,
+                var y when y < 135 => 90,
+                var y when y < 225 => 180,
+                var y when y < 315 => 270,
+                _ => 0
+            };
             _inGameCameraController.StartTweenCamera(_targetCameraRotation, TargetCameraDistance, TweenDuration);
         }
         
@@ -71,12 +79,16 @@ namespace Client.Game.InGame.UI.UIState
             InputManager.MouseCursorVisible(false);
             
             // カメラの位置がターゲットからあまり変わっていなければ元の座標に戻す
-            var isResetDistance = Mathf.Abs(_inGameCameraController.CameraDistance - TargetCameraDistance) < 1f;
-            var isResetRotation = Quaternion.Angle(Quaternion.Euler(_inGameCameraController.CameraEulerAngle), Quaternion.Euler(_targetCameraRotation)) < 25f;
+            var isResetDistance = Mathf.Abs(_inGameCameraController.CameraDistance - TargetCameraDistance) < 3f;
             
-            if (isResetDistance || isResetRotation)
+            var isResetXRotation = Quaternion.Angle(Quaternion.Euler(_inGameCameraController.CameraEulerAngle.x,0,0), Quaternion.Euler(_targetCameraRotation.x,0,0)) < 10f;
+            var isResetYRotation = Quaternion.Angle(Quaternion.Euler(0,_inGameCameraController.CameraEulerAngle.y,0), Quaternion.Euler(0,_targetCameraRotation.y,0)) < 10f;
+            
+            if (isResetDistance || isResetXRotation || isResetYRotation)
             {
-                var targetRotation = isResetRotation ? _startCameraRotation : _inGameCameraController.CameraEulerAngle;
+                var targetRotation =  _inGameCameraController.CameraEulerAngle;
+                targetRotation.x = isResetXRotation ? _startCameraRotation.x : targetRotation.x;
+                targetRotation.y = isResetYRotation ? _startCameraRotation.y : targetRotation.y;
                 var targetDistance = isResetDistance ? _startCameraDistance : _inGameCameraController.CameraDistance;
                 
                 _inGameCameraController.StartTweenCamera(targetRotation, targetDistance, TweenDuration);
