@@ -92,8 +92,9 @@ namespace Game.World.DataStore
             throw new Exception("ブロックがありません");
         }
         
-        public bool TryAddBlock(int blockId, BlockInstanceId blockInstanceId, Vector3Int position, BlockDirection direction, out IBlock block)
+        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block)
         {
+            var blockInstanceId = BlockInstanceId.Create();
             var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockId).BlockSize);
             block = _blockFactory.Create(blockId, blockInstanceId, blockPositionInfo);
             return TryAddBlock(block);
