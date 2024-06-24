@@ -56,7 +56,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 //ブロックの設置
                 var blockPosInfo = new BlockPositionInfo(pos, (BlockDirection)direction, Vector3Int.one);
                 var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPosInfo);
-                worldBlockDataStore.AddBlock(block);
+                worldBlockDataStore.TryAddBlock(block);
             }
             
             

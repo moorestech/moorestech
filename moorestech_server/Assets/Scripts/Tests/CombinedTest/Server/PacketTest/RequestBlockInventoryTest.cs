@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             machineComponent.SetItem(0, itemStackFactory.Create(1, 2));
             machineComponent.SetItem(2, itemStackFactory.Create(4, 5));
             
-            ServerContext.WorldBlockDatastore.AddBlock(machine);
+            ServerContext.WorldBlockDatastore.TryAddBlock(machine);
             
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(

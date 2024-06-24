@@ -16,6 +16,7 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
+        private readonly IBlockFactory _blockFactory;
         private readonly Dictionary<BlockInstanceId, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
         
         //座標とキーの紐づけ
@@ -23,34 +24,22 @@ namespace Game.World.DataStore
         
         private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         
+        public WorldBlockDatastore(IBlockFactory blockFactory)
+        {
+            _blockFactory = blockFactory;
+        }
+        
         //メインのデータストア
         public IReadOnlyDictionary<BlockInstanceId, WorldBlockData> BlockMasterDictionary => _blockMasterDictionary;
         
         //イベント
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         
-        public bool AddBlock(IBlock block)
+        public bool TryAddLoadedBlock(long blockHash, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo, out IBlock block)
         {
-            var pos = block.BlockPositionInfo.OriginalPos;
-            var blockDirection = block.BlockPositionInfo.BlockDirection;
-            
-            //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
-            if (!_blockMasterDictionary.ContainsKey(block.BlockInstanceId) &&
-                !_coordinateDictionary.ContainsKey(pos))
-            {
-                var data = new WorldBlockData(block, pos, blockDirection, ServerContext.BlockConfig);
-                _blockMasterDictionary.Add(block.BlockInstanceId, data);
-                _coordinateDictionary.Add(pos, block.BlockInstanceId);
-                ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
-                
-                block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
-                
-                return true;
-            }
-            
-            return false;
+            block = _blockFactory.Load(blockHash, blockInstanceId, state, blockPositionInfo);
+            return TryAddBlock(block);
         }
-        
         public bool RemoveBlock(Vector3Int pos)
         {
             if (!this.Exists(pos)) return false;
@@ -99,6 +88,34 @@ namespace Game.World.DataStore
             throw new Exception("ブロックがありません");
         }
         
+        public bool TryAddBlock(int blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, out IBlock block)
+        {
+            block = _blockFactory.Create(blockId, blockInstanceId, blockPositionInfo);
+            return TryAddBlock(block);
+        }
+        
+        private bool TryAddBlock(IBlock block)
+        {
+            var pos = block.BlockPositionInfo.OriginalPos;
+            var blockDirection = block.BlockPositionInfo.BlockDirection;
+            
+            //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
+            if (!_blockMasterDictionary.ContainsKey(block.BlockInstanceId) &&
+                !_coordinateDictionary.ContainsKey(pos))
+            {
+                var data = new WorldBlockData(block, pos, blockDirection, ServerContext.BlockConfig);
+                _blockMasterDictionary.Add(block.BlockInstanceId, data);
+                _coordinateDictionary.Add(pos, block.BlockInstanceId);
+                ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
+                
+                block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
         private BlockInstanceId GetEntityId(Vector3Int pos)
         {
             return GetBlockData(pos).Block.BlockInstanceId;
@@ -145,7 +162,7 @@ namespace Game.World.DataStore
                 Debug.Log($"BlockLoad {blockSave.EntityId}");
                 var block = blockFactory.Load(blockSave.BlockHash, new BlockInstanceId(blockSave.EntityId), blockSave.State, blockData);
                 
-                AddBlock(block);
+                TryAddBlock(block);
             }
         }
         

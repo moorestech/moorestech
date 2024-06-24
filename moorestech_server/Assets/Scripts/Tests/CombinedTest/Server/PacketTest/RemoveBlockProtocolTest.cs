@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
             
             //削除するためのブロックの生成
-            worldBlock.AddBlock(block);
+            worldBlock.TryAddBlock(block);
             
             Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0, 0)).BlockInstanceId.AsPrimitive());
             
@@ -101,7 +101,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             blockInventory.SetItem(1, itemStackFactory.Create(4, 5));
             
             //ブロックを設置
-            worldBlock.AddBlock(block);
+            worldBlock.TryAddBlock(block);
             
             
             //プロトコルを使ってブロックを削除
@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //ブロックを設置
             var blockPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(0), blockPosInfo);
-            worldBlock.AddBlock(block);
+            worldBlock.TryAddBlock(block);
             
             
             //プロトコルを使ってブロックを削除

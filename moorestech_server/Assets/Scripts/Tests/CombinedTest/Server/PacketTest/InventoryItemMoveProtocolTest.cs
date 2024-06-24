@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var chestPosInfo = new BlockPositionInfo(chestPosition, BlockDirection.North, Vector3Int.one);
             var chest = ServerContext.BlockFactory.Create(ChestBlockId, new BlockInstanceId(1), chestPosInfo);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            worldDataStore.AddBlock(chest);
+            worldDataStore.TryAddBlock(chest);
             
             //ブロックインベントリの設定
             chestComponent.SetItem(1, 1, 10);

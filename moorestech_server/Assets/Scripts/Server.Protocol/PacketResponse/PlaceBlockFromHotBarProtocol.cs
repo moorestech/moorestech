@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse
             var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection, blockSize);
             var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             //ブロックの設置
-            ServerContext.WorldBlockDatastore.AddBlock(block);
+            ServerContext.WorldBlockDatastore.TryAddBlock(block);
             
             //アイテムを減らし、セットする
             item = item.SubItem(1);

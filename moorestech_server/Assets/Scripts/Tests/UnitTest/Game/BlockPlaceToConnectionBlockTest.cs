@@ -65,12 +65,12 @@ namespace Tests.UnitTest.Game
             //機械の設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(machineX, 0, machineZ), direction, Vector3Int.one);
             var vanillaMachine = blockFactory.Create(MachineId, BlockInstanceId.Create(), machinePosInfo);
-            world.AddBlock(vanillaMachine);
+            world.TryAddBlock(vanillaMachine);
             
             //ベルトコンベアの設置
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(conveyorX, 0, conveyorZ), direction, Vector3Int.one);
             var beltConveyor = blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), beltPosInfo);
-            world.AddBlock(beltConveyor);
+            world.TryAddBlock(beltConveyor);
             
             //繋がっているコネクターを取得
             var connectedMachine = (VanillaMachineBlockInventoryComponent)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets.First().Key;
@@ -97,7 +97,7 @@ namespace Tests.UnitTest.Game
             //機械の設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var vanillaMachine = blockFactory.Create(MachineId, BlockInstanceId.Create(), machinePosInfo);
-            world.AddBlock(vanillaMachine);
+            world.TryAddBlock(vanillaMachine);
             
             //機械から4方向にベルトコンベアが出るように配置
             var beltConveyors = new List<IBlock>
@@ -107,10 +107,10 @@ namespace Tests.UnitTest.Game
                 blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), new BlockPositionInfo(new Vector3Int(-1, 0, 0), BlockDirection.South, Vector3Int.one)),
                 blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, -1), BlockDirection.West, Vector3Int.one)),
             };
-            world.AddBlock(beltConveyors[0]);
-            world.AddBlock(beltConveyors[1]);
-            world.AddBlock(beltConveyors[2]);
-            world.AddBlock(beltConveyors[3]);
+            world.TryAddBlock(beltConveyors[0]);
+            world.TryAddBlock(beltConveyors[1]);
+            world.TryAddBlock(beltConveyors[2]);
+            world.TryAddBlock(beltConveyors[3]);
             
             //繋がっているコネクターを取得
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)vanillaMachine.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
@@ -142,7 +142,7 @@ namespace Tests.UnitTest.Game
             //チェストの設置
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var vanillaChest = ServerContext.BlockFactory.Create(ChestId, BlockInstanceId.Create(), chestPosInfo);
-            ServerContext.WorldBlockDatastore.AddBlock(vanillaChest);
+            ServerContext.WorldBlockDatastore.TryAddBlock(vanillaChest);
             
             
             //北向きにベルトコンベアを設置してチェック
@@ -163,7 +163,7 @@ namespace Tests.UnitTest.Game
             var posInfo = new BlockPositionInfo(beltConveyorPos, direction, Vector3Int.one);
             var northBeltConveyor = ServerContext.BlockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), posInfo);
             
-            ServerContext.WorldBlockDatastore.AddBlock(northBeltConveyor);
+            ServerContext.WorldBlockDatastore.TryAddBlock(northBeltConveyor);
             
             var connector = (VanillaChestComponent)northBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets.First().Key;
             
@@ -183,11 +183,11 @@ namespace Tests.UnitTest.Game
             //機械とチェストを設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var machine = blockFactory.Create(MachineId, BlockInstanceId.Create(), machinePosInfo);
-            world.AddBlock(machine);
+            world.TryAddBlock(machine);
             
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 1), BlockDirection.North, Vector3Int.one);
             var chest = blockFactory.Create(ChestId, BlockInstanceId.Create(), chestPosInfo);
-            world.AddBlock(chest);
+            world.TryAddBlock(chest);
             
             //機械のコネクターを取得
             var machineConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)machine.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
@@ -218,23 +218,23 @@ namespace Tests.UnitTest.Game
             //接続するベルトコンベア
             var belt1PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, 3), BlockDirection.North, Vector3Int.one);
             var belt1 = blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), belt1PosInfo);
-            world.AddBlock(belt1);
+            world.TryAddBlock(belt1);
             var belt2PosInfo = new BlockPositionInfo(new Vector3Int(2, 0, -1), BlockDirection.South, Vector3Int.one);
             var belt2 = blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), belt2PosInfo);
-            world.AddBlock(belt2);
+            world.TryAddBlock(belt2);
             
             //接続されないベルトコンベア
             var belt3PosInfo = new BlockPositionInfo(new Vector3Int(3, 0, 3), BlockDirection.North, Vector3Int.one);
             var belt3 = blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), belt3PosInfo);
-            world.AddBlock(belt3);
+            world.TryAddBlock(belt3);
             var belt4PosInfo = new BlockPositionInfo(new Vector3Int(1, 0, -1), BlockDirection.South, Vector3Int.one);
             var belt4 = blockFactory.Create(BeltConveyorId, BlockInstanceId.Create(), belt4PosInfo);
-            world.AddBlock(belt4);
+            world.TryAddBlock(belt4);
             
             //マルチブロックを設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var multiBlock = blockFactory.Create(ForUnitTestModBlockId.MultiBlockGeneratorId, BlockInstanceId.Create(), machinePosInfo);
-            world.AddBlock(multiBlock);
+            world.TryAddBlock(multiBlock);
             
             // マルチブロックのコネクターを取得
             var connector = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)multiBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;

@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
         {
             var posInfo = new BlockPositionInfo(new Vector3Int(x, y), BlockDirection.North, Vector3Int.one);
-            worldBlock.AddBlock(blockFactory.Create(id, BlockInstanceId.Create(), posInfo));
+            worldBlock.TryAddBlock(blockFactory.Create(id, BlockInstanceId.Create(), posInfo));
         }
         
         private List<byte> EventRequestData(int playerID)

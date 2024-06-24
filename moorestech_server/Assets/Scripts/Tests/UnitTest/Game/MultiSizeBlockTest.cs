@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game
             var posInfo = new BlockPositionInfo(position, direction, Vector3Int.one);
             var block = _blockFactory.Create(blockId, BlockInstanceId.Create(), posInfo);
             
-            worldDatastore.AddBlock(block);
+            worldDatastore.TryAddBlock(block);
         }
         
         /// <summary>

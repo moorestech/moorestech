@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockPositionInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), blockPositionInfo);
             var blockInventory = block.GetComponent<IBlockInventory>();
-            worldBlockDataStore.AddBlock(block);
+            worldBlockDataStore.TryAddBlock(block);
             
             
             //インベントリを開く
@@ -95,12 +95,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロック1をセットアップ
             var block1PosInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
             var block1 = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), block1PosInfo);
-            worldBlockDataStore.AddBlock(block1);
+            worldBlockDataStore.TryAddBlock(block1);
             
             //ブロック2をセットアップ
             var block2PosInfo = new BlockPositionInfo(new Vector3Int(10, 20), BlockDirection.North, Vector3Int.one);
             var block2 = blockFactory.Create(MachineBlockId, new BlockInstanceId(2), block2PosInfo);
-            worldBlockDataStore.AddBlock(block2);
+            worldBlockDataStore.TryAddBlock(block2);
             
             
             //一つ目のブロックインベントリを開く

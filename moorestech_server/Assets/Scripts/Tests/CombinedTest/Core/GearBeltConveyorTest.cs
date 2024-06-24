@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Core
             // gearBeltConveyorブロックを生成
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             var gearBeltConveyor = blockFactory.Create(ForUnitTestModBlockId.GearBeltConveyor, BlockInstanceId.Create(), new BlockPositionInfo(gearBeltConveyorPosition, BlockDirection.North, Vector3Int.one));
-            worldBlockDatastore.AddBlock(gearBeltConveyor);
+            worldBlockDatastore.TryAddBlock(gearBeltConveyor);
             var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
@@ -51,12 +51,12 @@ namespace Tests.CombinedTest.Core
             // generatorブロックを作成
             var generatorPosition = new Vector3Int(1, 0, 0);
             var generator = blockFactory.Create(ForUnitTestModBlockId.SimpleGearGenerator, BlockInstanceId.Create(), new BlockPositionInfo(generatorPosition, BlockDirection.East, Vector3Int.one));
-            worldBlockDatastore.AddBlock(generator);
+            worldBlockDatastore.TryAddBlock(generator);
             
             // testGearブロックを作成
             var testGearPosition = new Vector3Int(2, 0, 0);
             var testGear = blockFactory.Create(ForUnitTestModBlockId.SmallGear, BlockInstanceId.Create(), new BlockPositionInfo(testGearPosition, BlockDirection.East, Vector3Int.one));
-            worldBlockDatastore.AddBlock(testGear);
+            worldBlockDatastore.TryAddBlock(testGear);
             
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             IReadOnlyDictionary<GearNetworkId, GearNetwork> gearNetwork = gearNetworkDatastore.GearNetworks;

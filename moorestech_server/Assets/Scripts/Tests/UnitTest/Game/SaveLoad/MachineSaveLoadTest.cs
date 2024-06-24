@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var machineBlock = blockFactory.Create(1, new BlockInstanceId(10), machinePosInfo);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            worldBlockDatastore.AddBlock(machineBlock);
+            worldBlockDatastore.TryAddBlock(machineBlock);
             
             
             //レシピ用のアイテムを追加

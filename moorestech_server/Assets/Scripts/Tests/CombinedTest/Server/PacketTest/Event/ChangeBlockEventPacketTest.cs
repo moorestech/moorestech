@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var posInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
             var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, new BlockInstanceId(1), posInfo);
             //機械のブロックを配置
-            ServerContext.WorldBlockDatastore.AddBlock(machine);
+            ServerContext.WorldBlockDatastore.TryAddBlock(machine);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = ServerContext.ItemStackFactory;
             
