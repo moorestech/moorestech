@@ -13,17 +13,18 @@
 
           "blockId": {
             "type": "string",
-            "pattern": "@guid"
+            "pattern": "@uuid"
           },
 
           "itemId": {
             "type": "string",
-            "pattern": "@guid",
+            "pattern": "@uuid",
             "format": "@foreignKey:itemId"
           },
 
           "blockType": {
-            "type": "string"
+            "type": "string",
+            "enum": [ "TypeA", "TypeB" ]
           },
 
           "blockParam": {

@@ -11,7 +11,7 @@
         "properties": {
           "itemId": {
             "type": "string",
-            "pattern": "@guid"
+            "pattern": "@uuid"
           },
           "maxStack": {
             "type": "integer"
