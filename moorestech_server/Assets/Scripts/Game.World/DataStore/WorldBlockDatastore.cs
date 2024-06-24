@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -16,6 +17,7 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
+        private readonly IBlockConfig _blockConfig;
         private readonly IBlockFactory _blockFactory;
         private readonly Dictionary<BlockInstanceId, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
         
@@ -24,9 +26,10 @@ namespace Game.World.DataStore
         
         private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         
-        public WorldBlockDatastore(IBlockFactory blockFactory)
+        public WorldBlockDatastore(IBlockFactory blockFactory, IBlockConfig blockConfig)
         {
             _blockFactory = blockFactory;
+            _blockConfig = blockConfig;
         }
         
         //メインのデータストア
@@ -35,8 +38,9 @@ namespace Game.World.DataStore
         //イベント
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         
-        public bool TryAddLoadedBlock(long blockHash, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo, out IBlock block)
+        public bool TryAddLoadedBlock(long blockHash, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block)
         {
+            var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockHash).BlockSize);
             block = _blockFactory.Load(blockHash, blockInstanceId, state, blockPositionInfo);
             return TryAddBlock(block);
         }
@@ -88,8 +92,9 @@ namespace Game.World.DataStore
             throw new Exception("ブロックがありません");
         }
         
-        public bool TryAddBlock(int blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, out IBlock block)
+        public bool TryAddBlock(int blockId, BlockInstanceId blockInstanceId, Vector3Int position, BlockDirection direction, out IBlock block)
         {
+            var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockId).BlockSize);
             block = _blockFactory.Create(blockId, blockInstanceId, blockPositionInfo);
             return TryAddBlock(block);
         }
