@@ -1,5 +1,7 @@
-﻿using Cinemachine;
+﻿using System.Threading;
+using Cinemachine;
 using Client.Input;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
@@ -21,7 +23,7 @@ namespace Client.Game.InGame.Control
         
         private DG.Tweening.Sequence _currentSequence;
         
-        private bool _updateCameraAngle;
+        private bool _isControllable;
         
         private void Awake()
         {
@@ -34,15 +36,18 @@ namespace Client.Game.InGame.Control
             var distance = _cinemachineFraming.m_CameraDistance + InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
             
-            if (!_updateCameraAngle && _currentSequence == null) return;
+            if (!_isControllable && _currentSequence == null) return;
             
             //マウスのインプットによって向きを変える
-            UpdateCameraRotation();
+            if (_isControllable)
+            {
+                GetMouseInput();
+            }
             LeapCameraRotation();
             
             #region Internal
             
-            void UpdateCameraRotation()
+            void GetMouseInput()
             {
                 var delta = InputManager.Player.Look.ReadValue<Vector2>();
                 
@@ -54,14 +59,7 @@ namespace Client.Game.InGame.Control
                 
                 rotation.y += delta.x * sensitivity.x;
                 rotation.z = 0;
-                
-                var rotationDiff = rotation - _targetRotation.eulerAngles;
-                if (0.1f < rotationDiff.magnitude)
-                {
-                    _currentSequence?.Kill();
-                    _currentSequence = null;
-                    _targetRotation = Quaternion.Euler(rotation);
-                }
+                _targetRotation = Quaternion.Euler(rotation);
             }
             
             void LeapCameraRotation()
@@ -69,13 +67,6 @@ namespace Client.Game.InGame.Control
                 var resultRotation = Quaternion.Lerp(transform.rotation, _targetRotation, lerpSpeed * Time.deltaTime);
                 resultRotation = Quaternion.Euler(resultRotation.eulerAngles.x, resultRotation.eulerAngles.y, 0);
                 transform.rotation = resultRotation;
-                
-                if (_currentSequence != null && _currentSequence.IsComplete() && 
-                    Quaternion.Angle(transform.rotation, _targetRotation) < 0.1f)
-                {
-                    _currentSequence?.Kill();
-                    _currentSequence = null;
-                }
             }
             
             #endregion
@@ -87,18 +78,20 @@ namespace Client.Game.InGame.Control
             mainCamera.gameObject.SetActive(enable);
         }
         
-        public void SetUpdateCameraAngle(bool enable)
+        public void SetControllable(bool enable)
         {
-            _updateCameraAngle = enable;
+            _isControllable = enable;
         }
         
-        public void StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration)
+        public async UniTask StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration, CancellationToken ct)
         {
             // DoTweenでカメラの向きを変える
             _currentSequence?.Kill();
             _currentSequence = DOTween.Sequence()
                 .Append(DOTween.To(() => _targetRotation, x => _targetRotation = x, targetRotation, duration).SetEase(Ease.InOutQuad))
                 .Join(DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, duration).SetEase(Ease.InOutQuad));
+            
+            await _currentSequence.ToUniTask(cancellationToken: ct);
         }
     }
 }
