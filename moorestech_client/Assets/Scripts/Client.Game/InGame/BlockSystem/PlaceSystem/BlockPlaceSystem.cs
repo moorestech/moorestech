@@ -120,9 +120,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 _blockPlacePreview.SetPreview(placeable, _clickStartPosition.Value, placePoint, _currentBlockDirection, holdingBlockConfig);
             }
-            
-            if (_clickStartPosition.HasValue && InputManager.Playable.ScreenLeftClick.GetKeyUp)
+            else
             {
+                _blockPlacePreview.SetPreview(placeable, placePoint, placePoint, _currentBlockDirection, holdingBlockConfig);
+            }
+            
+            if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
+            {
+                _clickStartPosition = null;
                 ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             }
