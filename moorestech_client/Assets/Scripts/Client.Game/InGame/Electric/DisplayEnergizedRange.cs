@@ -129,7 +129,7 @@ namespace Client.Game.InGame.Electric
             //TODO 電気系のブロックかどうか判定するロジック
             bool IsElectricalBlock(string type)
             {
-                return type is VanillaBlockType.Generator or VanillaBlockType.Machine or VanillaBlockType.Miner;
+                return type is VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMachine or VanillaBlockType.ElectricMiner;
             }
             
             bool IsPole(string type)

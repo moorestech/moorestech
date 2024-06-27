@@ -59,9 +59,9 @@ namespace Client.Game.InGame.UI.UIState
             var type = config.Type switch
             {
                 VanillaBlockType.Chest => BlockInventoryType.Chest,
-                VanillaBlockType.Miner => BlockInventoryType.Miner,
-                VanillaBlockType.Machine => BlockInventoryType.Machine,
-                VanillaBlockType.Generator => BlockInventoryType.Generator,
+                VanillaBlockType.ElectricMiner => BlockInventoryType.Miner,
+                VanillaBlockType.ElectricMachine => BlockInventoryType.Machine,
+                VanillaBlockType.ElectricGenerator => BlockInventoryType.Generator,
                 _ => throw new ArgumentOutOfRangeException(),
             };
             
