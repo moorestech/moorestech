@@ -42,12 +42,11 @@ namespace Tests.UnitTest.Game
             var entityId = BlockInstanceId.Create();
             
             //TODO 同じIDになることない
-            // worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
+            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _, entityId);
             
             //座標だけ変えてintIDは同じ
-            // var block2 = CreateMachine(entityId, new Vector3Int(10, 10), BlockDirection.North);
-            // worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 10), BlockDirection.North, out _);
-            // Assert.False(worldData.TryAddBlock(block2));
+            var result = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 10), BlockDirection.North, out _, entityId);
+            Assert.False(result);
         }
         
         [Test]
@@ -57,13 +56,11 @@ namespace Tests.UnitTest.Game
             
             var worldData = ServerContext.WorldBlockDatastore;
             
-            //TODO 同じIDになることない
-            // var block = CreateMachine(BlockInstanceId.Create(), new Vector3Int(1, 1), BlockDirection.North);
-            // worldData.TryAddBlock(block);
-            //
-            // //座標だけ変えてintIDは同じ
-            // var block2 = CreateMachine(BlockInstanceId.Create(), new Vector3Int(1, 1), BlockDirection.North);
-            // Assert.False(worldData.TryAddBlock(block2));
+            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
+            
+            //idだけ変えて座標は同じ
+            var result = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
+            Assert.False(result);
         }
     }
 }
