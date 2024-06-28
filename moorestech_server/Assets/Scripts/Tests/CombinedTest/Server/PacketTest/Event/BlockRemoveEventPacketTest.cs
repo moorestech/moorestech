@@ -68,10 +68,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, pos.y);
         }
         
-        private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
+        private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlockDatastore, IBlockFactory blockFactory)
         {
-            var posInfo = new BlockPositionInfo(new Vector3Int(x, y), BlockDirection.North, Vector3Int.one);
-            worldBlock.TryAddBlock(blockFactory.Create(id, BlockInstanceId.Create(), posInfo));
+            worldBlockDatastore.TryAddBlock(id, new Vector3Int(x, y), BlockDirection.North, out _);
         }
         
         private List<byte> EventRequestData(int playerID)
