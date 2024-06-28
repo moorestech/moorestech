@@ -22,8 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void RandomPlaceBlockToWorldDataResponseTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var worldBlock = ServerContext.WorldBlockDatastore;
-            var blockFactory = ServerContext.BlockFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var random = new Random(13944156);
             //ブロックの設置
@@ -32,16 +31,10 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var blockDirection = (BlockDirection)random.Next(0, 4);
                 var pos = new Vector3Int(random.Next(-40, 40), random.Next(-40, 40));
                 
-                var posInfo = new BlockPositionInfo(pos, blockDirection, Vector3Int.one);
-                
-                IBlock b = null;
-                if (random.Next(0, 3) == 1)
-                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), BlockInstanceId.Create(), posInfo);
-                else
-                    b = blockFactory.Create(random.Next(1, 500), BlockInstanceId.Create(), posInfo);
-                
-                
-                worldBlock.TryAddBlock(b);
+                var blockId = random.Next(0, 3) == 1
+                    ? random.Next(short.MaxValue, int.MaxValue)
+                    : random.Next(1, 500);
+                worldBlockDatastore.TryAddBlock(blockId, pos, blockDirection, out _);
             }
             
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
@@ -54,10 +47,10 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var block = responseWorld.Blocks[i];
                 var pos = block.BlockPos;
                 
-                var id = worldBlock.GetOriginPosBlock(pos)?.Block.BlockId ?? BlockConst.EmptyBlockId;
+                var id = worldBlockDatastore.GetOriginPosBlock(pos)?.Block.BlockId ?? BlockConst.EmptyBlockId;
                 Assert.AreEqual(id, block.BlockId);
                 
-                var direction = worldBlock.GetOriginPosBlock(pos)?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
+                var direction = worldBlockDatastore.GetOriginPosBlock(pos)?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
                 Assert.AreEqual(direction, block.BlockDirection);
             }
         }
@@ -68,12 +61,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = ServerContext.WorldBlockDatastore;
-            var blockFactory = ServerContext.BlockFactory;
             
             //ブロックの設置
-            var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var b = blockFactory.Create(Block_1x4_Id, new BlockInstanceId(1), posInfo);
-            worldBlock.TryAddBlock(b);
+            worldBlock.TryAddBlock(Block_1x4_Id, Vector3Int.zero, BlockDirection.North, out _);
             
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
             List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
