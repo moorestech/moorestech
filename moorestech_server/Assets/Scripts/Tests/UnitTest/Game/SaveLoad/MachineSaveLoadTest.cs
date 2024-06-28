@@ -29,10 +29,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var machineBlock = blockFactory.Create(1, new BlockInstanceId(10), machinePosInfo);
+            worldBlockDatastore.TryAddBlock(1, new Vector3Int(0, 0), BlockDirection.North, out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            worldBlockDatastore.TryAddBlock(machineBlock);
             
             
             //レシピ用のアイテムを追加
