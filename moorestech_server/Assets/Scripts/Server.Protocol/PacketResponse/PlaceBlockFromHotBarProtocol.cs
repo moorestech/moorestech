@@ -37,11 +37,8 @@ namespace Server.Protocol.PacketResponse
             
             //ブロックの作成
             var blockId = blockConfig.ItemIdToBlockId(item.Id);
-            var blockSize = blockConfig.GetBlockConfig(blockId).BlockSize;
-            var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection, blockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             //ブロックの設置
-            ServerContext.WorldBlockDatastore.AddBlock(block);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, data.Pos, data.BlockDirection, out var block);
             
             //アイテムを減らし、セットする
             item = item.SubItem(1);

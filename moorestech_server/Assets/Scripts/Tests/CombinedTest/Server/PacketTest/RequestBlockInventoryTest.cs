@@ -29,13 +29,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             
-            var machinePosInfo = new BlockPositionInfo(new Vector3Int(5, 10), BlockDirection.North, Vector3Int.one);
-            var machine = ServerContext.BlockFactory.Create(MachineBlockId, new BlockInstanceId(5), machinePosInfo);
-            var machineComponent = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
+            ServerContext.WorldBlockDatastore.TryAddBlock(MachineBlockId, new Vector3Int(5, 10), BlockDirection.North, out var machineBlock);
+            var machineComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             machineComponent.SetItem(0, itemStackFactory.Create(1, 2));
             machineComponent.SetItem(2, itemStackFactory.Create(4, 5));
-            
-            ServerContext.WorldBlockDatastore.AddBlock(machine);
             
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(

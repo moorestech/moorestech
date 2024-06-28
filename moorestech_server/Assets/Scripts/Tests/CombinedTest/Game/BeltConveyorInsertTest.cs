@@ -20,21 +20,11 @@ namespace Tests.CombinedTest.Game
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var blockFactory = ServerContext.BlockFactory;
-            
-            var inputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 0), BlockDirection.North, Vector3Int.one);
-            var inputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(1), inputChestPosInfo);
-            
-            var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(2), beltPosInfo);
-            
-            var outputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0, 2), BlockDirection.North, Vector3Int.one);
-            var outputChest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(3), outputChestPosInfo);
             
             //それぞれを設置
-            worldBlockDatastore.AddBlock(inputChest);
-            worldBlockDatastore.AddBlock(beltConveyor);
-            worldBlockDatastore.AddBlock(outputChest);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, out var inputChest);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North, out var beltConveyor);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2), BlockDirection.North, out var outputChest);
             
             //インプットチェストにアイテムを2つ入れる
             var inputChestComponent = inputChest.GetComponent<VanillaChestComponent>();
