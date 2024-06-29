@@ -35,6 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
+        private bool? _isStartZDirection;
         
         private int _heightOffset;
         
@@ -118,11 +119,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             //プレビュー表示 display preview
             if (_clickStartPosition.HasValue)
             {
-                _blockPlacePreview.SetPreview(placeable, _clickStartPosition.Value, placePoint, _currentBlockDirection, holdingBlockConfig);
+                if (_clickStartPosition.Value == placePoint) _isStartZDirection = null;
+                _isStartZDirection ??= Mathf.Abs(hitPoint.z - _clickStartPosition.Value.z) > Mathf.Abs(hitPoint.x - _clickStartPosition.Value.x);
+                
+                _blockPlacePreview.SetPreview(placeable, _clickStartPosition.Value, placePoint, _isStartZDirection.Value, _currentBlockDirection, holdingBlockConfig);
             }
             else
             {
-                _blockPlacePreview.SetPreview(placeable, placePoint, placePoint, _currentBlockDirection, holdingBlockConfig);
+                _isStartZDirection = null;
+                _blockPlacePreview.SetPreview(placeable, placePoint, placePoint, true, _currentBlockDirection, holdingBlockConfig);
             }
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)

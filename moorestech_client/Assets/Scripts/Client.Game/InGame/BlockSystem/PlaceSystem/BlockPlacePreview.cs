@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
-        private readonly List<BlockPreviewObject> _previewBlocks = new ();
+        private readonly List<BlockPreviewObject> _previewBlocks = new();
         private GroundCollisionDetector[] _collisionDetectors;
         
         public bool IsActive => gameObject.activeSelf;
@@ -26,9 +26,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             }
         }
         
-        public void SetPreview(bool placeable, Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockConfigData blockConfig)
+        public void SetPreview(bool placeable, Vector3Int startPoint, Vector3Int endPoint, bool isStartZDirection, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
-            CreatePreviewObjects(startPoint, endPoint, blockDirection, blockConfig);
+            CreatePreviewObjects(startPoint, endPoint, isStartZDirection, blockDirection, blockConfig);
             
             var materialPath = placeable ? MaterialConst.PreviewPlaceBlockMaterial : MaterialConst.PreviewNotPlaceableBlockMaterial;
             //SetMaterial(Resources.Load<Material>(materialPath));
@@ -39,9 +39,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             gameObject.SetActive(active);
         }
         
-        private void CreatePreviewObjects(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockConfigData blockConfig)
+        private void CreatePreviewObjects(Vector3Int startPoint, Vector3Int endPoint, bool isStartZDirection, BlockDirection blockDirection, BlockConfigData blockConfig)
         {
-            var placePoints = BlockPlacePointCalculator.CalculatePoint(startPoint, endPoint, true);
+            var placePoints = BlockPlacePointCalculator.CalculatePoint(startPoint, endPoint, isStartZDirection);
             
             // さっきと違うブロックだったら削除する
             if (_previewBlocks.Count != 0 && _previewBlocks[0].BlockConfig.BlockId != blockConfig.BlockId)
@@ -50,6 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 {
                     Destroy(previewBlock.gameObject);
                 }
+                
                 _previewBlocks.Clear();
             }
             
