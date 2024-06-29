@@ -9,10 +9,10 @@ namespace Client.Starter
     /// </summary>
     public class GameInitializerSceneLoader : MonoBehaviour
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Init()
         {
-            var loader = FindObjectOfType<GameInitializerSceneLoader>();
+            var loader = FindObjectOfType<GameInitializerSceneLoader>(true);
             if (loader != null) SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
         }
     }
