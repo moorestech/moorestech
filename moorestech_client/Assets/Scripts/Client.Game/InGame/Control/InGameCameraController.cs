@@ -83,15 +83,13 @@ namespace Client.Game.InGame.Control
             _isControllable = enable;
         }
         
-        public async UniTask StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration, CancellationToken ct)
+        public void StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration)
         {
             // DoTweenでカメラの向きを変える
             _currentSequence?.Kill();
             _currentSequence = DOTween.Sequence()
                 .Append(DOTween.To(() => _targetRotation, x => _targetRotation = x, targetRotation, duration).SetEase(Ease.InOutQuad))
                 .Join(DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, duration).SetEase(Ease.InOutQuad));
-            
-            await _currentSequence.ToUniTask(cancellationToken: ct);
         }
     }
 }
