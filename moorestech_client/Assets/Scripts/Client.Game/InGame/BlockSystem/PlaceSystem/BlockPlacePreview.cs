@@ -13,7 +13,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
-        private readonly List<BlockPreviewObject> _previewBlocks = new();
+        private BlockConfigData _previewBlockConfig;
+        private BlockPlacePreviewObjectPool _blockPlacePreviewObjectPool;
         private GroundCollisionDetector[] _collisionDetectors;
         
         public bool IsActive => gameObject.activeSelf;
@@ -37,6 +38,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockVerticalDictionary.Add((gearBeltConveyorId, BlockVerticalDirection.Up), gearBeltConveyorUpId);
             var gearBeltConveyorDownId = ServerContext.BlockConfig.GetBlockConfig(AlphaMod.ModId, "gear belt conveyor down").BlockId;
             _blockVerticalDictionary.Add((gearBeltConveyorId, BlockVerticalDirection.Down), gearBeltConveyorDownId);
+            
+            _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         
         public void SetPreview(bool placeable, Vector3Int startPoint, Vector3Int endPoint, bool isStartZDirection, BlockDirection specifiedDirection, BlockConfigData blockConfig)
@@ -57,33 +60,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var placePointInfos = BlockPlacePointCalculator.CalculatePoint(startPoint, endPoint, isStartZDirection, specifiedDirection);
             
             // さっきと違うブロックだったら削除する
-            if (_previewBlocks.Count != 0 && _previewBlocks[0].BlockConfig.BlockId != blockConfig.BlockId)
+            if (_previewBlockConfig == null || _previewBlockConfig.BlockId != blockConfig.BlockId)
             {
-                foreach (var previewBlock in _previewBlocks)
-                {
-                    Destroy(previewBlock.gameObject);
-                }
-                
-                _previewBlocks.Clear();
+                _previewBlockConfig = blockConfig;
+                _blockPlacePreviewObjectPool.AllDestroy();
             }
             
-            if (_previewBlocks.Count < placePointInfos.Count)
-            {
-                // 必要分なければ作成する
-                for (var i = _previewBlocks.Count; i < placePointInfos.Count; i++)
-                {
-                    var previewBlock = CreatePreviewObject(blockConfig);
-                    _previewBlocks.Add(previewBlock);
-                }
-            }
-            else
-            {
-                // 余分なものを非表示にする
-                for (var i = placePointInfos.Count; i < _previewBlocks.Count; i++)
-                {
-                    _previewBlocks[i].SetActive(false);
-                }
-            }
+            _blockPlacePreviewObjectPool.AllUnUse();
             
             // プレビューブロックの位置を設定
             for (var i = 0; i < placePointInfos.Count; i++)
@@ -101,9 +84,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placePoint, direction, blockId);
                 var rot = direction.GetRotation();
                 
-                _previewBlocks[i].transform.position = pos;
-                _previewBlocks[i].transform.rotation = rot;
-                _previewBlocks[i].SetActive(true);
+                var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
+                previewBlock.transform.position = pos;
+                previewBlock.transform.rotation = rot;
             }
         }
         
@@ -120,10 +103,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void SetMaterial(Material material)
         {
             //プレビューブロックのマテリアルを変更
-            foreach (var previewBlock in _previewBlocks)
-            {
-                previewBlock.SetMaterial(material);
-            }
+            // foreach (var previewBlock in _previewBlocks)
+            // {
+            //     previewBlock.SetMaterial(material);
+            // }
         }
     }
 }

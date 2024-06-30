@@ -1,8 +1,9 @@
+using Client.Game.InGame.Block;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace Client.Game.InGame.Block
+namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPreviewObject : MonoBehaviour
     {
