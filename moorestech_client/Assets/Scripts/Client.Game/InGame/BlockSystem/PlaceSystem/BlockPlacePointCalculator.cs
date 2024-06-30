@@ -10,6 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
+            var startToCornerDistance = 0;
             var positions = CalcPositions();
             
             return CalcPlaceDirection(positions);
@@ -23,7 +24,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var currentPoint = startPoint;
                 
                 // X軸とZ軸のポイントを設定する
-                var startToCornerDistance = 0;
                 pointList.Add(currentPoint);
                 while (currentPoint.x != endPoint.x || currentPoint.z != endPoint.z)
                 {
@@ -92,9 +92,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 for (var i = pointList.Count - minusIndex; i >= 0 && currentYDelta > 0; i--)
                 {
                     var point = pointList[i];
-                    point.y -= currentYDelta;
                     
-                    if (startToCornerDistance + 1 != i) currentYDelta--; // 角の時はY座標を下げない
+                    if (startToCornerDistance != i)
+                    {
+                        point.y -= currentYDelta;
+                        currentYDelta--; // 角の時はY座標を下げない
+                    }
+                    else
+                    {
+                        point.y -= currentYDelta;
+                    }
                     
                     pointList[i] = point;
                 }
@@ -133,6 +140,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     
                     // TODo このロジックのドキュメント化
                     if (startPoint.y < endPoint.y)
+                        //if (true)
                     {
                         // 上向きの場合
                         if (i == placePositions.Count - 1)
@@ -150,10 +158,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     else
                     {
                         // 下向きの場合
-                        if (i == 0)
+                        if ((i == 0 || i == startToCornerDistance) && i != placePositions.Count - 1)
                         {
                             var nextPoint = placePositions[i + 1];
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            if (i == startToCornerDistance)
+                            {
+                                verticalDirection = BlockVerticalDirection.Horizontal; // 角のブロックは必ず水平にする
+                            }
                         }
                         else
                         {
