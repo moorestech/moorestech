@@ -35,7 +35,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
+        private Vector3Int _lastPlacePoint = new(int.MaxValue, int.MaxValue, int.MaxValue);
         private bool? _isStartZDirection;
+        private List<PlaceInfo> _currentPlaceInfos = new();
         
         private int _heightOffset;
         
@@ -119,15 +121,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             //プレビュー表示 display preview
             if (_clickStartPosition.HasValue)
             {
-                if (_clickStartPosition.Value == placePoint) _isStartZDirection = null;
-                _isStartZDirection ??= Mathf.Abs(hitPoint.z - _clickStartPosition.Value.z) > Mathf.Abs(hitPoint.x - _clickStartPosition.Value.x);
+                if (_clickStartPosition.Value == placePoint)
+                {
+                    _isStartZDirection = null;
+                }
+                else if (!_isStartZDirection.HasValue)
+                {
+                    _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
+                }
                 
-                _blockPlacePreview.SetPreview(placeable, _clickStartPosition.Value, placePoint, _isStartZDirection.Value, _currentBlockDirection, holdingBlockConfig);
+                _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection);
+                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+                _lastPlacePoint = placePoint;
             }
             else
             {
                 _isStartZDirection = null;
-                _blockPlacePreview.SetPreview(placeable, placePoint, placePoint, true, _currentBlockDirection, holdingBlockConfig);
+                _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection);
+                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
             }
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)

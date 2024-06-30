@@ -73,7 +73,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     {
                         var point = pointList[i];
                         point.y += currentYDelta;
-                        currentYDelta--;
+                        
+                        if (startToCornerDistance + 1 != i) currentYDelta--; // 角の時はY座標を下げない
                         
                         pointList[i] = point;
                     }
@@ -92,7 +93,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 {
                     var point = pointList[i];
                     point.y -= currentYDelta;
-                    currentYDelta--;
+                    
+                    if (startToCornerDistance + 1 != i) currentYDelta--; // 角の時はY座標を下げない
                     
                     pointList[i] = point;
                 }
@@ -121,7 +123,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     };
                 }
                 
-                var results = new List<PlaceInfo>();
+                var results = new List<PlaceInfo>(placePositions.Count);
                 for (int i = 0; i < placePositions.Count; i++)
                 {
                     BlockDirection direction;
@@ -129,7 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     var currentPoint = placePositions[i];
                     
                     
-                    // TODo 個のロジックのドキュメント化
+                    // TODo このロジックのドキュメント化
                     if (startPoint.y < endPoint.y)
                     {
                         // 上向きの場合
@@ -159,7 +161,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
                         }
                     }
-                    
                     
                     results.Add(new PlaceInfo()
                     {

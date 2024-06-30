@@ -1,4 +1,5 @@
-﻿using Game.Block.Interface;
+﻿using System.Collections.Generic;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         bool IsCollisionGround { get; }
         
-        public void SetPreview(bool placeable, Vector3Int startPoint, Vector3Int endPoint, bool isStartZDirection, BlockDirection blockDirection, BlockConfigData blockConfig);
+        public void SetPreview(bool placeable, List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
         
         public void SetActive(bool active);
     }

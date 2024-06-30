@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Context;
@@ -42,9 +41,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         
-        public void SetPreview(bool placeable, Vector3Int startPoint, Vector3Int endPoint, bool isStartZDirection, BlockDirection specifiedDirection, BlockConfigData blockConfig)
+        public void SetPreview(bool placeable, List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig)
         {
-            CreatePreviewObjects(startPoint, endPoint, isStartZDirection, specifiedDirection, blockConfig);
+            CreatePreviewObjects(currentPlaceInfos, holdingBlockConfig);
             
             var materialPath = placeable ? MaterialConst.PreviewPlaceBlockMaterial : MaterialConst.PreviewNotPlaceableBlockMaterial;
             //SetMaterial(Resources.Load<Material>(materialPath));
@@ -55,10 +54,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             gameObject.SetActive(active);
         }
         
-        private void CreatePreviewObjects(Vector3Int startPoint, Vector3Int endPoint, bool isStartZDirection, BlockDirection specifiedDirection, BlockConfigData blockConfig)
+        private void CreatePreviewObjects(List<PlaceInfo> placePointInfos, BlockConfigData blockConfig)
         {
-            var placePointInfos = BlockPlacePointCalculator.CalculatePoint(startPoint, endPoint, isStartZDirection, specifiedDirection);
-            
             // さっきと違うブロックだったら削除する
             if (_previewBlockConfig == null || _previewBlockConfig.BlockId != blockConfig.BlockId)
             {
@@ -88,16 +85,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 previewBlock.transform.position = pos;
                 previewBlock.transform.rotation = rot;
             }
-        }
-        
-        private BlockPreviewObject CreatePreviewObject(BlockConfigData blockConfig)
-        {
-            var previewBlock = ClientContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
-            previewBlock.transform.SetParent(transform);
-            previewBlock.transform.localPosition = Vector3.zero;
-            _collisionDetectors = previewBlock.GetComponentsInChildren<GroundCollisionDetector>();
-            
-            return previewBlock;
         }
         
         public void SetMaterial(Material material)
