@@ -55,19 +55,53 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 }
                 
                 // Y軸を設定する
+                // set Y axis
+                
+                // 同じ高さの場合はそのまま返す
+                // return as it is if the same height
+                if (startPoint.y == endPoint.y) return pointList;
+                
                 var yDelta = Mathf.Abs(startPoint.y - endPoint.y);
                 var currentYDelta = yDelta;
-                for (var i = pointList.Count - 1; i >= pointList.Count - yDelta - 1 && i >= 0; i--)
+                
+                // 上がる場合
+                // if going up
+                if (startPoint.y < endPoint.y)
+                {
+                    // 逆ループしながら下がるようにY座標を設定する
+                    for (var i = pointList.Count - 1; i >= 0 && currentYDelta > 0; i--)
+                    {
+                        var point = pointList[i];
+                        point.y += currentYDelta;
+                        currentYDelta--;
+                        
+                        pointList[i] = point;
+                    }
+                    
+                    return pointList;
+                }
+                
+                // 下がる場合
+                // if going down
+                
+                // 下がる場合は、下がり終わる地点が最後から一つ前になるので、最後のポイントはここでは設定しない
+                // In case of going down, the last point is not set here because the point where it ends is one before the last.
+                // TODo ドキュメント
+                var minusIndex = 2;
+                for (var i = pointList.Count - minusIndex; i >= 0 && currentYDelta > 0; i--)
                 {
                     var point = pointList[i];
-                    point.y = startPoint.y < endPoint.y ? point.y + currentYDelta : point.y - currentYDelta;
-                    if (startToCornerDistance + 1 != i)
-                    {
-                        currentYDelta--;
-                    }
+                    point.y -= currentYDelta;
+                    currentYDelta--;
                     
                     pointList[i] = point;
                 }
+                
+                // 最後のポイントを設定
+                // set the last point
+                var lastPoint = pointList[^1];
+                lastPoint.y = endPoint.y;
+                pointList[^1] = lastPoint;
                 
                 return pointList;
             }
@@ -82,6 +116,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         {
                             Point = placePositions[0],
                             Direction = blockDirection,
+                            VerticalDirection = BlockVerticalDirection.Horizontal,
                         }
                     };
                 }
@@ -92,16 +127,39 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     BlockDirection direction;
                     BlockVerticalDirection verticalDirection;
                     var currentPoint = placePositions[i];
-                    if (i == placePositions.Count - 1)
+                    
+                    
+                    // TODo 個のロジックのドキュメント化
+                    if (startPoint.y < endPoint.y)
                     {
-                        var prevPoint = placePositions[i - 1];
-                        (direction, verticalDirection) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
+                        // 上向きの場合
+                        if (i == placePositions.Count - 1)
+                        {
+                            var prevPoint = placePositions[i - 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
+                            verticalDirection = BlockVerticalDirection.Horizontal; // 最後のブロックは必ず水平にする
+                        }
+                        else
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                        }
                     }
                     else
                     {
-                        var nextPoint = placePositions[i + 1];
-                        (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                        // 下向きの場合
+                        if (i == 0)
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                        }
+                        else
+                        {
+                            var prevPoint = placePositions[i - 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
+                        }
                     }
+                    
                     
                     results.Add(new PlaceInfo()
                     {
