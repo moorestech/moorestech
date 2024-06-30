@@ -33,6 +33,7 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             InputManager.MouseCursorVisible(true);
+            BlockPlaceSystem.SetEnableBlockPlace(true);
             
             _startCameraDistance = _inGameCameraController.CameraDistance;
             _startCameraRotation = _inGameCameraController.CameraEulerAngle;
@@ -89,6 +90,7 @@ namespace Client.Game.InGame.UI.UIState
         public void OnExit()
         {
             InputManager.MouseCursorVisible(false);
+            BlockPlaceSystem.SetEnableBlockPlace(false);
             
             _inGameCameraController.StartTweenCamera(_startCameraRotation, _startCameraDistance, TweenDuration);
         }

@@ -24,6 +24,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     /// </summary>
     public class BlockPlaceSystem : IPostTickable
     {
+        public static BlockPlaceSystem Instance;
+        
         private const float PlaceableMaxDistance = 100f;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly IBlockPlacePreview _blockPlacePreview;
@@ -31,13 +33,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly PlayerObjectController _playerObjectController;
-        private readonly UIStateControl _uiState;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
-        private Vector3Int _lastPlacePoint = new(int.MaxValue, int.MaxValue, int.MaxValue);
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
+        
+        private bool _enableBlockPlace;
         
         private int _heightOffset;
         
@@ -46,22 +48,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             HotBarView hotBarView,
             IBlockPlacePreview blockPlacePreview,
             ILocalPlayerInventory localPlayerInventory,
-            UIStateControl uiStateControl,
             BlockGameObjectDataStore blockGameObjectDataStore,
             PlayerObjectController playerObjectController
         )
         {
+            Instance = this;
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
-            _uiState = uiStateControl;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _playerObjectController = playerObjectController;
         }
         
+        public static void SetEnableBlockPlace(bool enable)
+        {
+            if (Instance == null) return;
+            
+            Instance._enableBlockPlace = enable;
+            if (!enable)
+            {
+                Instance._blockPlacePreview.SetActive(false);
+            }
+        }
+        
         public void PostTick()
         {
+            if (!_enableBlockPlace) return;
+            
             UpdateHeightOffset();
             BlockDirectionControl();
             GroundClickControl();
@@ -98,7 +112,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return; // ブロックを設置するステートかどうか
             if (!ServerContext.BlockConfig.IsBlock(itemId)) return; // 置けるブロックかどうか
             if (!TryGetRayHitPosition(out hitPoint)) return; // ブロック設置用のrayが当たっているか
             
@@ -132,7 +145,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 
                 _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection);
                 _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
-                _lastPlacePoint = placePoint;
             }
             else
             {
