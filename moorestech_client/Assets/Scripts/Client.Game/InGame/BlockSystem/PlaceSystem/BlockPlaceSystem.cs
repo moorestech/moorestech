@@ -13,6 +13,7 @@ using Client.Input;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer.Unity;
@@ -156,7 +157,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 _clickStartPosition = null;
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
+                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, selectIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             }
             

@@ -6,6 +6,7 @@ using Client.Game.InGame.Block;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Context;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -27,16 +28,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             }
         }
         
-        private readonly Dictionary<(int, BlockVerticalDirection), int> _blockVerticalDictionary = new();
-        
         private void Start()
         {
-            //TODO ここをコンフィグに入れる
-            var gearBeltConveyorId = ServerContext.BlockConfig.GetBlockConfig(AlphaMod.ModId, "gear belt conveyor").BlockId;
-            var gearBeltConveyorUpId = ServerContext.BlockConfig.GetBlockConfig(AlphaMod.ModId, "gear belt conveyor up").BlockId;
-            _blockVerticalDictionary.Add((gearBeltConveyorId, BlockVerticalDirection.Up), gearBeltConveyorUpId);
-            var gearBeltConveyorDownId = ServerContext.BlockConfig.GetBlockConfig(AlphaMod.ModId, "gear belt conveyor down").BlockId;
-            _blockVerticalDictionary.Add((gearBeltConveyorId, BlockVerticalDirection.Down), gearBeltConveyorDownId);
             
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
@@ -73,7 +66,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var verticalDirection = placePointInfos[i].VerticalDirection;
                 
                 var blockId = blockConfig.BlockId;
-                if (_blockVerticalDictionary.TryGetValue((blockId, verticalDirection), out var verticalBlockId))
+                if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, verticalDirection), out var verticalBlockId))
                 {
                     blockId = verticalBlockId;
                 }

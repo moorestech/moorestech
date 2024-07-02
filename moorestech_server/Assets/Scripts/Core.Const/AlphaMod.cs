@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Common
+namespace Core.Const
 {
     public static class AlphaMod
     {

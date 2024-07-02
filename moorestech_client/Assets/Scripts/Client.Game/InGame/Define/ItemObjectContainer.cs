@@ -1,5 +1,6 @@
 using System;
 using Client.Common;
+using Core.Const;
 using UnityEngine;
 
 namespace Client.Game.InGame.Define

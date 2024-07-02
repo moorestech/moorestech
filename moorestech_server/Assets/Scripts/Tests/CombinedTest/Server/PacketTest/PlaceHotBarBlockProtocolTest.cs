@@ -95,8 +95,18 @@ namespace Tests.CombinedTest.Server.PacketTest
         
         private List<byte> CreateUseHotBarProtocol(int x, int y, BlockDirection blockDirection)
         {
+            var placeInfo = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Point = new Vector3Int(x, y),
+                    Direction = blockDirection,
+                    VerticalDirection = BlockVerticalDirection.Horizontal
+                }
+            };
+            
             return MessagePackSerializer
-                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, blockDirection, HotBarSlot, new Vector3Int(x, y)))
+                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, HotBarSlot, placeInfo))
                 .ToList();
         }
     }

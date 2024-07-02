@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -212,20 +213,5 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             #endregion
         }
-    }
-    
-    public class PlaceInfo
-    {
-        public Vector3Int Point { get; set; }
-        public BlockDirection Direction { get; set; }
-        
-        public BlockVerticalDirection VerticalDirection { get; set; }
-    }
-    
-    public enum BlockVerticalDirection
-    {
-        Up,
-        Horizontal,
-        Down,
     }
 }
