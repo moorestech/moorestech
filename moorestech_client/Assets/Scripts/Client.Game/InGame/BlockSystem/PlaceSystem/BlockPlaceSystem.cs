@@ -36,6 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
+        private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
         
@@ -103,9 +104,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             #endregion
         }
         
+        private int _lastSelectedIndex = -1;
+        
         private void GroundClickControl()
         {
             var selectIndex = _hotBarView.SelectIndex;
+            if (selectIndex != _lastSelectedIndex)
+            {
+                _clickStartPosition = null;
+                _lastSelectedIndex = selectIndex;
+                _clickStartHeightOffset = _heightOffset;
+            }
+            
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             var hitPoint = Vector3.zero;
             
@@ -129,6 +139,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             if (placeable && InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
                 _clickStartPosition = placePoint;
+                _clickStartHeightOffset = _heightOffset;
             }
             
             //プレビュー表示 display preview
@@ -155,6 +166,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
+                _clickStartHeightOffset = _heightOffset;
                 _clickStartPosition = null;
                 ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, selectIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
