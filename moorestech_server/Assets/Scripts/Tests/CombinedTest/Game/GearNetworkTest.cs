@@ -210,7 +210,7 @@ namespace Tests.CombinedTest.Game
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, fastGeneratorPosition, BlockDirection.North, out var fastGeneratorBlock);
             var fastGenerator = fastGeneratorBlock.GetComponent<IGearGenerator>();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, fastGeneratorPosition, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, fastGeneratorGearPosition, BlockDirection.North, out _);
             
             // SmallGearA
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North, out var smallGearABlock);
@@ -228,10 +228,10 @@ namespace Tests.CombinedTest.Game
             
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
-            Assert.AreEqual(smallGearA.CurrentRpm, 20f);
-            Assert.AreEqual(generator.CurrentRpm, 20f);
-            Assert.AreEqual(smallGearB.CurrentRpm, 20f);
+            Assert.AreEqual(fastGenerator.CurrentRpm.AsPrimitive(), 20f);
+            Assert.AreEqual(smallGearA.CurrentRpm.AsPrimitive(), 20f);
+            Assert.AreEqual(generator.CurrentRpm.AsPrimitive(), 20f);
+            Assert.AreEqual(smallGearB.CurrentRpm.AsPrimitive(), 20f);
         }
         
         [Test]

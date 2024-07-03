@@ -22,8 +22,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             
-            worldBlockDatastore.TryAddBlock(1, Vector3Int.zero, BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(2, new Vector3Int(10, -15), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(1, Vector3Int.zero, BlockDirection.North, out _, new BlockInstanceId(10));
+            worldBlockDatastore.TryAddBlock(2, new Vector3Int(10, -15), BlockDirection.North, out _, new BlockInstanceId(100));
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             

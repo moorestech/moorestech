@@ -92,9 +92,12 @@ namespace Game.World.DataStore
             throw new Exception("ブロックがありません");
         }
         
-        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block, BlockInstanceId blockInstanceId = default)
+        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block)
         {
-            if (blockInstanceId == default) blockInstanceId = BlockInstanceId.Create();
+            return TryAddBlock(blockId, position, direction, out block, BlockInstanceId.Create());
+        }
+        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block, BlockInstanceId blockInstanceId)
+        {
             var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockId).BlockSize);
             block = _blockFactory.Create(blockId, blockInstanceId, blockPositionInfo);
             return TryAddBlock(block);

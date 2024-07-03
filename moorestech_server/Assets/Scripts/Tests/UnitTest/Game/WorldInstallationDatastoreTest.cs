@@ -25,7 +25,7 @@ namespace Tests.UnitTest.Game
                 var z = random.Next(-1000, 1000);
                 var pos = new Vector3Int(x, 0, z);
                 
-                worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var _);
+                worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out _, entityId);
                 
                 var output = worldData.GetBlock(pos);
                 Assert.AreEqual(entityId, output.BlockInstanceId);

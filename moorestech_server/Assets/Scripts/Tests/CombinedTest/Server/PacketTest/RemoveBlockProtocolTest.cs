@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             //削除するためのブロックの生成
-            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block);
+            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block, new BlockInstanceId(0));
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
