@@ -66,10 +66,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var chestPosition = new Vector3Int(5, 10);
             
-            var chestPosInfo = new BlockPositionInfo(chestPosition, BlockDirection.North, Vector3Int.one);
-            var chest = ServerContext.BlockFactory.Create(ChestBlockId, new BlockInstanceId(1), chestPosInfo);
+            worldDataStore.TryAddBlock(ChestBlockId, chestPosition, BlockDirection.North, out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            worldDataStore.AddBlock(chest);
             
             //ブロックインベントリの設定
             chestComponent.SetItem(1, 1, 10);

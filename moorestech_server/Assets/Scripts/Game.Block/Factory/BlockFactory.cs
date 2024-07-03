@@ -20,8 +20,8 @@ namespace Game.Block.Factory
         public IBlock Create(int blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var config = _blockConfig.GetBlockConfig(blockId);
-            if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].New(config, blockInstanceId, blockPositionInfo);
+            if (_blockTypesDictionary.TryGetValue(config.Type, out var value))
+                return value.New(config, blockInstanceId, blockPositionInfo);
             
             throw new Exception("Block type not found :" + config.Type);
         }

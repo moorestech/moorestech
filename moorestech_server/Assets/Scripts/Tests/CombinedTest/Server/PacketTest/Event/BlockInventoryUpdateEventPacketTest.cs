@@ -31,16 +31,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
-            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             Vector3Int pos = new(5, 7);
             
             //ブロックをセットアップ
-            var blockPositionInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
-            var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), blockPositionInfo);
+            worldBlockDataStore.TryAddBlock(MachineBlockId, pos, BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
-            worldBlockDataStore.AddBlock(block);
             
             
             //インベントリを開く
@@ -89,18 +86,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
-            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //ブロック1をセットアップ
-            var block1PosInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
-            var block1 = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), block1PosInfo);
-            worldBlockDataStore.AddBlock(block1);
+            worldBlockDataStore.TryAddBlock(MachineBlockId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
             
             //ブロック2をセットアップ
-            var block2PosInfo = new BlockPositionInfo(new Vector3Int(10, 20), BlockDirection.North, Vector3Int.one);
-            var block2 = blockFactory.Create(MachineBlockId, new BlockInstanceId(2), block2PosInfo);
-            worldBlockDataStore.AddBlock(block2);
+            worldBlockDataStore.TryAddBlock(MachineBlockId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
             
             
             //一つ目のブロックインベントリを開く
