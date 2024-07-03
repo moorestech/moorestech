@@ -10,7 +10,7 @@ namespace Client.DebugSystem
         
         private void Start()
         {
-            _cameraController.SetUpdateCameraAngle(true);
+            _cameraController.SetControllable(true);
         }
     }
 }
