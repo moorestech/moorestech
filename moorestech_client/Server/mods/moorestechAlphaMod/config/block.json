@@ -2,7 +2,7 @@
   "Blocks": [
     {
       "name": "campfire",
-      "type": "Machine",
+      "type": "ElectricMachine",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "campfire",
       "size": {
@@ -35,7 +35,7 @@
     },
     {
       "name": "charcoal kiln",
-      "type": "Machine",
+      "type": "ElectricMachine",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "charcoal kiln",
       "size": {
@@ -68,7 +68,7 @@
     },
     {
       "name": "bloomery",
-      "type": "Machine",
+      "type": "ElectricMachine",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "bloomery",
       "size": {
@@ -101,7 +101,7 @@
     },
     {
       "name": "bloomery with bellows",
-      "type": "Machine",
+      "type": "ElectricMachine",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "bloomery with bellows",
       "size": {
@@ -215,7 +215,7 @@
     },
     {
       "name": "gear ore crusher",
-      "type": "Machine",
+      "type": "ElectricMachine",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "gear ore crusher",
       "size": {
@@ -248,7 +248,7 @@
     },
     {
       "name": "gear miner",
-      "type": "Miner",
+      "type": "ElectricMiner",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "gear miner",
       "size": {
@@ -292,7 +292,7 @@
     },
     {
       "name": "water wheel",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "water wheel",
       "size": {
@@ -431,7 +431,7 @@
     },
     {
       "name": "iron furnace with bellows",
-      "type": "Machine",
+      "type": "ElectricMachine",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "iron furnace with bellows",
       "size": {
@@ -464,7 +464,7 @@
     },
     {
       "name": "static steam engine",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "sakastudio:moorestechAlphaMod",
       "itemName": "static steam engine",
       "size": {
@@ -898,7 +898,7 @@
       },
       "param": {
         "teethCount": 10,
-        "lossPower": 0,
+        "requireTorque": 0,
         "gearConnects": [
           {
             "offset": {
@@ -969,7 +969,7 @@
       },
       "param": {
         "teethCount": 20,
-        "lossPower": 0,
+        "requireTorque": 0,
         "gearConnects": [
           {
             "offset": {
@@ -1075,7 +1075,7 @@
         "z": 1
       },
       "param": {
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "gearConnects": [
           {
             "offset": {
@@ -1116,7 +1116,7 @@
         "teethCount": 10,
         "generateRpm": 10,
         "generateTorque": 1,
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "gearConnects": [
           {
             "offset": {
