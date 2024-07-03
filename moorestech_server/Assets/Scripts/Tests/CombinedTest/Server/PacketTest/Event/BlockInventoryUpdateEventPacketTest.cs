@@ -3,6 +3,7 @@ using System.Linq;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using MessagePack;
 using NUnit.Framework;
@@ -38,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロックをセットアップ
             var blockPositionInfo = new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one);
             var block = blockFactory.Create(MachineBlockId, new BlockInstanceId(1), blockPositionInfo);
-            var blockInventory = block.ComponentManager.GetComponent<IBlockInventory>();
+            var blockInventory = block.GetComponent<IBlockInventory>();
             worldBlockDataStore.AddBlock(block);
             
             
@@ -109,7 +110,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //一つ目のブロックインベントリにアイテムを入れる
-            var block1Inventory = block1.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var block1Inventory = block1.GetComponent<VanillaMachineBlockInventoryComponent>();
             block1Inventory.SetItem(2, itemStackFactory.Create(4, 8));
             
             

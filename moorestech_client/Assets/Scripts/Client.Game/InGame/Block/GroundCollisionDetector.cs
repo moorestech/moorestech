@@ -1,4 +1,4 @@
-using Client.Game.InGame.Chunk;
+using Client.Game.InGame.BlockSystem;
 using UnityEngine;
 
 namespace Client.Game.InGame.Block

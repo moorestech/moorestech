@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.Chunk;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
@@ -17,6 +17,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
+using Client.Game.InGame.World;
 using Client.Game.Sequence;
 using Client.Game.Skit;
 using Client.Game.Skit.Starter;
@@ -98,7 +99,7 @@ namespace Client.Starter
             
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
-            builder.RegisterEntryPoint<ChunkDataHandler>();
+            builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();

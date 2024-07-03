@@ -15,7 +15,7 @@ namespace Core.Item.Config
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
                 Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize
+                HashSizeInBits = xxHashConst.DefaultSize,
             });
             
             var itemConfigList = new List<ItemConfigData>();

@@ -2,21 +2,28 @@
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class BeltConveyorInventoryItem
+    public interface IOnBeltConveyorItem
     {
-        public readonly int ItemId;
-        public readonly ItemInstanceId ItemInstanceId;
-        
-        public BeltConveyorInventoryItem(int itemId, double remainingTime, ItemInstanceId itemInstanceId)
-        {
-            ItemId = itemId;
-            RemainingTime = remainingTime;
-            ItemInstanceId = itemInstanceId;
-        }
+        public float RemainingPercent { get; }
+        public int ItemId { get; }
+        public ItemInstanceId ItemInstanceId { get; }
+    }
+    
+    public class BeltConveyorInventoryItem : IOnBeltConveyorItem
+    {
+        public int ItemId { get; }
+        public ItemInstanceId ItemInstanceId { get; }
         
         /// <summary>
-        ///     ベルトコンベア内のアイテムがあと何秒で出るかを入れるプロパティ
+        ///     ベルトコンベア内のアイテムが出るまで残り何パーセントか
         /// </summary>
-        public double RemainingTime { get; set; }
+        public float RemainingPercent { get; set; }
+        
+        public BeltConveyorInventoryItem(int itemId, ItemInstanceId itemInstanceId)
+        {
+            ItemId = itemId;
+            ItemInstanceId = itemInstanceId;
+            RemainingPercent = 1;
+        }
     }
 }

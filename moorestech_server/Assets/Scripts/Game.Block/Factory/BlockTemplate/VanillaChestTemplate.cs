@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
-using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Factory.Extension;
 using Game.Block.Interface;
@@ -15,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var chest = config.Param as ChestConfigParam;
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var chestComponent = new VanillaChestComponent(blockInstanceId, chest.ChestItemNum, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {
@@ -29,7 +28,7 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var chest = config.Param as ChestConfigParam;
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var chestComponent = new VanillaChestComponent(state, blockInstanceId, chest.ChestItemNum, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {

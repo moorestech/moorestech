@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Chunk;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;

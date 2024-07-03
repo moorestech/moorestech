@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using Client.Game.InGame.Chunk;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -59,10 +59,10 @@ namespace Client.Game.InGame.UI.UIState
             var type = config.Type switch
             {
                 VanillaBlockType.Chest => BlockInventoryType.Chest,
-                VanillaBlockType.Miner => BlockInventoryType.Miner,
-                VanillaBlockType.Machine => BlockInventoryType.Machine,
-                VanillaBlockType.Generator => BlockInventoryType.Generator,
-                _ => throw new ArgumentOutOfRangeException()
+                VanillaBlockType.ElectricMiner => BlockInventoryType.Miner,
+                VanillaBlockType.ElectricMachine => BlockInventoryType.Machine,
+                VanillaBlockType.ElectricGenerator => BlockInventoryType.Generator,
+                _ => throw new ArgumentOutOfRangeException(),
             };
             
             _blockInventoryView.SetBlockInventoryType(type, _openBlockPos, config.Param, id);

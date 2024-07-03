@@ -10,6 +10,8 @@ namespace Game.PlayerInventory.ItemManaged
 {
     public class GrabInventoryData : IOpenableInventory
     {
+        public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryService.InventoryItems;
+        
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
@@ -25,8 +27,6 @@ namespace Game.PlayerInventory.ItemManaged
         {
             _openableInventoryService.SetItemWithoutEvent(0, itemStacks);
         }
-        
-        public ReadOnlyCollection<IItemStack> Items => _openableInventoryService.Items;
         
         public IItemStack GetItem(int slot)
         {
@@ -78,6 +78,10 @@ namespace Game.PlayerInventory.ItemManaged
             return _openableInventoryService.GetSlotSize();
         }
         
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            return _openableInventoryService.CreateCopiedItems();
+        }
         
         private void InvokeEvent(int slot, IItemStack itemStack)
         {

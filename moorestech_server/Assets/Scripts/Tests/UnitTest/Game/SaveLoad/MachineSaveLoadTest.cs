@@ -3,6 +3,7 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlayerInventory;
 using Game.SaveLoad.Interface;
@@ -27,11 +28,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             //機械の追加
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
-            GameUpdater.ResetUpdate();
             
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var machineBlock = blockFactory.Create(1, new BlockInstanceId(10), machinePosInfo);
-            var machineInventory = machineBlock.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             worldBlockDatastore.AddBlock(machineBlock);
             
             
@@ -46,7 +46,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //リフレクションで機械の状態を設定
             //機械のレシピの残り時間設定
-            var vanillaMachineProcessor = machineBlock.ComponentManager.GetComponent<VanillaMachineProcessorComponent>();
+            var vanillaMachineProcessor = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
             //ステータスをセット
             typeof(VanillaMachineProcessorComponent)
                 .GetProperty("RemainingMillSecond")
@@ -85,7 +85,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             
             //機械のレシピの残り時間のチェック
-            var machineProcessor = loadMachineBlock.ComponentManager.GetComponent<VanillaMachineProcessorComponent>();
+            var machineProcessor = loadMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
             Assert.AreEqual(300, machineProcessor.RemainingMillSecond);
             //レシピIDのチェック
             Assert.AreEqual(recipeId, machineProcessor.RecipeDataId);
@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(ProcessState.Processing, machineProcessor.CurrentState);
             
             
-            var loadMachineInventory = loadMachineBlock.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var loadMachineInventory = loadMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             //インプットスロットのチェック
             var inputInventoryField = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -113,8 +113,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;

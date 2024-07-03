@@ -7,12 +7,12 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class ShaftConfigParam : IBlockConfigParam
     {
-        public readonly float LossPower;
+        public readonly Torque RequireTorque;
         public List<ConnectSettings> GearConnectSettings;
         
         private ShaftConfigParam(dynamic blockParam, IItemConfig itemConfig)
         {
-            LossPower = blockParam.lossPower;
+            RequireTorque = new Torque((float)blockParam.requireTorque);
             GearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(
                 blockParam,
                 GearConnectConst.GearConnectOptionKey,

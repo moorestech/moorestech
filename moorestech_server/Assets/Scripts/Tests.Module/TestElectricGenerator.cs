@@ -6,9 +6,9 @@ namespace Tests.Module
     //デバック用で無限に電力を供給できる
     public class TestElectricGenerator : IElectricGenerator
     {
-        private readonly int _power;
+        private readonly ElectricPower _power;
         
-        public TestElectricGenerator(int power, BlockInstanceId blockInstanceId)
+        public TestElectricGenerator(ElectricPower power, BlockInstanceId blockInstanceId)
         {
             _power = power;
             BlockInstanceId = blockInstanceId;
@@ -16,7 +16,7 @@ namespace Tests.Module
         
         public BlockInstanceId BlockInstanceId { get; }
         
-        public int OutputEnergy()
+        public ElectricPower OutputEnergy()
         {
             return _power;
         }

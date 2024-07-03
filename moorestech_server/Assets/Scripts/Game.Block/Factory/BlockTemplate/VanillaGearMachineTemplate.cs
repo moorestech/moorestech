@@ -28,17 +28,17 @@ namespace Game.Block.Factory.BlockTemplate
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
             var machineParam = (GearMachineConfigParam)config.Param;
-
+            
             var connectSetting = machineParam.GearConnectSettings;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-
+            
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
             var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, machineParam.RequiredPower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             
-            var machineComponent = new VanillaGearMachineComponent(machineParam,processor,gearConnector,blockInstanceId);
+            var machineComponent = new VanillaGearMachineComponent(machineParam, processor, gearConnector, blockInstanceId);
             
             var components = new List<IBlockComponent>
             {
@@ -68,7 +68,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             
-            var machineComponent = new VanillaGearMachineComponent(vanillaGearParam,processor,gearConnector,blockInstanceId);
+            var machineComponent = new VanillaGearMachineComponent(vanillaGearParam, processor, gearConnector, blockInstanceId);
             
             var components = new List<IBlockComponent>
             {

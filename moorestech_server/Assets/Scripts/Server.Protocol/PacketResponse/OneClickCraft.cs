@@ -70,7 +70,7 @@ namespace Server.Protocol.PacketResponse
             
             //クラフトに必要なアイテムを持っているか確認する
             var checkResult = new Dictionary<int, int>();
-            foreach (var itemStack in mainInventory.Items)
+            foreach (var itemStack in mainInventory.InventoryItems)
             {
                 if (!requiredItems.ContainsKey(itemStack.Id)) continue;
                 
@@ -107,12 +107,11 @@ namespace Server.Protocol.PacketResponse
                     requiredItems.Add(itemData.ItemStack.Id, itemData.ItemStack.Count);
             
             //クラフトのために消費する
-            for (var i = 0; i < mainInventory.Items.Count; i++)
+            for (var i = 0; i < mainInventory.InventoryItems.Count; i++)
             {
-                var inventoryItem = mainInventory.Items[i];
-                if (!requiredItems.ContainsKey(inventoryItem.Id)) continue;
+                var inventoryItem = mainInventory.InventoryItems[i];
+                if (!requiredItems.TryGetValue(inventoryItem.Id, out var subCount)) continue;
                 
-                var subCount = requiredItems[inventoryItem.Id];
                 if (inventoryItem.Count <= subCount)
                 {
                     mainInventory.SetItem(i, inventoryItem.SubItem(inventoryItem.Count));

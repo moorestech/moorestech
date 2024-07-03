@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Chunk;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
@@ -130,7 +129,7 @@ namespace Client.Game.InGame.Electric
             //TODO 電気系のブロックかどうか判定するロジック
             bool IsElectricalBlock(string type)
             {
-                return type is VanillaBlockType.Generator or VanillaBlockType.Machine or VanillaBlockType.Miner;
+                return type is VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMachine or VanillaBlockType.ElectricMiner;
             }
             
             bool IsPole(string type)

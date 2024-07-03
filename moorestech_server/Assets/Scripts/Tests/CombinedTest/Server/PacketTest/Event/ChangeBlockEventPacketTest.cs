@@ -3,8 +3,10 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.EnergySystem;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -21,7 +23,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void MachineChangeStateEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             Vector3Int pos = new(0, 0);
             
@@ -36,15 +37,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 3);
             var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 1);
             
-            var blockInventory = machine.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var blockInventory = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             blockInventory.InsertItem(item1);
             blockInventory.InsertItem(item2);
             
             
             //稼働用の電気を供給する
-            var electricMachineComponent = machine.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
-            electricMachineComponent.SupplyEnergy(100);
+            var electricMachineComponent = machine.GetComponent<VanillaElectricMachineComponent>();
+            electricMachineComponent.SupplyEnergy(new ElectricPower(100));
             
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));

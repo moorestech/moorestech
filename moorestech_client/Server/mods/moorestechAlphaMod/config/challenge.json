@@ -3,42 +3,55 @@
         {
             "id": 1000,
             "prevId": -1,
+            "summary": "石を集めて石器を作ろう",
+
+            "fireSkitType": "backgroundSkit",
+            "fireSkitName": "木3個",
+            
             "taskCompletionType": "createItem",
             "taskParam": {
                 "itemModId": "sakastudio:moorestechAlphaMod",
                 "itemName": "stone tool"
             },
-            "summary": "石を集めて石器を作ろう",
 
-            "skitType": "backgroundSkit",
-            "fireSkitName": "木3個"
+            "tutorials": [
+                {
+                    "tutorialType": "mapObjectPin",
+                    "tutorialParam": {
+                        "mapObjectType" : "stone",
+                        "pinText" : "左クリックで石を採掘"
+                    }
+                }
+            ]
         },
         {
             "id": 1010,
             "prevId": 1000,
+            "summary": "木を3個手に入れよう",
+
+            "fireSkitType": "backgroundSkit",
+            "fireSkitName": "石斧作り",
+
             "taskCompletionType": "inInventoryItem",
             "taskParam": {
                 "itemModId": "sakastudio:moorestechAlphaMod",
                 "itemName": "wood",
                 "itemCount": 3
-            },
-            "summary": "木を3個手に入れよう",
-
-            "skitType": "backgroundSkit",
-            "fireSkitName": "石斧作り"
+            }
         },
         {
             "id": 1020,
             "prevId": 1010,
+            "summary": "木を3個手に入れよう",
+
+            "fireSkitType": "backgroundSkit",
+            "fireSkitName": "木3個",
+
             "taskCompletionType": "createItem",
             "taskParam": {
                 "itemModId": "sakastudio:moorestechAlphaMod",
                 "itemName": "stone ax"
-            },
-            "summary": "木を3個手に入れよう",
-
-            "skitType": "backgroundSkit",
-            "fireSkitName": "木3個"
+            }
         }
     ]
 }

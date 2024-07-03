@@ -29,7 +29,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot);
         }
         
-        public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.Inventory;
+        public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
         
         public bool IsAllowedToStartProcess
         {
@@ -63,7 +63,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             foreach (var item in recipe.ItemInputs)
                 for (var i = 0; i < InputSlot.Count; i++)
                 {
-                    if (_itemDataStoreService.Inventory[i].Id != item.Id || item.Count > InputSlot[i].Count) continue;
+                    if (_itemDataStoreService.InventoryItems[i].Id != item.Id || item.Count > InputSlot[i].Count) continue;
                     //アイテムを減らす
                     _itemDataStoreService.SetItem(i, InputSlot[i].SubItem(item.Count));
                     break;

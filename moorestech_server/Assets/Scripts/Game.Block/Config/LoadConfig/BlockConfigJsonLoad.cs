@@ -25,18 +25,21 @@ namespace Game.Block.Config.LoadConfig
             
             _generators = new Dictionary<string, ConfigParamGenerator>
             {
-                { VanillaBlockType.Machine, MachineBlockConfigParam.Generate },
+                { VanillaBlockType.ElectricMachine, MachineBlockConfigParam.Generate },
                 { VanillaBlockType.Block, NullBlockConfigParam.Generate },
                 { VanillaBlockType.BeltConveyor, BeltConveyorConfigParam.Generate },
                 { VanillaBlockType.ElectricPole, ElectricPoleConfigParam.Generate },
-                { VanillaBlockType.Generator, PowerGeneratorConfigParam.Generate },
-                { VanillaBlockType.Miner, MinerBlockConfigParam.Generate },
+                { VanillaBlockType.ElectricGenerator, PowerGeneratorConfigParam.Generate },
+                { VanillaBlockType.ElectricMiner, MinerBlockConfigParam.Generate },
                 { VanillaBlockType.Chest, ChestConfigParam.Generate },
+                
+                { VanillaBlockType.ItemShooter, ItemShooterConfigParam.Generate },
                 
                 { VanillaBlockType.Gear, GearConfigParam.Generate },
                 { VanillaBlockType.GearMachine, GearMachineConfigParam.Generate },
                 { VanillaBlockType.SimpleGearGenerator, SimpleGearGeneratorParam.Generate },
                 { VanillaBlockType.Shaft, ShaftConfigParam.Generate },
+                { VanillaBlockType.GearBeltConveyor, GearBeltConveyorConfigParam.Generate },
             };
         }
         

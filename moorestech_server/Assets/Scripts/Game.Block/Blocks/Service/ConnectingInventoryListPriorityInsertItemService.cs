@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.Service
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            IReadOnlyList<IBlockInventory> inventories = _blockConnectorComponent.ConnectTargets.Keys.ToArray();
+            IReadOnlyList<IBlockInventory> inventories = _blockConnectorComponent.ConnectedTargets.Keys.ToArray();
             
             for (var i = 0; i < inventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
                 lock (inventories)
@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Service
         private void AddIndex()
         {
             _index++;
-            if (_blockConnectorComponent.ConnectTargets.Count <= _index) _index = 0;
+            if (_blockConnectorComponent.ConnectedTargets.Count <= _index) _index = 0;
         }
     }
 }

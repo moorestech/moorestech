@@ -2,6 +2,7 @@ using System.Reflection;
 using Core.Inventory;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -24,7 +25,7 @@ namespace Tests.UnitTest.Core.Block
             
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var originalMiner = blockFactory.Create(MinerId, new BlockInstanceId(1), minerPosInfo);
-            var originalMinerComponent = originalMiner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
+            var originalMinerComponent = originalMiner.GetComponent<VanillaElectricMinerComponent>();
             var originalRemainingMillSecond = 350;
             
             var inventory =
@@ -42,7 +43,7 @@ namespace Tests.UnitTest.Core.Block
             
             
             var loadedMiner = blockFactory.Load(minerHash, new BlockInstanceId(1), json, minerPosInfo);
-            var loadedMinerComponent = loadedMiner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
+            var loadedMinerComponent = loadedMiner.GetComponent<VanillaElectricMinerComponent>();
             var loadedInventory =
                 (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)

@@ -1,4 +1,4 @@
-﻿using Client.Game.InGame.Chunk;
+﻿using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using MessagePack;

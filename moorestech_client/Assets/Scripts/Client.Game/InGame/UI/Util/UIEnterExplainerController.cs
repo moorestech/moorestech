@@ -49,7 +49,7 @@ namespace Client.Game.InGame.UI.Util
             }
             
             if (!_pointerStay || //ポインターから外れたので非表示
-                (_pointerStay && !displayEnable)) //ポインターからは外れてないけど非表示設定なったから非表示
+                _pointerStay && !displayEnable) //ポインターからは外れてないけど非表示設定なったから非表示
                 MouseCursorExplainer.Instance.Hide();
         }
         

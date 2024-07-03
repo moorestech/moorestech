@@ -21,12 +21,10 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
     {
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
-        
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         
-        private readonly int _infinityPower;
+        private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
@@ -57,12 +55,11 @@ namespace Game.Block.Blocks.PowerGenerator
             _currentFuelItemId = itemId;
             _remainingFuelTime = saveData.RemainingFuelTime;
             
-            for (int i = 0; i < saveData.Items.Count; i++)
+            for (var i = 0; i < saveData.Items.Count; i++)
             {
                 _itemDataStoreService.SetItem(i, saveData.Items[i].ToItem());
             }
         }
-        
         public BlockPositionInfo BlockPositionInfo { get; }
         
         public IItemStack InsertItem(IItemStack itemStack)
@@ -89,7 +86,6 @@ namespace Game.Block.Blocks.PowerGenerator
         public int GetSlotSize()
         {
             BlockException.CheckDestroy(this);
-            
             return _itemDataStoreService.GetSlotSize();
         }
         
@@ -102,7 +98,7 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 CurrentFuelItemHash = itemHash,
                 RemainingFuelTime = _remainingFuelTime,
-                Items = _itemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _itemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -112,20 +108,27 @@ namespace Game.Block.Blocks.PowerGenerator
         
         public bool IsDestroy { get; private set; }
         
-        public int OutputEnergy()
+        public ElectricPower OutputEnergy()
         {
             BlockException.CheckDestroy(this);
             
             if (_isInfinityPower) return _infinityPower;
             if (_fuelSettings.TryGetValue(_currentFuelItemId, out var fuelSetting)) return fuelSetting.Power;
             
-            return 0;
+            return new ElectricPower(0);
         }
         
         public void Destroy()
         {
             IsDestroy = true;
             _updateObservable.Dispose();
+        }
+        public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _itemDataStoreService.CreateCopiedItems();
         }
         
         
@@ -193,7 +196,7 @@ namespace Game.Block.Blocks.PowerGenerator
             for (var i = 0; i < _itemDataStoreService.GetSlotSize(); i++)
             {
                 //スロットに燃料がある場合
-                var slotItemId = _itemDataStoreService.Inventory[i].Id;
+                var slotItemId = _itemDataStoreService.InventoryItems[i].Id;
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
@@ -201,7 +204,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす
-                _itemDataStoreService.SetItem(i, _itemDataStoreService.Inventory[i].SubItem(1));
+                _itemDataStoreService.SetItem(i, _itemDataStoreService.InventoryItems[i].SubItem(1));
                 return;
             }
         }
@@ -221,10 +224,10 @@ namespace Game.Block.Blocks.PowerGenerator
         [JsonProperty("currentFuelItemHash")]
         public long CurrentFuelItemHash;
         
-        [JsonProperty("remainingFuelTime")]
-        public double RemainingFuelTime;
-        
         [JsonProperty("inventory")]
         public List<ItemStackJsonObject> Items;
+        
+        [JsonProperty("remainingFuelTime")]
+        public double RemainingFuelTime;
     }
 }

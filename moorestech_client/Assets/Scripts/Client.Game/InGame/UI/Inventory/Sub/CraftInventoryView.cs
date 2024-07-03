@@ -25,6 +25,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private CraftButton craftButton;
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
+        
+        [SerializeField] private TMP_Text itemNameText;
         [SerializeField] private TMP_Text recipeCountText;
         
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
@@ -143,7 +145,10 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 prevRecipeButton.interactable = _currentCraftingConfigInfos.Count != 1;
                 nextRecipeButton.interactable = _currentCraftingConfigInfos.Count != 1;
                 recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigInfos.Count}";
-                craftButton.UpdateInteractable(IsCraftable(craftingConfigInfo));
+                craftButton.SetInteractable(IsCraftable(craftingConfigInfo));
+                
+                var itemName = ServerContext.ItemConfig.GetItemConfig(craftingConfigInfo.ResultItem.Id).Name;
+                itemNameText.text = itemName;
             }
             
             #endregion

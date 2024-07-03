@@ -18,7 +18,9 @@ namespace Game.Block.Blocks.Chest
 {
     public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
-        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+        public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
+        public BlockInstanceId BlockInstanceId { get; }
+        public bool IsDestroy { get; private set; }
         
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
@@ -46,9 +48,6 @@ namespace Game.Block.Blocks.Chest
             }
         }
         
-        public BlockInstanceId BlockInstanceId { get; }
-        public bool IsDestroy { get; private set; }
-        
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
@@ -69,6 +68,10 @@ namespace Game.Block.Blocks.Chest
             
             return _itemDataStoreService.GetSlotSize();
         }
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            return _itemDataStoreService.CreateCopiedItems();
+        }
         
         public IItemStack GetItem(int slot)
         {
@@ -88,7 +91,7 @@ namespace Game.Block.Blocks.Chest
             BlockException.CheckDestroy(this);
             
             var itemJson = new List<ItemStackJsonObject>();
-            foreach (var item in _itemDataStoreService.Inventory)
+            foreach (var item in _itemDataStoreService.InventoryItems)
             {
                 itemJson.Add(new ItemStackJsonObject(item));
             }
@@ -141,9 +144,11 @@ namespace Game.Block.Blocks.Chest
         {
             BlockException.CheckDestroy(this);
             
-            for (var i = 0; i < _itemDataStoreService.Inventory.Count; i++)
-                _itemDataStoreService.SetItem(i,
-                    _connectInventoryService.InsertItem(_itemDataStoreService.Inventory[i]));
+            for (var i = 0; i < _itemDataStoreService.InventoryItems.Count; i++)
+            {
+                var setItem = _connectInventoryService.InsertItem(_itemDataStoreService.InventoryItems[i]);
+                _itemDataStoreService.SetItem(i, setItem);
+            }
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)

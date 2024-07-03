@@ -10,6 +10,6 @@
         PauseMenu,
         DeleteBar,
         Story,
-        PlaceBlock
+        PlaceBlock,
     }
 }

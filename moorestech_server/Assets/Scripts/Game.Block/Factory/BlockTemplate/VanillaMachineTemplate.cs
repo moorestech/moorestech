@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.EnergySystem;
 using Newtonsoft.Json;
 
 namespace Game.Block.Factory.BlockTemplate
@@ -51,7 +52,7 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
             var (input, output) = GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
             var machineParam = (MachineBlockConfigParam)config.Param;
             
@@ -73,9 +74,9 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
         }
         
-        public static(VanillaMachineInputInventory, VanillaMachineOutputInventory) GetDependencies(
-            BlockConfigData param, 
-            BlockInstanceId blockInstanceId, 
+        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetDependencies(
+            BlockConfigData param,
+            BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
@@ -96,18 +97,18 @@ namespace Game.Block.Factory.BlockTemplate
             string state,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            float requestPower)
+            ElectricPower requestPower)
         {
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
             
             var inputItems = jsonObject.InputSlot.Select(item => item.ToItem()).ToList();
-            for (int i = 0; i < inputItems.Count; i++)
+            for (var i = 0; i < inputItems.Count; i++)
             {
                 vanillaMachineInputInventory.SetItem(i, inputItems[i]);
             }
             
             var outputItems = jsonObject.OutputSlot.Select(item => item.ToItem()).ToList();
-            for (int i = 0; i < outputItems.Count; i++)
+            for (var i = 0; i < outputItems.Count; i++)
             {
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
             }

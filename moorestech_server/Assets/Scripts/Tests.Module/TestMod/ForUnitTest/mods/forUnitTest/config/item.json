@@ -76,15 +76,31 @@
     "maxStacks": 100
   },
   {
-    "name": "SmallLossPowerTestGear",
+    "name": "SmallRequireTorqueTestGear",
     "maxStacks": 100
   },
   {
-    "name": "BigLossPowerTestGear",
+    "name": "BigRequireTorqueTestGear",
     "maxStacks": 100
   },
   {
     "name": "InfinityTestSimpleGearGenerator",
+    "maxStacks": 100
+  },
+  {
+    "name": "StraightTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "DownTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "UpTestItemShooter",
+    "maxStacks": 100
+  },
+  {
+    "name": "GearBeltConveyor",
     "maxStacks": 100
   }
 ]

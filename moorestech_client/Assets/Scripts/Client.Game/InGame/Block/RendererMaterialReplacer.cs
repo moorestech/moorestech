@@ -45,7 +45,7 @@ namespace Client.Game.InGame.Block
                     mainTexture = mainTexture,
                     mainTextureOffset = material.mainTextureOffset,
                     mainTextureScale = material.mainTextureScale,
-                    color = mainColor
+                    color = mainColor,
                 };
                 
                 _replacedMaterials.Add(newMaterial);

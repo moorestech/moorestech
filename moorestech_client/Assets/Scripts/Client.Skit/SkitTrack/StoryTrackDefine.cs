@@ -16,7 +16,7 @@ namespace Client.Skit.SkitTrack
                 "Transition" => new TransitionTrack(),
                 "SelectionTrack" => new SelectionTrack(),
                 "Jump" => new JumpTrack(),
-                _ => null
+                _ => null,
             };
         }
     }

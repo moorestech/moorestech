@@ -224,19 +224,19 @@ namespace Client.Game.InGame.UI.Inventory.Element
         CursorExit,
         CursorMove,
         
-        DoubleClick
+        DoubleClick,
     }
     
     public enum ItemSlotType
     {
         Normal, // 通常のアイテム表示
-        NoneCross // アイテムが何もないクロス表示
+        NoneCross, // アイテムが何もないクロス表示
     }
     
     public enum ItemSlotFrameType
     {
         Normal,
         MachineSlot,
-        CraftRecipe
+        CraftRecipe,
     }
 }

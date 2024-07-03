@@ -4,6 +4,6 @@
     {
         MainInventory,
         GrabInventory,
-        BlockInventory
+        BlockInventory,
     }
 }

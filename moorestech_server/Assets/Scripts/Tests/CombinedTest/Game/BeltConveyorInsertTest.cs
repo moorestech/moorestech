@@ -2,6 +2,7 @@ using System;
 using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -17,7 +18,6 @@ namespace Tests.CombinedTest.Game
         public void TwoItemIoTest()
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.AddBlock(outputChest);
             
             //インプットチェストにアイテムを2つ入れる
-            var inputChestComponent = inputChest.ComponentManager.GetComponent<VanillaChestComponent>();
+            var inputChestComponent = inputChest.GetComponent<VanillaChestComponent>();
             inputChestComponent.SetItem(0, 1, 2);
             
             //ベルトコンベアのアイテムが出てから入るまでの6秒間アップデートする
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Game
             //アイテムが出ているか確認
             Assert.AreEqual(0, inputChestComponent.GetItem(0).Count);
             //アイテムが入っているか確認
-            var outputChestComponent = outputChest.ComponentManager.GetComponent<VanillaChestComponent>();
+            var outputChestComponent = outputChest.GetComponent<VanillaChestComponent>();
             Assert.AreEqual(2, outputChestComponent.GetItem(0).Count);
         }
     }

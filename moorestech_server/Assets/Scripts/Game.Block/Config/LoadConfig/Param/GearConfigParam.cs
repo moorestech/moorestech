@@ -7,25 +7,25 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class GearConfigParam : IBlockConfigParam
     {
-        public readonly float LossPower;
+        public readonly Torque RequireTorque;
         public readonly int TeethCount;
         
         public List<ConnectSettings> GearConnectSettings;
         
-        private GearConfigParam(int teethCount, float lossPower, List<ConnectSettings> gearConnectSettings)
+        private GearConfigParam(int teethCount, Torque requireTorque, List<ConnectSettings> gearConnectSettings)
         {
             TeethCount = teethCount;
             GearConnectSettings = gearConnectSettings;
-            LossPower = lossPower;
+            RequireTorque = requireTorque;
         }
         
         public static IBlockConfigParam Generate(dynamic blockParam, IItemConfig itemConfig)
         {
             int teethCount = blockParam.teethCount;
-            float lossPower = blockParam.lossPower;
+            float requireTorque = blockParam.requireTorque;
             
             var gearConnectSettings = BlockConfigJsonLoad.GetConnectSettings(blockParam, GearConnectConst.GearConnectOptionKey, GearConnectOptionLoader.Loader);
-            return new GearConfigParam(teethCount, lossPower, gearConnectSettings);
+            return new GearConfigParam(teethCount, new Torque(requireTorque), gearConnectSettings);
         }
     }
 }

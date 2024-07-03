@@ -41,18 +41,32 @@ namespace Client.Game.Sequence
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(packet);
             var challengeInfo = _challengeConfig.GetChallenge(message.CompletedChallengeId);
+            var nextIds = challengeInfo.NextIds;
             
-            if (challengeInfo.SkitType == ChallengeInfo.BackgroundSkitType)
-            {
-                var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == challengeInfo.FireSkitName);
-                backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset).Forget();
-            }
+            PlaySkit(nextIds).Forget();
             
             if (challengeInfo.NextIds.Count != 0)
             {
                 var nextId = challengeInfo.NextIds.First();
                 var nextChallenge = _challengeConfig.GetChallenge(nextId);
+                
                 currentChallengeSummary.text = nextChallenge.Summary;
+            }
+        }
+        
+        private async UniTask PlaySkit(List<int> nextIds)
+        {
+            foreach (var id in nextIds)
+            {
+                var challengeInfo = _challengeConfig.GetChallenge(id);
+                
+                if (challengeInfo.FireSkitType == ChallengeInfo.BackgroundSkitType)
+                {
+                    var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == challengeInfo.FireSkitName);
+                    if (challengeTextAsset == null) continue;
+                    
+                    await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
+                }
             }
         }
     }

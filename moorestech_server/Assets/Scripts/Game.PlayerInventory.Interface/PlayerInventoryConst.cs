@@ -21,7 +21,7 @@ namespace Game.PlayerInventory.Interface
             HotBarSlotToInventorySlot(5),
             HotBarSlotToInventorySlot(6),
             HotBarSlotToInventorySlot(7),
-            HotBarSlotToInventorySlot(8)
+            HotBarSlotToInventorySlot(8),
         };
         
         

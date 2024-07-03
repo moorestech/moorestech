@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[fromSlot],
                 LocalMoveInventoryType.Grab => GrabInventory,
-                _ => throw new ArgumentOutOfRangeException(nameof(from), from, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(from), from, null),
             };
             
             if (fromInvItem.Count < count) return;
@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 {
                     LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[toSlot],
                     LocalMoveInventoryType.Grab => GrabInventory,
-                    _ => throw new ArgumentOutOfRangeException(nameof(to), to, null)
+                    _ => throw new ArgumentOutOfRangeException(nameof(to), to, null),
                 };
                 var moveItem = itemStackFactory.Create(fromInvItem.Id, count);
                 
@@ -90,7 +90,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 {
                     LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo,
                     LocalMoveInventoryType.Grab => new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),
-                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null)
+                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }
             
@@ -117,6 +117,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
     public enum LocalMoveInventoryType
     {
         MainOrSub, //メインインベントリとサブインベントリの両方（ドラッグアンドドロップなどでは統一して扱うから
-        Grab //持ち手のインベントリ
+        Grab, //持ち手のインベントリ
     }
 }

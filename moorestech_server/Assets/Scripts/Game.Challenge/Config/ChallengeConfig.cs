@@ -49,7 +49,7 @@ namespace Game.Challenge
                     
                     int previousId = challenge.prevId;
                     string summary = challenge.summary;
-                    string skitType = challenge.skitType;
+                    string fireSkitType = challenge.fireSkitType;
                     string fireSkitName = challenge.fireSkitName;
                     
                     tmpChallenges.Add(id, new TmpChallengeInfo
@@ -59,8 +59,8 @@ namespace Game.Challenge
                         TaskCompletionType = taskCompletionType,
                         TaskParam = taskParam,
                         Summary = summary,
-                        SkitType = skitType,
-                        FireSkitName = fireSkitName
+                        FireSkitType = fireSkitType,
+                        FireSkitName = fireSkitName,
                     });
                 }
             }
@@ -76,14 +76,16 @@ namespace Game.Challenge
     
     public class TmpChallengeInfo
     {
-        public string FireSkitName;
         public int Id;
         public int PreviousId;
-        public string SkitType;
         
         public string Summary;
         
         public string TaskCompletionType;
         public IChallengeTaskParam TaskParam;
+        
+        public string FireSkitType;
+        public string FireSkitName;
+        
     }
 }

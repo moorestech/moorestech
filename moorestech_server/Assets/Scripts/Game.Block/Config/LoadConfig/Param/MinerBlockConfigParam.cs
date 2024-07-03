@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item.Interface.Config;
 using Game.Block.Interface.BlockConfig;
+using Game.EnergySystem;
 
 namespace Game.Block.Config.LoadConfig.Param
 {
@@ -8,9 +9,9 @@ namespace Game.Block.Config.LoadConfig.Param
     {
         public readonly List<MineItemSetting> MineItemSettings;
         public readonly int OutputSlot;
-        public readonly int RequiredPower;
+        public readonly ElectricPower RequiredPower;
         
-        private MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
+        private MinerBlockConfigParam(ElectricPower requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
         {
             RequiredPower = requiredPower;
             MineItemSettings = mineItemSettings;
@@ -33,7 +34,7 @@ namespace Game.Block.Config.LoadConfig.Param
                 oreSetting.Add(new MineItemSetting(time, itemId));
             }
             
-            return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);
+            return new MinerBlockConfigParam(new ElectricPower(requiredPower), oreSetting, outputSlot);
         }
     }
     

@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -23,12 +24,11 @@ namespace Tests.CombinedTest.Core
         public void UseFuelTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
             var powerGenerator = blockFactory.Create(PowerGeneratorId, new BlockInstanceId(10), posInfo);
-            var generatorComponent = powerGenerator.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
+            var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
             var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -91,12 +91,11 @@ namespace Tests.CombinedTest.Core
         public void InfinityGeneratorTet()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var blockFactory = ServerContext.BlockFactory;
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
             var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.InfinityGeneratorId, new BlockInstanceId(10), posInfo);
-            var generatorComponent = powerGenerator.ComponentManager.GetComponent<VanillaElectricGeneratorComponent>();
+            var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
             
             var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(ForUnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
@@ -105,7 +104,7 @@ namespace Tests.CombinedTest.Core
             GameUpdater.UpdateWithWait();
             
             //供給電力の確認
-            Assert.AreEqual(generatorConfigParam.InfinityPower, generatorComponent.OutputEnergy());
+            Assert.AreEqual(generatorConfigParam.InfinityPower, generatorComponent.OutputEnergy().AsPrimitive());
         }
     }
 }

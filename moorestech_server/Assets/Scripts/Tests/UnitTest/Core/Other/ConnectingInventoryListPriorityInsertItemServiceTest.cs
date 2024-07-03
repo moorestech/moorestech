@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Core.Other
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(null, null, componentPos);
             
-            var targets = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)inputConnectorComponent.ConnectTargets;
+            var targets = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)inputConnectorComponent.ConnectedTargets;
             
             foreach (var inventory in inventoryList) targets.Add(inventory, (null, null));
             

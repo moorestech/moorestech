@@ -4,6 +4,7 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,26 +37,26 @@ namespace Tests.CombinedTest.Game
             
             //ジェネレーターの供給が正しいか
             //Is the generator supply correct?
-            var generatorComponent = generator.ComponentManager.GetComponent<IGearGenerator>();
-            Assert.AreEqual(10.0f, generatorComponent.CurrentRpm);
+            var generatorComponent = generator.GetComponent<IGearGenerator>();
+            Assert.AreEqual(10.0f, generatorComponent.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, generatorComponent.GenerateIsClockwise);
             
             //シャフトの回転は正しいか
             //Is the rotation of the shaft correct?
-            var shaftComponent = shaft.ComponentManager.GetComponent<GearEnergyTransformer>();
-            Assert.AreEqual(10.0f, shaftComponent.CurrentRpm);
+            var shaftComponent = shaft.GetComponent<GearEnergyTransformer>();
+            Assert.AreEqual(10.0f, shaftComponent.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, shaftComponent.IsCurrentClockwise);
             
             //BigGearの回転は正しいか
             //Is the rotation of BigGear correct?
-            var bigGearComponent = bigGear.ComponentManager.GetComponent<GearComponent>();
-            Assert.AreEqual(10.0f, bigGearComponent.CurrentRpm);
+            var bigGearComponent = bigGear.GetComponent<GearComponent>();
+            Assert.AreEqual(10.0f, bigGearComponent.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, bigGearComponent.IsCurrentClockwise);
             
             //SmallGearの回転は正しいか
             //Is the rotation of SmallGear correct?
-            var smallGearComponent = smallGear.ComponentManager.GetComponent<GearComponent>();
-            Assert.AreEqual(20.0f, smallGearComponent.CurrentRpm); // ギア比2:1 Gear ratio 2:1
+            var smallGearComponent = smallGear.GetComponent<GearComponent>();
+            Assert.AreEqual(20.0f, smallGearComponent.CurrentRpm.AsPrimitive()); // ギア比2:1 Gear ratio 2:1
             Assert.AreEqual(false, smallGearComponent.IsCurrentClockwise); // 回転が反転する Rotation is reversed
         }
         
@@ -87,11 +88,11 @@ namespace Tests.CombinedTest.Game
             var smallGearCBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.North);
             var smallGearDBlock = AddBlock(ForUnitTestModBlockId.SmallGear, gearPositionD, BlockDirection.North);
             
-            var generator = generatorBlock.ComponentManager.GetComponent<IGearGenerator>();
-            var smallGearA = smallGearABlock.ComponentManager.GetComponent<GearComponent>();
-            var smallGearB = smallGearBBlock.ComponentManager.GetComponent<GearComponent>();
-            var smallGearC = smallGearCBlock.ComponentManager.GetComponent<GearComponent>();
-            var smallGearD = smallGearDBlock.ComponentManager.GetComponent<GearComponent>();
+            var generator = generatorBlock.GetComponent<IGearGenerator>();
+            var smallGearA = smallGearABlock.GetComponent<GearComponent>();
+            var smallGearB = smallGearBBlock.GetComponent<GearComponent>();
+            var smallGearC = smallGearCBlock.GetComponent<GearComponent>();
+            var smallGearD = smallGearDBlock.GetComponent<GearComponent>();
             
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
@@ -99,23 +100,23 @@ namespace Tests.CombinedTest.Game
             gearNetwork.ManualUpdate();
             
             // Generatorの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, generator.CurrentRpm);
+            Assert.AreEqual(rpm, generator.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, generator.IsCurrentClockwise);
             
             // smallGearAの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearA.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearA.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, smallGearA.IsCurrentClockwise);
             
             // smallGearBの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearB.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearB.CurrentRpm.AsPrimitive());
             Assert.AreEqual(false, smallGearB.IsCurrentClockwise);
             
             // smallGearCの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearC.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearC.CurrentRpm.AsPrimitive());
             Assert.AreEqual(true, smallGearC.IsCurrentClockwise);
             
             // smallGearDの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearD.CurrentRpm);
+            Assert.AreEqual(rpm, smallGearD.CurrentRpm.AsPrimitive());
             Assert.AreEqual(false, smallGearD.IsCurrentClockwise);
         }
         
@@ -201,16 +202,16 @@ namespace Tests.CombinedTest.Game
             var generatorGearPosition = new Vector3Int(2, 0, 1);
             var smallGearBPosition = new Vector3Int(3, 0, 1);
             
-            var fastGenerator = AddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, fastGeneratorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
+            var fastGenerator = AddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, fastGeneratorPosition, BlockDirection.North).GetComponent<IGearGenerator>();
             AddBlock(ForUnitTestModBlockId.SmallGear, fastGeneratorGearPosition, BlockDirection.North);
             
             // SmallGearA
-            var smallGearA = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            var smallGearA = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North).GetComponent<GearComponent>();
             
-            var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
+            var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).GetComponent<IGearGenerator>();
             AddBlock(ForUnitTestModBlockId.SmallGear, generatorGearPosition, BlockDirection.North);
             
-            var smallGearB = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            var smallGearB = AddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North).GetComponent<GearComponent>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
@@ -238,10 +239,10 @@ namespace Tests.CombinedTest.Game
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(1, 0, 1);
             
-            var generator1 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator1Position, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var generator2 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator2Position, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear1 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear2 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var generator1 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator1Position, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var generator2 = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator2Position, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
@@ -267,18 +268,18 @@ namespace Tests.CombinedTest.Game
             var gearPosition2 = new Vector3Int(1, 0, 1);
             var gearPosition3 = new Vector3Int(2, 0, 1);
             
-            var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear2 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition3, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(10, gear1.CurrentPower);
-            Assert.AreEqual(10, gear2.CurrentPower);
-            Assert.AreEqual(10, gear3.CurrentPower);
+            Assert.AreEqual(10, gear1.CurrentPower.AsPrimitive());
+            Assert.AreEqual(10, gear2.CurrentPower.AsPrimitive());
+            Assert.AreEqual(10, gear3.CurrentPower.AsPrimitive());
         }
         
         [Test]
@@ -288,7 +289,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var generatorPosition = new Vector3Int(0, 0, 0);
-            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North);
+            var generator = AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).GetComponent<SimpleGearGeneratorComponent>();
             
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(0, 0, 2);
@@ -297,31 +298,31 @@ namespace Tests.CombinedTest.Game
             var gearPosition5 = new Vector3Int(2, 0, 3);
             var gearPosition6 = new Vector3Int(3, 0, 3);
             
-            var gear1 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear2 = AddBlock(ForUnitTestModBlockId.BigLossPowerGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear3 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear4 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition4, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear5 = AddBlock(ForUnitTestModBlockId.BigLossPowerGear, gearPosition5, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
-            var gear6 = AddBlock(ForUnitTestModBlockId.SmallLossPowerGear, gearPosition6, BlockDirection.North).ComponentManager.GetComponent<IGearEnergyTransformer>();
+            var gear1 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition1, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear2 = AddBlock(ForUnitTestModBlockId.BigRequireTorqueGear, gearPosition2, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear3 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition3, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear4 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition4, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear5 = AddBlock(ForUnitTestModBlockId.BigRequireTorqueGear, gearPosition5, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
+            var gear6 = AddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition6, BlockDirection.North).GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(5, gear1.CurrentRpm);
-            Assert.AreEqual(5, gear2.CurrentRpm);
-            Assert.AreEqual(0.25f, gear1.CurrentTorque);
-            Assert.AreEqual(0.25f, gear2.CurrentTorque);
+            Assert.AreEqual(5, gear1.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(5, gear2.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.5f, gear1.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.5f, gear2.CurrentTorque.AsPrimitive());
             
-            Assert.AreEqual(10, gear3.CurrentRpm);
-            Assert.AreEqual(10, gear4.CurrentRpm);
-            Assert.AreEqual(10, gear5.CurrentRpm);
-            Assert.AreEqual(0.125f, gear3.CurrentTorque);
-            Assert.AreEqual(0.125f, gear4.CurrentTorque);
-            Assert.AreEqual(0.125f, gear5.CurrentTorque);
+            Assert.AreEqual(10, gear3.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(10, gear4.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(10, gear5.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.25f, gear3.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear4.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear5.CurrentTorque.AsPrimitive());
             
-            Assert.AreEqual(20, gear6.CurrentRpm);
-            Assert.AreEqual(0.125f / 2f, gear6.CurrentTorque);
+            Assert.AreEqual(20, gear6.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.125f, gear6.CurrentTorque.AsPrimitive());
         }
         
         [Test]
@@ -336,13 +337,13 @@ namespace Tests.CombinedTest.Game
             var gearPosition3 = new Vector3Int(3, 0, 0);
             
             // 2つのネットワークを作成
-            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).ComponentManager.GetComponent<IGearGenerator>();
-            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
-            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            AddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North).GetComponent<IGearGenerator>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North).GetComponent<GearComponent>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North).GetComponent<GearComponent>();
             Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークをマージ
-            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North).ComponentManager.GetComponent<GearComponent>();
+            AddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North).GetComponent<GearComponent>();
             Assert.AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークの分離のテスト
@@ -362,15 +363,15 @@ namespace Tests.CombinedTest.Game
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
         {
-            var gear1Connector = gear1.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
-            var gear1Transform = gear1.ComponentManager.GetComponent<IGearEnergyTransformer>();
+            BlockConnectorComponent<IGearEnergyTransformer> gear1Connector = gear1.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var gear1Transform = gear1.GetComponent<IGearEnergyTransformer>();
             
-            var gear2Connector = gear2.ComponentManager.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
-            var gear2Transform = gear2.ComponentManager.GetComponent<IGearEnergyTransformer>();
+            BlockConnectorComponent<IGearEnergyTransformer> gear2Connector = gear2.GetComponent<BlockConnectorComponent<IGearEnergyTransformer>>();
+            var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectedTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectedTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
         }
     }
 }

@@ -113,7 +113,7 @@ namespace Game.Challenge
                 result.Add(new ChallengeJsonObject
                 {
                     PlayerId = playerId,
-                    CompletedIds = completedIds
+                    CompletedIds = completedIds,
                 });
             }
             

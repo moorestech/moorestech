@@ -88,6 +88,6 @@ namespace Client.Game.Common
     {
         InGame,
         Skit,
-        CutScene
+        CutScene,
     }
 }

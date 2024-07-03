@@ -8,6 +8,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
@@ -28,7 +29,6 @@ namespace Tests.CombinedTest.Core
         public void MiningTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Core
             var (mapVein, pos) = GetMapVein();
             worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, new BlockInstanceId(1), new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
             var miner = worldBlockDatastore.GetBlock(pos);
-            var minerComponent = miner.ComponentManager.GetComponent<VanillaElectricMinerComponent>();
+            var minerComponent = miner.GetComponent<VanillaElectricMinerComponent>();
             
             var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
@@ -47,13 +47,13 @@ namespace Tests.CombinedTest.Core
             var dummyInventory = new DummyBlockInventory();
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
-            var minerConnectors = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)miner.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectTargets;
+            var minerConnectors = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)miner.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             minerConnectors.Add(dummyInventory, (null, null));
             
             //電力の設定
             var segment = new EnergySegment();
-            segment.AddEnergyConsumer(miner.ComponentManager.GetComponent<IElectricConsumer>());
-            segment.AddGenerator(new TestElectricGenerator(10000, new BlockInstanceId(10)));
+            segment.AddEnergyConsumer(miner.GetComponent<IElectricConsumer>());
+            segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             
             var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);
             
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Core
             while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石2個が残っているかチェック
-            var outputSlot = miner.ComponentManager.GetComponent<VanillaElectricMinerComponent>().Items[0];
+            var outputSlot = miner.GetComponent<VanillaElectricMinerComponent>().InventoryItems[0];
             Assert.AreEqual(miningItemId, outputSlot.Id);
             Assert.AreEqual(2, outputSlot.Count);
             

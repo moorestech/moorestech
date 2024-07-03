@@ -9,6 +9,7 @@ namespace Client.Game.InGame.Control
 {
     public class InGameCameraController : MonoBehaviour
     {
+        public Vector3 Position => transform.position;
         public Vector3 CameraEulerAngle => transform.rotation.eulerAngles;
         public float CameraDistance => _cinemachineFraming.m_CameraDistance;
         

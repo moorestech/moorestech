@@ -1,8 +1,8 @@
 ﻿{
   "Blocks": [
     {
-      "name": "TestMachine",
-      "type": "Machine",
+      "name": "TestElectricMachine",
+      "type": "ElectricMachine",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
       "size": {
@@ -150,8 +150,8 @@
       }
     },
     {
-      "name": "TestGenerator",
-      "type": "Generator",
+      "name": "TestElectricGenerator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test5",
       "size": {
@@ -222,8 +222,8 @@
       }
     },
     {
-      "name": "TestMiner",
-      "type": "Miner",
+      "name": "TestElectricMiner",
+      "type": "ElectricMiner",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test6",
       "size": {
@@ -342,8 +342,8 @@
       }
     },
     {
-      "name": "TestInfinityGenerator",
-      "type": "Generator",
+      "name": "TestInfinityElectricGenerator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test8",
       "size": {
@@ -402,7 +402,7 @@
     },
     {
       "name": "MultiBlock1",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test9",
       "size": {
@@ -461,7 +461,7 @@
     },
     {
       "name": "MultiBlock2",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test10",
       "size": {
@@ -510,7 +510,7 @@
     },
     {
       "name": "MultiBlock3",
-      "type": "Generator",
+      "type": "ElectricGenerator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test11",
       "size": {
@@ -579,7 +579,7 @@
       },
       "param": {
         "teethCount": 10,
-        "lossPower": 0,
+        "requireTorque": 0,
         "gearConnects": [
           {
             "offset": {
@@ -650,7 +650,7 @@
       },
       "param": {
         "teethCount": 20,
-        "lossPower": 0,
+        "requireTorque": 0,
         "gearConnects": [
           {
             "offset": {
@@ -756,7 +756,7 @@
         "z": 1
       },
       "param": {
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "gearConnects": [
           {
             "offset": {
@@ -797,7 +797,7 @@
         "inputSlot": 2,
         "outputSlot": 3,
         "teethCount": 10,
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "requiredRpm": 10,
         "requiredTorque": 1,
         "gearConnects": [
@@ -840,7 +840,7 @@
         "teethCount": 10,
         "generateRpm": 10,
         "generateTorque": 3,
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "gearConnects": [
           {
             "offset": {
@@ -891,7 +891,7 @@
         "teethCount": 10,
         "generateRpm": 20,
         "generateTorque": 1,
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "gearConnects": [
           {
             "offset": {
@@ -929,10 +929,10 @@
       }
     },
     {
-      "name": "SmallLossPowerTestGear",
+      "name": "SmallRequireTorqueTestGear",
       "type": "Gear",
       "itemModId": "Test Author:forUniTest",
-      "itemName": "SmallLossPowerTestGear",
+      "itemName": "SmallRequireTorqueTestGear",
       "size": {
         "x": 1,
         "y": 1,
@@ -940,7 +940,7 @@
       },
       "param": {
         "teethCount": 10,
-        "lossPower": 1,
+        "requireTorque": 1,
         "gearConnects": [
           {
             "offset": {
@@ -1000,10 +1000,10 @@
       }
     },
     {
-      "name": "BigLossPowerTestGear",
+      "name": "BigRequireTorqueTestGear",
       "type": "Gear",
       "itemModId": "Test Author:forUniTest",
-      "itemName": "BigLossPowerTestGear",
+      "itemName": "BigRequireTorqueTestGear",
       "size": {
         "x": 1,
         "y": 1,
@@ -1011,7 +1011,7 @@
       },
       "param": {
         "teethCount": 20,
-        "lossPower": 1,
+        "requireTorque": 1,
         "gearConnects": [
           {
             "offset": {
@@ -1084,7 +1084,7 @@
         "teethCount": 10,
         "generateRpm": 10,
         "generateTorque": 1000000,
-        "lossPower": 0.1,
+        "requireTorque": 0.1,
         "gearConnects": [
           {
             "offset": {
@@ -1119,6 +1119,229 @@
             }
           }
         ]
+      }
+    },
+    {
+      "name": "GearBeltConveyor",
+      "type": "GearBeltConveyor",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "GearBeltConveyor",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "gearConnects": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "directions": [
+              {
+                "x": 1,
+                "y": 0,
+                "z": 0
+              },
+              {
+                "x": -1,
+                "y": 0,
+                "z": 0
+              }
+            ],
+            "option": {
+              "isReverse": false
+            }
+          }
+        ],
+        "slot": 4,
+        "beltConveyorSpeed": 0.01,
+        "requiredTorque": 1
+      }
+    },
+    {
+      "name": "StraightTestItemShooter",
+      "type": "ItemShooter",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "StraightTestItemShooter",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "inventoryItemNum": 4,
+        "initialShootSpeed": 1,
+        "itemShootSpeed": 1,
+        "acceleration": -0.2,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "x": -1,
+                  "y": 0,
+                  "z": 0
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "DownTestItemShooter",
+      "type": "ItemShooter",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "DownTestItemShooter",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "inventoryItemNum": 4,
+        "initialShootSpeed": 1,
+        "itemShootSpeed": 1,
+        "acceleration": 0.7,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 1,
+                  "z": -1
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": 1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "UpTestItemShooter",
+      "type": "ItemShooter",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "UpTestItemShooter",
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "param": {
+        "inventoryItemNum": 4,
+        "initialShootSpeed": 1,
+        "itemShootSpeed": 1,
+        "acceleration": -0.9,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "z": -1
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "z": -1
+                }
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "directions": [
+                {
+                  "x": 0,
+                  "y": 1,
+                  "z": 1
+                }
+              ]
+            }
+          ]
+        }
       }
     }
   ]

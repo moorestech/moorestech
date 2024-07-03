@@ -9,9 +9,11 @@ namespace Core.Inventory
     /// </summary>
     public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
+        public IReadOnlyList<IItemStack> InventoryItems => _inventory;
+        private readonly List<IItemStack> _inventory;
+        
         public delegate void InventoryUpdate(int slot, IItemStack itemStack);
         
-        private readonly List<IItemStack> _inventory;
         private readonly IItemStackFactory _itemStackFactory;
         private readonly InventoryUpdate _onInventoryUpdate;
         
@@ -23,11 +25,6 @@ namespace Core.Inventory
             _inventory = new List<IItemStack>();
             for (var i = 0; i < slotNumber; i++) _inventory.Add(_itemStackFactory.CreatEmpty());
         }
-        
-        public bool IsDestroy { get; }
-        
-        public IReadOnlyList<IItemStack> Inventory => _inventory;
-        public ReadOnlyCollection<IItemStack> Items => new(_inventory);
         
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
@@ -42,6 +39,11 @@ namespace Core.Inventory
         public int GetSlotSize()
         {
             return _inventory.Count;
+        }
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            return new(_inventory);
         }
         
         public IItemStack GetItem(int slot)

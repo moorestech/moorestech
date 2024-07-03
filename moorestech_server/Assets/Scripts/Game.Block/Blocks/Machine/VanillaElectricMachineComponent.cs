@@ -26,9 +26,9 @@ namespace Game.Block.Blocks.Machine
         
         #region IBlockElectric implementation
         
-        public float RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
+        public ElectricPower RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
         
-        public void SupplyEnergy(int power)
+        public void SupplyEnergy(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
             

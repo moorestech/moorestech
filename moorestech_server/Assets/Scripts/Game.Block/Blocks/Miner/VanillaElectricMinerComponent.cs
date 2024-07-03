@@ -26,10 +26,6 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
     {
-        public BlockInstanceId BlockInstanceId { get; }
-        public bool IsDestroy { get; private set; }
-        public float RequestEnergy { get; }
-        
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -39,7 +35,7 @@ namespace Game.Block.Blocks.Miner
         
         private readonly IDisposable _updateObservable;
         
-        private int _currentPower;
+        private ElectricPower _currentPower;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
         private int _defaultMiningTime = int.MaxValue;
@@ -47,7 +43,7 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private int _remainingMillSecond = int.MaxValue;
         
-        public VanillaElectricMinerComponent(int blockId, BlockInstanceId blockInstanceId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(int blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
             BlockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
@@ -83,7 +79,7 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaElectricMinerComponent(string saveData, int blockId, BlockInstanceId blockInstanceId, int requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(string saveData, int blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
             : this(blockId, blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
@@ -113,7 +109,6 @@ namespace Game.Block.Blocks.Miner
         public int GetSlotSize()
         {
             BlockException.CheckDestroy(this);
-            
             return _openableInventoryItemDataStoreService.GetSlotSize();
         }
         
@@ -124,7 +119,7 @@ namespace Game.Block.Blocks.Miner
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
                 RemainingMillSecond = _remainingMillSecond,
-                Items = _openableInventoryItemDataStoreService.Inventory.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -135,13 +130,16 @@ namespace Game.Block.Blocks.Miner
         public BlockState GetBlockState()
         {
             var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
-            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
+            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate));
             var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
             return state;
         }
+        public BlockInstanceId BlockInstanceId { get; }
+        public bool IsDestroy { get; private set; }
+        public ElectricPower RequestEnergy { get; }
         
         
-        public void SupplyEnergy(int power)
+        public void SupplyEnergy(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
             
@@ -193,7 +191,7 @@ namespace Game.Block.Blocks.Miner
                     _openableInventoryItemDataStoreService.InsertItem(_miningItems);
                 }
                 
-                _currentPower = 0;
+                _currentPower = new ElectricPower(0);
                 InsertConnectInventory();
             }
             
@@ -228,9 +226,9 @@ namespace Game.Block.Blocks.Miner
             {
                 BlockException.CheckDestroy(this);
                 
-                for (var i = 0; i < _openableInventoryItemDataStoreService.Items.Count; i++)
+                for (var i = 0; i < _openableInventoryItemDataStoreService.InventoryItems.Count; i++)
                 {
-                    var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.Items[i]);
+                    var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.InventoryItems[i]);
                     _openableInventoryItemDataStoreService.SetItem(i, insertedItem);
                 }
             }
@@ -248,7 +246,7 @@ namespace Game.Block.Blocks.Miner
         
         #region Implimantion IOpenableInventory
         
-        public ReadOnlyCollection<IItemStack> Items => _openableInventoryItemDataStoreService.Items;
+        public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryItemDataStoreService.InventoryItems;
         
         public IItemStack ReplaceItem(int slot, int itemId, int count)
         {
@@ -299,6 +297,12 @@ namespace Game.Block.Blocks.Miner
             return _openableInventoryItemDataStoreService.ReplaceItem(slot, itemStack);
         }
         
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _openableInventoryItemDataStoreService.CreateCopiedItems();
+        }
+        
         #endregion
     }
     
@@ -333,10 +337,9 @@ namespace Game.Block.Blocks.Miner
     
     public class VanillaElectricMinerSaveJsonObject
     {
-        [JsonProperty("remainingMillSecond")]
-        public int RemainingMillSecond;
-        
         [JsonProperty("items")]
         public List<ItemStackJsonObject> Items;
+        [JsonProperty("remainingMillSecond")]
+        public int RemainingMillSecond;
     }
 }

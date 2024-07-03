@@ -49,11 +49,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: de5218fda4721704fb2c69f48ecd23f8, type: 3}
+        m_Texture: {fileID: 2800000, guid: d00d8da07645fe642910ac353018f5ba, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: de5218fda4721704fb2c69f48ecd23f8, type: 3}
+        m_Texture: {fileID: 2800000, guid: d00d8da07645fe642910ac353018f5ba, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Bump2ndMap:
@@ -165,7 +165,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: de5218fda4721704fb2c69f48ecd23f8, type: 3}
+        m_Texture: {fileID: 2800000, guid: d00d8da07645fe642910ac353018f5ba, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MatCap2ndBlendMask:
@@ -377,7 +377,7 @@ Material:
     - _EmissionParallaxDepth: 0
     - _EmissionUseGrad: 0
     - _FlipNormal: 0
-    - _GSAAStrength: 0
+    - _GSAAStrength: 1
     - _GlitterAngleRandomize: 0
     - _GlitterApplyShape: 0
     - _GlitterApplyTransparency: 1
@@ -497,7 +497,7 @@ Material:
     - _OutlineBlendOpFA: 4
     - _OutlineColorMask: 15
     - _OutlineCull: 1
-    - _OutlineDeleteMesh: 0
+    - _OutlineDeleteMesh: 1
     - _OutlineDisableInVR: 0
     - _OutlineDstBlend: 0
     - _OutlineDstBlendAlpha: 10
@@ -525,24 +525,24 @@ Material:
     - _OutlineVectorScale: 1
     - _OutlineVectorUVMode: 0
     - _OutlineVertexR2Width: 0
-    - _OutlineWidth: 0.05
+    - _OutlineWidth: 0.035
     - _OutlineZBias: 0
     - _OutlineZClip: 1
     - _OutlineZTest: 2
     - _OutlineZWrite: 1
     - _Parallax: 0.02
     - _ParallaxOffset: 0.5
-    - _Reflectance: 0.04
+    - _Reflectance: 0
     - _ReflectionApplyTransparency: 1
     - _ReflectionBlendMode: 1
     - _ReflectionCubeEnableLighting: 1
     - _ReflectionCubeOverride: 0
-    - _ReflectionNormalStrength: 1
+    - _ReflectionNormalStrength: 0
     - _RimApplyTransparency: 1
     - _RimBackfaceMask: 1
     - _RimBlendMode: 1
-    - _RimBlur: 0.65
-    - _RimBorder: 0.5
+    - _RimBlur: 0.636
+    - _RimBorder: 0.514
     - _RimDirRange: 0
     - _RimDirStrength: 0.025
     - _RimEnableLighting: 1
@@ -556,7 +556,7 @@ Material:
     - _RimShadeBorder: 0.5
     - _RimShadeFresnelPower: 1
     - _RimShadeNormalStrength: 1
-    - _RimShadowMask: 0.5
+    - _RimShadowMask: 1
     - _RimVRParallaxStrength: 1
     - _Shadow2ndBlur: 0.1
     - _Shadow2ndBorder: 0.15
@@ -566,7 +566,7 @@ Material:
     - _Shadow3rdBorder: 0.25
     - _Shadow3rdNormalStrength: 1
     - _Shadow3rdReceive: 0
-    - _ShadowBlur: 0.158
+    - _ShadowBlur: 0.047
     - _ShadowBlurMaskLOD: 0
     - _ShadowBorder: 0.518
     - _ShadowBorderMaskLOD: 0
@@ -583,12 +583,12 @@ Material:
     - _ShadowStrength: 1
     - _ShadowStrengthMaskLOD: 0
     - _ShiftBackfaceUV: 0
-    - _Smoothness: 1
+    - _Smoothness: 0.917
     - _SmoothnessTextureChannel: 0
-    - _SpecularBlur: 0
-    - _SpecularBorder: 0.5
+    - _SpecularBlur: 0.972
+    - _SpecularBorder: 0
     - _SpecularHighlights: 1
-    - _SpecularNormalStrength: 1
+    - _SpecularNormalStrength: 0.841
     - _SpecularToon: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
@@ -596,7 +596,7 @@ Material:
     - _SrcBlendFA: 1
     - _StencilComp: 8
     - _StencilFail: 0
-    - _StencilPass: 0
+    - _StencilPass: 2
     - _StencilReadMask: 255
     - _StencilRef: 0
     - _StencilWriteMask: 255
@@ -644,7 +644,7 @@ Material:
     - _UseOutline: 0
     - _UsePOM: 0
     - _UseParallax: 0
-    - _UseReflection: 0
+    - _UseReflection: 1
     - _UseRim: 1
     - _UseRimShade: 0
     - _UseShadow: 1
@@ -718,12 +718,12 @@ Material:
     - _MatCapBlendUV1: {r: 0, g: 0, b: 0, a: 0}
     - _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineColor: {r: 0.41509432, g: 0.21608967, b: 0, a: 1}
-    - _OutlineLitColor: {r: 1, g: 0.19999996, b: 0, a: 0}
+    - _OutlineLitColor: {r: 1, g: 0.19999963, b: 0, a: 0}
     - _OutlineTexHSVG: {r: 0, g: 1, b: 1, a: 1}
     - _OutlineTex_ScrollRotate: {r: 0, g: 0, b: 0, a: 0}
-    - _ReflectionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ReflectionColor: {r: 0.5283019, g: 0.5283019, b: 0.5283019, a: 0.454}
     - _ReflectionCubeColor: {r: 0, g: 0, b: 0, a: 1}
-    - _RimColor: {r: 0.65999997, g: 0.5, b: 0.47999996, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _RimIndirColor: {r: 1, g: 1, b: 1, a: 1}
     - _RimShadeColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _Shadow2ndColor: {r: 0.68, g: 0.65999997, b: 0.78999996, a: 1}

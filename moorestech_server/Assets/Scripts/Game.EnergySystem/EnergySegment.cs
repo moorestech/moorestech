@@ -28,20 +28,20 @@ namespace Game.EnergySystem
         private void Update()
         {
             //供給されてる合計エネルギー量の算出
-            var powers = 0;
+            var powers = new ElectricPower(0);
             foreach (var key in _generators.Keys) powers += _generators[key].OutputEnergy();
             
             //エネルギーの需要量の算出
-            var requester = 0f;
+            var requester = new ElectricPower(0);
             foreach (var key in _consumers.Keys) requester += _consumers[key].RequestEnergy;
             
             //エネルギー供給の割合の算出
-            var powerRate = powers / (double)requester;
-            if (1 < powerRate) powerRate = 1;
+            var powerRate = powers / requester;
+            if (1 < powerRate.AsPrimitive()) powerRate = new ElectricPower(1);
             
             //エネルギーを供給
             foreach (var key in _consumers.Keys)
-                _consumers[key].SupplyEnergy((int)(_consumers[key].RequestEnergy * powerRate));
+                _consumers[key].SupplyEnergy(_consumers[key].RequestEnergy * powerRate);
         }
         
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)

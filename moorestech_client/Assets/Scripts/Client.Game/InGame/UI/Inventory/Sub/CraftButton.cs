@@ -11,14 +11,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private const float TmpDuration = 5; //TODO クラフト時間を取得するようにする
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private Button button;
+        
         [SerializeField] private RectMask2D mask;
-        private readonly Subject<Unit> _onCraftFinishSubject = new();
+        [SerializeField] private float filledPadding = 13.2f;
+        [SerializeField] private float unfilledPadding = 89.3f;
         
         private float _buttonDownElapsed;
         private bool _isButtonDown;
         private bool _isCursorStay = true;
         
         public IObservable<Unit> OnCraftFinish => _onCraftFinishSubject;
+        private readonly Subject<Unit> _onCraftFinishSubject = new();
         
         private void Awake()
         {
@@ -49,16 +52,23 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 _onCraftFinishSubject.OnNext(Unit.Default);
             }
             
-            var percent = Mathf.Clamp(_buttonDownElapsed, 0, TmpDuration) / TmpDuration;
-            UpdateMaskFill(percent);
+            if (_isButtonDown)
+            {
+                var percent = Mathf.Clamp(_buttonDownElapsed, 0, TmpDuration) / TmpDuration;
+                UpdateMaskFill(percent);
+            }
+            else
+            {
+                mask.padding = new Vector4(unfilledPadding, 0, 0, 0);
+            }
+            
             
             #region Internal
             
             void UpdateMaskFill(float percent)
             {
-                var maxWidth = rectTransform.rect.width;
-                var p = maxWidth * (1f - percent);
-                mask.padding = new Vector4(0, 0, p, 0);
+                var p = Mathf.Lerp(filledPadding, unfilledPadding, percent);
+                mask.padding = new Vector4(p, 0, 0, 0);
             }
             
             #endregion
@@ -69,7 +79,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             _onCraftFinishSubject.Dispose();
         }
         
-        public void UpdateInteractable(bool interactable)
+        public void SetInteractable(bool interactable)
         {
             button.interactable = interactable;
         }

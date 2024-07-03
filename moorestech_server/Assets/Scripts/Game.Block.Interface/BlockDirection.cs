@@ -23,7 +23,7 @@ namespace Game.Block.Interface
         DownNorth,
         DownEast,
         DownSouth,
-        DownWest
+        DownWest,
     }
     
     public delegate Vector3Int BlockPosConvertAction(Vector3Int pos);

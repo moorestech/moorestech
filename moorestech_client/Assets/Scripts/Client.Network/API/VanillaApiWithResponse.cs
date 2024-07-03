@@ -8,15 +8,12 @@ using Game.Challenge;
 using Game.Context;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.Const;
-using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Network.API
 {
     public class VanillaApiWithResponse
     {
-        private readonly List<Vector2Int> _getChunkPoss = new();
         private readonly IItemStackFactory _itemStackFactory;
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
@@ -26,11 +23,6 @@ namespace Client.Network.API
             _itemStackFactory = ServerContext.ItemStackFactory;
             _packetExchangeManager = packetExchangeManager;
             _playerConnectionSetting = playerConnectionSetting;
-            
-            var getChunkSize = 5;
-            for (var i = -getChunkSize; i <= getChunkSize; i++)
-            for (var j = -getChunkSize; j <= getChunkSize; j++)
-                _getChunkPoss.Add(new Vector2Int(i * ChunkResponseConst.ChunkSize, j * ChunkResponseConst.ChunkSize));
         }
         
         public async UniTask<InitialHandshakeResponse> InitialHandShake(int playerId, CancellationToken ct)
@@ -40,15 +32,15 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<ResponseInitialHandshakeMessagePack>(request, ct);
             
             List<MapObjectsInfoMessagePack> mapObjects = null;
-            List<ChunkResponse> chunk = null;
+            WorldDataResponse worldData = null;
             PlayerInventoryResponse inventory = null;
             ChallengeResponse challenge = null;
             List<ChangeBlockStateMessagePack> blockStates = null;
             
             //必要なデータを取得する
-            await UniTask.WhenAll(GetMapObjects(), GetChunk(), GetInventory(), GetChallenge(), GetBlockStates());
+            await UniTask.WhenAll(GetMapObjects(), GetWorld(), GetInventory(), GetChallenge(), GetBlockStates());
             
-            return new InitialHandshakeResponse(response, chunk, mapObjects, inventory, challenge, blockStates);
+            return new InitialHandshakeResponse(response, worldData, mapObjects, inventory, challenge, blockStates);
             
             #region Internal
             
@@ -57,9 +49,9 @@ namespace Client.Network.API
                 mapObjects = await GetMapObjectInfo(ct);
             }
             
-            async UniTask GetChunk()
+            async UniTask GetWorld()
             {
-                chunk = await GetChunkInfos(ct);
+                worldData = await GetWorldData(ct);
             }
             
             async UniTask GetInventory()
@@ -128,25 +120,21 @@ namespace Client.Network.API
             return new PlayerInventoryResponse(mainItems, grabItem);
         }
         
-        public async UniTask<List<ChunkResponse>> GetChunkInfos(CancellationToken ct)
+        public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
-            var request = new RequestChunkDataMessagePack(_getChunkPoss.Select(c => new Vector2IntMessagePack(c)).ToList());
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseChunkDataMessagePack>(request, ct);
+            var request = new RequestWorldDataMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseWorldDataMessagePack>(request, ct);
             
-            var result = new List<ChunkResponse>(response.ChunkData.Length);
-            foreach (var responseChunk in response.ChunkData) result.Add(ParseChunkResponse(responseChunk));
-            
-            return result;
+            return ParseWorldResponse(response);
             
             #region Internal
             
-            ChunkResponse ParseChunkResponse(ChunkDataMessagePack chunk)
+            WorldDataResponse ParseWorldResponse(ResponseWorldDataMessagePack worldData)
             {
-                var blocks = chunk.Blocks.Select(b => new BlockInfo(b));
-                var entities = chunk.Entities.Select(e => new EntityResponse(e));
-                var chunkPos = chunk.ChunkPos;
+                var blocks = worldData.Blocks.Select(b => new BlockInfo(b));
+                var entities = worldData.Entities.Select(e => new EntityResponse(e));
                 
-                return new ChunkResponse(chunkPos, blocks.ToList(), entities.ToList());
+                return new WorldDataResponse(blocks.ToList(), entities.ToList());
             }
             
             #endregion

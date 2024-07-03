@@ -3,6 +3,6 @@
     public enum ItemMoveType
     {
         SwapSlot,
-        InsertSlot
+        InsertSlot,
     }
 }

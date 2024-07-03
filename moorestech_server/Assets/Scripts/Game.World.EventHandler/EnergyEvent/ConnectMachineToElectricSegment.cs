@@ -1,4 +1,5 @@
 using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
@@ -70,7 +71,7 @@ namespace Game.World.EventHandler.EnergyEvent
             
             //電柱を取得
             var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
-            var pole = block.ComponentManager.GetComponent<TTransformer>();
+            var pole = block.GetComponent<TTransformer>();
             //その電柱のコンフィグを取得
             var blockConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId);
             var configParam = blockConfig.Param as ElectricPoleConfigParam;

@@ -3,6 +3,7 @@ using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
@@ -16,17 +17,16 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItem(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
-            foreach (var collectChunk in collectChunks)
-                result.AddRange(CollectItemFromChunk(entityFactory));
+            result.AddRange(CollectItemFromWorld(entityFactory));
             
             return result;
         }
         
         
-        public static List<IEntity> CollectItemFromChunk(IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromWorld(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             
@@ -41,24 +41,24 @@ namespace Server.Protocol.PacketResponse.Util
                 if (type != VanillaBlockType.BeltConveyor) continue;
                 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
+                var component = block.GetComponent<IItemCollectableBeltConveyor>();
                 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, block.ComponentManager.GetComponent<VanillaBeltConveyorComponent>(), pos, direction));
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, component, pos, direction));
             }
             
             return result;
         }
         
-        
-        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, VanillaBeltConveyorComponent vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
+        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, IItemCollectableBeltConveyor vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
-            for (var i = 0; i < vanillaBeltConveyorComponent.InventoryItemNum; i++)
+            for (var i = 0; i < vanillaBeltConveyorComponent.BeltConveyorItems.Count; i++)
             {
-                var beltConveyorItem = vanillaBeltConveyorComponent.GetBeltConveyorItem(i);
+                var beltConveyorItem = vanillaBeltConveyorComponent.BeltConveyorItems[i];
                 if (beltConveyorItem == null) continue;
                 
                 //残り時間をどこまで進んだかに変換するために 1- する
-                var percent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyorComponent.TimeOfItemEnterToExit);
+                var percent = 1 - beltConveyorItem.RemainingPercent;
                 float entityX = pos.x;
                 float entityZ = pos.z;
                 switch (blockDirection)

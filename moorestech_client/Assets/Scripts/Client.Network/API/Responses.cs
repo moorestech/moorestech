@@ -11,22 +11,22 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
-        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge, List<ChangeBlockStateMessagePack> blockStates)
+        public Vector2 PlayerPos { get; }
+        public WorldDataResponse WorldData { get; }
+        public List<MapObjectsInfoMessagePack> MapObjects { get; }
+        public PlayerInventoryResponse Inventory { get; }
+        public ChallengeResponse Challenge { get; }
+        public List<ChangeBlockStateMessagePack> BlockStates { get; }
+        
+        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, WorldDataResponse worldData, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge, List<ChangeBlockStateMessagePack> blockStates)
         {
             PlayerPos = response.PlayerPos;
-            Chunks = chunks;
+            WorldData = worldData;
             MapObjects = mapObjects;
             Inventory = inventory;
             Challenge = challenge;
             BlockStates = blockStates;
         }
-        
-        public Vector2 PlayerPos { get; }
-        public List<ChunkResponse> Chunks { get; }
-        public List<MapObjectsInfoMessagePack> MapObjects { get; }
-        public PlayerInventoryResponse Inventory { get; }
-        public ChallengeResponse Challenge { get; }
-        public List<ChangeBlockStateMessagePack> BlockStates { get; }
     }
     
     public class PlayerInventoryResponse
@@ -41,17 +41,13 @@ namespace Client.Network.API
         public IItemStack GrabItem { get; }
     }
     
-    public class ChunkResponse
+    public class WorldDataResponse
     {
         public readonly List<BlockInfo> Blocks;
-        public readonly Vector2Int ChunkPos;
         public readonly List<EntityResponse> Entities;
         
-        //TODO レスポンスの種類を増やせるようにする
-        
-        public ChunkResponse(Vector2Int chunkPos, List<BlockInfo> blocks, List<EntityResponse> entities)
+        public WorldDataResponse(List<BlockInfo> blocks, List<EntityResponse> entities)
         {
-            ChunkPos = chunkPos;
             Blocks = blocks;
             Entities = entities;
         }

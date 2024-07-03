@@ -8,7 +8,9 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.EnergySystem;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -23,7 +25,6 @@ namespace Tests.CombinedTest.Core
         public void ItemProcessingOutputTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
-            GameUpdater.ResetUpdate();
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
@@ -33,17 +34,17 @@ namespace Tests.CombinedTest.Core
             
             
             var block = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var blockInventory = block.ComponentManager.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.ItemInputs)
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
-            var blockMachineComponent = block.ComponentManager.GetComponent<VanillaElectricMachineComponent>();
+            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
-                blockMachineComponent.SupplyEnergy(10000);
+                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
                 GameUpdater.UpdateWithWait();
             }
             
