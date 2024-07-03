@@ -31,9 +31,9 @@ namespace Tests.CombinedTest.Game
             
             
             //ブロックの追加
-            worldBlockDatastore.TryAddBlock(1, new Vector3Int(0, 0), BlockDirection.North, out _, new BlockInstanceId(10));
-            worldBlockDatastore.TryAddBlock(2, new Vector3Int(0, 1), BlockDirection.East, out _, new BlockInstanceId(5));
-            worldBlockDatastore.TryAddBlock(3, new Vector3Int(30, -10), BlockDirection.West, out _, new BlockInstanceId(1000));
+            worldBlockDatastore.TryAddBlock(1, new Vector3Int(0, 0), BlockDirection.North, out var block0);
+            worldBlockDatastore.TryAddBlock(2, new Vector3Int(0, 1), BlockDirection.East, out var block1);
+            worldBlockDatastore.TryAddBlock(3, new Vector3Int(30, -10), BlockDirection.West, out var block2);
             
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
             
@@ -54,17 +54,17 @@ namespace Tests.CombinedTest.Game
             //追加したブロックのチェック
             var block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
             Assert.AreEqual(1, block.BlockId);
-            Assert.AreEqual(10, block.BlockInstanceId.AsPrimitive());
+            Assert.AreEqual(block0.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.North, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(0, 0)));
             
             block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 1));
             Assert.AreEqual(2, block.BlockId);
-            Assert.AreEqual(5, block.BlockInstanceId.AsPrimitive());
+            Assert.AreEqual(block1.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.East, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(0, 1)));
             
             block = loadWorldBlockDatastore.GetBlock(new Vector3Int(30, -10));
             Assert.AreEqual(3, block.BlockId);
-            Assert.AreEqual(1000, block.BlockInstanceId.AsPrimitive());
+            Assert.AreEqual(block2.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(30, -10)));
         }
         

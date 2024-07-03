@@ -33,15 +33,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             //削除するためのブロックの生成
-            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block, new BlockInstanceId(0));
+            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
-            
-            Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0, 0)).BlockInstanceId.AsPrimitive());
-            
-            //プレイヤーインベントリに削除したブロックを追加
-            
             
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));

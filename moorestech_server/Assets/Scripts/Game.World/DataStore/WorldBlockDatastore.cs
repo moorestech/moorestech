@@ -94,12 +94,8 @@ namespace Game.World.DataStore
         
         public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block)
         {
-            return TryAddBlock(blockId, position, direction, out block, BlockInstanceId.Create());
-        }
-        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block, BlockInstanceId blockInstanceId)
-        {
             var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockId).BlockSize);
-            block = _blockFactory.Create(blockId, blockInstanceId, blockPositionInfo);
+            block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             return TryAddBlock(block);
         }
         
