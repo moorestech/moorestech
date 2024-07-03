@@ -111,7 +111,7 @@ namespace Client.Game.InGame.Context
         /// <returns></returns>
         private bool IsOpenableInventory(string type)
         {
-            return type is VanillaBlockType.Chest or VanillaBlockType.Generator or VanillaBlockType.Miner or VanillaBlockType.Machine;
+            return type is VanillaBlockType.Chest or VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMiner or VanillaBlockType.ElectricMachine;
         }
         
         
@@ -124,7 +124,7 @@ namespace Client.Game.InGame.Context
             
             return blockType switch
             {
-                VanillaBlockType.Machine => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
+                VanillaBlockType.ElectricMiner => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
                 _ => new NullBlockStateChangeProcessor(),
             };
         }
