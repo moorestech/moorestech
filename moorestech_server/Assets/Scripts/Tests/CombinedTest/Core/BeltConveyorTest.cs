@@ -43,7 +43,7 @@ namespace Tests.CombinedTest.Core
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
                 var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
-                while (DateTime.Now < endTime.AddSeconds(0.2))
+                while (DateTime.Now < endTime.AddSeconds(0.05))
                 {
                     item = beltConveyorComponent.InsertItem(item);
                     GameUpdater.UpdateWithWait();
@@ -95,8 +95,8 @@ namespace Tests.CombinedTest.Core
             //チェック
             Debug.Log($"{(DateTime.Now - expectedEndTime).TotalMilliseconds}");
             
-            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
-            Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
+            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.05));
+            Assert.True(expectedEndTime.AddSeconds(-0.05) <= DateTime.Now);
             
             Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
             var tmp = itemStackFactory.Create(id, 1);

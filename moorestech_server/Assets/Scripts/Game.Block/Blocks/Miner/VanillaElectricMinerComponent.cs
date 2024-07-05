@@ -41,7 +41,7 @@ namespace Game.Block.Blocks.Miner
         private int _defaultMiningTime = int.MaxValue;
         
         private VanillaMinerState _lastMinerState;
-        private int _remainingMillSecond = int.MaxValue;
+        private double _remainingMillSecond = double.MaxValue;
         
         public VanillaElectricMinerComponent(int blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
@@ -340,6 +340,6 @@ namespace Game.Block.Blocks.Miner
         [JsonProperty("items")]
         public List<ItemStackJsonObject> Items;
         [JsonProperty("remainingMillSecond")]
-        public int RemainingMillSecond;
+        public double RemainingMillSecond;
     }
 }

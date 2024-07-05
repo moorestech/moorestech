@@ -39,7 +39,7 @@ namespace Core.Update
         {
             //TODO ゲームループ周りの修正についてはちょっと考えたい
             Update();
-            Thread.Sleep(10);
+            Thread.Sleep(5);
         }
 #endif
     }
