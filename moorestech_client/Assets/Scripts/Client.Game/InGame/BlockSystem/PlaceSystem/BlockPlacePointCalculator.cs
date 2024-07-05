@@ -18,6 +18,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             #region Internal
             
+            // TODO ブロックの大きさに応じて、設置する間隔を変更する
             List<Vector3Int> CalcPositions()
             {
                 // ひとまず、XとZ方向に目的地に向かって1ずつ進む
