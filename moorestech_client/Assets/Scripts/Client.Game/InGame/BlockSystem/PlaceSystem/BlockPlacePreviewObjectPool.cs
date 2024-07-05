@@ -78,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 foreach (var previewObject in previewObjects)
                 {
-                    Object.Destroy(previewObject.BlockPreviewObject.gameObject);
+                    previewObject.BlockPreviewObject.Destroy();
                 }
             }
             

@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Game.InGame.Block;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
@@ -9,22 +10,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public BlockConfigData BlockConfig { get; private set; }
         
-        public void Initialize(BlockConfigData blockConfigData, Material material)
+        private Material _placeMaterial;
+        
+        public void Initialize(BlockConfigData blockConfigData)
         {
             BlockConfig = blockConfigData;
             
-            SetMaterial(material);
-            SetVfxActive(false);
-        }
-        
-        public void SetMaterial(Material material)
-        {
+            _placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
             var blockRenderer = GetComponentsInChildren<Renderer>();
             foreach (var renderer in blockRenderer)
             {
                 var replacer = new RendererMaterialReplacer(renderer);
-                replacer.SetMaterial(material);
+                replacer.CopyAndSetMaterial(_placeMaterial);
             }
+            
+            SetVfxActive(false);
+        }
+        
+        public void SetPlaceableColor(bool isPlaceable)
+        {
+            var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
+            _placeMaterial.color = color;
         }
         
         private void SetVfxActive(bool isActive)
@@ -42,6 +48,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+        
+        public void Destroy()
+        {
+            Destroy(_placeMaterial);
+            Destroy(gameObject);
         }
     }
 }

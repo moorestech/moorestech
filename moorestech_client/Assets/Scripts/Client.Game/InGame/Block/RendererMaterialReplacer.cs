@@ -31,9 +31,10 @@ namespace Client.Game.InGame.Block
             foreach (var material in renderer.sharedMaterials) _originalMaterials.Add(material);
         }
         
-        public void SetMaterial(Material placeMaterial)
+        public void CopyAndSetMaterial(Material placeMaterial)
         {
             if (_renderer == null) return;
+            ResetMaterial();
             
             foreach (var material in _renderer.sharedMaterials)
             {
@@ -49,6 +50,7 @@ namespace Client.Game.InGame.Block
                 };
                 
                 _replacedMaterials.Add(newMaterial);
+                GameObject.Destroy(material);
             }
             
             _renderer.materials = _replacedMaterials.ToArray();

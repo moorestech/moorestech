@@ -37,9 +37,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void SetPreview(bool placeable, List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig)
         {
             CreatePreviewObjects(currentPlaceInfos, holdingBlockConfig);
-            
-            var materialPath = placeable ? MaterialConst.PreviewPlaceBlockMaterial : MaterialConst.PreviewNotPlaceableBlockMaterial;
-            //SetMaterial(Resources.Load<Material>(materialPath));
         }
         
         public void SetActive(bool active)
@@ -78,15 +75,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 previewBlock.transform.position = pos;
                 previewBlock.transform.rotation = rot;
             }
-        }
-        
-        public void SetMaterial(Material material)
-        {
-            //プレビューブロックのマテリアルを変更
-            // foreach (var previewBlock in _previewBlocks)
-            // {
-            //     previewBlock.SetMaterial(material);
-            // }
         }
     }
 }

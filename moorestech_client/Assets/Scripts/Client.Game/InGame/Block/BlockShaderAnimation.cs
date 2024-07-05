@@ -98,7 +98,7 @@ namespace Client.Game.InGame.Block
         
         private void SetMaterial(List<RendererMaterialReplacer> blockRendererInfos, Material material)
         {
-            foreach (var rendererInfo in blockRendererInfos) rendererInfo.SetMaterial(material);
+            foreach (var rendererInfo in blockRendererInfos) rendererInfo.CopyAndSetMaterial(material);
         }
         
         private void TweenMaterialProperty(List<RendererMaterialReplacer> blockRendererInfos, string keyword, float startValue, float endValue, float duration, Ease ease)
