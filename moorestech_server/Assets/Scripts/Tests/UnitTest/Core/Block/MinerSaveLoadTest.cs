@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Core.Block
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(originalMinerComponent);
             var loadedRemainingMillSecond =
-                (int)typeof(VanillaElectricMinerComponent)
+                (double)typeof(VanillaElectricMinerComponent)
                     .GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(loadedMinerComponent);
             
