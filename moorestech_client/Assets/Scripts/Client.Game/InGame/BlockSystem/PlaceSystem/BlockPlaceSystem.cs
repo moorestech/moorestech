@@ -166,7 +166,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                _clickStartHeightOffset = _heightOffset;
+                _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
                 ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, selectIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
