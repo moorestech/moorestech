@@ -112,11 +112,9 @@ namespace Tests.UnitTest.Core.Block
         
         private IBlock AddBlock(int blockId, Vector3Int position)
         {
-            var blockFactory = ServerContext.BlockFactory;
             var world = ServerContext.WorldBlockDatastore;
             
-            var block = blockFactory.Create(blockId, BlockInstanceId.Create(), new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one));
-            world.AddBlock(block);
+            world.TryAddBlock(blockId, position, BlockDirection.North, out var block);
             
             return block;
         }

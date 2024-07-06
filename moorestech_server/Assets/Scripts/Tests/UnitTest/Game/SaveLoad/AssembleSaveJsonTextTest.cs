@@ -22,8 +22,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             
-            worldBlockDatastore.AddBlock(blockFactory.Create(1, new BlockInstanceId(10), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one)));
-            worldBlockDatastore.AddBlock(blockFactory.Create(2, new BlockInstanceId(100), new BlockPositionInfo(new Vector3Int(10, -15), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.TryAddBlock(1, Vector3Int.zero, BlockDirection.North, out var block0);
+            worldBlockDatastore.TryAddBlock(2, new Vector3Int(10, -15), BlockDirection.North, out var block1);
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             
@@ -34,13 +34,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var worldLoadBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            var block1 = worldLoadBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            Assert.AreEqual(1, block1.BlockId);
-            Assert.AreEqual(10, block1.BlockInstanceId.AsPrimitive());
+            var b0 = worldLoadBlockDatastore.GetBlock(new Vector3Int(0, 0));
+            Assert.AreEqual(1, b0.BlockId);
+            Assert.AreEqual(block0.BlockInstanceId, b0.BlockInstanceId.AsPrimitive());
             
-            var block2 = worldLoadBlockDatastore.GetBlock(new Vector3Int(10, -15));
-            Assert.AreEqual(2, block2.BlockId);
-            Assert.AreEqual(100, block2.BlockInstanceId.AsPrimitive());
+            var b1 = worldLoadBlockDatastore.GetBlock(new Vector3Int(10, -15));
+            Assert.AreEqual(2, b1.BlockId);
+            Assert.AreEqual(block1.BlockInstanceId, b1.BlockInstanceId.AsPrimitive());
         }
     }
 }

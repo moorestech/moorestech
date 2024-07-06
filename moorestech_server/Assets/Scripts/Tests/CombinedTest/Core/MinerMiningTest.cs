@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Core
             
             //手動で鉱石の設定を行う
             var (mapVein, pos) = GetMapVein();
-            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, new BlockInstanceId(1), new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.TryAddBlock(MinerId, pos, BlockDirection.North, out _);
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.GetComponent<VanillaElectricMinerComponent>();
             
@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Core
             
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機
-            while (mineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
+            while (mineEndTime.AddSeconds(0.05).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石1個が出力されているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Core
             
             //鉱石2個分の採掘時間待機
             mineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
-            while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
+            while (mineEndTime.AddSeconds(0.05).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石2個が残っているかチェック
             var outputSlot = miner.GetComponent<VanillaElectricMinerComponent>().InventoryItems[0];

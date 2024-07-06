@@ -19,17 +19,14 @@ namespace Tests.UnitTest.Game
             var random = new Random(131513);
             for (var i = 0; i < 10; i++)
             {
-                var entityId = BlockInstanceId.Create();
-                
                 var x = random.Next(-1000, 1000);
                 var z = random.Next(-1000, 1000);
                 var pos = new Vector3Int(x, 0, z);
                 
-                var ins = CreateMachine(entityId, pos, BlockDirection.North);
-                worldData.AddBlock(ins);
+                worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block);
                 
                 var output = worldData.GetBlock(pos);
-                Assert.AreEqual(entityId, output.BlockInstanceId);
+                Assert.AreEqual(block.BlockInstanceId, output.BlockInstanceId);
             }
         }
         
@@ -42,12 +39,14 @@ namespace Tests.UnitTest.Game
             
             var entityId = BlockInstanceId.Create();
             
-            var block = CreateMachine(entityId, new Vector3Int(1, 1), BlockDirection.North);
-            worldData.AddBlock(block);
+            //TODO 同じIDになることない
+            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out var originalBlock);
+            var hash = originalBlock.BlockHash;
+            var state = originalBlock.GetSaveState();
             
             //座標だけ変えてintIDは同じ
-            var block2 = CreateMachine(entityId, new Vector3Int(10, 10), BlockDirection.North);
-            Assert.False(worldData.AddBlock(block2));
+            var result = worldData.TryAddLoadedBlock(hash, originalBlock.BlockInstanceId, state, new Vector3Int(10, 10), BlockDirection.North, out _);
+            Assert.False(result);
         }
         
         [Test]
@@ -57,19 +56,11 @@ namespace Tests.UnitTest.Game
             
             var worldData = ServerContext.WorldBlockDatastore;
             
-            var block = CreateMachine(BlockInstanceId.Create(), new Vector3Int(1, 1), BlockDirection.North);
-            worldData.AddBlock(block);
+            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
             
-            //座標だけ変えてintIDは同じ
-            var block2 = CreateMachine(BlockInstanceId.Create(), new Vector3Int(1, 1), BlockDirection.North);
-            Assert.False(worldData.AddBlock(block2));
-        }
-        
-        private IBlock CreateMachine(BlockInstanceId blockInstanceId, Vector3Int pos, BlockDirection direction)
-        {
-            var posInfo = new BlockPositionInfo(pos, direction, Vector3Int.one);
-            var machine = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.MachineId, blockInstanceId, posInfo);
-            return machine;
+            //idだけ変えて座標は同じ
+            var result = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
+            Assert.False(result);
         }
     }
 }

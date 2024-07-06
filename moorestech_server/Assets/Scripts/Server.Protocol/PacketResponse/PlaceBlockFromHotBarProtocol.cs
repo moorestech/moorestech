@@ -54,12 +54,8 @@ namespace Server.Protocol.PacketResponse
                 blockId = verticalBlockId;
             }
             
-            //ブロックの作成
-            var blockSize = ServerContext.BlockConfig.GetBlockConfig(blockId).BlockSize;
-            var blockPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, blockSize);
-            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             //ブロックの設置
-            ServerContext.WorldBlockDatastore.AddBlock(block);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block);
             
             //アイテムを減らし、セットする
             item = item.SubItem(1);
