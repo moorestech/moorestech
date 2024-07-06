@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
 {
@@ -29,18 +30,20 @@ namespace Client.Game.InGame.UI.UIState
             
             if (BlockClickDetect.TryGetCursorOnBlock(out var blockGameObject))
             {
-                if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
-                _removeTargetBlock = blockGameObject;
-                _removeTargetBlock.SetRemovePreviewing();
-            }
-            else
-            {
-                if (_removeTargetBlock != null)
+                if (_removeTargetBlock == null || _removeTargetBlock != blockGameObject)
                 {
-                    _removeTargetBlock.ResetMaterial();
-                    _removeTargetBlock = null;
+                    if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
+                    
+                    _removeTargetBlock = blockGameObject;
+                    _removeTargetBlock.SetRemovePreviewing();
                 }
             }
+            else if (_removeTargetBlock != null)
+            {
+                _removeTargetBlock.ResetMaterial();
+                _removeTargetBlock = null;
+            }
+            
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
             {

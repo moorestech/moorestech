@@ -49,7 +49,6 @@ namespace Client.Game.InGame.Block
         public void SetRemovePreviewing()
         {
             if (_isShaderAnimationing) return;
-            _isShaderAnimationing = true;
             var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
             
             _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
