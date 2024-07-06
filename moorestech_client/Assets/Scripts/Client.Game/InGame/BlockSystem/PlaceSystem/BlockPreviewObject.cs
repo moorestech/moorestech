@@ -22,6 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             SetVfxActive(false);
+            SetPlaceableColor(true);
         }
         
         public void SetPlaceableColor(bool isPlaceable)

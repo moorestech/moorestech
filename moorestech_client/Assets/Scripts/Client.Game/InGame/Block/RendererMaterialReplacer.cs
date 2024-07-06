@@ -36,6 +36,10 @@ namespace Client.Game.InGame.Block
         public void CopyAndSetMaterial(Material placeMaterial)
         {
             if (_renderer == null) return;
+            // TODO ログシステムに入れる
+            if (placeMaterial == null) throw new NullReferenceException("The specified material is null.");
+            
+            // TODO ちゃんとマテリアルをアンロードする方法を考える
             ResetMaterial();
             
             foreach (var material in _renderer.sharedMaterials)
@@ -52,7 +56,6 @@ namespace Client.Game.InGame.Block
                 };
                 
                 _replacedMaterials.Add(newMaterial);
-                GameObject.Destroy(material);
             }
             
             _renderer.materials = _replacedMaterials.ToArray();

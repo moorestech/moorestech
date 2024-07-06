@@ -20,7 +20,6 @@ namespace Client.Game.InGame.Block
         public void CopyAndSetMaterial(Material placeMaterial)
         {
             _rendererMaterialReplacers.ForEach(replacer => replacer.CopyAndSetMaterial(placeMaterial));
-            GameObject.Destroy(placeMaterial);
         }
         
         public void SetPlaceMaterialProperty(string propertyName, float value)
