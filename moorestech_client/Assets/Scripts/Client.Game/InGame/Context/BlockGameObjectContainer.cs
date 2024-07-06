@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Define;
 using Client.Mod.Glb;
@@ -90,10 +91,9 @@ namespace Client.Game.InGame.Context
             block.SetActive(true);
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
-            previewGameObject.Initialize(
-                ServerContext.BlockConfig.GetBlockConfig(blockId),
-                Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial)
-            );
+            previewGameObject.SetTriggerCollider(true);
+            previewGameObject.Initialize(ServerContext.BlockConfig.GetBlockConfig(blockId));
+            
             return previewGameObject;
         }
         

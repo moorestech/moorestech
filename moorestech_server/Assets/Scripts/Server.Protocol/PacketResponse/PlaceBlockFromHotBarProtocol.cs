@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -25,42 +26,63 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload.ToArray());
+            var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.Slot);
-            var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.GetItem(inventorySlot);
-            
-            var blockConfig = ServerContext.BlockConfig;
-            //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!blockConfig.IsBlock(item.Id)) return null;
-            //すでにブロックがある場合はそもまま処理を終了
-            if (ServerContext.WorldBlockDatastore.Exists(data.Pos)) return null;
-            
-            //ブロックの作成
-            var blockId = blockConfig.ItemIdToBlockId(item.Id);
-            //ブロックの設置
-            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, data.Pos, data.BlockDirection, out var block);
-            
-            //アイテムを減らし、セットする
-            item = item.SubItem(1);
-            _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory
-                .SetItem(inventorySlot, item);
-            
+            foreach (var placeInfo in data.PlacePositions)
+            {
+                PlaceBlock(placeInfo, data, inventoryData);
+            }
             
             return null;
         }
+        
+        #region GetResponse
+        
+        static void PlaceBlock(PlaceInfoMessagePack placeInfo,SendPlaceHotBarBlockProtocolMessagePack data,PlayerInventoryData inventoryData)
+        {
+            //すでにブロックがある場合はそもまま処理を終了
+            if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
+            
+            //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
+            var item = inventoryData.MainOpenableInventory.GetItem(data.InventorySlot);
+            if (!ServerContext.BlockConfig.IsBlock(item.Id)) return;
+            
+            // ブロックIDの設定
+            var blockId = ServerContext.BlockConfig.ItemIdToBlockId(item.Id);
+            if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, placeInfo.VerticalDirection), out var verticalBlockId))
+            {
+                blockId = verticalBlockId;
+            }
+            
+            //ブロックの設置
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block);
+            
+            //アイテムを減らし、セットする
+            item = item.SubItem(1);
+            inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);
+        }
+        
+        #endregion
+    }
+    
+    public class PlaceInfo
+    {
+        public Vector3Int Point { get; set; }
+        public BlockDirection Direction { get; set; }
+        
+        public BlockVerticalDirection VerticalDirection { get; set; }
     }
     
     
     [MessagePackObject]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, BlockDirection direction, int slot, Vector3Int pos)
+        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int hotBarSlot, List<PlaceInfo> placeInfos)
         {
             Tag = SendPlaceHotBarBlockProtocol.Tag;
             PlayerId = playerId;
-            Direction = (int)direction;
-            Slot = slot;
-            Pos = new Vector3IntMessagePack(pos);
+            HotBarSlot = hotBarSlot;
+            PlacePositions = placeInfos.ConvertAll(v => new PlaceInfoMessagePack(v));
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -70,12 +92,30 @@ namespace Server.Protocol.PacketResponse
         
         [Key(2)] public int PlayerId { get; set; }
         
-        [Key(3)] public int Direction { get; set; }
+        [Key(3)] public int HotBarSlot { get; set; }
+        [IgnoreMember] public int InventorySlot =>  PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
         
-        [IgnoreMember] public BlockDirection BlockDirection => (BlockDirection)Direction;
+        [Key(4)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
+    }
+    
+    [MessagePackObject]
+    public class PlaceInfoMessagePack
+    {
+        [Key(0)] public Vector3IntMessagePack Position { get; set; }
         
-        [Key(4)] public int Slot { get; set; }
+        [Key(1)] public BlockDirection Direction { get; set; }
         
-        [Key(5)] public Vector3IntMessagePack Pos { get; set; }
+        [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
+        
+        public PlaceInfoMessagePack()
+        {
+        }
+        
+        public PlaceInfoMessagePack(PlaceInfo placeInfo)
+        {
+            Position = new Vector3IntMessagePack(placeInfo.Point);
+            Direction = placeInfo.Direction;
+            VerticalDirection = placeInfo.VerticalDirection;
+        }
     }
 }

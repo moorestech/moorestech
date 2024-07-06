@@ -1,7 +1,10 @@
-﻿using Client.Game.InGame.BlockSystem;
+﻿using System.Threading;
+using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
 using Client.Game.Skit;
 using Client.Input;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
@@ -11,6 +14,14 @@ namespace Client.Game.InGame.UI.UIState
         private readonly IBlockPlacePreview _blockPlacePreview;
         private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
+        
+        private Vector3 _startCameraRotation;
+        private float _startCameraDistance;
+        
+        private CancellationTokenSource _startTweenCameraCancellationTokenSource;
+        
+        private const float TargetCameraDistance = 9;
+        private const float TweenDuration = 0.25f;
         
         public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
         {
@@ -22,6 +33,32 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             InputManager.MouseCursorVisible(true);
+            BlockPlaceSystem.SetEnableBlockPlace(true);
+            
+            _startCameraDistance = _inGameCameraController.CameraDistance;
+            _startCameraRotation = _inGameCameraController.CameraEulerAngle;
+            
+            TweenCamera();
+            
+            #region Internal
+            
+            void TweenCamera()
+            {
+                var currentRotation = _inGameCameraController.CameraEulerAngle;
+                var targetCameraRotation = currentRotation;
+                targetCameraRotation.x = 70f;
+                targetCameraRotation.y = currentRotation.y switch
+                {
+                    var y when y < 45 => 0,
+                    var y when y < 135 => 90,
+                    var y when y < 225 => 180,
+                    var y when y < 315 => 270,
+                    _ => 0
+                };
+                _inGameCameraController.StartTweenCamera(targetCameraRotation, TargetCameraDistance, TweenDuration);
+            }
+            
+            #endregion
         }
         
         public UIStateEnum GetNext()
@@ -37,14 +74,14 @@ namespace Client.Game.InGame.UI.UIState
             if (UnityEngine.Input.GetMouseButtonDown(1))
             {
                 InputManager.MouseCursorVisible(false);
-                _inGameCameraController.SetUpdateCameraAngle(true);
+                _inGameCameraController.SetControllable(true);
             }
             
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetMouseButtonUp(1))
             {
                 InputManager.MouseCursorVisible(true);
-                _inGameCameraController.SetUpdateCameraAngle(false);
+                _inGameCameraController.SetControllable(false);
             }
             
             return UIStateEnum.Current;
@@ -53,6 +90,9 @@ namespace Client.Game.InGame.UI.UIState
         public void OnExit()
         {
             InputManager.MouseCursorVisible(false);
+            BlockPlaceSystem.SetEnableBlockPlace(false);
+            
+            _inGameCameraController.StartTweenCamera(_startCameraRotation, _startCameraDistance, TweenDuration);
         }
         
         private bool IsClickOpenableBlock()

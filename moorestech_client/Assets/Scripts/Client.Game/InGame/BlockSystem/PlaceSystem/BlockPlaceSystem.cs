@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.Block;
@@ -11,17 +12,20 @@ using Client.Input;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.BlockSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
     /// </summary>
     public class BlockPlaceSystem : IPostTickable
     {
+        public static BlockPlaceSystem Instance;
+        
         private const float PlaceableMaxDistance = 100f;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly IBlockPlacePreview _blockPlacePreview;
@@ -29,9 +33,14 @@ namespace Client.Game.InGame.BlockSystem
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly PlayerObjectController _playerObjectController;
-        private readonly UIStateControl _uiState;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
+        private Vector3Int? _clickStartPosition;
+        private int _clickStartHeightOffset;
+        private bool? _isStartZDirection;
+        private List<PlaceInfo> _currentPlaceInfos = new();
+        
+        private bool _enableBlockPlace;
         
         private int _heightOffset;
         
@@ -40,91 +49,79 @@ namespace Client.Game.InGame.BlockSystem
             HotBarView hotBarView,
             IBlockPlacePreview blockPlacePreview,
             ILocalPlayerInventory localPlayerInventory,
-            UIStateControl uiStateControl,
             BlockGameObjectDataStore blockGameObjectDataStore,
             PlayerObjectController playerObjectController
         )
         {
+            Instance = this;
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
-            _uiState = uiStateControl;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _playerObjectController = playerObjectController;
         }
         
+        public static void SetEnableBlockPlace(bool enable)
+        {
+            if (Instance == null) return;
+            
+            Instance._enableBlockPlace = enable;
+            if (!enable)
+            {
+                Instance._blockPlacePreview.SetActive(false);
+            }
+        }
+        
         public void PostTick()
         {
+            if (!_enableBlockPlace) return;
+            
             UpdateHeightOffset();
             BlockDirectionControl();
             GroundClickControl();
-        }
-        
-        private void UpdateHeightOffset()
-        {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
-                _heightOffset--;
-            else if (UnityEngine.Input.GetKeyDown(KeyCode.E)) _heightOffset++;
-        }
-        
-        private void BlockDirectionControl()
-        {
-            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                // 東西南北の向きを変更する
-                _currentBlockDirection = _currentBlockDirection switch
-                {
-                    BlockDirection.UpNorth => BlockDirection.UpEast,
-                    BlockDirection.UpEast => BlockDirection.UpSouth,
-                    BlockDirection.UpSouth => BlockDirection.UpWest,
-                    BlockDirection.UpWest => BlockDirection.UpNorth,
-                    
-                    BlockDirection.North => BlockDirection.East,
-                    BlockDirection.East => BlockDirection.South,
-                    BlockDirection.South => BlockDirection.West,
-                    BlockDirection.West => BlockDirection.North,
-                    
-                    BlockDirection.DownNorth => BlockDirection.DownEast,
-                    BlockDirection.DownEast => BlockDirection.DownSouth,
-                    BlockDirection.DownSouth => BlockDirection.DownWest,
-                    BlockDirection.DownWest => BlockDirection.DownNorth,
-                    
-                    _ => _currentBlockDirection,
-                };
             
-            //TODo シフトはインプットマネージャーに入れる
-            if (UnityEngine.Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                _currentBlockDirection = _currentBlockDirection switch
-                {
-                    BlockDirection.UpNorth => BlockDirection.DownNorth,
-                    BlockDirection.UpEast => BlockDirection.DownEast,
-                    BlockDirection.UpSouth => BlockDirection.DownSouth,
-                    BlockDirection.UpWest => BlockDirection.DownWest,
-                    
-                    BlockDirection.North => BlockDirection.UpNorth,
-                    BlockDirection.East => BlockDirection.UpEast,
-                    BlockDirection.South => BlockDirection.UpSouth,
-                    BlockDirection.West => BlockDirection.UpWest,
-                    
-                    BlockDirection.DownNorth => BlockDirection.North,
-                    BlockDirection.DownEast => BlockDirection.East,
-                    BlockDirection.DownSouth => BlockDirection.South,
-                    BlockDirection.DownWest => BlockDirection.West,
-                    
-                    _ => _currentBlockDirection,
-                };
+            #region Internal
+            
+            void UpdateHeightOffset()
+            {
+                if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
+                    _heightOffset--;
+                else if (UnityEngine.Input.GetKeyDown(KeyCode.E)) _heightOffset++;
+            }
+            
+            void BlockDirectionControl()
+            {
+                if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+                    // 東西南北の向きを変更する
+                    _currentBlockDirection = _currentBlockDirection.HorizonRotation();
+                
+                //TODo シフトはインプットマネージャーに入れる
+                if (UnityEngine.Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+                    _currentBlockDirection = _currentBlockDirection.VerticalRotation();
+            }
+            
+            #endregion
         }
+        
+        private int _lastSelectedIndex = -1;
         
         private void GroundClickControl()
         {
             var selectIndex = _hotBarView.SelectIndex;
+            if (selectIndex != _lastSelectedIndex)
+            {
+                _clickStartPosition = null;
+                _lastSelectedIndex = selectIndex;
+                _clickStartHeightOffset = _heightOffset;
+            }
+            
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             var hitPoint = Vector3.zero;
             
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            if (_uiState.CurrentState != UIStateEnum.PlaceBlock) return; // ブロックを設置するステートかどうか
             if (!ServerContext.BlockConfig.IsBlock(itemId)) return; // 置けるブロックかどうか
             if (!TryGetRayHitPosition(out hitPoint)) return; // ブロック設置用のrayが当たっているか
             
@@ -138,13 +135,40 @@ namespace Client.Game.InGame.BlockSystem
                 IsBlockPlaceableDistance(PlaceableMaxDistance) &&
                 !IsTerrainOverlapBlock();
             
-            //プレビュー表示 display preview
-            _blockPlacePreview.SetPreview(placeable, placePoint, _currentBlockDirection, holdingBlockConfig);
-            
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (placeable && InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
+                _clickStartPosition = placePoint;
+                _clickStartHeightOffset = _heightOffset;
+            }
+            
+            //プレビュー表示 display preview
+            if (_clickStartPosition.HasValue)
+            {
+                if (_clickStartPosition.Value == placePoint)
+                {
+                    _isStartZDirection = null;
+                }
+                else if (!_isStartZDirection.HasValue)
+                {
+                    _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
+                }
+                
+                _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection);
+                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+            }
+            else
+            {
+                _isStartZDirection = null;
+                _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection);
+                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+            }
+            
+            if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
+            {
+                _heightOffset = _clickStartHeightOffset;
+                _clickStartPosition = null;
+                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, selectIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             }
             

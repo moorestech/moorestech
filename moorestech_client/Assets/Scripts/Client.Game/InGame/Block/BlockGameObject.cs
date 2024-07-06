@@ -12,14 +12,16 @@ namespace Client.Game.InGame.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
-        private BlockShaderAnimation _blockShaderAnimation;
-        private bool _isShaderAnimationing;
-        private List<RendererMaterialReplacer> _rendererMaterialReplacer;
-        private List<VisualEffect> _visualEffects;
         public int BlockId { get; private set; }
         public BlockConfigData BlockConfig { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
+        
+        private BlockShaderAnimation _blockShaderAnimation;
+        private RendererMaterialReplacerController _rendererMaterialReplacerController;
+        private bool _isShaderAnimationing;
+        private List<VisualEffect> _visualEffects;
+        
         
         public void Initialize(BlockConfigData blockConfig, BlockPositionInfo posInfo, IBlockStateChangeProcessor blockStateChangeProcessor)
         {
@@ -32,8 +34,7 @@ namespace Client.Game.InGame.Block
             
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>()) child.Init(this);
             
-            _rendererMaterialReplacer = new List<RendererMaterialReplacer>();
-            foreach (var renderer in GetComponentsInChildren<Renderer>()) _rendererMaterialReplacer.Add(new RendererMaterialReplacer(renderer));
+            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
         }
         
         public async UniTask PlayPlaceAnimation()
@@ -48,14 +49,17 @@ namespace Client.Game.InGame.Block
         public void SetRemovePreviewing()
         {
             if (_isShaderAnimationing) return;
-            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewRemoveBlockMaterial);
-            foreach (var replacer in _rendererMaterialReplacer) replacer.SetMaterial(placePreviewMaterial);
+            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            
+            _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.NotPlaceableColor);
+            Resources.UnloadAsset(placePreviewMaterial);
         }
         
         public void ResetMaterial()
         {
             if (_isShaderAnimationing) return;
-            foreach (var replacer in _rendererMaterialReplacer) replacer.ResetMaterial();
+            _rendererMaterialReplacerController.ResetMaterial();
         }
         
         public async UniTask DestroyBlock()

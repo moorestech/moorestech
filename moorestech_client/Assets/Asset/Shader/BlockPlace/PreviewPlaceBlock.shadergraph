@@ -390,6 +390,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "1d36d6e4bd714dc98a1626c29f435684"
@@ -787,10 +788,10 @@
             "m_Id": "95eb00f700604fe1b42d645727595362"
         },
         {
-            "m_Id": "c7cdcd80ea31402bab8ae9f2fc7dafda"
+            "m_Id": "41fbbe81060542c88a82b179a4787c26"
         },
         {
-            "m_Id": "41fbbe81060542c88a82b179a4787c26"
+            "m_Id": "c7cdcd80ea31402bab8ae9f2fc7dafda"
         },
         {
             "m_Id": "355c996e98364c1799926ff6f60e548a"
@@ -1393,7 +1394,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "PrviewColor",
     "m_DefaultReferenceName": "_PrviewColor",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "_Color",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",

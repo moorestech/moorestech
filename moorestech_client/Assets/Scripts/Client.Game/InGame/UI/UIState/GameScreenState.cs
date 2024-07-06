@@ -1,4 +1,5 @@
 ﻿using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
 using Client.Game.Skit;
 using Client.Input;
@@ -35,12 +36,12 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             InputManager.MouseCursorVisible(false);
-            _inGameCameraController.SetUpdateCameraAngle(true);
+            _inGameCameraController.SetControllable(true);
         }
         
         public void OnExit()
         {
-            _inGameCameraController.SetUpdateCameraAngle(false);
+            _inGameCameraController.SetControllable(false);
         }
         
         private bool IsClickOpenableBlock()

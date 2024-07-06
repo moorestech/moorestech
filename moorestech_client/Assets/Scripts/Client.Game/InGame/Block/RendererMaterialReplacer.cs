@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Client.Common;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Client.Game.InGame.Block
 {
@@ -31,9 +33,14 @@ namespace Client.Game.InGame.Block
             foreach (var material in renderer.sharedMaterials) _originalMaterials.Add(material);
         }
         
-        public void SetMaterial(Material placeMaterial)
+        public void CopyAndSetMaterial(Material placeMaterial)
         {
             if (_renderer == null) return;
+            // TODO ログシステムに入れる
+            if (placeMaterial == null) throw new NullReferenceException("The specified material is null.");
+            
+            // TODO ちゃんとマテリアルをアンロードする方法を考える
+            ResetMaterial();
             
             foreach (var material in _renderer.sharedMaterials)
             {
@@ -59,6 +66,11 @@ namespace Client.Game.InGame.Block
             foreach (var material in _replacedMaterials) material.SetFloat(propertyName, value);
         }
         
+        public void SetColor(Color color)
+        {
+            foreach (var material in _replacedMaterials) material.color = color;
+        }
+        
         public void ResetMaterial()
         {
             if (_renderer == null) return;
@@ -67,6 +79,12 @@ namespace Client.Game.InGame.Block
             foreach (var material in _replacedMaterials) Object.Destroy(material);
             _replacedMaterials.Clear();
             _renderer.materials = _originalMaterials.ToArray();
+        }
+        
+        public void DestroyMaterial()
+        {
+            foreach (var material in _replacedMaterials) Object.Destroy(material);
+            foreach (var material in _originalMaterials) Object.Destroy(material);
         }
     }
 }

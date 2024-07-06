@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using Client.Network.Settings;
-using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
@@ -31,9 +31,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceHotBarBlock(Vector3Int pos, int hotBarSlot, BlockDirection blockDirection)
+        public void PlaceHotBarBlock(List<PlaceInfo> placePositions, int hotBarSlot)
         {
-            var request = new SendPlaceHotBarBlockProtocolMessagePack(_playerId, blockDirection, hotBarSlot, pos);
+            var request = new SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
             _packetSender.Send(request);
         }
         

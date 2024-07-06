@@ -1,5 +1,8 @@
-﻿using Cinemachine;
+﻿using System.Threading;
+using Cinemachine;
 using Client.Input;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Client.Game.InGame.Control
@@ -7,6 +10,8 @@ namespace Client.Game.InGame.Control
     public class InGameCameraController : MonoBehaviour
     {
         public Vector3 Position => transform.position;
+        public Vector3 CameraEulerAngle => transform.rotation.eulerAngles;
+        public float CameraDistance => _cinemachineFraming.m_CameraDistance;
         
         [SerializeField] private Camera mainCamera;
         
@@ -17,7 +22,9 @@ namespace Client.Game.InGame.Control
         private CinemachineFramingTransposer _cinemachineFraming;
         private Quaternion _targetRotation; // The rotation to smoothly rotate towards
         
-        private bool _updateCameraAngle;
+        private DG.Tweening.Sequence _currentSequence;
+        
+        private bool _isControllable;
         
         private void Awake()
         {
@@ -30,15 +37,18 @@ namespace Client.Game.InGame.Control
             var distance = _cinemachineFraming.m_CameraDistance + InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
             
-            if (!_updateCameraAngle) return;
+            if (!_isControllable && _currentSequence == null) return;
             
             //マウスのインプットによって向きを変える
-            UpdateCameraRotation();
+            if (_isControllable)
+            {
+                GetMouseInput();
+            }
             LeapCameraRotation();
             
             #region Internal
             
-            void UpdateCameraRotation()
+            void GetMouseInput()
             {
                 var delta = InputManager.Player.Look.ReadValue<Vector2>();
                 
@@ -69,9 +79,18 @@ namespace Client.Game.InGame.Control
             mainCamera.gameObject.SetActive(enable);
         }
         
-        public void SetUpdateCameraAngle(bool enable)
+        public void SetControllable(bool enable)
         {
-            _updateCameraAngle = enable;
+            _isControllable = enable;
+        }
+        
+        public void StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration)
+        {
+            // DoTweenでカメラの向きを変える
+            _currentSequence?.Kill();
+            _currentSequence = DOTween.Sequence()
+                .Append(DOTween.To(() => _targetRotation, x => _targetRotation = x, targetRotation, duration).SetEase(Ease.InOutQuad))
+                .Join(DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, duration).SetEase(Ease.InOutQuad));
         }
     }
 }

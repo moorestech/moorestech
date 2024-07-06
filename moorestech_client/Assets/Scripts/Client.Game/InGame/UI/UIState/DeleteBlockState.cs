@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
 {
@@ -29,18 +30,20 @@ namespace Client.Game.InGame.UI.UIState
             
             if (BlockClickDetect.TryGetCursorOnBlock(out var blockGameObject))
             {
-                if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
-                _removeTargetBlock = blockGameObject;
-                _removeTargetBlock.SetRemovePreviewing();
-            }
-            else
-            {
-                if (_removeTargetBlock != null)
+                if (_removeTargetBlock == null || _removeTargetBlock != blockGameObject)
                 {
-                    _removeTargetBlock.ResetMaterial();
-                    _removeTargetBlock = null;
+                    if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
+                    
+                    _removeTargetBlock = blockGameObject;
+                    _removeTargetBlock.SetRemovePreviewing();
                 }
             }
+            else if (_removeTargetBlock != null)
+            {
+                _removeTargetBlock.ResetMaterial();
+                _removeTargetBlock = null;
+            }
+            
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
             {
@@ -52,14 +55,14 @@ namespace Client.Game.InGame.UI.UIState
             if (UnityEngine.Input.GetMouseButtonDown(1))
             {
                 InputManager.MouseCursorVisible(false);
-                _inGameCameraController.SetUpdateCameraAngle(true);
+                _inGameCameraController.SetControllable(true);
             }
             
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetMouseButtonUp(1))
             {
                 InputManager.MouseCursorVisible(true);
-                _inGameCameraController.SetUpdateCameraAngle(false);
+                _inGameCameraController.SetControllable(false);
             }
             
             return UIStateEnum.Current;
@@ -69,7 +72,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             _deleteBarObject.gameObject.SetActive(true);
             InputManager.MouseCursorVisible(true);
-            _inGameCameraController.SetUpdateCameraAngle(false);
+            _inGameCameraController.SetControllable(false);
         }
         
         public void OnExit()
