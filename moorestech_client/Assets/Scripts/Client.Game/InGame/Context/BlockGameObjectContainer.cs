@@ -92,11 +92,7 @@ namespace Client.Game.InGame.Context
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
             previewGameObject.SetTriggerCollider(true);
-            previewGameObject.Initialize(
-                ServerContext.BlockConfig.GetBlockConfig(blockId)
-                
-            );
-            
+            previewGameObject.Initialize(ServerContext.BlockConfig.GetBlockConfig(blockId));
             
             return previewGameObject;
         }

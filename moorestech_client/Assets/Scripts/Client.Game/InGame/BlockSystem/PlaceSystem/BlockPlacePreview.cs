@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Common;
 using Client.Game.InGame.Block;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.Context;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -30,7 +27,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         private void Start()
         {
-            
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         

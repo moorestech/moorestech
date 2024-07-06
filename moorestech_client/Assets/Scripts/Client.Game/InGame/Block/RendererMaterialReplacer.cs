@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Client.Common;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Client.Game.InGame.Block
 {
@@ -61,6 +63,11 @@ namespace Client.Game.InGame.Block
             foreach (var material in _replacedMaterials) material.SetFloat(propertyName, value);
         }
         
+        public void SetColor(Color color)
+        {
+            foreach (var material in _replacedMaterials) material.color = color;
+        }
+        
         public void ResetMaterial()
         {
             if (_renderer == null) return;
@@ -69,6 +76,12 @@ namespace Client.Game.InGame.Block
             foreach (var material in _replacedMaterials) Object.Destroy(material);
             _replacedMaterials.Clear();
             _renderer.materials = _originalMaterials.ToArray();
+        }
+        
+        public void DestroyMaterial()
+        {
+            foreach (var material in _replacedMaterials) Object.Destroy(material);
+            foreach (var material in _originalMaterials) Object.Destroy(material);
         }
     }
 }

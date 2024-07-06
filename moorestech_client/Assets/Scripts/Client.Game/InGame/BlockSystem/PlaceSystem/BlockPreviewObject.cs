@@ -10,19 +10,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public BlockConfigData BlockConfig { get; private set; }
         
-        private Material _placeMaterial;
+        private RendererMaterialReplacerController _rendererMaterialReplacerController;
         
         public void Initialize(BlockConfigData blockConfigData)
         {
             BlockConfig = blockConfigData;
             
-            _placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
-            var blockRenderer = GetComponentsInChildren<Renderer>();
-            foreach (var renderer in blockRenderer)
-            {
-                var replacer = new RendererMaterialReplacer(renderer);
-                replacer.CopyAndSetMaterial(_placeMaterial);
-            }
+            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
+            
+            var placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             SetVfxActive(false);
         }
@@ -30,7 +27,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void SetPlaceableColor(bool isPlaceable)
         {
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-            _placeMaterial.color = color;
+            _rendererMaterialReplacerController.SetColor(color);
         }
         
         private void SetVfxActive(bool isActive)
@@ -52,7 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         public void Destroy()
         {
-            Destroy(_placeMaterial);
+            _rendererMaterialReplacerController.DestroyMaterial();
             Destroy(gameObject);
         }
     }
