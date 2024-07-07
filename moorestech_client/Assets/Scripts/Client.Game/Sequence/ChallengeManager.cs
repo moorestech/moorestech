@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Tutorial;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Challenge;
@@ -22,12 +23,15 @@ namespace Client.Game.Sequence
         
         [SerializeField] private List<ChallengeTextAsset> challengeTextAssets;
         
+        private TutorialManager _tutorialManager;
+        
         private ChallengeConfig _challengeConfig;
         
         [Inject]
-        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
+        public void Construct(InitialHandshakeResponse initialHandshakeResponse, TutorialManager tutorialManager)
         {
             _challengeConfig = ServerContext.GetService<ChallengeConfig>();
+            _tutorialManager = tutorialManager;
             if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
             {
                 var currentChallenge = initialHandshakeResponse.Challenge.CurrentChallenges.First();
@@ -43,8 +47,12 @@ namespace Client.Game.Sequence
             var challengeInfo = _challengeConfig.GetChallenge(message.CompletedChallengeId);
             var nextIds = challengeInfo.NextIds;
             
+            // スキットの再生
+            // Play background skit
             PlaySkit(nextIds).Forget();
             
+            // チャレンジのテキストの更新 TODO 複数のチャレンジに対応させる
+            // Update challenge text TODO Correspond to multiple challenges
             if (challengeInfo.NextIds.Count != 0)
             {
                 var nextId = challengeInfo.NextIds.First();
@@ -52,6 +60,10 @@ namespace Client.Game.Sequence
                 
                 currentChallengeSummary.text = nextChallenge.Summary;
             }
+            
+            // チュートリアルの適用
+            // Apply tutorial
+            nextIds.ForEach(id => _tutorialManager.ApplyTutorial(id));
         }
         
         private async UniTask PlaySkit(List<int> nextIds)
