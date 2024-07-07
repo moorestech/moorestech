@@ -9,7 +9,8 @@
     "Game.Crafting.Interface",
     "Game.PlayerInventory.Interface",
     "Game.Context",
-    "Core.Inventory"
+    "Core.Inventory",
+    "Game.Challenge.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

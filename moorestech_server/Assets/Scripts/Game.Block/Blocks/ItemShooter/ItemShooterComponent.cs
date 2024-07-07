@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.ItemShooter
                 var id = ServerContext.ItemConfig.GetItemId(item.ItemStack.ItemHash);
                 _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
                 {
-                    RemainingPercent = (float)items[i].RemainingPercent,
+                    RemainingPercent = (float)items[i].RemainingPercent
                 };
             }
         }
@@ -90,7 +90,7 @@ namespace Game.Block.Blocks.ItemShooter
                 //時間を減らす
                 var deltaTime = (float)GameUpdater.UpdateMillSecondTime / 1000f; // floatとdobuleが混在しているの気持ち悪いから改善したい
                 item.RemainingPercent -= deltaTime * _configParam.ItemShootSpeed * item.CurrentSpeed;
-                item.RemainingPercent = Mathf.Clamp(item.RemainingPercent, 0, 1);
+                item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
                 
                 // velocityを更新する
                 item.CurrentSpeed += _configParam.Acceleration * deltaTime;
@@ -137,6 +137,7 @@ namespace Game.Block.Blocks.ItemShooter
             var item = _inventoryItems[slot];
             return item == null ? itemStackFactory.CreatEmpty() : itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
         }
+        
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
@@ -150,6 +151,7 @@ namespace Game.Block.Blocks.ItemShooter
         }
         
         public bool IsDestroy { get; private set; }
+        
         public void Destroy()
         {
             IsDestroy = true;
@@ -166,14 +168,11 @@ namespace Game.Block.Blocks.ItemShooter
     
     public class ItemShooterItemJsonObject
     {
-        [JsonProperty("itemStack")]
-        public ItemStackJsonObject ItemStack;
+        [JsonProperty("itemStack")] public ItemStackJsonObject ItemStack;
         
-        [JsonProperty("remainingTime")]
-        public double RemainingPercent;
+        [JsonProperty("remainingTime")] public double RemainingPercent;
         
-        [JsonProperty("currentSpeed")]
-        public double CurrentSpeed;
+        [JsonProperty("currentSpeed")] public double CurrentSpeed;
         
         public ItemShooterItemJsonObject(ShooterInventoryItem shooterInventoryItem)
         {

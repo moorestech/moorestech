@@ -39,4 +39,18 @@ namespace Game.Challenge
     public interface IChallengeTaskParam
     {
     }
+    
+    public class TmpChallengeInfo
+    {
+        public int Id;
+        public int PreviousId;
+        
+        public string Summary;
+        
+        public string TaskCompletionType;
+        public IChallengeTaskParam TaskParam;
+        
+        public string FireSkitType;
+        public string FireSkitName;
+    }
 }

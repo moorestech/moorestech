@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using UniRx;
+using UnityEngine;
 
 namespace Core.Update
 {
@@ -25,8 +26,12 @@ namespace Core.Update
         public static void ResetUpdate()
         {
             _updateSubject = new Subject<Unit>();
-            UpdateMillSecondTime = 0;
+        }
+        
+        public static void ResetTime()
+        {
             _lastUpdateTime = DateTime.Now;
+            UpdateMillSecondTime = 0;
         }
         
         public static void Dispose()

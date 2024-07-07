@@ -8,13 +8,11 @@ namespace Game.Challenge
 {
     public class ChallengeDatastore
     {
-        private readonly ChallengeConfig _challengeConfig;
         private readonly Dictionary<int, PlayerChallengeInfo> _playerChallengeInfos = new();
         
-        public ChallengeDatastore(ChallengeConfig challengeConfig)
+        public ChallengeDatastore()
         {
             GameUpdater.UpdateObservable.Subscribe(Update);
-            _challengeConfig = challengeConfig;
         }
         
         private void CompletedChallenge(CurrentChallenge currentChallenge)
@@ -28,7 +26,7 @@ namespace Game.Challenge
             var nextIds = currentChallenge.Config.NextIds;
             foreach (var nextId in nextIds)
             {
-                var config = _challengeConfig.GetChallenge(nextId);
+                var config = ServerContext.ChallengeConfig.GetChallenge(nextId);
                 
                 var nextChallenge = new CurrentChallenge(playerId, config);
                 nextChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
@@ -62,7 +60,7 @@ namespace Game.Challenge
             PlayerChallengeInfo CreateInitialChallenge()
             {
                 var initialChallenges = new List<CurrentChallenge>();
-                foreach (var initialChallengeConfig in _challengeConfig.InitialChallenges)
+                foreach (var initialChallengeConfig in ServerContext.ChallengeConfig.InitialChallenges)
                 {
                     var initialChallenge = new CurrentChallenge(playerId, initialChallengeConfig);
                     initialChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
@@ -86,7 +84,7 @@ namespace Game.Challenge
                 foreach (var completedId in challengeJsonObject.CompletedIds)
                 {
                     // 完了したチャレンジの次のチャレンジがクリア済みでなければ、CurrentChallengeに追加
-                    var info = _challengeConfig.GetChallenge(completedId);
+                    var info = ServerContext.ChallengeConfig.GetChallenge(completedId);
                     
                     foreach (var nextId in info.NextIds)
                     {
@@ -113,7 +111,7 @@ namespace Game.Challenge
                 result.Add(new ChallengeJsonObject
                 {
                     PlayerId = playerId,
-                    CompletedIds = completedIds,
+                    CompletedIds = completedIds
                 });
             }
             

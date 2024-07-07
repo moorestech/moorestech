@@ -13,7 +13,8 @@
     "Server.Util",
     "UniRx",
     "Game.Context",
-    "Game.Challenge"
+    "Game.Challenge",
+    "Game.Challenge.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

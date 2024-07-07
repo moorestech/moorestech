@@ -12,6 +12,7 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -64,7 +65,6 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }
         }
-        public double TimeOfItemEnterToExit { get; } //ベルトコンベアにアイテムが入って出るまでの時間
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -118,10 +118,7 @@ namespace Game.Block.Blocks.BeltConveyor
             if (_inventoryItems.Length == 0) return string.Empty;
             
             var saveItems = new List<BeltConveyorItemJsonObject>();
-            foreach (var t in _inventoryItems)
-            {
-                saveItems.Add(new BeltConveyorItemJsonObject(t));
-            }
+            foreach (var t in _inventoryItems) saveItems.Add(new BeltConveyorItemJsonObject(t));
             
             return JsonConvert.SerializeObject(saveItems);
         }
@@ -138,10 +135,7 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
             
-            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null)
-            {
-                _inventoryItems[0] = new BeltConveyorInventoryItem(4, ItemInstanceId.Create());
-            }
+            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(4, ItemInstanceId.Create());
             for (var i = 0; i < count; i++)
             {
                 var item = _inventoryItems[i];
@@ -183,7 +177,8 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 
                 //時間を減らす 
-                item.RemainingPercent -= (float)(GameUpdater.UpdateMillSecondTime / 1000f * (1f / (float)_timeOfItemEnterToExit));
+                var subPercent = GameUpdater.UpdateMillSecondTime / 1000.0 * (1.0 / _timeOfItemEnterToExit);
+                item.RemainingPercent -= subPercent;
             }
         }
         
@@ -201,11 +196,9 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class BeltConveyorItemJsonObject
     {
-        [JsonProperty("itemStack")]
-        public ItemStackJsonObject ItemStack;
+        [JsonProperty("itemStack")] public ItemStackJsonObject ItemStack;
         
-        [JsonProperty("remainingTime")]
-        public float RemainingPercent;
+        [JsonProperty("remainingTime")] public double RemainingPercent;
         
         public BeltConveyorItemJsonObject(BeltConveyorInventoryItem beltConveyorInventoryItem)
         {

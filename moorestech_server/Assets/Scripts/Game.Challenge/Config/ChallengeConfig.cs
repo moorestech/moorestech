@@ -5,11 +5,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Game.Challenge
 {
-    public class ChallengeConfig
+    public class ChallengeConfig : IChallengeConfig
     {
-        private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
+        public IReadOnlyList<ChallengeInfo> InitialChallenges { get; }
         
-        public readonly IReadOnlyList<ChallengeInfo> InitialChallenges;
+        private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
         
         public ChallengeConfig(ConfigJsonFileContainer configJson)
         {
@@ -60,7 +60,7 @@ namespace Game.Challenge
                         TaskParam = taskParam,
                         Summary = summary,
                         FireSkitType = fireSkitType,
-                        FireSkitName = fireSkitName,
+                        FireSkitName = fireSkitName
                     });
                 }
             }
@@ -72,20 +72,5 @@ namespace Game.Challenge
         {
             return _challengeInfos[playerId];
         }
-    }
-    
-    public class TmpChallengeInfo
-    {
-        public int Id;
-        public int PreviousId;
-        
-        public string Summary;
-        
-        public string TaskCompletionType;
-        public IChallengeTaskParam TaskParam;
-        
-        public string FireSkitType;
-        public string FireSkitName;
-        
     }
 }

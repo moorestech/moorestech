@@ -7,7 +7,8 @@
     "Game.Block.Interface",
     "Game.Crafting.Interface",
     "Game.Map.Interface",
-    "Game.Gear"
+    "Game.Gear",
+    "Game.Challenge.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

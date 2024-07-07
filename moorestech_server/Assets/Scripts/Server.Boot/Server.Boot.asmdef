@@ -30,7 +30,8 @@
     "Game.Context",
     "Core.Item",
     "Game.Gear",
-    "Game.Challenge"
+    "Game.Challenge",
+    "Game.Challenge.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

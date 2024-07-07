@@ -71,6 +71,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<IMapObjectConfig, MapObjectConfig>();
+            initializerCollection.AddSingleton<IChallengeConfig, ChallengeConfig>();
             
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
@@ -84,19 +85,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
             
             var initializerProvider = initializerCollection.BuildServiceProvider();
-            var serverContext = new ServerContext(
-                initializerProvider.GetService<IItemConfig>(),
-                initializerProvider.GetService<IBlockConfig>(),
-                initializerProvider.GetService<ICraftingConfig>(),
-                initializerProvider.GetService<IMachineRecipeConfig>(),
-                initializerProvider.GetService<IMapObjectConfig>(),
-                initializerProvider.GetService<IItemStackFactory>(),
-                initializerProvider.GetService<IBlockFactory>(),
-                initializerProvider.GetService<IWorldBlockDatastore>(),
-                initializerProvider.GetService<IWorldBlockUpdateEvent>(),
-                initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>(),
-                initializerProvider.GetService<IMapVeinDatastore>()
-            );
+            var serverContext = new ServerContext(initializerProvider);
             
             
             //コンフィグ、ファクトリーのインスタンスを登録
@@ -118,7 +107,6 @@ namespace Server.Boot
             
             services.AddSingleton(configJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
-            services.AddSingleton<ChallengeConfig, ChallengeConfig>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
             
             //JSONファイルのセーブシステムの読み込み
@@ -168,7 +156,10 @@ namespace Server.Boot
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             
-            serverContext.SetServiceProvider(serviceProvider);
+            serverContext.SetMainServiceProvider(serviceProvider);
+            
+            // アップデート時間をリセット
+            GameUpdater.ResetTime();
             
             return (packetResponse, serviceProvider);
         }

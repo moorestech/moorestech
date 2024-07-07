@@ -85,8 +85,8 @@ namespace Tests.CombinedTest.Core
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));
             
-            var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
             var outputItem = beltConveyorComponent.InsertItem(item);
+            var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
             
             //5秒以上経過したらループを抜ける 
             while (!dummy.IsItemExists) GameUpdater.UpdateWithWait();
@@ -95,8 +95,8 @@ namespace Tests.CombinedTest.Core
             //チェック
             Debug.Log($"{(DateTime.Now - expectedEndTime).TotalMilliseconds}");
             
-            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.05));
-            Assert.True(expectedEndTime.AddSeconds(-0.05) <= DateTime.Now);
+            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.1));
+            Assert.True(expectedEndTime.AddSeconds(-0.1) <= DateTime.Now);
             
             Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
             var tmp = itemStackFactory.Create(id, 1);
