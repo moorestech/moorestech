@@ -323,23 +323,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
+  stiffnessForce: 336
   dragForce: 0.4
   springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
+  windInfluence: 0.143
   pivotNode: {fileID: 6607931484260644375}
   angularStiffness: 100
   yAngleLimits:
     active: 1
-    min: -20
-    max: 20
+    min: -60
+    max: 60
   zAngleLimits:
     active: 1
-    min: 0
-    max: 20
+    min: -60
+    max: 140
   lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
+  radius: 0.007
+  sphereColliders:
+  - {fileID: 3721816772813593981}
   capsuleColliders: []
   panelColliders: []
 --- !u!1 &778057345737402939
@@ -3732,23 +3733,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
+  stiffnessForce: 336
   dragForce: 0.4
   springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
+  windInfluence: 0.143
   pivotNode: {fileID: 498057644336414542}
   angularStiffness: 100
   yAngleLimits:
     active: 1
-    min: -20
-    max: 20
+    min: -60
+    max: 60
   zAngleLimits:
     active: 1
-    min: 0
-    max: 20
+    min: -60
+    max: 140
   lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
+  radius: 0.007
+  sphereColliders:
+  - {fileID: 3721816772813593981}
   capsuleColliders: []
   panelColliders: []
 --- !u!1 &3547095792026196931
@@ -5442,23 +5444,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
+  stiffnessForce: 336
   dragForce: 0.4
   springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
+  windInfluence: 0.143
   pivotNode: {fileID: 4645248852313960718}
   angularStiffness: 100
   yAngleLimits:
     active: 1
-    min: -20
-    max: 20
+    min: -60
+    max: 60
   zAngleLimits:
     active: 1
-    min: 0
-    max: 20
+    min: -60
+    max: 140
   lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
+  radius: 0.007
+  sphereColliders:
+  - {fileID: 3721816772813593981}
   capsuleColliders: []
   panelColliders: []
 --- !u!1 &5436218605276983996
@@ -6721,23 +6724,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
+  stiffnessForce: 336
   dragForce: 0.4
   springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
+  windInfluence: 0.143
   pivotNode: {fileID: 2030427943405791459}
   angularStiffness: 100
   yAngleLimits:
     active: 1
-    min: -20
-    max: 20
+    min: -60
+    max: 60
   zAngleLimits:
     active: 1
-    min: 0
-    max: 20
+    min: -60
+    max: 140
   lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
+  radius: 0.007
+  sphereColliders:
+  - {fileID: 3721816772813593981}
   capsuleColliders: []
   panelColliders: []
 --- !u!1 &7241135609828597765
@@ -6836,6 +6840,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999996, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 6374398903415091726}
   - {fileID: 3319783412627638164}
   - {fileID: 3890738431801207144}
   - {fileID: 2759304332477824222}
@@ -7342,6 +7347,53 @@ Transform:
   - {fileID: 2227135786196017259}
   m_Father: {fileID: 2641983961116436085}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8184183517966589034
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6374398903415091726}
+  - component: {fileID: 3721816772813593981}
+  m_Layer: 0
+  m_Name: ribnon collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6374398903415091726
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8184183517966589034}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.0596, z: -0.0246}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 354466563109830065}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3721816772813593981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8184183517966589034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 328bfb8438c749d46ad9174283110a36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  radius: 0.11
+  linkedRenderer: {fileID: 0}
+  shouldDrawGizmosThisFrame: 0
 --- !u!1 &8184910423238495086
 GameObject:
   m_ObjectHideFlags: 0
