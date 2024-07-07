@@ -148,6 +148,42 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: radius
+      value: 0.007
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: windInfluence
+      value: 0.143
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: stiffnessForce
+      value: 336
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.max
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.max
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: sphereColliders.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1421348534969132581, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: sphereColliders.Array.data[0]
+      value: 
+      objectReference: {fileID: 1784666985}
     - target: {fileID: 3504028723181249556, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_RootOrder
       value: 4
@@ -196,6 +232,42 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player_1
       objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: radius
+      value: 0.007
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: windInfluence
+      value: 0.143
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: stiffnessForce
+      value: 336
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.max
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.max
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: sphereColliders.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5428974783231740143, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: sphereColliders.Array.data[0]
+      value: 
+      objectReference: {fileID: 1784666985}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -139.12999
@@ -216,6 +288,78 @@ PrefabInstance:
       propertyPath: m_LocalRotation.x
       value: 0.17364816
       objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: radius
+      value: 0.007
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: windInfluence
+      value: 0.143
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: stiffnessForce
+      value: 336
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.max
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.max
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.active
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947770303424555898, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.active
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: radius
+      value: 0.007
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: windInfluence
+      value: 0.143
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: stiffnessForce
+      value: 336
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.max
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: yAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.max
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: zAngleLimits.min
+      value: -60
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: sphereColliders.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8906397480005292096, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: sphereColliders.Array.data[0]
+      value: 
+      objectReference: {fileID: 1784666985}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -555,6 +699,17 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: e1b1165fe89864791833ed469f52992c, type: 2}
+--- !u!114 &1784666985 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 217935489508968172, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+  m_PrefabInstance: {fileID: 38247148}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 328bfb8438c749d46ad9174283110a36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2098334617
 GameObject:
   m_ObjectHideFlags: 0

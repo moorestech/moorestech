@@ -118,7 +118,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 5512517279608141338}
   virtualCamera: {fileID: 2746655488367588027}
-  uiStateControl: {fileID: 0}
   sensitivity: {x: 0.3, y: 0.3}
   lerpSpeed: 10
 --- !u!1 &3504028723181249557
