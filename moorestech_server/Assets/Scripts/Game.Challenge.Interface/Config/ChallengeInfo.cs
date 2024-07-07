@@ -21,6 +21,8 @@ namespace Game.Challenge
         public readonly string FireSkitType;
         public readonly string FireSkitName;
         
+        public List<TutorialConfig> Tutorials;
+        
         public ChallengeInfo(TmpChallengeInfo tmpChallengeInfo, List<int> nextIds)
         {
             Id = tmpChallengeInfo.Id;
@@ -31,13 +33,8 @@ namespace Game.Challenge
             Summary = tmpChallengeInfo.Summary;
             FireSkitType = tmpChallengeInfo.FireSkitType;
             FireSkitName = tmpChallengeInfo.FireSkitName;
+            Tutorials = tmpChallengeInfo.Tutorials;
         }
-    }
-    
-    public delegate IChallengeTaskParam ChallengeTaskParamLoader(dynamic param);
-    
-    public interface IChallengeTaskParam
-    {
     }
     
     public class TmpChallengeInfo
@@ -52,5 +49,7 @@ namespace Game.Challenge
         
         public string FireSkitType;
         public string FireSkitName;
+        
+        public List<TutorialConfig> Tutorials;
     }
 }
