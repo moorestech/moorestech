@@ -4,6 +4,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Cysharp.Threading.Tasks;
+using Game.Challenge.TutorialParam;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -36,22 +37,23 @@ namespace Client.Game.InGame.Tutorial
             transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
         }
         
-        public void SetNearMapObject(string mapObjectType)
+        public void ApplyTutorial(MapObjectPinTutorialParam param)
         {
             _mapObjectOnDestroy?.Dispose();
             
-            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(mapObjectType);
+            // 近くのMapObjectを探してピンを表示
+            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(param.MapObjectType);
             var playerPos = _playerObjectController.Position;
             var nearMapObject = mapObjects.OrderBy(x => (playerPos - x.GetPosition()).sqrMagnitude).First();
-            gameObject.SetActive(true);
             transform.position = nearMapObject.GetPosition();
             
-            _mapObjectOnDestroy = nearMapObject.OnDestroyMapObject.Subscribe(_ => gameObject.SetActive(false)).AddTo(this);
-        }
-        
-        public void SetText(string text)
-        {
-            pinText.text = text;
+            // そのMapObjectが破壊されたらピンを非表示にする
+            _mapObjectOnDestroy = nearMapObject.OnDestroyMapObject.Subscribe(_ => SetActive(false)).AddTo(this);
+            
+            // ピンのテキストを設定
+            pinText.text = param.PinText;
+            
+            SetActive(true);
         }
         
         public void SetActive(bool active)

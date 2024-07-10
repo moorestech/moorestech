@@ -67,7 +67,7 @@ namespace Game.Challenge
                         foreach (var tutorial in challenge.tutorials)
                         {
                             string tutorialType = tutorial.tutorialType;
-                            ITutorialParam tutorialTaskParam = tutorialTaskParamLoader[tutorialType].Invoke(tutorial.taskParam);
+                            ITutorialParam tutorialTaskParam = tutorialTaskParamLoader[tutorialType].Invoke(tutorial.tutorialParam);
                             
                             tutorials.Add(new TutorialConfig(tutorialType, tutorialTaskParam));
                         }

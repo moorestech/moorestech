@@ -2,7 +2,7 @@ namespace Game.Challenge.TutorialParam
 {
     public class MapObjectPinTutorialParam : ITutorialParam
     {
-        public const string TaskCompletionType = "inInventoryItem";
+        public const string TaskCompletionType = "mapObjectPin";
         
         public readonly string MapObjectType;
         public readonly string PinText;
