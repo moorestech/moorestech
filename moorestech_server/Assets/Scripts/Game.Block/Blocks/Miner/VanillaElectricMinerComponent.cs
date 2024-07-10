@@ -41,7 +41,7 @@ namespace Game.Block.Blocks.Miner
         private int _defaultMiningTime = int.MaxValue;
         
         private VanillaMinerState _lastMinerState;
-        private double _remainingMillSecond = double.MaxValue;
+        private double _remainingSecond = double.MaxValue;
         
         public VanillaElectricMinerComponent(int blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
@@ -71,7 +71,7 @@ namespace Game.Block.Blocks.Miner
                 {
                     if (miningSetting.ItemId != veins[0].VeinItemId) continue;
                     _defaultMiningTime = miningSetting.MiningTime;
-                    _remainingMillSecond = _defaultMiningTime;
+                    _remainingSecond = _defaultMiningTime;
                     break;
                 }
             }
@@ -89,7 +89,7 @@ namespace Game.Block.Blocks.Miner
                 _openableInventoryItemDataStoreService.SetItem(i, itemStack);
             }
             
-            _remainingMillSecond = saveJsonObject.RemainingMillSecond;
+            _remainingSecond = saveJsonObject.RemainingSecond;
         }
         
         public IItemStack GetItem(int slot)
@@ -118,7 +118,7 @@ namespace Game.Block.Blocks.Miner
             
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
-                RemainingMillSecond = _remainingMillSecond,
+                RemainingSecond = _remainingSecond,
                 Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
             };
             
@@ -129,7 +129,7 @@ namespace Game.Block.Blocks.Miner
         
         public BlockState GetBlockState()
         {
-            var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
+            var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
             var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate));
             var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
             return state;
@@ -163,7 +163,7 @@ namespace Game.Block.Blocks.Miner
             
             void MinerProgressUpdate()
             {
-                var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestEnergy);
+                var subTime = MachineCurrentPowerToSubSecond.GetSubSecond(_currentPower, RequestEnergy);
                 if (subTime <= 0)
                 {
                     //電力の都合で処理を進められないのでreturn
@@ -181,11 +181,11 @@ namespace Game.Block.Blocks.Miner
                 
                 _currentState = VanillaMinerState.Mining;
                 
-                _remainingMillSecond -= subTime;
+                _remainingSecond -= subTime;
                 
-                if (_remainingMillSecond <= 0)
+                if (_remainingSecond <= 0)
                 {
-                    _remainingMillSecond = _defaultMiningTime;
+                    _remainingSecond = _defaultMiningTime;
                     
                     //空きスロットを探索し、あるならアイテムを挿入
                     _openableInventoryItemDataStoreService.InsertItem(_miningItems);
@@ -339,7 +339,7 @@ namespace Game.Block.Blocks.Miner
     {
         [JsonProperty("items")]
         public List<ItemStackJsonObject> Items;
-        [JsonProperty("remainingMillSecond")]
-        public double RemainingMillSecond;
+        [JsonProperty("remainingSecond")]
+        public double RemainingSecond;
     }
 }

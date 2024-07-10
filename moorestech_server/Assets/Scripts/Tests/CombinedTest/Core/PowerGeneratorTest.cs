@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Core
             
             
             //燃料の燃焼時間ループする
-            var endTime1 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
+            var endTime1 = DateTime.Now.AddSeconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
             
             //燃料を挿入
             generatorComponent.InsertItem(fuelItem1);
@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Core
             generatorComponent.InsertItem(fuelItem2);
             
             //燃料の1個目の枯渇までループ
-            endTime1 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
+            endTime1 = DateTime.Now.AddSeconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
             while (endTime1.AddSeconds(0.3).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //2個の燃料が入っていることを確認
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId, fuelItemId);
             
             //燃料の2個目の枯渇までループ
-            var endTime2 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem2Id].Time);
+            var endTime2 = DateTime.Now.AddSeconds(generatorConfigParam.FuelSettings[FuelItem2Id].Time);
             while (endTime2.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //2個目の燃料が枯渇しているか確認

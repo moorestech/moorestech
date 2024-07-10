@@ -11,12 +11,13 @@ namespace Core.Update
         private static DateTime _lastUpdateTime = DateTime.Now;
         public static IObservable<Unit> UpdateObservable => _updateSubject;
         
-        [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateMillSecondTime { get; private set; }
+        // [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateMillSecondTime { get; private set; }
+        [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateSecondTime { get; private set; }
         
         public static void Update()
         {
             //アップデートの実行
-            UpdateMillSecondTime = (DateTime.Now - _lastUpdateTime).TotalMilliseconds;
+            UpdateSecondTime = (DateTime.Now - _lastUpdateTime).TotalSeconds;
             _lastUpdateTime = DateTime.Now;
             
             _updateSubject.OnNext(Unit.Default);
@@ -25,7 +26,7 @@ namespace Core.Update
         public static void ResetUpdate()
         {
             _updateSubject = new Subject<Unit>();
-            UpdateMillSecondTime = 0;
+            UpdateSecondTime = 0;
             _lastUpdateTime = DateTime.Now;
         }
         

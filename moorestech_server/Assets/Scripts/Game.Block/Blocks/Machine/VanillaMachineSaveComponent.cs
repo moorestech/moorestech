@@ -10,8 +10,6 @@ namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineSaveComponent : IBlockSaveState
     {
-        public bool IsDestroy { get; private set; }
-        
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
@@ -25,6 +23,7 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
         }
+        public bool IsDestroy { get; private set; }
         
         public void Destroy()
         {
@@ -41,7 +40,7 @@ namespace Game.Block.Blocks.Machine
                 InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackJsonObject(item)).ToList(),
                 OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackJsonObject(item)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
-                RemainingTime = _vanillaMachineProcessorComponent.RemainingMillSecond,
+                RemainingTime = _vanillaMachineProcessorComponent.RemainingSecond,
                 RecipeId = _vanillaMachineProcessorComponent.RecipeDataId,
             };
             
@@ -55,12 +54,12 @@ namespace Game.Block.Blocks.Machine
         public List<ItemStackJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
         public List<ItemStackJsonObject> OutputSlot;
+        [JsonProperty("recipeId")]
+        public int RecipeId;
+        [JsonProperty("remainingTime")]
+        public double RemainingTime;
         
         [JsonProperty("state")]
         public int State;
-        [JsonProperty("remainingTime")]
-        public double RemainingTime;
-        [JsonProperty("recipeId")]
-        public int RecipeId;
     }
 }

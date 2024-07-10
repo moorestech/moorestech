@@ -42,7 +42,8 @@ namespace Tests.CombinedTest.Core
                 var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
-                var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
+                var endTime = DateTime.Now.AddSeconds(config.TimeOfItemEnterToExit);
+                
                 while (DateTime.Now < endTime.AddSeconds(0.05))
                 {
                     item = beltConveyorComponent.InsertItem(item);
@@ -85,7 +86,7 @@ namespace Tests.CombinedTest.Core
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));
             
-            var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
+            var expectedEndTime = DateTime.Now.AddSeconds(config.TimeOfItemEnterToExit);
             var outputItem = beltConveyorComponent.InsertItem(item);
             
             //5秒以上経過したらループを抜ける 
@@ -93,7 +94,7 @@ namespace Tests.CombinedTest.Core
             
             
             //チェック
-            Debug.Log($"{(DateTime.Now - expectedEndTime).TotalMilliseconds}");
+            Debug.Log($"{(DateTime.Now - expectedEndTime).TotalSeconds}");
             
             Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.05));
             Assert.True(expectedEndTime.AddSeconds(-0.05) <= DateTime.Now);

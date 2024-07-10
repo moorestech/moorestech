@@ -47,8 +47,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var vanillaMachineProcessor = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
             //ステータスをセット
             typeof(VanillaMachineProcessorComponent)
-                .GetProperty("RemainingMillSecond")
-                .SetValue(vanillaMachineProcessor, 300);
+                .GetProperty("RemainingSecond")
+                .SetValue(vanillaMachineProcessor, 0.3);
             typeof(VanillaMachineProcessorComponent)
                 .GetProperty("CurrentState")
                 .SetValue(vanillaMachineProcessor, ProcessState.Processing);
@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //機械のレシピの残り時間のチェック
             var machineProcessor = loadMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
-            Assert.AreEqual(300, machineProcessor.RemainingMillSecond);
+            Assert.AreEqual(0.3, machineProcessor.RemainingSecond);
             //レシピIDのチェック
             Assert.AreEqual(recipeId, machineProcessor.RecipeDataId);
             //機械のステータスのチェック

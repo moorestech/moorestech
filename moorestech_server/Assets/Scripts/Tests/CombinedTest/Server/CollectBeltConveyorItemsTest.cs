@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server
     public class CollectBeltConveyorItemsTest
     {
         //4秒で入って出るベルトコンベアで残り1秒で出る時の座標が正しいかどうかをテストする
-        private const int RemainingTime = 500;
+        private const double RemainingTime = 0.5;
         private const int ItemInstanceId = 100;
         
         private readonly List<Vector2Int> _plusPlayerCoordinate = new() { new Vector2Int(0, 0) };
@@ -144,7 +144,7 @@ namespace Tests.CombinedTest.Server
             
             //4秒間アップデートする
             var now = DateTime.Now;
-            while (DateTime.Now - now < TimeSpan.FromMilliseconds(RemainingTime * 1.1)) GameUpdater.UpdateWithWait();
+            while (DateTime.Now - now < TimeSpan.FromSeconds(RemainingTime * 1.1)) GameUpdater.UpdateWithWait();
             
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);

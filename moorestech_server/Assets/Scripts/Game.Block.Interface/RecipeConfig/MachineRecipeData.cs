@@ -7,7 +7,7 @@ namespace Game.Block.Interface.RecipeConfig
 {
     public class MachineRecipeData
     {
-        public MachineRecipeData(int blockId, int time, List<IItemStack> itemInputs, List<ItemOutput> itemOutputs,
+        public MachineRecipeData(int blockId, float time, List<IItemStack> itemInputs, List<ItemOutput> itemOutputs,
             int recipeId)
         {
             BlockId = blockId;
@@ -23,7 +23,7 @@ namespace Game.Block.Interface.RecipeConfig
         
         public List<ItemOutput> ItemOutputs { get; }
         
-        public int Time { get; }
+        public float Time { get; }
         public int RecipeId { get; }
         
         public static MachineRecipeData CreateEmptyRecipe()
