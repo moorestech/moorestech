@@ -1,8 +1,8 @@
 {
   "type": "object",
-  "required": [ "items" ],
+  "required": [ "data" ],
   "properties": {
-    "items": {
+    "data": {
       "type": "array",
       "items": {
         "type": "object",
