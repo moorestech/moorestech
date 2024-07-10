@@ -20,17 +20,12 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        
-        public int InventoryItemNum { get; }
-        public bool IsDestroy { get; private set; }
-        
         public const float DefaultBeltConveyorHeight = 0.3f;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
@@ -39,7 +34,7 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
-            _timeOfItemEnterToExit = timeOfItemEnterToExit / 1000f; //TODO int・double単位統一
+            _timeOfItemEnterToExit = timeOfItemEnterToExit; //TODO int・double単位統一
             _blockConnectorComponent = blockConnectorComponent;
             
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
@@ -64,7 +59,10 @@ namespace Game.Block.Blocks.BeltConveyor
                 _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }
         }
+        
+        public int InventoryItemNum { get; }
         public double TimeOfItemEnterToExit { get; } //ベルトコンベアにアイテムが入って出るまでの時間
+        public bool IsDestroy { get; private set; }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -125,6 +123,7 @@ namespace Game.Block.Blocks.BeltConveyor
             
             return JsonConvert.SerializeObject(saveItems);
         }
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         
         /// <summary>
         ///     アイテムの搬出判定を行う
@@ -183,7 +182,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 
                 //時間を減らす 
-                item.RemainingPercent -= (float)(GameUpdater.UpdateMillSecondTime / 1000f * (1f / (float)_timeOfItemEnterToExit));
+                item.RemainingPercent -= (float)(GameUpdater.UpdateSecondTime * (1f / (float)_timeOfItemEnterToExit));
             }
         }
         

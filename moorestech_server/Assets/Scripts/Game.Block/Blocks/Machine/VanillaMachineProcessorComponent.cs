@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, double remainingMillSecond, MachineRecipeData processingRecipeData,
+            ProcessState currentState, double remainingSecond, MachineRecipeData processingRecipeData,
             ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
@@ -53,14 +53,16 @@ namespace Game.Block.Blocks.Machine
             
             _processingRecipeData = processingRecipeData;
             RequestPower = requestPower;
-            RemainingMillSecond = remainingMillSecond;
+            RemainingSecond = remainingSecond;
+            
             CurrentState = currentState;
             
             UpdateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-        public double RemainingMillSecond { get; private set; }
+        // public double RemainingMillSecond { get; private set; }
+        public double RemainingSecond { get; private set; }
         
         public int RecipeDataId => _processingRecipeData.RecipeId;
         public IObservable<BlockState> OnChangeBlockState => _changeState;
@@ -69,7 +71,7 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
             
-            var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
+            var processingRate = 1 - (float)RemainingSecond / _processingRecipeData.Time;
             return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),
                 MessagePackSerializer.Serialize(
                     new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate)));
@@ -118,14 +120,14 @@ namespace Game.Block.Blocks.Machine
                 CurrentState = ProcessState.Processing;
                 _processingRecipeData = _vanillaMachineInputInventory.GetRecipeData();
                 _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipeData);
-                RemainingMillSecond = _processingRecipeData.Time;
+                RemainingSecond = _processingRecipeData.Time;
             }
         }
         
         private void Processing()
         {
-            RemainingMillSecond -= MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestPower);
-            if (RemainingMillSecond <= 0)
+            RemainingSecond -= MachineCurrentPowerToSubMillSecond.GetSubSecond(_currentPower, RequestPower);
+            if (RemainingSecond <= 0)
             {
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);

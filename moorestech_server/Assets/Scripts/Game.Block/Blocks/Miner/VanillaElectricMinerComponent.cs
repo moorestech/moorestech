@@ -163,7 +163,7 @@ namespace Game.Block.Blocks.Miner
             
             void MinerProgressUpdate()
             {
-                var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestEnergy);
+                var subTime = MachineCurrentPowerToSubMillSecond.GetSubSecond(_currentPower, RequestEnergy);
                 if (subTime <= 0)
                 {
                     //電力の都合で処理を進められないのでreturn
