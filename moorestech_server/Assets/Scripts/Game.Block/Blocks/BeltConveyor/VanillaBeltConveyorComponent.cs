@@ -12,7 +12,6 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -21,11 +20,12 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        public int InventoryItemNum { get; }
+        public double TimeOfItemEnterToExit { get; } //ベルトコンベアにアイテムが入って出るまでの時間
+        public bool IsDestroy { get; private set; }
+        
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        
-        public int InventoryItemNum { get; }
-        public bool IsDestroy { get; private set; }
         
         public const float DefaultBeltConveyorHeight = 0.3f;
         
@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
-            _timeOfItemEnterToExit = timeOfItemEnterToExit / 1000f; //TODO int・double単位統一
+            _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _blockConnectorComponent = blockConnectorComponent;
             
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
@@ -177,8 +177,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 
                 //時間を減らす 
-                var subPercent = GameUpdater.UpdateMillSecondTime / 1000.0 * (1.0 / _timeOfItemEnterToExit);
-                item.RemainingPercent -= subPercent;
+                item.RemainingPercent -= (float)(GameUpdater.UpdateSecondTime * (1f / (float)_timeOfItemEnterToExit));
             }
         }
         

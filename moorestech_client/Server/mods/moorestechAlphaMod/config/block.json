@@ -144,7 +144,7 @@
       },
       "param": {
         "slot": 3,
-        "time": 10000,
+        "time": 10,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -261,12 +261,12 @@
         "outputSlot": 1,
         "mineSettings": [
           {
-            "time": 20000,
+            "time": 20,
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "iron ore"
           },
           {
-            "time": 20000,
+            "time": 20,
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "coal"
           }
@@ -508,7 +508,7 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500,
+        "time": 2.5,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -594,7 +594,7 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500,
+        "time": 2.5,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -665,7 +665,7 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500,
+        "time": 2.5,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -736,7 +736,7 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500,
+        "time": 2.5,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -817,7 +817,7 @@
       },
       "param": {
         "slot": 3,
-        "time": 2500,
+        "time": 2.5,
         "inventoryConnectors": {
           "inputConnects": [
             {

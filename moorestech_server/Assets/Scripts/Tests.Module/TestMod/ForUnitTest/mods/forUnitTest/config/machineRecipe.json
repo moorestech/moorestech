@@ -2,7 +2,7 @@
   {
     "blockModId": "Test Author:forUniTest",
     "blockName": "TestElectricMachine",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",
@@ -27,7 +27,7 @@
   {
     "blockModId": "Test Author:forUniTest",
     "blockName": "TestBlock",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",
@@ -52,7 +52,7 @@
   {
     "blockModId": "Test Author:forUniTest",
     "blockName": "TestBeltConveyor",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",
@@ -88,7 +88,7 @@
   {
     "blockModId": "Test Author:forUniTest",
     "blockName": "TestGearMachine",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",

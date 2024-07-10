@@ -8,6 +8,7 @@ using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
@@ -18,11 +19,9 @@ namespace Game.Block.Blocks.ItemShooter
 {
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState
     {
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private readonly ShooterInventoryItem[] _inventoryItems;
-        
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly ItemShooterConfigParam _configParam;
+        private readonly ShooterInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
         public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
@@ -39,7 +38,7 @@ namespace Game.Block.Blocks.ItemShooter
         {
             if (state == string.Empty) return;
             
-            var items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(state);
+            List<ItemShooterItemJsonObject> items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(state);
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
@@ -70,7 +69,7 @@ namespace Game.Block.Blocks.ItemShooter
                     
                     if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    var connector = _blockConnectorComponent.ConnectedTargets.First();
+                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectedTargets.First();
                     var target = connector.Key;
                     if (target is ItemShooterComponent shooter)
                     {
@@ -88,7 +87,7 @@ namespace Game.Block.Blocks.ItemShooter
                 }
                 
                 //時間を減らす
-                var deltaTime = (float)GameUpdater.UpdateMillSecondTime / 1000f; // floatとdobuleが混在しているの気持ち悪いから改善したい
+                var deltaTime = (float)GameUpdater.UpdateSecondTime; // floatとdobuleが混在しているの気持ち悪いから改善したい
                 item.RemainingPercent -= deltaTime * _configParam.ItemShootSpeed * item.CurrentSpeed;
                 item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
                 

@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Core
             
             var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
-            var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
+            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {

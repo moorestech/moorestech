@@ -2,7 +2,7 @@
   {
     "blockModId": "Test Author 2:testMod2",
     "blockName": "TestElectricMachine",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",
@@ -27,7 +27,7 @@
   {
     "blockModId": "Test Author 2:testMod2",
     "blockName": "TestElectricMachine1",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",
@@ -52,7 +52,7 @@
   {
     "blockModId": "Test Author 2:testMod2",
     "blockName": "TestElectricMachine2",
-    "time": 1500,
+    "time": 1.5,
     "input": [
       {
         "itemName": "Test1",
