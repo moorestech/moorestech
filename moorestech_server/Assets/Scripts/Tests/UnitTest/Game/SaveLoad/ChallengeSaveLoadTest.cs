@@ -24,11 +24,12 @@ namespace Tests.CombinedTest.Game
             
             // そのプレイヤーIDのチャレンジを作成する
             // create a challenge for that player ID
-            var challengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
+            var challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
             var initialChallenge = (List<ChallengeInfo>)ServerContext.ChallengeConfig.InitialChallenges;
+            Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
                 var challenge = initialChallenge.Find(c => c.Id == currentChallenge.Config.Id);
@@ -48,7 +49,8 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            challengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
+            challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
                 var challenge = initialChallenge.Find(c => c.Id == currentChallenge.Config.Id);
@@ -68,7 +70,7 @@ namespace Tests.CombinedTest.Game
             
             // そのプレイヤーIDのチャレンジを作成する
             // create a challenge for that player ID
-            var challengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
+            var challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
@@ -100,9 +102,15 @@ namespace Tests.CombinedTest.Game
             
             // チャレンジがクリアされていることを確認する
             // Check that the challenge is cleared
-            challengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
-            Assert.AreEqual(1, challengeInfo.CompletedChallengeIds.Count);
-            Assert.AreEqual(currentChallengeCount, challengeInfo.CurrentChallenges.Count);
+            var loadedChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeIds.Count);
+            Assert.AreEqual(1000, loadedChallengeInfo.CompletedChallengeIds[0]);
+            
+            Assert.AreEqual(currentChallengeCount, loadedChallengeInfo.CurrentChallenges.Count);
+            for (int i = 0; i < loadedChallengeInfo.CompletedChallengeIds.Count; i++)
+            {
+                Assert.AreEqual(challengeInfo.CompletedChallengeIds[i], loadedChallengeInfo.CompletedChallengeIds[i]);
+            }
         }
     }
 }

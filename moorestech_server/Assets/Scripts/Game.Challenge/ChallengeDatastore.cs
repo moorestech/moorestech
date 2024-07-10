@@ -15,27 +15,6 @@ namespace Game.Challenge
             GameUpdater.UpdateObservable.Subscribe(Update);
         }
         
-        private void CompletedChallenge(CurrentChallenge currentChallenge)
-        {
-            var playerId = currentChallenge.PlayerId;
-            var challengeInfo = _playerChallengeInfos[playerId];
-            
-            challengeInfo.CurrentChallenges.Remove(currentChallenge);
-            challengeInfo.CompletedChallengeIds.Add(currentChallenge.Config.Id);
-            
-            var nextIds = currentChallenge.Config.NextIds;
-            foreach (var nextId in nextIds)
-            {
-                var config = ServerContext.ChallengeConfig.GetChallenge(nextId);
-                
-                var nextChallenge = new CurrentChallenge(playerId, config);
-                nextChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
-                challengeInfo.CurrentChallenges.Add(nextChallenge);
-            }
-            
-            ServerContext.GetService<ChallengeEvent>().InvokeCompleteChallenge(currentChallenge);
-        }
-        
         private void Update(Unit unit)
         {
             foreach (var challengeInfo in _playerChallengeInfos.Values)
@@ -46,7 +25,7 @@ namespace Game.Challenge
                 }
         }
         
-        public PlayerChallengeInfo GetChallengeInfo(int playerId)
+        public PlayerChallengeInfo GetOrCreateChallengeInfo(int playerId)
         {
             if (_playerChallengeInfos.TryGetValue(playerId, out var info)) return info;
             
@@ -62,8 +41,7 @@ namespace Game.Challenge
                 var initialChallenges = new List<CurrentChallenge>();
                 foreach (var initialChallengeConfig in ServerContext.ChallengeConfig.InitialChallenges)
                 {
-                    var initialChallenge = new CurrentChallenge(playerId, initialChallengeConfig);
-                    initialChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
+                    var initialChallenge = CreateChallenge(playerId, initialChallengeConfig);
                     initialChallenges.Add(initialChallenge);
                 }
                 
@@ -79,6 +57,16 @@ namespace Game.Challenge
             {
                 var playerId = challengeJsonObject.PlayerId;
                 var currentChallenges = new List<CurrentChallenge>();
+                
+                // InitialChallengeの中でクリアしていないのを登録
+                foreach (var initialChallengeConfig in ServerContext.ChallengeConfig.InitialChallenges)
+                {
+                    // クリア済みならスキップ
+                    if (challengeJsonObject.CompletedIds.Contains(initialChallengeConfig.Id)) continue;
+                    
+                    var initialChallenge = CreateChallenge(playerId, initialChallengeConfig);
+                    currentChallenges.Add(initialChallenge);
+                }
                 
                 // CurrentChallengeを作成
                 foreach (var completedId in challengeJsonObject.CompletedIds)
@@ -99,6 +87,34 @@ namespace Game.Challenge
                 _playerChallengeInfos.Add(playerId, new PlayerChallengeInfo(currentChallenges, challengeJsonObject.CompletedIds));
             }
         }
+        
+        private CurrentChallenge CreateChallenge(int playerId, ChallengeInfo config)
+        {
+            var challenge = new CurrentChallenge(playerId, config);
+            challenge.OnChallengeComplete.Subscribe(CompletedChallenge);
+            return challenge;
+        }
+        
+        private void CompletedChallenge(CurrentChallenge currentChallenge)
+        {
+            var playerId = currentChallenge.PlayerId;
+            var challengeInfo = _playerChallengeInfos[playerId];
+            
+            challengeInfo.CurrentChallenges.Remove(currentChallenge);
+            challengeInfo.CompletedChallengeIds.Add(currentChallenge.Config.Id);
+            
+            var nextIds = currentChallenge.Config.NextIds;
+            foreach (var nextId in nextIds)
+            {
+                var config = ServerContext.ChallengeConfig.GetChallenge(nextId);
+                
+                var nextChallenge = CreateChallenge(playerId, config);
+                challengeInfo.CurrentChallenges.Add(nextChallenge);
+            }
+            
+            ServerContext.GetService<ChallengeEvent>().InvokeCompleteChallenge(currentChallenge);
+        }
+
         
         public List<ChallengeJsonObject> GetSaveJsonObject()
         {

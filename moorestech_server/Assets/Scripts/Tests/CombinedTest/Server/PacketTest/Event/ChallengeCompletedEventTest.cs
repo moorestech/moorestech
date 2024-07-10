@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetChallengeInfo(PlayerId);
+            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
          
             ClearCraftChallenge(packet,serviceProvider);
             
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetChallengeInfo(PlayerId);
+            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // インベントリに別々にアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
