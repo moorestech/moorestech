@@ -1,9 +1,9 @@
 {
   "type": "object",
   "properties": {
-    "required": [ "blocks" ],
+    "required": [ "data" ],
 
-    "blocks": {
+    "data": {
       "type": "array",
       "items": {
         "type": "object",
@@ -83,7 +83,15 @@
             }
           },
           "objectTest": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "key1": {
+                "type": "string"
+              },
+              "key2": {
+                "type": "integer"
+              }
+            }
           },
           "vector2Test": {
             "type": "array",
