@@ -592,6 +592,7 @@ MonoBehaviour:
   blockInventoryView: {fileID: 8898167348514627761}
   craftInventoryView: {fileID: 3227045173603346395}
   playerInventoryViewController: {fileID: 5132210590052991366}
+  mapObjectPin: {fileID: 467412427984320023}
   blockPlacePreview: {fileID: 5250938589678043889}
   saveButton: {fileID: 773343225977944571}
   backToMainMenu: {fileID: 7635949962361503415}
@@ -1573,6 +1574,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 483f60d3ccff7c4439798bc1c22d5e8e, type: 3}
+--- !u!114 &467412427984320023 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3274056875778934081, guid: 483f60d3ccff7c4439798bc1c22d5e8e, type: 3}
+  m_PrefabInstance: {fileID: 3103926005830595414}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb900693d36d40ee82c0a0763d595393, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &4457787671720279159 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1643358688383176481, guid: 483f60d3ccff7c4439798bc1c22d5e8e, type: 3}
