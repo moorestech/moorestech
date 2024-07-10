@@ -43,7 +43,7 @@
     "Game.Context",
     "Game.Gear",
     "Game.Challenge",
-    "Game.Challenge.interface",
+    "Game.Challenge.Interface",
     "UniRx"
   ],
   "includePlatforms": [
