@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Core.Block
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var originalMiner = blockFactory.Create(MinerId, new BlockInstanceId(1), minerPosInfo);
             var originalMinerComponent = originalMiner.GetComponent<VanillaElectricMinerComponent>();
-            var originalRemainingMillSecond = 350;
+            var originalRemainingMillSecond = 0.35;
             
             var inventory =
                 (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Core.Block
                     .GetValue(originalMinerComponent);
             inventory.SetItem(0, 1, 1);
             inventory.SetItem(2, 4, 1);
-            typeof(VanillaElectricMinerComponent).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+            typeof(VanillaElectricMinerComponent).GetField("_remainingSecond", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(originalMinerComponent, originalRemainingMillSecond);
             
             
@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Core.Block
                     .GetValue(originalMinerComponent);
             var loadedRemainingMillSecond =
                 (double)typeof(VanillaElectricMinerComponent)
-                    .GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetField("_remainingSecond", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(loadedMinerComponent);
             
             Assert.AreEqual(inventory.GetItem(0), loadedInventory.GetItem(0));
