@@ -1569,6 +1569,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MapObjectPin
       objectReference: {fileID: 0}
+    - target: {fileID: 2647944270424384017, guid: 483f60d3ccff7c4439798bc1c22d5e8e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

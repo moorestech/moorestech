@@ -29,12 +29,18 @@ namespace Client.Game.Sequence
         public void Construct(InitialHandshakeResponse initialHandshakeResponse, TutorialManager tutorialManager)
         {
             _tutorialManager = tutorialManager;
+            
+            //TODO 複数のチャレンジを表示する
             if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
             {
                 var currentChallenge = initialHandshakeResponse.Challenge.CurrentChallenges.First();
                 if (currentChallenge != null) currentChallengeSummary.text = currentChallenge.Summary;
                 
                 ClientContext.VanillaApi.Event.RegisterEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
+                
+                // チュートリアルの適用
+                // Apply tutorial
+                initialHandshakeResponse.Challenge.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.Id));
             }
         }
         

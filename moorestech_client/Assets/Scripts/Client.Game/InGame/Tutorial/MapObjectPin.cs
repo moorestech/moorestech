@@ -44,7 +44,14 @@ namespace Client.Game.InGame.Tutorial
             // 近くのMapObjectを探してピンを表示
             var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(param.MapObjectType);
             var playerPos = _playerObjectController.Position;
-            var nearMapObject = mapObjects.OrderBy(x => (playerPos - x.GetPosition()).sqrMagnitude).First();
+            var sortedMapObjects = mapObjects.OrderBy(x => (playerPos - x.GetPosition()).sqrMagnitude).ToList();
+            if (sortedMapObjects.Count == 0)
+            {
+                Debug.LogWarning($"未破壊のMapObject {param.MapObjectType} が存在しません");
+                return;
+            }
+            
+            var nearMapObject = sortedMapObjects.First();
             transform.position = nearMapObject.GetPosition();
             
             // そのMapObjectが破壊されたらピンを非表示にする
