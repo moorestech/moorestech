@@ -4,7 +4,6 @@
     "references": [
         "moorestechServer",
         "ClassLibrary",
-        "Core.Block",
         "Core.ConfigJson",
         "Core.Const",
         "Core.Inventory",
@@ -32,7 +31,6 @@
         "Server.Event",
         "Server.Protocol",
         "Server.Util",
-        "ServerServiceProvider",
         "VContainer",
         "Client.Mod",
         "Client.Common",
@@ -53,6 +51,7 @@
         "Client.CutScene",
         "Game.Gear",
         "Game.Challenge",
+        "Game.Challenge.Interface",
         "UniTask.DOTween"
     ],
     "includePlatforms": [],

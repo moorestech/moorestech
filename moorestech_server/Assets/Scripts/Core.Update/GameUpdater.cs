@@ -11,7 +11,6 @@ namespace Core.Update
         private static DateTime _lastUpdateTime = DateTime.Now;
         public static IObservable<Unit> UpdateObservable => _updateSubject;
         
-        // [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateMillSecondTime { get; private set; }
         [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateSecondTime { get; private set; }
         
         public static void Update()
@@ -28,6 +27,12 @@ namespace Core.Update
             _updateSubject = new Subject<Unit>();
             UpdateSecondTime = 0;
             _lastUpdateTime = DateTime.Now;
+        }
+        
+        public static void ResetTime()
+        {
+            _lastUpdateTime = DateTime.Now;
+            UpdateSecondTime = 0;
         }
         
         public static void Dispose()

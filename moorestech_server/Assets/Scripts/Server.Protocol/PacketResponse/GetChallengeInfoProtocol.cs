@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
             
-            var info = _challengeDatastore.GetChallengeInfo(data.PlayerId);
+            var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
             var currentChallengeIds = info.CurrentChallenges.Select(c => c.Config.Id).ToList();
             
             return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeIds);
@@ -49,6 +49,12 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)] public int PlayerId { get; set; }
+        
+        [Key(3)] public List<int> CurrentChallengeIds { get; set; }
+        
+        [Key(4)] public List<int> CompletedChallengeIds { get; set; }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseChallengeInfoMessagePack()
         {
@@ -61,11 +67,5 @@ namespace Server.Protocol.PacketResponse
             CurrentChallengeIds = currentChallengeIds;
             CompletedChallengeIds = completedChallengeIds;
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public List<int> CurrentChallengeIds { get; set; }
-        
-        [Key(4)] public List<int> CompletedChallengeIds { get; set; }
     }
 }

@@ -145,8 +145,7 @@ namespace Client.Network.API
             var request = new RequestChallengeMessagePack(playerId);
             var response = await _packetExchangeManager.GetPacketResponse<ResponseChallengeInfoMessagePack>(request, ct);
             
-            var challengeConfig = ServerContext.GetService<ChallengeConfig>();
-            
+            var challengeConfig = ServerContext.ChallengeConfig;
             var current = response.CurrentChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
             var completed = response.CompletedChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
             

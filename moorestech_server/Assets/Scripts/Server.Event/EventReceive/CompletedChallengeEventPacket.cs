@@ -31,6 +31,8 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class CompletedChallengeEventMessage
     {
+        [Key(0)] public int CompletedChallengeId { get; set; }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CompletedChallengeEventMessage()
         {
@@ -40,7 +42,5 @@ namespace Server.Event.EventReceive
         {
             CompletedChallengeId = completedChallengeId;
         }
-        
-        [Key(0)] public int CompletedChallengeId { get; set; }
     }
 }

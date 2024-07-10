@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // チャレンジを無理やりクリアする
             // Forced to complete a challenge
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            var playerChallengeInfo = challengeDatastore.GetChallengeInfo(PlayerId);
+            var playerChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             foreach (var challenge in playerChallengeInfo.CurrentChallenges.ToList())
             {

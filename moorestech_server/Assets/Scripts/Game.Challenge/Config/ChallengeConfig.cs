@@ -1,22 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
+using Game.Challenge.TutorialParam;
 using Newtonsoft.Json.Linq;
 
 namespace Game.Challenge
 {
-    public class ChallengeConfig
+    public class ChallengeConfig : IChallengeConfig
     {
-        private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
+        public IReadOnlyList<ChallengeInfo> InitialChallenges { get; }
         
-        public readonly IReadOnlyList<ChallengeInfo> InitialChallenges;
+        private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
         
         public ChallengeConfig(ConfigJsonFileContainer configJson)
         {
+            // パラメーターのローダーを定義
+            // define parameter loader
             var challengeTaskParamLoader = new Dictionary<string, ChallengeTaskParamLoader>();
             challengeTaskParamLoader.Add(CreateItemTaskParam.TaskCompletionType, CreateItemTaskParam.Create);
             challengeTaskParamLoader.Add(InInventoryItemTaskParam.TaskCompletionType, InInventoryItemTaskParam.Create);
             
+            var tutorialTaskParamLoader = new Dictionary<string, TutorialParamLoader>();
+            tutorialTaskParamLoader.Add(MapObjectPinTutorialParam.TaskCompletionType, MapObjectPinTutorialParam.Create);
+            
+            // 双方向ID構築のため、一時的なチャレンジ情報をロード
+            // load temporary challenge information for bidirectional ID construction
             var tmpChallenges = new Dictionary<int, TmpChallengeInfo>();
             foreach (var jsonText in configJson.SortedChallengeConfigJsonList) LoadTmpChallengeInfo(jsonText);
             var nextChallengeIds = new Dictionary<int, List<int>>();
@@ -26,6 +34,8 @@ namespace Game.Challenge
                 nextChallengeIds[tmpChallenge.PreviousId].Add(tmpChallenge.Id);
             }
             
+            // チャレンジ情報を生成
+            // generate challenge information
             foreach (var tmpChallenge in tmpChallenges.Values)
             {
                 var nextIds = nextChallengeIds.TryGetValue(tmpChallenge.Id, out var ids) ? ids : new List<int>();
@@ -52,6 +62,16 @@ namespace Game.Challenge
                     string fireSkitType = challenge.fireSkitType;
                     string fireSkitName = challenge.fireSkitName;
                     
+                    var tutorials = new List<TutorialConfig>();
+                    if (challenge.tutorials != null)
+                        foreach (var tutorial in challenge.tutorials)
+                        {
+                            string tutorialType = tutorial.tutorialType;
+                            ITutorialParam tutorialTaskParam = tutorialTaskParamLoader[tutorialType].Invoke(tutorial.tutorialParam);
+                            
+                            tutorials.Add(new TutorialConfig(tutorialType, tutorialTaskParam));
+                        }
+                    
                     tmpChallenges.Add(id, new TmpChallengeInfo
                     {
                         Id = id,
@@ -61,6 +81,7 @@ namespace Game.Challenge
                         Summary = summary,
                         FireSkitType = fireSkitType,
                         FireSkitName = fireSkitName,
+                        Tutorials = tutorials
                     });
                 }
             }
@@ -72,20 +93,5 @@ namespace Game.Challenge
         {
             return _challengeInfos[playerId];
         }
-    }
-    
-    public class TmpChallengeInfo
-    {
-        public int Id;
-        public int PreviousId;
-        
-        public string Summary;
-        
-        public string TaskCompletionType;
-        public IChallengeTaskParam TaskParam;
-        
-        public string FireSkitType;
-        public string FireSkitName;
-        
     }
 }

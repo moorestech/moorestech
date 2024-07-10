@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using UniRx;
+using UnityEditor;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapObject
@@ -10,13 +12,15 @@ namespace Client.Game.InGame.Map.MapObject
     public class MapObjectGameObject : MonoBehaviour
     {
         [SerializeField] private GameObject outlineObject;
-        
         [SerializeField] private int instanceId;
-        
         [SerializeField] private string mapObjectType;
+        
         public int InstanceId => instanceId;
         public string MapObjectType => mapObjectType;
+        public bool IsDestroyed { get; private set; }
         
+        public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
+        private readonly Subject<Unit> _onDestroyMapObject = new();
         
         public void OutlineEnable(bool enable)
         {
@@ -25,6 +29,7 @@ namespace Client.Game.InGame.Map.MapObject
         
         public void DestroyMapObject()
         {
+            IsDestroyed = true;
             //自分を含む全ての子のコライダーとレンダラーを無効化する
             foreach (var child in GetComponentsInChildren<Transform>())
             {
@@ -33,6 +38,8 @@ namespace Client.Game.InGame.Map.MapObject
                 var renderer = child.GetComponent<Renderer>();
                 if (renderer != null) renderer.enabled = false;
             }
+            
+            _onDestroyMapObject.OnNext(Unit.Default);
         }
         
         public Vector3 GetPosition()

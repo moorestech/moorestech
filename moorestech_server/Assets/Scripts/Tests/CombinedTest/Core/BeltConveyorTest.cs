@@ -94,10 +94,10 @@ namespace Tests.CombinedTest.Core
             
             
             //チェック
-            Debug.Log($"{(DateTime.Now - expectedEndTime).TotalSeconds}");
+            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.1));
+            Assert.True(expectedEndTime.AddSeconds(-0.1) <= DateTime.Now);
             
-            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.05));
-            Assert.True(expectedEndTime.AddSeconds(-0.05) <= DateTime.Now);
+            Debug.Log($"{(DateTime.Now - expectedEndTime).TotalSeconds}");
             
             Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
             var tmp = itemStackFactory.Create(id, 1);

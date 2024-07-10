@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
+using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 
@@ -16,31 +17,19 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     public class ChallengeCompletedEventTest
     {
         private const int PlayerId = 0;
+        private const int CraftRecipeId = 1;
         
         [Test]
         // アイテムを作成し、そのチャレンジが完了したイベントを受け取ることを確認するテスト
         // Test to ensure that the item is created and that the challenge receives a completed event
         public void CreateItemChallengeClearTest()
         {
-            const int craftRecipeId = 1;
-            
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetChallengeInfo(PlayerId);
-            
-            // クラフトの素材をインベントリに追加
-            // Add crafting materials to the inventory
-            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            foreach (var craftInfo in ServerContext.CraftingConfig.GetCraftingConfigData(craftRecipeId).CraftRequiredItemInfos)
-            {
-                var requiredItem = craftInfo.ItemStack;
-                playerInventoryData.MainOpenableInventory.InsertItem(requiredItem);
-            }
-            
-            // クラフトを実行
-            // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeId)).ToList());
+            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+         
+            ClearCraftChallenge(packet,serviceProvider);
             
             // イベントを受け取り、テストする
             // Receive and test the event
@@ -52,6 +41,22 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1000, completedChallenge.CompletedChallengeId);
         }
         
+        public static void ClearCraftChallenge(PacketResponseCreator packet, ServiceProvider serviceProvider)
+        {
+            // クラフトの素材をインベントリに追加
+            // Add crafting materials to the inventory
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            foreach (var craftInfo in ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId).CraftRequiredItemInfos)
+            {
+                var requiredItem = craftInfo.ItemStack;
+                playerInventoryData.MainOpenableInventory.InsertItem(requiredItem);
+            }
+            
+            // クラフトを実行
+            // Execute the craft
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
+        }
+        
         [Test]
         // インベントリにアイテムがあることでチャレンジが完了したイベントを受け取ることを確認するテスト
         // Test to ensure that the challenge receives a completed event when an item is in the inventory
@@ -60,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetChallengeInfo(PlayerId);
+            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // インベントリに別々にアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);

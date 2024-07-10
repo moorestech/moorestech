@@ -4,7 +4,7 @@ namespace Game.Block.Blocks.BeltConveyor
 {
     public interface IOnBeltConveyorItem
     {
-        public float RemainingPercent { get; }
+        public double RemainingPercent { get; }
         public int ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
     }
@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// <summary>
         ///     ベルトコンベア内のアイテムが出るまで残り何パーセントか
         /// </summary>
-        public float RemainingPercent { get; set; }
+        public double RemainingPercent { get; set; }
         
         public BeltConveyorInventoryItem(int itemId, ItemInstanceId itemInstanceId)
         {

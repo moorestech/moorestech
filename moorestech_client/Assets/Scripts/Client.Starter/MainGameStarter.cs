@@ -12,6 +12,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.Sub;
@@ -57,6 +58,8 @@ namespace Client.Starter
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         
+        [SerializeField] private MapObjectPin mapObjectPin;
+        
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
@@ -90,14 +93,17 @@ namespace Client.Starter
             var builder = new ContainerBuilder();
             
             //最初に取得したデータを登録
+            // register initial data
             builder.RegisterInstance(initialHandshakeResponse);
             
             //インベントリのUIコントロール
+            // register inventory UI control
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
             
             //プレゼンターアセンブリ
+            // register presenter assembly
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
@@ -106,6 +112,7 @@ namespace Client.Starter
             
             
             //UIコントロール
+            // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
             builder.Register<BlockInventoryState>(Lifetime.Singleton);
             builder.Register<GameScreenState>(Lifetime.Singleton);
@@ -115,8 +122,12 @@ namespace Client.Starter
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             
+            // チュートリアル関連
+            // register tutorial
+            builder.Register<TutorialManager>(Lifetime.Singleton);
             
             //Hierarchy上にあるcomponent
+            // register component on hierarchy
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             
@@ -139,6 +150,8 @@ namespace Client.Starter
             builder.RegisterComponent(craftInventoryView);
             builder.RegisterComponent(challengeManager);
             
+            builder.RegisterComponent(mapObjectPin);
+            
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);
             
@@ -150,6 +163,7 @@ namespace Client.Starter
             builder.RegisterBuildCallback(objectResolver => { });
             
             //依存関係を解決
+            // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
             _resolver.Resolve<CommandUIInput>();

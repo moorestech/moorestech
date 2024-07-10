@@ -18,7 +18,7 @@
                 {
                     "tutorialType": "mapObjectPin",
                     "tutorialParam": {
-                        "mapObjectType" : "stone",
+                        "mapObjectType" : "vanilla:Pebble",
                         "pinText" : "左クリックで石を採掘"
                     }
                 }

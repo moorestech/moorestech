@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
+using Game.Challenge;
 using Game.Crafting.Interface;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Vein;
@@ -16,38 +17,12 @@ namespace Game.Context
     {
         private static ServiceProvider _serviceProvider;
         
-        public ServerContext(
-            IItemConfig itemConfig,
-            IBlockConfig blockConfig,
-            ICraftingConfig craftingConfig,
-            IMachineRecipeConfig machineRecipeConfig,
-            IMapObjectConfig mapObjectConfig,
-            IItemStackFactory itemStackFactory,
-            IBlockFactory blockFactory,
-            IWorldBlockDatastore worldBlockDatastore,
-            IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            IBlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent,
-            IMapVeinDatastore mapVeinDatastore)
-        {
-            ItemConfig = itemConfig;
-            BlockConfig = blockConfig;
-            CraftingConfig = craftingConfig;
-            MachineRecipeConfig = machineRecipeConfig;
-            MapObjectConfig = mapObjectConfig;
-            
-            ItemStackFactory = itemStackFactory;
-            BlockFactory = blockFactory;
-            WorldBlockDatastore = worldBlockDatastore;
-            MapVeinDatastore = mapVeinDatastore;
-            WorldBlockUpdateEvent = worldBlockUpdateEvent;
-            BlockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
-        }
-        
         public static IItemConfig ItemConfig { get; private set; }
         public static IBlockConfig BlockConfig { get; private set; }
         public static ICraftingConfig CraftingConfig { get; private set; }
         public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
         public static IMapObjectConfig MapObjectConfig { get; private set; }
+        public static IChallengeConfig ChallengeConfig { get; private set; }
         
         public static IItemStackFactory ItemStackFactory { get; private set; }
         public static IBlockFactory BlockFactory { get; private set; }
@@ -63,9 +38,26 @@ namespace Game.Context
             return _serviceProvider.GetService<TType>();
         }
         
-        public void SetServiceProvider(ServiceProvider serviceProvider)
+        public void SetMainServiceProvider(ServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+        }
+        
+        public ServerContext(ServiceProvider initializeServiceProvider)
+        {
+            ItemConfig = initializeServiceProvider.GetService<IItemConfig>();
+            BlockConfig = initializeServiceProvider.GetService<IBlockConfig>();
+            CraftingConfig = initializeServiceProvider.GetService<ICraftingConfig>();
+            MachineRecipeConfig = initializeServiceProvider.GetService<IMachineRecipeConfig>();
+            MapObjectConfig = initializeServiceProvider.GetService<IMapObjectConfig>();
+            ChallengeConfig = initializeServiceProvider.GetService<IChallengeConfig>();
+            
+            ItemStackFactory = initializeServiceProvider.GetService<IItemStackFactory>();
+            BlockFactory = initializeServiceProvider.GetService<IBlockFactory>();
+            WorldBlockDatastore = initializeServiceProvider.GetService<IWorldBlockDatastore>();
+            MapVeinDatastore = initializeServiceProvider.GetService<IMapVeinDatastore>();
+            WorldBlockUpdateEvent = initializeServiceProvider.GetService<IWorldBlockUpdateEvent>();
+            BlockOpenableInventoryUpdateEvent = initializeServiceProvider.GetService<IBlockOpenableInventoryUpdateEvent>();
         }
     }
 }

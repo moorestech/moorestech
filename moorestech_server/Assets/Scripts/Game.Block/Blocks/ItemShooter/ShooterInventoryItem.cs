@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.ItemShooter
         
         public ItemInstanceId ItemInstanceId { get; }
         
-        public float RemainingPercent { get; set; }
+        public double RemainingPercent { get; set; }
         
         public float CurrentSpeed { get; set; }
         

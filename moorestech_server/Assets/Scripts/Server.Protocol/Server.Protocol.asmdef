@@ -19,7 +19,8 @@
     "Game.SaveLoad.Interface",
     "Game.Crafting.Interface",
     "Game.Context",
-    "Game.Challenge"
+    "Game.Challenge",
+    "Game.Challenge.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
