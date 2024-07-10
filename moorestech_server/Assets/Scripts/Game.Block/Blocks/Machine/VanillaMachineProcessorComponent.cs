@@ -61,7 +61,7 @@ namespace Game.Block.Blocks.Machine
         }
         
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-        // public double RemainingMillSecond { get; private set; }
+        
         public double RemainingSecond { get; private set; }
         
         public int RecipeDataId => _processingRecipeData.RecipeId;
@@ -126,7 +126,7 @@ namespace Game.Block.Blocks.Machine
         
         private void Processing()
         {
-            RemainingSecond -= MachineCurrentPowerToSubMillSecond.GetSubSecond(_currentPower, RequestPower);
+            RemainingSecond -= MachineCurrentPowerToSubSecond.GetSubSecond(_currentPower, RequestPower);
             if (RemainingSecond <= 0)
             {
                 CurrentState = ProcessState.Idle;

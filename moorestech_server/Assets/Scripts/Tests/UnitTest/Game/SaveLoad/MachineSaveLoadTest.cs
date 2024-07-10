@@ -47,8 +47,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var vanillaMachineProcessor = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
             //ステータスをセット
             typeof(VanillaMachineProcessorComponent)
-                .GetProperty("RemainingMillSecond")
-                .SetValue(vanillaMachineProcessor, 300);
+                .GetProperty("RemainingSecond")
+                .SetValue(vanillaMachineProcessor, 0.3);
             typeof(VanillaMachineProcessorComponent)
                 .GetProperty("CurrentState")
                 .SetValue(vanillaMachineProcessor, ProcessState.Processing);

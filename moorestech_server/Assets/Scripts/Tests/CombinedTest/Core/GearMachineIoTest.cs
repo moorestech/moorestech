@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Core
             var gearMachineParam = (GearMachineConfigParam)block.BlockConfigData.Param;
             
             //最大クラフト時間を超過するまでクラフトする
-            var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
+            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
             while (craftTime.AddSeconds(0.4).CompareTo(DateTime.Now) == 1)
             {
                 gearMachineComponent.SupplyPower(gearMachineParam.RequiredRpm, gearMachineParam.RequiredTorque, true);
@@ -85,7 +85,7 @@ namespace Tests.CombinedTest.Core
             var gearMachineParam = (GearMachineConfigParam)lackRpmBlock.BlockConfigData.Param;
             
             //最大クラフト時間を超過するまでクラフトする
-            var craftTime = DateTime.Now.AddMilliseconds(recipe.Time * 2);
+            var craftTime = DateTime.Now.AddSeconds(recipe.Time * 2);
             while (craftTime.AddSeconds(0.3).CompareTo(DateTime.Now) == 1)
             {
                 lackRpmGearMachine.SupplyPower(gearMachineParam.RequiredRpm / 2f, gearMachineParam.RequiredTorque, true);

@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Core
             segment.AddEnergyConsumer(miner.GetComponent<IElectricConsumer>());
             segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             
-            var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);
+            var mineEndTime = DateTime.Now.AddSeconds(miningTime);
             
             
             //テストコードの準備完了
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Core
             minerConnectors.Remove(dummyInventory);
             
             //鉱石2個分の採掘時間待機
-            mineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
+            mineEndTime = DateTime.Now.AddSeconds(miningTime * 2);
             while (mineEndTime.AddSeconds(0.05).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石2個が残っているかチェック
