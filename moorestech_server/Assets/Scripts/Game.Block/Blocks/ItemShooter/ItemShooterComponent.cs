@@ -19,9 +19,11 @@ namespace Game.Block.Blocks.ItemShooter
 {
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState
     {
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        private readonly ShooterInventoryItem[] _inventoryItems;
+        
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly ItemShooterConfigParam _configParam;
-        private readonly ShooterInventoryItem[] _inventoryItems;
         private readonly IDisposable _updateObservable;
         
         public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
