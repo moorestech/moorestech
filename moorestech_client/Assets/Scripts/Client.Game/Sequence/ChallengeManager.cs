@@ -25,12 +25,9 @@ namespace Client.Game.Sequence
         
         private TutorialManager _tutorialManager;
         
-        private ChallengeConfig _challengeConfig;
-        
         [Inject]
         public void Construct(InitialHandshakeResponse initialHandshakeResponse, TutorialManager tutorialManager)
         {
-            _challengeConfig = ServerContext.GetService<ChallengeConfig>();
             _tutorialManager = tutorialManager;
             if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
             {
@@ -44,7 +41,7 @@ namespace Client.Game.Sequence
         private void OnCompletedChallenge(byte[] packet)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(packet);
-            var challengeInfo = _challengeConfig.GetChallenge(message.CompletedChallengeId);
+            var challengeInfo = ServerContext.ChallengeConfig.GetChallenge(message.CompletedChallengeId);
             var nextIds = challengeInfo.NextIds;
             
             // スキットの再生
@@ -56,7 +53,7 @@ namespace Client.Game.Sequence
             if (challengeInfo.NextIds.Count != 0)
             {
                 var nextId = challengeInfo.NextIds.First();
-                var nextChallenge = _challengeConfig.GetChallenge(nextId);
+                var nextChallenge = ServerContext.ChallengeConfig.GetChallenge(nextId);
                 
                 currentChallengeSummary.text = nextChallenge.Summary;
             }
@@ -70,7 +67,7 @@ namespace Client.Game.Sequence
         {
             foreach (var id in nextIds)
             {
-                var challengeInfo = _challengeConfig.GetChallenge(id);
+                var challengeInfo = ServerContext.ChallengeConfig.GetChallenge(id);
                 
                 if (challengeInfo.FireSkitType == ChallengeInfo.BackgroundSkitType)
                 {

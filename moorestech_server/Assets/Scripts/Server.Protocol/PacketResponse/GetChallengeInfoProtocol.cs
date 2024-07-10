@@ -49,6 +49,12 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)] public int PlayerId { get; set; }
+        
+        [Key(3)] public List<int> CurrentChallengeIds { get; set; }
+        
+        [Key(4)] public List<int> CompletedChallengeIds { get; set; }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseChallengeInfoMessagePack()
         {
@@ -61,11 +67,5 @@ namespace Server.Protocol.PacketResponse
             CurrentChallengeIds = currentChallengeIds;
             CompletedChallengeIds = completedChallengeIds;
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public List<int> CurrentChallengeIds { get; set; }
-        
-        [Key(4)] public List<int> CompletedChallengeIds { get; set; }
     }
 }
