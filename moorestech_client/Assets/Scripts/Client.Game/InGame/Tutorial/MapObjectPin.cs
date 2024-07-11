@@ -4,7 +4,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Cysharp.Threading.Tasks;
-using Game.Challenge.TutorialParam;
+using Game.Challenge.Config.TutorialParam;
 using TMPro;
 using UniRx;
 using UnityEngine;

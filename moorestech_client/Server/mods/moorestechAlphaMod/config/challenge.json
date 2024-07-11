@@ -37,7 +37,31 @@
                 "itemModId": "sakastudio:moorestechAlphaMod",
                 "itemName": "wood",
                 "itemCount": 3
-            }
+            },
+
+            "tutorials": [
+                {
+                    "tutorialType": "keyControl",
+                    "tutorialParam": {
+                        "uiState" : "GameScreen",
+                        "controlText" : "Tabを押してインベントリを開く"
+                    }
+                },
+                {
+                    "tutorialType": "uiHighLight",
+                    "tutorialParam": {
+                        "uiState" : "GameScreen",
+                        "highLightUI" : "item:stone"
+                    }
+                },
+                {
+                    "tutorialType": "uiHighLight",
+                    "tutorialParam": {
+                        "uiState" : "GameScreen",
+                        "highLightUI" : "craftButton"
+                    }
+                }
+            ]
         },
         {
             "id": 1020,

@@ -1,4 +1,4 @@
-using Game.Challenge.TutorialParam;
+using Game.Challenge.Config.TutorialParam;
 using Game.Context;
 
 namespace Client.Game.InGame.Tutorial
