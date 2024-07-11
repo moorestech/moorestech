@@ -20,7 +20,7 @@
           "itemId": {
             "type": "string",
             "pattern": "@uuid",
-            "format": "@foreignKey:itemId"
+            "format": "@foreignKey:item:itemId:name"
           },
 
           "blockType": {
