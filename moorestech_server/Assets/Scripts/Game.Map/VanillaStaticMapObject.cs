@@ -14,6 +14,16 @@ namespace Game.Map
     /// </summary>
     public class VanillaStaticMapObject : IMapObject
     {
+        public int InstanceId { get; }
+        public string Type { get; }
+        public bool IsDestroyed { get; private set; }
+        public Vector3 Position { get; }
+        public int CurrentHp { get; private set; }
+        
+        public List<IItemStack> EarnItems { get; }
+        
+        public event Action OnDestroy;
+        
         private readonly List<int> _earnItemHps;
         
         public VanillaStaticMapObject(int instanceId, string type, bool isDestroyed, int currentHp, Vector3 position)
@@ -38,16 +48,6 @@ namespace Game.Map
                 EarnItems.Add(itemStack);
             }
         }
-        
-        public int InstanceId { get; }
-        public string Type { get; }
-        public bool IsDestroyed { get; private set; }
-        public Vector3 Position { get; }
-        public int CurrentHp { get; private set; }
-        
-        public List<IItemStack> EarnItems { get; }
-        
-        public event Action OnDestroy;
         
         public List<IItemStack> Attack(int damage)
         {
