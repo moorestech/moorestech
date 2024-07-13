@@ -11,10 +11,11 @@ namespace Client.Game.InGame.Tutorial
         
         private readonly Dictionary<string,ITutorialViewManager> _tutorialViewManagers = new();
         
-        public TutorialManager(MapObjectPin mapObjectPin, UIHighlightTutorialManager uiHighlightTutorialManager)
+        public TutorialManager(MapObjectPin mapObjectPin, UIHighlightTutorialManager uiHighlightTutorialManager, KeyControlTutorialManager keyControlTutorialManager)
         {
             _tutorialViewManagers.Add(MapObjectPinTutorialParam.TaskCompletionType, mapObjectPin);
             _tutorialViewManagers.Add(UIHighLightTutorialParam.TaskCompletionType, uiHighlightTutorialManager);
+            _tutorialViewManagers.Add(KeyControlTutorialParam.TaskCompletionType, keyControlTutorialManager);
         }
         
         public void ApplyTutorial(int challengeId)
