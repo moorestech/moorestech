@@ -26,6 +26,7 @@ namespace Game.Map.Interface.Json
             instanceId = mapObject.InstanceId;
             isDestroyed = mapObject.IsDestroyed;
             type = mapObject.Type;
+            hp = mapObject.CurrentHp;
             x = mapObject.Position.x;
             y = mapObject.Position.y;
             z = mapObject.Position.z;
