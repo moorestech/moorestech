@@ -10,6 +10,7 @@ namespace Client.Game.InGame.Tutorial
 {
     public class KeyControlTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
+        [SerializeField] private GameObject keyControlUIObject;
         [SerializeField] private TMP_Text keyControlTutorialText;
         
         private KeyControlTutorialParam _keyControlTutorialParam;
@@ -26,11 +27,11 @@ namespace Client.Game.InGame.Tutorial
             if (_keyControlTutorialParam != null)
             {
                 var active = _uiStateControl.CurrentState.ToString() == _keyControlTutorialParam.UiState;
-                gameObject.SetActive(active);
+                keyControlUIObject.gameObject.SetActive(active);
             }
             else
             {
-                gameObject.SetActive(false);
+                keyControlUIObject.gameObject.SetActive(false);
             }
         }
         
@@ -44,7 +45,7 @@ namespace Client.Game.InGame.Tutorial
         public void CompleteTutorial()
         {
             _keyControlTutorialParam = null;
-            gameObject.SetActive(false);
+            keyControlUIObject.gameObject.SetActive(false);
         }
     }
 }

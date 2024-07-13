@@ -5,6 +5,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 {
     public class UIHighlightTutorialView : MonoBehaviour, ITutorialView
     {
+        [SerializeField] private GameObject highlightObject;
         [SerializeField] private RectTransform highlightImage;
         [SerializeField] private TMP_Text highlightText;
         
@@ -15,18 +16,15 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             _highlightTutorialTargetObject = tutorialTargetObject;
             highlightText.text = text;
         }
-
+        
         private void Update()
         {
-            if (!_highlightTutorialTargetObject)
-            {
-                SyncRectTransform();
-            }
+            SyncRectTransform();
         }
         
         private void SyncRectTransform()
         {
-            gameObject.SetActive(_highlightTutorialTargetObject.ActiveSelf);
+            highlightObject.SetActive(_highlightTutorialTargetObject.ActiveSelf);
             
             //一旦親を変更し、また親を戻すことによって、ローカル座標を正しく反映することができる
             var currentParent = highlightImage.parent;

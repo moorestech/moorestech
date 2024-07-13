@@ -3517,6 +3517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69fc92d2d835412b9df9dac1b589bf0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  keyControlUIObject: {fileID: 5500919095587798724}
   keyControlTutorialText: {fileID: 4717311624117695551}
 --- !u!1 &3672300786246751445
 GameObject:
@@ -5183,8 +5184,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4279637745
+  m_fontColor: {r: 0.9433962, g: 0.084549636, b: 0.084549636, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

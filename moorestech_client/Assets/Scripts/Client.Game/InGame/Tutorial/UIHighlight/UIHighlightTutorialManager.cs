@@ -12,9 +12,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         public ITutorialView ApplyTutorial(ITutorialParam param)
         {
             var highlightParam = (UIHighLightTutorialParam)param;
-            Debug.Log($"UIHighlightManager ApplyTutorial {highlightParam.HighLightUIObjectId}");
-           
-            var highlightTargetObjects =  FindObjectsOfType<UIHighlightTutorialTargetObject>();
+            
+            var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>();
             foreach (var targetObject in highlightTargetObjects)
             {
                 if (targetObject.HighlightObjectId != highlightParam.HighLightUIObjectId) continue;

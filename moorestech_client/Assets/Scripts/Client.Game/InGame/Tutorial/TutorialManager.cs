@@ -2,14 +2,15 @@ using System.Collections.Generic;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Game.Challenge.Config.TutorialParam;
 using Game.Context;
+using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
 {
     public class TutorialManager
     {
-        private readonly Dictionary<int,List<ITutorialView>> _tutorialViews = new(); 
+        private readonly Dictionary<int, List<ITutorialView>> _tutorialViews = new();
         
-        private readonly Dictionary<string,ITutorialViewManager> _tutorialViewManagers = new();
+        private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
         
         public TutorialManager(MapObjectPin mapObjectPin, UIHighlightTutorialManager uiHighlightTutorialManager, KeyControlTutorialManager keyControlTutorialManager)
         {
@@ -29,7 +30,7 @@ namespace Client.Game.InGame.Tutorial
             {
                 var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial.Param);
                 
-                if (tutorialView != null)  tutorialViews.Add(tutorialView);
+                if (tutorialView != null) tutorialViews.Add(tutorialView);
             }
             
             _tutorialViews.Add(challengeId, tutorialViews);
