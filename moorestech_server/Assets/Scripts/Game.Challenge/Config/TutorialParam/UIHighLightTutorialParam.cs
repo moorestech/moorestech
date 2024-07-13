@@ -4,21 +4,21 @@ namespace Game.Challenge.Config.TutorialParam
     {
         public const string TaskCompletionType = "uiHighLight";
         
-        public readonly string UiState;
         public readonly string HighLightUI;
+        public readonly string HighLightText;
         
-        public UIHighLightTutorialParam(string uiState, string highLightUI)
+        public UIHighLightTutorialParam(string highLightUI, string highLightText)
         {
-            UiState = uiState;
             HighLightUI = highLightUI;
+            HighLightText = highLightText;
         }
         
         public static ITutorialParam Create(dynamic param)
         {
-            string uiState = param.uiState;
             string highLightUI = param.highLightUI;
+            string highLightText = param.highLightText;
             
-            return new UIHighLightTutorialParam(uiState, highLightUI);
+            return new UIHighLightTutorialParam(highLightUI, highLightText);
         }
     }
 }
