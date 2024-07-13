@@ -7570,6 +7570,7 @@ GameObject:
   - component: {fileID: 391020295383053019}
   - component: {fileID: 6442938015858263348}
   - component: {fileID: 6748881672478100712}
+  - component: {fileID: 5586965546596025840}
   m_Layer: 5
   m_Name: CraftButton
   m_TagString: Untagged
@@ -7672,6 +7673,20 @@ MonoBehaviour:
   resetElapsedTimeOnPointerExit: 1
   stopElapsedTimeUpdateOnPointerExit: 1
   restartElapsedTimeUpdateOnPointerEnter: 1
+--- !u!114 &5586965546596025840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7369432569108525015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01a20144c97e482799827ea37ac9fcf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  highlightObjectId: craftButton
+  rectTransform: {fileID: 8517655400864358596}
 --- !u!1 &7479798211182756840
 GameObject:
   m_ObjectHideFlags: 0
@@ -14162,7 +14177,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 80.275
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y

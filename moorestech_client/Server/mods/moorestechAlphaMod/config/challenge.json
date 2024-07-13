@@ -50,7 +50,7 @@
                 {
                     "tutorialType": "uiHighLight",
                     "tutorialParam": {
-                        "highLightUIObjectId" : "item:stone",
+                        "highLightUIObjectId" : "itemRecipeList:stone tool",
                         "highLightText" : "1. レシピを選択"
                     }
                 },

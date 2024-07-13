@@ -12,5 +12,10 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         
         public RectTransform RectTransform => rectTransform;
         [SerializeField] private RectTransform rectTransform;
+        
+        public void SetHighlightObjectId(string uiObjectId)
+        {
+            highlightObjectId = uiObjectId;
+        }
     }
 }
