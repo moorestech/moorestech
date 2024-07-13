@@ -6,9 +6,9 @@ namespace Client.Game.InGame.Tutorial
 {
     public class TutorialManager
     {
-        private Dictionary<int,List<ITutorialView>> _tutorialViews = new(); 
+        private readonly Dictionary<int,List<ITutorialView>> _tutorialViews = new(); 
         
-        private MapObjectPin _mapObjectPin;
+        private readonly MapObjectPin _mapObjectPin;
         
         public TutorialManager(MapObjectPin mapObjectPin)
         {
