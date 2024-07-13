@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Tutorial.UIHighlight;
 using Game.Challenge.Config.TutorialParam;
 using Game.Context;
 
@@ -8,26 +9,24 @@ namespace Client.Game.InGame.Tutorial
     {
         private readonly Dictionary<int,List<ITutorialView>> _tutorialViews = new(); 
         
-        private readonly MapObjectPin _mapObjectPin;
+        private readonly Dictionary<string,ITutorialViewManager> _tutorialViewManagers = new();
         
-        public TutorialManager(MapObjectPin mapObjectPin)
+        public TutorialManager(MapObjectPin mapObjectPin, UIHighlightManager uiHighlightManager)
         {
-            _mapObjectPin = mapObjectPin;
+            _tutorialViewManagers.Add(MapObjectPinTutorialParam.TaskCompletionType, mapObjectPin);
+            _tutorialViewManagers.Add(UIHighLightTutorialParam.TaskCompletionType, uiHighlightManager);
         }
         
         public void ApplyTutorial(int challengeId)
         {
             var tutorialViews = new List<ITutorialView>();
             var challenge = ServerContext.ChallengeConfig.GetChallenge(challengeId);
+            
+            // チュートリアルを実際のManagerに適用する
+            // Apply the tutorial to the actual Manager
             foreach (var tutorial in challenge.Tutorials)
             {
-                ITutorialView tutorialView = null;
-                switch (tutorial.TutorialType)
-                {
-                    case MapObjectPinTutorialParam.TaskCompletionType:
-                        tutorialView = _mapObjectPin.ApplyTutorial((MapObjectPinTutorialParam)tutorial.Param);
-                        break;
-                }
+                var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial.Param);
                 
                 if (tutorialView != null)  tutorialViews.Add(tutorialView);
             }

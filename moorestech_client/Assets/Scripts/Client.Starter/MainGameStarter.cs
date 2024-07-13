@@ -13,6 +13,7 @@ using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Tutorial;
+using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.Sub;
@@ -59,6 +60,7 @@ namespace Client.Starter
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         
         [SerializeField] private MapObjectPin mapObjectPin;
+        [SerializeField] private UIHighlightManager uiHighlightManager;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private SaveButton saveButton;
@@ -151,6 +153,7 @@ namespace Client.Starter
             builder.RegisterComponent(challengeManager);
             
             builder.RegisterComponent(mapObjectPin);
+            builder.RegisterComponent(uiHighlightManager);
             
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);
