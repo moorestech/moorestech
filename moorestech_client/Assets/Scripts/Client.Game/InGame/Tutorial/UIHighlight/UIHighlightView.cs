@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
-    public class UIHighlightView : MonoBehaviour
+    public class UIHighlightView : MonoBehaviour, ITutorialView
     {
         [SerializeField] private RectTransform highlightImage;
         [SerializeField] private TMP_Text highlightText;
@@ -51,7 +51,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             highlightImage.SetParent(currentParent);
         }
         
-        public void Destroy()
+        public void CompleteTutorial()
         {
             Destroy(gameObject);
         }

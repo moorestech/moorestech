@@ -50,14 +50,14 @@
                 {
                     "tutorialType": "uiHighLight",
                     "tutorialParam": {
-                        "highLightUI" : "item:stone",
+                        "highLightUIObjectId" : "item:stone",
                         "highLightText" : "1. レシピを選択"
                     }
                 },
                 {
                     "tutorialType": "uiHighLight",
                     "tutorialParam": {
-                        "highLightUI" : "craftButton",
+                        "highLightUIObjectId" : "craftButton",
                         "highLightText" : "2. クラフトボタン長押し"
                     }
                 }
