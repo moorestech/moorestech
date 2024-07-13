@@ -60,7 +60,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 
                 // ハイライトオブジェクトを設定
                 // Set the highlight object
-                var target = itemSlotObject.gameObject.AddComponent<UIHighlightTargetObject>();
+                var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
                 target.SetHighlightObjectId("itemRecipeList:" + item.Name);
             }
             

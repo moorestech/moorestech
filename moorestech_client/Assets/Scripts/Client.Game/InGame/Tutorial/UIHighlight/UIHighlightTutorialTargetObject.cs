@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
     [RequireComponent(typeof(RectTransform))]
-    public class UIHighlightTargetObject : MonoBehaviour
+    public class UIHighlightTutorialTargetObject : MonoBehaviour
     {
         public bool ActiveSelf => gameObject.activeSelf;
         

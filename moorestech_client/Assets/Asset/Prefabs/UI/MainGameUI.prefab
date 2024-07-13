@@ -9989,7 +9989,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f82a16194ab490398244510c0778b3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  highlightViewPrefab: {fileID: 7221199257117635107, guid: 17a0887800fb2744a8574380e1355905, type: 3}
+  highlightTutorialViewPrefab: {fileID: 7221199257117635107, guid: 17a0887800fb2744a8574380e1355905, type: 3}
   highlightParent: {fileID: 7802871929290106850}
 --- !u!1001 &73244112129622035
 PrefabInstance:

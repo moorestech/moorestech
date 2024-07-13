@@ -60,7 +60,7 @@ namespace Client.Starter
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         
         [SerializeField] private MapObjectPin mapObjectPin;
-        [SerializeField] private UIHighlightManager uiHighlightManager;
+        [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private SaveButton saveButton;
@@ -153,7 +153,7 @@ namespace Client.Starter
             builder.RegisterComponent(challengeManager);
             
             builder.RegisterComponent(mapObjectPin);
-            builder.RegisterComponent(uiHighlightManager);
+            builder.RegisterComponent(uiHighlightTutorialManager);
             
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);

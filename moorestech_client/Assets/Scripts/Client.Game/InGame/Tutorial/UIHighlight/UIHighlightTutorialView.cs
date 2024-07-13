@@ -3,22 +3,22 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
-    public class UIHighlightView : MonoBehaviour, ITutorialView
+    public class UIHighlightTutorialView : MonoBehaviour, ITutorialView
     {
         [SerializeField] private RectTransform highlightImage;
         [SerializeField] private TMP_Text highlightText;
         
-        private UIHighlightTargetObject _highlightTargetObject;
+        private UIHighlightTutorialTargetObject _highlightTutorialTargetObject;
         
-        public void SetTargetObject(UIHighlightTargetObject targetObject, string text)
+        public void SetTargetObject(UIHighlightTutorialTargetObject tutorialTargetObject, string text)
         {
-            _highlightTargetObject = targetObject;
+            _highlightTutorialTargetObject = tutorialTargetObject;
             highlightText.text = text;
         }
 
         private void Update()
         {
-            if (!_highlightTargetObject)
+            if (!_highlightTutorialTargetObject)
             {
                 SyncRectTransform();
             }
@@ -26,11 +26,11 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         
         private void SyncRectTransform()
         {
-            gameObject.SetActive(_highlightTargetObject.ActiveSelf);
+            gameObject.SetActive(_highlightTutorialTargetObject.ActiveSelf);
             
             //一旦親を変更し、また親を戻すことによって、ローカル座標を正しく反映することができる
             var currentParent = highlightImage.parent;
-            var targetRect = _highlightTargetObject.RectTransform;
+            var targetRect = _highlightTutorialTargetObject.RectTransform;
             highlightImage.SetParent(targetRect.parent);
             
             //変更した上で、データを反映する

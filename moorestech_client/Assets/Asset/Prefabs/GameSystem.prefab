@@ -593,7 +593,7 @@ MonoBehaviour:
   craftInventoryView: {fileID: 3227045173603346395}
   playerInventoryViewController: {fileID: 5132210590052991366}
   mapObjectPin: {fileID: 467412427984320023}
-  uiHighlightManager: {fileID: 3842753579192151890}
+  uiHighlightTutorialManager: {fileID: 3842753579192151890}
   blockPlacePreview: {fileID: 5250938589678043889}
   saveButton: {fileID: 773343225977944571}
   backToMainMenu: {fileID: 7635949962361503415}
@@ -868,7 +868,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1117507317063226134, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 80.275
       objectReference: {fileID: 0}
     - target: {fileID: 1117507317063226134, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchoredPosition.y
