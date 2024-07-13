@@ -7,6 +7,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
     public class UIHighlightManager : MonoBehaviour, ITutorialViewManager
     {
         [SerializeField] private UIHighlightView highlightViewPrefab;
+        [SerializeField] private RectTransform highlightParent;
         
         public ITutorialView ApplyTutorial(ITutorialParam param)
         {
