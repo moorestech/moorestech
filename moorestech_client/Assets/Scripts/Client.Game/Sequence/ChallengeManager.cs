@@ -50,6 +50,9 @@ namespace Client.Game.Sequence
             var challengeInfo = ServerContext.ChallengeConfig.GetChallenge(message.CompletedChallengeId);
             var nextIds = challengeInfo.NextIds;
             
+            // チュートリアルを完了
+            _tutorialManager.CompleteChallenge(message.CompletedChallengeId);
+            
             // スキットの再生
             // Play background skit
             PlaySkit(nextIds).Forget();
