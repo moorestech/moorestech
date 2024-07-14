@@ -1,4 +1,5 @@
 {
+  "$id": "items",
   "type": "object",
   "required": [ "data" ],
   "properties": {
