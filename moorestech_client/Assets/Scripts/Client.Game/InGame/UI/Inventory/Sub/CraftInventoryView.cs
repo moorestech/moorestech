@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Const;
@@ -50,10 +51,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
                 
+                // アイテムリストを設定
+                // Set the item list
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                 _itemListObjects.Add(itemSlotObject);
+                
+                // ハイライトオブジェクトを設定
+                // Set the highlight object
+                var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
+                target.Initialize("itemRecipeList:" + item.Name);
             }
             
             nextRecipeButton.onClick.AddListener(() =>

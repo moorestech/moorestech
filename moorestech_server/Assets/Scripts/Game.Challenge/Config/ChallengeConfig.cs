@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
-using Game.Challenge.TutorialParam;
+using Game.Challenge.Config.TutorialParam;
 using Newtonsoft.Json.Linq;
 
 namespace Game.Challenge
@@ -22,6 +22,8 @@ namespace Game.Challenge
             
             var tutorialTaskParamLoader = new Dictionary<string, TutorialParamLoader>();
             tutorialTaskParamLoader.Add(MapObjectPinTutorialParam.TaskCompletionType, MapObjectPinTutorialParam.Create);
+            tutorialTaskParamLoader.Add(KeyControlTutorialParam.TaskCompletionType, KeyControlTutorialParam.Create);
+            tutorialTaskParamLoader.Add(UIHighLightTutorialParam.TaskCompletionType, UIHighLightTutorialParam.Create);
             
             // 双方向ID構築のため、一時的なチャレンジ情報をロード
             // load temporary challenge information for bidirectional ID construction

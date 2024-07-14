@@ -1,29 +1,48 @@
-using Game.Challenge.TutorialParam;
+using System.Collections.Generic;
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Game.Challenge.Config.TutorialParam;
 using Game.Context;
+using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
 {
     public class TutorialManager
     {
-        private MapObjectPin _mapObjectPin;
+        private readonly Dictionary<int, List<ITutorialView>> _tutorialViews = new();
         
-        public TutorialManager(MapObjectPin mapObjectPin)
+        private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
+        
+        public TutorialManager(MapObjectPin mapObjectPin, UIHighlightTutorialManager uiHighlightTutorialManager, KeyControlTutorialManager keyControlTutorialManager)
         {
-            _mapObjectPin = mapObjectPin;
+            _tutorialViewManagers.Add(MapObjectPinTutorialParam.TaskCompletionType, mapObjectPin);
+            _tutorialViewManagers.Add(UIHighLightTutorialParam.TaskCompletionType, uiHighlightTutorialManager);
+            _tutorialViewManagers.Add(KeyControlTutorialParam.TaskCompletionType, keyControlTutorialManager);
         }
         
         public void ApplyTutorial(int challengeId)
         {
-            // TODO
+            var tutorialViews = new List<ITutorialView>();
             var challenge = ServerContext.ChallengeConfig.GetChallenge(challengeId);
+            
+            // チュートリアルを実際のManagerに適用する
+            // Apply the tutorial to the actual Manager
             foreach (var tutorial in challenge.Tutorials)
             {
-                switch (tutorial.TutorialType)
-                {
-                    case MapObjectPinTutorialParam.TaskCompletionType:
-                        _mapObjectPin.ApplyTutorial((MapObjectPinTutorialParam)tutorial.Param);
-                        break;
-                }
+                var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial.Param);
+                
+                if (tutorialView != null) tutorialViews.Add(tutorialView);
+            }
+            
+            _tutorialViews.Add(challengeId, tutorialViews);
+        }
+        
+        public void CompleteChallenge(int challengeId)
+        {
+            if (!_tutorialViews.TryGetValue(challengeId, out var tutorialViews)) return;
+            
+            foreach (var tutorialView in tutorialViews)
+            {
+                tutorialView.CompleteTutorial();
             }
         }
     }

@@ -1,4 +1,4 @@
-namespace Game.Challenge.TutorialParam
+namespace Game.Challenge.Config.TutorialParam
 {
     public class MapObjectPinTutorialParam : ITutorialParam
     {
