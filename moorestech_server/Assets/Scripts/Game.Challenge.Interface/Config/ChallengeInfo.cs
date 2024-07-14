@@ -4,9 +4,6 @@ namespace Game.Challenge
 {
     public class ChallengeInfo
     {
-        public const string CreateItem = "createItem";
-        public const string InInventoryItem = "inInventoryItem";
-        
         public const string BackgroundSkitType = "backgroundSkit";
         
         public readonly int Id; // TODO 将来的にintはやめたい

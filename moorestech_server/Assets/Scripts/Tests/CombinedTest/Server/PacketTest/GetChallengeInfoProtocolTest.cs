@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             foreach (var challenge in playerChallengeInfo.CurrentChallenges.ToList())
             {
-                var subject = (Subject<CurrentChallenge>)challenge.OnChallengeComplete;
+                var subject = (Subject<IChallengeTask>)challenge.OnChallengeComplete;
                 subject.OnNext(challenge); // 無理やりクリア
             }
             
