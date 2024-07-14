@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var highlightParam = (UIHighLightTutorialParam)param;
             
-            var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>();
+            var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
             foreach (var targetObject in highlightTargetObjects)
             {
                 if (targetObject.HighlightObjectId != highlightParam.HighLightUIObjectId) continue;
