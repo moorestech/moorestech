@@ -47,6 +47,9 @@
                     },
                     "paramB": {
                       "type": "integer"
+                    },
+                    "objectParam": {
+                      "$ref": ".blockRefTest.json"
                     }
                   },
                   "required": [ "paramA", "paramB" ]

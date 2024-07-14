@@ -46,6 +46,9 @@
                     },
                     "paramB": {
                       "type": "integer"
+                    },
+                    "gearConnects" : {
+                      "$ref": "blockRefTest.json"
                     }
                   },
                   "required": [ "paramA", "paramB" ]
