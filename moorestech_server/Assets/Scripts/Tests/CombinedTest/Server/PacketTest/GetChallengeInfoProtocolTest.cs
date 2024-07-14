@@ -41,12 +41,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Verification
             Assert.AreEqual(PlayerId, challengeInfo.PlayerId);
             
-            Assert.AreEqual(2, challengeInfo.CompletedChallengeIds.Count);
+            Assert.AreEqual(3, challengeInfo.CompletedChallengeIds.Count);
             Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1000));
             Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1010));
+            Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1020));
             
             Assert.AreEqual(1, challengeInfo.CurrentChallengeIds.Count);
-            Assert.IsTrue(challengeInfo.CurrentChallengeIds.Contains(1020));
+            Assert.IsTrue(challengeInfo.CurrentChallengeIds.Contains(1030));
         }
     }
 }

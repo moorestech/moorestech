@@ -26,7 +26,7 @@ namespace Game.Challenge.Task
             Config = config;
             PlayerId = playerId;
             
-            var worldEvent = ServerContext.GetService<WorldBlockUpdateEvent>();
+            var worldEvent = ServerContext.WorldBlockUpdateEvent;
             worldEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
         

@@ -1,8 +1,10 @@
 using System.Linq;
 using Core.Update;
+using Game.Block.Interface;
 using Game.Challenge;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -11,6 +13,7 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -85,6 +88,26 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
             Assert.AreEqual(1010, completedChallenge.CompletedChallengeId);
+        }
+        
+        [Test]
+        public void BlockPlaceChallengeClearTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            
+            // ブロックを設置
+            ServerContext.WorldBlockDatastore.TryAddBlock(1, new Vector3Int(0,0,0), BlockDirection.East, out _);
+            
+            // イベントを受け取り、テストする
+            // Receive and test the event
+            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
+            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
+            
+            Assert.AreEqual(1020, completedChallenge.CompletedChallengeId);
         }
     }
 }
