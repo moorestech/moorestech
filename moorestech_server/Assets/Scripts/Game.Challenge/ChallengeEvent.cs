@@ -6,10 +6,10 @@ namespace Game.Challenge
 {
     public class ChallengeEvent
     {
-        private readonly Subject<CurrentChallenge> _onCompleteChallenge = new();
-        public IObservable<CurrentChallenge> OnCompleteChallenge => _onCompleteChallenge;
+        private readonly Subject<IChallengeTask> _onCompleteChallenge = new();
+        public IObservable<IChallengeTask> OnCompleteChallenge => _onCompleteChallenge;
         
-        public void InvokeCompleteChallenge(CurrentChallenge craftConfig)
+        public void InvokeCompleteChallenge(IChallengeTask craftConfig)
         {
             _onCompleteChallenge.OnNext(craftConfig);
         }

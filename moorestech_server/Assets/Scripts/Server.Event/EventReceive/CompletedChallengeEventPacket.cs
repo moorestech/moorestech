@@ -18,7 +18,7 @@ namespace Server.Event.EventReceive
             challengeEvent.OnCompleteChallenge.Subscribe(OnCompletedChallenge);
         }
         
-        private void OnCompletedChallenge(CurrentChallenge currentChallenge)
+        private void OnCompletedChallenge(IChallengeTask currentChallenge)
         {
             var messagePack = new CompletedChallengeEventMessage(currentChallenge.Config.Id);
             var payload = MessagePackSerializer.Serialize(messagePack);

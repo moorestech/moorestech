@@ -19,6 +19,7 @@ namespace Game.Challenge
             var challengeTaskParamLoader = new Dictionary<string, ChallengeTaskParamLoader>();
             challengeTaskParamLoader.Add(CreateItemTaskParam.TaskCompletionType, CreateItemTaskParam.Create);
             challengeTaskParamLoader.Add(InInventoryItemTaskParam.TaskCompletionType, InInventoryItemTaskParam.Create);
+            challengeTaskParamLoader.Add(BlockPlaceTaskParam.TaskCompletionType, BlockPlaceTaskParam.Create);
             
             var tutorialTaskParamLoader = new Dictionary<string, TutorialParamLoader>();
             tutorialTaskParamLoader.Add(MapObjectPinTutorialParam.TaskCompletionType, MapObjectPinTutorialParam.Create);

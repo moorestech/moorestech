@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Update;
 using Game.Challenge.Task;
+using Game.Challenge.Task.Factory;
 using Game.Context;
 using UniRx;
 
@@ -9,6 +10,7 @@ namespace Game.Challenge
     public class ChallengeDatastore
     {
         private readonly Dictionary<int, PlayerChallengeInfo> _playerChallengeInfos = new();
+        private readonly ChallengeFactory _challengeFactory = new();
         
         public ChallengeDatastore()
         {
@@ -38,7 +40,7 @@ namespace Game.Challenge
             
             PlayerChallengeInfo CreateInitialChallenge()
             {
-                var initialChallenges = new List<CurrentChallenge>();
+                var initialChallenges = new List<IChallengeTask>();
                 foreach (var initialChallengeConfig in ServerContext.ChallengeConfig.InitialChallenges)
                 {
                     var initialChallenge = CreateChallenge(playerId, initialChallengeConfig);
@@ -56,7 +58,7 @@ namespace Game.Challenge
             foreach (var challengeJsonObject in challengeJsonObjects)
             {
                 var playerId = challengeJsonObject.PlayerId;
-                var currentChallenges = new List<CurrentChallenge>();
+                var currentChallenges = new List<IChallengeTask>();
                 
                 // InitialChallengeの中でクリアしていないのを登録
                 foreach (var initialChallengeConfig in ServerContext.ChallengeConfig.InitialChallenges)
@@ -88,14 +90,14 @@ namespace Game.Challenge
             }
         }
         
-        private CurrentChallenge CreateChallenge(int playerId, ChallengeInfo config)
+        private IChallengeTask CreateChallenge(int playerId, ChallengeInfo config)
         {
-            var challenge = new CurrentChallenge(playerId, config);
+            var challenge = _challengeFactory.CreateChallengeTask(playerId, config);
             challenge.OnChallengeComplete.Subscribe(CompletedChallenge);
             return challenge;
         }
         
-        private void CompletedChallenge(CurrentChallenge currentChallenge)
+        private void CompletedChallenge(IChallengeTask currentChallenge)
         {
             var playerId = currentChallenge.PlayerId;
             var challengeInfo = _playerChallengeInfos[playerId];
@@ -137,10 +139,10 @@ namespace Game.Challenge
     
     public class PlayerChallengeInfo
     {
-        public List<CurrentChallenge> CurrentChallenges { get; }
+        public List<IChallengeTask> CurrentChallenges { get; }
         public List<int> CompletedChallengeIds { get; }
         
-        public PlayerChallengeInfo(List<CurrentChallenge> currentChallenges, List<int> completedChallengeIds)
+        public PlayerChallengeInfo(List<IChallengeTask> currentChallenges, List<int> completedChallengeIds)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallengeIds = completedChallengeIds;
