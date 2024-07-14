@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Core
                 
                 var endTime = DateTime.Now.AddSeconds(config.TimeOfItemEnterToExit);
                 
-                while (DateTime.Now < endTime.AddSeconds(0.05))
+                while (DateTime.Now < endTime.AddSeconds(0.1))
                 {
                     item = beltConveyorComponent.InsertItem(item);
                     GameUpdater.UpdateWithWait();
