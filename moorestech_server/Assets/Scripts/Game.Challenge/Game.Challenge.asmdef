@@ -10,7 +10,8 @@
     "Game.PlayerInventory.Interface",
     "Game.Context",
     "Core.Inventory",
-    "Game.Challenge.Interface"
+    "Game.Challenge.Interface",
+    "Game.Block.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
