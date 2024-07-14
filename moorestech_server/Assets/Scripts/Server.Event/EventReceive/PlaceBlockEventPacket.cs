@@ -17,10 +17,10 @@ namespace Server.Event.EventReceive
         public PlaceBlockEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockRemove);
+            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnPlaceBlock);
         }
         
-        private void OnBlockRemove(BlockUpdateProperties updateProperties)
+        private void OnPlaceBlock(BlockUpdateProperties updateProperties)
         {
             var pos = updateProperties.Pos;
             var direction = updateProperties.BlockData.BlockPositionInfo.BlockDirection;

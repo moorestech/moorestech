@@ -12,6 +12,7 @@ namespace Game.Challenge.Task.Factory
         {
             _taskCreators.Add(CreateItemTaskParam.TaskCompletionType,CreateItemChallengeTask.Create);
             _taskCreators.Add(InInventoryItemTaskParam.TaskCompletionType,InInventoryItemChallengeTask.Create);
+            _taskCreators.Add(BlockPlaceTaskParam.TaskCompletionType,BlockPlaceChallengeTask.Create);
         }
         
         public IChallengeTask CreateChallengeTask(int playerId, ChallengeInfo config)

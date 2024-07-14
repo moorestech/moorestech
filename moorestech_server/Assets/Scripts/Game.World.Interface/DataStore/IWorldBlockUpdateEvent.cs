@@ -21,13 +21,13 @@ namespace Game.World.Interface.DataStore
     
     public class BlockUpdateProperties
     {
+        public Vector3Int Pos { get; }
+        public WorldBlockData BlockData { get; }
+        
         public BlockUpdateProperties(Vector3Int pos, WorldBlockData blockData)
         {
             Pos = pos;
             BlockData = blockData;
         }
-        
-        public Vector3Int Pos { get; }
-        public WorldBlockData BlockData { get; }
     }
 }

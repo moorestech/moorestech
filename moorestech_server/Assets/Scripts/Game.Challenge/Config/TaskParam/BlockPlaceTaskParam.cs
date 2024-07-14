@@ -7,12 +7,10 @@ namespace Game.Challenge
         public const string TaskCompletionType = "blockPlace";
         
         public readonly int BlockId;
-        public readonly int RequiredCount;
         
-        public BlockPlaceTaskParam(int blockId, int requiredCount)
+        public BlockPlaceTaskParam(int blockId)
         {
             BlockId = blockId;
-            RequiredCount = requiredCount;
         }
         
         public static IChallengeTaskParam Create(dynamic param)
@@ -22,7 +20,7 @@ namespace Game.Challenge
             
             var blockId = ServerContext.BlockConfig.GetBlockConfig(blockModId, blockName).BlockId;
             
-            return new BlockPlaceTaskParam(blockId, param.blockCount);
+            return new BlockPlaceTaskParam(blockId);
         }
     }
 }
