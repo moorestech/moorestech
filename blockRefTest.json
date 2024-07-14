@@ -2,7 +2,9 @@
   "$id": "gearConnects",
   "$schema": "http://json-schema.org/draft-07/schema#",
 
-  "definitions": {
+  "type": "object",
+  "required": ["gearConnects"],
+  "properties": {
     "gearConnects": {
       "type": "array",
       "items": {

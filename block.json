@@ -46,7 +46,7 @@
                       "type": "integer"
                     },
                     "gearConnects" : {
-                      "$ref": "blockRefTest#/definitions/bar"
+                      "$ref": "blockRefTest"
                     }
                   },
                   "required": [ "paramA", "paramB" ]
