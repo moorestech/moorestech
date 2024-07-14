@@ -78,9 +78,9 @@ namespace Game.Challenge
                     {
                         if (challengeJsonObject.CompletedIds.Contains(nextId)) continue;
                         
-                        var currentChallenge = new CurrentChallenge(playerId, info);
-                        currentChallenge.OnChallengeComplete.Subscribe(CompletedChallenge);
-                        currentChallenges.Add(currentChallenge);
+                        var nextInfo = ServerContext.ChallengeConfig.GetChallenge(nextId);
+                        var initialChallenge = CreateChallenge(playerId, nextInfo);
+                        currentChallenges.Add(initialChallenge);
                     }
                 }
                 
@@ -137,13 +137,13 @@ namespace Game.Challenge
     
     public class PlayerChallengeInfo
     {
+        public List<CurrentChallenge> CurrentChallenges { get; }
+        public List<int> CompletedChallengeIds { get; }
+        
         public PlayerChallengeInfo(List<CurrentChallenge> currentChallenges, List<int> completedChallengeIds)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallengeIds = completedChallengeIds;
         }
-        
-        public List<CurrentChallenge> CurrentChallenges { get; }
-        public List<int> CompletedChallengeIds { get; }
     }
 }
