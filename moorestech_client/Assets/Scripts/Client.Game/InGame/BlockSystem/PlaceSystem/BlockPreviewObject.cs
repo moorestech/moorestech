@@ -10,6 +10,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public BlockConfigData BlockConfig { get; private set; }
         
+        public bool IsCollisionGround
+        {
+            get
+            {
+                foreach (var collisionDetector in _collisionDetectors)
+                {
+                    if (collisionDetector.IsCollision) return true;
+                }
+                return false;
+            }
+        }
         private GroundCollisionDetector[] _collisionDetectors;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         
@@ -49,6 +60,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+        
+        public void SetTransform(Vector3 pos, Quaternion rotation)
+        {
+            transform.position = pos;
+            transform.rotation = rotation;
         }
         
         public void Destroy()

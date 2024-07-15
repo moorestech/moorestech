@@ -10,8 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         bool IsActive { get; }
         
-        
-        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
+        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
         
         public void SetActive(bool active);
     }

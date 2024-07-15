@@ -21,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         
-        public void SetPreview(List<PlaceInfo> placePointInfos, BlockConfigData blockConfig)
+        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockConfigData blockConfig)
         {
             // さっきと違うブロックだったら削除する
             if (_previewBlockConfig == null || _previewBlockConfig.BlockId != blockConfig.BlockId)
@@ -33,11 +33,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreviewObjectPool.AllUnUse();
             
             // プレビューブロックの位置を設定
-            for (var i = 0; i < placePointInfos.Count; i++)
+            var isGroundDetectedList = new List<bool>();
+            foreach (var placeInfo in placePointInfos)
             {
-                var placePoint = placePointInfos[i].Point;
-                var direction = placePointInfos[i].Direction;
-                var verticalDirection = placePointInfos[i].VerticalDirection;
+                var verticalDirection = placeInfo.VerticalDirection;
                 
                 var blockId = blockConfig.BlockId;
                 if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, verticalDirection), out var verticalBlockId))
@@ -45,18 +44,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     blockId = verticalBlockId;
                 }
                 
-                var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placePoint, direction, blockId);
-                var rot = direction.GetRotation();
+                var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Point, placeInfo.Direction, blockId);
+                var rot = placeInfo.Direction.GetRotation();
                 
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
-                previewBlock.transform.position = pos;
-                previewBlock.transform.rotation = rot;
+                previewBlock.SetTransform(pos,rot);
+                isGroundDetectedList.Add(previewBlock.IsCollisionGround);
             }
+            
+            return isGroundDetectedList;
         }
         
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
         }
+        
     }
 }
