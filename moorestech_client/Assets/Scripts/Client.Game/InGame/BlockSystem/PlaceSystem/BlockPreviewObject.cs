@@ -10,6 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public BlockConfigData BlockConfig { get; private set; }
         
+        private GroundCollisionDetector[] _collisionDetectors;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         
         public void Initialize(BlockConfigData blockConfigData)
@@ -20,6 +21,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             var placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
+            
+            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
             
             SetVfxActive(false);
             SetPlaceableColor(true);

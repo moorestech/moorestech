@@ -12,18 +12,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         private BlockConfigData _previewBlockConfig;
         private BlockPlacePreviewObjectPool _blockPlacePreviewObjectPool;
-        private GroundCollisionDetector[] _collisionDetectors;
         
         public bool IsActive => gameObject.activeSelf;
         
-        public bool IsCollisionGround
-        {
-            get
-            {
-                if (_collisionDetectors == null) return false;
-                return _collisionDetectors.Any(detector => detector.IsCollision);
-            }
-        }
         
         private void Start()
         {

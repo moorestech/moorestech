@@ -10,7 +10,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         bool IsActive { get; }
         
-        bool IsCollisionGround { get; }
         
         public void SetPreview(bool placeable, List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
         

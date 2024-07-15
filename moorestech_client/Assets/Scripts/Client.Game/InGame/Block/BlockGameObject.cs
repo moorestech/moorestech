@@ -31,10 +31,17 @@ namespace Client.Game.InGame.Block
             BlockStateChangeProcessor = blockStateChangeProcessor;
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
+           
+            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             
+            // 子供のBlockGameObjectChildを初期化
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>()) child.Init(this);
             
-            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
+            // 地面との衝突判定を無効化
+            foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))
+            {
+                groundCollisionDetector.enabled = false;
+            }
         }
         
         public async UniTask PlayPlaceAnimation()
