@@ -21,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         
-        public void SetPreview(bool placeable, List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig)
+        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig)
         {
             CreatePreviewObjects(currentPlaceInfos, holdingBlockConfig);
         }

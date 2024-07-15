@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         bool IsActive { get; }
         
         
-        public void SetPreview(bool placeable, List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
+        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
         
         public void SetActive(bool active);
     }

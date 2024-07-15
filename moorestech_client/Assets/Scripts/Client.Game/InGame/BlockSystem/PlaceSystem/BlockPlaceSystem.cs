@@ -155,13 +155,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 }
                 
                 _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection);
-                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+                _blockPlacePreview.SetPreview(_currentPlaceInfos, holdingBlockConfig);
             }
             else
             {
                 _isStartZDirection = null;
                 _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection);
-                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+                _blockPlacePreview.SetPreview(_currentPlaceInfos, holdingBlockConfig);
             }
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
