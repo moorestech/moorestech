@@ -83,8 +83,8 @@ namespace Client.Game.InGame.Block
         
         public void DestroyMaterial()
         {
-            foreach (var material in _replacedMaterials) Object.Destroy(material);
-            foreach (var material in _originalMaterials) Object.Destroy(material);
+            foreach (var material in _replacedMaterials) Resources.UnloadAsset(material);
+            foreach (var material in _originalMaterials) Resources.UnloadAsset(material);
         }
     }
 }
