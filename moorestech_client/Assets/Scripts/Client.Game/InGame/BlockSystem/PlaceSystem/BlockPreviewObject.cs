@@ -35,20 +35,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
             
-            SetVfxActive(false);
             SetPlaceableColor(true);
+            
+            var visualEffects = GetComponentsInChildren<VisualEffect>(false);
+            foreach (var visualEffect in visualEffects) visualEffect.gameObject.SetActive(false);
         }
         
         public void SetPlaceableColor(bool isPlaceable)
         {
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
             _rendererMaterialReplacerController.SetColor(color);
-        }
-        
-        private void SetVfxActive(bool isActive)
-        {
-            var visualEffects = GetComponentsInChildren<VisualEffect>(isActive);
-            foreach (var visualEffect in visualEffects) visualEffect.gameObject.SetActive(false);
         }
         
         public void SetTriggerCollider(bool isTrigger)
