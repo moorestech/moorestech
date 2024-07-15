@@ -1,13 +1,14 @@
 {
+  "$id": "blocks",
   "type": "object",
-  "required": ["data"],
-
+  "required": [ "data" ],
   "properties": {
+
     "data": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["uuid", "name", "type", "itemUuid", "size", "param", "modelTransform"],
+        "required": ["blockId", "name", "blockType", "itemId", "size", "param", "modelTransform"],
 
         "properties": {
           "blockId": {
@@ -17,14 +18,14 @@
           },
 
           "name": {
+            "type": "string"
+          },
+          "blockType": {
             "type": "string",
             "enum": [ "GearBeltConveyor" ]
           },
-          "type": {
-            "type": "string"
-          },
 
-          "itemUuid": {
+          "itemId": {
             "type": "string",
             "format": "uuid",
             "foreignKey": "item:itemId:name"
