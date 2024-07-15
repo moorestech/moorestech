@@ -21,17 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         
-        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig)
-        {
-            CreatePreviewObjects(currentPlaceInfos, holdingBlockConfig);
-        }
-        
-        public void SetActive(bool active)
-        {
-            gameObject.SetActive(active);
-        }
-        
-        private void CreatePreviewObjects(List<PlaceInfo> placePointInfos, BlockConfigData blockConfig)
+        public void SetPreview(List<PlaceInfo> placePointInfos, BlockConfigData blockConfig)
         {
             // さっきと違うブロックだったら削除する
             if (_previewBlockConfig == null || _previewBlockConfig.BlockId != blockConfig.BlockId)
@@ -62,6 +52,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 previewBlock.transform.position = pos;
                 previewBlock.transform.rotation = rot;
             }
+        }
+        
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
         }
     }
 }
