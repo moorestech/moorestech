@@ -142,7 +142,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 _clickStartHeightOffset = _heightOffset;
             }
             
-            //プレビュー表示 display preview
+            //プレビュー表示と地面との接触を取得する
+            //display preview and get collision with ground
+            var groundDetects = new List<bool>();
             if (_clickStartPosition.HasValue)
             {
                 if (_clickStartPosition.Value == placePoint)
@@ -155,15 +157,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 }
                 
                 _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection);
-                _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
+                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
             }
             else
             {
                 _isStartZDirection = null;
                 _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection);
-                _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
+                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
             }
             
+            // Placeableの更新
+            // update placeable
+            for (var i = 0; i < groundDetects.Count; i++)
+            {
+                // 地面と接触していたら設置不可
+                // if collision with ground, cannot place
+                if (groundDetects[i])
+                {
+                    _currentPlaceInfos[i].Placeable = false;
+                }
+            }
+            
+            // 設置するブロックをサーバーに送信
+            // send block place info to server
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 _heightOffset = _clickStartHeightOffset;

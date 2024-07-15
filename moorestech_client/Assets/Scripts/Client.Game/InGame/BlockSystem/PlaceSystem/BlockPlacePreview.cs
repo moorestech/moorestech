@@ -49,7 +49,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
                 previewBlock.SetTransform(pos,rot);
-                isGroundDetectedList.Add(previewBlock.IsCollisionGround);
+                var isGroundDetected = previewBlock.IsCollisionGround;
+                isGroundDetectedList.Add(isGroundDetected);
+                
+                previewBlock.SetPlaceableColor(!isGroundDetected && placeInfo.Placeable);
             }
             
             return isGroundDetectedList;

@@ -69,8 +69,9 @@ namespace Server.Protocol.PacketResponse
     {
         public Vector3Int Point { get; set; }
         public BlockDirection Direction { get; set; }
-        
         public BlockVerticalDirection VerticalDirection { get; set; }
+        
+        public bool Placeable { get; set; }
     }
     
     
