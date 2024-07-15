@@ -1,0 +1,70 @@
+{
+  "data": [
+    {
+      "uuid": "uuid",
+
+      "name": "gear belt conveyor",
+      "type": "GearBeltConveyor",
+      "itemUuid": "uuid",
+
+      "size": [1,1,1],
+      "param": {
+        "slot": 3,
+        "time": 2.5,
+
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [0,0,0],
+              "directions": [
+                [0,0,-1],
+                [0,-1,-1],
+                [1,0,0],
+                [-1,0,0]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [0,0,0],
+              "directions": [
+                [0,0,1],
+                [0,-1,1]
+              ]
+            }
+          ]
+        },
+
+        "gearConnects": [
+          {
+            "offset": [0,0,0],
+            "directions": [
+              [0,0,-1],
+              [0,0,1]
+            ],
+            "option": {
+              "isReverse": false,
+              "onlySpecifiedTypes" : ["GearBeltConveyor"]
+            }
+          },
+          {
+            "offset": [0,0,0],
+            "directions": [
+              [0,1,0],
+              [0,-1,0]
+            ],
+            "option": {
+              "isReverse": false,
+              "onlySpecifiedTypes" : ["GearBeltConveyorConnector"]
+            }
+          }
+        ]
+      },
+      "modelTransform": {
+        "position": [0,0,0],
+        "rotation": [0,0,0],
+        "scale": [1,1,1]
+      }
+    }
+  ]
+}
