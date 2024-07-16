@@ -44,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     blockId = verticalBlockId;
                 }
                 
-                var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Point, placeInfo.Direction, blockId);
+                var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Position, placeInfo.Direction, blockId);
                 var rot = placeInfo.Direction.GetRotation();
                 
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);

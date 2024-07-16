@@ -67,7 +67,7 @@ namespace Server.Protocol.PacketResponse
     
     public class PlaceInfo
     {
-        public Vector3Int Point { get; set; }
+        public Vector3Int Position { get; set; }
         public BlockDirection Direction { get; set; }
         public BlockVerticalDirection VerticalDirection { get; set; }
         
@@ -114,7 +114,7 @@ namespace Server.Protocol.PacketResponse
         
         public PlaceInfoMessagePack(PlaceInfo placeInfo)
         {
-            Position = new Vector3IntMessagePack(placeInfo.Point);
+            Position = new Vector3IntMessagePack(placeInfo.Position);
             Direction = placeInfo.Direction;
             VerticalDirection = placeInfo.VerticalDirection;
         }
