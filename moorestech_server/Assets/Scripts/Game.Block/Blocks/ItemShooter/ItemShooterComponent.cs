@@ -17,14 +17,13 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
 {
-    public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState
+    public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
     {
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly ShooterInventoryItem[] _inventoryItems;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly ItemShooterConfigParam _configParam;
-        private readonly IDisposable _updateObservable;
         
         public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
         {
@@ -32,7 +31,7 @@ namespace Game.Block.Blocks.ItemShooter
             _configParam = configParam;
             
             _inventoryItems = new ShooterInventoryItem[_configParam.InventoryItemNum];
-            _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
+            
         }
         
         public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam) :
@@ -54,7 +53,7 @@ namespace Game.Block.Blocks.ItemShooter
             }
         }
         
-        private void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             
@@ -156,7 +155,6 @@ namespace Game.Block.Blocks.ItemShooter
         public void Destroy()
         {
             IsDestroy = true;
-            _updateObservable.Dispose();
         }
         
         public string GetSaveState()
