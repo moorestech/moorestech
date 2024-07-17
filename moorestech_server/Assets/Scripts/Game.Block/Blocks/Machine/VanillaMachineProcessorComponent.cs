@@ -1,5 +1,4 @@
 using System;
-using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
@@ -12,7 +11,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateChange
+    public class VanillaMachineProcessorComponent : IBlockStateChange, IUpdatableBlockComponent
     {
         private readonly Subject<BlockState> _changeState = new();
         
@@ -20,8 +19,6 @@ namespace Game.Block.Blocks.Machine
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         
         public readonly ElectricPower RequestPower;
-        
-        private readonly IDisposable UpdateObservable;
         
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
@@ -39,7 +36,6 @@ namespace Game.Block.Blocks.Machine
             RequestPower = requestPower;
             
             //TODO コンポーネント化する
-            UpdateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public VanillaMachineProcessorComponent(
@@ -56,8 +52,6 @@ namespace Game.Block.Blocks.Machine
             RemainingSecond = remainingSecond;
             
             CurrentState = currentState;
-            
-            UpdateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
@@ -80,7 +74,6 @@ namespace Game.Block.Blocks.Machine
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
-            UpdateObservable.Dispose();
             IsDestroy = true;
         }
         
@@ -89,7 +82,7 @@ namespace Game.Block.Blocks.Machine
             _currentPower = power;
         }
         
-        private void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             
