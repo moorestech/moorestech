@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Core.Const;
 using Core.Update;
 using Game.Block.Blocks.Chest;
@@ -48,9 +47,8 @@ namespace Tests.UnitTest.Core.Block
             
             chest.InsertItem(itemFactory.Create(1, 1));
             
-            // チェストのUpdateをリフレクションで無理やり呼び出し
-            chest.GetType().GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(chest, null);
-            
+            // チェストのUpdateを呼び出し
+            chest.Update();
             
             // デフォルトでインサートされる速度の検証
             var shooterItem1 = GetShooterItem(shooter1);
