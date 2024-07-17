@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
@@ -15,6 +17,8 @@ namespace Game.Block.Blocks
         
         private readonly IBlockStateChange _blockStateChange;
         private readonly Subject<BlockState> _onBlockStateChange = new();
+        private readonly IUpdatableBlockComponent[] _updatableComponents;
+        private readonly IDisposable _blockUpdateDisposable;
         
         
         public BlockSystem(BlockInstanceId blockInstanceId, int blockId, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
@@ -28,6 +32,9 @@ namespace Game.Block.Blocks
             
             _blockStateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
             _blockStateChange?.OnChangeBlockState.Subscribe(state => { _onBlockStateChange.OnNext(state); });
+            _updatableComponents = blockComponents.OfType<IUpdatableBlockComponent>().ToArray();
+            
+            _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public BlockInstanceId BlockInstanceId { get; }
@@ -49,9 +56,18 @@ namespace Game.Block.Blocks
             return _blockComponentManager.TryGetComponent<IBlockSaveState>(out var blockSaveState) ? blockSaveState.GetSaveState() : string.Empty;
         }
         
+        private void Update()
+        {
+            foreach (var component in _updatableComponents)
+            {
+                component.Update();
+            }
+        }
+        
         public void Destroy()
         {
             _blockComponentManager.Destroy();
+            _blockUpdateDisposable.Dispose();
         }
         
         public bool Equals(IBlock other)
