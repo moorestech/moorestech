@@ -2,7 +2,5 @@
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Fkatsumi_002Esato_002FRiderProjects_002Fmooresmaster_002Fmooresmaster_002FUnityEditor_002ECoreModule_002Edll/@EntryIndexedValue">True</s:Boolean>
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8c4a6adf_002D6135_002D4692_002Da10e_002D1501d6ee1f47/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GenerateTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::A14A4E4A-CE99-4DAA-BF96-CF80E84AFD38::net6.0::mooresmaster.CodeGenerateTest.GenerateTest&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+  &lt;Project Location="/Users/juhakurisu/Documents/GitHub/mooresmaster/mooresmaster/mooresmaster.Tests" Presentation="&amp;lt;mooresmaster.Tests&amp;gt;" /&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

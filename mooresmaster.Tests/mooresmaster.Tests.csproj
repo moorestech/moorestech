@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\mooresmaster\mooresmaster.csproj"/>
+        <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj" />
     </ItemGroup>
 
 
