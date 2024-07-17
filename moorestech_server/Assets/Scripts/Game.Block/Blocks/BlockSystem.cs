@@ -32,6 +32,8 @@ namespace Game.Block.Blocks
             
             _blockStateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
             _blockStateChange?.OnChangeBlockState.Subscribe(state => { _onBlockStateChange.OnNext(state); });
+            
+            // NOTE 他の場所からコンポーネントを追加するようになったら、このリストに追加するようにする
             _updatableComponents = blockComponents.OfType<IUpdatableBlockComponent>().ToArray();
             
             _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
