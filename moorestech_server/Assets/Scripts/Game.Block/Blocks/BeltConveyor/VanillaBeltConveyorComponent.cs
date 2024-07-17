@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.BeltConveyor
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
+    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor, IUpdatableBlockComponent
     {
         public int InventoryItemNum { get; }
         public double TimeOfItemEnterToExit { get; } //ベルトコンベアにアイテムが入って出るまでの時間
@@ -32,7 +32,6 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private readonly string _blockName;
-        private readonly IDisposable _updateObservable;
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
@@ -44,8 +43,6 @@ namespace Game.Block.Blocks.BeltConveyor
             _blockConnectorComponent = blockConnectorComponent;
             
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
-            
-            _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public VanillaBeltConveyorComponent(string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
@@ -108,7 +105,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public void Destroy()
         {
             IsDestroy = true;
-            _updateObservable.Dispose();
         }
         
         public string GetSaveState()
@@ -128,7 +124,7 @@ namespace Game.Block.Blocks.BeltConveyor
         ///     判定はUpdateで毎フレーム行われる
         ///     TODO 個々のマルチスレッド対応もいい感じにやりたい
         /// </summary>
-        private void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             
