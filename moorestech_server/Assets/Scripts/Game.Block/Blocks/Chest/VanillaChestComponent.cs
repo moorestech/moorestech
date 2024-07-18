@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
-using Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Event;
@@ -12,11 +10,10 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Newtonsoft.Json;
-using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState
+    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent
     {
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
@@ -25,16 +22,12 @@ namespace Game.Block.Blocks.Chest
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        private readonly IDisposable _updateObservable;
-        
         public VanillaChestComponent(BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             BlockInstanceId = blockInstanceId;
             
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
-            
-            _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public VanillaChestComponent(string saveData, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
@@ -83,7 +76,6 @@ namespace Game.Block.Blocks.Chest
         public void Destroy()
         {
             IsDestroy = true;
-            _updateObservable.Dispose();
         }
         
         public string GetSaveState()
@@ -140,7 +132,7 @@ namespace Game.Block.Blocks.Chest
             return _itemDataStoreService.InsertionCheck(itemStacks);
         }
         
-        private void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             

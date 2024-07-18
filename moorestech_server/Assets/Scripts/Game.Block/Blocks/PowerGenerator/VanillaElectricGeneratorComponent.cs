@@ -19,7 +19,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState, IUpdatableBlockComponent
     {
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
@@ -27,8 +27,6 @@ namespace Game.Block.Blocks.PowerGenerator
         private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        
-        private readonly IDisposable _updateObservable;
         
         private int _currentFuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
@@ -42,7 +40,6 @@ namespace Game.Block.Blocks.PowerGenerator
             _infinityPower = data.InfinityPower;
             
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, data.FuelItemSlot);
-            _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
             
             _blockComponentManager.AddComponent(data.InventoryInputConnectorComponent);
         }
@@ -121,7 +118,6 @@ namespace Game.Block.Blocks.PowerGenerator
         public void Destroy()
         {
             IsDestroy = true;
-            _updateObservable.Dispose();
         }
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         
@@ -175,7 +171,7 @@ namespace Game.Block.Blocks.PowerGenerator
         }
         
         
-        private void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             
