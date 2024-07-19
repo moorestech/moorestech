@@ -85,4 +85,5 @@ public static class JsonSchemaParser
     private static BooleanSchema ParseBoolean(JsonObject json)
     {
         return new BooleanSchema();
+    }
 }
