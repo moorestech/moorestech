@@ -29,8 +29,11 @@ public static class JsonTokenizer
         while (json.Length > iterator.CurrentIndex)
         {
             // skip whitespace
-            while (char.IsWhiteSpace(iterator.CurrentChar))
+            while (char.IsWhiteSpace(iterator.CurrentChar) || iterator.CurrentChar == '\n' || iterator.CurrentChar == '\r' || iterator.CurrentChar == '\t')
                 iterator.CurrentIndex++;
+            
+            // end
+            if (iterator.CurrentChar == '\0') break;
             
             // tokenize
             switch (iterator.CurrentChar)

@@ -6,6 +6,134 @@ namespace mooresmaster.Tests;
 
 public class Test
 {
+    private const string BlockConfigJson = """
+                                           {
+                                             "type": "object",
+                                             "properties": {
+                                               "required": [
+                                                 "blocks"
+                                               ],
+                                               "blocks": {
+                                                 "type": "array",
+                                                 "items": {
+                                                   "type": "object",
+                                                   "properties": {
+                                                     "required": [
+                                                       "blockId",
+                                                       "itemId",
+                                                       "blockType"
+                                                     ],
+                                                     "blockId": {
+                                                       "type": "string",
+                                                       "pattern": "@guid"
+                                                     },
+                                                     "itemId": {
+                                                       "type": "string",
+                                                       "pattern": "@guid",
+                                                       "format": "@foreignKey:itemId"
+                                                     },
+                                                     "blockType": {
+                                                       "type": "string"
+                                                     },
+                                                     "blockParam": {
+                                                       "oneOf": [
+                                                         {
+                                                           "if": {
+                                                             "properties": {
+                                                               "blockType": {
+                                                                 "const": "TypeA"
+                                                               }
+                                                             }
+                                                           },
+                                                           "then": {
+                                                             "type": "object",
+                                                             "properties": {
+                                                               "paramA": {
+                                                                 "type": "string"
+                                                               },
+                                                               "paramB": {
+                                                                 "type": "integer"
+                                                               }
+                                                             },
+                                                             "required": [
+                                                               "paramA",
+                                                               "paramB"
+                                                             ]
+                                                           }
+                                                         },
+                                                         {
+                                                           "if": {
+                                                             "properties": {
+                                                               "blockType": {
+                                                                 "const": "TypeB"
+                                                               }
+                                                             }
+                                                           },
+                                                           "then": {
+                                                             "type": "object",
+                                                             "properties": {
+                                                               "paramA": {
+                                                                 "type": "boolean"
+                                                               },
+                                                               "paramB": {
+                                                                 "type": "number"
+                                                               }
+                                                             },
+                                                             "required": [
+                                                               "paramA",
+                                                               "paramB"
+                                                             ]
+                                                           }
+                                                         }
+                                                       ]
+                                                     },
+                                                     "arrayTest": {
+                                                       "type": "array",
+                                                       "items": {
+                                                         "type": "string"
+                                                       }
+                                                     },
+                                                     "objectTest": {
+                                                       "type": "object"
+                                                     },
+                                                     "vector2Test": {
+                                                       "type": "array",
+                                                       "pattern": "@vector2",
+                                                       "items": {
+                                                         "type": "number"
+                                                       }
+                                                     },
+                                                     "vector3IntTest": {
+                                                       "type": "array",
+                                                       "pattern": "@vector3Int",
+                                                       "items": {
+                                                         "type": "integer"
+                                                       }
+                                                     },
+                                                     "vector4Test": {
+                                                       "type": "array",
+                                                       "pattern": "@vector4",
+                                                       "items": {
+                                                         "type": "number"
+                                                       }
+                                                     },
+                                                     "boolTest": {
+                                                       "type": "boolean"
+                                                     },
+                                                     "intTest": {
+                                                       "type": "integer"
+                                                     },
+                                                     "floatTest": {
+                                                       "type": "number"
+                                                     }
+                                                   }
+                                                 }
+                                               }
+                                             }
+                                           }
+                                           
+                                           """;
+    
     [Fact]
     public void JsonTokenizerTest()
     {
@@ -62,5 +190,12 @@ public class Test
         });
         
         Assert.Equivalent(node, answer, true);
+    }
+    
+    [Fact]
+    public void BlockJsonParseTest()
+    {
+        var tokens = JsonTokenizer.GetTokens(BlockConfigJson);
+        JsonParser.Parse(tokens);
     }
 }
