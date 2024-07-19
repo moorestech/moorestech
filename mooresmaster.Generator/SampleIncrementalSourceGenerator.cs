@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
@@ -12,15 +11,17 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(context.AdditionalTextsProvider, Emit);
     }
     
-    private void Emit(SourceProductionContext context)
+    private void Emit(SourceProductionContext context, AdditionalText additionalText)
     {
-        Console.WriteLine("Emit");
-        context.AddSource("test.g.cs", "// Generate from test.g.cs");
-    }
-    
-    private void Emit(SourceProductionContext context, AdditionalText text)
-    {
-        Console.WriteLine("AdditionalTextEmit");
-        context.AddSource($"{Path.GetFileNameWithoutExtension(text.Path)}.g.cs", $"// Generate from {Path.GetFileName(text.Path)}");
+        var text = additionalText.GetText()!.ToString();
+        var commentedText = $"//{text.Replace("\n", "\n//")}";
+        
+        
+        var code = $$$"""
+                      // Generate from {{{Path.GetFileName(additionalText.Path)}}}
+                      
+                      {{{commentedText}}}
+                      """;
+        context.AddSource($"{Path.GetFileNameWithoutExtension(additionalText.Path)}.g.cs", code);
     }
 }
