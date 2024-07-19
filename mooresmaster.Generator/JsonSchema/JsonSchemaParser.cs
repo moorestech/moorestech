@@ -24,6 +24,8 @@ public record OneOfSchema : ISchema;
 
 public record NumberSchema : ISchema;
 
+public record IntegerSchema : ISchema;
+
 public static class JsonSchemaParser
 {
     public static ISchema Parse(JsonObject root)
@@ -36,6 +38,7 @@ public static class JsonSchemaParser
             "array" => ParseArray(root),
             "string" => ParseString(root),
             "number" => ParseNumber(root),
+            "integer" => ParseInteger(root),
             _ => throw new Exception($"Unknown type: {type}")
         };
     }
@@ -69,5 +72,10 @@ public static class JsonSchemaParser
     private static NumberSchema ParseNumber(JsonObject json)
     {
         return new NumberSchema();
+    }
+    
+    private static IntegerSchema ParseInteger(JsonObject json)
+    {
+        return new IntegerSchema();
     }
 }
