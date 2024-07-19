@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
-using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
@@ -24,7 +23,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange
+    public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange, IUpdatableBlockComponent
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
@@ -32,8 +31,6 @@ namespace Game.Block.Blocks.Miner
         private readonly List<IItemStack> _miningItems = new();
         
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
-        
-        private readonly IDisposable _updateObservable;
         
         private ElectricPower _currentPower;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
@@ -53,8 +50,6 @@ namespace Game.Block.Blocks.Miner
             var itemStackFactory = ServerContext.ItemStackFactory;
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
-            
-            _updateObservable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
             
             SetMiningItem();
             
@@ -149,10 +144,9 @@ namespace Game.Block.Blocks.Miner
         public void Destroy()
         {
             IsDestroy = true;
-            _updateObservable.Dispose();
         }
         
-        private void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             
