@@ -13,16 +13,9 @@ public enum TokenType
     LBrace,
     RSquare,
     LSquare,
-    Comma
-}
-
-public struct Iterator(string sourceText)
-{
-    public int CurrentIndex = 0;
-    public readonly string SourceText = sourceText;
+    Comma,
     
-    public char CurrentChar => SourceText.Length > CurrentIndex ? SourceText[CurrentIndex] : '\0';
-    public char NextChar => SourceText.Length > CurrentIndex + 1 ? SourceText[CurrentIndex + 1] : '\0';
+    Illegal
 }
 
 public static class JsonTokenizer
@@ -83,5 +76,13 @@ public static class JsonTokenizer
         }
         
         return tokens.ToArray();
+    }
+    
+    private struct Iterator(string sourceText)
+    {
+        public int CurrentIndex = 0;
+        
+        public char CurrentChar => sourceText.Length > CurrentIndex ? sourceText[CurrentIndex] : '\0';
+        public char NextChar => sourceText.Length > CurrentIndex + 1 ? sourceText[CurrentIndex + 1] : '\0';
     }
 }

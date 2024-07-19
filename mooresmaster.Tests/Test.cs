@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using mooresmaster.Generator;
 using Xunit;
 
@@ -35,7 +36,31 @@ public class Test
             new Token(TokenType.RBrace, "}")
         ];
         var tokens = JsonTokenizer.GetTokens(json);
-        Assert.Equal(tokens.Length, answer.Length);
-        for (var i = 0; i < answer.Length; i++) Assert.Equal(tokens[i], answer[i]);
+        Assert.Equivalent(tokens, answer, true);
+    }
+    
+    [Fact]
+    public void JsonParserTest()
+    {
+        var json = """
+                   {
+                       "hoge": "fuga", 
+                       "piyo": [
+                           "puyo", 
+                           "poyo"
+                       ]
+                   }
+                   """;
+        var node = JsonParser.Parse(JsonTokenizer.GetTokens(json));
+        var answer = new JsonObject(new Dictionary<string, JsonNode>
+        {
+            ["hoge"] = new JsonString("fuga"),
+            ["piyo"] = new JsonArray([
+                new JsonString("puyo"),
+                new JsonString("poyo")
+            ])
+        });
+        
+        Assert.Equivalent(node, answer, true);
     }
 }
