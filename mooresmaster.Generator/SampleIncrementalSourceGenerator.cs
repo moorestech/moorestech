@@ -1,6 +1,7 @@
 using System.IO;
 using Microsoft.CodeAnalysis;
 using mooresmaster.Generator.Json;
+using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator;
 
@@ -16,14 +17,17 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
     {
         var text = additionalText.GetText()!.ToString();
         var commentedText = $"//{text.Replace("\n", "\n//")}";
-        var node = JsonParser.Parse(JsonTokenizer.GetTokens(text));
+        var json = JsonParser.Parse(JsonTokenizer.GetTokens(text));
+        var schema = JsonSchemaParser.Parse((json as JsonObject)!);
         
         var code = $$$"""
                       // Generate from {{{Path.GetFileName(additionalText.Path)}}}
                       
                       {{{commentedText}}}
                       
-                      // {{{node}}}
+                      // {{{json}}}
+                      
+                      // {{{schema}}}
                       """;
         
         context.AddSource($"{Path.GetFileNameWithoutExtension(additionalText.Path)}.g.cs", code);

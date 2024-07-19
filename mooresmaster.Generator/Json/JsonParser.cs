@@ -8,11 +8,13 @@ public interface IJsonNode;
 public record JsonObject(Dictionary<string, IJsonNode> Nodes) : IJsonNode
 {
     public readonly Dictionary<string, IJsonNode> Nodes = Nodes;
+    public IJsonNode? this[string key] => Nodes.ContainsKey(key) ? Nodes[key] : null;
 }
 
 public record JsonArray(IJsonNode[] Nodes) : IJsonNode
 {
     public readonly IJsonNode[] Nodes = Nodes;
+    public IJsonNode? this[int index] => Nodes.Length > index ? Nodes[index] : null;
 }
 
 public record JsonString(string Literal) : IJsonNode
