@@ -15,13 +15,16 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
     {
         var text = additionalText.GetText()!.ToString();
         var commentedText = $"//{text.Replace("\n", "\n//")}";
-        
+        var node = JsonParser.Parse(JsonTokenizer.GetTokens(text));
         
         var code = $$$"""
                       // Generate from {{{Path.GetFileName(additionalText.Path)}}}
                       
                       {{{commentedText}}}
+                      
+                      // {{{node}}}
                       """;
+        
         context.AddSource($"{Path.GetFileNameWithoutExtension(additionalText.Path)}.g.cs", code);
     }
 }
