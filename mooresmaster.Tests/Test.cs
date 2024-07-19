@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using mooresmaster.Generator;
+using mooresmaster.Generator.Json;
 using Xunit;
 
 namespace mooresmaster.Tests;
@@ -180,7 +180,7 @@ public class Test
                    }
                    """;
         var node = JsonParser.Parse(JsonTokenizer.GetTokens(json));
-        var answer = new JsonObject(new Dictionary<string, JsonNode>
+        var answer = new JsonObject(new Dictionary<string, IJsonNode>
         {
             ["hoge"] = new JsonString("fuga"),
             ["piyo"] = new JsonArray([

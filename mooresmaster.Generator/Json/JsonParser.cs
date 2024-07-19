@@ -1,34 +1,34 @@
 using System;
 using System.Collections.Generic;
 
-namespace mooresmaster.Generator;
+namespace mooresmaster.Generator.Json;
 
-public record JsonNode;
+public interface IJsonNode;
 
-public record JsonObject(Dictionary<string, JsonNode> Nodes) : JsonNode
+public record JsonObject(Dictionary<string, IJsonNode> Nodes) : IJsonNode
 {
-    public readonly Dictionary<string, JsonNode> Nodes = Nodes;
+    public readonly Dictionary<string, IJsonNode> Nodes = Nodes;
 }
 
-public record JsonArray(JsonNode[] Nodes) : JsonNode
+public record JsonArray(IJsonNode[] Nodes) : IJsonNode
 {
-    public readonly JsonNode[] Nodes = Nodes;
+    public readonly IJsonNode[] Nodes = Nodes;
 }
 
-public record JsonString(string Literal) : JsonNode
+public record JsonString(string Literal) : IJsonNode
 {
     public readonly string Literal = Literal;
 }
 
 public static class JsonParser
 {
-    public static JsonNode Parse(Token[] tokens)
+    public static IJsonNode Parse(Token[] tokens)
     {
         var iterator = new Iterator(tokens);
         return Parse(ref iterator);
     }
     
-    private static JsonNode Parse(ref Iterator iterator)
+    private static IJsonNode Parse(ref Iterator iterator)
     {
         return iterator.CurrentToken.Type switch
         {
@@ -48,7 +48,7 @@ public static class JsonParser
     
     private static JsonArray ParseArray(ref Iterator iterator)
     {
-        var nodes = new List<JsonNode>();
+        var nodes = new List<IJsonNode>();
         iterator.CurrentIndex++; // skip '['
         
         while (iterator.CurrentToken.Type != TokenType.RSquare)
@@ -65,7 +65,7 @@ public static class JsonParser
     
     private static JsonObject ParseObject(ref Iterator iterator)
     {
-        var nodes = new Dictionary<string, JsonNode>();
+        var nodes = new Dictionary<string, IJsonNode>();
         iterator.CurrentIndex++; // skip '{'
         
         while (iterator.CurrentToken.Type != TokenType.RBrace)

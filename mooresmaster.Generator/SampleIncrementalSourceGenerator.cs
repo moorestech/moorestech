@@ -1,5 +1,6 @@
 using System.IO;
 using Microsoft.CodeAnalysis;
+using mooresmaster.Generator.Json;
 
 namespace mooresmaster.Generator;
 

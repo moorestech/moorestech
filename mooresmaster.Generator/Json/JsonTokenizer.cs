@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace mooresmaster.Generator;
+namespace mooresmaster.Generator.Json;
 
 public record struct Token(TokenType Type, string Literal);
 
