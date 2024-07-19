@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Update="TestBlockSchema.json"/>
+        <AdditionalFiles Include="TestBlockSchema.json"/>
     </ItemGroup>
 
 </Project>
