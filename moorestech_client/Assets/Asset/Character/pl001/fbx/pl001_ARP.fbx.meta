@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: mat_bag
+    second: {fileID: 2100000, guid: f15fab7a4dbae194abbc26239b0e9cbe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: mat_body
     second: {fileID: 2100000, guid: 0aa2d064a3eabf149a81a925e9f00d5e, type: 2}
   - first:
