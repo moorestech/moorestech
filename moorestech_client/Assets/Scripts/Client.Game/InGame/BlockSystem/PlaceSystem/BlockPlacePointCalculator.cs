@@ -240,9 +240,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             bool IsNotExistBlock(PlaceInfo placeInfo)
             {
                 // 設置予定地にブロックが既に存在しているかどうか
-                BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((holdingBlockConfig.BlockId, placeInfo.VerticalDirection), out var verticalBlockId);
+                var blockId = holdingBlockConfig.BlockId;
+                if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((holdingBlockConfig.BlockId, placeInfo.VerticalDirection), out var verticalBlockId))
+                {
+                    blockId = verticalBlockId;
+                }
                 
-                var size = ServerContext.BlockConfig.GetBlockConfig(verticalBlockId).BlockSize;
+                var size = ServerContext.BlockConfig.GetBlockConfig(blockId).BlockSize;
                 var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
                 
                 return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
