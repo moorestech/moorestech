@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 new()
                 {
-                    Point = new Vector3Int(x, y),
+                    Position = new Vector3Int(x, y),
                     Direction = blockDirection,
                     VerticalDirection = BlockVerticalDirection.Horizontal
                 }

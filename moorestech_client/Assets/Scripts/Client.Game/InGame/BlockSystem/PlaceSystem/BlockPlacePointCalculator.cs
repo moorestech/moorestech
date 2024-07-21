@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,16 +11,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPlacePointCalculator
     {
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection)
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        
+        public BlockPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore)
+        {
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+        }
+        
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockConfigData holdingBlockConfig)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
             var positions = CalcPositions();
             
-            return CalcPlaceDirection(positions);
+            var result = CalcPlaceDirection(positions);
+            result = CalcPlaceable(result);
+            
+            return result;
             
             #region Internal
             
+            // TODO statci化
             // TODO ブロックの大きさに応じて、設置する間隔を変更する
             List<Vector3Int> CalcPositions()
             {
@@ -125,7 +139,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     {
                         new()
                         {
-                            Point = placePositions[0],
+                            Position = placePositions[0],
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
                         }
@@ -178,7 +192,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     
                     results.Add(new PlaceInfo()
                     {
-                        Point = currentPoint,
+                        Position = currentPoint,
                         Direction = direction,
                         VerticalDirection = verticalDirection,
                     });
@@ -212,6 +226,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return (horizonDirection, verticalDirection);
             }
             
+            List<PlaceInfo> CalcPlaceable(List<PlaceInfo> infos)
+            {
+                foreach (var info in infos)
+                {
+                    //TODO ブロックの数が足りているかどうか
+                    info.Placeable = IsNotExistBlock(info);
+                }
+                
+                return infos;
+            }
+            
+            bool IsNotExistBlock(PlaceInfo placeInfo)
+            {
+                // 設置予定地にブロックが既に存在しているかどうか
+                var blockId = holdingBlockConfig.BlockId;
+                if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((holdingBlockConfig.BlockId, placeInfo.VerticalDirection), out var verticalBlockId))
+                {
+                    blockId = verticalBlockId;
+                }
+                
+                var size = ServerContext.BlockConfig.GetBlockConfig(blockId).BlockSize;
+                var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
+                
+                return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
+            }
             #endregion
         }
     }

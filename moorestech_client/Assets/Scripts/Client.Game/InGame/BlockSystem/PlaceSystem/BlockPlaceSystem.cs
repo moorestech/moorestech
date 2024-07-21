@@ -27,12 +27,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public static BlockPlaceSystem Instance;
         
         private const float PlaceableMaxDistance = 100f;
-        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly IBlockPlacePreview _blockPlacePreview;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly PlayerObjectController _playerObjectController;
+        private readonly BlockPlacePointCalculator _blockPlacePointCalculator;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
@@ -58,8 +58,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
-            _blockGameObjectDataStore = blockGameObjectDataStore;
             _playerObjectController = playerObjectController;
+            _blockPlacePointCalculator = new BlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
         public static void SetEnableBlockPlace(bool enable)
@@ -129,20 +129,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var holdingBlockConfig = ServerContext.BlockConfig.ItemIdToBlockConfig(itemId);
             var placePoint = CalcPlacePoint();
             
+            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
+            
             _blockPlacePreview.SetActive(true);
-            var placeable =
-                !IsAlreadyExistingBlock(placePoint, holdingBlockConfig.BlockSize) &&
-                IsBlockPlaceableDistance(PlaceableMaxDistance) &&
-                !IsTerrainOverlapBlock();
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (placeable && InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
                 _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
             }
             
-            //プレビュー表示 display preview
+            //プレビュー表示と地面との接触を取得する
+            //display preview and get collision with ground
+            var groundDetects = new List<bool>();
             if (_clickStartPosition.HasValue)
             {
                 if (_clickStartPosition.Value == placePoint)
@@ -154,16 +154,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
                 }
                 
-                _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection);
-                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockConfig);
+                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
             }
             else
             {
                 _isStartZDirection = null;
-                _currentPlaceInfos = BlockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection);
-                _blockPlacePreview.SetPreview(placeable, _currentPlaceInfos, holdingBlockConfig);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockConfig);
+                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
             }
             
+            // Placeableの更新
+            // update placeable
+            for (var i = 0; i < groundDetects.Count; i++)
+            {
+                // 地面と接触していたら設置不可
+                // if collision with ground, cannot place
+                if (groundDetects[i])
+                {
+                    _currentPlaceInfos[i].Placeable = false;
+                }
+            }
+            
+            // 設置するブロックをサーバーに送信
+            // send block place info to server
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 _heightOffset = _clickStartHeightOffset;
@@ -173,21 +187,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             }
             
             #region Internal
-            
-            bool IsAlreadyExistingBlock(Vector3Int originPosition, Vector3Int size)
-            {
-                // ブロックが既に存在しているかどうか
-                var previewPositionInfo = new BlockPositionInfo(originPosition, _currentBlockDirection, size);
-                
-                return _blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
-            }
-            
-            bool IsTerrainOverlapBlock()
-            {
-                // ブロックとterrainが重なっていること
-                //TODO ちゃんとできないから一旦放置 return _blockPlacePreview.IsCollisionGround;
-                return false;
-            }
             
             bool IsBlockPlaceableDistance(float maxDistance)
             {
