@@ -18,11 +18,11 @@ export default {
   schemas: {
     block: {
       name: 'Block',
-      schema: block
+      schema: refResolver.getDerefSchema('blocks')
     },
     item: {
       name: 'Item',
-      schema: item
+      schema: refResolver.getDerefSchema('items')
     }
   }
 }
