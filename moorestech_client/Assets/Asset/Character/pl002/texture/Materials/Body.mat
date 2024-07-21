@@ -65,11 +65,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 4b90ae2db640d1844ad3856fa5e10b9d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8d3c2a831225df543aa61fddebe9af45, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 4b90ae2db640d1844ad3856fa5e10b9d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8d3c2a831225df543aa61fddebe9af45, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Bump2ndMap:

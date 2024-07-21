@@ -1370,6 +1370,50 @@ Transform:
   - {fileID: 8763941932145579684}
   m_Father: {fileID: 1155396873125087145}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &832265269752303824
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8645465908485396737}
+  - component: {fileID: 4936625685928415031}
+  m_Layer: 0
+  m_Name: c_kilt_03_02.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8645465908485396737
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832265269752303824}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.48553962, y: -0.48553947, z: 0.51405394, w: -0.51405376}
+  m_LocalPosition: {x: 0.0000000018626467, y: 0.09192166, z: -0.000000011175873}
+  m_LocalScale: {x: 0.8333335, y: 0.8333334, z: 0.8333337}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8033329459325298849}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4936625685928415031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832265269752303824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &866107417020475023
 GameObject:
   m_ObjectHideFlags: 0
@@ -1401,6 +1445,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 342544856815484201}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &924356583822447812
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1414472480848568162}
+  - component: {fileID: 3927396231269005808}
+  m_Layer: 0
+  m_Name: c_kilt_05_02.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1414472480848568162
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 924356583822447812}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.39568645, y: -0.3956861, z: -0.58603114, w: 0.586031}
+  m_LocalPosition: {x: 0.0000000037252899, y: 0.1682755, z: -0.000000011175869}
+  m_LocalScale: {x: 0.8333333, y: 0.8333331, z: 0.833333}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4265971657858545489}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3927396231269005808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 924356583822447812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &971433953542669547
 GameObject:
   m_ObjectHideFlags: 0
@@ -1780,6 +1868,50 @@ Transform:
   - {fileID: 7711897052332563256}
   m_Father: {fileID: 1993348741991299137}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1273251885981070970
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5754909714192464737}
+  - component: {fileID: 2809415600142512793}
+  m_Layer: 0
+  m_Name: c_kilt_05_01.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5754909714192464737
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1273251885981070970}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.83485466, y: -0.40741295, z: -0.3119114, w: -0.19935836}
+  m_LocalPosition: {x: -0.100104116, y: 0.0059611746, z: -0.06460776}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2809415600142512793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1273251885981070970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1316476914368738011
 GameObject:
   m_ObjectHideFlags: 0
@@ -1811,6 +1943,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5687095910222485075}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1351654620238088190
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4682648982610965890}
+  - component: {fileID: 2507313727111747164}
+  m_Layer: 0
+  m_Name: c_kilt_04_02.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4682648982610965890
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1351654620238088190}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.70695037, y: -0.7069502, z: -0.014879761, w: 0.014879605}
+  m_LocalPosition: {x: 0.00000000605359, y: 0.11502009, z: 0.000000016763806}
+  m_LocalScale: {x: 0.8333332, y: 0.8333332, z: 0.8333323}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7504401202273665381}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2507313727111747164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1351654620238088190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1356313974014073104
 GameObject:
   m_ObjectHideFlags: 0
@@ -1820,6 +1996,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1273540534753571300}
+  - component: {fileID: 7493178983231615488}
   m_Layer: 0
   m_Name: c_kilt_05_02.l
   m_TagString: Untagged
@@ -1843,6 +2020,37 @@ Transform:
   - {fileID: 2982603178903910030}
   m_Father: {fileID: 7159745860239866195}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7493178983231615488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356313974014073104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 6762974234283991538}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &1510676508995819913
 GameObject:
   m_ObjectHideFlags: 0
@@ -1884,6 +2092,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1893581659584084595}
+  - component: {fileID: 2456124242328006174}
   m_Layer: 0
   m_Name: c_kilt_02_01.r
   m_TagString: Untagged
@@ -1905,8 +2114,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5687095910222485075}
+  - {fileID: 553294949556374879}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2456124242328006174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1542415727692328253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 4601860805853144773}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &1553366251030015947
 GameObject:
   m_ObjectHideFlags: 0
@@ -1971,6 +2212,50 @@ Transform:
   - {fileID: 5489136277286526433}
   m_Father: {fileID: 1993348741991299137}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1737523502094266000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4601860805853144773}
+  - component: {fileID: 1237259333830037588}
+  m_Layer: 0
+  m_Name: c_kilt_02_01.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4601860805853144773
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737523502094266000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.58783466, y: 0.7747153, z: -0.22869162, w: -0.0443485}
+  m_LocalPosition: {x: 0.089127444, y: -0.00032712822, z: 0.09159467}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1237259333830037588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737523502094266000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1756083814043801528
 GameObject:
   m_ObjectHideFlags: 0
@@ -2167,6 +2452,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4213893504689012206}
+  - component: {fileID: 5757111880781732780}
   m_Layer: 0
   m_Name: c_kilt_03_01.r
   m_TagString: Untagged
@@ -2188,8 +2474,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 987247307488081752}
+  - {fileID: 9044816002274836519}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5757111880781732780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2117403174054512839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 2404457733837365846}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &2212493482130060553
 GameObject:
   m_ObjectHideFlags: 0
@@ -2955,7 +3273,32 @@ MonoBehaviour:
   enableLengthLimits: 1
   collideWithGround: 1
   groundHeight: 0
-  springBones: []
+  springBones:
+  - {fileID: 8175037847745295567}
+  - {fileID: 4628683773405135761}
+  - {fileID: 465702124059932791}
+  - {fileID: 8286002305274411584}
+  - {fileID: 6490347616830955294}
+  - {fileID: 2456124242328006174}
+  - {fileID: 1160773323376624816}
+  - {fileID: 7460374633231356712}
+  - {fileID: 5757111880781732780}
+  - {fileID: 4266169170288772498}
+  - {fileID: 7830683843439433149}
+  - {fileID: 5497567133010122432}
+  - {fileID: 4030857807421897530}
+  - {fileID: 4328875704938843983}
+  - {fileID: 5442347623907239514}
+  - {fileID: 7493178983231615488}
+  - {fileID: 2139074981886528873}
+  - {fileID: 3915569140707922984}
+  - {fileID: 7583365954113819637}
+  - {fileID: 3087339367599125203}
+  - {fileID: 6904543024925940249}
+  - {fileID: 8327827984925658499}
+  - {fileID: 6232755586510207266}
+  - {fileID: 2066251261440217934}
+  - {fileID: 7749949839056102380}
   boneColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   colliderColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   collisionColor: {r: 1, g: 0, b: 0, a: 1}
@@ -2970,6 +3313,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2027245782406699953}
+  - component: {fileID: 4266169170288772498}
   m_Layer: 0
   m_Name: c_kilt_06_01.r
   m_TagString: Untagged
@@ -2991,8 +3335,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7908404297177685810}
+  - {fileID: 6584141796117253392}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4266169170288772498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2279893524527937425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 5788663490315672503}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &2297146658933834728
 GameObject:
   m_ObjectHideFlags: 0
@@ -3246,6 +3622,50 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.0000016242266, y: 0.21144408, z: -0.18334047}
     m_Extent: {x: 0.07662465, y: 0.102240436, z: 0.06526898}
   m_DirtyAABB: 0
+--- !u!1 &2342007667406217227
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6338982037600013180}
+  - component: {fileID: 5747914189934177547}
+  m_Layer: 0
+  m_Name: c_kilt_04_01.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6338982037600013180
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2342007667406217227}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.4396487, y: 0.5920336, z: -0.5365316, w: -0.41029152}
+  m_LocalPosition: {x: 0.11312711, y: -0.00000006853952, z: -0.023241302}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5747914189934177547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2342007667406217227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2476495856236086918
 GameObject:
   m_ObjectHideFlags: 0
@@ -3655,6 +4075,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6485066812957290083}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2631898504724882666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 892104958781476397}
+  - component: {fileID: 6166778449437628287}
+  m_Layer: 0
+  m_Name: c_kilt_04_01.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &892104958781476397
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2631898504724882666}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5920334, y: -0.4396491, z: -0.41029164, w: -0.5365314}
+  m_LocalPosition: {x: -0.113127075, y: -0.00000006848131, z: -0.023241293}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6166778449437628287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2631898504724882666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2637034366263586644
 GameObject:
   m_ObjectHideFlags: 0
@@ -3664,6 +4128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4562232432255858488}
+  - component: {fileID: 4328875704938843983}
   m_Layer: 0
   m_Name: c_kilt_06_02.l
   m_TagString: Untagged
@@ -3687,6 +4152,37 @@ Transform:
   - {fileID: 8466094917027250756}
   m_Father: {fileID: 6758133752159488003}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4328875704938843983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2637034366263586644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 975471976749133009}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &2637806057976697803
 GameObject:
   m_ObjectHideFlags: 0
@@ -3759,6 +4255,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3500802525390001579}
+  - component: {fileID: 6232755586510207266}
   m_Layer: 0
   m_Name: c_kilt_01_02.l
   m_TagString: Untagged
@@ -3782,6 +4279,37 @@ Transform:
   - {fileID: 8915955796109264449}
   m_Father: {fileID: 759040474357789280}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6232755586510207266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2781877850132757572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 3037623821184499210}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &2784199482654109489
 GameObject:
   m_ObjectHideFlags: 0
@@ -3822,6 +4350,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5965222673007966836}
+  - component: {fileID: 7830683843439433149}
   m_Layer: 0
   m_Name: c_kilt_04_01.l
   m_TagString: Untagged
@@ -3843,8 +4372,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5958717358496007578}
+  - {fileID: 985882835970071422}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7830683843439433149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2792226684918585814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 892104958781476397}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &2792376605318489439
 GameObject:
   m_ObjectHideFlags: 0
@@ -5172,6 +5733,50 @@ Transform:
   - {fileID: 6728973641588638752}
   m_Father: {fileID: 1993348741991299137}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3419388197521199068
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 553294949556374879}
+  - component: {fileID: 3743456852904088417}
+  m_Layer: 0
+  m_Name: c_kilt_02_02.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &553294949556374879
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419388197521199068}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.6335263, y: -0.63352644, z: -0.31407693, w: 0.31407705}
+  m_LocalPosition: {x: -0.0000000093132195, y: 0.07910684, z: -0.000000040978183}
+  m_LocalScale: {x: 0.8333326, y: 0.833333, z: 0.8333326}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1893581659584084595}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3743456852904088417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419388197521199068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3474583978453412185
 GameObject:
   m_ObjectHideFlags: 0
@@ -5203,6 +5808,94 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3500802525390001579}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3479960687543438376
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1614462323914740246}
+  - component: {fileID: 7097545346599629576}
+  m_Layer: 0
+  m_Name: c_kilt_06_01.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1614462323914740246
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3479960687543438376}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.19129041, y: 0.19009356, z: -0.56467223, w: -0.7800113}
+  m_LocalPosition: {x: -0.04168101, y: -0.0000000018626451, z: -0.13371491}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7097545346599629576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3479960687543438376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &3508557740180710937
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6517296396172908254}
+  - component: {fileID: 8819117132086273781}
+  m_Layer: 0
+  m_Name: c_kilt_02_01.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6517296396172908254
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3508557740180710937}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.77471554, y: 0.58783436, z: 0.044348232, w: 0.22869173}
+  m_LocalPosition: {x: -0.089127444, y: -0.00032712467, z: 0.09159466}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8819117132086273781
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3508557740180710937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3518390047676876266
 GameObject:
   m_ObjectHideFlags: 0
@@ -5645,6 +6338,50 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.0008474374, y: 0.22659343, z: 0.046441525}
     m_Extent: {x: 0.03128373, y: 0.032394856, z: 0.012333125}
   m_DirtyAABB: 0
+--- !u!1 &3569706957922171163
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 975471976749133009}
+  - component: {fileID: 6250126755829922502}
+  m_Layer: 0
+  m_Name: c_kilt_06_02.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &975471976749133009
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3569706957922171163}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7059744, y: -0.70597434, z: 0.04000257, w: -0.04000279}
+  m_LocalPosition: {x: -0.000000040978204, y: 0.23074117, z: -0.000000007450585}
+  m_LocalScale: {x: 0.83333355, y: 0.8333334, z: 0.8333334}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6758133752159488003}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6250126755829922502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3569706957922171163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3585933290607685100
 GameObject:
   m_ObjectHideFlags: 0
@@ -6631,6 +7368,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5958717358496007578}
+  - component: {fileID: 3915569140707922984}
   m_Layer: 0
   m_Name: c_kilt_04_02.l
   m_TagString: Untagged
@@ -6654,6 +7392,37 @@ Transform:
   - {fileID: 8072928202106742697}
   m_Father: {fileID: 5965222673007966836}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3915569140707922984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4056614325962209779}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 985882835970071422}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &4108406347789732195
 GameObject:
   m_ObjectHideFlags: 0
@@ -6757,6 +7526,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 987247307488081752}
+  - component: {fileID: 2139074981886528873}
   m_Layer: 0
   m_Name: c_kilt_03_02.r
   m_TagString: Untagged
@@ -6780,6 +7550,37 @@ Transform:
   - {fileID: 8939419695659139648}
   m_Father: {fileID: 4213893504689012206}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2139074981886528873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4268267597290124630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 9044816002274836519}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &4298381392082314684
 GameObject:
   m_ObjectHideFlags: 0
@@ -6843,6 +7644,50 @@ Transform:
   - {fileID: 3774795247124668192}
   m_Father: {fileID: 3098101444173171452}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4318201801298693187
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6762974234283991538}
+  - component: {fileID: 3029984923944633450}
+  m_Layer: 0
+  m_Name: c_kilt_05_02.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6762974234283991538
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4318201801298693187}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.39568606, y: -0.3956864, z: 0.586031, w: -0.58603114}
+  m_LocalPosition: {x: -0.000000011175869, y: 0.1682755, z: -0.000000011175869}
+  m_LocalScale: {x: 0.8333333, y: 0.8333331, z: 0.83333296}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7159745860239866195}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3029984923944633450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4318201801298693187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4377155397975915946
 GameObject:
   m_ObjectHideFlags: 0
@@ -6875,6 +7720,50 @@ Transform:
   - {fileID: 2602139657103047520}
   m_Father: {fileID: 2456403090086890150}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4409248568510565190
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7437653152011990255}
+  - component: {fileID: 1393596501389723509}
+  m_Layer: 0
+  m_Name: c_kilt_01_01.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7437653152011990255
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4409248568510565190}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.68226254, y: 0.6853906, z: -0.23470809, w: -0.09833509}
+  m_LocalPosition: {x: 0.023241304, y: -0.000000020489097, z: 0.08673771}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1393596501389723509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4409248568510565190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4417906519635436161
 GameObject:
   m_ObjectHideFlags: 0
@@ -7164,6 +8053,50 @@ Transform:
   - {fileID: 147803435230116778}
   m_Father: {fileID: 6587943660184457331}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4518196329761036190
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9044816002274836519}
+  - component: {fileID: 3067828553519784635}
+  m_Layer: 0
+  m_Name: c_kilt_03_02.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9044816002274836519
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4518196329761036190}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.48553953, y: -0.48553976, z: -0.5140535, w: 0.5140539}
+  m_LocalPosition: {x: -0.0000000018626467, y: 0.091921374, z: -0.000000018626455}
+  m_LocalScale: {x: 0.83333355, y: 0.8333333, z: 0.8333339}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4213893504689012206}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3067828553519784635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4518196329761036190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4574180633347689957
 GameObject:
   m_ObjectHideFlags: 0
@@ -7228,6 +8161,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6143589675450985773}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4623736006797041187
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 985882835970071422}
+  - component: {fileID: 5972122079743345178}
+  m_Layer: 0
+  m_Name: c_kilt_04_02.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &985882835970071422
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4623736006797041187}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.7069501, y: 0.7069503, z: -0.014880059, w: 0.014879728}
+  m_LocalPosition: {x: -0.00000001583247, y: 0.11502029, z: -0.00000006705524}
+  m_LocalScale: {x: 0.83333355, y: 0.8333332, z: 0.8333324}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5965222673007966836}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5972122079743345178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4623736006797041187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4715961059761150641
 GameObject:
   m_ObjectHideFlags: 0
@@ -7237,6 +8214,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7718532997085686923}
+  - component: {fileID: 8327827984925658499}
   m_Layer: 0
   m_Name: c_kilt_01_02.r
   m_TagString: Untagged
@@ -7260,6 +8238,37 @@ Transform:
   - {fileID: 6930547245170485844}
   m_Father: {fileID: 9088269239702899330}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8327827984925658499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715961059761150641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 359700543553965492}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &4726173548300100800
 GameObject:
   m_ObjectHideFlags: 0
@@ -7269,6 +8278,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7159745860239866195}
+  - component: {fileID: 5497567133010122432}
   m_Layer: 0
   m_Name: c_kilt_05_01.l
   m_TagString: Untagged
@@ -7290,8 +8300,128 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1273540534753571300}
+  - {fileID: 6762974234283991538}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5497567133010122432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4726173548300100800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 5754909714192464737}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
+--- !u!1 &4765351338859187986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2397923120376815887}
+  - component: {fileID: 4702684801130120972}
+  m_Layer: 0
+  m_Name: c_kilt_01_01.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2397923120376815887
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4765351338859187986}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.68539685, y: 0.682265, z: 0.098317586, w: 0.23468988}
+  m_LocalPosition: {x: -0.023241283, y: 0.00000009778887, z: 0.08673762}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4702684801130120972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4765351338859187986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &4811909318404988011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5788663490315672503}
+  - component: {fileID: 2343782549943107888}
+  m_Layer: 0
+  m_Name: c_kilt_06_01.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5788663490315672503
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4811909318404988011}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.19009367, y: 0.19129057, z: -0.78001124, w: -0.56467235}
+  m_LocalPosition: {x: 0.041681, y: -0.0000000062864274, z: -0.13371497}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2343782549943107888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4811909318404988011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4820756912307439742
 GameObject:
   m_ObjectHideFlags: 0
@@ -7301,6 +8431,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5687095910222485075}
+  - component: {fileID: 3087339367599125203}
   m_Layer: 0
   m_Name: c_kilt_02_02.r
   m_TagString: Untagged
@@ -7324,6 +8455,37 @@ Transform:
   - {fileID: 6630535036699171086}
   m_Father: {fileID: 1893581659584084595}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3087339367599125203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4820756912307439742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 553294949556374879}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &4833863854776759708
 GameObject:
   m_ObjectHideFlags: 0
@@ -7747,6 +8909,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9096587671714854301}
+  - component: {fileID: 5442347623907239514}
   m_Layer: 0
   m_Name: c_kilt_05_02.r
   m_TagString: Untagged
@@ -7770,6 +8933,37 @@ Transform:
   - {fileID: 2810047204613085000}
   m_Father: {fileID: 4265971657858545489}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5442347623907239514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5000747943307025040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 1414472480848568162}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &5043752282977691759
 GameObject:
   m_ObjectHideFlags: 0
@@ -7929,6 +9123,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 282755736366373861}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5221499211928900823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6584141796117253392}
+  - component: {fileID: 4016104520098061380}
+  m_Layer: 0
+  m_Name: c_kilt_06_02.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6584141796117253392
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5221499211928900823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.70597464, y: -0.7059742, z: -0.04000273, w: 0.04000282}
+  m_LocalPosition: {x: 0.000000014901163, y: 0.23074108, z: 0.00000012665993}
+  m_LocalScale: {x: 0.8333335, y: 0.8333333, z: 0.8333333}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2027245782406699953}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4016104520098061380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5221499211928900823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5234987072244740293
 GameObject:
   m_ObjectHideFlags: 0
@@ -7963,6 +9201,94 @@ Transform:
   - {fileID: 8272030409784202266}
   m_Father: {fileID: 7815590612408271447}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5351685340204918601
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 359700543553965492}
+  - component: {fileID: 8547956278268915520}
+  m_Layer: 0
+  m_Name: c_kilt_01_02.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &359700543553965492
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5351685340204918601}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.70014566, y: -0.70014566, z: -0.09897508, w: 0.09897511}
+  m_LocalPosition: {x: -0.0000000032596286, y: 0.08768739, z: 0.000000031664882}
+  m_LocalScale: {x: 0.83333296, y: 0.83333296, z: 0.8333311}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9088269239702899330}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8547956278268915520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5351685340204918601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &5406275254882716679
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5447876504280064339}
+  - component: {fileID: 8439914696013727716}
+  m_Layer: 0
+  m_Name: c_kilt_master.x_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5447876504280064339
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5406275254882716679}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5646204, y: 0.5674168, z: -0.4256826, w: -0.4219437}
+  m_LocalPosition: {x: 0.000016287415, y: -0.021140417, z: -0.0024669159}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.833333}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3153134606184554661}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8439914696013727716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5406275254882716679}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5409015738160115273
 GameObject:
   m_ObjectHideFlags: 0
@@ -8764,6 +10090,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2561781665025496392}
+  - component: {fileID: 7583365954113819637}
   m_Layer: 0
   m_Name: c_kilt_03_02.l
   m_TagString: Untagged
@@ -8787,6 +10114,81 @@ Transform:
   - {fileID: 2137199651810646684}
   m_Father: {fileID: 8033329459325298849}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7583365954113819637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5896663499598172312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 8645465908485396737}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
+--- !u!1 &5962786623512277525
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3037623821184499210}
+  - component: {fileID: 2626597665478227176}
+  m_Layer: 0
+  m_Name: c_kilt_01_02.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3037623821184499210
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5962786623512277525}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.70345056, y: -0.7034506, z: -0.07181469, w: 0.07181406}
+  m_LocalPosition: {x: 0.00000002514571, y: 0.087687574, z: -0.000000031664882}
+  m_LocalScale: {x: 0.8333331, y: 0.833333, z: 0.8333311}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 759040474357789280}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2626597665478227176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5962786623512277525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5994809529565102434
 GameObject:
   m_ObjectHideFlags: 0
@@ -8881,6 +10283,7 @@ Transform:
   m_Children:
   - {fileID: 218044535231270104}
   - {fileID: 2343968196566073400}
+  - {fileID: 5447876504280064339}
   m_Father: {fileID: 1368534841603782124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6070680376537412344
@@ -8925,6 +10328,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6758133752159488003}
+  - component: {fileID: 8286002305274411584}
   m_Layer: 0
   m_Name: c_kilt_06_01.l
   m_TagString: Untagged
@@ -8946,8 +10350,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4562232432255858488}
+  - {fileID: 975471976749133009}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8286002305274411584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6083026494070554330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 1614462323914740246}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &6143097230453272251
 GameObject:
   m_ObjectHideFlags: 0
@@ -9233,6 +10669,50 @@ Transform:
   - {fileID: 1505928396200798237}
   m_Father: {fileID: 1993348741991299137}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6391730053534393347
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2448512027581268908}
+  - component: {fileID: 2868955922609178611}
+  m_Layer: 0
+  m_Name: c_kilt_03_01.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2448512027581268908
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6391730053534393347}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.85779333, y: 0.5021944, z: -0.03504391, w: 0.10374684}
+  m_LocalPosition: {x: -0.11078486, y: -0.000000011612428, z: 0.023241296}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2868955922609178611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6391730053534393347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6482394099102275330
 GameObject:
   m_ObjectHideFlags: 0
@@ -9707,6 +11187,50 @@ Transform:
   - {fileID: 5520848636955652302}
   m_Father: {fileID: 6485066812957290083}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6579289339183535408
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7952165517691918479}
+  - component: {fileID: 4963778143044487509}
+  m_Layer: 0
+  m_Name: c_kilt_05_01.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7952165517691918479
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6579289339183535408}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.40741298, y: 0.8348546, z: -0.19935843, w: -0.3119113}
+  m_LocalPosition: {x: 0.100104116, y: 0.0059611727, z: -0.06460777}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4963778143044487509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6579289339183535408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6599745486255602657
 GameObject:
   m_ObjectHideFlags: 0
@@ -10659,6 +12183,50 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.004872393, y: 0.3389257, z: -0.15806012}
     m_Extent: {x: 0.11004576, y: 0.048750877, z: 0.041479114}
   m_DirtyAABB: 0
+--- !u!1 &7221520125622226114
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2404457733837365846}
+  - component: {fileID: 1571571970620206086}
+  m_Layer: 0
+  m_Name: c_kilt_03_01.r_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2404457733837365846
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7221520125622226114}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5021942, y: 0.85779333, z: -0.10374681, w: 0.035043903}
+  m_LocalPosition: {x: 0.11078485, y: -0.00000007118797, z: 0.023241296}
+  m_LocalScale: {x: 0.8333334, y: 0.8333333, z: 0.8333331}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 218044535231270104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1571571970620206086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7221520125622226114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7224058350342405002
 GameObject:
   m_ObjectHideFlags: 0
@@ -10889,6 +12457,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7908404297177685810}
+  - component: {fileID: 7749949839056102380}
   m_Layer: 0
   m_Name: c_kilt_06_02.r
   m_TagString: Untagged
@@ -10912,6 +12481,37 @@ Transform:
   - {fileID: 2578196798421944265}
   m_Father: {fileID: 2027245782406699953}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7749949839056102380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7234913693923222382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 6584141796117253392}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &7269970817518490776
 GameObject:
   m_ObjectHideFlags: 0
@@ -10983,6 +12583,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8033329459325298849}
+  - component: {fileID: 7460374633231356712}
   m_Layer: 0
   m_Name: c_kilt_03_01.l
   m_TagString: Untagged
@@ -11004,8 +12605,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2561781665025496392}
+  - {fileID: 8645465908485396737}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7460374633231356712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7391759640109596346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 2448512027581268908}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &7486360912033766243
 GameObject:
   m_ObjectHideFlags: 0
@@ -11069,6 +12702,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 987247307488081752}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7566094169191035742
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 766666189243556297}
+  - component: {fileID: 2816490230483761806}
+  m_Layer: 0
+  m_Name: c_kilt_02_02.l_Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &766666189243556297
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566094169191035742}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.6334695, y: -0.6334689, z: 0.31419247, w: -0.31419212}
+  m_LocalPosition: {x: 0.000000009313219, y: 0.07910683, z: 0.000000026077032}
+  m_LocalScale: {x: 0.833333, y: 0.8333331, z: 0.8333327}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4998500441552822352}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2816490230483761806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566094169191035742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7585101106579583333
 GameObject:
   m_ObjectHideFlags: 0
@@ -11301,6 +12978,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4265971657858545489}
+  - component: {fileID: 1160773323376624816}
   m_Layer: 0
   m_Name: c_kilt_05_01.r
   m_TagString: Untagged
@@ -11322,8 +13000,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9096587671714854301}
+  - {fileID: 1414472480848568162}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1160773323376624816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8114721974952103878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 7952165517691918479}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &8184959121519162931
 GameObject:
   m_ObjectHideFlags: 0
@@ -11396,6 +13106,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7504401202273665381}
+  - component: {fileID: 4030857807421897530}
   m_Layer: 0
   m_Name: c_kilt_04_01.r
   m_TagString: Untagged
@@ -11417,8 +13128,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3349682525542975570}
+  - {fileID: 4682648982610965890}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4030857807421897530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8225584345698866628}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 6338982037600013180}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &8275162819418112181
 GameObject:
   m_ObjectHideFlags: 0
@@ -11774,6 +13517,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3349682525542975570}
+  - component: {fileID: 2066251261440217934}
   m_Layer: 0
   m_Name: c_kilt_04_02.r
   m_TagString: Untagged
@@ -11797,6 +13541,37 @@ Transform:
   - {fileID: 1126724628330705110}
   m_Father: {fileID: 7504401202273665381}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2066251261440217934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8580470299117612041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 4682648982610965890}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &8586104103729009017
 GameObject:
   m_ObjectHideFlags: 0
@@ -11838,6 +13613,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9088269239702899330}
+  - component: {fileID: 465702124059932791}
   m_Layer: 0
   m_Name: c_kilt_01_01.r
   m_TagString: Untagged
@@ -11859,8 +13635,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7718532997085686923}
+  - {fileID: 359700543553965492}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &465702124059932791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8595192676324166376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 7437653152011990255}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &8622445259702744363
 GameObject:
   m_ObjectHideFlags: 0
@@ -12263,6 +14071,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 759040474357789280}
+  - component: {fileID: 4628683773405135761}
   m_Layer: 0
   m_Name: c_kilt_01_01.l
   m_TagString: Untagged
@@ -12284,8 +14093,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3500802525390001579}
+  - {fileID: 3037623821184499210}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4628683773405135761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8873021627683631610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 2397923120376815887}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &8876719201793791314
 GameObject:
   m_ObjectHideFlags: 0
@@ -12360,6 +14201,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6114014045581730175}
+  - component: {fileID: 6904543024925940249}
   m_Layer: 0
   m_Name: c_kilt_02_02.l
   m_TagString: Untagged
@@ -12383,6 +14225,37 @@ Transform:
   - {fileID: 6685822876965802978}
   m_Father: {fileID: 4998500441552822352}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6904543024925940249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8940097715385503915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 766666189243556297}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &9008378574604570980
 GameObject:
   m_ObjectHideFlags: 0
@@ -12423,6 +14296,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4998500441552822352}
+  - component: {fileID: 6490347616830955294}
   m_Layer: 0
   m_Name: c_kilt_02_01.l
   m_TagString: Untagged
@@ -12444,8 +14318,40 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6114014045581730175}
+  - {fileID: 766666189243556297}
   m_Father: {fileID: 218044535231270104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6490347616830955294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9046618225088865174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 6517296396172908254}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &9066341734260606116
 GameObject:
   m_ObjectHideFlags: 0
@@ -12455,6 +14361,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 218044535231270104}
+  - component: {fileID: 8175037847745295567}
   m_Layer: 0
   m_Name: c_kilt_master.x
   m_TagString: Untagged
@@ -12487,8 +14394,51 @@ Transform:
   - {fileID: 4265971657858545489}
   - {fileID: 6758133752159488003}
   - {fileID: 2027245782406699953}
+  - {fileID: 2397923120376815887}
+  - {fileID: 7437653152011990255}
+  - {fileID: 6517296396172908254}
+  - {fileID: 4601860805853144773}
+  - {fileID: 2448512027581268908}
+  - {fileID: 2404457733837365846}
+  - {fileID: 892104958781476397}
+  - {fileID: 6338982037600013180}
+  - {fileID: 5754909714192464737}
+  - {fileID: 7952165517691918479}
+  - {fileID: 1614462323914740246}
+  - {fileID: 5788663490315672503}
   m_Father: {fileID: 3153134606184554661}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8175037847745295567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9066341734260606116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stiffnessForce: 0.01
+  dragForce: 0.4
+  springForce: {x: 0, y: -0.0001, z: 0}
+  windInfluence: 1
+  pivotNode: {fileID: 5447876504280064339}
+  angularStiffness: 100
+  yAngleLimits:
+    active: 1
+    min: -20
+    max: 20
+  zAngleLimits:
+    active: 1
+    min: 0
+    max: 20
+  lengthLimitTargets: []
+  radius: 0.05
+  sphereColliders: []
+  capsuleColliders: []
+  panelColliders: []
 --- !u!1 &9101670094776566056
 GameObject:
   m_ObjectHideFlags: 0
