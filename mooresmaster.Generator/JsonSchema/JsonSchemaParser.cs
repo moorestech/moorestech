@@ -69,7 +69,6 @@ public static class JsonSchemaParser
         var requiredJson = json["required"] as JsonArray;
         var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var properties = propertiesJson.Nodes
-            .Where(node => node.Key != "required")
             .Select(kvp => (kvp.Key, Parse((kvp.Value as JsonObject)!)))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Item2);
         
