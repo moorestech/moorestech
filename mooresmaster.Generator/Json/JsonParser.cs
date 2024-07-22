@@ -22,6 +22,11 @@ public record JsonString(string Literal) : IJsonNode
     public readonly string Literal = Literal;
 }
 
+public record JsonBoolean(bool Literal) : IJsonNode
+{
+    public readonly bool Literal = Literal;
+}
+
 public static class JsonParser
 {
     public static IJsonNode Parse(Token[] tokens)
@@ -37,8 +42,16 @@ public static class JsonParser
             TokenType.String => ParseString(ref iterator),
             TokenType.LBrace => ParseObject(ref iterator),
             TokenType.LSquare => ParseArray(ref iterator),
+            TokenType.True or TokenType.False => ParseBoolean(ref iterator), 
             _ => throw new Exception($"""Unexpected token: {iterator.CurrentToken.Type} "{iterator.CurrentToken.Literal}" """)
         };
+    }
+    
+    private static JsonBoolean ParseBoolean(ref Iterator iterator)
+    {
+        var value = iterator.CurrentToken.Literal;
+        iterator.CurrentIndex++; // skip boolean
+        return new JsonBoolean(value == "true");
     }
     
     private static JsonString ParseString(ref Iterator iterator)

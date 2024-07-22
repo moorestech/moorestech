@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace mooresmaster.Generator.Json;
 
@@ -15,6 +16,9 @@ public enum TokenType
     LSquare,
     Comma,
     
+    True,
+    False,
+    
     Illegal
 }
 
@@ -29,13 +33,14 @@ public static class JsonTokenizer
         while (json.Length > iterator.CurrentIndex)
         {
             // skip whitespace
-            while (char.IsWhiteSpace(iterator.CurrentChar) || iterator.CurrentChar == '\n' || iterator.CurrentChar == '\r' || iterator.CurrentChar == '\t')
+            while (new[] { ' ', '\t', '\n', '\r' }.Contains(iterator.CurrentChar))
                 iterator.CurrentIndex++;
             
             // end
             if (iterator.CurrentChar == '\0') break;
             
             // tokenize
+            Console.WriteLine(iterator.CurrentChar);
             switch (iterator.CurrentChar)
             {
                 case ':':
@@ -72,7 +77,25 @@ public static class JsonTokenizer
                     tokens.Add(new Token(TokenType.String, literal));
                     break;
                 default:
-                    throw new Exception($"not implemented: {iterator.CurrentChar} {iterator.NextChar}");
+                    var identifier = "" + iterator.CurrentChar;
+                    while (char.IsLetter(iterator.NextChar))
+                    {
+                        iterator.CurrentIndex++;
+                        identifier += iterator.CurrentChar;
+                    }
+                    
+                    switch (identifier)
+                    {
+                        case "true":
+                            tokens.Add(new Token(TokenType.True, "true"));
+                            break;
+                        case "false":
+                            tokens.Add(new Token(TokenType.False, "false"));
+                            break;
+                        default:
+                            throw new Exception($"not implemented: \"{identifier}\"");
+                    }
+                    break;
             }
             
             iterator.CurrentIndex++;

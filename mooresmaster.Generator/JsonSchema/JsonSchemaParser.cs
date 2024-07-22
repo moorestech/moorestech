@@ -18,9 +18,18 @@ public record ArraySchema(ISchema Items) : ISchema
     public ISchema Items = Items;
 }
 
-public record StringSchema : ISchema;
+public record OneOfSchema(IfThenSchema[] IfThenArray) : ISchema
+{
+    public IfThenSchema[] IfThenArray = IfThenArray;
+}
 
-public record OneOfSchema : ISchema;
+public record IfThenSchema(JsonObject If, ISchema Then)
+{
+    public JsonObject If = If;
+    public ISchema Then = Then;
+}
+
+public record StringSchema : ISchema;
 
 public record NumberSchema : ISchema;
 
@@ -32,7 +41,7 @@ public static class JsonSchemaParser
 {
     public static ISchema Parse(JsonObject root)
     {
-        if (root.Nodes.ContainsKey("oneOf")) return new OneOfSchema();
+        if (root.Nodes.ContainsKey("oneOf")) return ParseOneOf((root["oneOf"] as JsonArray)!);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
@@ -51,7 +60,7 @@ public static class JsonSchemaParser
         if (!json.Nodes.ContainsKey("properties")) return new ObjectSchema(new Dictionary<string, ISchema>(), []);
         
         var propertiesJson = (json["properties"] as JsonObject)!;
-        var requiredJson = propertiesJson["required"] as JsonArray;
+        var requiredJson = json["required"] as JsonArray;
         var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var properties = propertiesJson.Nodes
             .Where(node => node.Key != "required")
@@ -65,6 +74,22 @@ public static class JsonSchemaParser
     {
         var items = Parse((json["items"] as JsonObject)!);
         return new ArraySchema(items);
+    }
+    
+    private static OneOfSchema ParseOneOf(JsonArray json)
+    {
+        var ifThenList = new List<IfThenSchema>();
+        
+        foreach (var node in json.Nodes)
+        {
+            var jsonObject = (node as JsonObject)!;
+            var ifJson = (jsonObject["if"] as JsonObject)!;
+            var thenJson = (jsonObject["then"] as JsonObject)!;   
+            
+            ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson)));
+        }
+        
+        return new OneOfSchema(ifThenList.ToArray());
     }
     
     private static StringSchema ParseString(JsonObject json)
