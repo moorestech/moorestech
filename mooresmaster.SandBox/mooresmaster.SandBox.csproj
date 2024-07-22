@@ -13,7 +13,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Schema\Block.json" />
+      <AdditionalFiles Include="Schema\block.json" />
+      <None Remove="Schema\gearConnectsSchema.json" />
+      <AdditionalFiles Include="Schema\gearConnectsSchema.json" />
+      <None Remove="Schema\inventoryConnectorsSchema.json" />
+      <AdditionalFiles Include="Schema\inventoryConnectorsSchema.json" />
+      <None Remove="Schema\item.json" />
+      <AdditionalFiles Include="Schema\item.json" />
     </ItemGroup>
 
 </Project>

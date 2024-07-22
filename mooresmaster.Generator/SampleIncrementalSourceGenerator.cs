@@ -23,7 +23,7 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
             context.AddSource(
                 $"{Path.GetFileNameWithoutExtension(schemaFile.Path)}.g.cs",
                 $$$"""
-                   // Generate from "{{{schemaFile.Path}}}"
+                   // Generate from "{{{Path.GetFileName(schemaFile.Path)}}}"
                    // ID: "{{{schemaFile.Schema.Id}}}"
                    """);
         
