@@ -37,11 +37,17 @@ public record IntegerSchema : ISchema;
 
 public record BooleanSchema : ISchema;
 
+public record RefSchema(string Ref) : ISchema
+{
+    public string Ref = Ref;
+}
+
 public static class JsonSchemaParser
 {
     public static ISchema Parse(JsonObject root)
     {
         if (root.Nodes.ContainsKey("oneOf")) return ParseOneOf((root["oneOf"] as JsonArray)!);
+        if (root.Nodes.ContainsKey("$ref")) return ParseRef((root["$ref"] as JsonString)!);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
@@ -84,12 +90,17 @@ public static class JsonSchemaParser
         {
             var jsonObject = (node as JsonObject)!;
             var ifJson = (jsonObject["if"] as JsonObject)!;
-            var thenJson = (jsonObject["then"] as JsonObject)!;   
+            var thenJson = (jsonObject["then"] as JsonObject)!;
             
             ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson)));
         }
         
         return new OneOfSchema(ifThenList.ToArray());
+    }
+    
+    private static RefSchema ParseRef(JsonString json)
+    {
+        return new RefSchema(json.Literal);
     }
     
     private static StringSchema ParseString(JsonObject json)
