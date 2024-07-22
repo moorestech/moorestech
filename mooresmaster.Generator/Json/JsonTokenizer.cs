@@ -40,7 +40,6 @@ public static class JsonTokenizer
             if (iterator.CurrentChar == '\0') break;
             
             // tokenize
-            Console.WriteLine(iterator.CurrentChar);
             switch (iterator.CurrentChar)
             {
                 case ':':
