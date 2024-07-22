@@ -76,6 +76,14 @@ public static class JsonTokenizer
                     
                     tokens.Add(new Token(TokenType.String, literal));
                     break;
+                case '/':
+                    if (iterator.NextChar != '/') throw new Exception("not implemented");
+                    
+                    // skip comment
+                    iterator.CurrentIndex++;
+                    while (iterator.NextChar != '\n') iterator.CurrentIndex++;
+                    
+                    break;
                 default:
                     var identifier = "" + iterator.CurrentChar;
                     while (char.IsLetter(iterator.NextChar))
@@ -95,6 +103,7 @@ public static class JsonTokenizer
                         default:
                             throw new Exception($"not implemented: \"{identifier}\"");
                     }
+                    
                     break;
             }
             
