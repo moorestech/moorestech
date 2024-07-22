@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using mooresmaster.Generator.Json;
@@ -10,26 +12,40 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterSourceOutput(context.AdditionalTextsProvider, Emit);
+        context.RegisterSourceOutput(context.AdditionalTextsProvider.Collect(), Emit);
     }
     
-    private void Emit(SourceProductionContext context, AdditionalText additionalText)
+    private void Emit(SourceProductionContext context, ImmutableArray<AdditionalText> additionalTexts)
     {
-        var text = additionalText.GetText()!.ToString();
-        var commentedText = $"//{text.Replace("\n", "\n//")}";
-        var json = JsonParser.Parse(JsonTokenizer.GetTokens(text));
-        var schema = JsonSchemaParser.Parse((json as JsonObject)!);
+        var schemas = ParseAdditionalText(additionalTexts);
         
-        var code = $$$"""
-                      // Generate from {{{Path.GetFileName(additionalText.Path)}}}
-                      
-                      {{{commentedText}}}
-                      
-                      // {{{json}}}
-                      
-                      // {{{schema}}}
-                      """;
+        foreach (var schemaFile in schemas)
+            context.AddSource(
+                $"{Path.GetFileNameWithoutExtension(schemaFile.Path)}.g.cs",
+                $$$"""
+                   // Generate from "{{{schemaFile.Path}}}"
+                   // ID: "{{{schemaFile.Schema.Id}}}"
+                   """);
         
-        context.AddSource($"{Path.GetFileNameWithoutExtension(additionalText.Path)}.g.cs", code);
+        //         var code = $$$"""
+//                       // Generate from {{{Path.GetFileName(additionalText.Path)}}}
+//                       """;
+//         
+//         context.AddSource($"{Path.GetFileNameWithoutExtension(additionalText.Path)}.g.cs", code);
+    }
+    
+    private ImmutableArray<SchemaFile> ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
+    {
+        var schemas = new List<SchemaFile>();
+        
+        foreach (var additionalText in additionalTexts)
+        {
+            var text = additionalText.GetText()!.ToString();
+            var json = JsonParser.Parse(JsonTokenizer.GetTokens(text));
+            var schema = JsonSchemaParser.ParseSchema((json as JsonObject)!);
+            schemas.Add(new SchemaFile(additionalText.Path, schema));
+        }
+        
+        return schemas.ToImmutableArray();
     }
 }

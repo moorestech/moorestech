@@ -7,6 +7,12 @@ namespace mooresmaster.Generator.JsonSchema;
 
 public interface ISchema;
 
+public record Schema(string Id, ISchema InnerSchema)
+{
+    public string Id = Id;
+    public ISchema InnerSchema = InnerSchema;
+}
+
 public record ObjectSchema(Dictionary<string, ISchema> Properties, string[] Required) : ISchema
 {
     public Dictionary<string, ISchema> Properties = Properties;
@@ -44,7 +50,13 @@ public record RefSchema(string Ref) : ISchema
 
 public static class JsonSchemaParser
 {
-    public static ISchema Parse(JsonObject root)
+    public static Schema ParseSchema(JsonObject root)
+    {
+        var id = (root["$id"] as JsonString)!.Literal;
+        return new Schema(id, Parse(root));
+    }
+    
+    private static ISchema Parse(JsonObject root)
     {
         if (root.Nodes.ContainsKey("oneOf")) return ParseOneOf((root["oneOf"] as JsonArray)!);
         if (root.Nodes.ContainsKey("$ref")) return ParseRef((root["$ref"] as JsonString)!);
