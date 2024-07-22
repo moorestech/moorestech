@@ -26,12 +26,6 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
                    // Generate from "{{{Path.GetFileName(schemaFile.Path)}}}"
                    // ID: "{{{schemaFile.Schema.Id}}}"
                    """);
-        
-        //         var code = $$$"""
-//                       // Generate from {{{Path.GetFileName(additionalText.Path)}}}
-//                       """;
-//         
-//         context.AddSource($"{Path.GetFileNameWithoutExtension(additionalText.Path)}.g.cs", code);
     }
     
     private ImmutableArray<SchemaFile> ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
@@ -45,6 +39,8 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
             var schema = JsonSchemaParser.ParseSchema((json as JsonObject)!);
             schemas.Add(new SchemaFile(additionalText.Path, schema));
         }
+        
+        
         
         return schemas.ToImmutableArray();
     }
