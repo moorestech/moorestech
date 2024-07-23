@@ -1,0 +1,32 @@
+{
+  "$id": "modelTransform",
+  "type": "object",
+  "required": [
+    "position",
+    "rotation",
+    "scale"
+  ],
+  "properties": {
+    "position": {
+      "type": "array",
+      "pattern": "@vector3",
+      "items": {
+        "type": "number"
+      }
+    },
+    "rotation": {
+      "type": "array",
+      "pattern": "@vector3",
+      "items": {
+        "type": "number"
+      }
+    },
+    "scale": {
+      "type": "array",
+      "pattern": "@vector3",
+      "items": {
+        "type": "number"
+      }
+    }
+  }
+}

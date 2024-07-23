@@ -58,9 +58,9 @@
                     "time": {"type": "number"},
 
                     "inventoryConnectors": {
-                      "$ref": "inventoryConnectors"
+                      "$ref": "inputConnects"
                     },
-                    "gearConnects" : {
+                    "gearConnects": {
                       "$ref": "gearConnects"
                     }
                   }
@@ -70,32 +70,7 @@
           },
 
           "modelTransform": {
-            "type": "object",
-            "required": [
-              "position",
-              "rotation",
-              "scale"
-            ],
-            "properties": {
-              "position": {
-                "type": "array",
-                "items": {
-                  "type": "integer"
-                }
-              },
-              "rotation": {
-                "type": "array",
-                "items": {
-                  "type": "integer"
-                }
-              },
-              "scale": {
-                "type": "array",
-                "items": {
-                  "type": "integer"
-                }
-              }
-            }
+            "$ref": "modelTransform"
           }
         }
       }
