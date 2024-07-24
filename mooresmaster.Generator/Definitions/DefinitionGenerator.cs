@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
 
-namespace mooresmaster.Generator.Definition;
+namespace mooresmaster.Generator.Definitions;
 
 public record Definition
 {

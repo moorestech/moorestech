@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using mooresmaster.Generator.Definition;
+using mooresmaster.Generator.Code;
+using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
@@ -25,14 +25,6 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray());
         var definitions = DefinitionGenerator.Generate(semantics);
         
-        foreach (var schemaFile in schemas)
-            context.AddSource(
-                $"{Path.GetFileNameWithoutExtension(schemaFile.Path)}.g.cs",
-                $$$"""
-                   // Generate from "{{{Path.GetFileName(schemaFile.Path)}}}"
-                   // ID: "{{{schemaFile.Schema.Id}}}"
-                   """);
-        
         Console.WriteLine("Semantics: ");
         foreach (var semantic in semantics.TypeSemantics) Console.WriteLine($"    Type: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
         foreach (var semantic in semantics.InterfaceSemantics) Console.WriteLine($"    Interface: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
@@ -51,6 +43,8 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         }
         
         foreach (var definition in definitions.InterfaceDefinitions) Console.WriteLine($"    Interface: {definition.Name}");
+        
+        context.AddSource("mooresmaster.g.cs", CodeGenerator.Generate(definitions));
     }
     
     private ImmutableArray<SchemaFile> ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
