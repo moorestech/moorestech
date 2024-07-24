@@ -40,8 +40,6 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
             schemas.Add(new SchemaFile(additionalText.Path, schema));
         }
         
-        
-        
         return schemas.ToImmutableArray();
     }
 }
