@@ -9,8 +9,9 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
+    public List<(string interfaceName, string typeName)> InheritList = new();
     public Dictionary<string, InterfaceSemantics> InterfaceSemantics = new();
-    public Dictionary<string, ITypeSemantics> TypeSemantics = new();
+    public Dictionary<string, TypeSemantics> TypeSemantics = new();
     
     public Semantics Merge(Semantics other)
     {
@@ -19,6 +20,9 @@ public class Semantics
         
         foreach (var typeSemantics in other.TypeSemantics)
             TypeSemantics[typeSemantics.Key] = typeSemantics.Value;
+        
+        foreach (var inherit in other.InheritList)
+            InheritList.Add(inherit);
         
         return this;
     }
@@ -29,24 +33,10 @@ public class Semantics
     }
 }
 
-public interface ITypeSemantics
-{
-    string Name { get; }
-    ISchema Schema { get; }
-}
-
-public record TypeSemantics(string Name, ISchema Schema) : ITypeSemantics
+public record TypeSemantics(string Name, ISchema Schema)
 {
     public ISchema Schema { get; } = Schema;
     public string Name { get; } = Name;
-}
-
-public record InheritedTypeSemantics(TypeSemantics TypeSemantics, string[] InterfaceNames) : ITypeSemantics
-{
-    public string[] InterfaceNames = InterfaceNames;
-    public TypeSemantics TypeSemantics = TypeSemantics;
-    public string Name => TypeSemantics.Name;
-    public ISchema Schema => TypeSemantics.Schema;
 }
 
 public record InterfaceSemantics(string Name, ISchema Schema)
@@ -87,14 +77,16 @@ public static class SemanticsGenerator
                 break;
             case OneOfSchema oneOfSchema:
                 // InterfaceSemanticsを生成
-                var interfaceName = new InterfaceSemantics($"I{name}", oneOfSchema);
-                semantics.InterfaceSemantics[$"I{name}"] = interfaceName;
+                var interfaceName = $"I{name}";
+                var interfaceSemantics = new InterfaceSemantics(interfaceName, oneOfSchema);
+                semantics.InterfaceSemantics[interfaceName] = interfaceSemantics;
                 // 全ての可能性の型を生成
                 for (var i = 0; i < oneOfSchema.IfThenArray.Length; i++)
                 {
                     var ifThen = oneOfSchema.IfThenArray[i];
-                    var typeName = GetInterfaceName(ifThen.If) ?? $"{interfaceName}{i}";
+                    var typeName = GetInterfaceName(ifThen.If) ?? $"{interfaceSemantics}{i}";
                     
+                    semantics.InheritList.Add((interfaceName, typeName));
                     Generate(typeName, ifThen.Then).AddTo(semantics);
                 }
                 

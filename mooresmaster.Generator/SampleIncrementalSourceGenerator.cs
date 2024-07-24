@@ -36,6 +36,7 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         Console.WriteLine("Semantics: ");
         foreach (var semantic in semantics.TypeSemantics) Console.WriteLine($"    Type: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
         foreach (var semantic in semantics.InterfaceSemantics) Console.WriteLine($"    Interface: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
+        foreach (var inherit in semantics.InheritList) Console.WriteLine($"    Inherit: {inherit.interfaceName} {inherit.typeName}");
         
         Console.WriteLine();
         
