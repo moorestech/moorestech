@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.Semantic;
 
@@ -7,7 +6,7 @@ namespace mooresmaster.Generator.Definition;
 public record Definition
 {
     public readonly List<InterfaceDefinition> InterfaceDefinitions = new();
-    public readonly List<ITypeDefinition> TypeDefinitions = new();
+    public readonly List<TypeDefinition> TypeDefinitions = new();
 }
 
 public record InterfaceDefinition(string Name)
@@ -15,20 +14,10 @@ public record InterfaceDefinition(string Name)
     public string Name = Name;
 }
 
-public interface ITypeDefinition
+public record TypeDefinition(string Name, string[] InheritList)
 {
-    string Name { get; }
-}
-
-public record TypeDefinition(string Name) : ITypeDefinition
-{
+    public string[] InheritList = InheritList;
     public string Name { get; } = Name;
-}
-
-public record InheritedTypeDefinition(TypeDefinition TypeDefinition) : ITypeDefinition
-{
-    public TypeDefinition TypeDefinition = TypeDefinition;
-    public string Name => TypeDefinition.Name;
 }
 
 public static class DefinitionGenerator
@@ -38,18 +27,23 @@ public static class DefinitionGenerator
         var definitions = new Definition();
         
         foreach (var interfaceSemantics in semantics.InterfaceSemantics.Values) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(interfaceSemantics.Name));
-        foreach (var iTypeSemantics in semantics.TypeSemantics.Values)
-            switch (iTypeSemantics)
+        var inheritTable = new Dictionary<string, List<string>>();
+        foreach (var inherit in semantics.InheritList)
+        {
+            if (!inheritTable.TryGetValue(inherit.typeName, out var interfaceList))
             {
-                case InheritedTypeSemantics inheritedTypeSemantics:
-                    definitions.TypeDefinitions.Add(new InheritedTypeDefinition(new TypeDefinition(inheritedTypeSemantics.Name)));
-                    break;
-                case TypeSemantics typeSemantics:
-                    definitions.TypeDefinitions.Add(new TypeDefinition(typeSemantics.Name));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(iTypeSemantics));
+                inheritTable[inherit.typeName] = [];
+                interfaceList = inheritTable[inherit.typeName];
             }
+            
+            interfaceList.Add(inherit.interfaceName);
+        }
+        
+        foreach (var typeSemantics in semantics.TypeSemantics.Values)
+        {
+            var isInherited = inheritTable.TryGetValue(typeSemantics.Name, out var interfaceList);
+            definitions.TypeDefinitions.Add(new TypeDefinition(typeSemantics.Name, isInherited ? interfaceList!.ToArray() : []));
+        }
         
         return definitions;
     }
