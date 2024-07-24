@@ -47,7 +47,7 @@ public static class DefinitionGenerator
             var isInherited = inheritTable.TryGetValue(typeSemantics.Name, out var interfaceList);
             var typeName = typeSemantics.Name;
             var inheritList = isInherited ? interfaceList!.ToArray() : [];
-            var propertyTable = GetProperties(semantics,typeSemantics.Schema);
+            var propertyTable = GetProperties(semantics, typeSemantics.Schema);
             
             definitions.TypeDefinitions.Add(new TypeDefinition(typeName, inheritList, propertyTable));
         }
@@ -55,14 +55,14 @@ public static class DefinitionGenerator
         return definitions;
     }
     
-    private static Dictionary<string, Type> GetProperties(Semantics semantics,ISchema schema)
+    private static Dictionary<string, Type> GetProperties(Semantics semantics, ISchema schema)
     {
         var propertyTable = new Dictionary<string, Type>();
         
         switch (schema)
         {
             case ArraySchema arraySchema:
-                propertyTable["items"] = Type.GetType(arraySchema.Items);
+                propertyTable["items"] = new ArrayType(Type.GetType(semantics, arraySchema.Items));
                 break;
             case BooleanSchema booleanSchema:
                 propertyTable["value"] = new BooleanType();
@@ -74,7 +74,7 @@ public static class DefinitionGenerator
                 propertyTable["value"] = new FloatType();
                 break;
             case ObjectSchema objectSchema:
-                foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(kvp.Value);
+                foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(semantics, kvp.Value);
                 break;
             case OneOfSchema oneOfSchema:
                 propertyTable["value"] = new CustomType(semantics.OneOfToInterface[oneOfSchema]);

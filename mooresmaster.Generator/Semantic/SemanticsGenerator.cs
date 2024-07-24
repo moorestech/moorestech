@@ -11,6 +11,7 @@ public class Semantics
 {
     public List<(string interfaceName, string typeName)> InheritList = new();
     public Dictionary<string, InterfaceSemantics> InterfaceSemantics = new();
+    public Dictionary<ObjectSchema, string> ObjectSchemaToType = new();
     public Dictionary<OneOfSchema, string> OneOfToInterface = new();
     public Dictionary<string, TypeSemantics> TypeSemantics = new();
     
@@ -24,6 +25,12 @@ public class Semantics
         
         foreach (var inherit in other.InheritList)
             InheritList.Add(inherit);
+        
+        foreach (var objectSchema in other.ObjectSchemaToType)
+            ObjectSchemaToType[objectSchema.Key] = objectSchema.Value;
+        
+        foreach (var oneOf in other.OneOfToInterface)
+            OneOfToInterface[oneOf.Key] = oneOf.Value;
         
         return this;
     }
@@ -70,6 +77,7 @@ public static class SemanticsGenerator
         switch (schema)
         {
             case ObjectSchema objectSchema:
+                semantics.ObjectSchemaToType[objectSchema] = name;
                 semantics.TypeSemantics[name] = new TypeSemantics(name, schema);
                 foreach (var property in objectSchema.Properties) Generate(property.Key, property.Value).AddTo(semantics);
                 break;

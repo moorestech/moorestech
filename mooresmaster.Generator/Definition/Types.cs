@@ -1,11 +1,25 @@
+using System;
 using mooresmaster.Generator.JsonSchema;
+using mooresmaster.Generator.Semantic;
 
 namespace mooresmaster.Generator.Definition;
 
 public record Type
 {
-    public static Type GetType(ISchema schema)
+    public static Type GetType(Semantics semantics, ISchema schema)
     {
+        return schema switch
+        {
+            ArraySchema arraySchema => new ArrayType(GetType(semantics, arraySchema.Items)),
+            BooleanSchema => new BooleanType(),
+            IntegerSchema => new IntType(),
+            NumberSchema => new FloatType(),
+            StringSchema => new StringType(),
+            ObjectSchema objectSchema => new CustomType(semantics.ObjectSchemaToType[objectSchema]),
+            OneOfSchema oneOfSchema => new CustomType(semantics.OneOfToInterface[oneOfSchema]),
+            RefSchema refSchema => new CustomType(refSchema.Ref),
+            _ => throw new ArgumentOutOfRangeException(nameof(schema))
+        };
     }
 }
 
