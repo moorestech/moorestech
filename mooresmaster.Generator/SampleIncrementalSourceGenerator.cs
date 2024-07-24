@@ -46,6 +46,8 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
             Console.WriteLine($"    Type: {definition.Name} {definition.GetType().Name}");
             if (definition.InheritList.Length > 0) Console.WriteLine("        Inherit:");
             foreach (var inherit in definition.InheritList) Console.WriteLine($"            {inherit}");
+            if (definition.PropertyTable.Count > 0) Console.WriteLine("        Property:");
+            foreach (var property in definition.PropertyTable) Console.WriteLine($"            {property.Key}: {property.Value}");
         }
         
         foreach (var definition in definitions.InterfaceDefinitions) Console.WriteLine($"    Interface: {definition.Name}");

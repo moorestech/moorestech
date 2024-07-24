@@ -11,6 +11,7 @@ public class Semantics
 {
     public List<(string interfaceName, string typeName)> InheritList = new();
     public Dictionary<string, InterfaceSemantics> InterfaceSemantics = new();
+    public Dictionary<OneOfSchema, string> OneOfToInterface = new();
     public Dictionary<string, TypeSemantics> TypeSemantics = new();
     
     public Semantics Merge(Semantics other)
@@ -79,12 +80,13 @@ public static class SemanticsGenerator
                 // InterfaceSemanticsを生成
                 var interfaceName = $"I{name}";
                 var interfaceSemantics = new InterfaceSemantics(interfaceName, oneOfSchema);
+                semantics.OneOfToInterface[oneOfSchema] = interfaceName;
                 semantics.InterfaceSemantics[interfaceName] = interfaceSemantics;
                 // 全ての可能性の型を生成
                 for (var i = 0; i < oneOfSchema.IfThenArray.Length; i++)
                 {
                     var ifThen = oneOfSchema.IfThenArray[i];
-                    var typeName = GetInterfaceName(ifThen.If) ?? $"{interfaceSemantics}{i}";
+                    var typeName = GetInheritedTypeName(ifThen.If) ?? $"{interfaceSemantics}{i}";
                     
                     semantics.InheritList.Add((interfaceName, typeName));
                     Generate(typeName, ifThen.Then).AddTo(semantics);
@@ -105,17 +107,17 @@ public static class SemanticsGenerator
         return semantics;
     }
     
-    private static string? GetInterfaceName(IJsonNode? json)
+    private static string? GetInheritedTypeName(IJsonNode? json)
     {
         if (json is null) return null;
         
         switch (json)
         {
             case JsonObject jsonObject:
-                foreach (var name in jsonObject.Nodes.Select(node => GetInterfaceName(node.Value)).OfType<string>()) return name;
+                foreach (var name in jsonObject.Nodes.Select(node => GetInheritedTypeName(node.Value)).OfType<string>()) return name;
                 break;
             case JsonArray jsonArray:
-                foreach (var name in jsonArray.Nodes.Select(GetInterfaceName).OfType<string>()) return name;
+                foreach (var name in jsonArray.Nodes.Select(GetInheritedTypeName).OfType<string>()) return name;
                 break;
             case JsonString jsonString:
                 return jsonString.Literal;

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
 
 namespace mooresmaster.Generator.Definition;
@@ -14,9 +16,10 @@ public record InterfaceDefinition(string Name)
     public string Name = Name;
 }
 
-public record TypeDefinition(string Name, string[] InheritList)
+public record TypeDefinition(string Name, string[] InheritList, Dictionary<string, Type> PropertyTable)
 {
     public string[] InheritList = InheritList;
+    public Dictionary<string, Type> PropertyTable = PropertyTable;
     public string Name { get; } = Name;
 }
 
@@ -42,9 +45,50 @@ public static class DefinitionGenerator
         foreach (var typeSemantics in semantics.TypeSemantics.Values)
         {
             var isInherited = inheritTable.TryGetValue(typeSemantics.Name, out var interfaceList);
-            definitions.TypeDefinitions.Add(new TypeDefinition(typeSemantics.Name, isInherited ? interfaceList!.ToArray() : []));
+            var typeName = typeSemantics.Name;
+            var inheritList = isInherited ? interfaceList!.ToArray() : [];
+            var propertyTable = GetProperties(semantics,typeSemantics.Schema);
+            
+            definitions.TypeDefinitions.Add(new TypeDefinition(typeName, inheritList, propertyTable));
         }
         
         return definitions;
+    }
+    
+    private static Dictionary<string, Type> GetProperties(Semantics semantics,ISchema schema)
+    {
+        var propertyTable = new Dictionary<string, Type>();
+        
+        switch (schema)
+        {
+            case ArraySchema arraySchema:
+                propertyTable["items"] = Type.GetType(arraySchema.Items);
+                break;
+            case BooleanSchema booleanSchema:
+                propertyTable["value"] = new BooleanType();
+                break;
+            case IntegerSchema integerSchema:
+                propertyTable["value"] = new IntType();
+                break;
+            case NumberSchema numberSchema:
+                propertyTable["value"] = new FloatType();
+                break;
+            case ObjectSchema objectSchema:
+                foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(kvp.Value);
+                break;
+            case OneOfSchema oneOfSchema:
+                propertyTable["value"] = new CustomType(semantics.OneOfToInterface[oneOfSchema]);
+                break;
+            case RefSchema refSchema:
+                propertyTable["value"] = new CustomType(refSchema.Ref);
+                break;
+            case StringSchema stringSchema:
+                propertyTable["value"] = new StringType();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(schema));
+        }
+        
+        return propertyTable;
     }
 }
