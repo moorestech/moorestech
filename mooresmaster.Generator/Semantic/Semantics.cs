@@ -5,11 +5,11 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public List<(string interfaceName, string typeName)> InheritList = new();
-    public Dictionary<string, InterfaceSemantics> InterfaceSemantics = new();
-    public Dictionary<ObjectSchema, string> ObjectSchemaToType = new();
-    public Dictionary<OneOfSchema, string> OneOfToInterface = new();
-    public Dictionary<string, TypeSemantics> TypeSemantics = new();
+    public readonly List<(string interfaceName, string typeName)> InheritList = new();
+    public readonly Dictionary<string, InterfaceSemantics> InterfaceSemantics = new();
+    public readonly Dictionary<ObjectSchema, string> ObjectSchemaToType = new();
+    public readonly Dictionary<OneOfSchema, string> OneOfToInterface = new();
+    public readonly Dictionary<string, TypeSemantics> TypeSemantics = new();
     
     public Semantics Merge(Semantics other)
     {
