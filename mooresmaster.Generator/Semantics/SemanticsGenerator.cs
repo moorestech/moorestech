@@ -7,12 +7,6 @@ using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator.Semantics;
 
-public record CodeFile(string FileName, string Code)
-{
-    public string Code = Code;
-    public string FileName = FileName;
-}
-
 public class Semantics
 {
     public Dictionary<string, InterfaceSemantics> InterfaceSemantics = new();
