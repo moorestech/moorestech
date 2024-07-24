@@ -5,7 +5,7 @@ using System.Linq;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
-namespace mooresmaster.Generator.Semantics;
+namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {

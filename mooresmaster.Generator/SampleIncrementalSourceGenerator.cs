@@ -4,9 +4,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using mooresmaster.Generator.Definition;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
-using mooresmaster.Generator.Semantics;
+using mooresmaster.Generator.Semantic;
 
 namespace mooresmaster.Generator;
 
@@ -22,6 +23,7 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
     {
         var schemas = ParseAdditionalText(additionalTexts);
         var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray());
+        var definitions = DefinitionGenerator.Generate(semantics);
         
         foreach (var schemaFile in schemas)
             context.AddSource(
@@ -31,8 +33,15 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
                    // ID: "{{{schemaFile.Schema.Id}}}"
                    """);
         
-        foreach (var semantic in semantics.TypeSemantics) Console.WriteLine($"Type: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
-        foreach (var semantic in semantics.InterfaceSemantics) Console.WriteLine($"Interface: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
+        Console.WriteLine("Semantics: ");
+        foreach (var semantic in semantics.TypeSemantics) Console.WriteLine($"    Type: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
+        foreach (var semantic in semantics.InterfaceSemantics) Console.WriteLine($"    Interface: {semantic.Value.Name} {semantic.Value.Schema.GetType().Name}");
+        
+        Console.WriteLine();
+        
+        Console.WriteLine("Definitions: ");
+        foreach (var definition in definitions.TypeDefinitions) Console.WriteLine($"    Type: {definition.Name} {definition.GetType().Name}");
+        foreach (var definition in definitions.InterfaceDefinitions) Console.WriteLine($"    Interface: {definition.Name}");
     }
     
     private ImmutableArray<SchemaFile> ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
