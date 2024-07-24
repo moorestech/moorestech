@@ -46,14 +46,17 @@ public static class DefinitionGenerator
             case ArraySchema arraySchema:
                 propertyTable["items"] = new ArrayType(Type.GetType(semantics, arraySchema.Items));
                 break;
-            case BooleanSchema booleanSchema:
+            case BooleanSchema:
                 propertyTable["value"] = new BooleanType();
                 break;
-            case IntegerSchema integerSchema:
+            case IntegerSchema:
                 propertyTable["value"] = new IntType();
                 break;
-            case NumberSchema numberSchema:
+            case NumberSchema:
                 propertyTable["value"] = new FloatType();
+                break;
+            case StringSchema:
+                propertyTable["value"] = new StringType();
                 break;
             case ObjectSchema objectSchema:
                 foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(semantics, kvp.Value);
@@ -63,9 +66,6 @@ public static class DefinitionGenerator
                 break;
             case RefSchema refSchema:
                 propertyTable["value"] = new CustomType(refSchema.Ref);
-                break;
-            case StringSchema stringSchema:
-                propertyTable["value"] = new StringType();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(schema));
