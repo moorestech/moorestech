@@ -22,10 +22,10 @@ public static class JsonSchemaParser
         {
             "object" => ParseObject(root),
             "array" => ParseArray(root),
-            "string" => ParseString(root),
-            "number" => ParseNumber(root),
-            "integer" => ParseInteger(root),
-            "boolean" => ParseBoolean(root),
+            "string" => ParseString(),
+            "number" => ParseNumber(),
+            "integer" => ParseInteger(),
+            "boolean" => ParseBoolean(),
             _ => throw new Exception($"Unknown type: {type}")
         };
     }
@@ -71,22 +71,22 @@ public static class JsonSchemaParser
         return new RefSchema(json.Literal);
     }
     
-    private static StringSchema ParseString(JsonObject json)
+    private static StringSchema ParseString()
     {
         return new StringSchema();
     }
     
-    private static NumberSchema ParseNumber(JsonObject json)
+    private static NumberSchema ParseNumber()
     {
         return new NumberSchema();
     }
     
-    private static IntegerSchema ParseInteger(JsonObject json)
+    private static IntegerSchema ParseInteger()
     {
         return new IntegerSchema();
     }
     
-    private static BooleanSchema ParseBoolean(JsonObject json)
+    private static BooleanSchema ParseBoolean()
     {
         return new BooleanSchema();
     }
