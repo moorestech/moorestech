@@ -42,12 +42,12 @@ public static class CodeGenerator
     {
         return type switch
         {
-            BooleanType booleanType => "bool",
+            BooleanType => "bool",
             ArrayType arrayType => $"{GenerateTypeCode(arrayType.InnerType)}[]",
             DictionaryType dictionaryType => $"global::System.Collections.Generic.Dictionary<{GenerateTypeCode(dictionaryType.KeyType)}, {GenerateTypeCode(dictionaryType.ValueType)}>",
-            FloatType floatType => "float",
-            IntType intType => "int",
-            StringType stringType => "string",
+            FloatType => "float",
+            IntType => "int",
+            StringType => "string",
             CustomType customType => customType.Name,
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
