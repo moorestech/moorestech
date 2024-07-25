@@ -22,7 +22,12 @@
           },
           "blockType": {
             "type": "string",
-            "enum": [ "GearBeltConveyor" ]
+            "enum": [
+              "Block","BeltConveyor","Chest",
+              "ElectricMachine","ElectricPole","ElectricGenerator","ElectricMiner",
+
+              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor",
+            "ItemShooter"]
           },
 
           "itemId": {
@@ -43,20 +48,60 @@
                 "if": {
                   "properties": {
                     "blockType": {
-                      "const": "GearBeltConveyor"
+                      "const": "BeltConveyor"
                     }
                   }
                 },
-
                 "then": {
-
                   "type": "object",
                   "required": ["slot", "time", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
                     "slot": {"type": "integer"},
                     "time": {"type": "number"},
+                    "inventoryConnectors": {
+                      "$ref": "inputConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "ElectricMachine"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["slot", "time", "inventoryConnectors", "gearConnects"],
 
+                  "properties": {
+                    "inputSlot": {"type": "integer"},
+                    "outputSlot": {"type": "integer"},
+                    "requiredPower": {"type": "number"},
+                    "inventoryConnectors": {
+                      "$ref": "inputConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "GearBeltConveyor"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["slot", "time", "inventoryConnectors", "gearConnects"],
+
+                  "properties": {
+                    "slot": {"type": "integer"},
+                    "time": {"type": "number"},
                     "inventoryConnectors": {
                       "$ref": "inputConnects"
                     },
