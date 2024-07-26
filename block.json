@@ -213,6 +213,96 @@
                 "if": {
                   "properties": {
                     "blockType": {
+                      "const": "Gear"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["teethCount", "requireTorque", "gearConnects"],
+
+                  "properties": {
+                    "teethCount": {"type": "integer"},
+                    "requireTorque": {"type": "number"},
+                    "gearConnects": {
+                      "$ref": "gearConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "Shaft"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["requireTorque", "gearConnects"],
+
+                  "properties": {
+                    "requireTorque": {"type": "number"},
+                    "gearConnects": {
+                      "$ref": "gearConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "GearMachine"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["inputSlot", "outputSlot", "teethCount","requireTorque","requiredRpm", "inventoryConnectors", "gearConnects"],
+
+                  "properties": {
+                    "inputSlot": {"type": "integer"},
+                    "outputSlot": {"type": "integer"},
+                    "teethCount": {"type": "integer"},
+                    "requireTorque": {"type": "number"},
+                    "requiredRpm": {"type": "number"},
+                    "inventoryConnectors": {
+                      "$ref": "inputConnects"
+                    },
+                    "gearConnects": {
+                      "$ref": "gearConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "SimpleGearGenerator"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["teethCount","generateRpm","generateTorque", "gearConnects"],
+
+                  "properties": {
+                    "teethCount": {"type": "integer"},
+                    "generateRpm": {"type": "number"},
+                    "generateTorque": {"type": "number"},
+                    "gearConnects": {
+                      "$ref": "gearConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
                       "const": "GearBeltConveyor"
                     }
                   }
@@ -229,6 +319,29 @@
                     },
                     "gearConnects": {
                       "$ref": "gearConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "ItemShooter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["inventoryItemNum", "initialShootSpeed", "itemShootSpeed", "acceleration", "inventoryConnectors"],
+
+                  "properties": {
+                    "inventoryItemNum": {"type": "integer"},
+                    "initialShootSpeed": {"type": "number"},
+                    "itemShootSpeed": {"type": "number"},
+                    "acceleration": {"type": "number"},
+                    "inventoryConnectors": {
+                      "$ref": "inputConnects"
                     }
                   }
                 }
