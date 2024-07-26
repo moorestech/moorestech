@@ -17,9 +17,10 @@ public record ObjectSchema(Dictionary<string, ISchema> Properties, string[] Requ
     public string[] Required = Required;
 }
 
-public record ArraySchema(ISchema Items) : ISchema
+public record ArraySchema(ISchema Items, JsonString? Pattern) : ISchema
 {
     public ISchema Items = Items;
+    public JsonString? Pattern = Pattern;
 }
 
 public record OneOfSchema(IfThenSchema[] IfThenArray) : ISchema
@@ -33,7 +34,10 @@ public record IfThenSchema(JsonObject If, ISchema Then)
     public ISchema Then = Then;
 }
 
-public record StringSchema : ISchema;
+public record StringSchema(JsonString? Format) : ISchema
+{
+    public JsonString? Format = Format;
+}
 
 public record NumberSchema : ISchema;
 

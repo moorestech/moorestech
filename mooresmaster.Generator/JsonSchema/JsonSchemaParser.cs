@@ -22,7 +22,7 @@ public static class JsonSchemaParser
         {
             "object" => ParseObject(root),
             "array" => ParseArray(root),
-            "string" => ParseString(),
+            "string" => ParseString(root),
             "number" => ParseNumber(),
             "integer" => ParseInteger(),
             "boolean" => ParseBoolean(),
@@ -47,7 +47,8 @@ public static class JsonSchemaParser
     private static ArraySchema ParseArray(JsonObject json)
     {
         var items = Parse((json["items"] as JsonObject)!);
-        return new ArraySchema(items);
+        var pattern = json["pattern"] as JsonString;
+        return new ArraySchema(items, pattern);
     }
     
     private static OneOfSchema ParseOneOf(JsonArray json)
@@ -71,9 +72,10 @@ public static class JsonSchemaParser
         return new RefSchema(json.Literal);
     }
     
-    private static StringSchema ParseString()
+    private static StringSchema ParseString(JsonObject json)
     {
-        return new StringSchema();
+        var format = json["format"] as JsonString;
+        return new StringSchema(format);
     }
     
     private static NumberSchema ParseNumber()
