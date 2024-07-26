@@ -11,7 +11,7 @@ public static class DefinitionGenerator
     {
         var definitions = new Definition();
         
-        foreach (var interfaceSemantics in semantics.InterfaceSemantics.Values) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(interfaceSemantics.Name));
+        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable.Values) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(interfaceSemantics.Name));
         var inheritTable = new Dictionary<string, List<string>>();
         foreach (var inherit in semantics.InheritList)
         {
@@ -24,7 +24,7 @@ public static class DefinitionGenerator
             interfaceList.Add(inherit.interfaceName);
         }
         
-        foreach (var typeSemantics in semantics.TypeSemantics.Values)
+        foreach (var typeSemantics in semantics.TypeSemanticsTable.Values)
         {
             var isInherited = inheritTable.TryGetValue(typeSemantics.Name, out var interfaceList);
             var typeName = typeSemantics.Name;

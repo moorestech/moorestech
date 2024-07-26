@@ -10,7 +10,11 @@ public record Type
     {
         return schema switch
         {
-            ArraySchema arraySchema => new ArrayType(GetType(semantics, arraySchema.Items)),
+            ArraySchema arraySchema => arraySchema.Pattern?.Literal switch
+            {
+                "@vector2" => new Vector2Type(),
+                _ => new ArrayType(GetType(semantics, arraySchema.Items))
+            },
             BooleanSchema => new BooleanType(),
             IntegerSchema => new IntType(),
             NumberSchema => new FloatType(),
@@ -37,6 +41,8 @@ public record ArrayType(Type InnerType) : BuiltinType
 {
     public Type InnerType = InnerType;
 }
+
+public record Vector2Type : BuiltinType;
 
 public record DictionaryType(Type KeyType, Type ValueType) : BuiltinType
 {

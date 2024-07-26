@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator.Semantic;
@@ -15,77 +13,43 @@ public static class SemanticsGenerator
         foreach (var schema in schemaArray)
         {
             // ファイルに分けられているルートの要素はclassになる
-            semantics.TypeSemantics[schema.Id] = new TypeSemantics(schema.Id, schema.InnerSchema);
+            var typeSemantics = new TypeSemantics(schema.InnerSchema);
+            var typeId = semantics.AddTypeSemantics(typeSemantics);
+            semantics.AddRootSemantics(new RootSemantics(schema, typeId));
             
-            Generate(schema.Id, schema.InnerSchema).AddTo(semantics);
+            Generate(schema.InnerSchema);
         }
         
         return semantics;
     }
     
-    private static Semantics Generate(string name, ISchema schema)
+    private static Semantics Generate(ISchema schema)
     {
         var semantics = new Semantics();
         
         switch (schema)
         {
-            case ObjectSchema objectSchema:
-                semantics.ObjectSchemaToType[objectSchema] = name;
-                semantics.TypeSemantics[name] = new TypeSemantics(name, schema);
-                foreach (var property in objectSchema.Properties) Generate(property.Key, property.Value).AddTo(semantics);
-                break;
             case ArraySchema arraySchema:
-                Generate($"{name}Element", arraySchema.Items).AddTo(semantics);
+                Generate(arraySchema.Items).AddTo(semantics);
+                break;
+            case ObjectSchema objectSchema:
+                semantics.AddTypeSemantics(new TypeSemantics(objectSchema));
+                foreach (var property in objectSchema.Properties) Generate(property.Value).AddTo(semantics);
                 break;
             case OneOfSchema oneOfSchema:
-                // InterfaceSemanticsを生成
-                var interfaceName = $"I{name}";
-                var interfaceSemantics = new InterfaceSemantics(interfaceName, oneOfSchema);
-                semantics.OneOfToInterface[oneOfSchema] = interfaceName;
-                semantics.InterfaceSemantics[interfaceName] = interfaceSemantics;
-                // 全ての可能性の型を生成
-                for (var i = 0; i < oneOfSchema.IfThenArray.Length; i++)
-                {
-                    var ifThen = oneOfSchema.IfThenArray[i];
-                    var typeName = GetInheritedTypeName(ifThen.If) ?? $"{interfaceSemantics}{i}";
-                    
-                    semantics.InheritList.Add((interfaceName, typeName));
-                    Generate(typeName, ifThen.Then).AddTo(semantics);
-                }
-                
+                semantics.AddInterfaceSemantics(new InterfaceSemantics(oneOfSchema));
+                foreach (var ifThen in oneOfSchema.IfThenArray) Generate(ifThen.Then).AddTo(semantics);
                 break;
-            case RefSchema:
-            case IntegerSchema:
-            case NumberSchema:
-            case BooleanSchema:
-            case StringSchema:
-                // ignore
+            case RefSchema refSchema:
+            case BooleanSchema booleanSchema:
+            case IntegerSchema integerSchema:
+            case NumberSchema numberSchema:
+            case StringSchema stringSchema:
                 break;
             default:
-                throw new NotImplementedException($"not implemented: {name} {schema.GetType()}");
+                throw new ArgumentOutOfRangeException(nameof(schema));
         }
         
         return semantics;
-    }
-    
-    private static string? GetInheritedTypeName(IJsonNode? json)
-    {
-        if (json is null) return null;
-        
-        switch (json)
-        {
-            case JsonObject jsonObject:
-                foreach (var name in jsonObject.Nodes.Select(node => GetInheritedTypeName(node.Value)).OfType<string>()) return name;
-                break;
-            case JsonArray jsonArray:
-                foreach (var name in jsonArray.Nodes.Select(GetInheritedTypeName).OfType<string>()) return name;
-                break;
-            case JsonString jsonString:
-                return jsonString.Literal;
-            case JsonBoolean:
-                return null;
-        }
-        
-        return null;
     }
 }
