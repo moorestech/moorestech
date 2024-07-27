@@ -33,7 +33,7 @@
           "itemId": {
             "type": "string",
             "format": "uuid",
-            "foreignKey": "item:itemId:name"
+            "foreignKey": "items:itemId:name"
           },
           "size": {
             "type": "array",
@@ -151,7 +151,7 @@
                           "itemId": {
                             "type": "string",
                             "format": "uuid",
-                            "foreignKey": "item:itemId:name"
+                            "foreignKey": "items:itemId:name"
                           },
 
                           "time": {
@@ -194,7 +194,7 @@
                           "itemId": {
                             "type": "string",
                             "format": "uuid",
-                            "foreignKey": "item:itemId:name"
+                            "foreignKey": "items:itemId:name"
                           },
 
                           "time": {
