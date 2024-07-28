@@ -14,6 +14,10 @@ public record Type
             ArraySchema arraySchema => arraySchema.Pattern?.Literal switch
             {
                 "@vector2" => new Vector2Type(),
+                "@vector3" => new Vector3Type(),
+                "@vector4" => new Vector4Type(),
+                "@vector2Int" => new Vector2IntType(),
+                "@vector3Int" => new Vector3IntType(),
                 _ => new ArrayType(GetType(
                     nameTable,
                     semantics.SchemaTypeSemanticsTable.ContainsKey(schemaTable.Table[arraySchema.Items])
@@ -27,7 +31,11 @@ public record Type
             BooleanSchema => new BooleanType(),
             IntegerSchema => new IntType(),
             NumberSchema => new FloatType(),
-            StringSchema => new StringType(),
+            StringSchema stringSchema => stringSchema.Format?.Literal switch
+            {
+                "uuid" => new UUIDType(),
+                _ => new StringType()
+            },
             ObjectSchema => new CustomType(nameTable.Names[typeId!.Value].GetName()),
             OneOfSchema => new CustomType(nameTable.Names[typeId!.Value].GetName()),
             RefSchema refSchema => new CustomType(refSchema.Ref),
@@ -52,6 +60,16 @@ public record ArrayType(Type InnerType) : BuiltinType
 }
 
 public record Vector2Type : BuiltinType;
+
+public record Vector3Type : BuiltinType;
+
+public record Vector2IntType : BuiltinType;
+
+public record Vector3IntType : BuiltinType;
+
+public record Vector4Type : BuiltinType;
+
+public record UUIDType : BuiltinType;
 
 public record DictionaryType(Type KeyType, Type ValueType) : BuiltinType
 {

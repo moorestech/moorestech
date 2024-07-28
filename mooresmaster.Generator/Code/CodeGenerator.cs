@@ -49,6 +49,11 @@ public static class CodeGenerator
             IntType => "int",
             StringType => "string",
             Vector2Type => "global::UnityEngine.Vector2",
+            Vector3Type => "global::UnityEngine.Vector3",
+            Vector4Type => "global::UnityEngine.Vector4",
+            Vector2IntType => "global::UnityEngine.Vector2Int",
+            Vector3IntType => "global::UnityEngine.Vector3Int",
+            UUIDType => "global::System.Guid",
             CustomType customType => customType.Name,
             _ => throw new ArgumentOutOfRangeException(type.GetType().Name)
         };
