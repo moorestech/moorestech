@@ -20,6 +20,7 @@ namespace Client.Game.InGame.Tutorial
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
         private IPlayerObjectController _playerObjectController;
         
+        private MapObjectPinTutorialParam _currentTutorialParam;
         private IDisposable _mapObjectOnDestroy;
         
         [Inject]
@@ -39,28 +40,31 @@ namespace Client.Game.InGame.Tutorial
         
         public ITutorialView ApplyTutorial(ITutorialParam param)
         {
-            var mapObjectParam = (MapObjectPinTutorialParam)param;
+            _currentTutorialParam = (MapObjectPinTutorialParam)param;
             
             _mapObjectOnDestroy?.Dispose();
             
             // 近くのMapObjectを探してピンを表示
-            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(mapObjectParam.MapObjectType);
+            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(_currentTutorialParam.MapObjectType);
             var playerPos = _playerObjectController.Position;
             var sortedMapObjects = mapObjects.OrderBy(x => (playerPos - x.GetPosition()).sqrMagnitude).ToList();
             if (sortedMapObjects.Count == 0)
             {
-                Debug.LogWarning($"未破壊のMapObject {mapObjectParam.MapObjectType} が存在しません");
+                Debug.LogWarning($"未破壊のMapObject {_currentTutorialParam.MapObjectType} が存在しません");
                 return null;
             }
             
             var nearMapObject = sortedMapObjects.First();
             transform.position = nearMapObject.GetPosition();
             
-            // そのMapObjectが破壊されたらピンを非表示にする
-            _mapObjectOnDestroy = nearMapObject.OnDestroyMapObject.Subscribe(_ => SetActive(false)).AddTo(this);
+            // そのMapObjectが破壊されたら別のmapObjectを探す
+            _mapObjectOnDestroy = nearMapObject.OnDestroyMapObject.Subscribe(_ =>
+            {
+                ApplyTutorial(_currentTutorialParam);
+            }).AddTo(this);
             
             // ピンのテキストを設定
-            pinText.text = mapObjectParam.PinText;
+            pinText.text = _currentTutorialParam.PinText;
             
             SetActive(true);
             
@@ -70,6 +74,7 @@ namespace Client.Game.InGame.Tutorial
         public void CompleteTutorial()
         {
             SetActive(false);
+            _currentTutorialParam = null;
         }
         
         public void SetActive(bool active)
