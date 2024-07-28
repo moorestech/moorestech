@@ -25,9 +25,9 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["itemModId", "itemName", "minCount", "maxCount"],
+              "required": ["itemId", "itemName", "minCount", "maxCount"],
               "properties": {
-                "itemModId": {
+                "itemId": {
                   "type": "string",
                   "format": "uuid",
                   "foreignKey": "items:itemId:name"
