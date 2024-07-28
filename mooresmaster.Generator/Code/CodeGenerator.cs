@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using mooresmaster.Generator.Definitions;
+using mooresmaster.Generator.NameResolve;
 using Type = mooresmaster.Generator.Definitions.Type;
 
 namespace mooresmaster.Generator.Code;
@@ -71,7 +72,7 @@ public static class CodeGenerator
 
     private static string GenerateInheritCode(TypeDefinition type)
     {
-        return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList)}" : "";
+        return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList.Select(t => t.GetName()))}" : "";
     }
 
     private static string Indent(this string code, bool firstLine = false, int level = 1)
