@@ -26,12 +26,15 @@ public static class DefinitionGenerator
             interfaceList.Add(inherit.interfaceId);
         }
         
-        foreach (var typeSemantics in semantics.TypeSemanticsTable)
+        foreach (var kvp in semantics.TypeSemanticsTable)
         {
-            var isInherited = inheritTable.TryGetValue(typeSemantics.Key, out var interfaceList);
-            var typeName = nameTable.Names[typeSemantics.Key];
+            var id = kvp.Key;
+            var typeSemantics = kvp.Value!;
+            
+            var isInherited = inheritTable.TryGetValue(id, out var interfaceList);
+            var typeName = nameTable.Names[id];
             var inheritList = isInherited ? interfaceList!.Select(i => nameTable.Names[i]).ToArray() : [];
-            var propertyTable = GetProperties(nameTable, typeSemantics.Key, typeSemantics.Value.Schema);
+            var propertyTable = GetProperties(nameTable, id, typeSemantics);
             
             definitions.TypeDefinitions.Add(new TypeDefinition(typeName, inheritList, propertyTable));
         }
@@ -39,11 +42,11 @@ public static class DefinitionGenerator
         return definitions;
     }
     
-    private static Dictionary<string, Type> GetProperties(NameTable nameTable, Guid id, ISchema schema)
+    private static Dictionary<string, Type> GetProperties(NameTable nameTable, Guid id, TypeSemantics typeSemantics)
     {
         var propertyTable = new Dictionary<string, Type>();
         
-        switch (schema)
+        switch (typeSemantics.Schema)
         {
             case ArraySchema arraySchema:
                 propertyTable["items"] = new ArrayType(Type.GetType(nameTable, id, arraySchema.Items));
@@ -61,16 +64,16 @@ public static class DefinitionGenerator
                 propertyTable["value"] = new StringType();
                 break;
             case ObjectSchema objectSchema:
-                foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(nameTable, nameTable.Ids[kvp.Key], kvp.Value);
+                foreach (var (name, propertyTypeId) in typeSemantics.Properties) propertyTable[name] = Type.GetType(nameTable, propertyTypeId, objectSchema.Properties[name]);
                 break;
             case OneOfSchema:
-                propertyTable["value"] = new CustomType(nameTable.Names[id]);
+                propertyTable["value"] = new CustomType(nameTable.Names[id].GetName());
                 break;
             case RefSchema refSchema:
                 propertyTable["value"] = new CustomType(refSchema.Ref);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(schema));
+                throw new ArgumentOutOfRangeException(nameof(typeSemantics.Schema));
         }
         
         return propertyTable;

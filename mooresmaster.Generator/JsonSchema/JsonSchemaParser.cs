@@ -23,16 +23,16 @@ public static class JsonSchemaParser
             "object" => ParseObject(root),
             "array" => ParseArray(root),
             "string" => ParseString(root),
-            "number" => ParseNumber(),
-            "integer" => ParseInteger(),
-            "boolean" => ParseBoolean(),
+            "number" => ParseNumber(root),
+            "integer" => ParseInteger(root),
+            "boolean" => ParseBoolean(root),
             _ => throw new Exception($"Unknown type: {type}")
         };
     }
     
     private static ObjectSchema ParseObject(JsonObject json)
     {
-        if (!json.Nodes.ContainsKey("properties")) return new ObjectSchema(new Dictionary<string, ISchema>(), []);
+        if (!json.Nodes.ContainsKey("properties")) return new ObjectSchema(json.PropertyName, new Dictionary<string, ISchema>(), []);
         
         var propertiesJson = (json["properties"] as JsonObject)!;
         var requiredJson = json["required"] as JsonArray;
@@ -41,14 +41,14 @@ public static class JsonSchemaParser
             .Select(kvp => (kvp.Key, Parse((kvp.Value as JsonObject)!)))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Item2);
         
-        return new ObjectSchema(properties, required);
+        return new ObjectSchema(json.PropertyName, properties, required);
     }
     
     private static ArraySchema ParseArray(JsonObject json)
     {
         var items = Parse((json["items"] as JsonObject)!);
         var pattern = json["pattern"] as JsonString;
-        return new ArraySchema(items, pattern);
+        return new ArraySchema(json.PropertyName, items, pattern);
     }
     
     private static OneOfSchema ParseOneOf(JsonArray json)
@@ -64,32 +64,32 @@ public static class JsonSchemaParser
             ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson)));
         }
         
-        return new OneOfSchema(ifThenList.ToArray());
+        return new OneOfSchema(json.PropertyName, ifThenList.ToArray());
     }
     
     private static RefSchema ParseRef(JsonString json)
     {
-        return new RefSchema(json.Literal);
+        return new RefSchema(json.PropertyName, json.Literal);
     }
     
     private static StringSchema ParseString(JsonObject json)
     {
         var format = json["format"] as JsonString;
-        return new StringSchema(format);
+        return new StringSchema(json.PropertyName, format);
     }
     
-    private static NumberSchema ParseNumber()
+    private static NumberSchema ParseNumber(JsonObject json)
     {
-        return new NumberSchema();
+        return new NumberSchema(json.PropertyName);
     }
     
-    private static IntegerSchema ParseInteger()
+    private static IntegerSchema ParseInteger(JsonObject json)
     {
-        return new IntegerSchema();
+        return new IntegerSchema(json.PropertyName);
     }
     
-    private static BooleanSchema ParseBoolean()
+    private static BooleanSchema ParseBoolean(JsonObject json)
     {
-        return new BooleanSchema();
+        return new BooleanSchema(json.PropertyName);
     }
 }

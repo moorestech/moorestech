@@ -10,38 +10,38 @@ public class Semantics
     public readonly Dictionary<Guid, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<Guid, RootSemantics> RootSemanticsTable = new();
     public readonly Dictionary<Guid, TypeSemantics> TypeSemanticsTable = new();
-
+    
     public Guid AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
         var id = Guid.NewGuid();
         InterfaceSemanticsTable.Add(id, interfaceSemantics);
         return id;
     }
-
+    
     public Guid AddTypeSemantics(TypeSemantics typeSemantics)
     {
         var id = Guid.NewGuid();
         TypeSemanticsTable.Add(id, typeSemantics);
         return id;
     }
-
+    
     public Guid AddRootSemantics(RootSemantics rootSemantics)
     {
         var id = Guid.NewGuid();
         RootSemanticsTable.Add(id, rootSemantics);
         return id;
     }
-
+    
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.InheritList) InheritList.Add(inherit);
         foreach (var interfaceSemantics in other.InterfaceSemanticsTable) InterfaceSemanticsTable.Add(interfaceSemantics.Key, interfaceSemantics.Value);
         foreach (var rootSemantics in other.RootSemanticsTable) RootSemanticsTable.Add(rootSemantics.Key, rootSemantics.Value);
         foreach (var typeSemantics in other.TypeSemanticsTable) TypeSemanticsTable.Add(typeSemantics.Key, typeSemantics.Value);
-
+        
         return this;
     }
-
+    
     public Semantics AddTo(Semantics other)
     {
         return other.Merge(this);
@@ -54,12 +54,23 @@ public record RootSemantics(Schema Root, Guid TypeId)
     public Guid TypeId = TypeId;
 }
 
-public record TypeSemantics(ISchema Schema)
+/// <summary>
+/// </summary>
+/// <param name="ParentType">
+///     親のTypeId
+///     存在しない場合は親がrootということ
+///     親要素がinterfaceになることはない
+/// </param>
+/// <param name="Schema"></param>
+public record TypeSemantics(Guid? ParentType, (string PropertyName, Guid? PropertyType)[] Properties, ISchema Schema)
 {
+    public Guid? ParentType = ParentType;
+    public (string PropertyName, Guid? PropertyType)[] Properties = Properties;
     public ISchema Schema = Schema;
 }
 
-public record InterfaceSemantics(OneOfSchema Schema)
+public record InterfaceSemantics(Guid ParentType, OneOfSchema Schema)
 {
+    public Guid ParentType = ParentType;
     public OneOfSchema Schema = Schema;
 }

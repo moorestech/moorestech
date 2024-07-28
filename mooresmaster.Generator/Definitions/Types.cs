@@ -19,8 +19,8 @@ public record Type
             IntegerSchema => new IntType(),
             NumberSchema => new FloatType(),
             StringSchema => new StringType(),
-            ObjectSchema => new CustomType(nameTable.Names[id!.Value]),
-            OneOfSchema => new CustomType(nameTable.Names[id!.Value]),
+            ObjectSchema => new CustomType(nameTable.Names[id!.Value].GetName()),
+            OneOfSchema => new CustomType(nameTable.Names[id!.Value].GetName()),
             RefSchema refSchema => new CustomType(refSchema.Ref),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };

@@ -10,24 +10,24 @@ public static class CodeGenerator
     public static string Generate(Definition definition)
     {
         return $$$"""
-                  namespace mooresmaster.Generator
-                  {
-                      {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode)).Indent()}}}
-                      {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode)).Indent()}}}
-                  }
+                    {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode)).Indent()}}}
+                    {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode)).Indent()}}}
                   """;
     }
-    
+
     private static string GenerateTypeDefinitionCode(TypeDefinition typeDef)
     {
         return $$$"""
-                  public class {{{typeDef.Name}}} {{{GenerateInheritCode(typeDef)}}}
+                  namespace {{{typeDef.TypeName.NameSpace}}}
                   {
-                      {{{GeneratePropertiesCode(typeDef).Indent()}}}
+                      public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}}
+                      {
+                          {{{GeneratePropertiesCode(typeDef).Indent()}}}
+                      }
                   }
                   """;
     }
-    
+
     private static string GeneratePropertiesCode(TypeDefinition typeDef)
     {
         return string.Join(
@@ -37,7 +37,7 @@ public static class CodeGenerator
                 .Select(kvp => $"public {GenerateTypeCode(kvp.Value)} {kvp.Key};")
         );
     }
-    
+
     private static string GenerateTypeCode(Type type)
     {
         return type switch
@@ -52,17 +52,22 @@ public static class CodeGenerator
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
-    
+
     private static string GenerateInterfaceCode(InterfaceDefinition interfaceDef)
     {
-        return $$$"""public interface {{{interfaceDef.Name}}} { }""";
+        return $$$"""
+                  namespace {{{interfaceDef.TypeName.NameSpace}}}
+                  {
+                      public interface {{{interfaceDef.TypeName.Name}}} { }
+                  }
+                  """;
     }
-    
+
     private static string GenerateInheritCode(TypeDefinition type)
     {
         return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList)}" : "";
     }
-    
+
     private static string Indent(this string code, bool firstLine = false, int level = 1)
     {
         var indent = new string(' ', 4 * level);

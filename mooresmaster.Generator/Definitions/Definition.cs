@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using mooresmaster.Generator.NameResolve;
 
 namespace mooresmaster.Generator.Definitions;
 
@@ -8,14 +9,14 @@ public record Definition
     public readonly List<TypeDefinition> TypeDefinitions = new();
 }
 
-public record InterfaceDefinition(string Name)
+public record InterfaceDefinition(TypeName TypeName)
 {
-    public string Name = Name;
+    public TypeName TypeName = TypeName;
 }
 
-public record TypeDefinition(string Name, string[] InheritList, Dictionary<string, Type> PropertyTable)
+public record TypeDefinition(TypeName TypeName, TypeName[] InheritList, Dictionary<string, Type> PropertyTable)
 {
-    public string[] InheritList = InheritList;
+    public TypeName[] InheritList = InheritList;
     public Dictionary<string, Type> PropertyTable = PropertyTable;
-    public string Name { get; } = Name;
+    public TypeName TypeName { get; } = TypeName;
 }

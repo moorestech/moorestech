@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using mooresmaster.Generator.JsonSchema;
 
@@ -13,32 +14,30 @@ public static class SemanticsGenerator
         foreach (var schema in schemaArray)
         {
             // ファイルに分けられているルートの要素はclassになる
-            var typeSemantics = new TypeSemantics(schema.InnerSchema);
+            var typeSemantics = new TypeSemantics(null, [], schema.InnerSchema);
             var typeId = semantics.AddTypeSemantics(typeSemantics);
             semantics.AddRootSemantics(new RootSemantics(schema, typeId));
             
-            Generate(schema.InnerSchema);
+            Generate(typeId, schema.InnerSchema).AddTo(semantics);
         }
         
         return semantics;
     }
     
-    private static Semantics Generate(ISchema schema)
+    private static Semantics Generate(Guid parentTypeId, ISchema schema)
     {
         var semantics = new Semantics();
         
         switch (schema)
         {
             case ArraySchema arraySchema:
-                Generate(arraySchema.Items).AddTo(semantics);
+                Generate(parentTypeId, arraySchema.Items).AddTo(semantics);
                 break;
             case ObjectSchema objectSchema:
-                semantics.AddTypeSemantics(new TypeSemantics(objectSchema));
-                foreach (var property in objectSchema.Properties) Generate(property.Value).AddTo(semantics);
                 break;
             case OneOfSchema oneOfSchema:
-                semantics.AddInterfaceSemantics(new InterfaceSemantics(oneOfSchema));
-                foreach (var ifThen in oneOfSchema.IfThenArray) Generate(ifThen.Then).AddTo(semantics);
+                semantics.AddInterfaceSemantics(new InterfaceSemantics(parentTypeId, oneOfSchema));
+                foreach (var ifThen in oneOfSchema.IfThenArray) Generate(parentTypeId, ifThen.Then).AddTo(semantics);
                 break;
             case RefSchema refSchema:
             case BooleanSchema booleanSchema:
@@ -51,5 +50,28 @@ public static class SemanticsGenerator
         }
         
         return semantics;
+    }
+    
+    private static (Semantics, Guid) Generate(Guid parentTypeId, ObjectSchema objectSchema)
+    {
+        var semantics = new Semantics();
+        var typeId = Guid.NewGuid();
+        var properties = new List<(string PropertyName, Guid? PropertyType)>();
+        foreach (var property in objectSchema.Properties)
+            if (property.Value is ObjectSchema innerObjectSchema)
+            {
+                var (innerSemantics, innerTypeId) = Generate(typeId, innerObjectSchema);
+                innerSemantics.AddTo(semantics);
+                properties.Add((property.Key, innerTypeId));
+            }
+            else
+            {
+                Generate(typeId, property.Value);
+                properties.Add((property.Key, null));
+            }
+        
+        semantics.TypeSemanticsTable[typeId] = new TypeSemantics(parentTypeId, properties.ToArray(), objectSchema);
+        
+        return (semantics, typeId);
     }
 }
