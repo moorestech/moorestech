@@ -22,7 +22,7 @@ public static class CodeGenerator
                   {
                       public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}}
                       {
-                          {{{GeneratePropertiesCode(typeDef).Indent()}}}
+                          {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
                       }
                   }
                   """;

@@ -58,6 +58,7 @@ public static class NameResolver
         }
 
         var nameSpaces = new Dictionary<Guid, string>();
+        var schemaToRoot = semantics.RootSemanticsTable.ToDictionary(r => semantics.TypeSemanticsTable[r.Value.TypeId].Schema, r => r.Value);
 
         foreach (var typeId in names.Keys)
         {
@@ -67,7 +68,14 @@ public static class NameResolver
                 ? semantics.TypeSemanticsTable[typeId].Schema.Parent
                 : semantics.InterfaceSemanticsTable[typeId].Schema.Parent;
 
-            while (schema is not null && schemaTable.Table[schema.Value].PropertyName is not null)
+            while (schema is not null)
+            {
+                if (schemaTable.Table[schema.Value].Parent is null)
+                {
+                    parentNames.Add(schemaToRoot[schemaTable.Table[schema.Value]].Root.SchemaId);
+                    break;
+                }
+                
                 switch (schemaTable.Table[schema.Value])
                 {
                     case ArraySchema arraySchema:
@@ -87,8 +95,11 @@ public static class NameResolver
                     default:
                         throw new ArgumentOutOfRangeException(nameof(schema));
                 }
+            }
+            
+            
 
-            nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}"))}";
+            nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}Module"))}";
         }
 
         return new NameTable(names
@@ -112,7 +123,24 @@ public static class NameResolver
         while (jsonObjectStack.Count > 0)
         {
             var jsonObject = jsonObjectStack.Pop();
+
+            foreach (var node in jsonObject.Nodes.Values)
+                switch (node)
+                {
+                    case JsonObject o:
+                        jsonObjectStack.Push(o);
+                        break;
+                    case JsonString jsonString:
+                        return jsonString.Literal;
+                    case JsonArray jsonArray:
+                    case JsonBoolean jsonBoolean:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(node));
+                }
         }
+
+        throw new Exception();
     }
 
     public static string GetName(this TypeName typeName)
