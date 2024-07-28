@@ -122,7 +122,8 @@
                         "type": "object",
                         "properties": {
                           "uiState": {
-                            "type": "string"
+                            "type": "string",
+                            "enum" : ["GameScreen","PlayerInventory", "BlockInventory", "PauseMenu","DeleteBar","Story","PlaceBlock"]
                           },
                           "controlText": {
                             "type": "string"
