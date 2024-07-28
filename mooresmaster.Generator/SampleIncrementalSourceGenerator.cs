@@ -22,10 +22,10 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
     
     private void Emit(SourceProductionContext context, ImmutableArray<AdditionalText> additionalTexts)
     {
-        var schemas = ParseAdditionalText(additionalTexts);
-        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray());
-        var nameTable = NameResolver.Resolve(semantics);
-        var definitions = DefinitionGenerator.Generate(semantics, nameTable);
+        var (schemas, schemaTable) = ParseAdditionalText(additionalTexts);
+        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
+        var nameTable = NameResolver.Resolve(semantics, schemaTable);
+        var definitions = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
         
         Console.WriteLine("Semantics: ");
         foreach (var typeSemantic in semantics.TypeSemanticsTable) Console.WriteLine($"    Type: {nameTable.Names[typeSemantic.Key]} {typeSemantic.Value.Schema.GetType().Name}");
@@ -49,18 +49,19 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         context.AddSource("mooresmaster.g.cs", CodeGenerator.Generate(definitions));
     }
     
-    private ImmutableArray<SchemaFile> ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
+    private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
     {
         var schemas = new List<SchemaFile>();
+        var schemaTable = new SchemaTable();
         
         foreach (var additionalText in additionalTexts)
         {
             var text = additionalText.GetText()!.ToString();
             var json = JsonParser.Parse(JsonTokenizer.GetTokens(text));
-            var schema = JsonSchemaParser.ParseSchema((json as JsonObject)!);
+            var schema = JsonSchemaParser.ParseSchema((json as JsonObject)!, schemaTable);
             schemas.Add(new SchemaFile(additionalText.Path, schema));
         }
         
-        return schemas.ToImmutableArray();
+        return (schemas.ToImmutableArray(), schemaTable);
     }
 }

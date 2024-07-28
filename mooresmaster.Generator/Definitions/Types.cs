@@ -6,14 +6,14 @@ namespace mooresmaster.Generator.Definitions;
 
 public record Type
 {
-    public static Type GetType(NameTable nameTable, Guid? id, ISchema schema)
+    public static Type GetType(NameTable nameTable, Guid? id, ISchema schema, SchemaTable table)
     {
         return schema switch
         {
             ArraySchema arraySchema => arraySchema.Pattern?.Literal switch
             {
                 "@vector2" => new Vector2Type(),
-                _ => new ArrayType(GetType(nameTable, null, arraySchema.Items))
+                _ => new ArrayType(GetType(nameTable, null, table.Table[arraySchema.Items], table))
             },
             BooleanSchema => new BooleanType(),
             IntegerSchema => new IntType(),
