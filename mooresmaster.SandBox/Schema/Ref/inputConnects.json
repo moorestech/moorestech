@@ -1,0 +1,69 @@
+{
+  "$id": "inputConnects",
+
+  "type": "object",
+  "required": ["inputConnects", "outputConnects"],
+
+  "properties": {
+
+    "inputConnects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["offset", "directions"],
+
+        "properties": {
+
+          "offset": {
+            "type": "array",
+            "pattern": "@vector3Int",
+            "items": {
+              "type": "integer"
+            }
+          },
+
+          "directions": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "pattern": "@vector3Int",
+              "items": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "outputConnects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["offset", "directions"],
+
+        "properties": {
+
+          "offset": {
+            "type": "array",
+            "pattern": "@vector3Int",
+            "items": {
+              "type": "integer"
+            }
+          },
+
+          "directions": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "pattern": "@vector3Int",
+              "items": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,13 +13,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="Schema\block.json"/>
-        <None Remove="Schema\gearConnectsSchema.json"/>
-        <AdditionalFiles Include="Schema\gearConnectsSchema.json"/>
-        <None Remove="Schema\inventoryConnectorsSchema.json"/>
-        <AdditionalFiles Include="Schema\inventoryConnectorsSchema.json"/>
-        <None Remove="Schema\item.json"/>
-        <AdditionalFiles Include="Schema\item.json"/>
+        <AdditionalFiles Include="Schema\blocks.json"/>
+        <AdditionalFiles Include="Schema\items.json"/>
+        <AdditionalFiles Include="Schema\challenges.json"/>
+        <AdditionalFiles Include="Schema\craftRecipes.json"/>
+        <AdditionalFiles Include="Schema\machineRecipes.json"/>
+        <AdditionalFiles Include="Schema\mapObjects.json"/>
+        
+        <AdditionalFiles Include="Schema\Ref\gearConnects.json"/>
+        <AdditionalFiles Include="Schema\Ref\inputConnects.json"/>
+        <AdditionalFiles Include="Schema\Ref\modelTransform.json"/>
     </ItemGroup>
 
     <ItemGroup>

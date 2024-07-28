@@ -1,0 +1,68 @@
+{
+  "$id": "mapObjects",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "array",
+      "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
+      "items": {
+        "type": "object",
+        "properties": {
+
+          "mapObjectType": {
+            "type": "string"
+          },
+          "hp": {
+            "type": "integer"
+          },
+          "earnItemHps": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "earnItems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["itemId", "itemName", "minCount", "maxCount"],
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "minCount": {
+                  "type": "integer"
+                },
+                "maxCount": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "miningTools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["toolItemModId", "toolItemName", "damage", "attackSpeed"],
+              "properties": {
+                "toolItemModId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "damage": {
+                  "type": "integer"
+                },
+                "attackSpeed": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

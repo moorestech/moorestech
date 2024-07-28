@@ -1,0 +1,64 @@
+{
+  "$id": "machineRecipes",
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["blockId", "time", "input", "output"],
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "format": "uuid",
+            "foreignKey": "blocks:blockId:name"
+          },
+          "time": {
+            "type": "number"
+          },
+          "input": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["itemId", "count"],
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "output": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["itemId", "count"],
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "percent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
