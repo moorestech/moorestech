@@ -45,12 +45,6 @@
         "toolItemName": "stone ax",
         "damage": 20,
         "attackSpeed": 2
-      },
-      {
-        "toolItemModId": "sakastudio:moorestechAlphaMod",
-        "toolItemName": "iron ax",
-        "damage": 30,
-        "attackSpeed": 1.4
       }
     ]
   }
