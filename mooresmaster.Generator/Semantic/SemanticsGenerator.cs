@@ -46,6 +46,8 @@ public static class SemanticsGenerator
                 innerSemantics.AddTo(semantics);
                 break;
             case OneOfSchema oneOfSchema:
+                var (oneOfInnerSemantics, _) = Generate(oneOfSchema, table);
+                oneOfInnerSemantics.AddTo(semantics);
                 break;
             case RefSchema refSchema:
             case BooleanSchema booleanSchema:
@@ -64,7 +66,13 @@ public static class SemanticsGenerator
     {
         var semantics = new Semantics();
         var interfaceId = semantics.AddInterfaceSemantics(new InterfaceSemantics(oneOfSchema));
-        foreach (var ifThen in oneOfSchema.IfThenArray) Generate(table.Table[ifThen.Then], table).AddTo(semantics);
+        foreach (var ifThen in oneOfSchema.IfThenArray)
+        {
+            Generate(table.Table[ifThen.Then], table).AddTo(semantics);
+
+            var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
+            semantics.InheritList.Add((interfaceId, then));
+        }
         return (semantics, interfaceId);
     }
     
