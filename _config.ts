@@ -3,6 +3,7 @@ import item from './items.json';
 import challenge from './challenges.json';
 import craftRecipes from './craftRecipes.json';
 import mapObjects from './mapObjects.json';
+import machineRecipes from './machineRecipes.json';
 import gearConnects from './ref/gearConnects.json';
 import inputConnects from './ref/inputConnects.json';
 import modelTransform from './ref/modelTransform.json';
@@ -15,6 +16,7 @@ refResolver.addSchema(block)
 refResolver.addSchema(challenge)
 refResolver.addSchema(craftRecipes)
 refResolver.addSchema(mapObjects)
+refResolver.addSchema(machineRecipes)
 
 refResolver.addSchema(gearConnects)
 refResolver.addSchema(inputConnects)
@@ -26,6 +28,7 @@ ajv.addSchema(refResolver.getDerefSchema('items'), '/item')
 ajv.addSchema(refResolver.getDerefSchema('craftRecipes'), '/craftRecipes')
 ajv.addSchema(refResolver.getDerefSchema('challenges'), '/challenge')
 ajv.addSchema(refResolver.getDerefSchema('mapObjects'), '/mapObjects')
+ajv.addSchema(refResolver.getDerefSchema('machineRecipes'), '/machineRecipes')
 
 export default {
   validator: ajv,
@@ -41,6 +44,10 @@ export default {
     craftRecipes: {
       name: 'CraftRecipe',
       schema: refResolver.getDerefSchema('craftRecipes')
+    },
+    machineRecipe: {
+      name: 'MachineRecipe',
+      schema: refResolver.getDerefSchema('machineRecipes')
     },
     challenge: {
       name: 'Challenge',
