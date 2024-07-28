@@ -13,13 +13,17 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Schema\block.json" />
-      <None Remove="Schema\gearConnectsSchema.json" />
-      <AdditionalFiles Include="Schema\gearConnectsSchema.json" />
-      <None Remove="Schema\inventoryConnectorsSchema.json" />
-      <AdditionalFiles Include="Schema\inventoryConnectorsSchema.json" />
-      <None Remove="Schema\item.json" />
-      <AdditionalFiles Include="Schema\item.json" />
+        <AdditionalFiles Include="Schema\block.json"/>
+        <None Remove="Schema\gearConnectsSchema.json"/>
+        <AdditionalFiles Include="Schema\gearConnectsSchema.json"/>
+        <None Remove="Schema\inventoryConnectorsSchema.json"/>
+        <AdditionalFiles Include="Schema\inventoryConnectorsSchema.json"/>
+        <None Remove="Schema\item.json"/>
+        <AdditionalFiles Include="Schema\item.json"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Unity3D.UnityEngine" Version="2018.3.5.1"/>
     </ItemGroup>
 
 </Project>
