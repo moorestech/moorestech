@@ -1,59 +1,64 @@
 {
   "$id": "mapObjects",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
-    "properties": {
-      "type": {
-        "type": "string"
-      },
-      "hp": {
-        "type": "integer"
-      },
-      "earnItemHps": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0
-        }
-      },
-      "earnItems": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["itemModId", "itemName", "minCount", "maxCount"],
-          "properties": {
-            "itemModId": {
-              "type": "string",
-              "format": "uuid",
-              "foreignKey": "items:itemId:name"
-            },
-            "minCount": {
-              "type": "integer"
-            },
-            "maxCount": {
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "array",
+      "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
+      "items": {
+        "type": "object",
+        "properties": {
+
+          "mapObjectType": {
+            "type": "string"
+          },
+          "hp": {
+            "type": "integer"
+          },
+          "earnItemHps": {
+            "type": "array",
+            "items": {
               "type": "integer"
             }
-          }
-        }
-      },
-      "miningTools": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["toolItemModId", "toolItemName", "damage", "attackSpeed"],
-          "properties": {
-            "toolItemModId": {
-              "type": "string",
-              "format": "uuid",
-              "foreignKey": "items:itemId:name"
-            },
-            "damage": {
-              "type": "integer"
-            },
-            "attackSpeed": {
-              "type": "number"
+          },
+          "earnItems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["itemModId", "itemName", "minCount", "maxCount"],
+              "properties": {
+                "itemModId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "minCount": {
+                  "type": "integer"
+                },
+                "maxCount": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "miningTools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["toolItemModId", "toolItemName", "damage", "attackSpeed"],
+              "properties": {
+                "toolItemModId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "damage": {
+                  "type": "integer"
+                },
+                "attackSpeed": {
+                  "type": "number"
+                }
+              }
             }
           }
         }
