@@ -10,8 +10,8 @@ public static class CodeGenerator
     public static string Generate(Definition definition)
     {
         return $$$"""
-                    {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode)).Indent()}}}
-                    {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode)).Indent()}}}
+                  {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode))}}}
+                  {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode))}}}
                   """;
     }
 
