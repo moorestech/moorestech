@@ -1,26 +1,26 @@
 using System;
 using mooresmaster.Generator.JsonSchema;
-using mooresmaster.Generator.Semantic;
+using mooresmaster.Generator.NameResolve;
 
 namespace mooresmaster.Generator.Definitions;
 
 public record Type
 {
-    public static Type GetType(Semantics semantics, ISchema schema)
+    public static Type GetType(NameTable nameTable, Guid? id, ISchema schema)
     {
         return schema switch
         {
             ArraySchema arraySchema => arraySchema.Pattern?.Literal switch
             {
                 "@vector2" => new Vector2Type(),
-                _ => new ArrayType(GetType(semantics, arraySchema.Items))
+                _ => new ArrayType(GetType(nameTable, null, arraySchema.Items))
             },
             BooleanSchema => new BooleanType(),
             IntegerSchema => new IntType(),
             NumberSchema => new FloatType(),
             StringSchema => new StringType(),
-            ObjectSchema objectSchema => new CustomType(semantics.ObjectSchemaToType[objectSchema]),
-            OneOfSchema oneOfSchema => new CustomType(semantics.OneOfToInterface[oneOfSchema]),
+            ObjectSchema => new CustomType(nameTable.Names[id!.Value]),
+            OneOfSchema => new CustomType(nameTable.Names[id!.Value]),
             RefSchema refSchema => new CustomType(refSchema.Ref),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };

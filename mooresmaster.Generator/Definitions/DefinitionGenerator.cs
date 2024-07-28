@@ -1,35 +1,37 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using mooresmaster.Generator.JsonSchema;
+using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 
 namespace mooresmaster.Generator.Definitions;
 
 public static class DefinitionGenerator
 {
-    public static Definition Generate(Semantics semantics)
+    public static Definition Generate(Semantics semantics, NameTable nameTable)
     {
         var definitions = new Definition();
         
-        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable.Values) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(interfaceSemantics.Name));
-        var inheritTable = new Dictionary<string, List<string>>();
+        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(nameTable.Names[interfaceSemantics.Key]));
+        var inheritTable = new Dictionary<Guid, List<Guid>>();
         foreach (var inherit in semantics.InheritList)
         {
-            if (!inheritTable.TryGetValue(inherit.typeName, out var interfaceList))
+            if (!inheritTable.TryGetValue(inherit.typeId, out var interfaceList))
             {
-                inheritTable[inherit.typeName] = [];
-                interfaceList = inheritTable[inherit.typeName];
+                inheritTable[inherit.typeId] = [];
+                interfaceList = inheritTable[inherit.typeId];
             }
             
-            interfaceList.Add(inherit.interfaceName);
+            interfaceList.Add(inherit.interfaceId);
         }
         
-        foreach (var typeSemantics in semantics.TypeSemanticsTable.Values)
+        foreach (var typeSemantics in semantics.TypeSemanticsTable)
         {
-            var isInherited = inheritTable.TryGetValue(typeSemantics.Name, out var interfaceList);
-            var typeName = typeSemantics.Name;
-            var inheritList = isInherited ? interfaceList!.ToArray() : [];
-            var propertyTable = GetProperties(semantics, typeSemantics.Schema);
+            var isInherited = inheritTable.TryGetValue(typeSemantics.Key, out var interfaceList);
+            var typeName = nameTable.Names[typeSemantics.Key];
+            var inheritList = isInherited ? interfaceList!.Select(i => nameTable.Names[i]).ToArray() : [];
+            var propertyTable = GetProperties(nameTable, typeSemantics.Key, typeSemantics.Value.Schema);
             
             definitions.TypeDefinitions.Add(new TypeDefinition(typeName, inheritList, propertyTable));
         }
@@ -37,14 +39,14 @@ public static class DefinitionGenerator
         return definitions;
     }
     
-    private static Dictionary<string, Type> GetProperties(Semantics semantics, ISchema schema)
+    private static Dictionary<string, Type> GetProperties(NameTable nameTable, Guid id, ISchema schema)
     {
         var propertyTable = new Dictionary<string, Type>();
         
         switch (schema)
         {
             case ArraySchema arraySchema:
-                propertyTable["items"] = new ArrayType(Type.GetType(semantics, arraySchema.Items));
+                propertyTable["items"] = new ArrayType(Type.GetType(nameTable, id, arraySchema.Items));
                 break;
             case BooleanSchema:
                 propertyTable["value"] = new BooleanType();
@@ -59,10 +61,10 @@ public static class DefinitionGenerator
                 propertyTable["value"] = new StringType();
                 break;
             case ObjectSchema objectSchema:
-                foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(semantics, kvp.Value);
+                foreach (var kvp in objectSchema.Properties) propertyTable[kvp.Key] = Type.GetType(nameTable, nameTable.Ids[kvp.Key], kvp.Value);
                 break;
-            case OneOfSchema oneOfSchema:
-                propertyTable["value"] = new CustomType(semantics.OneOfToInterface[oneOfSchema]);
+            case OneOfSchema:
+                propertyTable["value"] = new CustomType(nameTable.Names[id]);
                 break;
             case RefSchema refSchema:
                 propertyTable["value"] = new CustomType(refSchema.Ref);

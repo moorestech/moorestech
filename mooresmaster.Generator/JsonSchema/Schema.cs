@@ -5,9 +5,9 @@ namespace mooresmaster.Generator.JsonSchema;
 
 public interface ISchema;
 
-public record Schema(string Id, ISchema InnerSchema)
+public record Schema(string SchemaId, ISchema InnerSchema)
 {
-    public string Id = Id;
+    public string SchemaId = SchemaId;
     public ISchema InnerSchema = InnerSchema;
 }
 

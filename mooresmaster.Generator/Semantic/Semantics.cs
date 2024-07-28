@@ -6,42 +6,42 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public readonly List<(Guid, Guid)> InheritList = new(); // (InterfaceId, TypeId)
+    public readonly List<(Guid interfaceId, Guid typeId)> InheritList = new(); // (InterfaceId, TypeId)
     public readonly Dictionary<Guid, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<Guid, RootSemantics> RootSemanticsTable = new();
     public readonly Dictionary<Guid, TypeSemantics> TypeSemanticsTable = new();
-    
+
     public Guid AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
         var id = Guid.NewGuid();
         InterfaceSemanticsTable.Add(id, interfaceSemantics);
         return id;
     }
-    
+
     public Guid AddTypeSemantics(TypeSemantics typeSemantics)
     {
         var id = Guid.NewGuid();
         TypeSemanticsTable.Add(id, typeSemantics);
         return id;
     }
-    
+
     public Guid AddRootSemantics(RootSemantics rootSemantics)
     {
         var id = Guid.NewGuid();
         RootSemanticsTable.Add(id, rootSemantics);
         return id;
     }
-    
+
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.InheritList) InheritList.Add(inherit);
         foreach (var interfaceSemantics in other.InterfaceSemanticsTable) InterfaceSemanticsTable.Add(interfaceSemantics.Key, interfaceSemantics.Value);
         foreach (var rootSemantics in other.RootSemanticsTable) RootSemanticsTable.Add(rootSemantics.Key, rootSemantics.Value);
         foreach (var typeSemantics in other.TypeSemanticsTable) TypeSemanticsTable.Add(typeSemantics.Key, typeSemantics.Value);
-        
+
         return this;
     }
-    
+
     public Semantics AddTo(Semantics other)
     {
         return other.Merge(this);
