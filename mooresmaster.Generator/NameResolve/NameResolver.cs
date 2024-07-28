@@ -31,11 +31,11 @@ public static class NameResolver
             {
                 ObjectSchema => typeSemantics.Schema.PropertyName!,
                 ArraySchema arraySchema => $"{arraySchema.PropertyName!}Element",
-                OneOfSchema oneOfSchema => oneOfSchema.PropertyName!,
+                OneOfSchema oneOfSchema => typeSemantics.Schema.PropertyName!,
                 _ => null
             };
             
-            if (name is not null) names[id] = typeSemantics.Schema.PropertyName!;
+            if (name is not null) names[id] = name;
         }
         
         // rootのtypeの名前を登録
@@ -47,19 +47,31 @@ public static class NameResolver
             names[typeId] = root.Root.SchemaId;
         }
         
+        // interfaceの名前を登録
+        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        {
+            var id = kvp.Key;
+            var interfaceSemantics = kvp.Value!;
+            
+            names[id] = $"I{interfaceSemantics.Schema.PropertyName!}";
+        }
+        
         var nameSpaces = new Dictionary<Guid, string>();
         
         foreach (var typeId in names.Keys)
         {
             // child → parent
             var parentNames = new List<string>();
+            var schema = semantics.TypeSemanticsTable.ContainsKey(typeId)
+                ? semantics.TypeSemanticsTable[typeId].Schema.Parent
+                : semantics.InterfaceSemanticsTable[typeId].Schema.Parent;
             
-            var schema = semantics.TypeSemanticsTable[typeId].Schema.Parent;
             while (schema is not null)
                 switch (schemaTable.Table[schema.Value])
                 {
                     case ArraySchema arraySchema:
-                        parentNames[parentNames.Count - 1] = $"{arraySchema.PropertyName!}Element";
+                        if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = $"{arraySchema.PropertyName!}Element";
+                        
                         parentNames.Add(arraySchema.PropertyName!);
                         schema = arraySchema.Parent;
                         break;
@@ -76,15 +88,6 @@ public static class NameResolver
                 }
             
             nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}"))}";
-        }
-        
-        // interfaceの名前を登録
-        foreach (var kvp in semantics.InterfaceSemanticsTable)
-        {
-            var id = kvp.Key;
-            var interfaceSemantics = kvp.Value!;
-            
-            names[id] = $"I{interfaceSemantics.Schema.PropertyName!}";
         }
         
         return new NameTable(names

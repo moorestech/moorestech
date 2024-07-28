@@ -48,8 +48,9 @@ public static class CodeGenerator
             FloatType => "float",
             IntType => "int",
             StringType => "string",
+            Vector2Type => "global::UnityEngine.Vector2",
             CustomType customType => customType.Name,
-            _ => throw new ArgumentOutOfRangeException(nameof(type))
+            _ => throw new ArgumentOutOfRangeException(type.GetType().Name)
         };
     }
 
