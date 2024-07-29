@@ -21,7 +21,7 @@
         <AdditionalFiles Include="Schema\mapObjects.json"/>
         
         <AdditionalFiles Include="Schema\Ref\gearConnects.json"/>
-        <AdditionalFiles Include="Schema\Ref\inputConnects.json"/>
+        <AdditionalFiles Include="Schema\Ref\inventoryConnects.json"/>
         <AdditionalFiles Include="Schema\Ref\modelTransform.json"/>
     </ItemGroup>
 
