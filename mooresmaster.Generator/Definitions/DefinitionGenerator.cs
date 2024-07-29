@@ -12,7 +12,7 @@ public static class DefinitionGenerator
     public static Definition Generate(Semantics semantics, NameTable nameTable, SchemaTable schemaTable)
     {
         var definitions = new Definition();
-        
+
         foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(nameTable.Names[interfaceSemantics.Key]));
         var inheritTable = new Dictionary<Guid, List<Guid>>();
         foreach (var inherit in semantics.InheritList)
@@ -22,35 +22,35 @@ public static class DefinitionGenerator
                 inheritTable[inherit.typeId] = [];
                 interfaceList = inheritTable[inherit.typeId];
             }
-            
+
             interfaceList.Add(inherit.interfaceId);
         }
-        
+
         foreach (var kvp in semantics.TypeSemanticsTable)
         {
             var typeId = kvp.Key;
             var typeSemantics = kvp.Value!;
-            
+
             var isInherited = inheritTable.TryGetValue(typeId, out var interfaceList);
             var typeName = nameTable.Names[typeId];
             var inheritList = isInherited ? interfaceList!.Select(i => nameTable.Names[i]).ToArray() : [];
             var propertyTable = GetProperties(nameTable, typeId, semantics, schemaTable);
-            
+
             definitions.TypeDefinitions.Add(new TypeDefinition(typeName, inheritList, propertyTable));
         }
-        
+
         return definitions;
     }
-    
+
     private static Dictionary<string, Type> GetProperties(NameTable nameTable, Guid typeId, Semantics semantics, SchemaTable table)
     {
         var propertyTable = new Dictionary<string, Type>();
         var typeSemantics = semantics.TypeSemanticsTable[typeId]!;
-        
+
         switch (typeSemantics.Schema)
         {
             case ArraySchema arraySchema:
-                propertyTable["items"] = new ArrayType(Type.GetType(nameTable, typeId, table.Table[arraySchema.Items], semantics, table));
+                propertyTable["items"] = new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items]], table.Table[arraySchema.Items], semantics, table));
                 break;
             case BooleanSchema:
                 propertyTable["value"] = new BooleanType();
@@ -76,7 +76,7 @@ public static class DefinitionGenerator
             default:
                 throw new ArgumentOutOfRangeException(nameof(typeSemantics.Schema));
         }
-        
+
         return propertyTable;
     }
 }

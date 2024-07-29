@@ -10,7 +10,7 @@ public static class SemanticsGenerator
     public static Semantics Generate(ImmutableArray<Schema> schemaArray, SchemaTable table)
     {
         var semantics = new Semantics();
-        
+
         foreach (var schema in schemaArray)
             // ファイルに分けられているルートの要素はclassになる
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
@@ -25,17 +25,17 @@ public static class SemanticsGenerator
                 var typeSemantics = new TypeSemantics([], table.Table[schema.InnerSchema]);
                 var typeId = semantics.AddTypeSemantics(typeSemantics);
                 semantics.AddRootSemantics(new RootSemantics(schema, typeId));
-                
+
                 Generate(table.Table[schema.InnerSchema], table).AddTo(semantics);
             }
-        
+
         return semantics;
     }
-    
+
     private static Semantics Generate(ISchema schema, SchemaTable table)
     {
         var semantics = new Semantics();
-        
+
         switch (schema)
         {
             case ArraySchema arraySchema:
@@ -58,10 +58,10 @@ public static class SemanticsGenerator
             default:
                 throw new ArgumentOutOfRangeException(nameof(schema));
         }
-        
+
         return semantics;
     }
-    
+
     private static (Semantics, Guid) Generate(OneOfSchema oneOfSchema, SchemaTable table)
     {
         var semantics = new Semantics();
@@ -73,9 +73,10 @@ public static class SemanticsGenerator
             var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
             semantics.InheritList.Add((interfaceId, then));
         }
+
         return (semantics, interfaceId);
     }
-    
+
     private static (Semantics, Guid) Generate(ObjectSchema objectSchema, SchemaTable table)
     {
         var semantics = new Semantics();
@@ -99,11 +100,11 @@ public static class SemanticsGenerator
                     properties.Add((property.Key, null));
                     break;
             }
-        
+
         var typeSemantics = new TypeSemantics(properties.ToArray(), objectSchema);
         semantics.TypeSemanticsTable[typeId] = typeSemantics;
         semantics.SchemaTypeSemanticsTable[typeSemantics.Schema] = typeId;
-        
+
         return (semantics, typeId);
     }
 }
