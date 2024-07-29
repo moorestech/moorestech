@@ -39,6 +39,20 @@ public record JsonBoolean(bool Literal, IJsonNode? Parent, string? PropertyName)
     public string? PropertyName { get; } = PropertyName;
 }
 
+public record JsonNumber(double Literal, IJsonNode? Parent, string? PropertyName) : IJsonNode
+{
+    public readonly double Literal = Literal;
+    public IJsonNode? Parent { get; } = Parent;
+    public string? PropertyName { get; } = PropertyName;
+}
+
+public record JsonInt(long Literal, IJsonNode? Parent, string? PropertyName) : IJsonNode
+{
+    public readonly long Literal = Literal;
+    public IJsonNode? Parent { get; } = Parent;
+    public string? PropertyName { get; } = PropertyName;
+}
+
 public static class JsonParser
 {
     public static IJsonNode Parse(Token[] tokens)
@@ -46,7 +60,7 @@ public static class JsonParser
         var iterator = new Iterator(tokens);
         return Parse(ref iterator, null, null);
     }
-    
+
     private static IJsonNode Parse(ref Iterator iterator, IJsonNode? parent, string? name)
     {
         return iterator.CurrentToken.Type switch
@@ -55,52 +69,84 @@ public static class JsonParser
             TokenType.LBrace => ParseObject(ref iterator, parent, name),
             TokenType.LSquare => ParseArray(ref iterator, parent, name),
             TokenType.True or TokenType.False => ParseBoolean(ref iterator, parent, name),
+            TokenType.Number => ParseNumber(ref iterator, parent, name),
+            TokenType.Int => ParseInt(ref iterator, parent, name),
             _ => throw new Exception($"""Unexpected token: {iterator.CurrentToken.Type} "{iterator.CurrentToken.Literal}" """)
         };
     }
-    
+
+    private static IJsonNode ParseMinus(ref Iterator iterator, IJsonNode? parent, string? name)
+    {
+        iterator.CurrentIndex++; // skip '-'
+        switch (iterator.CurrentToken.Type)
+        {
+            case TokenType.Int:
+                var intValue = ParseInt(ref iterator, parent, name);
+                return new JsonInt(-intValue.Literal, parent, name);
+            case TokenType.Number:
+                var numberValue = ParseNumber(ref iterator, parent, name);
+                return new JsonNumber(-numberValue.Literal, parent, name);
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private static JsonInt ParseInt(ref Iterator iterator, IJsonNode? parent, string? name)
+    {
+        var value = iterator.CurrentToken.Literal;
+        iterator.CurrentIndex++; // skip int
+        return new JsonInt(long.Parse(value), parent, name);
+    }
+
+    private static JsonNumber ParseNumber(ref Iterator iterator, IJsonNode? parent, string? name)
+    {
+        var value = iterator.CurrentToken.Literal;
+        iterator.CurrentIndex++; // skip number
+        return new JsonNumber(double.Parse(value), parent, name);
+    }
+
     private static JsonBoolean ParseBoolean(ref Iterator iterator, IJsonNode? parent, string? name)
     {
         var value = iterator.CurrentToken.Literal;
         iterator.CurrentIndex++; // skip boolean
         return new JsonBoolean(value == "true", parent, name);
     }
-    
+
     private static JsonString ParseString(ref Iterator iterator, IJsonNode? parent, string? name)
     {
         var value = iterator.CurrentToken.Literal;
         iterator.CurrentIndex++; // skip string
         return new JsonString(value, parent, name);
     }
-    
+
     private static JsonArray ParseArray(ref Iterator iterator, IJsonNode? parent, string? name)
     {
         var nodes = new List<IJsonNode>();
         iterator.CurrentIndex++; // skip '['
-        
+
         var jsonNode = new JsonArray([], parent, name);
-        
+
         while (iterator.CurrentToken.Type != TokenType.RSquare)
         {
             nodes.Add(Parse(ref iterator, jsonNode, null));
             if (iterator.CurrentToken.Type == TokenType.RSquare) break;
             iterator.CurrentIndex++; // skip ','
         }
-        
+
         iterator.CurrentIndex++; // skip ']'
-        
+
         jsonNode.Nodes = nodes.ToArray();
-        
+
         return jsonNode;
     }
-    
+
     private static JsonObject ParseObject(ref Iterator iterator, IJsonNode? parent, string? name)
     {
         var nodes = new Dictionary<string, IJsonNode>();
         iterator.CurrentIndex++; // skip '{'
-        
+
         var jsonNode = new JsonObject(nodes, parent, name);
-        
+
         while (iterator.CurrentToken.Type != TokenType.RBrace)
         {
             var key = iterator.CurrentToken.Literal;
@@ -111,12 +157,12 @@ public static class JsonParser
             if (iterator.CurrentToken.Type == TokenType.RBrace) break;
             iterator.CurrentIndex++; // skip ','
         }
-        
+
         iterator.CurrentIndex++; // skip '}'
-        
+
         return jsonNode;
     }
-    
+
     public struct Iterator(Token[] tokens)
     {
         public int CurrentIndex;
