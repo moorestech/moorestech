@@ -1,0 +1,52 @@
+{
+  "$id": "craftRecipes",
+  "type": "object",
+
+  "required": [ "data" ],
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "requiredItems", "resultItem" ],
+
+        "properties": {
+
+
+          "resultItem": {
+            "type": "object",
+            "required": [ "itemId", "count"],
+            "properties": {
+              "itemId": {
+                "type": "string",
+                "format": "uuid",
+                "foreignKey": "items:itemId:name"
+              },
+              "count": {
+                "type": "integer"
+              }
+            }
+          },
+
+          "requiredItems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [ "itemId", "count"],
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "items:itemId:name"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
