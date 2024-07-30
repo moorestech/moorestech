@@ -4,6 +4,7 @@ using System.Linq;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
+using mooresmaster.Generator.Util;
 
 namespace mooresmaster.Generator.NameResolve;
 
@@ -36,7 +37,7 @@ public static class NameResolver
                 _ => null
             };
 
-            if (name is not null) names[id] = name;
+            if (name is not null) names[id] = name.ToCamelCase();
         }
 
         // rootのtypeの名前を登録
@@ -54,7 +55,8 @@ public static class NameResolver
             var id = kvp.Key;
             var interfaceSemantics = kvp.Value!;
 
-            names[id] = $"I{interfaceSemantics.Schema.PropertyName}";
+            var interfaceName = interfaceSemantics.Schema.PropertyName?.ToCamelCase();
+            names[id] = $"I{interfaceName}";
         }
 
         var nameSpaces = new Dictionary<Guid, string>();
@@ -97,9 +99,14 @@ public static class NameResolver
                 }
             }
             
-            
-
-            nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}Module"))}";
+            //一応残しておく nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}Module"))}";
+            var nameSpace = "Mooresmaster.Model";
+            if (0 < parentNames.Count)
+            {
+                var lastName = parentNames[parentNames.Count - 1].ToCamelCase();
+               nameSpace += $".{lastName}Module";
+            }
+            nameSpaces[typeId] = nameSpace;
         }
 
         return new NameTable(names
