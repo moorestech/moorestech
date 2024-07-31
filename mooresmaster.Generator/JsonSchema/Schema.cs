@@ -1,21 +1,22 @@
 using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.Json;
+using UnitGenerator;
 
 namespace mooresmaster.Generator.JsonSchema;
 
 public class SchemaTable
 {
-    public readonly Dictionary<Guid, ISchema> Table = new();
-    
-    public Guid Add(ISchema schema)
+    public readonly Dictionary<SchemaId, ISchema> Table = new();
+
+    public SchemaId Add(ISchema schema)
     {
-        var id = Guid.NewGuid();
+        var id = SchemaId.New();
         Table.Add(id, schema);
         return id;
     }
-    
-    public void Add(Guid id, ISchema schema)
+
+    public void Add(SchemaId id, ISchema schema)
     {
         Table.Add(id, schema);
     }
@@ -24,72 +25,75 @@ public class SchemaTable
 public interface ISchema
 {
     string? PropertyName { get; }
-    Guid? Parent { get; }
+    SchemaId? Parent { get; }
 }
 
-public record Schema(string SchemaId, Guid InnerSchema)
+public record Schema(string SchemaId, SchemaId InnerSchema)
 {
-    public Guid InnerSchema = InnerSchema;
+    public SchemaId InnerSchema = InnerSchema;
     public string SchemaId = SchemaId;
 }
 
-public record ObjectSchema(string? PropertyName, Guid? Parent, Dictionary<string, Guid> Properties, string[] Required) : ISchema
+public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required) : ISchema
 {
-    public Dictionary<string, Guid> Properties = Properties;
+    public Dictionary<string, SchemaId> Properties = Properties;
     public string[] Required = Required;
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record ArraySchema(string? PropertyName, Guid? Parent, Guid Items, JsonString? Pattern) : ISchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern) : ISchema
 {
-    public Guid Items = Items;
+    public SchemaId Items = Items;
     public JsonString? Pattern = Pattern;
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record OneOfSchema(string? PropertyName, Guid? Parent, IfThenSchema[] IfThenArray) : ISchema
+public record OneOfSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray) : ISchema
 {
     public IfThenSchema[] IfThenArray = IfThenArray;
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record IfThenSchema(JsonObject If, Guid Then)
+public record IfThenSchema(JsonObject If, SchemaId Then)
 {
     public JsonObject If = If;
-    public Guid Then = Then;
+    public SchemaId Then = Then;
 }
 
-public record StringSchema(string? PropertyName, Guid? Parent, JsonString? Format) : ISchema
+public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format) : ISchema
 {
     public JsonString? Format = Format;
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record NumberSchema(string? PropertyName, Guid? Parent) : ISchema
+public record NumberSchema(string? PropertyName, SchemaId? Parent) : ISchema
 {
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record IntegerSchema(string? PropertyName, Guid? Parent) : ISchema
+public record IntegerSchema(string? PropertyName, SchemaId? Parent) : ISchema
 {
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record BooleanSchema(string? PropertyName, Guid? Parent) : ISchema
+public record BooleanSchema(string? PropertyName, SchemaId? Parent) : ISchema
 {
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
 
-public record RefSchema(string? PropertyName, Guid? Parent, string Ref) : ISchema
+public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref) : ISchema
 {
     public string Ref = Ref;
     public string? PropertyName { get; } = PropertyName;
-    public Guid? Parent { get; } = Parent;
+    public SchemaId? Parent { get; } = Parent;
 }
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct SchemaId;
