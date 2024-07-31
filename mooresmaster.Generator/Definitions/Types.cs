@@ -7,7 +7,7 @@ namespace mooresmaster.Generator.Definitions;
 
 public record Type
 {
-    public static Type GetType(NameTable nameTable, Guid? typeId, ISchema schema, Semantics semantics, SchemaTable schemaTable)
+    public static Type GetType(NameTable nameTable, ITypeId? typeId, ISchema schema, Semantics semantics, SchemaTable schemaTable)
     {
         return schema switch
         {
@@ -36,8 +36,8 @@ public record Type
                 "uuid" => new UUIDType(),
                 _ => new StringType()
             },
-            ObjectSchema => new CustomType(nameTable.Names[typeId!.Value].GetName()),
-            OneOfSchema => new CustomType(nameTable.Names[typeId!.Value].GetName()),
+            ObjectSchema => new CustomType(nameTable.TypeNames[typeId].GetName()),
+            OneOfSchema => new CustomType(nameTable.TypeNames[typeId].GetName()),
             RefSchema refSchema => new CustomType(refSchema.Ref),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };

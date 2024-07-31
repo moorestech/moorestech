@@ -28,9 +28,9 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         var definitions = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
 
         Console.WriteLine("Semantics: ");
-        foreach (var typeSemantic in semantics.TypeSemanticsTable) Console.WriteLine($"    Type: {nameTable.Names[typeSemantic.Key]} {typeSemantic.Value.Schema.GetType().Name}");
-        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable) Console.WriteLine($"    Interface: {nameTable.Names[interfaceSemantics.Key]} {interfaceSemantics.Value.Schema.GetType().Name}");
-        foreach (var inherit in semantics.InheritList) Console.WriteLine($"    Inherit: {nameTable.Names[inherit.typeId]} {nameTable.Names[inherit.typeId]}");
+        foreach (var typeSemantic in semantics.TypeSemanticsTable) Console.WriteLine($"    Type: {nameTable.TypeNames[typeSemantic.Key]} {typeSemantic.Value.Schema.GetType().Name}");
+        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable) Console.WriteLine($"    Interface: {nameTable.TypeNames[interfaceSemantics.Key]} {interfaceSemantics.Value.Schema.GetType().Name}");
+        foreach (var inherit in semantics.InheritList) Console.WriteLine($"    Inherit: {nameTable.TypeNames[inherit.typeId]} {nameTable.TypeNames[inherit.typeId]}");
 
         Console.WriteLine();
 

@@ -9,19 +9,19 @@ namespace mooresmaster.Generator.NameResolve;
 
 public record struct TypeName(string Name, string NameSpace);
 
-public class NameTable(Dictionary<Guid, TypeName> names, Dictionary<Guid, string> propertyNames)
+public class NameTable(Dictionary<ITypeId, TypeName> typeNames, Dictionary<PropertyId, string> propertyNames)
 {
 //    public readonly Dictionary<string, Guid> Ids = names.ToDictionary(x => x.Value, x => x.Key);
-    public readonly Dictionary<Guid, TypeName> Names = names;
-    public readonly Dictionary<Guid, string> PropertyNames = propertyNames;
+    public readonly Dictionary<ITypeId, TypeName> TypeNames = typeNames;
+    public readonly Dictionary<PropertyId, string> PropertyNames = propertyNames;
 }
 
 public static class NameResolver
 {
     public static NameTable Resolve(Semantics semantics, SchemaTable schemaTable)
     {
-        var names = new Dictionary<Guid, string>();
-        var propertyNames = new Dictionary<Guid, string>();
+        var typeNames = new Dictionary<ITypeId, string>();
+        var propertyNames = new Dictionary<PropertyId, string>();
 
         // root以外の全てのtypeの名前を登録
         foreach (var kvp in semantics.TypeSemanticsTable)
@@ -38,16 +38,16 @@ public static class NameResolver
                 _ => null
             };
 
-            if (name is not null) names[id] = name.ToCamelCase();
+            if (name is not null) typeNames[id] = name.ToCamelCase();
         }
 
         // rootのtypeの名前を登録
         foreach (var kvp in semantics.RootSemanticsTable)
         {
-            var typeId = kvp.Value.TypeId;
+            var typeId = kvp.Value.ClassId;
             var root = kvp.Value!;
 
-            names[typeId] = root.Root.SchemaId;
+            typeNames[typeId] = root.Root.SchemaId;
         }
 
         // interfaceの名前を登録
@@ -57,20 +57,23 @@ public static class NameResolver
             var interfaceSemantics = kvp.Value!;
 
             var interfaceName = interfaceSemantics.Schema.PropertyName?.ToCamelCase();
-            names[id] = $"I{interfaceName}";
+            typeNames[id] = $"I{interfaceName}";
         }
 
         // namespaceを登録
-        var nameSpaces = new Dictionary<Guid, string>();
-        var schemaToRoot = semantics.RootSemanticsTable.ToDictionary(r => semantics.TypeSemanticsTable[r.Value.TypeId].Schema, r => r.Value);
+        var nameSpaces = new Dictionary<ITypeId, string>();
+        var schemaToRoot = semantics.RootSemanticsTable.ToDictionary(r => semantics.TypeSemanticsTable[r.Value.ClassId].Schema, r => r.Value);
 
-        foreach (var typeId in names.Keys)
+        foreach (var typeId in typeNames.Keys)
         {
             // child → parent
             var parentNames = new List<string>();
-            var schema = semantics.TypeSemanticsTable.ContainsKey(typeId)
-                ? semantics.TypeSemanticsTable[typeId].Schema.Parent
-                : semantics.InterfaceSemanticsTable[typeId].Schema.Parent;
+            var schema = typeId switch
+            {
+                ClassId classId => semantics.TypeSemanticsTable[classId].Schema.Parent,
+                InterfaceId interfaceId => semantics.InterfaceSemanticsTable[interfaceId].Schema.Parent,
+                _ => throw new ArgumentOutOfRangeException(nameof(typeId))
+            };
 
             while (schema is not null)
             {
@@ -121,9 +124,9 @@ public static class NameResolver
         }
 
         return new NameTable(
-            names
+            typeNames
                 .Select(name =>
-                    new KeyValuePair<Guid, TypeName>(
+                    new KeyValuePair<ITypeId, TypeName>(
                         name.Key,
                         new TypeName(name.Value, nameSpaces[name.Key])
                     )
@@ -153,8 +156,8 @@ public static class NameResolver
                         break;
                     case JsonString jsonString:
                         return jsonString.Literal;
-                    case JsonArray jsonArray:
-                    case JsonBoolean jsonBoolean:
+                    case JsonArray:
+                    case JsonBoolean:
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(node));

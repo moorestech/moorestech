@@ -62,7 +62,7 @@ public static class SemanticsGenerator
         return semantics;
     }
 
-    private static (Semantics, Guid) Generate(OneOfSchema oneOfSchema, SchemaTable table)
+    private static (Semantics, InterfaceId) Generate(OneOfSchema oneOfSchema, SchemaTable table)
     {
         var semantics = new Semantics();
         var interfaceId = semantics.AddInterfaceSemantics(new InterfaceSemantics(oneOfSchema));
@@ -77,11 +77,11 @@ public static class SemanticsGenerator
         return (semantics, interfaceId);
     }
 
-    private static (Semantics, Guid) Generate(ObjectSchema objectSchema, SchemaTable table)
+    private static (Semantics, ClassId) Generate(ObjectSchema objectSchema, SchemaTable table)
     {
         var semantics = new Semantics();
-        var typeId = Guid.NewGuid();
-        var properties = new List<Guid>();
+        var typeId = ClassId.New();
+        var properties = new List<PropertyId>();
         foreach (var property in objectSchema.Properties)
         {
             var schema = table.Table[property.Value];

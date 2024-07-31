@@ -16,11 +16,11 @@ public static class DefinitionGenerator
         foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
             definitions.InterfaceDefinitions.Add(
                 new InterfaceDefinition(
-                    $"mooresmaster.{nameTable.Names[interfaceSemantics.Key].Name}.g.cs",
-                    nameTable.Names[interfaceSemantics.Key]
+                    $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
+                    nameTable.TypeNames[interfaceSemantics.Key]
                 )
             );
-        var inheritTable = new Dictionary<Guid, List<Guid>>();
+        var inheritTable = new Dictionary<ITypeId, List<InterfaceId>>();
         foreach (var inherit in semantics.InheritList)
         {
             if (!inheritTable.TryGetValue(inherit.typeId, out var interfaceList))
@@ -40,8 +40,8 @@ public static class DefinitionGenerator
             var typeSemantics = kvp.Value!;
 
             var isInherited = inheritTable.TryGetValue(typeId, out var interfaceList);
-            var typeName = nameTable.Names[typeId];
-            var inheritList = isInherited ? interfaceList!.Select(i => nameTable.Names[i]).ToArray() : [];
+            var typeName = nameTable.TypeNames[typeId];
+            var inheritList = isInherited ? interfaceList!.Select(i => nameTable.TypeNames[i]).ToArray() : [];
             var propertyTable = GetProperties(nameTable, typeId, semantics, schemaTable);
 
             var fileName = "mooresmaster.g.cs";
@@ -66,10 +66,10 @@ public static class DefinitionGenerator
         return definitions;
     }
 
-    private static Dictionary<string, Type> GetProperties(NameTable nameTable, Guid typeId, Semantics semantics, SchemaTable table)
+    private static Dictionary<string, Type> GetProperties(NameTable nameTable, ClassId classId, Semantics semantics, SchemaTable table)
     {
         var propertyTable = new Dictionary<string, Type>();
-        var typeSemantics = semantics.TypeSemanticsTable[typeId]!;
+        var typeSemantics = semantics.TypeSemanticsTable[classId]!;
 
         switch (typeSemantics.Schema)
         {
@@ -100,7 +100,7 @@ public static class DefinitionGenerator
 
                 break;
             case OneOfSchema:
-                propertyTable["value"] = new CustomType(nameTable.Names[typeId].GetName());
+                propertyTable["value"] = new CustomType(nameTable.TypeNames[classId].GetName());
                 break;
             case RefSchema refSchema:
                 propertyTable["value"] = new CustomType(refSchema.Ref);
