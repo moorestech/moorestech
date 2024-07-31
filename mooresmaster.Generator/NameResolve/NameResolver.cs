@@ -9,10 +9,11 @@ namespace mooresmaster.Generator.NameResolve;
 
 public record struct TypeName(string Name, string NameSpace);
 
-public class NameTable(Dictionary<Guid, TypeName> names)
+public class NameTable(Dictionary<Guid, TypeName> names, Dictionary<Guid, string> propertyNames)
 {
 //    public readonly Dictionary<string, Guid> Ids = names.ToDictionary(x => x.Value, x => x.Key);
     public readonly Dictionary<Guid, TypeName> Names = names;
+    public readonly Dictionary<Guid, string> PropertyNames = propertyNames;
 }
 
 public static class NameResolver
@@ -20,6 +21,7 @@ public static class NameResolver
     public static NameTable Resolve(Semantics semantics, SchemaTable schemaTable)
     {
         var names = new Dictionary<Guid, string>();
+        var propertyNames = new Dictionary<Guid, string>();
 
         // root以外の全てのtypeの名前を登録
         foreach (var kvp in semantics.TypeSemanticsTable)
@@ -58,6 +60,7 @@ public static class NameResolver
             names[id] = $"I{interfaceName}";
         }
 
+        // namespaceを登録
         var nameSpaces = new Dictionary<Guid, string>();
         var schemaToRoot = semantics.RootSemanticsTable.ToDictionary(r => semantics.TypeSemanticsTable[r.Value.TypeId].Schema, r => r.Value);
 
@@ -76,7 +79,7 @@ public static class NameResolver
                     parentNames.Add(schemaToRoot[schemaTable.Table[schema.Value]].Root.SchemaId);
                     break;
                 }
-                
+
                 switch (schemaTable.Table[schema.Value])
                 {
                     case ArraySchema arraySchema:
@@ -97,28 +100,40 @@ public static class NameResolver
                         throw new ArgumentOutOfRangeException(nameof(schema));
                 }
             }
-            
+
             //一応残しておく nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}Module"))}";
             var nameSpace = "Mooresmaster.Model";
             if (0 < parentNames.Count)
             {
                 var lastName = parentNames[parentNames.Count - 1].ToCamelCase();
-               nameSpace += $".{lastName}Module";
+                nameSpace += $".{lastName}Module";
             }
+
             nameSpaces[typeId] = nameSpace;
         }
 
-        return new NameTable(names
-            .Select(name =>
-                new KeyValuePair<Guid, TypeName>(
-                    name.Key,
-                    new TypeName(name.Value, nameSpaces[name.Key])
+        // propertyの名前を登録
+        foreach (var kvp in semantics.PropertySemanticsTable)
+        {
+            var propertySemantics = kvp.Value;
+            var name = propertySemantics.PropertyName.ToCamelCase();
+            propertyNames[kvp.Key] = name;
+        }
+
+        return new NameTable(
+            names
+                .Select(name =>
+                    new KeyValuePair<Guid, TypeName>(
+                        name.Key,
+                        new TypeName(name.Value, nameSpaces[name.Key])
+                    )
                 )
-            )
-            .ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value
-            ));
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value
+                ),
+            propertyNames
+        );
     }
 
     private static string GetIfThenName(IfThenSchema ifThenSchema)
