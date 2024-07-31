@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.NameResolve;
@@ -6,14 +7,38 @@ using Type = mooresmaster.Generator.Definitions.Type;
 
 namespace mooresmaster.Generator.Code;
 
+public record CodeFile(string FileName, string Code)
+{
+    public string Code = Code;
+    public string FileName = FileName;
+}
+
 public static class CodeGenerator
 {
-    public static string Generate(Definition definition)
+    public static CodeFile[] Generate(Definition definition)
     {
-        return $$$"""
-                  {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode))}}}
-                  {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode))}}}
-                  """;
+        var files = new Dictionary<string, List<string>>();
+
+        foreach (var typeDefinition in definition.TypeDefinitions)
+        {
+            if (!files.TryGetValue(typeDefinition.FileName, out _)) files[typeDefinition.FileName] = [];
+
+            files[typeDefinition.FileName].Add(GenerateTypeDefinitionCode(typeDefinition));
+        }
+
+        foreach (var interfaceDefinition in definition.InterfaceDefinitions)
+        {
+            if (!files.TryGetValue(interfaceDefinition.FileName, out _)) files[interfaceDefinition.FileName] = [];
+
+            files[interfaceDefinition.FileName].Add(GenerateInterfaceCode(interfaceDefinition));
+        }
+
+//         $$$"""
+//                {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode))}}}
+//                {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode))}}}
+//                """
+
+        return files.Select(file => new CodeFile(file.Key, string.Join("\n", file.Value))).ToArray();
     }
 
     private static string GenerateTypeDefinitionCode(TypeDefinition typeDef)
