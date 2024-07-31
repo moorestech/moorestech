@@ -95,3 +95,12 @@ public record InterfaceSemantics(OneOfSchema Schema)
 {
     public OneOfSchema Schema = Schema;
 }
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct PropertyId;
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct TypeId;
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct InterfaceId;
