@@ -68,9 +68,9 @@ public static class DefinitionGenerator
                 foreach (var propertyId in typeSemantics.Properties)
                 {
                     var propertySemantics = semantics.PropertySemanticsTable[propertyId];
-                    var name = propertySemantics.PropertyName;
                     var propertyTypeId = propertySemantics.PropertyType;
-                    var schema = table.Table[objectSchema.Properties[name]];
+                    var schema = semantics.PropertySemanticsTable[propertyId].Schema;
+                    var name = nameTable.PropertyNames[propertyId];
                     propertyTable[name] = Type.GetType(nameTable, propertyTypeId, schema, semantics, table);
                 }
 
