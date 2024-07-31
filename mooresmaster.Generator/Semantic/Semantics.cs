@@ -1,45 +1,46 @@
 using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.JsonSchema;
+using UnitGenerator;
 
 namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public readonly List<(Guid interfaceId, Guid typeId)> InheritList = new(); // (InterfaceId, TypeId)
-    public readonly Dictionary<Guid, InterfaceSemantics> InterfaceSemanticsTable = new();
-    public readonly Dictionary<OneOfSchema, Guid> OneOfInterfaceSemanticsTable = new();
-    public readonly Dictionary<Guid, RootSemantics> RootSemanticsTable = new();
-    public readonly Dictionary<ISchema, Guid> SchemaTypeSemanticsTable = new();
-    public readonly Dictionary<Guid, TypeSemantics> TypeSemanticsTable = new();
-    public readonly Dictionary<Guid, PropertySemantics> PropertySemanticsTable = new();
+    public readonly List<(InterfaceId interfaceId, TypeId typeId)> InheritList = new(); // (InterfaceId, TypeId)
+    public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
+    public readonly Dictionary<OneOfSchema, InterfaceId> OneOfInterfaceSemanticsTable = new();
+    public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
+    public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
+    public readonly Dictionary<ISchema, TypeId> SchemaTypeSemanticsTable = new();
+    public readonly Dictionary<TypeId, TypeSemantics> TypeSemanticsTable = new();
 
-    public Guid AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
+    public InterfaceId AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
-        var id = Guid.NewGuid();
+        var id = InterfaceId.New();
         InterfaceSemanticsTable.Add(id, interfaceSemantics);
         OneOfInterfaceSemanticsTable.Add(interfaceSemantics.Schema, id);
         return id;
     }
 
-    public Guid AddTypeSemantics(TypeSemantics typeSemantics)
+    public TypeId AddTypeSemantics(TypeSemantics typeSemantics)
     {
-        var id = Guid.NewGuid();
+        var id = TypeId.New();
         TypeSemanticsTable.Add(id, typeSemantics);
         SchemaTypeSemanticsTable.Add(typeSemantics.Schema, id);
         return id;
     }
 
-    public Guid AddRootSemantics(RootSemantics rootSemantics)
+    public RootId AddRootSemantics(RootSemantics rootSemantics)
     {
-        var id = Guid.NewGuid();
+        var id = RootId.New();
         RootSemanticsTable.Add(id, rootSemantics);
         return id;
     }
 
-    public Guid AddPropertySemantics(PropertySemantics propertySemantics)
+    public PropertyId AddPropertySemantics(PropertySemantics propertySemantics)
     {
-        var id = Guid.NewGuid();
+        var id = PropertyId.New();
         PropertySemanticsTable.Add(id, propertySemantics);
         return id;
     }
@@ -63,10 +64,10 @@ public class Semantics
     }
 }
 
-public record RootSemantics(Schema Root, Guid TypeId)
+public record RootSemantics(Schema Root, TypeId TypeId)
 {
     public Schema Root = Root;
-    public Guid TypeId = TypeId;
+    public TypeId TypeId = TypeId;
 }
 
 /// <summary>
@@ -77,17 +78,17 @@ public record RootSemantics(Schema Root, Guid TypeId)
 ///     親要素がinterfaceになることはない
 /// </param>
 /// <param name="Schema"></param>
-public record TypeSemantics(Guid[] Properties, ISchema Schema)
+public record TypeSemantics(PropertyId[] Properties, ISchema Schema)
 {
-    public Guid[] Properties = Properties;
+    public PropertyId[] Properties = Properties;
     public ISchema Schema = Schema;
 }
 
-public record PropertySemantics(Guid ParentTypeId, string PropertyName, Guid? PropertyType, ISchema Schema)
+public record PropertySemantics(TypeId ParentTypeId, string PropertyName, PropertyId? PropertyType, ISchema Schema)
 {
-    public Guid ParentTypeId = ParentTypeId;
+    public TypeId ParentTypeId = ParentTypeId;
     public string PropertyName = PropertyName;
-    public Guid? PropertyType = PropertyType;
+    public PropertyId? PropertyType = PropertyType;
     public ISchema Schema = Schema;
 }
 
@@ -95,6 +96,9 @@ public record InterfaceSemantics(OneOfSchema Schema)
 {
     public OneOfSchema Schema = Schema;
 }
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct RootId;
 
 [UnitOf(typeof(Guid))]
 public readonly partial struct PropertyId;
