@@ -4,7 +4,6 @@ using System.Linq;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
-using mooresmaster.Generator.Util;
 
 namespace mooresmaster.Generator.NameResolve;
 
@@ -153,5 +152,10 @@ public static class NameResolver
     public static string GetName(this TypeName typeName)
     {
         return $"{typeName.NameSpace}.{typeName.Name}";
+    }
+
+    private static string ToCamelCase(this string name)
+    {
+        return name.Substring(0, 1).ToUpper() + name.Substring(1);
     }
 }
