@@ -65,7 +65,11 @@ public static class DefinitionGenerator
                 propertyTable["value"] = new StringType();
                 break;
             case ObjectSchema objectSchema:
-                foreach (var (name, propertyTypeId) in typeSemantics.Properties) propertyTable[name] = Type.GetType(nameTable, propertyTypeId, table.Table[objectSchema.Properties[name]], semantics, table);
+                foreach (var (name, propertyTypeId) in typeSemantics.Properties)
+                {
+                    var schema = table.Table[objectSchema.Properties[name]];
+                    propertyTable[name] = Type.GetType(nameTable, propertyTypeId, schema, semantics, table);;
+                }
                 break;
             case OneOfSchema:
                 propertyTable["value"] = new CustomType(nameTable.Names[typeId].GetName());
