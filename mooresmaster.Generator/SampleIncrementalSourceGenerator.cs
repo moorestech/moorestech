@@ -46,7 +46,7 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var definition in definitions.InterfaceDefinitions) Console.WriteLine($"    Interface: {definition.TypeName}");
 
-        context.AddSource("mooresmaster.g.cs", CodeGenerator.Generate(definitions));
+        foreach (var codeFile in CodeGenerator.Generate(definitions)) context.AddSource(codeFile.FileName, codeFile.Code);
     }
 
     private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)

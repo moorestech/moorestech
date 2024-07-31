@@ -9,14 +9,18 @@ public record Definition
     public readonly List<TypeDefinition> TypeDefinitions = new();
 }
 
-public record InterfaceDefinition(TypeName TypeName)
+public record InterfaceDefinition(string FileName, TypeName TypeName)
 {
+    public string FileName = FileName;
+
     public TypeName TypeName = TypeName;
 }
 
-public record TypeDefinition(TypeName TypeName, TypeName[] InheritList, Dictionary<string, Type> PropertyTable)
+public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] InheritList, Dictionary<string, Type> PropertyTable)
 {
+    public string FileName = FileName;
+
     public TypeName[] InheritList = InheritList;
     public Dictionary<string, Type> PropertyTable = PropertyTable;
-    public TypeName TypeName { get; } = TypeName;
+    public TypeName TypeName = TypeName;
 }

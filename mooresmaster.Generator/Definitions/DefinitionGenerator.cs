@@ -13,7 +13,13 @@ public static class DefinitionGenerator
     {
         var definitions = new Definition();
 
-        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable) definitions.InterfaceDefinitions.Add(new InterfaceDefinition(nameTable.Names[interfaceSemantics.Key]));
+        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
+            definitions.InterfaceDefinitions.Add(
+                new InterfaceDefinition(
+                    $"mooresmaster.{nameTable.Names[interfaceSemantics.Key].Name}.g.cs",
+                    nameTable.Names[interfaceSemantics.Key]
+                )
+            );
         var inheritTable = new Dictionary<Guid, List<Guid>>();
         foreach (var inherit in semantics.InheritList)
         {
@@ -26,6 +32,8 @@ public static class DefinitionGenerator
             interfaceList.Add(inherit.interfaceId);
         }
 
+        var schemaToRootTable = semantics.RootSemanticsTable.ToDictionary(kvp => schemaTable.Table[kvp.Value.Root.InnerSchema], kvp => kvp.Value.Root);
+
         foreach (var kvp in semantics.TypeSemanticsTable)
         {
             var typeId = kvp.Key;
@@ -36,7 +44,23 @@ public static class DefinitionGenerator
             var inheritList = isInherited ? interfaceList!.Select(i => nameTable.Names[i]).ToArray() : [];
             var propertyTable = GetProperties(nameTable, typeId, semantics, schemaTable);
 
-            definitions.TypeDefinitions.Add(new TypeDefinition(typeName, inheritList, propertyTable));
+            var fileName = "mooresmaster.g.cs";
+            if (inheritList.Length == 0)
+            {
+                var rootSchema = typeSemantics.Schema;
+                while (rootSchema.Parent != null) rootSchema = schemaTable.Table[rootSchema.Parent.Value];
+
+                var root = schemaToRootTable[rootSchema];
+                var schemaId = root.SchemaId;
+                fileName = $"mooresmaster.{schemaId}.g.cs";
+            }
+            else
+            {
+                var firstInterface = inheritList[0];
+                fileName = $"mooresmaster.{firstInterface.Name}.g.cs";
+            }
+
+            definitions.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable));
         }
 
         return definitions;
