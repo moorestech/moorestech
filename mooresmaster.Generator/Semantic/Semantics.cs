@@ -12,7 +12,8 @@ public class Semantics
     public readonly Dictionary<Guid, RootSemantics> RootSemanticsTable = new();
     public readonly Dictionary<ISchema, Guid> SchemaTypeSemanticsTable = new();
     public readonly Dictionary<Guid, TypeSemantics> TypeSemanticsTable = new();
-    
+    public readonly Dictionary<Guid, PropertySemantics> PropertySemanticsTable = new();
+
     public Guid AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
         var id = Guid.NewGuid();
@@ -20,7 +21,7 @@ public class Semantics
         OneOfInterfaceSemanticsTable.Add(interfaceSemantics.Schema, id);
         return id;
     }
-    
+
     public Guid AddTypeSemantics(TypeSemantics typeSemantics)
     {
         var id = Guid.NewGuid();
@@ -28,14 +29,21 @@ public class Semantics
         SchemaTypeSemanticsTable.Add(typeSemantics.Schema, id);
         return id;
     }
-    
+
     public Guid AddRootSemantics(RootSemantics rootSemantics)
     {
         var id = Guid.NewGuid();
         RootSemanticsTable.Add(id, rootSemantics);
         return id;
     }
-    
+
+    public Guid AddPropertySemantics(PropertySemantics propertySemantics)
+    {
+        var id = Guid.NewGuid();
+        PropertySemanticsTable.Add(id, propertySemantics);
+        return id;
+    }
+
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.InheritList) InheritList.Add(inherit);
@@ -44,10 +52,11 @@ public class Semantics
         foreach (var typeSemantics in other.TypeSemanticsTable) TypeSemanticsTable.Add(typeSemantics.Key, typeSemantics.Value);
         foreach (var kvp in other.SchemaTypeSemanticsTable) SchemaTypeSemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.OneOfInterfaceSemanticsTable) OneOfInterfaceSemanticsTable.Add(kvp.Key, kvp.Value);
-        
+        foreach (var kvp in other.PropertySemanticsTable) PropertySemanticsTable.Add(kvp.Key, kvp.Value);
+
         return this;
     }
-    
+
     public Semantics AddTo(Semantics other)
     {
         return other.Merge(this);
@@ -68,9 +77,17 @@ public record RootSemantics(Schema Root, Guid TypeId)
 ///     親要素がinterfaceになることはない
 /// </param>
 /// <param name="Schema"></param>
-public record TypeSemantics((string PropertyName, Guid? PropertyType)[] Properties, ISchema Schema)
+public record TypeSemantics(Guid[] Properties, ISchema Schema)
 {
-    public (string PropertyName, Guid? PropertyType)[] Properties = Properties;
+    public Guid[] Properties = Properties;
+    public ISchema Schema = Schema;
+}
+
+public record PropertySemantics(Guid ParentTypeId, string PropertyName, Guid? PropertyType, ISchema Schema)
+{
+    public Guid ParentTypeId = ParentTypeId;
+    public string PropertyName = PropertyName;
+    public Guid? PropertyType = PropertyType;
     public ISchema Schema = Schema;
 }
 

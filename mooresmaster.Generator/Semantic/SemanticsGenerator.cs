@@ -81,25 +81,49 @@ public static class SemanticsGenerator
     {
         var semantics = new Semantics();
         var typeId = Guid.NewGuid();
-        var properties = new List<(string PropertyName, Guid? PropertyType)>();
+        var properties = new List<Guid>();
         foreach (var property in objectSchema.Properties)
-            switch (table.Table[property.Value])
+        {
+            var schema = table.Table[property.Value];
+            switch (schema)
             {
                 case ObjectSchema innerObjectSchema:
                     var (objectInnerSemantics, objectInnerTypeId) = Generate(innerObjectSchema, table);
                     objectInnerSemantics.AddTo(semantics);
-                    properties.Add((property.Key, objectInnerTypeId));
+                    properties.Add(semantics.AddPropertySemantics(
+                        new PropertySemantics(
+                            typeId,
+                            property.Key,
+                            objectInnerTypeId,
+                            schema
+                        )
+                    ));
                     break;
                 case OneOfSchema oneOfSchema:
                     var (oneOfInnerSemantics, oneOfInnerTypeId) = Generate(oneOfSchema, table);
                     oneOfInnerSemantics.AddTo(semantics);
-                    properties.Add((property.Key, oneOfInnerTypeId));
+                    properties.Add(semantics.AddPropertySemantics(
+                        new PropertySemantics(
+                            typeId,
+                            property.Key,
+                            oneOfInnerTypeId,
+                            schema
+                        )
+                    ));
                     break;
                 default:
                     Generate(table.Table[property.Value], table).AddTo(semantics);
-                    properties.Add((property.Key, null));
+                    properties.Add(semantics.AddPropertySemantics(
+                        new PropertySemantics(
+                            typeId,
+                            property.Key,
+                            null,
+                            schema
+                        )
+                    ));
                     break;
             }
+        }
 
         var typeSemantics = new TypeSemantics(properties.ToArray(), objectSchema);
         semantics.TypeSemanticsTable[typeId] = typeSemantics;
