@@ -7,13 +7,13 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public readonly List<(InterfaceId interfaceId, TypeId typeId)> InheritList = new(); // (InterfaceId, TypeId)
+    public readonly List<(InterfaceId interfaceId, ClassId typeId)> InheritList = new(); // (InterfaceId, TypeId)
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<OneOfSchema, InterfaceId> OneOfInterfaceSemanticsTable = new();
     public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
     public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
-    public readonly Dictionary<ISchema, TypeId> SchemaTypeSemanticsTable = new();
-    public readonly Dictionary<TypeId, TypeSemantics> TypeSemanticsTable = new();
+    public readonly Dictionary<ISchema, ClassId> SchemaTypeSemanticsTable = new();
+    public readonly Dictionary<ClassId, TypeSemantics> TypeSemanticsTable = new();
 
     public InterfaceId AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
@@ -23,9 +23,9 @@ public class Semantics
         return id;
     }
 
-    public TypeId AddTypeSemantics(TypeSemantics typeSemantics)
+    public ClassId AddTypeSemantics(TypeSemantics typeSemantics)
     {
-        var id = TypeId.New();
+        var id = ClassId.New();
         TypeSemanticsTable.Add(id, typeSemantics);
         SchemaTypeSemanticsTable.Add(typeSemantics.Schema, id);
         return id;
@@ -64,10 +64,10 @@ public class Semantics
     }
 }
 
-public record RootSemantics(Schema Root, TypeId TypeId)
+public record RootSemantics(Schema Root, ClassId ClassId)
 {
+    public ClassId ClassId = ClassId;
     public Schema Root = Root;
-    public TypeId TypeId = TypeId;
 }
 
 /// <summary>
@@ -84,11 +84,11 @@ public record TypeSemantics(PropertyId[] Properties, ISchema Schema)
     public ISchema Schema = Schema;
 }
 
-public record PropertySemantics(TypeId ParentTypeId, string PropertyName, PropertyId? PropertyType, ISchema Schema)
+public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, ITypeId? PropertyType, ISchema Schema)
 {
-    public TypeId ParentTypeId = ParentTypeId;
+    public ITypeId ParentTypeId = ParentTypeId;
     public string PropertyName = PropertyName;
-    public PropertyId? PropertyType = PropertyType;
+    public ITypeId? PropertyType = PropertyType;
     public ISchema Schema = Schema;
 }
 
@@ -103,8 +103,10 @@ public readonly partial struct RootId;
 [UnitOf(typeof(Guid))]
 public readonly partial struct PropertyId;
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct TypeId;
+public interface ITypeId;
 
 [UnitOf(typeof(Guid))]
-public readonly partial struct InterfaceId;
+public readonly partial struct ClassId : ITypeId;
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct InterfaceId : ITypeId;
