@@ -41,7 +41,8 @@
                   "foreignKey": "items:itemId:name"
                 },
                 "count": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 1
                 }
               }
             }
