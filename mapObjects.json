@@ -10,16 +10,19 @@
         "properties": {
 
           "mapObjectType": {
-            "type": "string"
+            "type": "string",
+            "default": "mapObjectType"
           },
           "hp": {
-            "type": "integer"
+            "type": "integer",
+            "default": 100
           },
           "earnItemHps": {
             "type": "array",
             "items": {
               "type": "integer"
-            }
+            },
+            "default": [0]
           },
           "earnItems": {
             "type": "array",
@@ -33,10 +36,12 @@
                   "foreignKey": "items:itemId:name"
                 },
                 "minCount": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 1
                 },
                 "maxCount": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 3
                 }
               }
             }
@@ -53,10 +58,12 @@
                   "foreignKey": "items:itemId:name"
                 },
                 "damage": {
-                  "type": "integer"
+                  "type": "integer",
+                    "default": 10
                 },
                 "attackSpeed": {
-                  "type": "number"
+                  "type": "number",
+                    "default": 1
                 }
               }
             }

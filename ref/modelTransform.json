@@ -12,21 +12,24 @@
       "pattern": "@vector3",
       "items": {
         "type": "number"
-      }
+      },
+      "default": [0, 0, 0]
     },
     "rotation": {
       "type": "array",
       "pattern": "@vector3",
       "items": {
         "type": "number"
-      }
+      },
+      "default": [0, 0, 0]
     },
     "scale": {
       "type": "array",
       "pattern": "@vector3",
       "items": {
         "type": "number"
-      }
+      },
+      "default": [1, 1, 1]
     }
   }
 }
