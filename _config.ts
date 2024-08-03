@@ -5,7 +5,7 @@ import craftRecipes from './craftRecipes.json';
 import mapObjects from './mapObjects.json';
 import machineRecipes from './machineRecipes.json';
 import gearConnects from './ref/gearConnects.json';
-import inputConnects from './ref/inputConnects.json';
+import inputConnects from './ref/inventoryConnects.json';
 import modelTransform from './ref/modelTransform.json';
 import { RefResolver } from 'json-schema-ref-resolver'
 import Ajv from 'ajv';

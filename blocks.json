@@ -61,7 +61,7 @@
                     "slot": {"type": "integer"},
                     "time": {"type": "number"},
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
@@ -81,7 +81,7 @@
                   "properties": {
                     "slot": {"type": "integer"},
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
@@ -103,7 +103,7 @@
                     "outputSlot": {"type": "integer"},
                     "requiredPower": {"type": "number"},
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
@@ -164,7 +164,7 @@
                       }
                     },
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
@@ -204,7 +204,7 @@
                       }
                     },
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
@@ -269,7 +269,7 @@
                     "requireTorque": {"type": "number"},
                     "requiredRpm": {"type": "number"},
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     },
                     "gearConnects": {
                       "$ref": "gearConnects"
@@ -315,7 +315,7 @@
                     "slot": {"type": "integer"},
                     "time": {"type": "number"},
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     },
                     "gearConnects": {
                       "$ref": "gearConnects"
@@ -341,7 +341,7 @@
                     "itemShootSpeed": {"type": "number"},
                     "acceleration": {"type": "number"},
                     "inventoryConnectors": {
-                      "$ref": "inputConnects"
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }

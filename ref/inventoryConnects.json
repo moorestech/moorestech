@@ -1,5 +1,5 @@
 {
-  "$id": "inputConnects",
+  "$id": "inventoryConnects",
 
   "type": "object",
   "required": ["inputConnects", "outputConnects"],
