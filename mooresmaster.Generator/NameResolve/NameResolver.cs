@@ -48,7 +48,7 @@ public static class NameResolver
             var typeId = kvp.Value.ClassId;
             var root = kvp.Value!;
 
-            typeNames[typeId] = root.Root.SchemaId;
+            typeNames[typeId] = root.Root.SchemaId.ToCamelCase();
         }
 
         // interfaceの名前を登録
