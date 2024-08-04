@@ -62,7 +62,7 @@ public static class CodeGenerator
             "\n",
             typeDef
                 .PropertyTable
-                .Select(kvp => $"public {GenerateTypeCode(kvp.Value)} {kvp.Key};")
+                .Select(kvp => $"public readonly {GenerateTypeCode(kvp.Value)} {kvp.Key};")
         );
     }
 
