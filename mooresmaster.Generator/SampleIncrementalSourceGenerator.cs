@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using mooresmaster.Generator.Code;
+using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
