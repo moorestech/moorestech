@@ -28,7 +28,8 @@
           },
 
           "maxStack": {
-            "type": "integer"
+            "type": "integer",
+            "default" : 100
           }
         }
       }

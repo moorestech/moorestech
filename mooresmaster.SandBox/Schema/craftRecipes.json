@@ -23,7 +23,8 @@
                 "foreignKey": "items:itemId:name"
               },
               "count": {
-                "type": "integer"
+                "type": "integer",
+                "default": 1
               }
             }
           },
@@ -40,7 +41,8 @@
                   "foreignKey": "items:itemId:name"
                 },
                 "count": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 1
                 }
               }
             }

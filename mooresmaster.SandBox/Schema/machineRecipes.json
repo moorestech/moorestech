@@ -16,7 +16,8 @@
             "foreignKey": "blocks:blockId:name"
           },
           "time": {
-            "type": "number"
+            "type": "number",
+            "default": 1
           },
           "input": {
             "type": "array",
@@ -30,7 +31,8 @@
                   "foreignKey": "items:itemId:name"
                 },
                 "count": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 1
                 }
               }
             }
@@ -47,10 +49,12 @@
                   "foreignKey": "items:itemId:name"
                 },
                 "count": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 1
                 },
                 "percent": {
                   "type": "number",
+                  "default": 1,
                   "minimum": 0,
                   "maximum": 1
                 }
