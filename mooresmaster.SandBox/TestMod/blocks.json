@@ -1,3 +1,157 @@
 {
-  "data": []
+  "data": [
+    {
+      "blockType": "BeltConveyor",
+      "itemId": "983baff6-2e07-4c85-a360-274418663017",
+      "param": {
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  1,
+                  1
+                ]
+              ]
+            },
+            {
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "time": 2,
+        "slot": 2
+      },
+      "modelTransform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "name": "ベルトコンベア",
+      "blockId": "5230da46-5590-40a5-94f1-1991c767c3b3"
+    },
+    {
+      "blockType": "GearMachine",
+      "itemId": "0dbebd32-2676-4e09-9038-31cacaf18441",
+      "size": [
+        1,
+        1,
+        1
+      ],
+      "blockId": "bada178f-30c0-467a-bbba-48572a702003",
+      "param": {
+        "inputSlot": 1,
+        "outputSlot": 1,
+        "teethCount": 10,
+        "requireTorque": 1,
+        "requiredRpm": 5,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "directions": [
+              [
+                1,
+                1,
+                1
+              ]
+            ],
+            "option": {
+              "isReverse": true,
+              "onlySpecifiedTypes": [
+                "aaaa"
+              ]
+            }
+          }
+        ],
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  1,
+                  1
+                ]
+              ]
+            }
+          ],
+          "inputConnects": [
+            {
+              "directions": [
+                [
+                  1,
+                  1,
+                  1
+                ]
+              ],
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
 }

@@ -20,6 +20,17 @@
       "name": "石斧",
       "maxStack": 1,
       "itemId": "3786c98a-3152-4c25-a03e-5e532a822376"
+    },
+    {
+      "name": "ベルトコンベア",
+      "itemId": "983baff6-2e07-4c85-a360-274418663017",
+      "maxStack": 100
+    },
+    {
+      "imagePath": "",
+      "name": "歯車機械",
+      "maxStack": 100,
+      "itemId": "0dbebd32-2676-4e09-9038-31cacaf18441"
     }
   ]
 }
