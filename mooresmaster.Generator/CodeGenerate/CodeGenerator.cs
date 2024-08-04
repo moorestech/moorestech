@@ -5,7 +5,7 @@ using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.NameResolve;
 using Type = mooresmaster.Generator.Definitions.Type;
 
-namespace mooresmaster.Generator.Code;
+namespace mooresmaster.Generator.CodeGenerate;
 
 public record CodeFile(string FileName, string Code)
 {
