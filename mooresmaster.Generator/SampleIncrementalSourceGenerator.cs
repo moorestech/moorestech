@@ -7,6 +7,7 @@ using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
+using mooresmaster.Generator.LoaderGenerate;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 
@@ -47,6 +48,8 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         foreach (var definition in definitions.InterfaceDefinitions) Console.WriteLine($"    Interface: {definition.TypeName}");
 
         foreach (var codeFile in CodeGenerator.Generate(definitions)) context.AddSource(codeFile.FileName, codeFile.Code);
+
+        foreach (var loaderFile in LoaderGenerator.Generate(definitions)) context.AddSource(loaderFile.FileName, loaderFile.Code);
     }
 
     private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
