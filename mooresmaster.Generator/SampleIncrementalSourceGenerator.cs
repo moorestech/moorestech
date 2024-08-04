@@ -18,6 +18,8 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        context.RegisterPostInitializationOutput(static c => c.AddSource("mooresmaster.loader.BuiltinLoader.g.cs", LoaderGenerator.GenerateBuiltinLoaderCode()));
+
         context.RegisterSourceOutput(context.AdditionalTextsProvider.Collect(), Emit);
     }
 
