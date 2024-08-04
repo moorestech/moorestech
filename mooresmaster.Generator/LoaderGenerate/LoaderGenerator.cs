@@ -1,5 +1,6 @@
 using System.Linq;
 using mooresmaster.Generator.Definitions;
+using mooresmaster.Generator.NameResolve;
 
 namespace mooresmaster.Generator.LoaderGenerate;
 
@@ -22,6 +23,9 @@ public static class LoaderGenerator
 
     private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition)
     {
+        var targetType = typeDefinition.TypeName;
+        var targetTypeName = targetType.GetModelName();
+
         return (
             $"mooresmaster.loader.{typeDefinition.TypeName.ModuleName}.{typeDefinition.TypeName.Name}.g.cs",
             $$$"""
@@ -29,7 +33,10 @@ public static class LoaderGenerator
                {
                    public static class {{{typeDefinition.TypeName.Name}}}Loader
                    {
-                       
+                       public static {{{targetTypeName}}} Load()
+                       {
+                           return new {{{targetTypeName}}}();
+                       }
                    }
                }
                """
