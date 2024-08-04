@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "mapObjectType": "vanilla:Pebble",
+      "hp": 1,
+      "earnItemHps": [
+        0
+      ],
+      "earnItems": [
+        {
+          "itemId": "7363a3a3-dc26-4101-bd71-832ee92d4b3b",
+          "minCount": 1,
+          "maxCount": 2
+        }
+      ],
+      "resultItem": {
+        "itemId": "8bf058ae-539e-4872-b5c5-011e0bbc0422",
+        "count": 1
+      },
+      "requiredItems": [
+        {
+          "itemId": "7363a3a3-dc26-4101-bd71-832ee92d4b3b",
+          "count": 3
+        }
+      ]
+    }
+  ]
+}
