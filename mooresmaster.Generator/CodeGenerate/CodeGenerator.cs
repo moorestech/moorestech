@@ -49,6 +49,8 @@ public static class CodeGenerator
                       public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}}
                       {
                           {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
+                          
+                          {{{GenerateTypeConstructorCode(typeDef).Indent(level: 2)}}}
                       }
                   }
                   """;
@@ -62,6 +64,16 @@ public static class CodeGenerator
                 .PropertyTable
                 .Select(kvp => $"public {GenerateTypeCode(kvp.Value)} {kvp.Key};")
         );
+    }
+
+    private static string GenerateTypeConstructorCode(TypeDefinition typeDef)
+    {
+        return $$$"""
+                  public {{{typeDef.TypeName.Name}}}({{{string.Join(", ", typeDef.PropertyTable.Select(kvp => $"{GenerateTypeCode(kvp.Value)} {kvp.Key}"))}}})
+                  {
+                      {{{string.Join("\n", typeDef.PropertyTable.Select(kvp => $"this.{kvp.Key} = {kvp.Key};")).Indent()}}}
+                  }
+                  """;
     }
 
     private static string GenerateTypeCode(Type type)
