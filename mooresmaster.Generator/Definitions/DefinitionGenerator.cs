@@ -100,7 +100,7 @@ public static class DefinitionGenerator
 
                 break;
             case OneOfSchema:
-                propertyTable["value"] = new CustomType(nameTable.TypeNames[classId].GetName());
+                propertyTable["value"] = new CustomType(nameTable.TypeNames[classId].GetModelName());
                 break;
             case RefSchema refSchema:
                 propertyTable["value"] = new CustomType(refSchema.Ref);

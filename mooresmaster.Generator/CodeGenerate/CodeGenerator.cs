@@ -44,7 +44,7 @@ public static class CodeGenerator
     private static string GenerateTypeDefinitionCode(TypeDefinition typeDef)
     {
         return $$$"""
-                  namespace {{{typeDef.TypeName.NameSpace}}}
+                  namespace Mooresmaster.Model.{{{typeDef.TypeName.ModuleName}}}
                   {
                       public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}}
                       {
@@ -80,7 +80,7 @@ public static class CodeGenerator
             Vector2IntType => "global::UnityEngine.Vector2Int",
             Vector3IntType => "global::UnityEngine.Vector3Int",
             UUIDType => "global::System.Guid",
-            CustomType customType => customType.Name,
+            CustomType customType => $"{customType.Name}",
             _ => throw new ArgumentOutOfRangeException(type.GetType().Name)
         };
     }
@@ -88,7 +88,7 @@ public static class CodeGenerator
     private static string GenerateInterfaceCode(InterfaceDefinition interfaceDef)
     {
         return $$$"""
-                  namespace {{{interfaceDef.TypeName.NameSpace}}}
+                  namespace Mooresmaster.Model.{{{interfaceDef.TypeName.ModuleName}}}
                   {
                       public interface {{{interfaceDef.TypeName.Name}}} { }
                   }
@@ -97,7 +97,7 @@ public static class CodeGenerator
 
     private static string GenerateInheritCode(TypeDefinition type)
     {
-        return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList.Select(t => t.GetName()))}" : "";
+        return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList.Select(t => t.GetModelName()))}" : "";
     }
 
     private static string Indent(this string code, bool firstLine = false, int level = 1)
