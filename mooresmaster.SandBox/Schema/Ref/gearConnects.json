@@ -10,7 +10,8 @@
         "pattern": "@vector3Int",
         "items": {
           "type": "integer"
-        }
+        },
+        "default": [0, 0, 0]
       },
       "directions": {
         "type": "array",
@@ -20,14 +21,16 @@
           "items": {
             "type": "integer"
           }
-        }
+        },
+        "default": [0, 0, 0]
       },
       "option": {
         "type": "object",
         "required": ["isReverse", "onlySpecifiedTypes"],
         "properties": {
           "isReverse": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
           },
           "onlySpecifiedTypes": {
             "type": "array",

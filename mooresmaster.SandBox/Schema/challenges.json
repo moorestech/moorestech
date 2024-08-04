@@ -20,17 +20,21 @@
             "foreignKey": "challenges:challengeId:summary"
           },
           "summary": {
-            "type": "string"
+            "type": "string",
+            "default": "New Challenge"
           },
           "fireSkitType": {
             "type": "string",
+            "default": "backgroundSkit",
             "enum" : ["backgroundSkit"]
           },
           "fireSkitName": {
-            "type": "string"
+            "type": "string",
+            "default": "skit name"
           },
           "taskCompletionType": {
             "type": "string",
+            "default": "createItem",
             "enum": ["createItem", "inInventoryItem","blockPlace"]
           },
           "taskParam": {
@@ -69,7 +73,8 @@
                       "foreignKey": "items:itemId:name"
                     },
                     "itemCount": {
-                      "type": "integer"
+                      "type": "integer",
+                        "default": 1
                     }
                   }
                 }
@@ -86,6 +91,7 @@
 
                 "tutorialType": {
                   "type": "string",
+                  "default": "uiHighLight",
                   "enum": ["mapObjectPin", "keyControl", "uiHighLight"]
                 },
 
@@ -106,7 +112,8 @@
                             "foreignKey": "mapObjects:mapObjectType:mapObjectType"
                           },
                           "pinText": {
-                            "type": "string"
+                            "type": "string",
+                            "default": "pin text"
                           }
                         }
                       }
@@ -123,10 +130,12 @@
                         "properties": {
                           "uiState": {
                             "type": "string",
-                            "enum" : ["GameScreen","PlayerInventory", "BlockInventory", "PauseMenu","DeleteBar","Story","PlaceBlock"]
+                            "enum" : ["GameScreen","PlayerInventory", "BlockInventory", "PauseMenu","DeleteBar","Story","PlaceBlock"],
+                            "default": "GameScreen"
                           },
                           "controlText": {
-                            "type": "string"
+                            "type": "string",
+                            "default": "control text"
                           }
                         }
                       }
@@ -142,10 +151,12 @@
                         "type": "object",
                         "properties": {
                           "highLightUIObjectId": {
-                            "type": "string"
+                            "type": "string",
+                            "default": "ui object id"
                           },
                           "highLightText": {
-                            "type": "string"
+                            "type": "string",
+                            "default": "highlight text"
                           }
                         }
                       }

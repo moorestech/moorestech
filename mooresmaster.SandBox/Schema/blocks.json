@@ -40,7 +40,8 @@
             "pattern": "@vector3Int",
             "items": {
               "type": "integer"
-            }
+            },
+            "default": [1,1,1]
           },
 
           "param": {
@@ -58,8 +59,8 @@
                   "required": ["slot", "time", "inventoryConnectors"],
 
                   "properties": {
-                    "slot": {"type": "integer"},
-                    "time": {"type": "number"},
+                    "slot": {"type": "integer", "default": 1},
+                    "time": {"type": "number", "default": 1},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -79,7 +80,7 @@
                   "required": ["slot", "inventoryConnectors"],
 
                   "properties": {
-                    "slot": {"type": "integer"},
+                    "slot": {"type": "integer", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -99,9 +100,9 @@
                   "required": ["inputSlot", "outputSlot", "requiredPower", "inventoryConnectors"],
 
                   "properties": {
-                    "inputSlot": {"type": "integer"},
-                    "outputSlot": {"type": "integer"},
-                    "requiredPower": {"type": "number"},
+                    "inputSlot": {"type": "integer", "default": 1},
+                    "outputSlot": {"type": "integer", "default": 1},
+                    "requiredPower": {"type": "number", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -121,8 +122,8 @@
                   "required": ["poleConnectionRange", "machineConnectionRange"],
 
                   "properties": {
-                    "poleConnectionRange": {"type": "integer"},
-                    "machineConnectionRange": {"type": "integer"}
+                    "poleConnectionRange": {"type": "integer", "default": 5},
+                    "machineConnectionRange": {"type": "integer", "default": 5}
                   }
                 }
               },
@@ -139,8 +140,8 @@
                   "required": ["isInfinityPower", "infinityPower", "fuelSlot", "inventoryConnectors"],
 
                   "properties": {
-                    "isInfinityPower": {"type": "boolean"},
-                    "infinityPower": {"type": "integer"},
+                    "isInfinityPower": {"type": "boolean", "default": false},
+                    "infinityPower": {"type": "integer", "default": 0},
                     "fuelSlot": {
                       "type": "array",
                       "items": {
@@ -155,10 +156,12 @@
                           },
 
                           "time": {
-                            "type": "number"
+                            "type": "number",
+                            "default": 1
                           },
                           "power": {
-                            "type": "number"
+                            "type": "number",
+                            "default": 10
                           }
                         }
                       }
@@ -182,8 +185,8 @@
                   "required": ["requiredPower","outputSlot","mineSettings","inventoryConnectors"],
 
                   "properties": {
-                    "requiredPower": {"type": "number"},
-                    "outputSlot": {"type": "integer"},
+                    "requiredPower": {"type": "number", "default": 5},
+                    "outputSlot": {"type": "integer", "default": 3},
                     "mineSettings": {
                       "type": "array",
                       "items": {
@@ -198,7 +201,8 @@
                           },
 
                           "time": {
-                            "type": "number"
+                            "type": "number",
+                            "default": 1
                           }
                         }
                       }
@@ -222,8 +226,8 @@
                   "required": ["teethCount", "requireTorque", "gearConnects"],
 
                   "properties": {
-                    "teethCount": {"type": "integer"},
-                    "requireTorque": {"type": "number"},
+                    "teethCount": {"type": "integer", "default": 10},
+                    "requireTorque": {"type": "number", "default": 1},
                     "gearConnects": {
                       "$ref": "gearConnects"
                     }
@@ -243,7 +247,7 @@
                   "required": ["requireTorque", "gearConnects"],
 
                   "properties": {
-                    "requireTorque": {"type": "number"},
+                    "requireTorque": {"type": "number", "default": 1},
                     "gearConnects": {
                       "$ref": "gearConnects"
                     }
@@ -263,11 +267,11 @@
                   "required": ["inputSlot", "outputSlot", "teethCount","requireTorque","requiredRpm", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
-                    "inputSlot": {"type": "integer"},
-                    "outputSlot": {"type": "integer"},
-                    "teethCount": {"type": "integer"},
-                    "requireTorque": {"type": "number"},
-                    "requiredRpm": {"type": "number"},
+                    "inputSlot": {"type": "integer", "default": 1},
+                    "outputSlot": {"type": "integer", "default": 1},
+                    "teethCount": {"type": "integer", "default": 10},
+                    "requireTorque": {"type": "number", "default": 1},
+                    "requiredRpm": {"type": "number", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
@@ -290,9 +294,9 @@
                   "required": ["teethCount","generateRpm","generateTorque", "gearConnects"],
 
                   "properties": {
-                    "teethCount": {"type": "integer"},
-                    "generateRpm": {"type": "number"},
-                    "generateTorque": {"type": "number"},
+                    "teethCount": {"type": "integer", "default": 10},
+                    "generateRpm": {"type": "number", "default": 5},
+                    "generateTorque": {"type": "number", "default": 1},
                     "gearConnects": {
                       "$ref": "gearConnects"
                     }
@@ -312,8 +316,8 @@
                   "required": ["slot", "time", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
-                    "slot": {"type": "integer"},
-                    "time": {"type": "number"},
+                    "slot": {"type": "integer", "default": 4},
+                    "time": {"type": "number", "default": 2},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
@@ -336,10 +340,10 @@
                   "required": ["inventoryItemNum", "initialShootSpeed", "itemShootSpeed", "acceleration", "inventoryConnectors"],
 
                   "properties": {
-                    "inventoryItemNum": {"type": "integer"},
-                    "initialShootSpeed": {"type": "number"},
-                    "itemShootSpeed": {"type": "number"},
-                    "acceleration": {"type": "number"},
+                    "inventoryItemNum": {"type": "integer", "default": 4},
+                    "initialShootSpeed": {"type": "number", "default": 3},
+                    "itemShootSpeed": {"type": "number", "default": 2},
+                    "acceleration": {"type": "number", "default": 1},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }

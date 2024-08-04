@@ -19,7 +19,8 @@
             "pattern": "@vector3Int",
             "items": {
               "type": "integer"
-            }
+            },
+            "default": [0, 0, 0]
           },
 
           "directions": {
@@ -29,7 +30,8 @@
               "pattern": "@vector3Int",
               "items": {
                 "type": "integer"
-              }
+              },
+              "default": [0, 0, 0]
             }
           }
         }
