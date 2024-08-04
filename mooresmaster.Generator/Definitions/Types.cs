@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
@@ -36,11 +37,18 @@ public record Type
                 "uuid" => new UUIDType(),
                 _ => new StringType()
             },
-            ObjectSchema => new CustomType(nameTable.TypeNames[typeId].GetName()),
-            OneOfSchema => new CustomType(nameTable.TypeNames[typeId].GetName()),
-            RefSchema refSchema => new CustomType(refSchema.Ref),
+            ObjectSchema => new CustomType(nameTable.TypeNames[typeId].GetModelName()),
+            OneOfSchema => new CustomType(nameTable.TypeNames[typeId].GetModelName()),
+            RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)].GetModelName()),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };
+    }
+
+    private static ITypeId GetRefTypeId(RefSchema schema, Semantics semantics)
+    {
+        var schemaClassId = semantics.RootSemanticsTable.First(root => root.Value.Root.SchemaId == schema.Ref).Value.ClassId;
+
+        return schemaClassId;
     }
 }
 

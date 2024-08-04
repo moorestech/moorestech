@@ -7,13 +7,14 @@ using mooresmaster.Generator.Semantic;
 
 namespace mooresmaster.Generator.NameResolve;
 
-public record struct TypeName(string Name, string NameSpace);
+public record struct TypeName(string Name, string ModuleName);
 
 public class NameTable(Dictionary<ITypeId, TypeName> typeNames, Dictionary<PropertyId, string> propertyNames)
 {
+    public readonly Dictionary<PropertyId, string> PropertyNames = propertyNames;
+
 //    public readonly Dictionary<string, Guid> Ids = names.ToDictionary(x => x.Value, x => x.Key);
     public readonly Dictionary<ITypeId, TypeName> TypeNames = typeNames;
-    public readonly Dictionary<PropertyId, string> PropertyNames = propertyNames;
 }
 
 public static class NameResolver
@@ -70,49 +71,47 @@ public static class NameResolver
             var parentNames = new List<string>();
             var schema = typeId switch
             {
-                ClassId classId => semantics.TypeSemanticsTable[classId].Schema.Parent,
-                InterfaceId interfaceId => semantics.InterfaceSemanticsTable[interfaceId].Schema.Parent,
+                ClassId classId => semantics.TypeSemanticsTable[classId].Schema,
+                InterfaceId interfaceId => semantics.InterfaceSemanticsTable[interfaceId].Schema,
                 _ => throw new ArgumentOutOfRangeException(nameof(typeId))
             };
 
-            while (schema is not null)
+            var parentSchema = schema.Parent;
+            var currentSchema = parentSchema;
+            while (currentSchema is not null)
             {
-                if (schemaTable.Table[schema.Value].Parent is null)
+                if (schemaTable.Table[currentSchema.Value].Parent is null)
                 {
-                    parentNames.Add(schemaToRoot[schemaTable.Table[schema.Value]].Root.SchemaId);
+                    parentNames.Add(schemaToRoot[schemaTable.Table[currentSchema.Value]].Root.SchemaId);
                     break;
                 }
 
-                switch (schemaTable.Table[schema.Value])
+                switch (schemaTable.Table[currentSchema.Value])
                 {
                     case ArraySchema arraySchema:
                         if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = $"{arraySchema.PropertyName}Element";
 
                         parentNames.Add(arraySchema.PropertyName);
-                        schema = arraySchema.Parent;
+                        currentSchema = arraySchema.Parent;
                         break;
                     case ObjectSchema objectSchema:
                         parentNames.Add(objectSchema.PropertyName);
-                        schema = objectSchema.Parent;
+                        currentSchema = objectSchema.Parent;
                         break;
                     case OneOfSchema oneOfSchema:
                         parentNames.Add(oneOfSchema.PropertyName);
-                        schema = oneOfSchema.Parent;
+                        currentSchema = oneOfSchema.Parent;
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(schema));
+                        throw new ArgumentOutOfRangeException(nameof(currentSchema));
                 }
             }
 
             //一応残しておく nameSpaces[typeId] = $"mooresmaster{string.Join("", ((IEnumerable<string>)parentNames).Reverse().Select(n => $".{n}Module"))}";
-            var nameSpace = "Mooresmaster.Model";
-            if (0 < parentNames.Count)
-            {
-                var lastName = parentNames[parentNames.Count - 1].ToCamelCase();
-                nameSpace += $".{lastName}Module";
-            }
+            var lastName = (0 < parentNames.Count ? parentNames[parentNames.Count - 1] : schema.PropertyName ?? schemaToRoot[schema].Root.SchemaId).ToCamelCase();
+            lastName = $"{lastName}Module";
 
-            nameSpaces[typeId] = nameSpace;
+            nameSpaces[typeId] = lastName;
         }
 
         // propertyの名前を登録
@@ -167,9 +166,9 @@ public static class NameResolver
         throw new Exception();
     }
 
-    public static string GetName(this TypeName typeName)
+    public static string GetModelName(this TypeName typeName)
     {
-        return $"{typeName.NameSpace}.{typeName.Name}";
+        return $"Mooresmaster.Model.{typeName.ModuleName}.{typeName.Name}";
     }
 
     private static string ToCamelCase(this string name)
