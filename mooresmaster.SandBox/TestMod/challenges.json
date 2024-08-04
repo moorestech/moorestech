@@ -1,0 +1,79 @@
+{
+  "data": [
+    {
+      "taskCompletionType": "inInventoryItem",
+      "summary": "石を集める",
+      "fireSkitType": "backgroundSkit",
+      "fireSkitName": "木3個",
+      "challengeId": "45f74367-7690-41f1-916c-5195efcc1709",
+      "taskParam": {
+        "itemId": null,
+        "itemCount": 3
+      },
+      "tutorials": [
+        {
+          "tutorialType": "mapObjectPin",
+          "tutorialParam": {
+            "mapObjectType": "vanilla:Pebble",
+            "pinText": "左クリックで石を採掘"
+          }
+        }
+      ]
+    },
+    {
+      "summary": "石器を作る",
+      "taskCompletionType": "createItem",
+      "fireSkitType": "backgroundSkit",
+      "fireSkitName": "石器",
+      "prevId": "45f74367-7690-41f1-916c-5195efcc1709",
+      "taskParam": {
+        "itemId": "8bf058ae-539e-4872-b5c5-011e0bbc0422"
+      },
+      "tutorials": [
+        {
+          "tutorialType": "keyControl",
+          "tutorialParam": {
+            "uiState": "GameScreen",
+            "controlText": "Tabを押してインベントリを開く"
+          }
+        },
+        {
+          "tutorialType": "uiHighLight",
+          "tutorialParam": {
+            "highLightUIObjectId": "itemRecipeList:stone tool",
+            "highLightText": "1. レシピを選択"
+          }
+        },
+        {
+          "tutorialType": "uiHighLight",
+          "tutorialParam": {
+            "highLightUIObjectId": "craftButton",
+            "highLightText": "2. クラフトボタン長押し"
+          }
+        }
+      ],
+      "challengeId": "26599fe3-59b0-49f4-b516-9560bedae660"
+    },
+    {
+      "summary": "木を集めよう",
+      "prevId": "26599fe3-59b0-49f4-b516-9560bedae660",
+      "fireSkitType": "backgroundSkit",
+      "fireSkitName": "木を集めよう",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemId": "a2b46041-3c89-4b99-9973-72686677bd13",
+        "itemCount": 3
+      },
+      "tutorials": [
+        {
+          "tutorialType": "mapObjectPin",
+          "tutorialParam": {
+            "mapObjectType": "vanilla:Tree",
+            "pinText": "左クリックで木を採掘"
+          }
+        }
+      ],
+      "challengeId": "39361be2-7b3b-42c4-b991-78385e4bb819"
+    }
+  ]
+}

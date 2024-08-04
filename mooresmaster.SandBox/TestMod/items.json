@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "name": "石",
+      "maxStack": 100,
+      "imagePath": "asset/item/stone.png",
+      "itemId": "7363a3a3-dc26-4101-bd71-832ee92d4b3b"
+    },
+    {
+      "name": "石器",
+      "maxStack": 1,
+      "itemId": "8bf058ae-539e-4872-b5c5-011e0bbc0422"
+    },
+    {
+      "name": "木",
+      "maxStack": 100,
+      "itemId": "a2b46041-3c89-4b99-9973-72686677bd13"
+    },
+    {
+      "name": "石斧",
+      "maxStack": 1,
+      "itemId": "3786c98a-3152-4c25-a03e-5e532a822376"
+    }
+  ]
+}
