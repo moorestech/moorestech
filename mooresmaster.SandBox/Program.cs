@@ -1,4 +1,6 @@
-﻿namespace mooresmaster.SandBox;
+﻿using Newtonsoft.Json;
+
+namespace mooresmaster.SandBox;
 
 internal static class Program
 {
@@ -10,6 +12,12 @@ internal static class Program
         var jsonPaths = Directory.GetFiles(testModJsonsDirectoryPath);
         var jsons = jsonPaths.Select(File.ReadAllText);
 
-        foreach (var json in jsons) Console.WriteLine(json);
+        foreach (var jsonFile in jsons)
+        {
+            // Console.WriteLine(jsonFile);
+            dynamic jsonData = JsonConvert.DeserializeObject(jsonFile);
+
+            Console.WriteLine(jsonData);
+        }
     }
 }
