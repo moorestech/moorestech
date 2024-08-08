@@ -37,7 +37,7 @@ public static class LoaderGenerator
                    {
                        public static {{{targetTypeName}}} Load()
                        {
-                           {{{GeneratePropertyLoaderCode(typeDefinition)}}}
+                           {{{GeneratePropertyLoaderCode(typeDefinition).Indent(level: 3)}}}
                        
                            return new {{{targetTypeName}}}({{{string.Join(", ", typeDefinition.PropertyTable.Select(property => property.Key))}}});
                        }
@@ -61,22 +61,22 @@ public static class LoaderGenerator
 
     private static string GetLoaderName(Type type)
     {
-        return $"Mooresmaster.Loader.{
+        return $"{
             type switch
             {
-                BooleanType booleanType => "BuiltinLoader.LoadBoolean",
-                ArrayType arrayType => "BuiltinLoader.LoadArray",
-                DictionaryType dictionaryType => "BuiltinLoader.LoadDictionary",
-                FloatType floatType => "BuiltinLoader.LoadBoolean",
-                IntType intType => "BuiltinLoader.LoadInt",
-                StringType stringType => "BuiltinLoader.LoadString",
-                UUIDType uuidType => "BuiltinLoader.LoadUUID",
-                Vector2IntType vector2IntType => "BuiltinLoader.LoadVector2Int",
-                Vector2Type vector2Type => "BuiltinLoader.LoadVector2",
-                Vector3IntType vector3IntType => "BuiltinLoader.LoadVector3Int",
-                Vector3Type vector3Type => "BuiltinLoader.LoadVector3",
-                Vector4Type vector4Type => "BuiltinLoader.LoadVector4",
-                CustomType customType => $"{customType.Name}Loader.Load",
+                BooleanType booleanType => "Mooresmaster.Loader.BuiltinLoader.LoadBoolean",
+                ArrayType arrayType => "Mooresmaster.Loader.BuiltinLoader.LoadArray",
+                DictionaryType dictionaryType => "Mooresmaster.Loader.BuiltinLoader.LoadDictionary",
+                FloatType floatType => "Mooresmaster.Loader.BuiltinLoader.LoadFloat",
+                IntType intType => "Mooresmaster.Loader.BuiltinLoader.LoadInt",
+                StringType stringType => "Mooresmaster.Loader.BuiltinLoader.LoadString",
+                UUIDType uuidType => "Mooresmaster.Loader.BuiltinLoader.LoadUUID",
+                Vector2IntType vector2IntType => "Mooresmaster.Loader.BuiltinLoader.LoadVector2Int",
+                Vector2Type vector2Type => "Mooresmaster.Loader.BuiltinLoader.LoadVector2",
+                Vector3IntType vector3IntType => "Mooresmaster.Loader.BuiltinLoader.LoadVector3Int",
+                Vector3Type vector3Type => "Mooresmaster.Loader.BuiltinLoader.LoadVector3",
+                Vector4Type vector4Type => "Mooresmaster.Loader.BuiltinLoader.LoadVector4",
+                CustomType customType => $"{customType.Name.GetLoaderName()}.Load",
                 _ => throw new ArgumentOutOfRangeException(nameof(type))
             }
         }";

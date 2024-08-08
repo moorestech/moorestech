@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.Json;
+using mooresmaster.Generator.NameResolve;
 using UnitGenerator;
 
 namespace mooresmaster.Generator.JsonSchema;
@@ -93,6 +94,11 @@ public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref) : IS
     public string Ref = Ref;
     public string? PropertyName { get; } = PropertyName;
     public SchemaId? Parent { get; } = Parent;
+
+    public TypeName GetRefName()
+    {
+        return new TypeName(Ref, $"{Ref}Module");
+    }
 }
 
 [UnitOf(typeof(Guid))]

@@ -100,10 +100,10 @@ public static class DefinitionGenerator
 
                 break;
             case OneOfSchema:
-                propertyTable["value"] = new CustomType(nameTable.TypeNames[classId].GetModelName());
+                propertyTable["value"] = new CustomType(nameTable.TypeNames[classId]);
                 break;
             case RefSchema refSchema:
-                propertyTable["value"] = new CustomType(refSchema.Ref);
+                propertyTable["value"] = new CustomType(refSchema.GetRefName());
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(typeSemantics.Schema));

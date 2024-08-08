@@ -171,6 +171,11 @@ public static class NameResolver
         return $"Mooresmaster.Model.{typeName.ModuleName}.{typeName.Name}";
     }
 
+    public static string GetLoaderName(this TypeName typeName)
+    {
+        return $"Mooresmaster.Loader.{typeName.ModuleName}.{typeName.Name}Loader";
+    }
+
     private static string ToCamelCase(this string name)
     {
         return name.Substring(0, 1).ToUpper() + name.Substring(1);
