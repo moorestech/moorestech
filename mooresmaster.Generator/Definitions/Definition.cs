@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using mooresmaster.Generator.NameResolve;
+using mooresmaster.Generator.Semantic;
 
 namespace mooresmaster.Generator.Definitions;
 
@@ -16,11 +17,13 @@ public record InterfaceDefinition(string FileName, TypeName TypeName)
     public TypeName TypeName = TypeName;
 }
 
-public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] InheritList, Dictionary<string, Type> PropertyTable)
+public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] InheritList, Dictionary<string, PropertyDefinition> PropertyTable)
 {
     public string FileName = FileName;
 
     public TypeName[] InheritList = InheritList;
-    public Dictionary<string, Type> PropertyTable = PropertyTable;
+    public Dictionary<string, PropertyDefinition> PropertyTable = PropertyTable;
     public TypeName TypeName = TypeName;
 }
+
+public record struct PropertyDefinition(Type Type, PropertyId? PropertyId);

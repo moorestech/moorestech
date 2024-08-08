@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace mooresmaster.SandBox;
 
@@ -10,14 +11,24 @@ internal static class Program
 
         var testModJsonsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestMod");
         var jsonPaths = Directory.GetFiles(testModJsonsDirectoryPath);
-        var jsons = jsonPaths.Select(File.ReadAllText);
+        var jsons = jsonPaths.Select(path => (path, File.ReadAllText(path)));
 
-        foreach (var jsonFile in jsons)
+        foreach (var (path, json) in jsons)
         {
             // Console.WriteLine(jsonFile);
-            dynamic jsonData = JsonConvert.DeserializeObject(jsonFile);
+            var jsonData = (JObject)JsonConvert.DeserializeObject(json);
 
-            Console.WriteLine(jsonData);
+            try
+            {
+                var value = jsonData["data"][0].ToString();
+                Console.WriteLine(value);
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"throw from {path}\n{e}");
+                Console.ResetColor();
+            }
         }
     }
 }

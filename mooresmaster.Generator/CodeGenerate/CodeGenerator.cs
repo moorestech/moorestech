@@ -62,14 +62,14 @@ public static class CodeGenerator
             "\n",
             typeDef
                 .PropertyTable
-                .Select(kvp => $"public readonly {GenerateTypeCode(kvp.Value)} {kvp.Key};")
+                .Select(kvp => $"public readonly {GenerateTypeCode(kvp.Value.Type)} {kvp.Key};")
         );
     }
 
     private static string GenerateTypeConstructorCode(TypeDefinition typeDef)
     {
         return $$$"""
-                  public {{{typeDef.TypeName.Name}}}({{{string.Join(", ", typeDef.PropertyTable.Select(kvp => $"{GenerateTypeCode(kvp.Value)} {kvp.Key}"))}}})
+                  public {{{typeDef.TypeName.Name}}}({{{string.Join(", ", typeDef.PropertyTable.Select(kvp => $"{GenerateTypeCode(kvp.Value.Type)} {kvp.Key}"))}}})
                   {
                       {{{string.Join("\n", typeDef.PropertyTable.Select(kvp => $"this.{kvp.Key} = {kvp.Key};")).Indent()}}}
                   }
