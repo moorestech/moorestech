@@ -31,17 +31,8 @@ public static class LoaderGenerator
 
         // プロパティIdが全てnullならroot
         var isRoot = typeDefinition.PropertyTable.All(property => property.Value.PropertyId == null);
-        var args = isRoot
-            ? typeDefinition.PropertyTable.First().Value.Type switch
-            {
-                BooleanType or IntType or FloatType or StringType => "global::Newtonsoft.Json.Linq.JValue json",
-                ArrayType => "global::Newtonsoft.Json.Linq.JArray json",
-                DictionaryType or CustomType => "global::Newtonsoft.Json.Linq.JObject json",
-                _ => throw new ArgumentOutOfRangeException()
-            }
-            : "global::Newtonsoft.Json.Linq.JObject json";
         var propertyLoaderCode = isRoot
-            ? GenerateRootPropertyLoaderCode(typeDefinition)
+            ? GenerateRootPropertyLoaderCode(typeDefinition, semantics)
             : GeneratePropertiesLoaderCode(typeDefinition, semantics);
 
         return (
@@ -51,7 +42,7 @@ public static class LoaderGenerator
                {
                    public static class {{{typeDefinition.TypeName.Name}}}Loader
                    {
-                       public static {{{targetTypeName}}} Load({{{args}}})
+                       public static {{{targetTypeName}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
                            {{{propertyLoaderCode.Indent(level: 3)}}}
                        
@@ -63,11 +54,11 @@ public static class LoaderGenerator
         );
     }
 
-    private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition)
+    private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
     {
         var property = typeDefinition.PropertyTable.First();
 
-        return $"var {property.Key} = {GetLoaderName(property.Value.Type)}(json);";
+        return $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value, semantics, "json")};";
     }
 
     private static string GeneratePropertiesLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
@@ -76,11 +67,17 @@ public static class LoaderGenerator
             "\n",
             typeDefinition
                 .PropertyTable
-                .Select(property => $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value, semantics)};")
+                .Select(property => $"var {property.Key} = {GeneratePropertyLoaderCode(
+                    property.Value,
+                    semantics,
+                    $$$"""
+                       json["{{{semantics.PropertySemanticsTable[property.Value.PropertyId.Value].PropertyName}}}"]
+                       """)};"
+                )
         );
     }
 
-    private static string GeneratePropertyLoaderCode(PropertyDefinition propertyDefinition, Semantics semantics)
+    private static string GeneratePropertyLoaderCode(PropertyDefinition propertyDefinition, Semantics semantics, string json)
     {
         return propertyDefinition.Type switch
         {
@@ -88,20 +85,30 @@ public static class LoaderGenerator
                 or FloatType
                 or IntType
                 or StringType
-                or UUIDType
+                => $$$"""
+                      {{{GetLoaderName(propertyDefinition.Type)}}}((global::Newtonsoft.Json.Linq.JValue){{{json}}})
+                      """,
+
+            UUIDType
                 or Vector2Type
                 or Vector2IntType
                 or Vector3Type
                 or Vector3IntType
-                or Vector4Type
-                or CustomType => $$$"""
-                                    {{{GetLoaderName(propertyDefinition.Type)}}}(json["{{{semantics.PropertySemanticsTable[propertyDefinition.PropertyId.Value].PropertyName}}}"])
-                                    """,
+                or Vector4Type => $$$"""
+                                     {{{GetLoaderName(propertyDefinition.Type)}}}((global::Newtonsoft.Json.Linq.JArray){{{json}}})
+                                     """,
+            CustomType => $$$"""
+                             {{{GetLoaderName(propertyDefinition.Type)}}}((global::Newtonsoft.Json.Linq.JObject){{{json}}})
+                             """,
+
             ArrayType arrayType => $$$"""
-                                      new {{{arrayType.}}}[json]
+                                      new {{{arrayType.InnerType.GetName()}}}[{{{json}}}.Count()]
                                       """,
-            DictionaryType dictionaryType => throw new NotImplementedException(),
-            _ => throw new ArgumentOutOfRangeException()
+            DictionaryType dictionaryType => $$$"""
+                                                new global::System.Collections.Generic.Dictionary<{{{dictionaryType.KeyType.GetName()}}}, {{{dictionaryType.ValueType.GetName()}}}>()
+                                                """,
+
+            _ => throw new ArgumentOutOfRangeException(nameof(propertyDefinition.Type))
         };
     }
 
@@ -133,17 +140,52 @@ public static class LoaderGenerator
                {
                    public static class BuiltinLoader
                    {
-                       public static bool LoadBoolean(global::Newtonsoft.Json.Linq.JValue json)
+                       public static bool LoadBoolean(global::Newtonsoft.Json.Linq.JToken json)
                        {
                            return (bool)json;
                        }
                    
-                       public static float LoadFloat(global::Newtonsoft.Json.Linq.JValue json)
+                       public static float LoadFloat(global::Newtonsoft.Json.Linq.JToken json)
                        {
                            return default;
                        }
                        
-                       public static string LoadString(global::Newtonsoft.Json.Linq.JValue json)
+                       public static int LoadInt(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static string LoadString(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static global::UnityEngine.Vector2Int LoadVector2Int(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static global::UnityEngine.Vector2 LoadVector2(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static global::UnityEngine.Vector3Int LoadVector3Int(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static global::UnityEngine.Vector3 LoadVector3(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static global::UnityEngine.Vector4 LoadVector4(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
+                       }
+                       
+                       public static global::System.Guid LoadUUID(global::Newtonsoft.Json.Linq.JToken json)
                        {
                            return default;
                        }
