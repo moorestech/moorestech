@@ -50,6 +50,27 @@ public record Type
 
         return schemaClassId;
     }
+
+    public string GetName()
+    {
+        return this switch
+        {
+            BooleanType booleanType => "bool",
+            ArrayType arrayType => $"{arrayType.InnerType.GetName()}[]",
+            DictionaryType dictionaryType => $"global::System.Collections.Generic.Dictionary<{dictionaryType.KeyType.GetName()}, {dictionaryType.ValueType.GetName()}>",
+            FloatType floatType => "float",
+            IntType intType => "int",
+            StringType stringType => "string",
+            UUIDType uuidType => "global::System.Guid",
+            Vector2IntType vector2IntType => "global::UnityEngine.Vector2Int",
+            Vector2Type vector2Type => "global::UnityEngine.Vector2",
+            Vector3IntType vector3IntType => "global::UnityEngine.Vector3Int",
+            Vector3Type vector3Type => "global::UnityEngine.Vector3",
+            Vector4Type vector4Type => "global::UnityEngine.Vector4",
+            CustomType customType => customType.Name.GetModelName(),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
 }
 
 public record BuiltinType : Type;

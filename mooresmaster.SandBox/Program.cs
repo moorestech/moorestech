@@ -20,8 +20,9 @@ internal static class Program
 
             try
             {
-                var value = jsonData["data"][0].ToString();
-                Console.WriteLine(value);
+                var value0 = jsonData["data"];
+                var value1 = value0[0].ToString();
+                Console.WriteLine(value1);
             }
             catch (Exception e)
             {
