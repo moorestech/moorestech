@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using UnitGenerator;
 
@@ -9,7 +10,6 @@ public class Semantics
 {
     public readonly List<(InterfaceId interfaceId, ClassId typeId)> InheritList = new(); // (InterfaceId, TypeId)
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
-    public readonly Dictionary<OneOfSchema, InterfaceId> OneOfInterfaceSemanticsTable = new();
     public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
     public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
     public readonly Dictionary<ISchema, ClassId> SchemaTypeSemanticsTable = new();
@@ -19,7 +19,6 @@ public class Semantics
     {
         var id = InterfaceId.New();
         InterfaceSemanticsTable.Add(id, interfaceSemantics);
-        OneOfInterfaceSemanticsTable.Add(interfaceSemantics.Schema, id);
         return id;
     }
 
@@ -52,7 +51,6 @@ public class Semantics
         foreach (var rootSemantics in other.RootSemanticsTable) RootSemanticsTable.Add(rootSemantics.Key, rootSemantics.Value);
         foreach (var typeSemantics in other.TypeSemanticsTable) TypeSemanticsTable.Add(typeSemantics.Key, typeSemantics.Value);
         foreach (var kvp in other.SchemaTypeSemanticsTable) SchemaTypeSemanticsTable.Add(kvp.Key, kvp.Value);
-        foreach (var kvp in other.OneOfInterfaceSemanticsTable) OneOfInterfaceSemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.PropertySemanticsTable) PropertySemanticsTable.Add(kvp.Key, kvp.Value);
 
         return this;
@@ -92,9 +90,10 @@ public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, IType
     public ISchema Schema = Schema;
 }
 
-public record InterfaceSemantics(OneOfSchema Schema)
+public record InterfaceSemantics(OneOfSchema Schema, (JsonObject, ClassId)[] Types)
 {
     public OneOfSchema Schema = Schema;
+    public (JsonObject, ClassId)[] Types = Types;
 }
 
 [UnitOf(typeof(Guid))]
