@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.NameResolve;
@@ -15,11 +16,25 @@ public record LoaderFile(string FileName, string Code)
 
 public static class LoaderGenerator
 {
-    public static LoaderFile[] Generate(Definition definition, Semantics semantics)
+    public static LoaderFile[] Generate(Definition definition, Semantics semantics, NameTable nameTable)
     {
+        var inheritTable = new Dictionary<InterfaceId, List<ClassId>>();
+
+        foreach (var (interfaceId, classId) in semantics.InheritList)
+            if (inheritTable.ContainsKey(interfaceId))
+                inheritTable[interfaceId].Add(classId);
+            else
+                inheritTable[interfaceId] = [classId];
+
         return definition
             .TypeDefinitions
             .Select(typeDefinition => GenerateTypeLoaderCode(typeDefinition, semantics))
+            .Concat(
+                inheritTable
+                    .Select(
+                        inherit => GenerateInterfaceLoaderCode(inherit.Key, semantics, inheritTable, nameTable)
+                    )
+            )
             .Select(value => new LoaderFile(value.fileName, value.code))
             .ToArray();
     }
@@ -47,6 +62,29 @@ public static class LoaderGenerator
                            {{{propertyLoaderCode.Indent(level: 3)}}}
                        
                            return new {{{targetTypeName}}}({{{string.Join(", ", typeDefinition.PropertyTable.Select(property => property.Key))}}});
+                       }
+                   }
+               }
+               """
+        );
+    }
+
+    private static (string fileName, string code) GenerateInterfaceLoaderCode(InterfaceId interfaceId, Semantics semantics, Dictionary<InterfaceId, List<ClassId>> inheritTable, NameTable nameTable)
+    {
+        var interfaceSemantics = semantics.InterfaceSemanticsTable[interfaceId];
+        var inheritedTypes = inheritTable[interfaceId];
+        var name = nameTable.TypeNames[interfaceId];
+
+        return (
+            $"mooresmaster.loader.{name.ModuleName}.{name.Name}.g.cs",
+            $$$"""
+               namespace Mooresmaster.Loader.{{{name.ModuleName}}}
+               {
+                   public static class {{{name.Name}}}Loader
+                   {
+                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}} Load(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           return default;
                        }
                    }
                }
