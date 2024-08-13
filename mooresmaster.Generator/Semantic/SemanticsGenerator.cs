@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator.Semantic;
@@ -65,14 +66,19 @@ public static class SemanticsGenerator
     private static (Semantics, InterfaceId) Generate(OneOfSchema oneOfSchema, SchemaTable table)
     {
         var semantics = new Semantics();
-        var interfaceId = semantics.AddInterfaceSemantics(new InterfaceSemantics(oneOfSchema));
+
+        var interfaceId = InterfaceId.New();
+        List<(JsonObject, ClassId)> thenList = new();
         foreach (var ifThen in oneOfSchema.IfThenArray)
         {
             Generate(table.Table[ifThen.Then], table).AddTo(semantics);
 
             var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
             semantics.InheritList.Add((interfaceId, then));
+            thenList.Add((ifThen.If, then));
         }
+
+        semantics.InterfaceSemanticsTable.Add(interfaceId, new InterfaceSemantics(oneOfSchema, thenList.ToArray()));
 
         return (semantics, interfaceId);
     }

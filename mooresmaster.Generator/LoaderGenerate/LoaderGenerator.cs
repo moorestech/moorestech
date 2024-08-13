@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mooresmaster.Generator.Definitions;
+using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 using Type = mooresmaster.Generator.Definitions.Type;
@@ -32,7 +33,7 @@ public static class LoaderGenerator
             .Concat(
                 inheritTable
                     .Select(
-                        inherit => GenerateInterfaceLoaderCode(inherit.Key, semantics, inheritTable, nameTable)
+                        inherit => GenerateInterfaceLoaderCode(inherit.Key, semantics, nameTable)
                     )
             )
             .Append(GenerateGlobalLoaderCode(semantics, nameTable))
@@ -119,10 +120,10 @@ public static class LoaderGenerator
         );
     }
 
-    private static (string fileName, string code) GenerateInterfaceLoaderCode(InterfaceId interfaceId, Semantics semantics, Dictionary<InterfaceId, List<ClassId>> inheritTable, NameTable nameTable)
+    private static (string fileName, string code) GenerateInterfaceLoaderCode(InterfaceId interfaceId, Semantics semantics, NameTable nameTable)
     {
         var interfaceSemantics = semantics.InterfaceSemanticsTable[interfaceId];
-        var inheritedTypes = inheritTable[interfaceId];
+
         var name = nameTable.TypeNames[interfaceId];
 
         return (
@@ -134,7 +135,7 @@ public static class LoaderGenerator
                    {
                        public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           {{{string.Join("\n", inheritedTypes.Select(inheritedType => GenerateInterfaceInheritedTypeLoaderCode(inheritedType, nameTable))).Indent(level: 3)}}}
+                           {{{string.Join("\n", interfaceSemantics.Types.Select(value => GenerateInterfaceInheritedTypeLoaderCode(value.Item1, value.Item2, nameTable))).Indent(level: 3)}}}
                            
                            throw new NotImplementedException();
                        }
@@ -144,19 +145,21 @@ public static class LoaderGenerator
         );
     }
 
-    private static string GenerateInterfaceInheritedTypeLoaderCode(ClassId classId, NameTable nameTable)
+    private static string GenerateInterfaceInheritedTypeLoaderCode(JsonObject ifObject, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
+        var properties = (JsonObject)ifObject.Nodes["properties"];
+        var firstProperty = properties.Nodes.First();
+        var propertyName = firstProperty.Key;
+        var constValue = ((JsonString)((JsonObject)firstProperty.Value).Nodes["const"]).Literal;
+
 
         return $$$"""
-                  try
+                  if ((string)(json.Parent.Parent["{{{propertyName}}}"]) == "{{{constValue}}}")
                   {
-                      // code
                       return {{{name.GetLoaderName()}}}.Load(json);
                   }
-                  catch
-                  {
-                  }
+
                   """;
     }
 
@@ -192,7 +195,7 @@ public static class LoaderGenerator
                 or StringType
                 or UUIDType
                 => $$$"""
-                      {{{GetLoaderName(type)}}}((global::Newtonsoft.Json.Linq.JValue){{{json}}})
+                      {{{GetLoaderName(type)}}}({{{json}}})
                       """,
 
             Vector2Type
@@ -200,10 +203,10 @@ public static class LoaderGenerator
                 or Vector3Type
                 or Vector3IntType
                 or Vector4Type => $$$"""
-                                     {{{GetLoaderName(type)}}}((global::Newtonsoft.Json.Linq.JArray){{{json}}})
+                                     {{{GetLoaderName(type)}}}({{{json}}})
                                      """,
             CustomType => $$$"""
-                             {{{GetLoaderName(type)}}}((global::Newtonsoft.Json.Linq.JObject){{{json}}})
+                             {{{GetLoaderName(type)}}}({{{json}}})
                              """,
 
             ArrayType arrayType => $$$"""
