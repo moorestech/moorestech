@@ -164,7 +164,7 @@ public static class LoaderGenerator
     {
         var property = typeDefinition.PropertyTable.First();
 
-        return $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value, semantics, "json")};";
+        return $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";
     }
 
     private static string GeneratePropertiesLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
@@ -174,8 +174,7 @@ public static class LoaderGenerator
             typeDefinition
                 .PropertyTable
                 .Select(property => $"var {property.Key} = {GeneratePropertyLoaderCode(
-                    property.Value,
-                    semantics,
+                    property.Value.Type,
                     $$$"""
                        json["{{{semantics.PropertySemanticsTable[property.Value.PropertyId.Value].PropertyName}}}"]
                        """)};"
@@ -183,41 +182,39 @@ public static class LoaderGenerator
         );
     }
 
-    private static string GeneratePropertyLoaderCode(PropertyDefinition propertyDefinition, Semantics semantics, string json)
+    private static string GeneratePropertyLoaderCode(Type type, string json)
     {
-        return propertyDefinition.Type switch
+        return type switch
         {
             BooleanType
                 or FloatType
                 or IntType
                 or StringType
+                or UUIDType
                 => $$$"""
-                      {{{GetLoaderName(propertyDefinition.Type)}}}((global::Newtonsoft.Json.Linq.JValue){{{json}}})
+                      {{{GetLoaderName(type)}}}((global::Newtonsoft.Json.Linq.JValue){{{json}}})
                       """,
 
-            UUIDType
-                or Vector2Type
+            Vector2Type
                 or Vector2IntType
                 or Vector3Type
                 or Vector3IntType
                 or Vector4Type => $$$"""
-                                     {{{GetLoaderName(propertyDefinition.Type)}}}((global::Newtonsoft.Json.Linq.JArray){{{json}}})
+                                     {{{GetLoaderName(type)}}}((global::Newtonsoft.Json.Linq.JArray){{{json}}})
                                      """,
             CustomType => $$$"""
-                             {{{GetLoaderName(propertyDefinition.Type)}}}((global::Newtonsoft.Json.Linq.JObject){{{json}}})
+                             {{{GetLoaderName(type)}}}((global::Newtonsoft.Json.Linq.JObject){{{json}}})
                              """,
 
             ArrayType arrayType => $$$"""
-                                      new {{{arrayType.InnerType.GetName()}}}[{{{json}}}.Count()]
-                                          {
-                                              
-                                          }
+                                      {{{json}}}.Select(value => {{{GetLoaderName(arrayType.InnerType)}}}(value)).ToArray()
                                       """,
             DictionaryType dictionaryType => $$$"""
                                                 new global::System.Collections.Generic.Dictionary<{{{dictionaryType.KeyType.GetName()}}}, {{{dictionaryType.ValueType.GetName()}}}>()
+                                                {{{json}}}.ToDictionary(key => {{{GetLoaderName(dictionaryType.KeyType)}}}(key), value => {{{GetLoaderName(dictionaryType.ValueType)}}}(value))
                                                 """,
 
-            _ => throw new ArgumentOutOfRangeException(nameof(propertyDefinition.Type))
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
 

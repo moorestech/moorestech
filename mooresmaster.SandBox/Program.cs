@@ -1,5 +1,4 @@
-﻿using Mooresmaster.Loader;
-using Mooresmaster.Loader.BlocksModule;
+﻿using Mooresmaster.Loader.BlocksModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,7 +14,7 @@ internal static class Program
         var blockJson = File.ReadAllText(blockJsonPath);
 
         var json = (JToken)JsonConvert.DeserializeObject(blockJson);
-        var blocks = GlobalLoader.Load(json);
+        var blocks = BlocksLoader.Load(json);
         Console.WriteLine(blocks);
 
         // var testModJsonsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestMod");
