@@ -51,7 +51,7 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var codeFile in CodeGenerator.Generate(definitions)) context.AddSource(codeFile.FileName, codeFile.Code);
 
-        foreach (var loaderFile in LoaderGenerator.Generate(definitions, semantics)) context.AddSource(loaderFile.FileName, loaderFile.Code);
+        foreach (var loaderFile in LoaderGenerator.Generate(definitions, semantics, nameTable)) context.AddSource(loaderFile.FileName, loaderFile.Code);
     }
 
     private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
