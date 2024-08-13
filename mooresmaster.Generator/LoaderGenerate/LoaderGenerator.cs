@@ -253,47 +253,47 @@ public static class LoaderGenerator
                    
                        public static float LoadFloat(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return (float)json;
                        }
                        
                        public static int LoadInt(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return (int)json;
                        }
                        
                        public static string LoadString(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return (string)json;
                        }
                        
                        public static global::UnityEngine.Vector2Int LoadVector2Int(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return new global::UnityEngine.Vector2Int((int)json[0], (int)json[1]);
                        }
                        
                        public static global::UnityEngine.Vector2 LoadVector2(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return new global::UnityEngine.Vector2((float)json[0], (float)json[1]);
                        }
                        
                        public static global::UnityEngine.Vector3Int LoadVector3Int(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return new global::UnityEngine.Vector3Int((int)json[0], (int)json[1], (int)json[2]);
                        }
                        
                        public static global::UnityEngine.Vector3 LoadVector3(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return new global::UnityEngine.Vector3((float)json[0], (float)json[1], (float)json[2]);
                        }
                        
                        public static global::UnityEngine.Vector4 LoadVector4(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return new global::UnityEngine.Vector4((float)json[0], (float)json[1], (float)json[2], (float)json[3]);
                        }
                        
                        public static global::System.Guid LoadUUID(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           return new global::System.Guid((string)json);
                        }
                    }
                }
