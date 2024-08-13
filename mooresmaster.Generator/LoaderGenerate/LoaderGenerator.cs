@@ -35,8 +35,58 @@ public static class LoaderGenerator
                         inherit => GenerateInterfaceLoaderCode(inherit.Key, semantics, inheritTable, nameTable)
                     )
             )
+            .Append(GenerateGlobalLoaderCode(semantics, nameTable))
             .Select(value => new LoaderFile(value.fileName, value.code))
             .ToArray();
+    }
+
+    private static (string fileName, string code) GenerateGlobalLoaderCode(Semantics semantics, NameTable nameTable)
+    {
+        try
+        {
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        return (
+            "mooresmaster.loader.g.cs",
+            $$$"""
+               namespace Mooresmaster.Loader
+               {
+                   public static class GlobalLoader
+                   {
+                       public static object Load(global::Newtonsoft.Json.Linq.JToken json)
+                       {
+                           {{{string.Join(
+                               "\n",
+                               semantics
+                                   .RootSemanticsTable
+                                   .Select(root => {
+                                           var name = nameTable.TypeNames[root.Value.ClassId];
+
+                                           return $$$"""
+                                                     try
+                                                     {
+                                                         // code
+                                                         return Mooresmaster.Loader.{{{name.ModuleName}}}.{{{name.Name}}}Loader.Load(json);
+                                                     }
+                                                     catch
+                                                     {
+                                                     }
+                                                     """;
+                                       }
+                                   )
+                           ).Indent(level: 3)}}}
+                           
+                           throw new NotImplementedException();
+                       }
+                   }
+               }
+               """
+        );
     }
 
     private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
@@ -84,12 +134,30 @@ public static class LoaderGenerator
                    {
                        public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return default;
+                           {{{string.Join("\n", inheritedTypes.Select(inheritedType => GenerateInterfaceInheritedTypeLoaderCode(inheritedType, nameTable))).Indent(level: 3)}}}
+                           
+                           throw new NotImplementedException();
                        }
                    }
                }
                """
         );
+    }
+
+    private static string GenerateInterfaceInheritedTypeLoaderCode(ClassId classId, NameTable nameTable)
+    {
+        var name = nameTable.TypeNames[classId];
+
+        return $$$"""
+                  try
+                  {
+                      // code
+                      return {{{name.GetLoaderName()}}}.Load(json);
+                  }
+                  catch
+                  {
+                  }
+                  """;
     }
 
     private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
@@ -141,6 +209,9 @@ public static class LoaderGenerator
 
             ArrayType arrayType => $$$"""
                                       new {{{arrayType.InnerType.GetName()}}}[{{{json}}}.Count()]
+                                          {
+                                              
+                                          }
                                       """,
             DictionaryType dictionaryType => $$$"""
                                                 new global::System.Collections.Generic.Dictionary<{{{dictionaryType.KeyType.GetName()}}}, {{{dictionaryType.ValueType.GetName()}}}>()
