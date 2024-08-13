@@ -15,12 +15,19 @@ internal static class Program
     {
         Console.WriteLine("Hello, World!");
 
-        BlocksLoader.Load(GetJson("blocks"));
-        ChallengesLoader.Load(GetJson("challenges"));
-        CraftRecipesLoader.Load(GetJson("craftRecipes"));
-        ItemsLoader.Load(GetJson("items"));
-        MachineRecipesLoader.Load(GetJson("machineRecipes"));
-        MapObjectsLoader.Load(GetJson("mapObjects"));
+        var blocks = BlocksLoader.Load(GetJson("blocks"));
+        var challenges = ChallengesLoader.Load(GetJson("challenges"));
+        var craftRecipes = CraftRecipesLoader.Load(GetJson("craftRecipes"));
+        var items = ItemsLoader.Load(GetJson("items"));
+        var machineRecipes = MachineRecipesLoader.Load(GetJson("machineRecipes"));
+        var mapObjects = MapObjectsLoader.Load(GetJson("mapObjects"));
+
+        Console.WriteLine(blocks);
+        Console.WriteLine(challenges);
+        Console.WriteLine(craftRecipes);
+        Console.WriteLine(items);
+        Console.WriteLine(machineRecipes);
+        Console.WriteLine(mapObjects);
 
         // var testModJsonsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestMod");
         // var jsonPaths = Directory.GetFiles(testModJsonsDirectoryPath);
