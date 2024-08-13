@@ -1,3 +1,21 @@
 {
-  "data": []
+  "data": [
+    {
+      "time": 1,
+      "blockId": "5230da46-5590-40a5-94f1-1991c767c3b3",
+      "output": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemId": "8bf058ae-539e-4872-b5c5-011e0bbc0422"
+        }
+      ],
+      "input": [
+        {
+          "count": 1,
+          "itemId": "7363a3a3-dc26-4101-bd71-832ee92d4b3b"
+        }
+      ]
+    }
+  ]
 }

@@ -78,7 +78,12 @@
         ]
       },
       "name": "ベルトコンベア",
-      "blockId": "5230da46-5590-40a5-94f1-1991c767c3b3"
+      "blockId": "5230da46-5590-40a5-94f1-1991c767c3b3",
+      "size": [
+        1,
+        1,
+        1
+      ]
     },
     {
       "blockType": "GearMachine",
@@ -151,7 +156,25 @@
             }
           ]
         }
-      }
+      },
+      "modelTransform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "name": "歯車機械"
     }
   ]
 }
