@@ -17,14 +17,20 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(static c => c.AddSource("mooresmaster.loader.BuiltinLoader.g.cs", LoaderGenerator.GenerateBuiltinLoaderCode()));
+        context.RegisterPostInitializationOutput(static c => c.AddSource("mooresmaster.g.cs", CodeGenerator.GenerateMooresmasterAttributeCode()));
 
-        context.RegisterSourceOutput(context.AdditionalTextsProvider.Collect(), Emit);
+        var additionalTextsProvider = context.AdditionalTextsProvider.Collect();
+        var provider = context.CompilationProvider.Combine(additionalTextsProvider);
+        context.RegisterSourceOutput(provider, Emit);
     }
 
-    private void Emit(SourceProductionContext context, ImmutableArray<AdditionalText> additionalTexts)
+    private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
-        var (schemas, schemaTable) = ParseAdditionalText(additionalTexts);
+        if (!input.compilation.Assembly.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == "Mooresmaster.GenerateMooresmasterAttribute")) return;
+
+        context.AddSource("mooresmaster.loader.BuiltinLoader.g.cs", LoaderGenerator.GenerateBuiltinLoaderCode());
+
+        var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
         var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
         var definitions = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
