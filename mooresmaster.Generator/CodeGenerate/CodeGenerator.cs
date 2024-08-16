@@ -18,6 +18,8 @@ public static class CodeGenerator
     public static string GenerateMooresmasterAttributeCode()
     {
         return """
+               using System;
+
                namespace Mooresmaster
                {
                    [AttributeUsage(AttributeTargets.Assembly)]
