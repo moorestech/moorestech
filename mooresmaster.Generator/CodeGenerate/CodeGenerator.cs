@@ -15,6 +15,19 @@ public record CodeFile(string FileName, string Code)
 
 public static class CodeGenerator
 {
+    public static string GenerateMooresmasterAttributeCode()
+    {
+        return """
+               namespace Mooresmaster
+               {
+                   [AttributeUsage(AttributeTargets.Assembly)]
+                   public class GenerateMooresmasterAttribute : Attribute
+                   {
+                   }
+               }
+               """;
+    }
+
     public static CodeFile[] Generate(Definition definition)
     {
         var files = new Dictionary<string, List<string>>();
