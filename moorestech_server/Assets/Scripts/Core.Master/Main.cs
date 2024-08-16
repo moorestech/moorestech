@@ -1,0 +1,2 @@
+﻿using Mooresmaster;
+[assembly: GenerateMooresmaster]
