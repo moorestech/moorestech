@@ -1,0 +1,9 @@
+/additionalfile:Assets/Scripts/Core.Master/Schema/mapObjects.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/machineRecipes.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/craftRecipes.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/items.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/challenges.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/blocks.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/Ref/gearConnects.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/Ref/inventoryConnects.json
+/additionalfile:Assets/Scripts/Core.Master/Schema/Ref/modelTransform.json
