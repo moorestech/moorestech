@@ -27,9 +27,9 @@ public record JsonArray(IJsonNode[] Nodes, IJsonNode? Parent, string? PropertyNa
 
 public record JsonString(string Literal, IJsonNode? Parent, string? PropertyName) : IJsonNode
 {
-    public readonly string Literal = Literal;
-    public IJsonNode? Parent { get; } = Parent;
     public string? PropertyName { get; } = PropertyName;
+    public IJsonNode? Parent { get; } = Parent;
+    public readonly string Literal = Literal;
 }
 
 public record JsonBoolean(bool Literal, IJsonNode? Parent, string? PropertyName) : IJsonNode

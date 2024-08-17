@@ -43,12 +43,27 @@ public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<st
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern) : ISchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern, JsonString? OverrideCodeGeneratePropertyName) : ISchema
 {
+    public SchemaId? Parent { get; } = Parent;
+    public string? PropertyName { get; } = PropertyName;
+    
     public SchemaId Items = Items;
     public JsonString? Pattern = Pattern;
-    public string? PropertyName { get; } = PropertyName;
-    public SchemaId? Parent { get; } = Parent;
+    public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
+}
+
+public static class ArraySchemaExtension
+{
+    public static string GetPropertyName(this ArraySchema arraySchema)
+    {
+        if (arraySchema.OverrideCodeGeneratePropertyName != null)
+        {
+            return arraySchema.OverrideCodeGeneratePropertyName.Literal;
+        }
+        
+        return $"{arraySchema.PropertyName!}Element";
+    }
 }
 
 public record OneOfSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray) : ISchema
