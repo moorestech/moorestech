@@ -34,7 +34,8 @@ public static class NameResolver
             var name = schemaTable.Table[typeSemantics.Schema.Parent!.Value] switch
             {
                 ObjectSchema => typeSemantics.Schema.PropertyName!,
-                ArraySchema arraySchema => $"{arraySchema.PropertyName!}Element",
+                ArraySchema arraySchema => arraySchema.GetPropertyName(),
+                //ArraySchema arraySchema => $"{arraySchema.PropertyName!}Element",
                 OneOfSchema oneOfSchema => GetIfThenName(oneOfSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema]),
                 _ => null
             };
@@ -89,7 +90,8 @@ public static class NameResolver
                 switch (schemaTable.Table[currentSchema.Value])
                 {
                     case ArraySchema arraySchema:
-                        if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = $"{arraySchema.PropertyName}Element";
+                        if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = arraySchema.GetPropertyName();
+                        //if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = $"{arraySchema.PropertyName}Element";
 
                         parentNames.Add(arraySchema.PropertyName);
                         currentSchema = arraySchema.Parent;
