@@ -156,6 +156,7 @@ public static class NameResolver
                         jsonObjectStack.Push(o);
                         break;
                     case JsonString jsonString:
+                        // BeltConveyorBlockParam のような命名にする
                         return $"{jsonString.Literal}{oneOfSchema.PropertyName?.ToCamelCase()}";
                     case JsonArray:
                     case JsonBoolean:
