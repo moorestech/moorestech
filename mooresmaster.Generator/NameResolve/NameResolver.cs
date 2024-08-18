@@ -35,7 +35,6 @@ public static class NameResolver
             {
                 ObjectSchema => typeSemantics.Schema.PropertyName!,
                 ArraySchema arraySchema => arraySchema.GetPropertyName(),
-                //ArraySchema arraySchema => $"{arraySchema.PropertyName!}Element",
                 OneOfSchema oneOfSchema => GetIfThenName(oneOfSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema]),
                 _ => null
             };
@@ -91,7 +90,6 @@ public static class NameResolver
                 {
                     case ArraySchema arraySchema:
                         if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = arraySchema.GetPropertyName();
-                        //if (parentNames.Count != 0) parentNames[parentNames.Count - 1] = $"{arraySchema.PropertyName}Element";
 
                         parentNames.Add(arraySchema.PropertyName);
                         currentSchema = arraySchema.Parent;
