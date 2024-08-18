@@ -20,7 +20,7 @@ namespace Core.Master
         public static bool HasInstance => _instance != null;
         private static ItemMaster _instance;
         
-        public static ItemElement GetItemElement(ItemId itemId)
+        public static ItemElement GetItemMaster(ItemId itemId)
         {
             if (!HasInstance)
             {
