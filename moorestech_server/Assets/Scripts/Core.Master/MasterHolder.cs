@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Mooresmaster.Loader.BlocksModule;
 using Mooresmaster.Loader.ChallengesModule;
 using Mooresmaster.Loader.CraftRecipesModule;
@@ -15,8 +13,8 @@ using Mooresmaster.Model.MapObjectsModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Mooresmaster;
-[assembly: GenerateMooresmaster]
 
+[assembly: GenerateMooresmaster]
 namespace Core.Master
 {
     public class MasterHolder

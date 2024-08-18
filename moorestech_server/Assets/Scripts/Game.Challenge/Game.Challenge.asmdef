@@ -13,7 +13,8 @@
     "Game.Challenge.Interface",
     "Game.Block.Interface",
     "Game.World",
-    "Game.World.Interface"
+    "Game.World.Interface",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

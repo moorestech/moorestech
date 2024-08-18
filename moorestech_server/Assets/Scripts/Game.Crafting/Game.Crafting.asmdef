@@ -1,0 +1,21 @@
+{
+  "name": "Game.Crafting",
+  "rootNamespace": "",
+  "references": [
+    "Game.Crafting.Interface",
+    "Core.Item.Interface",
+    "Core.ConfigJson",
+    "Game.PlayerInventory.Interface",
+    "Game.Context",
+    "Core.Master"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
