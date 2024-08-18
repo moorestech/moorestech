@@ -30,6 +30,8 @@ namespace Core.Master
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
             Items = ItemsLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("items")));
+            ItemMaster.Load();
+            
             Blocks = BlocksLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             
             Challenges = ChallengesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
