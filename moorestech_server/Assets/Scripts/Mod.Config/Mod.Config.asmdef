@@ -3,7 +3,8 @@
   "rootNamespace": "",
   "references": [
     "Core.ConfigJson",
-    "Mod.Loader"
+    "Mod.Loader",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
