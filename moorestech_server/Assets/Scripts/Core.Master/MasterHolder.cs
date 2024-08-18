@@ -27,22 +27,22 @@ namespace Core.Master
         public static MachineRecipes MachineRecipes { get; private set; }
         public static MapObjects MapObjects { get; private set; }
         
-        public static void Load(ConfigJsonFileContainer configJsonFileContainer)
+        public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
-            Items = ItemsLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("items")));
-            Blocks = BlocksLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("blocks")));
+            Items = ItemsLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("items")));
+            Blocks = BlocksLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             
-            Challenges = ChallengesLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("challenges")));
-            CraftRecipes = CraftRecipesLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("craftRecipes")));
+            Challenges = ChallengesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
+            CraftRecipes = CraftRecipesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));
             
-            MachineRecipes = MachineRecipesLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("machineRecipes")));
-            MapObjects = MapObjectsLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("mapObjects")));
+            MachineRecipes = MachineRecipesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
+            MapObjects = MapObjectsLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
         }
         
-        private static JToken GetJson(ConfigJsonFileContainer configJsonFileContainer,JsonFileName jsonFileName)
+        private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer,JsonFileName jsonFileName)
         {
             var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
-            var jsonContent = configJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
+            var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
             
             return (JToken)JsonConvert.DeserializeObject(jsonContent);
         }

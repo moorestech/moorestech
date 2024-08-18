@@ -15,10 +15,10 @@ namespace Mod.Config
         private const string MapObjectConfigPath = "config/mapObject.json";
         private const string ChallengeConfigPath = "config/challenge.json";
         
-        public static Dictionary<string, ConfigJson> GetConfigString(ModsResource modResource)
+        public static Dictionary<string, MasterJsonCpntens> GetConfigString(ModsResource modResource)
         {
             // TODO 上が不要になったら下のコードを使うようにする
-            var configs = new List<ConfigJson>();
+            var configs = new List<MasterJsonCpntens>();
             
             //展開済みzipファイルの中身のjsonファイルを読み込む
             foreach (var mod in modResource.Mods)
@@ -34,7 +34,7 @@ namespace Mod.Config
                     var jsonContents = File.ReadAllText(masterJsonPath);
                     masterJsonContents.Add(fileName, jsonContents);
                 }
-                configs.Add(new ConfigJson(modId,masterJsonContents));
+                configs.Add(new MasterJsonCpntens(modId,masterJsonContents));
             }
             
             //TODO 下のコードが不要になったらこのreturnを使う return configs;
@@ -42,7 +42,7 @@ namespace Mod.Config
             // -------------下は旧コード------------
             
             
-            var configDict = new Dictionary<string, ConfigJson>();
+            var configDict = new Dictionary<string, MasterJsonCpntens>();
             
             //zipファイルの中身のjsonファイルを読み込む
             foreach (var mod in modResource.Mods)
@@ -70,10 +70,10 @@ namespace Mod.Config
                     var jsonContents = File.ReadAllText(masterJsonPath);
                     masterJsonContents.Add(fileName, jsonContents);
                 }
-                configs.Add(new ConfigJson(modId,masterJsonContents));
+                configs.Add(new MasterJsonCpntens(modId,masterJsonContents));
                 
                 
-                configDict.Add(modIdStr, new ConfigJson(itemConfigJson,
+                configDict.Add(modIdStr, new MasterJsonCpntens(itemConfigJson,
                     blockConfigJson,
                     machineRecipeConfigJson,
                     craftRecipeConfigJson,

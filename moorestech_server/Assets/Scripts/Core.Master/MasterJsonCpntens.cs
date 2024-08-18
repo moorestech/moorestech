@@ -3,7 +3,7 @@ using UnitGenerator;
 
 namespace Core.Master
 {
-    public class ConfigJson
+    public class MasterJsonCpntens
     {
         public readonly string BlockConfigJson;
         public readonly string ChallengeConfigJson;
@@ -13,7 +13,7 @@ namespace Core.Master
         public readonly string MapObjectConfigJson;
         
         
-        public ConfigJson(string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson, string mapObjectConfigJson, string challengeConfigJson,ModId modId, Dictionary<JsonFileName,string> jsonContents)
+        public MasterJsonCpntens(string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson, string mapObjectConfigJson, string challengeConfigJson,ModId modId, Dictionary<JsonFileName,string> jsonContents)
         {
             ModId = modId;
             JsonContents = jsonContents;
@@ -35,7 +35,7 @@ namespace Core.Master
         public readonly Dictionary<JsonFileName,string> JsonContents = new();
         
         
-        public ConfigJson(ModId modId, Dictionary<JsonFileName,string> jsonContents)
+        public MasterJsonCpntens(ModId modId, Dictionary<JsonFileName,string> jsonContents)
         {
             ModId = modId;
             JsonContents = jsonContents;

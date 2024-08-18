@@ -10,10 +10,10 @@ namespace Game.Crafting.Config
     {
         private readonly List<CraftingConfigInfo> _configDataList;
         
-        public CraftConfig(IItemStackFactory itemStackFactory, ConfigJsonFileContainer configJson)
+        public CraftConfig(IItemStackFactory itemStackFactory, MasterJsonFileContainer masterJson)
         {
             //ロードしたコンフィグのデータを元に、CraftingConfigDataを作成
-            _configDataList = new CraftConfigJsonLoad(itemStackFactory).Load(configJson.SortedCraftRecipeConfigJsonList);
+            _configDataList = new CraftConfigJsonLoad(itemStackFactory).Load(masterJson.SortedCraftRecipeConfigJsonList);
         }
         
         public IReadOnlyList<CraftingConfigInfo> CraftingConfigList => _configDataList;

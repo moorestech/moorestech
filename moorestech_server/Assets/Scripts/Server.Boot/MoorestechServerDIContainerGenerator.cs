@@ -63,7 +63,7 @@ namespace Server.Boot
             
             var modResource = new ModsResource(modDirectory);
             var configJsons = ModJsonStringLoader.GetConfigString(modResource);
-            var configJsonFileContainer = new ConfigJsonFileContainer(configJsons);
+            var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
             initializerCollection.AddSingleton(configJsonFileContainer);
             initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
             initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();

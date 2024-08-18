@@ -21,9 +21,9 @@ namespace Game.Block.Config
         private readonly Dictionary<int, int> _itemIdToBlockId = new();
         private readonly Dictionary<string, List<int>> _modIdToBlockIds = new();
         
-        public BlockConfig(ConfigJsonFileContainer configJson, IItemConfig itemConfig)
+        public BlockConfig(MasterJsonFileContainer masterJson, IItemConfig itemConfig)
         {
-            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
+            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(masterJson.BlockConfigs, masterJson.SortedModIds);
             foreach (var blockConfig in _blockConfigList)
             {
                 if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash))

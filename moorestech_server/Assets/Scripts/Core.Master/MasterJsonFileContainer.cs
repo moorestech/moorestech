@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Core.Master
 {
-    public class ConfigJsonFileContainer
+    public class MasterJsonFileContainer
     {        /// <summary>
         ///     ブロックのコンフィグが入っている
         ///     Key modId : Value ConfigJson
@@ -25,9 +25,9 @@ namespace Core.Master
         public readonly List<string> SortedMapObjectConfigJsonList = new();
         public readonly List<string> SortedModIds;
         
-        public readonly List<ConfigJson> ConfigJsons;
+        public readonly List<MasterJsonCpntens> ConfigJsons;
         
-        public ConfigJsonFileContainer(Dictionary<string, ConfigJson> configs)
+        public MasterJsonFileContainer(Dictionary<string, MasterJsonCpntens> configs)
         {
             ConfigJsons = configs.Values.ToList();
             

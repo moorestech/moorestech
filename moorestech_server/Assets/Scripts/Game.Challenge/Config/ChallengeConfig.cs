@@ -12,7 +12,7 @@ namespace Game.Challenge
         
         private readonly Dictionary<int, ChallengeInfo> _challengeInfos = new();
         
-        public ChallengeConfig(ConfigJsonFileContainer configJson)
+        public ChallengeConfig(MasterJsonFileContainer masterJson)
         {
             // パラメーターのローダーを定義
             // define parameter loader
@@ -29,7 +29,7 @@ namespace Game.Challenge
             // 双方向ID構築のため、一時的なチャレンジ情報をロード
             // load temporary challenge information for bidirectional ID construction
             var tmpChallenges = new Dictionary<int, TmpChallengeInfo>();
-            foreach (var jsonText in configJson.SortedChallengeConfigJsonList) LoadTmpChallengeInfo(jsonText);
+            foreach (var jsonText in masterJson.SortedChallengeConfigJsonList) LoadTmpChallengeInfo(jsonText);
             var nextChallengeIds = new Dictionary<int, List<int>>();
             foreach (var tmpChallenge in tmpChallenges.Values)
             {

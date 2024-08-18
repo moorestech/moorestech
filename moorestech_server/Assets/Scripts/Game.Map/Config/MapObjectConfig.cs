@@ -11,9 +11,9 @@ namespace Game.Map.Config
     {
         private readonly Dictionary<string, MapObjectConfigInfo> _mapObjectConfigInfos = new();
         
-        public MapObjectConfig(ConfigJsonFileContainer configPath, IItemConfig itemConfig)
+        public MapObjectConfig(MasterJsonFileContainer masterPath, IItemConfig itemConfig)
         {
-            foreach (var json in configPath.SortedMapObjectConfigJsonList)
+            foreach (var json in masterPath.SortedMapObjectConfigJsonList)
             {
                 var mapObjects = LoadMapObject(json, itemConfig);
                 foreach (var mapObject in mapObjects) _mapObjectConfigInfos.Add(mapObject.Type, mapObject);
