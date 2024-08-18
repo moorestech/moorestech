@@ -8,6 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -18,9 +19,9 @@ namespace Game.Block.Factory.BlockTemplate
         public const string Hueru = "gear belt conveyor hueru";
         public const string Kieru = "gear belt conveyor kieru";
         
-        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var beltParam = config.Param as BeltConveyorConfigParam;
+            var beltParam = blockElement.Param as BeltConveyor;
             var blockName = ServerContext.BlockConfig.GetBlockConfig(config.BlockHash).Name;
             
             BlockConnectorComponent<IBlockInventory> connectorComponent = config.CreateInventoryConnector(blockPositionInfo);
