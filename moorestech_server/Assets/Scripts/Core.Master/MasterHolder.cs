@@ -14,6 +14,8 @@ using Mooresmaster.Model.MachineRecipesModule;
 using Mooresmaster.Model.MapObjectsModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Mooresmaster;
+[assembly: GenerateMooresmaster]
 
 namespace Core.Master
 {
@@ -29,21 +31,22 @@ namespace Core.Master
         
         public static void Load(ConfigJsonFileContainer configJsonFileContainer)
         {
-            Items = ItemsLoader.Load(GetJson(modDirectory, modName, "items"));
-            Blocks = BlocksLoader.Load(GetJson(modDirectory, modName, "blocks"));
+            Items = ItemsLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("items")));
+            Blocks = BlocksLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("blocks")));
             
-            Challenges = ChallengesLoader.Load(GetJson(modDirectory, modName, "challenges"));
-            CraftRecipes = CraftRecipesLoader.Load(GetJson(modDirectory, modName, "craftRecipes"));
+            Challenges = ChallengesLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("challenges")));
+            CraftRecipes = CraftRecipesLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("craftRecipes")));
             
-            MachineRecipes = MachineRecipesLoader.Load(GetJson(modDirectory, modName, "machineRecipes"));
-            MapObjects = MapObjectsLoader.Load(GetJson(modDirectory, modName, "mapObjects"));
+            MachineRecipes = MachineRecipesLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("machineRecipes")));
+            MapObjects = MapObjectsLoader.Load(GetJson(configJsonFileContainer, new JsonFileName("mapObjects")));
         }
         
-        private static JToken GetJson(string modDirectory, string modName,string jsonName)
+        private static JToken GetJson(ConfigJsonFileContainer configJsonFileContainer,JsonFileName jsonFileName)
         {
-            var blockJsonPath = Path.Combine(modDirectory, modName, $"{jsonName}.json");
-            var blockJson = File.ReadAllText(blockJsonPath);
-            return (JToken)JsonConvert.DeserializeObject(blockJson);
+            var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
+            var jsonContent = configJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
+            
+            return (JToken)JsonConvert.DeserializeObject(jsonContent);
         }
     }
 }
