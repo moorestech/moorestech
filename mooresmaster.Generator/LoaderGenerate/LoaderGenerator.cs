@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
@@ -38,7 +37,7 @@ public static class LoaderGenerator
                     )
             )
             .Append(GenerateGlobalLoaderCode(semantics, nameTable))
-            .Select(value => new LoaderFile(value.fileName, value.code.GetPreprocessedCode()))
+            .Select(value => new LoaderFile(value.fileName, value.code))
             .ToArray();
     }
 
