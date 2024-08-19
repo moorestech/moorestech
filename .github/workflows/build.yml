@@ -16,11 +16,12 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
-            runner: ubuntu-latest
+            runner: windows-latest
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
