@@ -1,5 +1,4 @@
-﻿using Mooresmaster;
-using Mooresmaster.Loader.BlocksModule;
+﻿using Mooresmaster.Loader.BlocksModule;
 using Mooresmaster.Loader.ChallengesModule;
 using Mooresmaster.Loader.CraftRecipesModule;
 using Mooresmaster.Loader.ItemsModule;
@@ -7,8 +6,6 @@ using Mooresmaster.Loader.MachineRecipesModule;
 using Mooresmaster.Loader.MapObjectsModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
-[assembly: GenerateMooresmaster]
 
 namespace mooresmaster.SandBox;
 
