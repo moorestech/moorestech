@@ -35,7 +35,7 @@ public static class NameResolver
             {
                 ObjectSchema => typeSemantics.Schema.PropertyName!,
                 ArraySchema arraySchema => arraySchema.GetPropertyName(),
-                OneOfSchema oneOfSchema => GetIfThenName(oneOfSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema]),
+                OneOfSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
                 _ => null
             };
 
@@ -138,8 +138,10 @@ public static class NameResolver
         );
     }
 
-    private static string GetIfThenName(IfThenSchema ifThenSchema)
+    private static string GetIfThenName(OneOfSchema oneOfSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
     {
+        var ifThenSchema = oneOfSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
+        
         var jsonObjectStack = new Stack<JsonObject>();
         jsonObjectStack.Push(ifThenSchema.If);
 
@@ -154,7 +156,8 @@ public static class NameResolver
                         jsonObjectStack.Push(o);
                         break;
                     case JsonString jsonString:
-                        return jsonString.Literal;
+                        // BeltConveyorBlockParam のような命名にする
+                        return $"{jsonString.Literal}{oneOfSchema.PropertyName?.ToCamelCase()}";
                     case JsonArray:
                     case JsonBoolean:
                         break;
