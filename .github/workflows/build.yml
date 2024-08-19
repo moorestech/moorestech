@@ -21,13 +21,13 @@ jobs:
         platform:
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
-            runner: windows-latest
+            runner: ubuntu-latest
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            runner: windows-latest
+            runner: ubuntu-latest
     
     steps:
       # Checkout
