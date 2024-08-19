@@ -16,6 +16,7 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - name: StandaloneWindows64
