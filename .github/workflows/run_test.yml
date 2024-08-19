@@ -12,6 +12,9 @@ on:
 jobs:
   test:
     name: Run Unity Test
+    # mooresmasterを入れてからちゃんと動かなくなった。
+    # なんかdll参照とLinuxの相性が悪いのか、linuxだとうまく動かなかった。windowsだとうまくいったので、とりあえずこれでなんとかする。
+    # https://qiita.com/CdecPGL/items/a8c1c1be0fc30de9b2dd
     runs-on: windows-latest
     steps:
       # 使用するGithub Tokenを動的に生成する
