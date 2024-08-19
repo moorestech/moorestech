@@ -114,7 +114,7 @@ namespace Game.Block.Blocks.Miner
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
                 RemainingSecond = _remainingSecond,
-                Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -332,7 +332,7 @@ namespace Game.Block.Blocks.Miner
     public class VanillaElectricMinerSaveJsonObject
     {
         [JsonProperty("items")]
-        public List<ItemStackJsonObject> Items;
+        public List<ItemStackSaveJsonObject> Items;
         [JsonProperty("remainingSecond")]
         public double RemainingSecond;
     }

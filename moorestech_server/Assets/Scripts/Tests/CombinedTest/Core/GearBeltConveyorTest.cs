@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
@@ -35,14 +36,13 @@ namespace Tests.CombinedTest.Core
             
             const int id = 2;
             const int count = 3;
-            var item = itemStackFactory.Create(id, count);
+            var item = itemStackFactory.Create(new ItemId(id), count);
             var dummy = new DummyBlockInventory();
             
             
             // gearBeltConveyorブロックを生成
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, out var gearBeltConveyor);
-            var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));

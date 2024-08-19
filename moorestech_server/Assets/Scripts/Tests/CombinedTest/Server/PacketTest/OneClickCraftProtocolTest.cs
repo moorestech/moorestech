@@ -1,4 +1,5 @@
 using System.Linq;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -93,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //不要なアテムを追加
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                var item = itemStackFactory.Create(10, 100);
+                var item = itemStackFactory.Create(new ItemId(10), 100);
                 playerInv.MainOpenableInventory.SetItem(i, item);
             }
             

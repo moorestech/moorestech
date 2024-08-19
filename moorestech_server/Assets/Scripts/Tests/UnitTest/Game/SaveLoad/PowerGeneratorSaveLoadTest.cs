@@ -1,5 +1,6 @@
 using System.Reflection;
 using Core.Inventory;
+using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
@@ -40,8 +41,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var fuelItemStacks = (OpenableInventoryItemDataStoreService)type
                 .GetField("_itemDataStoreService", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(powerGenerator);
-            fuelItemStacks.SetItem(0, itemStackFactory.Create(1, 5));
-            fuelItemStacks.SetItem(2, itemStackFactory.Create(3, 5));
+            fuelItemStacks.SetItem(0, itemStackFactory.Create(new ItemId(1), 5));
+            fuelItemStacks.SetItem(2, itemStackFactory.Create(new ItemId(3), 5));
             
             
             //セーブのテキストを取得

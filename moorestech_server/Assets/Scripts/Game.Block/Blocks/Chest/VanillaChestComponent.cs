@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Chest
         public VanillaChestComponent(string saveData, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
             this(blockInstanceId, slotNum, blockConnectorComponent)
         {
-            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
+            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(saveData);
             for (var i = 0; i < itemJsons.Count; i++)
             {
                 var itemStack = itemJsons[i].ToItem();
@@ -82,10 +82,10 @@ namespace Game.Block.Blocks.Chest
         {
             BlockException.CheckDestroy(this);
             
-            var itemJson = new List<ItemStackJsonObject>();
+            var itemJson = new List<ItemStackSaveJsonObject>();
             foreach (var item in _itemDataStoreService.InventoryItems)
             {
-                itemJson.Add(new ItemStackJsonObject(item));
+                itemJson.Add(new ItemStackSaveJsonObject(item));
             }
             
             return JsonConvert.SerializeObject(itemJson);

@@ -1,5 +1,6 @@
 using System;
 using Core.Const;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.ItemShooter;
@@ -45,7 +46,7 @@ namespace Tests.UnitTest.Core.Block
             var shooter3 = AddBlock(ForUnitTestModBlockId.StraightItemShooter, horizonShooter3).GetComponent<ItemShooterComponent>();
             var shooter4 = AddBlock(ForUnitTestModBlockId.StraightItemShooter, horizonShooter4).GetComponent<ItemShooterComponent>();
             
-            chest.InsertItem(itemFactory.Create(1, 1));
+            chest.InsertItem(itemFactory.Create(new ItemId(1), 1));
             
             // チェストのUpdateを呼び出し
             chest.Update();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
@@ -36,7 +37,7 @@ namespace Tests.CombinedTest.Core
             var random = new Random(4123);
             for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
-                var id = random.Next(0, 10);
+                var id = new ItemId(random.Next(0, 10));
                 
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
@@ -74,7 +75,7 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             
-            const int id = 2;
+            var id = new ItemId(2);
             const int count = 3;
             var item = itemStackFactory.Create(id, count);
             var dummy = new DummyBlockInventory();
@@ -120,7 +121,7 @@ namespace Tests.CombinedTest.Core
             var random = new Random(4123);
             for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
-                var id = random.Next(1, 11);
+                var id = new ItemId(random.Next(1, 11));
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
                 var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
@@ -154,8 +155,8 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
                 //必要な変数を作成
-                var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
-                var item2 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
+                var item1 = itemStackFactory.Create(new ItemId(random.Next(1, 11)), random.Next(1, 10));
+                var item2 = itemStackFactory.Create(new ItemId(random.Next(1, 11)), random.Next(1, 10));
                 
                 var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();

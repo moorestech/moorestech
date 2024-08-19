@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -35,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //削除するためのブロックの生成
             worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
-            blockInventory.InsertItem(itemStackFactory.Create(10, 7));
+            blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
             
             //プロトコルを使ってブロックを削除
@@ -66,20 +67,19 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
-            var itemConfig = ServerContext.ItemConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             
             //インベントリの2つのスロットを残してインベントリを満杯にする
             for (var i = 2; i < mainInventory.GetSlotSize(); i++)
-                mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
+                mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(1000), 1));
             
             //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
-            var id3MaxStack = itemConfig.GetItemConfig(3).MaxStack;
-            mainInventory.SetItem(0, itemStackFactory.Create(3, id3MaxStack - 1));
+            var id3MaxStack = ItemMaster.GetItemMaster(new ItemId(3)).MaxStack;
+            mainInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), id3MaxStack - 1));
             //二つめのスロットにはID4のアイテムを1つ入れておく
-            mainInventory.SetItem(1, itemStackFactory.Create(4, 1));
+            mainInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 1));
             
             
             //削除するためのブロックを設置
@@ -87,8 +87,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockInventory = block.GetComponent<IBlockInventory>();
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
-            blockInventory.SetItem(0, itemStackFactory.Create(3, 2));
-            blockInventory.SetItem(1, itemStackFactory.Create(4, 5));
+            blockInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), 2));
+            blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 5));
             
             
             //プロトコルを使ってブロックを削除
@@ -99,11 +99,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(worldBlock.Exists(new Vector3Int(0, 0)));
             
             //プレイヤーのインベントリにブロック内のアイテムが入っているか確認
-            Assert.AreEqual(itemStackFactory.Create(3, id3MaxStack), mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(4, 6), mainInventory.GetItem(1));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), id3MaxStack), mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(4), 6), mainInventory.GetItem(1));
             
             //ブロックのインベントリが減っているかを確認
-            Assert.AreEqual(itemStackFactory.Create(3, 1), blockInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), 1), blockInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.CreatEmpty(), blockInventory.GetItem(1));
         }
         
@@ -122,7 +122,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //インベントリを満杯にする
             for (var i = 0; i < mainInventory.GetSlotSize(); i++)
-                mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
+                mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(1000), 1));
             
             //ブロックを設置
             worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out _);

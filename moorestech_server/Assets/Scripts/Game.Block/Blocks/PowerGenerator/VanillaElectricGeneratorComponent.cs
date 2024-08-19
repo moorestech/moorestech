@@ -95,7 +95,7 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 CurrentFuelItemHash = itemHash,
                 RemainingFuelTime = _remainingFuelTime,
-                Items = _itemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _itemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -221,7 +221,7 @@ namespace Game.Block.Blocks.PowerGenerator
         public long CurrentFuelItemHash;
         
         [JsonProperty("inventory")]
-        public List<ItemStackJsonObject> Items;
+        public List<ItemStackSaveJsonObject> Items;
         
         [JsonProperty("remainingFuelTime")]
         public double RemainingFuelTime;

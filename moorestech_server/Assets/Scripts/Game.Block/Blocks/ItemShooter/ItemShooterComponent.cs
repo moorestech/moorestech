@@ -43,9 +43,9 @@ namespace Game.Block.Blocks.ItemShooter
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
-                if (item.ItemStack == null) continue;
+                if (item.ItemStackSave == null) continue;
                 
-                var id = ServerContext.ItemConfig.GetItemId(item.ItemStack.ItemHash);
+                var id = ServerContext.ItemConfig.GetItemId(item.ItemStackSave.ItemHash);
                 _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
                 {
                     RemainingPercent = (float)items[i].RemainingPercent
@@ -167,7 +167,7 @@ namespace Game.Block.Blocks.ItemShooter
     
     public class ItemShooterItemJsonObject
     {
-        [JsonProperty("itemStack")] public ItemStackJsonObject ItemStack;
+        [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStackSave;
         
         [JsonProperty("remainingTime")] public double RemainingPercent;
         
@@ -177,14 +177,14 @@ namespace Game.Block.Blocks.ItemShooter
         {
             if (shooterInventoryItem == null)
             {
-                ItemStack = null;
+                ItemStackSave = null;
                 RemainingPercent = 0;
                 CurrentSpeed = 0;
                 return;
             }
             
             var item = ServerContext.ItemStackFactory.Create(shooterInventoryItem.ItemId, 1);
-            ItemStack = new ItemStackJsonObject(item);
+            ItemStackSave = new ItemStackSaveJsonObject(item);
             RemainingPercent = shooterInventoryItem.RemainingPercent;
             CurrentSpeed = shooterInventoryItem.CurrentSpeed;
         }

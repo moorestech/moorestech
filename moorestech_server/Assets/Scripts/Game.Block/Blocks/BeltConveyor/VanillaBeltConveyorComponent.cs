@@ -191,7 +191,7 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class BeltConveyorItemJsonObject
     {
-        [JsonProperty("itemStack")] public ItemStackJsonObject ItemStack;
+        [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStack;
         
         [JsonProperty("remainingTime")] public double RemainingPercent;
         
@@ -205,7 +205,7 @@ namespace Game.Block.Blocks.BeltConveyor
             }
             
             var item = ServerContext.ItemStackFactory.Create(beltConveyorInventoryItem.ItemId, 1);
-            ItemStack = new ItemStackJsonObject(item);
+            ItemStack = new ItemStackSaveJsonObject(item);
             RemainingPercent = beltConveyorInventoryItem.RemainingPercent;
         }
     }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -43,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //インベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true));
             //ブロックにアイテムを入れる
-            blockInventory.SetItem(1, itemStackFactory.Create(4, 8));
+            blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていることをチェック
@@ -68,7 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false));
             
             //ブロックにアイテムを入れる
-            blockInventory.SetItem(2, itemStackFactory.Create(4, 8));
+            blockInventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていないことをチェック
@@ -103,7 +104,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //一つ目のブロックインベントリにアイテムを入れる
             var block1Inventory = block1.GetComponent<VanillaMachineBlockInventoryComponent>();
-            block1Inventory.SetItem(2, itemStackFactory.Create(4, 8));
+            block1Inventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていないことをチェック

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -24,8 +25,7 @@ namespace Tests.UnitTest.Core.Block
             var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
             var input = new List<IItemStack>();
-            items.ToList().ForEach(
-                i => input.Add(itemStackFactory.Create(i, 1)));
+            items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
             
             var ans = machineRecipeConfig.GetRecipeData(BlocksId, input);
             Assert.AreEqual(output0Id, ans.ItemOutputs[0].OutputItem.Id);
@@ -47,8 +47,7 @@ namespace Tests.UnitTest.Core.Block
             var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
             var input = new List<IItemStack>();
-            items.ToList().ForEach(
-                i => input.Add(itemStackFactory.Create(i, 1)));
+            items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
             
             var ans = machineRecipeConfig.GetRecipeData(BlocksId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength, ans);
@@ -71,7 +70,11 @@ namespace Tests.UnitTest.Core.Block
             var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
             var itemStacks = new List<IItemStack>();
-            for (var i = 0; i < items.Length; i++) itemStacks.Add(itemStackFactory.Create(items[i], itemcount[i]));
+            for (var i = 0; i < items.Length; i++)
+            {
+                var itemId = new ItemId(items[i]);
+                itemStacks.Add(itemStackFactory.Create(itemId, itemcount[i]));
+            }
             
             var a = machineRecipeConfig.GetRecipeData(blocksId, itemStacks).RecipeConfirmation(itemStacks, blocksId);
             Assert.AreEqual(ans, a);

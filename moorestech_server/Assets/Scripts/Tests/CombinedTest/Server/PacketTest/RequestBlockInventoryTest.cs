@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -31,8 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             ServerContext.WorldBlockDatastore.TryAddBlock(MachineBlockId, new Vector3Int(5, 10), BlockDirection.North, out var machineBlock);
             var machineComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            machineComponent.SetItem(0, itemStackFactory.Create(1, 2));
-            machineComponent.SetItem(2, itemStackFactory.Create(4, 5));
+            machineComponent.SetItem(0, itemStackFactory.Create(new ItemId(1), 2));
+            machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));
             
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(

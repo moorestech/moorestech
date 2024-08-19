@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
@@ -29,7 +30,7 @@ namespace Tests.CombinedTest.Core
             
             var random = new Random(4123);
             
-            var id = random.Next(1, 11);
+            var id = new ItemId(random.Next(1, 11));
             var count = 1;
             var item = itemStackFactory.Create(id, count);
             

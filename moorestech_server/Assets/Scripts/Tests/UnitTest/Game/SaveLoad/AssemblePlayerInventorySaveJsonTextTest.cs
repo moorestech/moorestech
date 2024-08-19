@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
@@ -30,15 +31,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セットするアイテムを定義する
             var mainItems = new Dictionary<int, IItemStack>();
-            mainItems.Add(0, itemStackFactory.Create(2, 10));
-            mainItems.Add(10, itemStackFactory.Create(5, 1));
-            mainItems.Add(30, itemStackFactory.Create(10, 10));
-            mainItems.Add(PlayerInventoryConst.MainInventorySize - 1, itemStackFactory.Create(12, 11));
+            mainItems.Add(0, itemStackFactory.Create(new ItemId(2), 10));
+            mainItems.Add(10, itemStackFactory.Create(new ItemId(5), 1));
+            mainItems.Add(30, itemStackFactory.Create(new ItemId(10), 10));
+            mainItems.Add(PlayerInventoryConst.MainInventorySize - 1, itemStackFactory.Create(new ItemId(12), 11));
             
             var craftItems = new Dictionary<int, IItemStack>();
-            craftItems.Add(0, itemStackFactory.Create(2, 5));
-            craftItems.Add(1, itemStackFactory.Create(3, 4));
-            craftItems.Add(7, itemStackFactory.Create(4, 7));
+            craftItems.Add(0, itemStackFactory.Create(new ItemId(2), 5));
+            craftItems.Add(1, itemStackFactory.Create(new ItemId(3), 4));
+            craftItems.Add(7, itemStackFactory.Create(new ItemId(4), 7));
             
             //メインアイテムをセットする
             foreach (var item in mainItems) inventory.MainOpenableInventory.SetItem(item.Key, item.Value);
@@ -130,7 +131,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 if (random.Next(0, 2) == 0) continue;
-                var id = random.Next(1, 100);
+                var id = new ItemId(random.Next(1, 100));
                 var count = random.Next(1, 20);
                 items.Add(i, itemStackFactory.Create(id, count));
             }

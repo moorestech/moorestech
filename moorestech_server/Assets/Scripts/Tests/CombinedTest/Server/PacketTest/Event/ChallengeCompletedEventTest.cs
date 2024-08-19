@@ -1,4 +1,5 @@
 using System.Linq;
+using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Challenge;
@@ -71,10 +72,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // インベントリに別々にアイテムを追加
+            const int itemId = 1;
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var item1 = ServerContext.ItemStackFactory.Create("Test Author:forUniTest", "Test1", 2);
+            var item1 = ServerContext.ItemStackFactory.Create(new ItemId(itemId), 2);
             playerInventoryData.MainOpenableInventory.SetItem(1, item1);
-            var item2 = ServerContext.ItemStackFactory.Create("Test Author:forUniTest", "Test1", 1);
+            var item2 = ServerContext.ItemStackFactory.Create(new ItemId(itemId), 1);
             playerInventoryData.MainOpenableInventory.SetItem(2, item2);
             
             // アップデートしてチャレンジをコンプリートする

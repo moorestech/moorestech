@@ -119,10 +119,10 @@ namespace Tests.CombinedTest.Core
                 .GetValue(vanillaMachineInventory);
             
             var inputSlot = vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
-            inputSlot.Sort((a, b) => a.Id - b.Id);
+            inputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
             
             var outputSlot = vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
-            outputSlot.Sort((a, b) => a.Id - b.Id);
+            outputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
             
             return (inputSlot, outputSlot);
         }
