@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Component;
@@ -56,13 +57,13 @@ namespace Game.Block.Factory.BlockTemplate
         public readonly BlockPositionInfo BlockPositionInfo;
         public readonly int FuelItemSlot;
         
-        public readonly Dictionary<int, FuelSetting> FuelSettings;
+        public readonly Dictionary<ItemId, FuelSetting> FuelSettings;
         public readonly ElectricPower InfinityPower;
         public readonly BlockConnectorComponent<IBlockInventory> InventoryInputConnectorComponent;
         public readonly bool IsInfinityPower;
         
         public VanillaPowerGeneratorProperties(BlockInstanceId blockInstanceId, int fuelItemSlot,
-            bool isInfinityPower, ElectricPower infinityPower, Dictionary<int, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+            bool isInfinityPower, ElectricPower infinityPower, Dictionary<ItemId, FuelSetting> fuelSettings, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             BlockInstanceId = blockInstanceId;
             FuelItemSlot = fuelItemSlot;

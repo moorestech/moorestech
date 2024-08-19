@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Item.Interface;
+using Core.Master;
 
 namespace Core.Inventory
 {
@@ -72,7 +73,7 @@ namespace Core.Inventory
             _inventory[slot] = itemStack;
         }
         
-        public void SetItem(int slot, int itemId, int count)
+        public void SetItem(int slot, ItemId itemId, int count)
         {
             SetItem(slot, _itemStackFactory.Create(itemId, count));
         }
@@ -100,7 +101,7 @@ namespace Core.Inventory
             return item;
         }
         
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
         {
             return ReplaceItem(slot, _itemStackFactory.Create(itemId, count));
         }
@@ -115,7 +116,7 @@ namespace Core.Inventory
             return InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, InvokeEvent);
         }
         
-        public IItemStack InsertItem(int itemId, int count)
+        public IItemStack InsertItem(ItemId itemId, int count)
         {
             return InsertItem(_itemStackFactory.Create(itemId, count));
         }
@@ -133,7 +134,7 @@ namespace Core.Inventory
             return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, prioritySlots, InvokeEvent);
         }
         
-        public IItemStack InsertItemWithPrioritySlot(int itemId, int count, int[] prioritySlots)
+        public IItemStack InsertItemWithPrioritySlot(ItemId itemId, int count, int[] prioritySlots)
         {
             return InsertItemWithPrioritySlot(_itemStackFactory.Create(itemId, count), prioritySlots);
         }

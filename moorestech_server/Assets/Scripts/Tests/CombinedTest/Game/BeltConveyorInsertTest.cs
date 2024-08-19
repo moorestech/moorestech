@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
@@ -28,7 +29,7 @@ namespace Tests.CombinedTest.Game
             
             //インプットチェストにアイテムを2つ入れる
             var inputChestComponent = inputChest.GetComponent<VanillaChestComponent>();
-            inputChestComponent.SetItem(0, 1, 2);
+            inputChestComponent.SetItem(0, new ItemId(1), 2);
             
             //ベルトコンベアのアイテムが出てから入るまでの6秒間アップデートする
             var now = DateTime.Now;

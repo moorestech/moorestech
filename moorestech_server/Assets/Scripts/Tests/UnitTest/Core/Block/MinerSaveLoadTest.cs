@@ -1,5 +1,6 @@
 using System.Reflection;
 using Core.Inventory;
+using Core.Master;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -32,8 +33,8 @@ namespace Tests.UnitTest.Core.Block
                 (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(originalMinerComponent);
-            inventory.SetItem(0, 1, 1);
-            inventory.SetItem(2, 4, 1);
+            inventory.SetItem(0, new ItemId(1), 1);
+            inventory.SetItem(2, new ItemId(4), 1);
             typeof(VanillaElectricMinerComponent).GetField("_remainingSecond", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(originalMinerComponent, originalRemainingMillSecond);
             

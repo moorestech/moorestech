@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -30,18 +33,9 @@ namespace Server.Protocol.PacketResponse
             
             
             //存在したらアイテム数とアイテムIDをまとめてレスポンスする
-            var itemIds = new List<int>();
-            var itemCounts = new List<int>();
-            
-            foreach (var item in blockDatastore.GetBlock<IOpenableBlockInventoryComponent>(data.Pos).InventoryItems)
-            {
-                itemIds.Add(item.Id);
-                itemCounts.Add(item.Count);
-            }
-            
             var blockId = blockDatastore.GetBlock(data.Pos).BlockId;
             
-            return new BlockInventoryResponseProtocolMessagePack(blockId, itemIds.ToArray(), itemCounts.ToArray());
+            return new BlockInventoryResponseProtocolMessagePack(blockId, blockDatastore.GetBlock<IOpenableBlockInventoryComponent>(data.Pos).InventoryItems);
         }
         
         //データのレスポンスを実行するdelegateを設定する
@@ -69,24 +63,20 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class BlockInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
-        public BlockInventoryResponseProtocolMessagePack(int blockId, int[] itemIds, int[] itemCounts)
+        [Key(2)] public int BlockId { get; set; }
+     
+        [Key(3)] public ItemMessagePack[] Items { get; set; }
+        
+        public BlockInventoryResponseProtocolMessagePack(int blockId, IReadOnlyList<IItemStack> items)
         {
             Tag = BlockInventoryRequestProtocol.Tag;
             BlockId = blockId;
-            ItemIds = itemIds;
-            ItemCounts = itemCounts;
+            Items = items.Select(item => new ItemMessagePack(item)).ToArray();
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlockInventoryResponseProtocolMessagePack()
         {
         }
-        
-        
-        [Key(2)] public int BlockId { get; set; }
-        
-        [Key(3)] public int[] ItemIds { get; set; }
-        
-        [Key(4)] public int[] ItemCounts { get; set; }
     }
 }

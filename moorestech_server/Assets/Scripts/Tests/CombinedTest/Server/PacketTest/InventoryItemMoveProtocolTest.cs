@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //インベントリの設定
-            mainInventory.SetItem(0, 1, 10);
+            mainInventory.SetItem(0, new ItemId(1), 10);
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
             
             //ブロックインベントリの設定
-            chestComponent.SetItem(1, 1, 10);
+            chestComponent.SetItem(1, new ItemId(1), 10);
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,

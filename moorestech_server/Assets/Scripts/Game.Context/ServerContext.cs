@@ -1,5 +1,4 @@
 using Core.Item.Interface;
-using Core.Item.Interface.Config;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -30,7 +31,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
         }
         
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -47,7 +48,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             return item;
         }
         
-        public IItemStack InsertItem(int itemId, int count)
+        public IItemStack InsertItem(ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -81,7 +82,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
         
-        public void SetItem(int slot, int itemId, int count)
+        public void SetItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             

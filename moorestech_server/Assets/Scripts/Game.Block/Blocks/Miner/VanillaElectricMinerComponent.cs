@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
@@ -242,7 +243,7 @@ namespace Game.Block.Blocks.Miner
         
         public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryItemDataStoreService.InventoryItems;
         
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -256,7 +257,7 @@ namespace Game.Block.Blocks.Miner
             return _openableInventoryItemDataStoreService.InsertItem(itemStack);
         }
         
-        public IItemStack InsertItem(int itemId, int count)
+        public IItemStack InsertItem(ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -277,7 +278,7 @@ namespace Game.Block.Blocks.Miner
             return _openableInventoryItemDataStoreService.InsertionCheck(itemStacks);
         }
         
-        public void SetItem(int slot, int itemId, int count)
+        public void SetItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             

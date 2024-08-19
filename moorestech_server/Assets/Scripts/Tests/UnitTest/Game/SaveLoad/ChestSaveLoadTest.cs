@@ -1,3 +1,4 @@
+using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -26,9 +27,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var chest = chestBlock.GetComponent<VanillaChestComponent>();
             
             
-            chest.SetItem(0, 1, 7);
-            chest.SetItem(2, 2, 45);
-            chest.SetItem(4, 3, 3);
+            chest.SetItem(0, new ItemId(1), 7);
+            chest.SetItem(2, new ItemId(2), 45);
+            chest.SetItem(4, new ItemId(3), 3);
             
             var save = chest.GetSaveState();
             Debug.Log(save);

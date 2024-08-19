@@ -1,17 +1,18 @@
 ﻿using Core.Item.Interface;
+using Core.Master;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
     public interface IOnBeltConveyorItem
     {
         public double RemainingPercent { get; }
-        public int ItemId { get; }
+        public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
     }
     
     public class BeltConveyorInventoryItem : IOnBeltConveyorItem
     {
-        public int ItemId { get; }
+        public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
         
         /// <summary>
@@ -19,7 +20,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public double RemainingPercent { get; set; }
         
-        public BeltConveyorInventoryItem(int itemId, ItemInstanceId itemInstanceId)
+        public BeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;

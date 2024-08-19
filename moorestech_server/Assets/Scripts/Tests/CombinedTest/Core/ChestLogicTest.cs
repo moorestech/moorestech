@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Core
             var beltconveyor = blockFactory.Create(3, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltconveyor.GetComponent<VanillaBeltConveyorComponent>();
             
-            chestComponent.SetItem(0, 1, 1);
+            chestComponent.SetItem(0, new ItemId(1), 1);
             
             var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             chestConnectInventory.Add(beltConveyorComponent, (null, null));

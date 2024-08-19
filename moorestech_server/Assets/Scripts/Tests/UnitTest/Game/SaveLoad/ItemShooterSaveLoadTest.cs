@@ -1,5 +1,6 @@
 using System.Reflection;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.ItemShooter;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -34,11 +35,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item1RemainingPercent = 0.5f;
             var item2RemainingPercent = 0.3f;
             var item3RemainingPercent = 0.0f;
-            inventoryItems[0] = new ShooterInventoryItem(1, new ItemInstanceId(0), item1Speed);
+            inventoryItems[0] = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed);
             inventoryItems[0].RemainingPercent = item1RemainingPercent;
-            inventoryItems[2] = new ShooterInventoryItem(2, new ItemInstanceId(0), item2Speed);
+            inventoryItems[2] = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed);
             inventoryItems[2].RemainingPercent = item2RemainingPercent;
-            inventoryItems[3] = new ShooterInventoryItem(5, new ItemInstanceId(0), item3Speed);
+            inventoryItems[3] = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed);
             inventoryItems[3].RemainingPercent = item3RemainingPercent;
             
             

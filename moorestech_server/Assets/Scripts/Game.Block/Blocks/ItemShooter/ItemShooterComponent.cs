@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
@@ -45,7 +46,7 @@ namespace Game.Block.Blocks.ItemShooter
                 var item = items[i];
                 if (item.ItemStackSave == null) continue;
                 
-                var id = ServerContext.ItemConfig.GetItemId(item.ItemStackSave.ItemHash);
+                var id = ItemMaster.GetItemId(item.ItemStackSave.ItemGuid);
                 _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
                 {
                     RemainingPercent = (float)items[i].RemainingPercent

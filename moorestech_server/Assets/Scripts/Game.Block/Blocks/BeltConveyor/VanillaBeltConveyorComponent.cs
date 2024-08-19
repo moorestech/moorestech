@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
@@ -131,7 +132,7 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
             
-            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(4, ItemInstanceId.Create());
+            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(4), ItemInstanceId.Create());
             for (var i = 0; i < count; i++)
             {
                 var item = _inventoryItems[i];
