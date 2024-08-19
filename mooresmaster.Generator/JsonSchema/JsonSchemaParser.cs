@@ -50,9 +50,10 @@ public static class JsonSchemaParser
     private static SchemaId ParseArray(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var pattern = json["pattern"] as JsonString;
+        var overrideCodeGeneratePropertyName = json["overrideCodeGeneratePropertyName"] as JsonString;
         var arraySchemaId = SchemaId.New();
         var items = Parse((json["items"] as JsonObject)!, arraySchemaId, table);
-        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, pattern));
+        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, pattern, overrideCodeGeneratePropertyName));
         return arraySchemaId;
     }
 

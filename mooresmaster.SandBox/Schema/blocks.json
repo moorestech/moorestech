@@ -6,6 +6,8 @@
 
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "BlockElement",
+
       "items": {
         "type": "object",
         "required": ["blockId", "name", "blockType", "itemId", "size", "param", "modelTransform"],
