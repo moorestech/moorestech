@@ -17,8 +17,6 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(static c => c.AddSource("mooresmaster.g.cs", CodeGenerator.GenerateMooresmasterAttributeCode()));
-
         var additionalTextsProvider = context.AdditionalTextsProvider.Collect();
         var provider = context.CompilationProvider.Combine(additionalTextsProvider);
         context.RegisterSourceOutput(provider, Emit);
@@ -26,8 +24,6 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
 
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
-        if (!input.compilation.Assembly.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == "Mooresmaster.GenerateMooresmasterAttribute")) return;
-
         context.AddSource("mooresmaster.loader.BuiltinLoader.g.cs", LoaderGenerator.GenerateBuiltinLoaderCode());
 
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);

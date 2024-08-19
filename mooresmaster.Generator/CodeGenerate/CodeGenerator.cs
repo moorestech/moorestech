@@ -15,21 +15,6 @@ public record CodeFile(string FileName, string Code)
 
 public static class CodeGenerator
 {
-    public static string GenerateMooresmasterAttributeCode()
-    {
-        return """
-               using System;
-
-               namespace Mooresmaster
-               {
-                   [AttributeUsage(AttributeTargets.Assembly)]
-                   public class GenerateMooresmasterAttribute : Attribute
-                   {
-                   }
-               }
-               """;
-    }
-
     public static CodeFile[] Generate(Definition definition)
     {
         var files = new Dictionary<string, List<string>>();
@@ -53,7 +38,24 @@ public static class CodeGenerator
 //                {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode))}}}
 //                """
 
-        return files.Select(file => new CodeFile(file.Key, string.Join("\n", file.Value))).ToArray();
+        return files
+            .Select(file =>
+                new CodeFile(
+                    file.Key,
+                    string.Join("\n", file.Value)
+                )
+            )
+            .Select(file =>
+                file with
+                {
+                    Code = $"{file.Code}".GetPreprocessedCode()
+                })
+            .ToArray();
+    }
+
+    public static string GetPreprocessedCode(this string code)
+    {
+        return $"#if ENABLE_MOORESMASTER_GENERATOR\n{code}\n#endif";
     }
 
     private static string GenerateTypeDefinitionCode(TypeDefinition typeDef)
