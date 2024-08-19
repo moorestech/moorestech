@@ -12,7 +12,7 @@ on:
 jobs:
   test:
     name: Run Unity Test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       # 使用するGithub Tokenを動的に生成する
       # 利用は ${{ steps.generate_token.outputs.token }}
