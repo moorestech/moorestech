@@ -7,13 +7,13 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Gear.Common;
+using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConnectsModule;
 using Newtonsoft.Json;
-using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
@@ -24,19 +24,19 @@ namespace Game.Block.Blocks.ItemShooter
         private readonly ShooterInventoryItem[] _inventoryItems;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        private readonly ItemShooterConfigParam _configParam;
+        private readonly ItemShooterBlockParam _itemShooterBlockParam;
         
-        public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam)
+        public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam)
         {
             _blockConnectorComponent = blockConnectorComponent;
-            _configParam = configParam;
+            _itemShooterBlockParam = itemShooterBlockParam;
             
-            _inventoryItems = new ShooterInventoryItem[_configParam.InventoryItemNum];
+            _inventoryItems = new ShooterInventoryItem[_itemShooterBlockParam.InventoryItemNum];
             
         }
         
-        public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterConfigParam configParam) :
-            this(blockConnectorComponent, configParam)
+        public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam) :
+            this(blockConnectorComponent, itemShooterBlockParam)
         {
             if (state == string.Empty) return;
             
@@ -71,7 +71,7 @@ namespace Game.Block.Blocks.ItemShooter
                     
                     if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectedTargets.First();
+                    KeyValuePair<IBlockInventory, (GearConnectOption selfOption, GearConnectOption targetOption)> connector = _blockConnectorComponent.ConnectedTargets.First();
                     var target = connector.Key;
                     if (target is ItemShooterComponent shooter)
                     {
@@ -90,11 +90,11 @@ namespace Game.Block.Blocks.ItemShooter
                 
                 //時間を減らす
                 var deltaTime = (float)GameUpdater.UpdateSecondTime; // floatとdobuleが混在しているの気持ち悪いから改善したい
-                item.RemainingPercent -= deltaTime * _configParam.ItemShootSpeed * item.CurrentSpeed;
+                item.RemainingPercent -= deltaTime * _itemShooterBlockParam.ItemShootSpeed * item.CurrentSpeed;
                 item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
                 
                 // velocityを更新する
-                item.CurrentSpeed += _configParam.Acceleration * deltaTime;
+                item.CurrentSpeed += _itemShooterBlockParam.Acceleration * deltaTime;
                 item.CurrentSpeed = Mathf.Clamp(item.CurrentSpeed, 0, float.MaxValue);
             }
         }
@@ -124,7 +124,7 @@ namespace Game.Block.Blocks.ItemShooter
             {
                 if (_inventoryItems[i] != null) continue;
                 
-                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _configParam.InitialShootSpeed);
+                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _itemShooterBlockParam.InitialShootSpeed);
                 return itemStack.SubItem(1);
             }
             
@@ -142,7 +142,7 @@ namespace Game.Block.Blocks.ItemShooter
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _configParam.InitialShootSpeed);
+            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _itemShooterBlockParam.InitialShootSpeed);
         }
         
         public int GetSlotSize()

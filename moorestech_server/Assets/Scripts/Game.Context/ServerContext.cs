@@ -1,6 +1,5 @@
 using Core.Item.Interface;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Challenge;
@@ -16,7 +15,6 @@ namespace Game.Context
     {
         private static ServiceProvider _serviceProvider;
         
-        public static IBlockConfig BlockConfig { get; private set; }
         public static ICraftingConfig CraftingConfig { get; private set; }
         public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
         public static IMapObjectConfig MapObjectConfig { get; private set; }
