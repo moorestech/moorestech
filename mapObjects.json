@@ -6,6 +6,8 @@
   "properties": {
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "MapObjectElement",
+      
       "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
       "items": {
         "type": "object",

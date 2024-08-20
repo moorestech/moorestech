@@ -8,9 +8,11 @@
 
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "BlockElement",
+
       "items": {
         "type": "object",
-        "required": ["blockId", "name", "blockType", "itemId", "size", "param", "modelTransform"],
+        "required": ["blockId", "name", "blockType", "itemId", "size", "blockParam", "modelTransform"],
 
         "properties": {
           "blockId": {
@@ -46,7 +48,7 @@
             "default": [1,1,1]
           },
 
-          "param": {
+          "blockParam": {
             "oneOf": [
               {
                 "if": {

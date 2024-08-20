@@ -8,6 +8,8 @@
 
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "MachineRecipeElement",
+
       "items": {
         "type": "object",
         "required": ["blockId", "time", "input", "output"],

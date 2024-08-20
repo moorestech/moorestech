@@ -7,6 +7,8 @@
   "properties": {
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "ChallengeElement",
+
       "items": {
         "type": "object",
         "required": ["challengeId","prevId", "summary", "taskCompletionType", "taskParam", "tutorials"],
