@@ -24,7 +24,7 @@
         },
         "default": [0, 0, 0]
       },
-      "option": {
+      "gearConnectOption": {
         "type": "object",
         "required": ["isReverse", "onlySpecifiedTypes"],
         "properties": {
