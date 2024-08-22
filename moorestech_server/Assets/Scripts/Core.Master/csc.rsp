@@ -4,6 +4,6 @@
 /additionalfile:Assets/../../Schema/items.json
 /additionalfile:Assets/../../Schema/challenges.json
 /additionalfile:Assets/../../Schema/blocks.json
-/additionalfile:Assets/../../Schema/Ref/blockConnectInfo.json
-/additionalfile:Assets/../../Schema/Ref/inventoryConnects.json
-/additionalfile:Assets/../../Schema/Ref/modelTransform.json
+/additionalfile:Assets/../../Schema/ref/blockConnectInfo.json
+/additionalfile:Assets/../../Schema/ref/inventoryConnects.json
+/additionalfile:Assets/../../Schema/ref/modelTransform.json
