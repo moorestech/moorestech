@@ -2,6 +2,8 @@
   "$id": "items",
   "type": "object",
   "required": [ "data" ],
+  "isDefaultOpen": true,
+
   "properties": {
     "data": {
       "type": "array",

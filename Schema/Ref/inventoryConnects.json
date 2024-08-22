@@ -2,70 +2,15 @@
   "$id": "inventoryConnects",
 
   "type": "object",
-  "required": ["inputConnects", "outputConnects"],
-
   "properties": {
 
     "inputConnects": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["offset", "directions"],
-
-        "properties": {
-
-          "offset": {
-            "type": "array",
-            "pattern": "@vector3Int",
-            "items": {
-              "type": "integer"
-            },
-            "default": [0, 0, 0]
-          },
-
-          "directions": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "pattern": "@vector3Int",
-              "items": {
-                "type": "integer"
-              },
-              "default": [0, 0, 0]
-            }
-          }
-        }
-      }
+      "$ref" : "blockConnectInfo"
     },
 
     "outputConnects": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["offset", "directions"],
-
-        "properties": {
-
-          "offset": {
-            "type": "array",
-            "pattern": "@vector3Int",
-            "items": {
-              "type": "integer"
-            }
-          },
-
-          "directions": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "pattern": "@vector3Int",
-              "items": {
-                "type": "integer"
-              }
-            }
-          }
-        }
-      }
+      "$ref" : "blockConnectInfo"
     }
+
   }
 }
