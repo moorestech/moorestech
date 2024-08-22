@@ -1,6 +1,8 @@
 {
   "$id": "mapObjects",
   "type": "object",
+  "isDefaultOpen": true,
+  
   "properties": {
     "data": {
       "type": "array",

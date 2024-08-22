@@ -20,9 +20,9 @@
         <AdditionalFiles Include="Schema\machineRecipes.json"/>
         <AdditionalFiles Include="Schema\mapObjects.json"/>
 
-        <AdditionalFiles Include="Schema\Ref\gearConnects.json"/>
-        <AdditionalFiles Include="Schema\Ref\inventoryConnects.json"/>
-        <AdditionalFiles Include="Schema\Ref\modelTransform.json"/>
+        <AdditionalFiles Include="Schema\ref\blockConnectInfo.json"/>
+        <AdditionalFiles Include="Schema\ref\inventoryConnects.json"/>
+        <AdditionalFiles Include="Schema\ref\modelTransform.json"/>
     </ItemGroup>
 
     <ItemGroup>
