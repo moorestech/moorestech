@@ -1,0 +1,90 @@
+{
+  "$id": "blockConnectInfo",
+
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["connectType","offset", "directions","connectOption"],
+
+    "properties": {
+
+      "connectType": {
+        "type": "string",
+        "enum": ["Inventory", "Gear"],
+        "description": "TODO これは後々外部（上位スキーマ？）から設定できるようにする"
+      },
+
+      "offset": {
+        "type": "array",
+        "pattern": "@vector3Int",
+        "items": {
+          "type": "integer"
+        },
+        "default": [
+          0,
+          0,
+          0
+        ]
+      },
+
+      "directions": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "pattern": "@vector3Int",
+          "items": {
+            "type": "integer"
+          },
+          "default": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+
+      "connectOption": {
+        "oneOf": [
+          {
+            "if": {
+              "properties": {
+                "connectType": { "const": "Inventory" }
+              }
+            },
+            "then": {
+              "type": "object",
+              "properties": {
+              }
+            }
+          },
+
+          {
+            "if": {
+              "properties": {
+                "connectType": { "const": "Gear" }
+              }
+            },
+            "then": {
+              "type": "object",
+              "properties": {
+
+                "isReverse": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "onlySpecifiedTypes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+
+              }
+            }
+          }
+
+        ]
+      }
+    }
+  }
+}
