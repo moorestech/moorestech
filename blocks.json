@@ -233,7 +233,7 @@
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
                     "gearConnects": {
-                      "$ref": "gearConnects"
+                      "$ref": "blockConnectInfo"
                     }
                   }
                 }
@@ -253,7 +253,7 @@
                   "properties": {
                     "requireTorque": {"type": "number", "default": 1},
                     "gearConnects": {
-                      "$ref": "gearConnects"
+                      "$ref": "blockConnectInfo"
                     }
                   }
                 }
@@ -280,7 +280,7 @@
                       "$ref": "inventoryConnects"
                     },
                     "gearConnects": {
-                      "$ref": "gearConnects"
+                      "$ref": "blockConnectInfo"
                     }
                   }
                 }
@@ -302,7 +302,7 @@
                     "generateRpm": {"type": "number", "default": 5},
                     "generateTorque": {"type": "number", "default": 1},
                     "gearConnects": {
-                      "$ref": "gearConnects"
+                      "$ref": "blockConnectInfo"
                     }
                   }
                 }
@@ -326,7 +326,7 @@
                       "$ref": "inventoryConnects"
                     },
                     "gearConnects": {
-                      "$ref": "gearConnects"
+                      "$ref": "blockConnectInfo"
                     }
                   }
                 }
