@@ -84,18 +84,18 @@
           },
 
 
-          "tutorialType": {
-            "type": "string",
-            "default": "uiHighLight",
-            "enum": ["mapObjectPin", "keyControl", "uiHighLight"]
-          },
-
           "tutorials": {
             "type": "array",
             "items": {
               "type": "object",
               "required": ["tutorialType", "tutorialParam"],
               "properties": {
+
+                "tutorialType": {
+                  "type": "string",
+                  "default": "uiHighLight",
+                  "enum": ["mapObjectPin", "keyControl", "uiHighLight"]
+                },
 
                 "tutorialParam": {
                   "oneOf": [
