@@ -2,9 +2,13 @@
   "$id": "items",
   "type": "object",
   "required": [ "data" ],
+  "isDefaultOpen": true,
+
   "properties": {
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "ItemElement",
+      
       "items": {
         "type": "object",
         "required": [ "itemId", "itemStack" ],

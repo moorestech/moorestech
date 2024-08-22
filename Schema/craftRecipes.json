@@ -1,11 +1,14 @@
 {
   "$id": "craftRecipes",
   "type": "object",
-
   "required": [ "data" ],
+  "isDefaultOpen": true,
+
   "properties": {
     "data": {
       "type": "array",
+      "overrideCodeGeneratePropertyName": "CraftRecipeElement",
+
       "items": {
         "type": "object",
         "required": [ "requiredItems", "resultItem" ],
