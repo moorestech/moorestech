@@ -1,4 +1,5 @@
 ﻿using Core.Item.Interface;
+using Core.Master;
 using UnityEngine;
 
 namespace Game.Entity.Interface.EntityInstance
@@ -27,7 +28,7 @@ namespace Game.Entity.Interface.EntityInstance
             State = itemStack.Id + "," + itemStack.Count;
         }
         
-        public void SetState(int id, int count)
+        public void SetState(ItemId id, int count)
         {
             State = id + "," + count;
         }

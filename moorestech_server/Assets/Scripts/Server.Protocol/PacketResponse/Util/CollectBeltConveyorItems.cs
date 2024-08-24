@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Factory.BlockTemplate;
@@ -36,7 +37,7 @@ namespace Server.Protocol.PacketResponse.Util
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
                 
-                var type = BlockMaster.GetItemMaster(block.BlockId).Type;
+                var type = BlockMaster.GetBlockMaster(block.BlockId).BlockType;
                 
                 if (type != VanillaBlockType.BeltConveyor) continue;
                 
