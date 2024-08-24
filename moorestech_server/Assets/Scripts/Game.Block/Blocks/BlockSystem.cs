@@ -16,7 +16,7 @@ namespace Game.Block.Blocks
     {
         public BlockInstanceId BlockInstanceId { get; }
         public BlockId BlockId { get; }
-        public Guid BlockGuid => blockElement.BlockGuid;
+        public Guid BlockGuid => BlockElement.BlockGuid;
         public BlockElement BlockElement { get; }
         public IBlockComponentManager ComponentManager => _blockComponentManager;
         public BlockPositionInfo BlockPositionInfo { get; }
@@ -35,8 +35,8 @@ namespace Game.Block.Blocks
         {
             BlockInstanceId = blockInstanceId;
             BlockPositionInfo = blockPositionInfo;
-            BlockId = BlockMaster.GetItemId(blockGuid);
-            BlockElement = BlockMaster.GetItemMaster(BlockId);
+            BlockId = BlockMaster.GetBlockId(blockGuid);
+            BlockElement = BlockMaster.GetBlockMaster(BlockId);
             
             _blockComponentManager = new BlockComponentManager();
             _blockComponentManager.AddComponents(blockComponents);

@@ -55,7 +55,7 @@ namespace Core.Master
             
             // GUIDの順番にint型のItemIdを割り当てる
             var itemElements = MasterHolder.Items.Data;
-            var sortedItemElements = itemElements.ToList().OrderBy(x => x.ItemId).ToList();
+            var sortedItemElements = itemElements.ToList().OrderBy(x => x.ItemGuid).ToList();
             
             // アイテムID 0は空のアイテムとして予約しているので、1から始める
             var itemElementTable = new Dictionary<ItemId,ItemElement>();
@@ -63,7 +63,7 @@ namespace Core.Master
             for (var i = 1; i < sortedItemElements.Count; i++)
             {
                 itemElementTable.Add(new ItemId(i), sortedItemElements[i]);
-                itemGuidToItemId.Add(sortedItemElements[i].ItemId, new ItemId(i));
+                itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, new ItemId(i));
             }
             
             _instance = new ItemMaster(itemElementTable, itemGuidToItemId);

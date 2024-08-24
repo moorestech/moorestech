@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -60,7 +61,7 @@ namespace Server.Protocol.PacketResponse
             if (block == null) return null;
             
             //ブロックのIDを取得
-            var blockItemId = BlockMaster.GetItemMaster(block.BlockId).ItemId;
+            var blockItemId = BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
             //アイテムを挿入
             var remainBlockItem = playerMainInventory.InsertItem(ServerContext.ItemStackFactory.Create(blockItemId, 1));
             

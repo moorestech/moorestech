@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
@@ -35,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             var grabInventory = playerInventory.GrabInventory;
             
             //クラフト可能かどうかを確認
-            if (!IsCraftable(mainInventory, grabInventory, craftConfig))
+            if (!IsCraftable(mainInventory, craftConfig))
                 //クラフト不可能な場合は何もしない
                 return null;
             
@@ -51,7 +52,7 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
         
-        private static bool IsCraftable(IOpenableInventory mainInventory, IOpenableInventory grabInventory, CraftingConfigInfo craftingConfigInfo)
+        private static bool IsCraftable(IOpenableInventory mainInventory, CraftingConfigInfo craftingConfigInfo)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
             if (!mainInventory.InsertionCheck(new List<IItemStack>
@@ -61,7 +62,7 @@ namespace Server.Protocol.PacketResponse
             
             //クラフトに必要なアイテムを収集する
             //key itemId value count
-            var requiredItems = new Dictionary<int, int>();
+            var requiredItems = new Dictionary<ItemId, int>();
             foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                     requiredItems[itemData.ItemStack.Id] += itemData.ItemStack.Count;
@@ -69,7 +70,7 @@ namespace Server.Protocol.PacketResponse
                     requiredItems.Add(itemData.ItemStack.Id, itemData.ItemStack.Count);
             
             //クラフトに必要なアイテムを持っているか確認する
-            var checkResult = new Dictionary<int, int>();
+            var checkResult = new Dictionary<ItemId, int>();
             foreach (var itemStack in mainInventory.InventoryItems)
             {
                 if (!requiredItems.ContainsKey(itemStack.Id)) continue;
@@ -99,7 +100,7 @@ namespace Server.Protocol.PacketResponse
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count
-            var requiredItems = new Dictionary<int, int>();
+            var requiredItems = new Dictionary<ItemId, int>();
             foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
                 if (requiredItems.ContainsKey(itemData.ItemStack.Id))
                     requiredItems[itemData.ItemStack.Id] += itemData.ItemStack.Count;
@@ -129,6 +130,10 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class RequestOneClickCraftProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)] public int PlayerId { get; set; }
+        
+        [Key(3)] public int CraftRecipeId { get; set; }
+        
         public RequestOneClickCraftProtocolMessagePack(int playerId, int craftRecipeId)
         {
             Tag = OneClickCraft.Tag;
@@ -137,12 +142,6 @@ namespace Server.Protocol.PacketResponse
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestOneClickCraftProtocolMessagePack()
-        {
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public int CraftRecipeId { get; set; }
+        public RequestOneClickCraftProtocolMessagePack() { }
     }
 }

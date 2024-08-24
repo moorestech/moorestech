@@ -1,8 +1,8 @@
-using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlocksModule;
 using UniRx;
 
 namespace Game.World.EventHandler.EnergyEvent
@@ -38,8 +38,7 @@ namespace Game.World.EventHandler.EnergyEvent
             
             
             //接続範囲内の電柱を取得
-            var blockId = updateProperties.BlockData.Block.BlockId;
-            var electricPoleConfigParam = BlockMaster.GetItemMaster(blockId).Param as ElectricPoleConfigParam;
+            var electricPoleConfigParam = updateProperties.BlockData.Block.BlockElement.BlockParam as ElectricPoleBlockParam;
             var electricPoles = FindElectricPoleFromPeripheralService.Find(pos, electricPoleConfigParam);
             
             //削除した電柱のセグメントを取得

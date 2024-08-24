@@ -32,7 +32,7 @@ namespace Game.Gear.Common
         private void AddGearInternal(IGearEnergyTransformer gear)
         {
             var connectedNetworkIds = new HashSet<GearNetworkId>();
-            foreach (var connectedGear in gear.Connects)
+            foreach (var connectedGear in gear.GetGearConnects())
                 //新しく設置された歯車に接続している歯車は、すべて既存のNWに接続している前提
                 if (_blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.BlockInstanceId))
                 {

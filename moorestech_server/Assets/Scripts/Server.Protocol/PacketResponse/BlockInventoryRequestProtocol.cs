@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlocksModule;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -39,13 +39,15 @@ namespace Server.Protocol.PacketResponse
         }
         
         //データのレスポンスを実行するdelegateを設定する
-        private delegate byte[] InventoryResponse(Vector3Int pos, IBlockConfigParam config);
+        private delegate byte[] InventoryResponse(Vector3Int pos, IBlockParam blockParam);
     }
     
     
     [MessagePackObject]
     public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)] public Vector3IntMessagePack Pos { get; set; }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RequestBlockInventoryRequestProtocolMessagePack()
         {
@@ -56,8 +58,6 @@ namespace Server.Protocol.PacketResponse
             Tag = BlockInventoryRequestProtocol.Tag;
             Pos = new Vector3IntMessagePack(pos);
         }
-        
-        [Key(2)] public Vector3IntMessagePack Pos { get; set; }
     }
     
     [MessagePackObject]
@@ -67,16 +67,14 @@ namespace Server.Protocol.PacketResponse
      
         [Key(3)] public ItemMessagePack[] Items { get; set; }
         
-        public BlockInventoryResponseProtocolMessagePack(int blockId, IReadOnlyList<IItemStack> items)
+        public BlockInventoryResponseProtocolMessagePack(BlockId blockId, IReadOnlyList<IItemStack> items)
         {
             Tag = BlockInventoryRequestProtocol.Tag;
-            BlockId = blockId;
+            BlockId = (int)blockId;
             Items = items.Select(item => new ItemMessagePack(item)).ToArray();
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public BlockInventoryResponseProtocolMessagePack()
-        {
-        }
+        public BlockInventoryResponseProtocolMessagePack() { }
     }
 }

@@ -16,10 +16,12 @@ namespace Core.Master
         private readonly Dictionary<BlockId,BlockElement> _blockElementTableById; 
         private readonly Dictionary<Guid,BlockId> _blockGuidToBlockId;
         
+        private readonly Dictionary<ItemId, BlockId> _itemIdToBlockId;
+        
         public static bool HasInstance => _instance != null;
         private static BlockMaster _instance;
         
-        public static BlockElement GetItemMaster(BlockId blockId)
+        public static BlockElement GetBlockMaster(BlockId blockId)
         {
             if (!HasInstance)
             {
@@ -32,7 +34,13 @@ namespace Core.Master
             return element;
         }
         
-        public static BlockId GetItemId(Guid blockGuid)
+        public static BlockElement GetBlockMaster(Guid blockGuid)
+        {
+            var blockId = GetBlockId(blockGuid);
+            return GetBlockMaster(blockId);
+        }
+        
+        public static BlockId GetBlockId(Guid blockGuid)
         {
             if (!HasInstance)
             {
@@ -45,6 +53,16 @@ namespace Core.Master
             return blockId;
         }
         
+        public static bool IsBlock(ItemId itemId)
+        {
+            return _instance._itemIdToBlockId.ContainsKey(itemId);
+        }
+        
+        public static BlockId ItemIdToBlockId(ItemId itemId)
+        {
+            return _instance._itemIdToBlockId[itemId];
+        }
+        
         public static void Load()
         {
             if (HasInstance)
@@ -54,15 +72,23 @@ namespace Core.Master
             
             // GUIDの順番にint型のItemIdを割り当てる
             var blockElements = MasterHolder.Blocks.Data;
-            var sortedItemElements = blockElements.ToList().OrderBy(x => x.ItemId).ToList();
+            var sortedBlockElements = blockElements.ToList().OrderBy(x => x.BlockGuid).ToList();
             
             // アイテムID 0は空のアイテムとして予約しているので、1から始める
             var blockElementTable = new Dictionary<BlockId,BlockElement>();
             var blockGuidToBlockId = new Dictionary<Guid,BlockId>();
-            for (var i = 1; i < sortedItemElements.Count; i++)
+            for (var i = 1; i < sortedBlockElements.Count; i++)
             {
-                blockElementTable.Add(new BlockId(i), sortedItemElements[i]);
-                blockGuidToBlockId.Add(sortedItemElements[i].ItemId, new BlockId(i));
+                blockElementTable.Add(new BlockId(i), sortedBlockElements[i]);
+                blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, new BlockId(i));
+            }
+            
+            // itemId to blockId
+            var itemIdToBlockId = new Dictionary<ItemId, BlockId>();
+            foreach (var blockElement in blockElements)
+            {
+                var itemId = ItemMaster.GetItemId(blockElement.ItemGuid);
+                itemIdToBlockId.Add(itemId, blockGuidToBlockId[blockElement.BlockGuid]);
             }
             
             _instance = new BlockMaster(blockElementTable, blockGuidToBlockId);

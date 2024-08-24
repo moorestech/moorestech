@@ -25,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var minerParam = blockElement.BlockParam as ElectricMinerBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
+            var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
             
             var minerComponent = new VanillaElectricMinerComponent(blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
@@ -43,7 +43,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var minerParam = blockElement.BlockParam as ElectricMinerBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
+            var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
             
             var minerComponent = new VanillaElectricMinerComponent(state, blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>

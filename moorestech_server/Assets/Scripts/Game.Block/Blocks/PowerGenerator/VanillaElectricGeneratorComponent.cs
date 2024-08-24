@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.PowerGenerator
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState, IUpdatableBlockComponent
     {
         private readonly BlockComponentManager _blockComponentManager = new();
-        private readonly Dictionary<ItemId, FuelSlotElement> _fuelSettings;
+        private readonly Dictionary<ItemId, FuelItemsElement> _fuelSettings;
         
         private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
@@ -90,7 +90,7 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             BlockException.CheckDestroy(this);
             
-            var itemGuid = ItemMaster.GetItemMaster(_currentFuelItemId).ItemId;
+            var itemGuid = ItemMaster.GetItemMaster(_currentFuelItemId).ItemGuid;
             var saveData = new VanillaElectricGeneratorSaveJsonObject
             {
                 CurrentFuelItemGuidStr = itemGuid.ToString(),

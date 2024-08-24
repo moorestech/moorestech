@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -45,10 +45,10 @@ namespace Server.Protocol.PacketResponse
             
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             var item = inventoryData.MainOpenableInventory.GetItem(data.InventorySlot);
-            if (!ServerContext.BlockConfig.IsBlock(item.Id)) return;
+            if (!BlockMaster.IsBlock(item.Id)) return;
             
             // ブロックIDの設定
-            var blockId = ServerContext.BlockConfig.ItemIdToBlockId(item.Id);
+            var blockId = BlockMaster.ItemIdToBlockId(item.Id);
             if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, placeInfo.VerticalDirection), out var verticalBlockId))
             {
                 blockId = verticalBlockId;

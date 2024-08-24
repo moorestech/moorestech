@@ -17,7 +17,7 @@ namespace Game.Block.Factory
         
         public IBlock Create(BlockId blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var blockElement = BlockMaster.GetItemMaster(blockId);
+            var blockElement = BlockMaster.GetBlockMaster(blockId);
             if (_blockTypesDictionary.TryGetValue(blockElement.BlockType, out var value))
                 return value.New(blockElement, blockInstanceId, blockPositionInfo);
             
@@ -26,8 +26,7 @@ namespace Game.Block.Factory
         
         public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo)
         {
-            var blockId = BlockMaster.GetItemId(blockGuid);
-            var blockElement = BlockMaster.GetItemMaster(blockId);
+            var blockElement = BlockMaster.GetBlockMaster(blockGuid);
             if (_blockTypesDictionary.TryGetValue(blockElement.BlockType, out var value))
                 return value.Load(state, blockElement, blockInstanceId, blockPositionInfo);
             

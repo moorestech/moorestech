@@ -34,12 +34,12 @@
               "ItemShooter"]
           },
 
-          "itemId": {
+          "itemGuid": {
             "type": "string",
             "format": "uuid",
-            "foreignKey": "items:itemId:name"
+            "foreignKey": "items:itemGuid:name"
           },
-          "size": {
+          "blockSize": {
             "type": "array",
             "pattern": "@vector3Int",
             "items": {
