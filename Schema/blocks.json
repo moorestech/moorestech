@@ -362,6 +362,31 @@
             ]
           },
 
+          "overrideVerticalBlock": {
+
+            "type": "object",
+            "properties": {
+
+              "upBlockGuid" : {
+                "type": "string",
+                "format": "uuid",
+                "foreignKey": "blocks:blockGuid:name"
+              },
+              "horizontalBlockGuid" : {
+                "type": "string",
+                "format": "uuid",
+                "foreignKey": "blocks:blockGuid:name"
+              },
+              "downBlockGuid" : {
+                "type": "string",
+                "format": "uuid",
+                "foreignKey": "blocks:blockGuid:name"
+              }
+
+            }
+
+          },
+
           "modelTransform": {
             "$ref": "modelTransform"
           }

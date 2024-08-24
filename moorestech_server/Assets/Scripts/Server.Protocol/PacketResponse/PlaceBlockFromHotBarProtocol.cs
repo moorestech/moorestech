@@ -49,10 +49,7 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックIDの設定
             var blockId = BlockMaster.ItemIdToBlockId(item.Id);
-            if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, placeInfo.VerticalDirection), out var verticalBlockId))
-            {
-                blockId = verticalBlockId;
-            }
+            blockId = GetOverrideBlockId(blockId, placeInfo.VerticalDirection);
             
             //ブロックの設置
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block);
@@ -60,6 +57,27 @@ namespace Server.Protocol.PacketResponse
             //アイテムを減らし、セットする
             item = item.SubItem(1);
             inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);
+        }
+        
+        static BlockId GetOverrideBlockId(BlockId blockId,BlockVerticalDirection verticalDirection)
+        {
+            var blockElement = BlockMaster.GetBlockMaster(blockId);
+            var overrideBlock = blockElement.OverrideVerticalBlock;
+            
+            if (verticalDirection is BlockVerticalDirection.Up && overrideBlock.UpBlockGuid != Guid.Empty)
+            {
+                return BlockMaster.GetBlockId(overrideBlock.UpBlockGuid);
+            }
+            if (verticalDirection is BlockVerticalDirection.Horizontal && overrideBlock.HorizontalBlockGuid != Guid.Empty)
+            {
+                return BlockMaster.GetBlockId(overrideBlock.HorizontalBlockGuid);
+            }
+            if (verticalDirection is  BlockVerticalDirection.Down && overrideBlock.DownBlockGuid != Guid.Empty)
+            {
+                return BlockMaster.GetBlockId(overrideBlock.DownBlockGuid);
+            }
+            
+            return blockId;
         }
         
         #endregion
