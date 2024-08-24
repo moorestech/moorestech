@@ -162,7 +162,7 @@ namespace Game.World.DataStore
             {
                 var pos = blockSave.Pos;
                 var direction = (BlockDirection)blockSave.Direction;
-                var size = ServerContext.BlockConfig.GetBlockConfig(blockSave.BlockHash).BlockSize;
+                var size = BlockMaster.GetItemMaster(blockSave.BlockHash).BlockSize;
                 var blockData = new BlockPositionInfo(pos, direction, size);
                 Debug.Log($"BlockLoad {blockSave.EntityId}");
                 var block = blockFactory.Load(blockSave.BlockHash, new BlockInstanceId(blockSave.EntityId), blockSave.State, blockData);

@@ -60,7 +60,7 @@ namespace Server.Protocol.PacketResponse
             if (block == null) return null;
             
             //ブロックのIDを取得
-            var blockItemId = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).ItemId;
+            var blockItemId = BlockMaster.GetItemMaster(block.BlockId).ItemId;
             //アイテムを挿入
             var remainBlockItem = playerMainInventory.InsertItem(ServerContext.ItemStackFactory.Create(blockItemId, 1));
             

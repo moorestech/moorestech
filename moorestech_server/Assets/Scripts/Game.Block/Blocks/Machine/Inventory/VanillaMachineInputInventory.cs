@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
@@ -15,13 +16,13 @@ namespace Game.Block.Blocks.Machine.Inventory
     /// </summary>
     public class VanillaMachineInputInventory
     {
-        private readonly int _blockId;
+        private readonly BlockId _blockId;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly BlockInstanceId _blockInstanceId;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public VanillaMachineInputInventory(int blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
+        public VanillaMachineInputInventory(BlockId blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
         {
             _blockId = blockId;
             _blockInventoryUpdate = blockInventoryUpdate;

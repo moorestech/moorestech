@@ -31,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
-            var timeOfItemEnterToExit = ((BeltConveyorConfigParam)beltConveyor.BlockConfigData.Param).TimeOfItemEnterToExit;
+            var timeOfItemEnterToExit = ((BeltConveyorConfigParam)beltConveyor.BlockElement.Param).TimeOfItemEnterToExit;
             //アイテムを設定
             inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
             {

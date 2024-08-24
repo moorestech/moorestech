@@ -5,6 +5,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Game.Gear.Common;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
@@ -70,6 +71,16 @@ namespace Game.Block.Blocks.Machine
             var powerRate = rpmRate * torqueRate;
             
             _vanillaMachineProcessorComponent.SupplyPower(new ElectricPower(_gearMachineBlockParam.RequireTorque * powerRate));
+        }
+        
+        public List<GearConnect> GetGearConnects()
+        {
+            var result = new List<GearConnect>();
+            foreach (var target in _connectorComponent.ConnectedTargets)
+            {
+                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption));
+            }
+            return result;
         }
     }
 }

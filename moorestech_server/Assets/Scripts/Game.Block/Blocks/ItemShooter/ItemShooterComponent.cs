@@ -10,9 +10,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.GearConnectsModule;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -71,7 +69,7 @@ namespace Game.Block.Blocks.ItemShooter
                     
                     if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    KeyValuePair<IBlockInventory, (GearConnectOption selfOption, GearConnectOption targetOption)> connector = _blockConnectorComponent.ConnectedTargets.First();
+                    var connector = _blockConnectorComponent.ConnectedTargets.First();
                     var target = connector.Key;
                     if (target is ItemShooterComponent shooter)
                     {

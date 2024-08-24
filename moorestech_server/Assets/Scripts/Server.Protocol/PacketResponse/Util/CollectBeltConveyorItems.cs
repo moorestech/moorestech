@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse.Util
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
                 
-                var type = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Type;
+                var type = BlockMaster.GetItemMaster(block.BlockId).Type;
                 
                 if (type != VanillaBlockType.BeltConveyor) continue;
                 
@@ -85,12 +85,12 @@ namespace Server.Protocol.PacketResponse.Util
                 var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
                 
                 var block = ServerContext.WorldBlockDatastore.GetOriginPosBlock(pos);
-                if (block.Block.BlockConfigData.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
+                if (block.Block.BlockElement.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
                 {
                     y += percent;
                     y += 0.1f;
                 }
-                else if (block.Block.BlockConfigData.Name == VanillaBeltConveyorTemplate.SlopeDownBeltConveyor)
+                else if (block.Block.BlockElement.Name == VanillaBeltConveyorTemplate.SlopeDownBeltConveyor)
                 {
                     y -= percent;
                     y += 0.1f;

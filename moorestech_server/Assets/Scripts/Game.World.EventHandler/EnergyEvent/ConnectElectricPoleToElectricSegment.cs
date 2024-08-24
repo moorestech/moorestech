@@ -35,7 +35,7 @@ namespace Game.World.EventHandler.EnergyEvent
             if (!worldBlockDatastore.ExistsComponent<IElectricTransformer>(pos)) return;
             
             var blockId = updateProperties.BlockData.Block.BlockId;
-            var electricPoleConfigParam = ServerContext.BlockConfig.GetBlockConfig(blockId).Param as ElectricPoleConfigParam;
+            var electricPoleConfigParam = BlockMaster.GetItemMaster(blockId).Param as ElectricPoleConfigParam;
             
             //電柱と電気セグメントを接続する
             var electricSegment = GetAndConnectElectricSegment(pos, electricPoleConfigParam,

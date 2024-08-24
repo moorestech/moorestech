@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
@@ -8,7 +7,6 @@ using Core.Update;
 using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
@@ -36,7 +34,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
             _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
@@ -46,7 +44,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
             this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, blockName)
         {
             //stateから復元
@@ -163,9 +161,8 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectedTargets.First();
+                    var connector = _blockConnectorComponent.ConnectedTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
-                    
                     
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemConst.EmptyItemId) _inventoryItems[i] = null;

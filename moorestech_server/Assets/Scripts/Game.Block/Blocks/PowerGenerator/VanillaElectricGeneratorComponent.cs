@@ -7,7 +7,6 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
@@ -15,15 +14,15 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.EnergySystem;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
-using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState, IUpdatableBlockComponent
     {
         private readonly BlockComponentManager _blockComponentManager = new();
-        private readonly Dictionary<ItemId, FuelSetting> _fuelSettings;
+        private readonly Dictionary<ItemId, FuelSlotElement> _fuelSettings;
         
         private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
@@ -111,7 +110,10 @@ namespace Game.Block.Blocks.PowerGenerator
             BlockException.CheckDestroy(this);
             
             if (_isInfinityPower) return _infinityPower;
-            if (_fuelSettings.TryGetValue(_currentFuelItemId, out var fuelSetting)) return fuelSetting.Power;
+            if (_fuelSettings.TryGetValue(_currentFuelItemId, out var fuelSetting))
+            {
+                return (ElectricPower)fuelSetting.Power;
+            }
             
             return new ElectricPower(0);
         }
@@ -197,7 +199,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
-                _currentFuelItemId = _fuelSettings[slotItemId].ItemId;
+                _currentFuelItemId = ItemMaster.GetItemId(_fuelSettings[slotItemId].ItemId);
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす

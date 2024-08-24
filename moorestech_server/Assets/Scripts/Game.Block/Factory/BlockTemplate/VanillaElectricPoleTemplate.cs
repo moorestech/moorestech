@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.ElectricPole;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaElectricPoleTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>
@@ -17,10 +17,10 @@ namespace Game.Block.Factory.BlockTemplate
                 transformer,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>
@@ -28,7 +28,7 @@ namespace Game.Block.Factory.BlockTemplate
                 transformer,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
         }
     }
 }

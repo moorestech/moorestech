@@ -127,7 +127,7 @@ namespace Game.Gear.Common
             {
                 _instance._blockEntityToGearNetwork.Remove(stackGear.BlockInstanceId);
                 
-                foreach (var connectedGear in stackGear.Connects)
+                foreach (var connectedGear in stackGear.GetGearConnects())
                     if (_instance._blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.BlockInstanceId))
                         gearStack.Push(connectedGear.Transformer);
             }

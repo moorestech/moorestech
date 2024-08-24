@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
-            var blockHash = ServerContext.BlockConfig.GetBlockConfig(ChestBlockId).BlockHash;
+            var blockHash = BlockMaster.GetItemMaster(ChestBlockId).BlockHash;
             
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var chestBlock = blockFactory.Create(ChestBlockId, new BlockInstanceId(1), chestPosInfo);

@@ -60,11 +60,11 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["slot", "time", "inventoryConnectors"],
+                  "required": ["beltConveyorItemNum", "timeOfItemEnterToExit", "inventoryConnectors"],
 
                   "properties": {
-                    "slot": {"type": "integer", "default": 1},
-                    "time": {"type": "number", "default": 1},
+                    "beltConveyorItemNum": {"type": "integer", "default": 1},
+                    "timeOfItemEnterToExit": {"type": "number", "default": 1},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -81,10 +81,10 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["slot", "inventoryConnectors"],
+                  "required": ["chestItemNum", "inventoryConnectors"],
 
                   "properties": {
-                    "slot": {"type": "integer", "default": 5},
+                    "chestItemNum": {"type": "integer", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -141,12 +141,15 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["isInfinityPower", "infinityPower", "fuelSlot", "inventoryConnectors"],
+                  "required": ["fuelItemSlotCount", "isInfinityPower", "infinityPower", "fuelItems", "inventoryConnectors"],
 
                   "properties": {
+                    "fuelItemSlotCount": {"type": "integer", "default": 3},
+
                     "isInfinityPower": {"type": "boolean", "default": false},
                     "infinityPower": {"type": "integer", "default": 0},
-                    "fuelSlot": {
+
+                    "fuelItems": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -317,11 +320,13 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["slot", "time", "inventoryConnectors", "gearConnects"],
+                  "required": ["beltConveyorItemNum", "beltConveyorSpeed", "requiredTorque", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
-                    "slot": {"type": "integer", "default": 4},
-                    "time": {"type": "number", "default": 2},
+                    "beltConveyorItemNum": {"type": "integer", "default": 4},
+                    "beltConveyorSpeed": {"type": "number", "default": 2},
+                    "requiredTorque": {"type": "number", "default": 2},
+
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },

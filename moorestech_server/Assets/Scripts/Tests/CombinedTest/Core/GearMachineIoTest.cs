@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
             
             var gearMachineComponent = block.GetComponent<VanillaGearMachineComponent>();
-            var gearMachineParam = (GearMachineConfigParam)block.BlockConfigData.Param;
+            var gearMachineParam = (GearMachineConfigParam)block.BlockElement.Param;
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Core
             
             var lackRpmGearMachine = lackRpmBlock.GetComponent<VanillaGearMachineComponent>();
             var lackTorqueGearMachine = lackTorqueBlock.GetComponent<VanillaGearMachineComponent>();
-            var gearMachineParam = (GearMachineConfigParam)lackRpmBlock.BlockConfigData.Param;
+            var gearMachineParam = (GearMachineConfigParam)lackRpmBlock.BlockElement.Param;
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time * 2);

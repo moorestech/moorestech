@@ -6,7 +6,8 @@
     "Game.Block.Interface",
     "UniRx",
     "MessagePack.Annotations",
-    "Game.World.Interface"
+    "Game.World.Interface",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

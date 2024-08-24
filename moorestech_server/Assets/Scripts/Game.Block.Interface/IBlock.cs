@@ -1,15 +1,16 @@
 ﻿using System;
-using Game.Block.Interface.BlockConfig;
+using Core.Master;
 using Game.Block.Interface.State;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Interface
 {
     public interface IBlock : IEquatable<IBlock>
     {
         public BlockInstanceId BlockInstanceId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
-        public BlockConfigData BlockConfigData { get; }
+        public BlockId BlockId { get; }
+        public Guid BlockGuid { get; }
+        public BlockElement BlockElement { get; }
         public IBlockComponentManager ComponentManager { get; }
         public BlockPositionInfo BlockPositionInfo { get; }
         

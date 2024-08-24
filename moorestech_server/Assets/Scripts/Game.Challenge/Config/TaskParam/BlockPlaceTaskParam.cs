@@ -18,7 +18,7 @@ namespace Game.Challenge
             string blockModId = param.blockModId;
             string blockName = param.blockName;
             
-            var blockId = ServerContext.BlockConfig.GetBlockConfig(blockModId, blockName).BlockId;
+            var blockId = BlockMaster.GetItemMaster(blockModId, blockName).BlockId;
             
             return new BlockPlaceTaskParam(blockId);
         }
