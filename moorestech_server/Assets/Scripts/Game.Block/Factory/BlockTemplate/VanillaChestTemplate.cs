@@ -13,7 +13,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var chest = blockElement.BlockParam as ChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
-            var chestComponent = new VanillaChestComponent(blockInstanceId, chest.ChestItemNum, inputConnectorComponent);
+            var chestComponent = new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var chest = blockElement.BlockParam as ChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
-            var chestComponent = new VanillaChestComponent(state, blockInstanceId, chest.ChestItemNum, inputConnectorComponent);
+            var chestComponent = new VanillaChestComponent(state, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
             var components = new List<IBlockComponent>
             {
                 chestComponent,

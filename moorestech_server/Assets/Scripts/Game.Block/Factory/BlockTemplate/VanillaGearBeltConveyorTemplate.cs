@@ -25,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
             var vanillaBeltConveyorComponent = new VanillaBeltConveyorComponent(
-                gearBeltParam.BeltConveyorItemNum,
+                gearBeltParam.BeltConveyorItemCount,
                 0,
                 inventoryConnector,
                 blockName

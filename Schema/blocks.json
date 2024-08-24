@@ -60,10 +60,10 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["beltConveyorItemNum", "timeOfItemEnterToExit", "inventoryConnectors"],
+                  "required": ["beltConveyorItemCount", "timeOfItemEnterToExit", "inventoryConnectors"],
 
                   "properties": {
-                    "beltConveyorItemNum": {"type": "integer", "default": 1},
+                    "beltConveyorItemCount": {"type": "integer", "default": 1},
                     "timeOfItemEnterToExit": {"type": "number", "default": 1},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
@@ -81,10 +81,10 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["chestItemNum", "inventoryConnectors"],
+                  "required": ["chestItemSlotCount", "inventoryConnectors"],
 
                   "properties": {
-                    "chestItemNum": {"type": "integer", "default": 5},
+                    "chestItemSlotCount": {"type": "integer", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -101,11 +101,11 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["inputSlot", "outputSlot", "requiredPower", "inventoryConnectors"],
+                  "required": ["inputItemSlotCount", "outputItemSlotCount", "requiredPower", "inventoryConnectors"],
 
                   "properties": {
-                    "inputSlot": {"type": "integer", "default": 1},
-                    "outputSlot": {"type": "integer", "default": 1},
+                    "inputItemSlotCount": {"type": "integer", "default": 1},
+                    "outputItemSlotCount": {"type": "integer", "default": 1},
                     "requiredPower": {"type": "number", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
@@ -189,11 +189,11 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["requiredPower","outputSlot","mineSettings","inventoryConnectors"],
+                  "required": ["requiredPower","outputItemSlotCount","mineSettings","inventoryConnectors"],
 
                   "properties": {
                     "requiredPower": {"type": "number", "default": 5},
-                    "outputSlot": {"type": "integer", "default": 3},
+                    "outputItemSlotCount": {"type": "integer", "default": 3},
                     "mineSettings": {
                       "type": "array",
                       "items": {
@@ -271,11 +271,11 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["inputSlot", "outputSlot", "teethCount","requireTorque","requiredRpm", "inventoryConnectors", "gearConnects"],
+                  "required": ["inputItemSlotCount", "outputItemSlotCount", "teethCount","requireTorque","requiredRpm", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
-                    "inputSlot": {"type": "integer", "default": 1},
-                    "outputSlot": {"type": "integer", "default": 1},
+                    "inputItemSlotCount": {"type": "integer", "default": 1},
+                    "outputItemSlotCount": {"type": "integer", "default": 1},
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
                     "requiredRpm": {"type": "number", "default": 5},
@@ -320,10 +320,10 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["beltConveyorItemNum", "beltConveyorSpeed", "requiredTorque", "inventoryConnectors", "gearConnects"],
+                  "required": ["beltConveyorItemCount", "beltConveyorSpeed", "requiredTorque", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
-                    "beltConveyorItemNum": {"type": "integer", "default": 4},
+                    "beltConveyorItemCount": {"type": "integer", "default": 4},
                     "beltConveyorSpeed": {"type": "number", "default": 2},
                     "requiredTorque": {"type": "number", "default": 2},
 

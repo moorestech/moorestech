@@ -61,7 +61,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var requestPower = minerParam.RequiredPower;
             
-            return (new ElectricPower(requestPower), minerParam.OutputSlot);
+            return (new ElectricPower(requestPower), minerParam.OutputItemSlotCount);
         }
     }
 }

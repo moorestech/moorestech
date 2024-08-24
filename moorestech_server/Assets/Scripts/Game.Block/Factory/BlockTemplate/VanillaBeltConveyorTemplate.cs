@@ -21,7 +21,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockName = blockElement.Name;
             
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
-            var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
+            var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
             var components = new List<IBlockComponent>
             {
                 beltComponent,
@@ -38,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockName = blockElement.Name;
             
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
-            var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemNum, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
+            var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
             var components = new List<IBlockComponent>
             {
                 beltComponent,
