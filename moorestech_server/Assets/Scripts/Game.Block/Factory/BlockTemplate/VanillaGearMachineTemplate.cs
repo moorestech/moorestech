@@ -30,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var inputSlot = machineParam.InputSlot;
             var outputSlot = machineParam.OutputSlot;
-            var blockId = BlockMaster.GetItemId(blockElement.BlockId);
+            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.GearConnects;
@@ -54,7 +54,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
@@ -64,7 +64,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var inputSlot = machineParam.InputSlot;
             var outputSlot = machineParam.OutputSlot;
-            var blockId = BlockMaster.GetItemId(blockElement.BlockId);
+            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.GearConnects;
@@ -90,7 +90,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

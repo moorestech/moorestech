@@ -10,12 +10,12 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, new List<IBlockComponent>(), blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, new List<IBlockComponent>(), blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var minerParam = blockElement.BlockParam as ElectricMinerBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var blockId = BlockMaster.GetItemId(blockElement.BlockId);
+            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
             
             var minerComponent = new VanillaElectricMinerComponent(blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
@@ -34,7 +34,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
@@ -43,7 +43,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var minerParam = blockElement.BlockParam as ElectricMinerBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var blockId = BlockMaster.GetItemId(blockElement.BlockId);
+            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
             
             var minerComponent = new VanillaElectricMinerComponent(state, blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
@@ -52,7 +52,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
         
         private (ElectricPower requestPower, int outputSlot) GetData(BlockElement blockElement)

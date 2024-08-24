@@ -22,7 +22,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
@@ -38,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

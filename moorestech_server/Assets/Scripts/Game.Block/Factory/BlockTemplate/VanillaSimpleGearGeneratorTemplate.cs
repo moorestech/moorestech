@@ -34,7 +34,7 @@ namespace Game.Block.Factory.BlockTemplate
                 blockComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

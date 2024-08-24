@@ -40,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
                 gearEnergyTransformerConnector,
                 inventoryConnector,
             };
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, blockComponents, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, blockComponents, blockPositionInfo);
         }
         public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {

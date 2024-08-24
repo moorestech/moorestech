@@ -32,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var inputSlot = machineParam.InputSlot;
             var outputSlot = machineParam.OutputSlot;
-            var blockId = BlockMaster.GetItemId(blockElement.BlockId);
+            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
@@ -51,7 +51,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
@@ -61,7 +61,7 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var inputSlot = machineParam.InputSlot;
             var outputSlot = machineParam.OutputSlot;
-            var blockId = BlockMaster.GetItemId(blockElement.BlockId);
+            var blockId = BlockMaster.GetItemId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var processor = BlockTemplateUtil.MachineLoadState(state, input, output, new ElectricPower(machineParam.RequiredPower));
@@ -79,7 +79,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }
