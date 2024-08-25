@@ -2,6 +2,7 @@
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
@@ -9,7 +10,8 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
-using Game.Block.Interface.RecipeConfig;
+using Game.Context;
+using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine.Inventory
@@ -44,15 +46,16 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <summary>
         ///     アウトプットスロットにアイテムを入れれるかチェック
         /// </summary>
-        /// <param name="machineRecipeData"></param>
+        /// <param name="machineRecipeElement"></param>
         /// <returns>スロットに空きがあったらtrue</returns>
-        public bool IsAllowedToOutputItem(MachineRecipeData machineRecipeData)
+        public bool IsAllowedToOutputItem(MachineRecipeElement machineRecipeElement)
         {
-            for (var i = 0; i < machineRecipeData.ItemOutputs.Count; i++)
+            foreach (var itemOutput in machineRecipeElement.OutputItems)
             {
-                var itemOutput = machineRecipeData.ItemOutputs[i];
-                var isAllowed = OutputSlot.Aggregate(false,
-                    (current, slot) => slot.IsAllowedToAdd(itemOutput.OutputItem) || current);
+                var outputItemId = ItemMaster.GetItemId(itemOutput.ItemGuid);
+                var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
+                
+                var isAllowed = OutputSlot.Aggregate(false, (current, slot) => slot.IsAllowedToAdd(outputItemStack) || current);
                 
                 if (!isAllowed) return false;
             }
@@ -60,15 +63,18 @@ namespace Game.Block.Blocks.Machine.Inventory
             return true;
         }
         
-        public void InsertOutputSlot(MachineRecipeData machineRecipeData)
+        public void InsertOutputSlot(MachineRecipeElement machineRecipeElement)
         {
             //アウトプットスロットにアイテムを格納する
-            foreach (var output in machineRecipeData.ItemOutputs)
+            foreach (var itemOutput in machineRecipeElement.OutputItems)
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
-                    if (!OutputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
+                    var outputItemId = ItemMaster.GetItemId(itemOutput.ItemGuid);
+                    var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
                     
-                    var item = OutputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
+                    if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
+                    
+                    var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
                     _itemDataStoreService.SetItem(i, item);
                     break;
                 }

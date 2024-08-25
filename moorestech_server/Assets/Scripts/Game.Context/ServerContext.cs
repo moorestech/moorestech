@@ -16,7 +16,6 @@ namespace Game.Context
         private static ServiceProvider _serviceProvider;
         
         public static ICraftingConfig CraftingConfig { get; private set; }
-        public static IMachineRecipeConfig MachineRecipeConfig { get; private set; } //TODO これをブロックコンフィグに統合する
         public static IMapObjectConfig MapObjectConfig { get; private set; }
         public static IChallengeConfig ChallengeConfig { get; private set; }
         

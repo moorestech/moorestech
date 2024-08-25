@@ -35,8 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
 
-            var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
-            var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, new ElectricPower(machineParam.RequiredPower));
+            var processor = new VanillaMachineProcessorComponent(input, output, null, new ElectricPower(machineParam.RequiredPower));
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);

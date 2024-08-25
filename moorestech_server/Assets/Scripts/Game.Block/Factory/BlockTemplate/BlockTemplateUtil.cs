@@ -59,7 +59,7 @@ namespace Game.Block.Factory.BlockTemplate
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
             }
             
-            var recipe = ServerContext.MachineRecipeConfig.GetRecipeData(jsonObject.RecipeId);
+            var recipe = MasterHolder.MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid.ToString() == jsonObject.RecipeId);
             
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,

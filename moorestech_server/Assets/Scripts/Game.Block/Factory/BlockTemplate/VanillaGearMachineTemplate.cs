@@ -36,9 +36,8 @@ namespace Game.Block.Factory.BlockTemplate
             var connectSetting = machineParam.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             
-            var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
             var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);
-            var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, requirePower);
+            var processor = new VanillaMachineProcessorComponent(input, output, null, requirePower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);

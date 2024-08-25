@@ -5,8 +5,8 @@ using Core.Master;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
-using Game.Block.Interface.RecipeConfig;
 using Game.Context;
+using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
@@ -32,15 +32,15 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
         
-        public bool IsAllowedToStartProcess
+        public bool IsAllowedToStartProcess()
         {
-            get
+            //ブロックIDと現在のインプットスロットからレシピを検索する
+            if (TryGetRecipeElement(out var recipe))
             {
-                //建物IDと現在のインプットスロットからレシピを検索する
-                var recipe = ServerContext.MachineRecipeConfig.GetRecipeData(_blockId, InputSlot);
                 //実行できるレシピかどうか
                 return recipe.RecipeConfirmation(InputSlot, _blockId);
             }
+            return false;
         }
         
         public IItemStack InsertItem(IItemStack itemStack)
@@ -53,18 +53,20 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _itemDataStoreService.InsertItem(itemStacks);
         }
         
-        public MachineRecipeData GetRecipeData()
+        public bool TryGetRecipeElement(out MachineRecipeElement recipe)
         {
-            return ServerContext.MachineRecipeConfig.GetRecipeData(_blockId, InputSlot);
+            return MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, out recipe);
         }
         
-        public void ReduceInputSlot(MachineRecipeData recipe)
+        public void ReduceInputSlot(MachineRecipeElement recipe)
         {
             //inputスロットからアイテムを減らす
-            foreach (var item in recipe.ItemInputs)
+            foreach (var item in recipe.InputItems)
                 for (var i = 0; i < InputSlot.Count; i++)
                 {
-                    if (_itemDataStoreService.InventoryItems[i].Id != item.Id || item.Count > InputSlot[i].Count) continue;
+                    var itemId = ItemMaster.GetItemId(item.ItemGuid);
+                    
+                    if (_itemDataStoreService.InventoryItems[i].Id != itemId || item.Count > InputSlot[i].Count) continue;
                     //アイテムを減らす
                     _itemDataStoreService.SetItem(i, InputSlot[i].SubItem(item.Count));
                     break;

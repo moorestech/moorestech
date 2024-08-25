@@ -33,6 +33,16 @@ namespace Core.Master
             return element;
         }
         
+        public static ItemElement GetItemMaster(Guid itemGuid)
+        {
+            if (!HasInstance)
+            {
+                throw new InvalidOperationException("ItemMaster is not loaded");
+            }
+            var itemId = GetItemId(itemGuid);
+            return GetItemMaster(itemId);
+        }
+        
         public static ItemId GetItemId(Guid itemGuid)
         {
             if (!HasInstance)
