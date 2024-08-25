@@ -23,9 +23,9 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
             
             var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
-            var currentChallengeIds = info.CurrentChallenges.Select(c => c.Config.Id).ToList();
+            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeElement.Id).ToList();
             
-            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeIds);
+            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
         }
     }
     

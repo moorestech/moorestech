@@ -1,15 +1,14 @@
 using System;
 using Game.Context;
-using Game.Crafting.Interface;
-using Game.World;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 
 namespace Game.Challenge.Task
 {
     public class BlockPlaceChallengeTask : IChallengeTask
     {
-        public ChallengeInfo Config { get; }
+        public ChallengeElement ChallengeElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
@@ -17,13 +16,13 @@ namespace Game.Challenge.Task
         
         private bool _completed;
         
-        public static IChallengeTask Create(int playerId, ChallengeInfo config)
+        public static IChallengeTask Create(int playerId, ChallengeElement challengeElement)
         {
-            return new BlockPlaceChallengeTask(playerId, config);
+            return new BlockPlaceChallengeTask(playerId, challengeElement);
         }
-        public BlockPlaceChallengeTask(int playerId, ChallengeInfo config)
+        public BlockPlaceChallengeTask(int playerId, ChallengeElement challengeElement)
         {
-            Config = config;
+            ChallengeElement = challengeElement;
             PlayerId = playerId;
             
             var worldEvent = ServerContext.WorldBlockUpdateEvent;
@@ -34,9 +33,8 @@ namespace Game.Challenge.Task
         {
             if (_completed) return;
             
-            var param = (BlockPlaceTaskParam)Config.TaskParam;
-            
-            if (param.BlockId == properties.BlockData.Block.BlockId)
+            var param = ChallengeElement.TaskParam as BlockPlaceTaskParam;
+            if (param.BlockGuid == properties.BlockData.Block.BlockGuid)
             {
                 _completed = true;
                 _onChallengeComplete.OnNext(this);

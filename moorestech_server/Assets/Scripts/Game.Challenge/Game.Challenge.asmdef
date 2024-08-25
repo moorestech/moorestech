@@ -10,7 +10,6 @@
     "Game.PlayerInventory.Interface",
     "Game.Context",
     "Core.Inventory",
-    "Game.Challenge.Interface",
     "Game.Block.Interface",
     "Game.World",
     "Game.World.Interface",
