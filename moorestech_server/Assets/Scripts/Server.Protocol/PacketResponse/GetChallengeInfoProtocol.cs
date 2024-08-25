@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
             
             var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
-            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeElement.Id).ToList();
+            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeElement.ChallengeGuid).ToList();
             
             return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
         }
@@ -51,21 +51,21 @@ namespace Server.Protocol.PacketResponse
     {
         [Key(2)] public int PlayerId { get; set; }
         
-        [Key(3)] public List<int> CurrentChallengeIds { get; set; }
+        [Key(3)] public List<string> CurrentChallengeGuids { get; set; }
         
-        [Key(4)] public List<int> CompletedChallengeIds { get; set; }
+        [Key(4)] public List<string> CompletedChallengeGuids { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseChallengeInfoMessagePack()
         {
         }
         
-        public ResponseChallengeInfoMessagePack(int playerId, List<int> currentChallengeIds, List<int> completedChallengeIds)
+        public ResponseChallengeInfoMessagePack(int playerId, List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
         {
             Tag = GetChallengeInfoProtocol.Tag;
             PlayerId = playerId;
-            CurrentChallengeIds = currentChallengeIds;
-            CompletedChallengeIds = completedChallengeIds;
+            CurrentChallengeGuids = currentChallengeIds.Select(x => x.ToString()).ToList();
+            CompletedChallengeGuids = completedChallengeIds.Select(x => x.ToString()).ToList();
         }
     }
 }

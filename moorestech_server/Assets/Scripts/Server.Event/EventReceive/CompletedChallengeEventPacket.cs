@@ -20,7 +20,7 @@ namespace Server.Event.EventReceive
         
         private void OnCompletedChallenge(IChallengeTask currentChallenge)
         {
-            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeElement.Id);
+            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeElement.ChallengeGuid);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             var playerId = currentChallenge.PlayerId;
@@ -31,16 +31,16 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class CompletedChallengeEventMessage
     {
-        [Key(0)] public int CompletedChallengeId { get; set; }
+        [Key(0)] public string CompletedChallengeGuid { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CompletedChallengeEventMessage()
         {
         }
         
-        public CompletedChallengeEventMessage(int completedChallengeId)
+        public CompletedChallengeEventMessage(Guid completedChallengeGuid)
         {
-            CompletedChallengeId = completedChallengeId;
+            CompletedChallengeGuid = completedChallengeGuid.ToString();
         }
     }
 }
