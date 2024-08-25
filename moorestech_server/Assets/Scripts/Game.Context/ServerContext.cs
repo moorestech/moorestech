@@ -1,9 +1,6 @@
 using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
-using Game.Block.Interface.RecipeConfig;
-using Game.Challenge;
-using Game.Crafting.Interface;
 using Game.Map.Interface.Config;
 using Game.Map.Interface.Vein;
 using Game.World.Interface.DataStore;
@@ -15,9 +12,7 @@ namespace Game.Context
     {
         private static ServiceProvider _serviceProvider;
         
-        public static ICraftingConfig CraftingConfig { get; private set; }
         public static IMapObjectConfig MapObjectConfig { get; private set; }
-        public static IChallengeConfig ChallengeConfig { get; private set; }
         
         public static IItemStackFactory ItemStackFactory { get; private set; }
         public static IBlockFactory BlockFactory { get; private set; }
@@ -40,12 +35,7 @@ namespace Game.Context
         
         public ServerContext(ServiceProvider initializeServiceProvider)
         {
-            ItemConfig = initializeServiceProvider.GetService<IItemConfig>();
-            BlockConfig = initializeServiceProvider.GetService<IBlockConfig>();
-            CraftingConfig = initializeServiceProvider.GetService<ICraftingConfig>();
-            MachineRecipeConfig = initializeServiceProvider.GetService<IMachineRecipeConfig>();
             MapObjectConfig = initializeServiceProvider.GetService<IMapObjectConfig>();
-            ChallengeConfig = initializeServiceProvider.GetService<IChallengeConfig>();
             
             ItemStackFactory = initializeServiceProvider.GetService<IItemStackFactory>();
             BlockFactory = initializeServiceProvider.GetService<IBlockFactory>();
