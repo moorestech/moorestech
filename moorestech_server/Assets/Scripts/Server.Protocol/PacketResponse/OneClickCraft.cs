@@ -8,6 +8,7 @@ using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.CraftRecipesModule;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -29,11 +30,10 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload.ToArray());
             
-            var craftConfig = ServerContext.CraftingConfig.GetCraftingConfigData(data.CraftRecipeId);
+            var craftConfig = CraftRecipeMaster.GetCraftRecipe(data.CraftRecipeGuid);
             //プレイヤーインベントリを取得
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var mainInventory = playerInventory.MainOpenableInventory;
-            var grabInventory = playerInventory.GrabInventory;
             
             //クラフト可能かどうかを確認
             if (!IsCraftable(mainInventory, craftConfig))
@@ -45,29 +45,38 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを消費
             SubItem(mainInventory, craftConfig);
             //クラフト結果をプレイヤーインベントリに追加
-            playerInventory.MainOpenableInventory.InsertItem(craftConfig.ResultItem);
+            var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.ResultItem.ItemGuid, craftConfig.ResultItem.Count);
+            playerInventory.MainOpenableInventory.InsertItem(resultItem);
             
             _craftEvent.InvokeCraftItem(craftConfig);
             
             return null;
         }
         
-        private static bool IsCraftable(IOpenableInventory mainInventory, CraftingConfigInfo craftingConfigInfo)
+        private static bool IsCraftable(IOpenableInventory mainInventory, CraftRecipeElement recipe)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
-            if (!mainInventory.InsertionCheck(new List<IItemStack>
-                    { craftingConfigInfo.ResultItem }))
+            var resultItem = ServerContext.ItemStackFactory.Create(recipe.ResultItem.ItemGuid, recipe.ResultItem.Count);
+            var resultItemList = new List<IItemStack> { resultItem };
+            if (!mainInventory.InsertionCheck(resultItemList))
                 return false;
-            
             
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<ItemId, int>();
-            foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
-                if (requiredItems.ContainsKey(itemData.ItemStack.Id))
-                    requiredItems[itemData.ItemStack.Id] += itemData.ItemStack.Count;
+            foreach (var requiredItem in recipe.RequiredItems)
+            {
+                var requiredItemId = ItemMaster.GetItemId(requiredItem.ItemGuid);
+                
+                if (requiredItems.ContainsKey(requiredItemId))
+                {
+                    requiredItems[requiredItemId] += requiredItem.Count;
+                }
                 else
-                    requiredItems.Add(itemData.ItemStack.Id, itemData.ItemStack.Count);
+                {
+                    requiredItems.Add(requiredItemId, requiredItem.Count);
+                }
+            }
             
             //クラフトに必要なアイテムを持っているか確認する
             var checkResult = new Dictionary<ItemId, int>();
@@ -96,16 +105,20 @@ namespace Server.Protocol.PacketResponse
         /// <summary>
         ///     クラフトしてアイテムを消費する
         /// </summary>
-        private static void SubItem(IOpenableInventory mainInventory, CraftingConfigInfo craftingConfigInfo)
+        private static void SubItem(IOpenableInventory mainInventory, CraftRecipeElement recipe)
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<ItemId, int>();
-            foreach (var itemData in craftingConfigInfo.CraftRequiredItemInfos)
-                if (requiredItems.ContainsKey(itemData.ItemStack.Id))
-                    requiredItems[itemData.ItemStack.Id] += itemData.ItemStack.Count;
+            foreach (var requiredItem in recipe.RequiredItems)
+            {
+                var requiredItemId = ItemMaster.GetItemId(requiredItem.ItemGuid);
+                
+                if (requiredItems.ContainsKey(requiredItemId))
+                    requiredItems[requiredItemId] += requiredItems.Count;
                 else
-                    requiredItems.Add(itemData.ItemStack.Id, itemData.ItemStack.Count);
+                    requiredItems.Add(requiredItemId, requiredItems.Count);
+            }
             
             //クラフトのために消費する
             for (var i = 0; i < mainInventory.InventoryItems.Count; i++)
@@ -132,13 +145,14 @@ namespace Server.Protocol.PacketResponse
     {
         [Key(2)] public int PlayerId { get; set; }
         
-        [Key(3)] public int CraftRecipeId { get; set; }
+        [Key(3)] public string CraftRecipeGuidStr { get; set; }
+        [IgnoreMember] public Guid CraftRecipeGuid => Guid.Parse(CraftRecipeGuidStr);
         
-        public RequestOneClickCraftProtocolMessagePack(int playerId, int craftRecipeId)
+        public RequestOneClickCraftProtocolMessagePack(int playerId, Guid craftRecipeGuid)
         {
             Tag = OneClickCraft.Tag;
             PlayerId = playerId;
-            CraftRecipeId = craftRecipeId;
+            CraftRecipeGuidStr = craftRecipeGuid.ToString();
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

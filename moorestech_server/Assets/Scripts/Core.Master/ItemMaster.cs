@@ -11,7 +11,6 @@ namespace Core.Master
     [UnitOf(typeof(int))]
     public partial struct ItemId { }
     
-    
     public class ItemMaster
     {
         private readonly Dictionary<ItemId,ItemElement> _itemElementTableById; 

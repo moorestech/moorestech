@@ -29,7 +29,6 @@ namespace Tests.CombinedTest.Core
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
             var powerGenerator = blockFactory.Create(PowerGeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
-            var blockConfig = ServerContext.BlockConfig;
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
             

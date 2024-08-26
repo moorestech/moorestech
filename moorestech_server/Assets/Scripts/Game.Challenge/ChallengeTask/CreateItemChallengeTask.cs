@@ -3,6 +3,7 @@ using Core.Master;
 using Game.Context;
 using Game.Crafting.Interface;
 using Mooresmaster.Model.ChallengesModule;
+using Mooresmaster.Model.CraftRecipesModule;
 using UniRx;
 
 namespace Game.Challenge.Task
@@ -31,14 +32,13 @@ namespace Game.Challenge.Task
             craftEvent.OnCraftItem.Subscribe(CreateItem);
         }
         
-        private void CreateItem(CraftingConfigInfo configInfo)
+        private void CreateItem(CraftRecipeElement craftRecipeElement)
         {
             if (_completed) return;
             
             var param = ChallengeElement.TaskParam as CreateItemTaskParam;
-            var challengeItemId = ItemMaster.GetItemId(param.ItemGuid);
             
-            if (configInfo.ResultItem.Id == challengeItemId)
+            if (craftRecipeElement.ResultItem.ItemGuid == param.ItemGuid)
             {
                 _completed = true;
                 _onChallengeComplete.OnNext(this);
