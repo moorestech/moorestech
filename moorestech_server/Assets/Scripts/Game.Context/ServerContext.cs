@@ -12,8 +12,6 @@ namespace Game.Context
     {
         private static ServiceProvider _serviceProvider;
         
-        public static IMapObjectConfig MapObjectConfig { get; private set; }
-        
         public static IItemStackFactory ItemStackFactory { get; private set; }
         public static IBlockFactory BlockFactory { get; private set; }
         
@@ -35,8 +33,6 @@ namespace Game.Context
         
         public ServerContext(ServiceProvider initializeServiceProvider)
         {
-            MapObjectConfig = initializeServiceProvider.GetService<IMapObjectConfig>();
-            
             ItemStackFactory = initializeServiceProvider.GetService<IItemStackFactory>();
             BlockFactory = initializeServiceProvider.GetService<IBlockFactory>();
             WorldBlockDatastore = initializeServiceProvider.GetService<IWorldBlockDatastore>();
