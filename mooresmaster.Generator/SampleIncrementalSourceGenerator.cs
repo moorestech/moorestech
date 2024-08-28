@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using mooresmaster.Generator.CodeGenerate;
@@ -41,7 +42,7 @@ public class SampleIncrementalSourceGenerator : IIncrementalGenerator
         var schemas = new List<SchemaFile>();
         var schemaTable = new SchemaTable();
 
-        foreach (var additionalText in additionalTexts)
+        foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".json"))
         {
             var text = additionalText.GetText()!.ToString();
             var json = JsonParser.Parse(JsonTokenizer.GetTokens(text));

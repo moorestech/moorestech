@@ -83,7 +83,7 @@ public static class LoaderGenerator
                                    )
                            ).Indent(level: 3)}}}
                            
-                           throw new NotImplementedException();
+                           throw new global::System.NotImplementedException();
                        }
                    }
                }
@@ -138,7 +138,7 @@ public static class LoaderGenerator
                        {
                            {{{string.Join("\n", interfaceSemantics.Types.Select(value => GenerateInterfaceInheritedTypeLoaderCode(value.Item1, value.Item2, nameTable))).Indent(level: 3)}}}
                            
-                           throw new NotImplementedException();
+                           throw new global::System.NotImplementedException();
                        }
                    }
                }
@@ -211,7 +211,7 @@ public static class LoaderGenerator
                              """,
 
             ArrayType arrayType => $$$"""
-                                      {{{json}}}.Select(value => {{{GetLoaderName(arrayType.InnerType)}}}(value)).ToArray()
+                                      global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, value => {{{GetLoaderName(arrayType.InnerType)}}}(value)))
                                       """,
             DictionaryType dictionaryType => $$$"""
                                                 new global::System.Collections.Generic.Dictionary<{{{dictionaryType.KeyType.GetName()}}}, {{{dictionaryType.ValueType.GetName()}}}>()
@@ -301,7 +301,7 @@ public static class LoaderGenerator
                        }
                    }
                }
-               """;
+               """.GetPreprocessedCode();
     }
 
     private static string Indent(this string code, bool firstLine = false, int level = 1)
