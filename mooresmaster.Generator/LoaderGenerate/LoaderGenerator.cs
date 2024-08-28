@@ -166,6 +166,10 @@ public static class LoaderGenerator
 
     private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
     {
+        if (typeDefinition.PropertyTable.Count == 0)
+        {
+            return string.Empty;
+        }
         var property = typeDefinition.PropertyTable.First();
 
         return $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";
