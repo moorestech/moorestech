@@ -14,7 +14,6 @@ namespace Tests.UnitTest.Core.Block
 {
     public class MinerSaveLoadTest
     {
-        private const int MinerId = ForUnitTestModBlockId.MinerId;
         
         [Test]
         public void SaveLoadTest()
@@ -22,10 +21,10 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = ServerContext.BlockFactory;
-            var minerHash = BlockMaster.GetBlockMaster((BlockId)MinerId).BlockHash;
+            var minerGuid = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MinerId).BlockGuid;
             
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var originalMiner = blockFactory.Create(MinerId, new BlockInstanceId(1), minerPosInfo);
+            var originalMiner = blockFactory.Create(ForUnitTestModBlockId.MinerId, new BlockInstanceId(1), minerPosInfo);
             var originalMinerComponent = originalMiner.GetComponent<VanillaElectricMinerComponent>();
             var originalRemainingMillSecond = 0.35;
             
@@ -43,7 +42,7 @@ namespace Tests.UnitTest.Core.Block
             Debug.Log(json);
             
             
-            var loadedMiner = blockFactory.Load(minerHash, new BlockInstanceId(1), json, minerPosInfo);
+            var loadedMiner = blockFactory.Load(minerGuid, new BlockInstanceId(1), json, minerPosInfo);
             var loadedMinerComponent = loadedMiner.GetComponent<VanillaElectricMinerComponent>();
             var loadedInventory =
                 (OpenableInventoryItemDataStoreService)typeof(VanillaElectricMinerComponent)

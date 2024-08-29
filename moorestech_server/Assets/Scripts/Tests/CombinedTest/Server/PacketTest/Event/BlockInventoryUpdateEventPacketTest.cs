@@ -21,7 +21,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     /// </summary>
     public class BlockInventoryUpdateEventPacketTest
     {
-        private const int MachineBlockId = 1;
         private const int PlayerId = 3;
         private const short PacketId = 16;
         
@@ -37,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Vector3Int pos = new(5, 7);
             
             //ブロックをセットアップ
-            worldBlockDataStore.TryAddBlock(MachineBlockId, pos, BlockDirection.North, out var block);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.BlockId, pos, BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             
             
@@ -90,10 +89,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //ブロック1をセットアップ
-            worldBlockDataStore.TryAddBlock(MachineBlockId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.BlockId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
             
             //ブロック2をセットアップ
-            worldBlockDataStore.TryAddBlock(MachineBlockId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.BlockId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
             
             
             //一つ目のブロックインベントリを開く

@@ -3,11 +3,11 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -31,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
-            var timeOfItemEnterToExit = ((BeltConveyorConfigParam)beltConveyor.BlockElement.Param).TimeOfItemEnterToExit;
+            var timeOfItemEnterToExit = ((BeltConveyorBlockParam)beltConveyor.BlockElement.BlockParam).TimeOfItemEnterToExit;
             //アイテムを設定
             inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
             {

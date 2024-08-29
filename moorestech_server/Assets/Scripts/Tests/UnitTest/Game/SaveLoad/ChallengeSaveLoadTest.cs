@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Core.Master;
 using Game.Challenge;
 using Game.Context;
 using Game.SaveLoad.Interface;
@@ -28,11 +30,11 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = (List<ChallengeInfo>)ServerContext.ChallengeConfig.InitialChallenges;
+            var initialChallenge = ChallengeMaster.GetInitialChallenge().Select(ChallengeMaster.GetChallenge).ToList();
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.Id == currentChallenge.ChallengeElement.Id);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             
@@ -53,7 +55,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.Id == currentChallenge.ChallengeElement.Id);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             // 何もクリアしていないことを確認
@@ -74,10 +76,10 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = (List<ChallengeInfo>)ServerContext.ChallengeConfig.InitialChallenges;
+            var initialChallenge = ChallengeMaster.GetInitialChallenge().Select(ChallengeMaster.GetChallenge).ToList();
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.Id == currentChallenge.ChallengeElement.Id);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             

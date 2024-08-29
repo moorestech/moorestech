@@ -1,7 +1,6 @@
 using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
-using Game.Map.Interface.Config;
 using Game.Map.Interface.Vein;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;

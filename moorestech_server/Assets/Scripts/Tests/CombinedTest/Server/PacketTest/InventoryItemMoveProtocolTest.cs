@@ -20,7 +20,6 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class InventoryItemMoveProtocolTest
     {
         private const int PlayerId = 0;
-        private const int ChestBlockId = 7;
         
         [Test]
         public void MainInventoryMoveTest()
@@ -67,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var chestPosition = new Vector3Int(5, 10);
             
-            worldDataStore.TryAddBlock(ChestBlockId, chestPosition, BlockDirection.North, out var chest);
+            worldDataStore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
             
             //ブロックインベントリの設定

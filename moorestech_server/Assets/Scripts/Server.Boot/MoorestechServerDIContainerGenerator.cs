@@ -15,8 +15,6 @@ using Game.Entity;
 using Game.Entity.Interface;
 using Game.Gear.Common;
 using Game.Map;
-using Game.Map.Config;
-using Game.Map.Interface.Config;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
@@ -58,14 +56,7 @@ namespace Server.Boot
             var configJsons = ModJsonStringLoader.GetConfigString(modResource);
             var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
             initializerCollection.AddSingleton(configJsonFileContainer);
-            initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
-            initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
-            initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
-            initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
-            initializerCollection.AddSingleton<IMapObjectConfig, MapObjectConfig>();
-            initializerCollection.AddSingleton<IChallengeConfig, ChallengeConfig>();
-            
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
             

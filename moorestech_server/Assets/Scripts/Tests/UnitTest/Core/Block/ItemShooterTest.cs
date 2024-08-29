@@ -109,7 +109,7 @@ namespace Tests.UnitTest.Core.Block
             return item as ShooterInventoryItem;
         }
         
-        private IBlock AddBlock(int blockId, Vector3Int position)
+        private IBlock AddBlock(BlockId blockId, Vector3Int position)
         {
             var world = ServerContext.WorldBlockDatastore;
             

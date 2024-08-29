@@ -25,19 +25,17 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void RemoveTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = ServerContext.WorldBlockDatastore;
-            var blockConfig = ServerContext.BlockConfig;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             //削除するためのブロックの生成
-            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block);
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7));
-            var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
+            var blockElement = BlockMaster.GetBlockMaster(block.BlockId);
             
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
@@ -53,8 +51,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
             
             //削除したブロックは次のスロットに入っているのでそれをチェック
-            Assert.AreEqual(blockConfigData.ItemId,
-                playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
+            var blockItemId = ItemMaster.GetItemId(blockElement.ItemGuid);
+            Assert.AreEqual(blockItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Count);
         }
         
@@ -83,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //削除するためのブロックを設置
-            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out var block);
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
@@ -125,7 +123,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(1000), 1));
             
             //ブロックを設置
-            worldBlock.TryAddBlock(MachineBlockId, new Vector3Int(0, 0), BlockDirection.North, out _);
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out _);
             
             
             //プロトコルを使ってブロックを削除

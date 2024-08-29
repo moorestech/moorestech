@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using MessagePack;
@@ -15,7 +16,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class GetWorldDataProtocolTest
     {
-        public const int Block_1x4_Id = 9; // 1x4サイズのブロックのID
+        public static readonly BlockId Block_1x4_Id = new(9); // 1x4サイズのブロックのID
         
         //ランダムにブロックを設置するテスト
         [Test]
@@ -34,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var blockId = random.Next(0, 3) == 1
                     ? random.Next(short.MaxValue, int.MaxValue)
                     : random.Next(1, 500);
-                worldBlockDatastore.TryAddBlock(blockId, pos, blockDirection, out _);
+                worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, out _);
             }
             
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());

@@ -14,6 +14,11 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class GetChallengeInfoProtocolTest
     {
         private const int PlayerId = 1;
+        private const string Challenge1Guid = "";
+        private const string Challenge2Guid = "";
+        private const string Challenge3Guid = "";
+        private const string Challenge4Guid = "";
+        private const string Challenge5Guid = "";
         
         [Test]
         public void GetCompletedChallengeTest()
@@ -41,13 +46,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Verification
             Assert.AreEqual(PlayerId, challengeInfo.PlayerId);
             
-            Assert.AreEqual(3, challengeInfo.CompletedChallengeIds.Count);
-            Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1000));
-            Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1010));
-            Assert.IsTrue(challengeInfo.CompletedChallengeIds.Contains(1020));
+            Assert.AreEqual(3, challengeInfo.CompletedChallengeGuids.Count);
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge1Guid));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge2Guid));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge3Guid));
             
-            Assert.AreEqual(1, challengeInfo.CurrentChallengeIds.Count);
-            Assert.IsTrue(challengeInfo.CurrentChallengeIds.Contains(1030));
+            Assert.AreEqual(1, challengeInfo.CompletedChallengeGuids.Count);
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge4Guid));
         }
     }
 }

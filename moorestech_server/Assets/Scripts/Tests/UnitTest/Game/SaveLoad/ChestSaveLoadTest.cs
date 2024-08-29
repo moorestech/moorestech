@@ -12,18 +12,16 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class ChestSaveLoadTest
     {
-        private const int ChestBlockId = 7;
-        
         [Test]
         public void SaveLoadTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
-            var blockHash = BlockMaster.GetBlockMaster((BlockId)ChestBlockId).BlockHash;
+            var blockGuid = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId).BlockGuid;
             
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var chestBlock = blockFactory.Create(ChestBlockId, new BlockInstanceId(1), chestPosInfo);
+            var chestBlock = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(1), chestPosInfo);
             var chest = chestBlock.GetComponent<VanillaChestComponent>();
             
             
@@ -34,7 +32,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var save = chest.GetSaveState();
             Debug.Log(save);
             
-            var chestBlock2 = blockFactory.Load(blockHash, new BlockInstanceId(1), save, chestPosInfo);
+            var chestBlock2 = blockFactory.Load(blockGuid, new BlockInstanceId(1), save, chestPosInfo);
             var chest2 = chestBlock2.GetComponent<VanillaChestComponent>();
             
             Assert.AreEqual(chest.GetItem(0), chest2.GetItem(0));

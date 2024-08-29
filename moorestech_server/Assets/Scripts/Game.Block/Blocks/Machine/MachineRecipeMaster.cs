@@ -22,7 +22,7 @@ namespace Core.Master
             return _machineRecipes.TryGetValue(key, out recipe);
         }
         
-        public static bool RecipeConfirmation(this MachineRecipeElement recipe,IReadOnlyList<IItemStack> inputSlot, BlockId blockId)
+        public static bool RecipeConfirmation(this MachineRecipeElement recipe, BlockId blockId, IReadOnlyList<IItemStack> inputSlot)
         {
             if (_machineRecipes == null) BuildMachineRecipes();
             var recipeBlockId = BlockMaster.GetBlockId(recipe.BlockGuid);

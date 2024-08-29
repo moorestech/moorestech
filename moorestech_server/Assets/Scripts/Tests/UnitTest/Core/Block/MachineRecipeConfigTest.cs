@@ -22,14 +22,13 @@ namespace Tests.UnitTest.Core.Block
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
             var input = new List<IItemStack>();
             items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
             
-            var ans = machineRecipeConfig.GetRecipeData(BlocksId, input);
-            Assert.AreEqual(output0Id, ans.ItemOutputs[0].OutputItem.Id);
-            Assert.AreEqual(output0Percent, ans.ItemOutputs[0].Percent);
+            MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, input, out var ans);
+            Assert.AreEqual(output0Id, ItemMaster.GetItemId(ans.OutputItems[0].ItemGuid).AsPrimitive());
+            Assert.AreEqual(output0Percent, ans.OutputItems[0].Percent);
         }
         
         [TestCase(3, new int[4] { 2, 1, 0, 5 }, 0)] //nullの時のテスト
@@ -44,13 +43,12 @@ namespace Tests.UnitTest.Core.Block
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
             var input = new List<IItemStack>();
             items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
             
-            var ans = machineRecipeConfig.GetRecipeData(BlocksId, input).ItemOutputs.Count;
-            Assert.AreEqual(outputLength, ans);
+            var ans = MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, input, out _);
+            Assert.AreEqual(outputLength == 1, ans);
         }
         
         [TestCase(1, new int[2] { 1, 2 }, new int[2] { 3, 1 }, true)]
@@ -67,7 +65,6 @@ namespace Tests.UnitTest.Core.Block
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
             var itemStacks = new List<IItemStack>();
             for (var i = 0; i < items.Length; i++)
@@ -76,7 +73,8 @@ namespace Tests.UnitTest.Core.Block
                 itemStacks.Add(itemStackFactory.Create(itemId, itemcount[i]));
             }
             
-            var a = machineRecipeConfig.GetRecipeData(blocksId, itemStacks).RecipeConfirmation(itemStacks, blocksId);
+            MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)blocksId, itemStacks, out var machineRecipeElement);
+            var a = machineRecipeElement.RecipeConfirmation((BlockId)blocksId, itemStacks);
             Assert.AreEqual(ans, a);
         }
     }

@@ -4,14 +4,14 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -28,9 +28,6 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var blockConfig = ServerContext.BlockConfig;
-            var config = (GearBeltConveyorConfigParam)blockConfig.GetBlockConfig(ForUnitTestModBlockId.GearBeltConveyor).Param;
-            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -61,7 +58,8 @@ namespace Tests.CombinedTest.Core
             
             const int torqueRate = 1;
             const int generatorRpm = 10;
-            var duration = 1f / (generatorRpm * torqueRate * config.BeltConveyorSpeed);
+            var gearBeltConveyorBlockParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as GearBeltConveyorBlockParam;
+            var duration = 1f / (generatorRpm * torqueRate * gearBeltConveyorBlockParam.BeltConveyorSpeed);
             var expectedEndTime = DateTime.Now.AddSeconds(duration);
             var startTime = DateTime.Now;
             beltConveyorComponent.InsertItem(item);

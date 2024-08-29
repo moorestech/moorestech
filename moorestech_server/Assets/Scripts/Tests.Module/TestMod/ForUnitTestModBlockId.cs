@@ -1,31 +1,33 @@
+using Core.Master;
+
 namespace Tests.Module.TestMod
 {
     public static class ForUnitTestModBlockId
     {
-        public const int MachineId = 1;
-        public const int BlockId = 2;
-        public const int BeltConveyorId = 3;
-        public const int ElectricPoleId = 4;
-        public const int GeneratorId = 5;
-        public const int MinerId = 6;
-        public const int ChestId = 7;
-        public const int InfinityGeneratorId = 8;
+        public static readonly BlockId MachineId = (BlockId)1;
+        public static readonly BlockId BlockId = (BlockId)2;
+        public static readonly BlockId BeltConveyorId = (BlockId)3;
+        public static readonly BlockId ElectricPoleId = (BlockId)4;
+        public static readonly BlockId GeneratorId = (BlockId)5;
+        public static readonly BlockId MinerId = (BlockId)6;
+        public static readonly BlockId ChestId = (BlockId)7;
+        public static readonly BlockId InfinityGeneratorId = (BlockId)8;
         
-        public const int MultiBlockGeneratorId = 10;
+        public static readonly BlockId MultiBlockGeneratorId = (BlockId)10;
         
-        public const int SmallGear = 12;
-        public const int BigGear = 13;
-        public const int Shaft = 14;
-        public const int GearMachine = 15;
-        public const int SimpleGearGenerator = 16;
-        public const int SimpleFastGearGenerator = 17;
-        public const int SmallRequireTorqueGear = 18;
-        public const int BigRequireTorqueGear = 19;
-        public const int InfinityTorqueSimpleGearGenerator = 20;
-        public const int GearBeltConveyor = 21;
+        public static readonly BlockId SmallGear = (BlockId)12;
+        public static readonly BlockId BigGear = (BlockId)13;
+        public static readonly BlockId Shaft = (BlockId)14;
+        public static readonly BlockId GearMachine = (BlockId)15;
+        public static readonly BlockId SimpleGearGenerator = (BlockId)16;
+        public static readonly BlockId SimpleFastGearGenerator = (BlockId)17;
+        public static readonly BlockId SmallRequireTorqueGear = (BlockId)18;
+        public static readonly BlockId BigRequireTorqueGear = (BlockId)19;
+        public static readonly BlockId InfinityTorqueSimpleGearGenerator = (BlockId)20;
+        public static readonly BlockId GearBeltConveyor = (BlockId)21;
         
-        public const int StraightItemShooter = 22;
-        public const int DownItemShooter = 23;
-        public const int UpItemShooter = 24;
+        public static readonly BlockId StraightItemShooter = (BlockId)22;
+        public static readonly BlockId DownItemShooter = (BlockId)23;
+        public static readonly BlockId UpItemShooter = (BlockId)24;
     }
 }

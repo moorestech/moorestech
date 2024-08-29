@@ -1,7 +1,9 @@
-﻿namespace Core.Const
+﻿using Core.Master;
+
+namespace Core.Const
 {
     public static class BlockConst
     {
-        public const int EmptyBlockId = 0;
+        public static readonly BlockId EmptyBlockId = new(0);
     }
 }

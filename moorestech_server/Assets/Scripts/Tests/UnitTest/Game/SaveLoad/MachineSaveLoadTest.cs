@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            worldBlockDatastore.TryAddBlock(1, new Vector3Int(0, 0), BlockDirection.North, out var machineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId , new Vector3Int(0, 0), BlockDirection.North, out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             
@@ -63,7 +63,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             outputInventory.SetItem(2, itemStackFactory.Create(new ItemId(3), 2));
             
             //レシピIDを取得
-            var recipeId = vanillaMachineProcessor.RecipeDataId;
+            var recipeId = vanillaMachineProcessor.RecipeGuid;
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log(json);
@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var machineProcessor = loadMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
             Assert.AreEqual(0.3, machineProcessor.RemainingSecond);
             //レシピIDのチェック
-            Assert.AreEqual(recipeId, machineProcessor.RecipeDataId);
+            Assert.AreEqual(recipeId, machineProcessor.RecipeGuid);
             //機械のステータスのチェック
             Assert.AreEqual(ProcessState.Processing, machineProcessor.CurrentState);
             

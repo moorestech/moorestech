@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             if (TryGetRecipeElement(out var recipe))
             {
                 //実行できるレシピかどうか
-                return recipe.RecipeConfirmation(InputSlot, _blockId);
+                return recipe.RecipeConfirmation(_blockId, InputSlot);
             }
             return false;
         }

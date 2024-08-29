@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -70,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         
         private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlockDatastore, IBlockFactory blockFactory)
         {
-            worldBlockDatastore.TryAddBlock(id, new Vector3Int(x, y), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock((BlockId)id, new Vector3Int(x, y), BlockDirection.North, out _);
         }
         
         private List<byte> EventRequestData(int playerID)

@@ -5,10 +5,10 @@ using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
 using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -34,10 +34,10 @@ namespace Tests.CombinedTest.Core
             var count = 1;
             var item = itemStackFactory.Create(id, count);
             
-            var chest = blockFactory.Create(7, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var chest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
             
-            var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item);
             
@@ -57,10 +57,10 @@ namespace Tests.CombinedTest.Core
             
             var blockFactory = ServerContext.BlockFactory;
             
-            var chest = blockFactory.Create(7, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var chest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
             
-            var beltconveyor = blockFactory.Create(3, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var beltconveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltconveyor.GetComponent<VanillaBeltConveyorComponent>();
             
             chestComponent.SetItem(0, new ItemId(1), 1);

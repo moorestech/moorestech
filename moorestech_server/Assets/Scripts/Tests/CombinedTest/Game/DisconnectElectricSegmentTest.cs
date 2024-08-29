@@ -14,10 +14,6 @@ namespace Tests.CombinedTest.Game
     //電柱が無くなったときにセグメントが切断されるテスト
     public class DisconnectElectricSegmentTest
     {
-        private const int ElectricPoleId = ForUnitTestModBlockId.ElectricPoleId;
-        private const int MachineId = ForUnitTestModBlockId.MachineId;
-        private const int GenerateId = ForUnitTestModBlockId.GeneratorId;
-        
         [Test]
         public void RemoveElectricPoleToDisconnectSegment()
         {
@@ -32,16 +28,16 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             //電柱の設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(0, 0), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(3, 0), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(6, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(3, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(6, 0), BlockDirection.North, out _);
             
             //発電機と機械の設定
-            worldBlockDatastore.TryAddBlock(MachineId, new Vector3Int(0, 1), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(GenerateId, new Vector3Int(0, -1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, new Vector3Int(0, -1), BlockDirection.North, out _);
             
-            worldBlockDatastore.TryAddBlock(GenerateId, new Vector3Int(3, 1), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(MachineId, new Vector3Int(6, 1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, new Vector3Int(3, 1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(6, 1), BlockDirection.North, out _);
             
             IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //セグメントの数を確認
@@ -52,7 +48,7 @@ namespace Tests.CombinedTest.Game
             //セグメントの数を確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             //電柱を再設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(6, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(6, 0), BlockDirection.North, out _);
             //セグメントの数を確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
@@ -100,19 +96,19 @@ namespace Tests.CombinedTest.Game
             IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             
             //電柱の設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(0, 0), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(3, 0), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(6, 0), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(0, 3), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(3, 3), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, new Vector3Int(6, 3), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(3, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(6, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 3), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(3, 3), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(6, 3), BlockDirection.North, out _);
             
             //発電機と機械の設定
-            worldBlockDatastore.TryAddBlock(MachineId, new Vector3Int(0, 1), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(GenerateId, new Vector3Int(0, -1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, new Vector3Int(0, -1), BlockDirection.North, out _);
             
-            worldBlockDatastore.TryAddBlock(GenerateId, new Vector3Int(3, -1), BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(MachineId, new Vector3Int(6, 1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, new Vector3Int(3, -1), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(6, 1), BlockDirection.North, out _);
             
             
             //セグメントの数を確認
