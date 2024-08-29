@@ -14,7 +14,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Mooresmaster;
 
-[assembly: GenerateMooresmaster]
 namespace Core.Master
 {
     public class MasterHolder
