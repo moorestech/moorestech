@@ -2,6 +2,8 @@
   "$id": "blockConnectInfo",
 
   "type": "array",
+  "overrideCodeGeneratePropertyName": "blockConnectInfoElement",
+
   "items": {
     "type": "object",
     "required": ["connectType","offset", "directions","connectOption"],
