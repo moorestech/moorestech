@@ -2,32 +2,30 @@ using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaShaftTemplate : IBlockTemplate
     {
-        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(config, blockInstanceId, blockPositionInfo);
+            return CreateGear(blockElement, blockInstanceId, blockPositionInfo);
         }
-        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(config, blockInstanceId, blockPositionInfo);
+            return CreateGear(blockElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateGear(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateGear(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var configParam = config.Param as ShaftConfigParam;
-            List<ConnectSettings> connectSetting = configParam.GearConnectSettings;
-            
+            var configParam = blockElement.BlockParam as ShaftBlockParam;
+            var connectSetting = configParam.GearConnects;
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(configParam.RequireTorque, blockInstanceId, blockComponent);
+            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(configParam.RequireTorque), blockInstanceId, blockComponent);
             
             var components = new List<IBlockComponent>
             {
@@ -35,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
                 blockComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

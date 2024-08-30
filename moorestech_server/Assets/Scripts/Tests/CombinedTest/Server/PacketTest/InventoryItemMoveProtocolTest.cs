@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -19,7 +20,6 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class InventoryItemMoveProtocolTest
     {
         private const int PlayerId = 0;
-        private const int ChestBlockId = 7;
         
         [Test]
         public void MainInventoryMoveTest()
@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //インベントリの設定
-            mainInventory.SetItem(0, 1, 10);
+            mainInventory.SetItem(0, new ItemId(1), 10);
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
@@ -39,8 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0));
             
             //移っているかチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 3), mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1, 7), grabInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 7), grabInventory.GetItem(0));
             
             
             //持っているアイテムをインベントリに移す
@@ -50,8 +50,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //移っているかチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 8), mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1, 2), grabInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 2), grabInventory.GetItem(0));
         }
         
         
@@ -66,11 +66,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var chestPosition = new Vector3Int(5, 10);
             
-            worldDataStore.TryAddBlock(ChestBlockId, chestPosition, BlockDirection.North, out var chest);
+            worldDataStore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
             
             //ブロックインベントリの設定
-            chestComponent.SetItem(1, 1, 10);
+            chestComponent.SetItem(1, new ItemId(1), 10);
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
@@ -78,8 +78,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0));
             
             //移っているかチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 3), chestComponent.GetItem(1));
-            Assert.AreEqual(itemStackFactory.Create(1, 7), grabInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), chestComponent.GetItem(1));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 7), grabInventory.GetItem(0));
             
             
             //持っているアイテムをインベントリに移す
@@ -88,8 +88,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector3Int(5, 10)), 1 + PlayerInventoryConst.MainInventorySize));
             
             //移っているかチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 8), chestComponent.GetItem(1));
-            Assert.AreEqual(itemStackFactory.Create(1, 2), grabInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), chestComponent.GetItem(1));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 2), grabInventory.GetItem(0));
         }
         
         

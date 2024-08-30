@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface.Event;
@@ -38,7 +39,7 @@ namespace Game.PlayerInventory.ItemManaged
             _openableInventoryService.SetItem(slot, itemStack);
         }
         
-        public void SetItem(int slot, int itemId, int count)
+        public void SetItem(int slot, ItemId itemId, int count)
         {
             _openableInventoryService.SetItem(slot, itemId, count);
         }
@@ -48,7 +49,7 @@ namespace Game.PlayerInventory.ItemManaged
             return _openableInventoryService.ReplaceItem(slot, itemStack);
         }
         
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
         {
             return _openableInventoryService.ReplaceItem(slot, itemId, count);
         }
@@ -58,7 +59,7 @@ namespace Game.PlayerInventory.ItemManaged
             return _openableInventoryService.InsertItem(itemStack);
         }
         
-        public IItemStack InsertItem(int itemId, int count)
+        public IItemStack InsertItem(ItemId itemId, int count)
         {
             return _openableInventoryService.InsertItem(itemId, count);
         }

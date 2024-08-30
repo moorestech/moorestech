@@ -17,9 +17,9 @@ namespace Game.Map.Interface.MapObject
         public int InstanceId { get; }
         
         /// <summary>
-        ///     そのオブジェクトの種類
+        ///     そのオブジェクトのID
         /// </summary>
-        public string Type { get; }
+        public Guid MapObjectGuid { get; }
         
         /// <summary>
         ///     オブジェクトがすでに獲得などされていればtrue

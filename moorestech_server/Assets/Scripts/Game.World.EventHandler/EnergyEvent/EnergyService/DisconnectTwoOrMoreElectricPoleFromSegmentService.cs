@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using Game.Block.Config.LoadConfig.Param;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
@@ -71,7 +72,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         {
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPole.BlockInstanceId);
             var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
-            var poleConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId).Param as ElectricPoleConfigParam;
+            var poleConfig = block.BlockElement.BlockParam as ElectricPoleBlockParam;
             
             
             //周辺の機械、発電機を取得
@@ -92,8 +93,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             
             
             //周辺の電柱を取得
-            var peripheralElectricPoles =
-                FindElectricPoleFromPeripheralService.Find(pos, poleConfig);
+            var peripheralElectricPoles = FindElectricPoleFromPeripheralService.Find(pos, poleConfig);
             //削除された電柱は除く
             peripheralElectricPoles.Remove(removedElectricPole);
             //自身の電柱は追加する

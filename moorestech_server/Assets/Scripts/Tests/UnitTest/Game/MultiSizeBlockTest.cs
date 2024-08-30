@@ -1,3 +1,4 @@
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -10,9 +11,9 @@ namespace Tests.UnitTest.Game
 {
     public class MultiSizeBlockTest
     {
-        public const int Block_1x4_Id = 9;
-        public const int Block_3x2_Id = 10;
-        public const int Block_1x2x3_Id = 11;
+        public static readonly BlockId Block_1x4_Id = (BlockId)9;
+        public static readonly BlockId Block_3x2_Id = (BlockId)10;
+        public static readonly BlockId Block_1x2x3_Id = (BlockId)11;
         
         private IBlockFactory _blockFactory;
         private IWorldBlockDatastore worldDatastore;
@@ -97,7 +98,7 @@ namespace Tests.UnitTest.Game
         /// <summary>
         ///     ブロックが設置されていることを確認する
         /// </summary>
-        private void RetrieveBlock(int expectedBlockId, Vector3Int position)
+        private void RetrieveBlock(BlockId expectedBlockId, Vector3Int position)
         {
             var block = worldDatastore.GetBlock(position);
             Assert.IsNotNull(block);

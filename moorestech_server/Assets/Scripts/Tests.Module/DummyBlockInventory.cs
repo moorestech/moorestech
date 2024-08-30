@@ -28,7 +28,7 @@ namespace Tests.Module
             get
             {
                 var a = _insertedItems.Where(i => i.Id != ItemConst.EmptyItemId).ToList();
-                a.Sort((a, b) => a.Id - b.Id);
+                a.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
                 return a.ToList();
             }
         }

@@ -41,11 +41,11 @@ namespace Tests.UnitTest.Game
             
             //TODO 同じIDになることない
             worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out var originalBlock);
-            var hash = originalBlock.BlockHash;
+            var blockGuid = originalBlock.BlockGuid;
             var state = originalBlock.GetSaveState();
             
             //座標だけ変えてintIDは同じ
-            var result = worldData.TryAddLoadedBlock(hash, originalBlock.BlockInstanceId, state, new Vector3Int(10, 10), BlockDirection.North, out _);
+            var result = worldData.TryAddLoadedBlock(blockGuid, originalBlock.BlockInstanceId, state, new Vector3Int(10, 10), BlockDirection.North, out _);
             Assert.False(result);
         }
         

@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -18,6 +18,7 @@ using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
 using MessagePack;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -35,12 +36,12 @@ namespace Game.Block.Blocks.Miner
         private ElectricPower _currentPower;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        private int _defaultMiningTime = int.MaxValue;
+        private float _defaultMiningTime = float.MaxValue;
         
         private VanillaMinerState _lastMinerState;
         private double _remainingSecond = double.MaxValue;
         
-        public VanillaElectricMinerComponent(int blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(BlockId blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
         {
             BlockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
@@ -61,11 +62,12 @@ namespace Game.Block.Blocks.Miner
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
                 
-                var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockId).Param as MinerBlockConfigParam;
-                foreach (var miningSetting in blockConfig.MineItemSettings)
+                var minerBlockParam = BlockMaster.GetBlockMaster(blockId).BlockParam as ElectricMinerBlockParam;
+                foreach (var miningSetting in minerBlockParam.MineSettings)
                 {
-                    if (miningSetting.ItemId != veins[0].VeinItemId) continue;
-                    _defaultMiningTime = miningSetting.MiningTime;
+                    var itemId = ItemMaster.GetItemId(miningSetting.ItemId);
+                    if (itemId != veins[0].VeinItemId) continue;
+                    _defaultMiningTime = miningSetting.Time;
                     _remainingSecond = _defaultMiningTime;
                     break;
                 }
@@ -74,7 +76,7 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaElectricMinerComponent(string saveData, int blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaElectricMinerComponent(string saveData, BlockId blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
             : this(blockId, blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
@@ -114,7 +116,7 @@ namespace Game.Block.Blocks.Miner
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
                 RemainingSecond = _remainingSecond,
-                Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackJsonObject(item)).ToList(),
+                Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -242,7 +244,7 @@ namespace Game.Block.Blocks.Miner
         
         public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryItemDataStoreService.InventoryItems;
         
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -256,7 +258,7 @@ namespace Game.Block.Blocks.Miner
             return _openableInventoryItemDataStoreService.InsertItem(itemStack);
         }
         
-        public IItemStack InsertItem(int itemId, int count)
+        public IItemStack InsertItem(ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -277,7 +279,7 @@ namespace Game.Block.Blocks.Miner
             return _openableInventoryItemDataStoreService.InsertionCheck(itemStacks);
         }
         
-        public void SetItem(int slot, int itemId, int count)
+        public void SetItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -332,7 +334,7 @@ namespace Game.Block.Blocks.Miner
     public class VanillaElectricMinerSaveJsonObject
     {
         [JsonProperty("items")]
-        public List<ItemStackJsonObject> Items;
+        public List<ItemStackSaveJsonObject> Items;
         [JsonProperty("remainingSecond")]
         public double RemainingSecond;
     }

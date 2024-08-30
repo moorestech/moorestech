@@ -1,29 +1,20 @@
 using System.IO;
-using Core.ConfigJson;
 using Core.Item;
-using Core.Item.Config;
 using Core.Item.Interface;
-using Core.Item.Interface.Config;
+using Core.Master;
 using Core.Update;
-using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
-using Game.Block.Interface.RecipeConfig;
-using Game.Block.RecipeConfig;
 using Game.Challenge;
 using Game.Context;
-using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
 using Game.Gear.Common;
 using Game.Map;
-using Game.Map.Config;
-using Game.Map.Interface.Config;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
@@ -63,16 +54,9 @@ namespace Server.Boot
             
             var modResource = new ModsResource(modDirectory);
             var configJsons = ModJsonStringLoader.GetConfigString(modResource);
-            var configJsonFileContainer = new ConfigJsonFileContainer(configJsons);
+            var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
             initializerCollection.AddSingleton(configJsonFileContainer);
-            initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
-            initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
-            initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
-            initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
-            initializerCollection.AddSingleton<IMapObjectConfig, MapObjectConfig>();
-            initializerCollection.AddSingleton<IChallengeConfig, ChallengeConfig>();
-            
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
             

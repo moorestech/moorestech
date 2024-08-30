@@ -1,10 +1,11 @@
 using System;
+using Mooresmaster.Model.ChallengesModule;
 
 namespace Game.Challenge.Task
 {
     public interface IChallengeTask
     {
-        public ChallengeInfo Config { get; }
+        public ChallengeElement ChallengeElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete { get; }

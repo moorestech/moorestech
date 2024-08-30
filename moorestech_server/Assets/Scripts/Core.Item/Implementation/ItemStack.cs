@@ -3,34 +3,33 @@ using System;
 using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 
 namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
-        public int Id { get; }
+        public ItemId Id { get; }
         public int Count { get; }
-        public long ItemHash { get; }
         public ItemInstanceId ItemInstanceId { get; }
         private readonly Dictionary<string, ItemStackMetaData> _metaData;
         
-        public ItemStack(int id, int count, Dictionary<string, ItemStackMetaData> metaData)
+        public ItemStack(ItemId id, int count, Dictionary<string, ItemStackMetaData> metaData)
         {
-            var config = InternalItemContext.ItemConfig;
             if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
             if (count < 1) throw new ArgumentOutOfRangeException();
-            if (config.GetItemConfig(id).MaxStack < count)
-                throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{config.GetItemConfig(id).MaxStack}");
             
-            _metaData = metaData;
-            ItemInstanceId = ItemInstanceId.Create();
-            ;
-            ItemHash = config.GetItemConfig(id).ItemHash;
+            var itemMaster = ItemMaster.GetItemMaster(id);
+            if (itemMaster.MaxStack < count)
+                throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{itemMaster.MaxStack}");
+            
             Id = id;
             Count = count;
+            ItemInstanceId = ItemInstanceId.Create();
+            _metaData = metaData;
         }
         
-        public ItemStack(int id, int count, ItemInstanceId instanceId, Dictionary<string, ItemStackMetaData> metaData) : this(id, count, metaData)
+        public ItemStack(ItemId id, int count, ItemInstanceId instanceId, Dictionary<string, ItemStackMetaData> metaData) : this(id, count, metaData)
         {
             ItemInstanceId = instanceId;
         }
@@ -53,10 +52,9 @@ namespace Core.Item.Implementation
                 return new ItemProcessResult(newItem, receiveItemStack);
             }
             
-            var config = InternalItemContext.ItemConfig;
             
             var newCount = ((ItemStack)receiveItemStack).Count + Count;
-            var tmpStack = config.GetItemConfig(Id).MaxStack;
+            var tmpStack = ItemMaster.GetItemMaster(Id).MaxStack;
             
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
@@ -80,7 +78,7 @@ namespace Core.Item.Implementation
         
         public bool IsAllowedToAdd(IItemStack item)
         {
-            var tmpStack = InternalItemContext.ItemConfig.GetItemConfig(Id).MaxStack;
+            var tmpStack = ItemMaster.GetItemMaster(Id).MaxStack;
             
             return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
                    item.Count + Count <= tmpStack;
@@ -122,7 +120,6 @@ namespace Core.Item.Implementation
             
             return Id == other.Id &&
                    Count == other.Count &&
-                   ItemHash == other.ItemHash &&
                    CompareMeta(other);
         }
         
@@ -146,7 +143,7 @@ namespace Core.Item.Implementation
         
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Count, ItemHash, ItemInstanceId);
+            return HashCode.Combine(Id, Count, ItemInstanceId);
         }
         
         public override string ToString()

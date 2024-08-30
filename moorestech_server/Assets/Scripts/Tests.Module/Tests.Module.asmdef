@@ -36,7 +36,8 @@
     "Server.Event",
     "Server.Protocol",
     "Server.Util",
-    "ServerServiceProvider"
+    "ServerServiceProvider",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

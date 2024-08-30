@@ -1,19 +1,19 @@
 using System.Collections.Generic;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public static class FindMachineAndGeneratorFromPeripheralService
     {
-        public static (List<IElectricConsumer>, List<IElectricGenerator>) Find(Vector3Int pos, ElectricPoleConfigParam poleConfigParam)
+        public static (List<IElectricConsumer>, List<IElectricGenerator>) Find(Vector3Int pos, ElectricPoleBlockParam poleConfigParam)
         {
             var blocks = new List<IElectricConsumer>();
             var generators = new List<IElectricGenerator>();
-            var machineRange = poleConfigParam.machineConnectionRange;
+            var machineRange = poleConfigParam.MachineConnectionRange;
             
             var startMachineX = pos.x - machineRange / 2;
             var startMachineY = pos.y - machineRange / 2;

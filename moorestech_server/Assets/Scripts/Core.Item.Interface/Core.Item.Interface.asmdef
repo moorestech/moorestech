@@ -3,7 +3,8 @@
   "rootNamespace": "",
   "references": [
     "MessagePack",
-    "MessagePack.Annotations"
+    "MessagePack.Annotations",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

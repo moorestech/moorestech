@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -29,20 +30,19 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var blockConfig = ServerContext.BlockConfig;
-            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
+            var beltConveyorParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var random = new Random(4123);
             for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
-                var id = random.Next(0, 10);
+                var id = new ItemId(random.Next(0, 10));
                 
-                var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
+                var item = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount + 1);
                 var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
-                var endTime = DateTime.Now.AddSeconds(config.TimeOfItemEnterToExit);
+                var endTime = DateTime.Now.AddSeconds(beltConveyorParam.TimeOfItemEnterToExit);
                 
                 while (DateTime.Now < endTime.AddSeconds(0.1))
                 {
@@ -68,25 +68,24 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var blockConfig = ServerContext.BlockConfig;
-            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
+            var beltConveyorParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             
-            const int id = 2;
+            var id = new ItemId(2);
             const int count = 3;
             var item = itemStackFactory.Create(id, count);
             var dummy = new DummyBlockInventory();
             
             // アイテムを挿入
-            var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));
             
-            var expectedEndTime = DateTime.Now.AddSeconds(config.TimeOfItemEnterToExit);
+            var expectedEndTime = DateTime.Now.AddSeconds(beltConveyorParam.TimeOfItemEnterToExit);
             var outputItem = beltConveyorComponent.InsertItem(item);
             
             //5秒以上経過したらループを抜ける 
@@ -111,19 +110,17 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            
-            var blockConfig = ServerContext.BlockConfig;
-            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
+            var beltConveyorParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var random = new Random(4123);
             for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
-                var id = random.Next(1, 11);
-                var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
-                var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
-                var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+                var id = new ItemId(random.Next(1, 11));
+                var item = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount + 1);
+                var dummy = new DummyBlockInventory(beltConveyorParam.BeltConveyorItemCount);
+                var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
                 var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
@@ -136,7 +133,7 @@ namespace Tests.CombinedTest.Core
                 }
                 
                 Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
-                var tmp = itemStackFactory.Create(id, config.BeltConveyorItemNum);
+                var tmp = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount);
                 Assert.True(dummy.InsertedItems[0].Equals(tmp));
             }
         }
@@ -154,10 +151,10 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
                 //必要な変数を作成
-                var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
-                var item2 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
+                var item1 = itemStackFactory.Create(new ItemId(random.Next(1, 11)), random.Next(1, 10));
+                var item2 = itemStackFactory.Create(new ItemId(random.Next(1, 11)), random.Next(1, 10));
                 
-                var beltConveyor = blockFactory.Create(3, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+                var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId , new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
                 var item1Out = beltConveyorComponent.InsertItem(item1);

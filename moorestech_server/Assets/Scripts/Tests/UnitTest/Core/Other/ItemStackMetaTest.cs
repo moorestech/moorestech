@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -18,8 +19,8 @@ namespace Tests.UnitTest.Core.Other
             
             var meta = new Dictionary<string, ItemStackMetaData> { { "test1", new TestMeta1() } };
             
-            var itemStack1 = itemsStackFactory.Create(1, 1, meta);
-            var itemStack2 = itemsStackFactory.Create(1, 1, meta);
+            var itemStack1 = itemsStackFactory.Create(new ItemId(1), 1, meta);
+            var itemStack2 = itemsStackFactory.Create(new ItemId(1), 1, meta);
             
             Assert.IsTrue(itemStack1.Equals(itemStack2));
             
@@ -27,7 +28,7 @@ namespace Tests.UnitTest.Core.Other
             
             Assert.IsTrue(itemStack1.Equals(itemStack2));
             
-            var itemStack3 = itemsStackFactory.Create(1, 1, meta);
+            var itemStack3 = itemsStackFactory.Create(new ItemId(1), 1, meta);
             
             Assert.IsFalse(itemStack1.Equals(itemStack3));
             Assert.IsFalse(itemStack2.Equals(itemStack3));
@@ -42,15 +43,15 @@ namespace Tests.UnitTest.Core.Other
             
             var meta = new Dictionary<string, ItemStackMetaData> { { "test1", new TestMeta1() } };
             
-            var itemStack1 = itemsStackFactory.Create(1, 1, meta);
-            var itemStack2 = itemsStackFactory.Create(1, 1, meta);
+            var itemStack1 = itemsStackFactory.Create(new ItemId(1), 1, meta);
+            var itemStack2 = itemsStackFactory.Create(new ItemId(1), 1, meta);
             
             var result = itemStack1.AddItem(itemStack2);
             Assert.AreEqual(result.ProcessResultItemStack.Count, 2);
             
             meta.Add("test2", new TestMeta2());
             
-            var itemStack3 = itemsStackFactory.Create(1, 1, meta);
+            var itemStack3 = itemsStackFactory.Create(new ItemId(1), 1, meta);
             
             var result2 = itemStack1.AddItem(itemStack3);
             Assert.AreEqual(1, result2.ProcessResultItemStack.Count);

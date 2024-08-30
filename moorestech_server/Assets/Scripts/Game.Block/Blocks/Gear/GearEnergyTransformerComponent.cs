@@ -5,11 +5,21 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
+using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Blocks.Gear
 {
     public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
     {
+        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        public BlockInstanceId BlockInstanceId { get; }
+        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
+        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
+        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        
+        public bool IsRocked => _simpleGearService.IsRocked;
+        public bool IsDestroy { get; private set; }
+        
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         
         private readonly Torque _requiredTorque;
@@ -25,25 +35,10 @@ namespace Game.Block.Blocks.Gear
             GearNetworkDatastore.AddGear(this);
         }
         
-        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
-        
         public BlockState GetBlockState()
         {
             return _simpleGearService.GetBlockState();
         }
-        public BlockInstanceId BlockInstanceId { get; }
-        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
-        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
-        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
-        
-        public bool IsRocked => _simpleGearService.IsRocked;
-        
-        public bool IsDestroy { get; private set; }
-        
-        public IReadOnlyList<GearConnect> Connects =>
-            _connectorComponent.ConnectedTargets.Select(
-                target => new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption)
-            ).ToArray();
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
@@ -58,6 +53,16 @@ namespace Game.Block.Blocks.Gear
         public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
+        }
+        
+        public List<GearConnect> GetGearConnects()
+        {
+            var result = new List<GearConnect>();
+            foreach (var target in _connectorComponent.ConnectedTargets)
+            {
+                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption));
+            }
+            return result;
         }
         
         public void Destroy()

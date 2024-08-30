@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -28,15 +29,17 @@ namespace Tests.CombinedTest.Core
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
-            var machineRecipeConfig = ServerContext.MachineRecipeConfig;
             
-            var recipe = machineRecipeConfig.GetAllRecipeData()[0];
+            var recipe = MasterHolder.MachineRecipes.Data[0];
             
             
-            var block = blockFactory.Create(recipe.BlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var blockId = BlockMaster.GetBlockId(recipe.BlockGuid);
+            var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
-            foreach (var inputItem in recipe.ItemInputs)
-                blockInventory.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
+            foreach (var inputItem in recipe.InputItems)
+            {
+                blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+            }
             
             var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
@@ -55,7 +58,7 @@ namespace Tests.CombinedTest.Core
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
             
             Assert.AreNotEqual(0, output.Count);
-            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.ItemOutputs[i].OutputItem, output[i]);
+            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.OutputItems[i].ItemGuid, output[i]);
         }
         
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
@@ -68,10 +71,10 @@ namespace Tests.CombinedTest.Core
                 .GetValue(vanillaMachineInventory);
             
             var inputSlot = vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
-            inputSlot.Sort((a, b) => a.Id - b.Id);
+            inputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
             
             var outputSlot = vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
-            outputSlot.Sort((a, b) => a.Id - b.Id);
+            outputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
             
             return (inputSlot, outputSlot);
         }

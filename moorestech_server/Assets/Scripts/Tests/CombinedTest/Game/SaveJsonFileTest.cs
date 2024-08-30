@@ -1,4 +1,5 @@
 using System.Reflection;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.SaveLoad.Interface;
@@ -31,9 +32,9 @@ namespace Tests.CombinedTest.Game
             
             
             //ブロックの追加
-            worldBlockDatastore.TryAddBlock(1, new Vector3Int(0, 0), BlockDirection.North, out var block0);
-            worldBlockDatastore.TryAddBlock(2, new Vector3Int(0, 1), BlockDirection.East, out var block1);
-            worldBlockDatastore.TryAddBlock(3, new Vector3Int(30, -10), BlockDirection.West, out var block2);
+            worldBlockDatastore.TryAddBlock((BlockId)1, new Vector3Int(0, 0), BlockDirection.North, out var block0);
+            worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(0, 1), BlockDirection.East, out var block1);
+            worldBlockDatastore.TryAddBlock((BlockId)3, new Vector3Int(30, -10), BlockDirection.West, out var block2);
             
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
             

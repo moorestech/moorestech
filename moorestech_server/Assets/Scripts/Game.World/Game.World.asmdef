@@ -8,7 +8,8 @@
     "Game.EnergySystem",
     "Game.Block.Interface",
     "UniRx",
-    "Game.Context"
+    "Game.Context",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

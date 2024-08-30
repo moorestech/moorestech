@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -43,15 +44,15 @@ namespace Tests.UnitTest.Core.Other
             
             var service = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
             
-            service.InsertItem(itemStackFactory.Create(1, 4));
-            service.InsertItem(itemStackFactory.Create(2, 3));
-            service.InsertItem(itemStackFactory.Create(3, 2));
-            service.InsertItem(itemStackFactory.Create(4, 1));
+            service.InsertItem(itemStackFactory.Create(new ItemId(1), 4));
+            service.InsertItem(itemStackFactory.Create(new ItemId(2), 3));
+            service.InsertItem(itemStackFactory.Create(new ItemId(3), 2));
+            service.InsertItem(itemStackFactory.Create(new ItemId(4), 1));
             
-            Assert.AreEqual(itemStackFactory.Create(1, 4), inventory1.InsertedItems[0]);
-            Assert.AreEqual(itemStackFactory.Create(2, 3), inventory2.InsertedItems[0]);
-            Assert.AreEqual(itemStackFactory.Create(3, 2), inventory3.InsertedItems[0]);
-            Assert.AreEqual(itemStackFactory.Create(4, 1), inventory2.InsertedItems[1]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 4), inventory1.InsertedItems[0]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 3), inventory2.InsertedItems[0]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), 2), inventory3.InsertedItems[0]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(4), 1), inventory2.InsertedItems[1]);
         }
     }
 }

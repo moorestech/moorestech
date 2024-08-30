@@ -37,11 +37,11 @@ namespace Game.Block.Blocks.Machine
             // JsonObjectにリファクタ
             var jsonObject = new VanillaMachineJsonObject
             {
-                InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackJsonObject(item)).ToList(),
-                OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackJsonObject(item)).ToList(),
+                InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
                 RemainingTime = _vanillaMachineProcessorComponent.RemainingSecond,
-                RecipeId = _vanillaMachineProcessorComponent.RecipeDataId,
+                RecipeId = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
             };
             
             return JsonConvert.SerializeObject(jsonObject);
@@ -51,11 +51,11 @@ namespace Game.Block.Blocks.Machine
     public class VanillaMachineJsonObject
     {
         [JsonProperty("inputSlot")]
-        public List<ItemStackJsonObject> InputSlot;
+        public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
-        public List<ItemStackJsonObject> OutputSlot;
+        public List<ItemStackSaveJsonObject> OutputSlot;
         [JsonProperty("recipeId")]
-        public int RecipeId;
+        public string RecipeId;
         [JsonProperty("remainingTime")]
         public double RemainingTime;
         

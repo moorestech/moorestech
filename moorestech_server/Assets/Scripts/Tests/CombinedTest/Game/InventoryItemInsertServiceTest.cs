@@ -1,3 +1,4 @@
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +23,8 @@ namespace Tests.CombinedTest.Game
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             
             //インベントリの設定
-            mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0), 1, 10);
-            grabInventory.SetItem(0, 1, 10);
+            mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0), new ItemId(1), 10);
+            grabInventory.SetItem(0, new ItemId(1), 10);
             
             //グラブからメインにid 1のアイテムを移す
             InventoryItemInsertService.Insert(grabInventory, 0, mainInventory, 5);
@@ -45,12 +46,12 @@ namespace Tests.CombinedTest.Game
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             
-            var id1MaxStack = ServerContext.ItemConfig.GetItemConfig(1).MaxStack;
+            var id1MaxStack = ItemMaster.GetItemMaster(new ItemId(1)).MaxStack;
             
             //インベントリをアイテムで満たす
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) mainInventory.SetItem(i, 1, id1MaxStack);
+            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) mainInventory.SetItem(i, new ItemId(1), id1MaxStack);
             //グラブインベントリの設定
-            grabInventory.SetItem(0, 1, 10);
+            grabInventory.SetItem(0, new ItemId(1), 10);
             
             //グラブからメインにid 1のアイテムを移す
             InventoryItemInsertService.Insert(grabInventory, 0, mainInventory, 5);
@@ -60,7 +61,7 @@ namespace Tests.CombinedTest.Game
             
             //挿入した一部が帰ってくるテスト
             //下準備としてスロットのアイテム数を5引く
-            mainInventory.SetItem(0, 1, id1MaxStack - 5);
+            mainInventory.SetItem(0, new ItemId(1), id1MaxStack - 5);
             //グラブからメインにid 1のアイテムを全て移す
             InventoryItemInsertService.Insert(grabInventory, 0, mainInventory, 10);
             //挿入されていることをテスト

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
@@ -13,8 +14,8 @@ namespace Game.World.Interface.DataStore
         
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
         
-        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block);
-        public bool TryAddLoadedBlock(long blockHash, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block);
+        public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block);
+        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block);
         public bool RemoveBlock(Vector3Int pos);
         public IBlock GetBlock(Vector3Int pos);
         public IBlock GetBlock(BlockInstanceId blockInstanceId);

@@ -1,7 +1,7 @@
 using System;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
 using Game.EnergySystem;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
@@ -23,7 +23,8 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //必要なデータを取得
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(removedElectricPole.BlockInstanceId);
             var removedBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
-            var poleConfig = ServerContext.BlockConfig.GetBlockConfig(removedBlock.BlockId).Param as ElectricPoleConfigParam;
+            var poleConfig = removedBlock.BlockElement.BlockParam as ElectricPoleBlockParam;
+            
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
                 pos, poleConfig);
@@ -46,9 +47,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
             var connectedPos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPoles[0].BlockInstanceId);
             var connectedBlock = ServerContext.WorldBlockDatastore.GetBlock(connectedPos);
-            var connectedPoleConfig = ServerContext.BlockConfig.GetBlockConfig(connectedBlock.BlockId).Param as ElectricPoleConfigParam;
-            (var connectedBlocks, var connectedGenerators) =
-                FindMachineAndGeneratorFromPeripheralService.Find(connectedPos, connectedPoleConfig);
+            var connectedPoleConfig = connectedBlock.BlockElement.BlockParam as ElectricPoleBlockParam;
+            
+            (var connectedBlocks, var connectedGenerators) = FindMachineAndGeneratorFromPeripheralService.Find(connectedPos, connectedPoleConfig);
             
             //セグメントに追加する
             connectedBlocks.ForEach(removedSegment.AddEnergyConsumer);

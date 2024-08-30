@@ -1,4 +1,5 @@
 using System.Reflection;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -29,18 +30,18 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            worldBlockDatastore.TryAddBlock(1, new Vector3Int(0, 0), BlockDirection.North, out var machineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId , new Vector3Int(0, 0), BlockDirection.North, out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             
             //レシピ用のアイテムを追加
-            machineInventory.InsertItem(itemStackFactory.Create(1, 3));
-            machineInventory.InsertItem(itemStackFactory.Create(2, 1));
+            machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 3));
+            machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 1));
             //処理を開始
             GameUpdater.UpdateWithWait();
             //別のアイテムを追加
-            machineInventory.InsertItem(itemStackFactory.Create(5, 6));
-            machineInventory.InsertItem(itemStackFactory.Create(2, 4));
+            machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));
+            machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 4));
             
             //リフレクションで機械の状態を設定
             //機械のレシピの残り時間設定
@@ -58,11 +59,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machineInventory);
             
-            outputInventory.SetItem(1, itemStackFactory.Create(1, 1));
-            outputInventory.SetItem(2, itemStackFactory.Create(3, 2));
+            outputInventory.SetItem(1, itemStackFactory.Create(new ItemId(1), 1));
+            outputInventory.SetItem(2, itemStackFactory.Create(new ItemId(3), 2));
             
             //レシピIDを取得
-            var recipeId = vanillaMachineProcessor.RecipeDataId;
+            var recipeId = vanillaMachineProcessor.RecipeGuid;
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log(json);
@@ -86,7 +87,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var machineProcessor = loadMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
             Assert.AreEqual(0.3, machineProcessor.RemainingSecond);
             //レシピIDのチェック
-            Assert.AreEqual(recipeId, machineProcessor.RecipeDataId);
+            Assert.AreEqual(recipeId, machineProcessor.RecipeGuid);
             //機械のステータスのチェック
             Assert.AreEqual(ProcessState.Processing, machineProcessor.CurrentState);
             
@@ -96,16 +97,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inputInventoryField = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
-            Assert.AreEqual(itemStackFactory.Create(5, 6), inputInventoryField.InputSlot[0]);
-            Assert.AreEqual(itemStackFactory.Create(2, 4), inputInventoryField.InputSlot[1]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 6), inputInventoryField.InputSlot[0]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 4), inputInventoryField.InputSlot[1]);
             
             //アウトプットスロットのチェック
             var outputInventoryField = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.CreatEmpty(), outputInventoryField.OutputSlot[0]);
-            Assert.AreEqual(itemStackFactory.Create(1, 1), outputInventoryField.OutputSlot[1]);
-            Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 1), outputInventoryField.OutputSlot[1]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), 2), outputInventoryField.OutputSlot[2]);
         }
         
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)

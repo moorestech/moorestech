@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -45,14 +45,11 @@ namespace Server.Protocol.PacketResponse
             
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             var item = inventoryData.MainOpenableInventory.GetItem(data.InventorySlot);
-            if (!ServerContext.BlockConfig.IsBlock(item.Id)) return;
+            if (!BlockMaster.IsBlock(item.Id)) return;
             
             // ブロックIDの設定
-            var blockId = ServerContext.BlockConfig.ItemIdToBlockId(item.Id);
-            if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, placeInfo.VerticalDirection), out var verticalBlockId))
-            {
-                blockId = verticalBlockId;
-            }
+            var blockId = BlockMaster.ItemIdToBlockId(item.Id);
+            blockId = GetOverrideBlockId(blockId, placeInfo.VerticalDirection);
             
             //ブロックの設置
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block);
@@ -60,6 +57,27 @@ namespace Server.Protocol.PacketResponse
             //アイテムを減らし、セットする
             item = item.SubItem(1);
             inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);
+        }
+        
+        static BlockId GetOverrideBlockId(BlockId blockId,BlockVerticalDirection verticalDirection)
+        {
+            var blockElement = BlockMaster.GetBlockMaster(blockId);
+            var overrideBlock = blockElement.OverrideVerticalBlock;
+            
+            if (verticalDirection is BlockVerticalDirection.Up && overrideBlock.UpBlockGuid != Guid.Empty)
+            {
+                return BlockMaster.GetBlockId(overrideBlock.UpBlockGuid);
+            }
+            if (verticalDirection is BlockVerticalDirection.Horizontal && overrideBlock.HorizontalBlockGuid != Guid.Empty)
+            {
+                return BlockMaster.GetBlockId(overrideBlock.HorizontalBlockGuid);
+            }
+            if (verticalDirection is  BlockVerticalDirection.Down && overrideBlock.DownBlockGuid != Guid.Empty)
+            {
+                return BlockMaster.GetBlockId(overrideBlock.DownBlockGuid);
+            }
+            
+            return blockId;
         }
         
         #endregion

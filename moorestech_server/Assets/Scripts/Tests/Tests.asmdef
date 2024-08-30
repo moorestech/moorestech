@@ -44,7 +44,8 @@
     "Game.Gear",
     "Game.Challenge",
     "Game.Challenge.Interface",
-    "UniRx"
+    "UniRx",
+    "Core.Master"
   ],
   "includePlatforms": [
     "Editor"

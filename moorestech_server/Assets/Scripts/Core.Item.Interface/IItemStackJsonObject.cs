@@ -1,21 +1,25 @@
+using System;
+using Core.Master;
 using Newtonsoft.Json;
 
 namespace Core.Item.Interface
 {
-    public class ItemStackJsonObject
+    public class ItemStackSaveJsonObject
     {
-        [JsonProperty("itemHash")]
-        public long ItemHash;
-        
+        [JsonProperty("itemGuid")]
+        public string ItemGuidStr;
         [JsonProperty("id")]
         public int Count;
         
-        public ItemStackJsonObject() { }
+        [JsonIgnore]
+        public Guid ItemGuid => Guid.Parse(ItemGuidStr);
+            
+        public ItemStackSaveJsonObject() { }
         
-        public ItemStackJsonObject(IItemStack itemStack)
+        public ItemStackSaveJsonObject(IItemStack itemStack)
         {
-            ItemHash = itemStack.ItemHash;
             Count = itemStack.Count;
+            ItemGuidStr = ItemMaster.GetItemMaster(itemStack.Id).ItemGuid.ToString();
         }
     }
 }

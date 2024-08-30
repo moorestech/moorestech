@@ -1,6 +1,6 @@
+using Core.Master;
 using Game.Block;
-using Game.Block.Config.LoadConfig.Param;
-using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
@@ -10,14 +10,13 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         
         public MaxElectricPoleMachineConnectionRange()
         {
-            var blockConfig = ServerContext.BlockConfig;
-            for (var i = 1; i < blockConfig.GetBlockConfigCount(); i++)
+            foreach (var blockElement in MasterHolder.Blocks.Data)
             {
-                if (blockConfig.GetBlockConfig(i).Type != VanillaBlockType.ElectricPole) continue;
+                if (blockElement.BlockType != VanillaBlockType.ElectricPole) continue;
                 
-                var param = blockConfig.GetBlockConfig(i).Param as ElectricPoleConfigParam;
-                if (_maxElectricPoleMachineConnectionRange < param.machineConnectionRange)
-                    _maxElectricPoleMachineConnectionRange = param.machineConnectionRange;
+                var param = blockElement.BlockParam as ElectricPoleBlockParam;
+                if (_maxElectricPoleMachineConnectionRange < param.MachineConnectionRange)
+                    _maxElectricPoleMachineConnectionRange = param.MachineConnectionRange;
             }
         }
         

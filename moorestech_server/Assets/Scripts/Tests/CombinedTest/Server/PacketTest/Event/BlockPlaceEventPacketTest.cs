@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using MessagePack;
@@ -54,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 //設置したブロックを保持する
                 blocks.Add(new TestBlockData(pos, blockId, direction));
                 //ブロックの設置
-                worldBlockDataStore.TryAddBlock(blockId, pos, (BlockDirection)direction, out _);
+                worldBlockDataStore.TryAddBlock((BlockId)blockId, pos, (BlockDirection)direction, out _);
             }
             
             

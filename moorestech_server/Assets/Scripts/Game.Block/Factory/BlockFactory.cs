@@ -1,38 +1,36 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Factory
 {
     public class BlockFactory : IBlockFactory
     {
-        private readonly IBlockConfig _blockConfig;
         private readonly Dictionary<string, IBlockTemplate> _blockTypesDictionary;
         
-        public BlockFactory(IBlockConfig blockConfig, VanillaIBlockTemplates vanillaIBlockTemplates)
+        public BlockFactory(VanillaIBlockTemplates vanillaIBlockTemplates)
         {
-            _blockConfig = blockConfig;
             _blockTypesDictionary = vanillaIBlockTemplates.BlockTypesDictionary;
         }
         
-        public IBlock Create(int blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Create(BlockId blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var config = _blockConfig.GetBlockConfig(blockId);
-            if (_blockTypesDictionary.TryGetValue(config.Type, out var value))
-                return value.New(config, blockInstanceId, blockPositionInfo);
+            var blockElement = BlockMaster.GetBlockMaster(blockId);
+            if (_blockTypesDictionary.TryGetValue(blockElement.BlockType, out var value))
+                return value.New(blockElement, blockInstanceId, blockPositionInfo);
             
-            throw new Exception("Block type not found :" + config.Type);
+            throw new Exception("Block type not found :" + blockElement.BlockType);
         }
         
-        public IBlock Load(long blockHash, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo)
         {
-            var config = _blockConfig.GetBlockConfig(blockHash);
-            if (_blockTypesDictionary.TryGetValue(config.Type, out var value))
-                return value.Load(state, config, blockInstanceId, blockPositionInfo);
+            var blockElement = BlockMaster.GetBlockMaster(blockGuid);
+            if (_blockTypesDictionary.TryGetValue(blockElement.BlockType, out var value))
+                return value.Load(state, blockElement, blockInstanceId, blockPositionInfo);
             
-            throw new Exception("Block type not found :" + config.Type);
+            throw new Exception("Block type not found :" + blockElement.BlockType);
         }
         
         public void RegisterTemplateIBlock(string key, IBlockTemplate block)
