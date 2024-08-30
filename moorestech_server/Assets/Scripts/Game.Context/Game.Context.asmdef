@@ -8,6 +8,7 @@
     "Game.Crafting.Interface",
     "Game.Map.Interface",
     "Game.Gear",
+    "Core.Master",
     "Game.Challenge.Interface"
   ],
   "includePlatforms": [],
