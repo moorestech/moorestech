@@ -4,7 +4,7 @@
   "required": ["data"],
   "isDefaultOpen": true,
 
-  "test" : "update",
+  "test" : "update2",
 
   "properties": {
     "data": {
