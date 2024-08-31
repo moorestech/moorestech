@@ -13,16 +13,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="Schema\blocks.json"/>
-        <AdditionalFiles Include="Schema\items.json"/>
-        <AdditionalFiles Include="Schema\challenges.json"/>
-        <AdditionalFiles Include="Schema\craftRecipes.json"/>
-        <AdditionalFiles Include="Schema\machineRecipes.json"/>
-        <AdditionalFiles Include="Schema\mapObjects.json"/>
+        <AdditionalFiles Include="schema\blocks.json"/>
+        <AdditionalFiles Include="schema\items.json"/>
+        <AdditionalFiles Include="schema\challenges.json"/>
+        <AdditionalFiles Include="schema\craftRecipes.json"/>
+        <AdditionalFiles Include="schema\machineRecipes.json"/>
+        <AdditionalFiles Include="schema\mapObjects.json"/>
 
-        <AdditionalFiles Include="Schema\Ref\gearConnects.json"/>
-        <AdditionalFiles Include="Schema\Ref\inventoryConnects.json"/>
-        <AdditionalFiles Include="Schema\Ref\modelTransform.json"/>
+        <AdditionalFiles Include="schema\ref\blockConnectInfo.json"/>
+        <AdditionalFiles Include="schema\ref\inventoryConnects.json"/>
+        <AdditionalFiles Include="schema\ref\modelTransform.json"/>
     </ItemGroup>
 
     <ItemGroup>
