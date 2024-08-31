@@ -4,8 +4,6 @@
   "required": ["data"],
   "isDefaultOpen": true,
 
-  "test" : "update2",
-
   "properties": {
     "data": {
       "type": "array",
