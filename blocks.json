@@ -4,9 +4,6 @@
   "required": [ "data" ],
   "isDefaultOpen": true,
 
-
-  
-  
   "properties": {
 
     "data": {
@@ -27,6 +24,7 @@
           "name": {
             "type": "string"
           },
+
           "blockType": {
             "type": "string",
             "enum": [
