@@ -12,7 +12,7 @@
 
       "items": {
         "type": "object",
-        "required": ["blockGuid", "name", "blockType", "itemId", "size", "blockParam", "modelTransform"],
+        "required": ["blockGuid", "name", "blockType", "itemGuid", "size", "blockParam", "modelTransform"],
 
         "properties": {
           "blockGuid": {
@@ -154,13 +154,13 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": [ "itemId", "time", "power" ],
+                        "required": [ "itemGuid", "time", "power" ],
 
                         "properties": {
-                          "itemId": {
+                          "itemGuid": {
                             "type": "string",
                             "format": "uuid",
-                            "foreignKey": "items:itemId:name"
+                            "foreignKey": "items:itemGuid:name"
                           },
 
                           "time": {
@@ -199,13 +199,13 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": [ "itemId", "time" ],
+                        "required": [ "itemGuid", "time" ],
 
                         "properties": {
-                          "itemId": {
+                          "itemGuid": {
                             "type": "string",
                             "format": "uuid",
-                            "foreignKey": "items:itemId:name"
+                            "foreignKey": "items:itemGuid:name"
                           },
 
                           "time": {
@@ -305,6 +305,7 @@
                     "teethCount": {"type": "integer", "default": 10},
                     "generateRpm": {"type": "number", "default": 5},
                     "generateTorque": {"type": "number", "default": 1},
+                    "requireTorque": {"type": "number", "default": 1},
                     "gearConnects": {
                       "$ref": "blockConnectInfo"
                     }
@@ -321,12 +322,12 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["beltConveyorItemCount", "beltConveyorSpeed", "requiredTorque", "inventoryConnectors", "gearConnects"],
+                  "required": ["beltConveyorItemCount", "beltConveyorSpeed", "requireTorque", "inventoryConnectors", "gearConnects"],
 
                   "properties": {
                     "beltConveyorItemCount": {"type": "integer", "default": 4},
                     "beltConveyorSpeed": {"type": "number", "default": 2},
-                    "requiredTorque": {"type": "number", "default": 2},
+                    "requireTorque": {"type": "number", "default": 2},
 
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
