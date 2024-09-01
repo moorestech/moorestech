@@ -517,7 +517,7 @@
         "requiredPower": 5,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
-        "fuelItemSlotCount": 3,
+        "fuelItemSlotCount": 4,
         "isInfinityPower": true,
         "infinityPower": 10,
         "fuelItems": [],
@@ -590,6 +590,91 @@
       },
       "itemGuid": "80000000-0000-0000-0000-000000000000",
       "blockGuid": "61010283-0396-4314-aa7e-bf6421c55eff"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        4
+      ],
+      "maxStack": 100,
+      "name": "MultiBlock1",
+      "blockType": "Block",
+      "itemGuid": "90000000-0000-0000-0000-000000000000",
+      "blockGuid": "3f12ba81-274c-4d25-a8cb-999cd4036f27"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        3,
+        1,
+        2
+      ],
+      "name": "MultiBlock2",
+      "itemGuid": "11000000-0000-0000-0000-000000000000",
+      "blockGuid": "90c233a5-3e24-405b-b0cc-5ea68ba0e228",
+      "blockType": "Block"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        2,
+        3
+      ],
+      "itemGuid": "12000000-0000-0000-0000-000000000000",
+      "name": "MultiBlock3",
+      "blockGuid": "07509108-21d2-4137-b6b2-89ebf6ff625e",
+      "blockType": "Block"
     }
   ]
 }
