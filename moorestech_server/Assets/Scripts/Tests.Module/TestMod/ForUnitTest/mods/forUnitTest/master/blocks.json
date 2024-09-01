@@ -1076,6 +1076,395 @@
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "15c245ce-1990-4206-92a8-a53039612c5f"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestSimpleGearGenerator",
+      "blockType": "SimpleGearGenerator",
+      "blockParam": {
+        "requireTorque": 0.1,
+        "generateTorque": 3,
+        "generateRpm": 10,
+        "teethCount": 10,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "itemGuid": "19000000-0000-0000-0000-000000000000",
+      "blockGuid": "e5b67f40-fccc-4096-a522-1d7280e2a956"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestFastSimpleGearGenerator",
+      "blockType": "SimpleGearGenerator",
+      "blockParam": {
+        "requireTorque": 0.1,
+        "beltConveyorSpeed": 2,
+        "beltConveyorItemCount": 4,
+        "generateTorque": 1,
+        "generateRpm": 20,
+        "teethCount": 10,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "itemGuid": "11100000-0000-0000-0000-000000000000",
+      "blockGuid": "a4f03705-9966-4778-a226-5d4be4abca4f"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "11200000-0000-0000-0000-000000000000",
+      "blockType": "Gear",
+      "blockParam": {
+        "requireTorque": 1,
+        "generateTorque": 1,
+        "generateRpm": 20,
+        "teethCount": 10,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": true
+            }
+          }
+        ]
+      },
+      "name": "SmallRequireTorqueTestGear",
+      "blockGuid": "00455de8-8691-4104-85eb-25b79c14ba95"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "BigRequireTorqueTestGear",
+      "itemGuid": "11300000-0000-0000-0000-000000000000",
+      "blockType": "Gear",
+      "blockParam": {
+        "acceleration": 1,
+        "itemShootSpeed": 2,
+        "initialShootSpeed": 3,
+        "inventoryItemNum": 4,
+        "requireTorque": 1,
+        "teethCount": 20,
+        "gearConnects": [
+          {
+            "offset": [
+              1,
+              1,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "offset": [
+              0,
+              1,
+              0
+            ],
+            "directions": [
+              [
+                -1,
+                0,
+                0
+              ]
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": true
+            }
+          },
+          {
+            "offset": [
+              2,
+              1,
+              0
+            ],
+            "directions": [
+              [
+                1,
+                0,
+                0
+              ]
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": true
+            }
+          },
+          {
+            "offset": [
+              1,
+              2,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": true
+            },
+            "directions": [
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "offset": [
+              1,
+              0,
+              0
+            ],
+            "directions": [
+              [
+                0,
+                -1,
+                0
+              ]
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": true
+            }
+          }
+        ]
+      },
+      "blockGuid": "d6366435-5d84-4cf1-8f27-994031eb0157"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "InfinityTestSimpleGearGenerator",
+      "blockType": "SimpleGearGenerator",
+      "blockParam": {
+        "requireTorque": 0.1,
+        "generateTorque": 1000000,
+        "generateRpm": 10,
+        "teethCount": 10,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "itemGuid": "11400000-0000-0000-0000-000000000000",
+      "blockGuid": "513eee83-f255-43ed-8b8e-091ecf6267e9"
     }
   ]
 }
