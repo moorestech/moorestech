@@ -1465,6 +1465,304 @@
       },
       "itemGuid": "11400000-0000-0000-0000-000000000000",
       "blockGuid": "513eee83-f255-43ed-8b8e-091ecf6267e9"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "GearBeltConveyor",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "requireTorque": 1,
+        "beltConveyorSpeed": 0.01,
+        "beltConveyorItemCount": 4,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "blockGuid": "ff40f02e-5be7-4107-a795-2320fbada3d2"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "StraightTestItemShooter",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": -0.2,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "11500000-0000-0000-0000-000000000000",
+      "blockGuid": "0bae2b07-55b9-461f-992c-f39873fbf7c3"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "DownTestItemShooter",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": 0.7,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "11500000-0000-0000-0000-000000000000",
+      "blockGuid": "1bae2b07-55b9-461f-992c-f39873fbf7c3"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "UpTestItemShooter",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": -0.9,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ]
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "11700000-0000-0000-0000-000000000000",
+      "blockGuid": "2bae2b07-55b9-461f-992c-f39873fbf7c3"
     }
   ]
 }
