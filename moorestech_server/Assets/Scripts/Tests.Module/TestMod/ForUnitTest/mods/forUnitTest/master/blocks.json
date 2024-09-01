@@ -894,6 +894,188 @@
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
       "blockGuid": "a7dc8164-ca79-4d35-89f2-80feb304f0af"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestShaft",
+      "blockType": "Shaft",
+      "blockParam": {
+        "requireTorque": 0.1,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        ]
+      },
+      "itemGuid": "17000000-0000-0000-0000-000000000000",
+      "blockGuid": "be233ce3-352c-40f7-9b9d-2c68f4898343"
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestGearMachine",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 10,
+        "requireTorque": 0.1,
+        "teethCount": 10,
+        "outputItemSlotCount": 3,
+        "inputItemSlotCount": 2,
+        "gearConnects": [
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
+            },
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        ],
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "18000000-0000-0000-0000-000000000000",
+      "blockGuid": "15c245ce-1990-4206-92a8-a53039612c5f"
     }
   ]
 }
