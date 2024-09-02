@@ -2,13 +2,21 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
 
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
         <PackageId>mooresmaster.Generator</PackageId>
+        <AnalyzerLanguage>cs</AnalyzerLanguage>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <IncludeSymbols>false</IncludeSymbols>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <Title>mooresmaster.Generator</Title>
+        <Authors>Moorestech</Authors>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,7 +26,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.0"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.0"/>
-        <PackageReference Include="UnitGenerator" Version="1.6.2">
+        <PackageReference Include="UnitGenerator" Version="1.6.2" OutputItemType="Analyzer" ReferenceOutputAssembly="false">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -26,6 +34,10 @@
 
     <ItemGroup>
         <Compile Remove="JsonSchema\JsonSchemaNode.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
     </ItemGroup>
 
 
