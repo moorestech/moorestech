@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>mooresmaster.Generator</id>
+    <version>1.0.1</version>
+    <title>mooresmaster.Generator</title>
+    <authors>Moorestech</authors>
+    <developmentDependency>true</developmentDependency>
+    <description>Package Description</description>
+    <repository type="git" commit="d0aef85bdb82e049cfcf24c41529b3ba588ab27c" />
+  </metadata>
+</package>
