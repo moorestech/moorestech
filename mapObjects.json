@@ -44,7 +44,7 @@
                 "itemId": {
                   "type": "string",
                   "format": "uuid",
-                  "foreignKey": "items:itemId:name"
+                  "foreignKey": "items:itemGuid:name"
                 },
                 "minCount": {
                   "type": "integer",
