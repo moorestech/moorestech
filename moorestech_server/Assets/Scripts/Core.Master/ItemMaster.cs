@@ -19,6 +19,15 @@ namespace Core.Master
         public static bool HasInstance => _instance != null;
         private static ItemMaster _instance;
         
+        public static IEnumerable<ItemId> GetItemIds()
+        {
+            if (!HasInstance)
+            {
+                throw new InvalidOperationException("ItemMaster is not loaded");
+            }
+            return _instance._itemElementTableById.Keys;
+        }
+        
         public static ItemElement GetItemMaster(ItemId itemId)
         {
             if (!HasInstance)
