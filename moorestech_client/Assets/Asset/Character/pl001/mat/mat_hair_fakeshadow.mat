@@ -9,8 +9,6 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: mat_hair_fakeshadow
   m_Shader: {fileID: 4800000, guid: 00795bf598b44dc4e9bd363348e77085, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -19,7 +17,6 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -692,7 +689,7 @@ Material:
     - _EmissionBlink: {r: 0, g: 0, b: 3.141593, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionMap_ScrollRotate: {r: 0, g: 0, b: 0, a: 0}
-    - _FakeShadowVector: {r: 1.91, g: 3, b: 0, a: 0.42}
+    - _FakeShadowVector: {r: -0.6, g: 3, b: 0, a: 0.51}
     - _GlitterAtras: {r: 1, g: 1, b: 0, a: 0}
     - _GlitterColor: {r: 1, g: 1, b: 1, a: 1}
     - _GlitterParams1: {r: 256, g: 256, b: 0.16, a: 50}
