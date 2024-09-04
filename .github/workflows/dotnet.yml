@@ -28,4 +28,4 @@ jobs:
     - name: Pack
       run: dotnet pack mooresmaster.Generator/
     - name: Push
-      run: dotnet nuget push *.nupkg -k ${{ NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
