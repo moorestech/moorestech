@@ -1,6 +1,3 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
@@ -26,3 +23,9 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: ReleaseBuild
+      run: dotnet build mooresmaster.Generator/ -c release
+    - name: Pack
+      run: dotnet pack mooresmaster.Generator/
+    - name: Push
+      run: dotnet nuget push *.nupkg -k ${{ NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
