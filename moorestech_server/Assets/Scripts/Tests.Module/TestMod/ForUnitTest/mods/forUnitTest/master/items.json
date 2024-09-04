@@ -1,0 +1,160 @@
+{
+  "data": [
+    {
+      "maxStack": 100,
+      "name": "Test1",
+      "itemGuid": "10000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 50,
+      "name": "Test2",
+      "itemGuid": "20000000-0000-0000-0000-000000000000",
+      "imagePath": "Test2"
+    },
+    {
+      "maxStack": 300,
+      "name": "Test3",
+      "itemGuid": "30000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test4",
+      "itemGuid": "40000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 200,
+      "name": "Test5",
+      "itemGuid": "50000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test6",
+      "itemGuid": "60000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test7",
+      "itemGuid": "70000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test8",
+      "itemGuid": "80000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test9",
+      "itemGuid": "90000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test10",
+      "itemGuid": "11000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "Test11",
+      "itemGuid": "12000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "tree",
+      "itemGuid": "13000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "stone",
+      "itemGuid": "14000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "SmallTestGear",
+      "itemGuid": "15000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "BigTestGear",
+      "itemGuid": "16000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestShaft",
+      "itemGuid": "17000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestGearMachine",
+      "itemGuid": "18000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestSimpleGearGenerator",
+      "itemGuid": "19000000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestFastSimpleGearGenerator",
+      "itemGuid": "11100000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "SmallRequireTorqueTestGear",
+      "itemGuid": "11200000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "BigRequireTorqueTestGear",
+      "itemGuid": "11300000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "InfinityTestSimpleGearGenerator",
+      "itemGuid": "11400000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "StraightTestItemShooter",
+      "itemGuid": "11500000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "DownTestItemShooter",
+      "itemGuid": "11600000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "UpTestItemShooter",
+      "itemGuid": "11700000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "GearBeltConveyor",
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    }
+  ]
+}
