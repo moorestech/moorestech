@@ -98,7 +98,7 @@
                     "blockGuid": {
                       "type": "string",
                       "format": "uuid",
-                      "foreignKey": "items:itemGuid:name"
+                      "foreignKey": "blocks:blockGuid:name"
                     },
                     "itemCount": {
                       "type": "integer",
