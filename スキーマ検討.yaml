@@ -1,7 +1,5 @@
 id: blocks
 type: object
-required:
-- data
 isDefaultOpen: true
 
 properties:
@@ -10,14 +8,6 @@ properties:
     overrideCodeGeneratePropertyName: BlockElement
     items:
       type: object
-      required:
-      - blockGuid
-      - name
-      - blockType
-      - itemId
-      - size
-      - blockParam
-      - modelTransform
 
       properties:
         - key: blockGuid
