@@ -32,6 +32,7 @@ namespace Core.Master
             ItemMaster.Load();
             
             Blocks = BlocksLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
+            BlockMaster.Load(); // TODO こういうメソッドは自動で呼べるようにする
             
             Challenges = ChallengesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
             CraftRecipes = CraftRecipesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));

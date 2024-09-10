@@ -199,7 +199,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
-                _currentFuelItemId = ItemMaster.GetItemId(_fuelSettings[slotItemId].ItemId);
+                _currentFuelItemId = ItemMaster.GetItemId(_fuelSettings[slotItemId].ItemGuid);
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす

@@ -48,13 +48,15 @@ namespace Server.Boot
             GameUpdater.ResetUpdate();
             
             //必要な各種インスタンスを手動で作成
-            var initializerCollection = new ServiceCollection();
             var modDirectory = Path.Combine(serverDirectory, "mods");
-            var mapPath = Path.Combine(serverDirectory, "map", "map.json");
             
+            // マスターをロード
             var modResource = new ModsResource(modDirectory);
             var configJsons = ModJsonStringLoader.GetConfigString(modResource);
             var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
+            MasterHolder.Load(configJsonFileContainer);
+            
+            var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(configJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
@@ -65,6 +67,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             
+            var mapPath = Path.Combine(serverDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
             

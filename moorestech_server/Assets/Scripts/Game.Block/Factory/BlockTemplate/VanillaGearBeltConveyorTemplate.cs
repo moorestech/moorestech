@@ -31,7 +31,7 @@ namespace Game.Block.Factory.BlockTemplate
                 blockName
             );
             
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequiredTorque, gearEnergyTransformerConnector);
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             
             var blockComponents = new List<IBlockComponent>
             {

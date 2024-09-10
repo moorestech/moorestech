@@ -63,7 +63,7 @@ namespace Game.Block.Factory.BlockTemplate
             FuelSettings = new Dictionary<ItemId, FuelItemsElement>();
             foreach (var fuelItem in param.FuelItems)
             {
-                var itemId = ItemMaster.GetItemId(fuelItem.ItemId);
+                var itemId = ItemMaster.GetItemId(fuelItem.ItemGuid);
                 FuelSettings.Add(itemId, fuelItem);
             }
             

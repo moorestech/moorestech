@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.Miner
                 var minerBlockParam = BlockMaster.GetBlockMaster(blockId).BlockParam as ElectricMinerBlockParam;
                 foreach (var miningSetting in minerBlockParam.MineSettings)
                 {
-                    var itemId = ItemMaster.GetItemId(miningSetting.ItemId);
+                    var itemId = ItemMaster.GetItemId(miningSetting.ItemGuid);
                     if (itemId != veins[0].VeinItemId) continue;
                     _defaultMiningTime = miningSetting.Time;
                     _remainingSecond = _defaultMiningTime;

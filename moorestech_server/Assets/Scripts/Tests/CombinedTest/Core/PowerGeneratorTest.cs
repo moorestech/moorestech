@@ -32,8 +32,8 @@ namespace Tests.CombinedTest.Core
             var generatorConfigParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var fuelItem1 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem1Id].ItemId, 1);
-            var fuelItem2 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem2Id].ItemId, 1);
+            var fuelItem1 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem1Id].ItemGuid, 1);
+            var fuelItem2 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem2Id].ItemGuid, 1);
             
             
             //燃料の燃焼時間ループする
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Core
             fuelItemId = (int)typeof(VanillaElectricGeneratorComponent).GetField("_currentFuelItemId",
                     BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(generatorComponent);
-            Assert.AreEqual(generatorConfigParam.FuelItems[FuelItem2Id].ItemId, fuelItemId);
+            Assert.AreEqual(generatorConfigParam.FuelItems[FuelItem2Id].ItemGuid, fuelItemId);
             
             //燃料の2個目の枯渇までループ
             var endTime2 = DateTime.Now.AddSeconds(generatorConfigParam.FuelItems[FuelItem2Id].Time);
