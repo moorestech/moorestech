@@ -72,7 +72,7 @@
 
                 "isReverse": {
                   "type": "boolean",
-                  "default": false
+                  "default": true
                 },
                 "onlySpecifiedTypes": {
                   "type": "array",
