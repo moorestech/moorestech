@@ -60,5 +60,10 @@ namespace Core.Master
             }
             return itemId;
         }
+        
+        public IEnumerable<ItemId> GetItemIds()
+        {
+            return _itemElementTableById.Keys;
+        }
     }
 }
