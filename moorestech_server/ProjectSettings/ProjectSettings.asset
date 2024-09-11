@@ -868,7 +868,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;ENABLE_MOORESMASTER_GENERATOR
+    Standalone: STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
