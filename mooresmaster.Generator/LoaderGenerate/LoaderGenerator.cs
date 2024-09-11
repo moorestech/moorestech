@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
@@ -30,7 +31,7 @@ public static class LoaderGenerator
 
         return definition
             .TypeDefinitions
-            .Select(typeDefinition => GenerateTypeLoaderCode(typeDefinition, semantics))
+            .Select(typeDefinition => GenerateTypeLoaderCode(typeDefinition, semantics, nameTable))
             .Concat(
                 inheritTable
                     .Select(
@@ -91,7 +92,7 @@ public static class LoaderGenerator
         );
     }
 
-    private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
+    private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition, Semantics semantics, NameTable nameTable)
     {
         var targetType = typeDefinition.TypeName;
         var targetTypeName = targetType.GetModelName();
@@ -111,6 +112,8 @@ public static class LoaderGenerator
                    {
                        public static {{{targetTypeName}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
+                           {{{GenerateNullCheckCode(typeDefinition, semantics).Indent(level: 3)}}}
+                       
                            {{{propertyLoaderCode.Indent(level: 3)}}}
                        
                            return new {{{targetTypeName}}}({{{string.Join(", ", typeDefinition.PropertyTable.Select(property => property.Key))}}});
@@ -119,6 +122,37 @@ public static class LoaderGenerator
                }
                """
         );
+    }
+
+    private static string GenerateNullCheckCode(TypeDefinition typeDefinition, Semantics semantics)
+    {
+        StringBuilder builder = new();
+
+        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue))
+        {
+            var propertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
+
+            builder.AppendLine(
+                $$$"""
+                   if (json["{{{propertyName}}}"] == null)
+                   {
+                       var errorMessage = $"SchemaLoadError\nErrorPath: {json.Path}\nTargetProperty: {{{propertyName}}}\n\n";
+                       
+                       var parent = json.Parent;
+                       while (parent != null)
+                       {
+                       //    errorMessage += parent.ToString() + "\n";
+                           parent = parent.Parent;
+                       }
+                   
+                       throw new global::System.Exception(errorMessage);
+                   }
+
+                   """
+            );
+        }
+
+        return builder.ToString();
     }
 
     private static (string fileName, string code) GenerateInterfaceLoaderCode(InterfaceId interfaceId, Semantics semantics, NameTable nameTable)
@@ -166,10 +200,7 @@ public static class LoaderGenerator
 
     private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
     {
-        if (typeDefinition.PropertyTable.Count == 0)
-        {
-            return string.Empty;
-        }
+        if (typeDefinition.PropertyTable.Count == 0) return string.Empty;
         var property = typeDefinition.PropertyTable.First();
 
         return $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";

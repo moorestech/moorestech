@@ -13,8 +13,6 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
-
         var blocks = BlocksLoader.Load(GetJson("blocks"));
         var challenges = ChallengesLoader.Load(GetJson("challenges"));
         var craftRecipes = CraftRecipesLoader.Load(GetJson("craftRecipes"));
@@ -22,12 +20,12 @@ internal static class Program
         var machineRecipes = MachineRecipesLoader.Load(GetJson("machineRecipes"));
         var mapObjects = MapObjectsLoader.Load(GetJson("mapObjects"));
 
-        Console.WriteLine(blocks);
-        Console.WriteLine(challenges);
-        Console.WriteLine(craftRecipes);
-        Console.WriteLine(items);
-        Console.WriteLine(machineRecipes);
-        Console.WriteLine(mapObjects);
+        // Console.WriteLine(blocks);
+        // Console.WriteLine(challenges);
+        // Console.WriteLine(craftRecipes);
+        // Console.WriteLine(items);
+        // Console.WriteLine(machineRecipes);
+        // Console.WriteLine(mapObjects);
 
         // var testModJsonsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestMod");
         // var jsonPaths = Directory.GetFiles(testModJsonsDirectoryPath);
