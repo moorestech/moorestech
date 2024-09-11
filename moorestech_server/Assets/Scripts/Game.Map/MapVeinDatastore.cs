@@ -15,7 +15,7 @@ namespace Game.Map
             //configからmap obejctを生成
             foreach (var veinJson in mapInfoJson.MapVeins)
             {
-                var itemId = ItemMaster.GetItemId(veinJson.VeinItemGuid);
+                var itemId = MasterHolder.ItemMaster.GetItemId(veinJson.VeinItemGuid);
                 var vein = new MapVein(itemId,
                     new Vector3Int(veinJson.XMin, veinJson.YMin),
                     new Vector3Int(veinJson.XMax, veinJson.YMax));

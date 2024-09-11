@@ -10,7 +10,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         
         public MaxElectricPoleMachineConnectionRange()
         {
-            foreach (var blockElement in MasterHolder.Blocks.Data)
+            foreach (var blockElement in MasterHolder.BlockMaster.Blocks.Data)
             {
                 if (blockElement.BlockType != VanillaBlockType.ElectricPole) continue;
                 

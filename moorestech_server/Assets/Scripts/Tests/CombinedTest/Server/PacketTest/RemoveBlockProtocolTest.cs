@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7));
-            var blockElement = BlockMaster.GetBlockMaster(block.BlockId);
+            var blockElement = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
             
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
             
             //削除したブロックは次のスロットに入っているのでそれをチェック
-            var blockItemId = ItemMaster.GetItemId(blockElement.ItemGuid);
+            var blockItemId = MasterHolder.ItemMaster.GetItemId(blockElement.ItemGuid);
             Assert.AreEqual(blockItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Count);
         }
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(1000), 1));
             
             //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
-            var id3MaxStack = ItemMaster.GetItemMaster(new ItemId(3)).MaxStack;
+            var id3MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(3)).MaxStack;
             mainInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), id3MaxStack - 1));
             //二つめのスロットにはID4のアイテムを1つ入れておく
             mainInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 1));

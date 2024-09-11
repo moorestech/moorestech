@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = ServerContext.BlockFactory;
-            var minerGuid = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MinerId).BlockGuid;
+            var minerGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MinerId).BlockGuid;
             
             var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var originalMiner = blockFactory.Create(ForUnitTestModBlockId.MinerId, new BlockInstanceId(1), minerPosInfo);

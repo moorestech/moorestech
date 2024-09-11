@@ -40,7 +40,7 @@ namespace Game.Challenge.Task
             var itemCount = 0;
             foreach (var item in _playerInventory.MainOpenableInventory.InventoryItems)
             {
-                var taskItemId = ItemMaster.GetItemId(_inInventoryItemTaskParam.ItemGuid);
+                var taskItemId = MasterHolder.ItemMaster.GetItemId(_inInventoryItemTaskParam.ItemGuid);
                 if (item.Id != taskItemId) continue;
                 
                 itemCount += item.Count;

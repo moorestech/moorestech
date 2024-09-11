@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Core.Block
             items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
             
             MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, input, out var ans);
-            Assert.AreEqual(output0Id, ItemMaster.GetItemId(ans.OutputItems[0].ItemGuid).AsPrimitive());
+            Assert.AreEqual(output0Id, MasterHolder.ItemMaster.GetItemId(ans.OutputItems[0].ItemGuid).AsPrimitive());
             Assert.AreEqual(output0Percent, ans.OutputItems[0].Percent);
         }
         

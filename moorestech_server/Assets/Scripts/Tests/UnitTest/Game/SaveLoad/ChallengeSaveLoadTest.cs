@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = ChallengeMaster.GetInitialChallenge().Select(ChallengeMaster.GetChallenge).ToList();
+            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = ChallengeMaster.GetInitialChallenge().Select(ChallengeMaster.GetChallenge).ToList();
+            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
                 var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);

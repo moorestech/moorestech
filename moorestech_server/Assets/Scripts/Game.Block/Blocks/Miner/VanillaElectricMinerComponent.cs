@@ -62,10 +62,10 @@ namespace Game.Block.Blocks.Miner
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
                 
-                var minerBlockParam = BlockMaster.GetBlockMaster(blockId).BlockParam as ElectricMinerBlockParam;
+                var minerBlockParam = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockParam as ElectricMinerBlockParam;
                 foreach (var miningSetting in minerBlockParam.MineSettings)
                 {
-                    var itemId = ItemMaster.GetItemId(miningSetting.ItemGuid);
+                    var itemId = MasterHolder.ItemMaster.GetItemId(miningSetting.ItemGuid);
                     if (itemId != veins[0].VeinItemId) continue;
                     _defaultMiningTime = miningSetting.Time;
                     _remainingSecond = _defaultMiningTime;

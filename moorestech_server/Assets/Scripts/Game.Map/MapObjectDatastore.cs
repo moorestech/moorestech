@@ -26,7 +26,7 @@ namespace Game.Map
             
             foreach (var mapObjectInfo in mapInfoJson.MapObjects)
             {
-                var mapObjectConfig = MapObjectMaster.GetMapObjectElement(mapObjectInfo.MapObjectGuid);
+                var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectInfo.MapObjectGuid);
                 var hp = mapObjectConfig.Hp;
                 
                 var mapObject = _mapObjectFactory.Create(mapObjectInfo.InstanceId, mapObjectInfo.MapObjectGuid, hp, false, mapObjectInfo.Position);

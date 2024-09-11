@@ -38,7 +38,7 @@ namespace Game.World.DataStore
         
         public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block)
         {
-            var blockSize = BlockMaster.GetBlockMaster(blockGuid).BlockSize;
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockGuid).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
             block = _blockFactory.Load(blockGuid, blockInstanceId, state, blockPositionInfo);
             return TryAddBlock(block);
@@ -93,7 +93,7 @@ namespace Game.World.DataStore
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block)
         {
-            var blockSize = BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
             block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             return TryAddBlock(block);
@@ -160,11 +160,11 @@ namespace Game.World.DataStore
             var blockFactory = ServerContext.BlockFactory;
             foreach (var blockSave in saveBlockDataList)
             {
-                var blockId = BlockMaster.GetBlockId(blockSave.BlockGuid);
+                var blockId = MasterHolder.BlockMaster.GetBlockId(blockSave.BlockGuid);
                 
                 var pos = blockSave.Pos;
                 var direction = (BlockDirection)blockSave.Direction;
-                var size = BlockMaster.GetBlockMaster(blockId).BlockSize;
+                var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
                 
                 var blockData = new BlockPositionInfo(pos, direction, size);
                 Debug.Log($"BlockLoad {blockSave.EntityId}");

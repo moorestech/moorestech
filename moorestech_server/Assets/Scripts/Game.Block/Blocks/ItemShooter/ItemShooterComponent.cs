@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.ItemShooter
                 var item = items[i];
                 if (item.ItemStackSave == null) continue;
                 
-                var id = ItemMaster.GetItemId(item.ItemStackSave.ItemGuid);
+                var id = MasterHolder.ItemMaster.GetItemId(item.ItemStackSave.ItemGuid);
                 _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
                 {
                     RemainingPercent = (float)items[i].RemainingPercent

@@ -28,13 +28,13 @@ namespace Game.PlayerInventory.Interface
             for (var i = 0; i < playerInventoryData.MainOpenableInventory.GetSlotSize(); i++)
             {
                 var item = playerInventoryData.MainOpenableInventory.GetItem(i);
-                var master = ItemMaster.GetItemMaster(item.Id);
+                var master = MasterHolder.ItemMaster.GetItemMaster(item.Id);
                 MainItemGuIds.Add(master.ItemGuid.ToString());
                 MainItemCounts.Add(item.Count);
             }
             
             var grabItem = playerInventoryData.GrabInventory.GetItem(0);
-            var grabItemMaster = ItemMaster.GetItemMaster(grabItem.Id);
+            var grabItemMaster = MasterHolder.ItemMaster.GetItemMaster(grabItem.Id);
             GrabItemGuid = grabItemMaster.ItemGuid.ToString();
             GrabItemCount = grabItem.Count;
             

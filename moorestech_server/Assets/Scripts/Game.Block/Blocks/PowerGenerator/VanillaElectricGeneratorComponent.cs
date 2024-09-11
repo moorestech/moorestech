@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             var saveData = JsonConvert.DeserializeObject<VanillaElectricGeneratorSaveJsonObject>(state);
             
-            var itemId = ItemMaster.GetItemId(saveData.CurrentFuelItemGuid);
+            var itemId = MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid);
             _currentFuelItemId = itemId;
             _remainingFuelTime = saveData.RemainingFuelTime;
             
@@ -90,7 +90,7 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             BlockException.CheckDestroy(this);
             
-            var itemGuid = ItemMaster.GetItemMaster(_currentFuelItemId).ItemGuid;
+            var itemGuid = MasterHolder.ItemMaster.GetItemMaster(_currentFuelItemId).ItemGuid;
             var saveData = new VanillaElectricGeneratorSaveJsonObject
             {
                 CurrentFuelItemGuidStr = itemGuid.ToString(),
@@ -199,7 +199,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
-                _currentFuelItemId = ItemMaster.GetItemId(_fuelSettings[slotItemId].ItemGuid);
+                _currentFuelItemId = MasterHolder.ItemMaster.GetItemId(_fuelSettings[slotItemId].ItemGuid);
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす

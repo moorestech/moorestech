@@ -45,9 +45,9 @@ namespace Game.Challenge
             PlayerChallengeInfo CreateInitialChallenge()
             {
                 var initialChallenges = new List<IChallengeTask>();
-                foreach (var challengeGuid in ChallengeMaster.GetInitialChallenge())
+                foreach (var challengeGuid in MasterHolder.ChallengeMaster.InitialChallenge)
                 {
-                    var challenge = ChallengeMaster.GetChallenge(challengeGuid);
+                    var challenge = MasterHolder.ChallengeMaster.GetChallenge(challengeGuid);
                     var initialChallenge = CreateChallenge(playerId, challenge);
                     initialChallenges.Add(initialChallenge);
                 }
@@ -66,12 +66,12 @@ namespace Game.Challenge
                 var currentChallenges = new List<IChallengeTask>();
                 
                 // InitialChallengeの中でクリアしていないのを登録
-                foreach (var initialChallengeGuid in ChallengeMaster.GetInitialChallenge())
+                foreach (var initialChallengeGuid in MasterHolder.ChallengeMaster.InitialChallenge)
                 {
                     // クリア済みならスキップ
                     if (challengeJsonObject.CompletedGuids.Contains(initialChallengeGuid.ToString())) continue;
                     
-                    var challenge = ChallengeMaster.GetChallenge(initialChallengeGuid);
+                    var challenge = MasterHolder.ChallengeMaster.GetChallenge(initialChallengeGuid);
                     var initialChallenge = CreateChallenge(playerId, challenge);
                     currentChallenges.Add(initialChallenge);
                 }
@@ -80,14 +80,14 @@ namespace Game.Challenge
                 foreach (var completedId in challengeJsonObject.CompletedGuids)
                 {
                     // 完了したチャレンジの次のチャレンジがクリア済みでなければ、CurrentChallengeに追加
-                    //var challenge = ChallengeMaster.GetChallenge();
+                    //var challenge = MasterHolder.ChallengeMaster.GetChallenge();
                     
-                    var nextIds = ChallengeMaster.GetNextChallenges(Guid.Parse(completedId));
+                    var nextIds = MasterHolder.ChallengeMaster.GetNextChallenges(Guid.Parse(completedId));
                     foreach (var nextId in nextIds)
                     {
                         if (challengeJsonObject.CompletedGuids.Contains(nextId.ToString())) continue;
                         
-                        var challengeElement = ChallengeMaster.GetChallenge(nextId);
+                        var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextId);
                         var initialChallenge = CreateChallenge(playerId, challengeElement);
                         currentChallenges.Add(initialChallenge);
                     }
@@ -113,10 +113,10 @@ namespace Game.Challenge
             challengeInfo.CurrentChallenges.Remove(currentChallenge);
             challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeElement.ChallengeGuid);
             
-            var nextIds = ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeElement.ChallengeGuid);
+            var nextIds = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeElement.ChallengeGuid);
             foreach (var nextId in nextIds)
             {
-                var challengeElement = ChallengeMaster.GetChallenge(nextId);
+                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextId);
                 
                 var nextChallenge = CreateChallenge(playerId, challengeElement);
                 challengeInfo.CurrentChallenges.Add(nextChallenge);

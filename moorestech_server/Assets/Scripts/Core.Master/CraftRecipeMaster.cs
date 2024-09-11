@@ -1,13 +1,22 @@
 using System;
+using Mooresmaster.Loader.CraftRecipesModule;
 using Mooresmaster.Model.CraftRecipesModule;
+using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
     public class CraftRecipeMaster
     {
-        public static CraftRecipeElement GetCraftRecipe(Guid guid)
+        public readonly CraftRecipes CraftRecipes;
+        
+        public CraftRecipeMaster(JToken craftRecipeJToken)
         {
-            return Array.Find(MasterHolder.CraftRecipes.Data, x => x.CraftRecipeGuid == guid);
+            CraftRecipes = CraftRecipesLoader.Load(craftRecipeJToken);
+        }
+        
+        public CraftRecipeElement GetCraftRecipe(Guid guid)
+        {
+            return Array.Find(CraftRecipes.Data, x => x.CraftRecipeGuid == guid);
         }
     }
 }

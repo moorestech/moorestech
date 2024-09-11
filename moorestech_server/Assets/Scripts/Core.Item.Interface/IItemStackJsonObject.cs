@@ -19,7 +19,7 @@ namespace Core.Item.Interface
         public ItemStackSaveJsonObject(IItemStack itemStack)
         {
             Count = itemStack.Count;
-            ItemGuidStr = ItemMaster.GetItemMaster(itemStack.Id).ItemGuid.ToString();
+            ItemGuidStr = MasterHolder.ItemMaster.GetItemMaster(itemStack.Id).ItemGuid.ToString();
         }
     }
 }

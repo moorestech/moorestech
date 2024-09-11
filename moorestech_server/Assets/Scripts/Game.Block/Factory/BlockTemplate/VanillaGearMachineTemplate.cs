@@ -30,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var inputSlot = machineParam.InputItemSlotCount;
             var outputSlot = machineParam.OutputItemSlotCount;
-            var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.GearConnects;
@@ -63,7 +63,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var inputSlot = machineParam.InputItemSlotCount;
             var outputSlot = machineParam.OutputItemSlotCount;
-            var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.GearConnects;

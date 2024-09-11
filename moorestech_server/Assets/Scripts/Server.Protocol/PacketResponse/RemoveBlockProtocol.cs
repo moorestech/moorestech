@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse
             if (block == null) return null;
             
             //ブロックのIDを取得
-            var blockItemId = BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
+            var blockItemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
             //アイテムを挿入
             var remainBlockItem = playerMainInventory.InsertItem(ServerContext.ItemStackFactory.Create(blockItemId, 1));
             

@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload.ToArray());
             
-            var craftConfig = CraftRecipeMaster.GetCraftRecipe(data.CraftRecipeGuid);
+            var craftConfig = MasterHolder.CraftRecipeMaster.GetCraftRecipe(data.CraftRecipeGuid);
             //プレイヤーインベントリを取得
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var mainInventory = playerInventory.MainOpenableInventory;
@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             var requiredItems = new Dictionary<ItemId, int>();
             foreach (var requiredItem in recipe.RequiredItems)
             {
-                var requiredItemId = ItemMaster.GetItemId(requiredItem.ItemGuid);
+                var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                 
                 if (requiredItems.ContainsKey(requiredItemId))
                 {
@@ -112,7 +112,7 @@ namespace Server.Protocol.PacketResponse
             var requiredItems = new Dictionary<ItemId, int>();
             foreach (var requiredItem in recipe.RequiredItems)
             {
-                var requiredItemId = ItemMaster.GetItemId(requiredItem.ItemGuid);
+                var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                 
                 if (requiredItems.ContainsKey(requiredItemId))
                     requiredItems[requiredItemId] += requiredItems.Count;

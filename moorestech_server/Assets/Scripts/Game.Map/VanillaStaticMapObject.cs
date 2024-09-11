@@ -29,7 +29,7 @@ namespace Game.Map
         
         public VanillaStaticMapObject(int instanceId, Guid mapObjectGuid, bool isDestroyed, int currentHp, Vector3 position)
         {
-            var mapObjectConfig = MapObjectMaster.GetMapObjectElement(mapObjectGuid);
+            var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
             InstanceId = instanceId;
             MapObjectGuid = mapObjectGuid;
             IsDestroyed = isDestroyed;

@@ -30,10 +30,10 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
             
-            var recipe = MasterHolder.MachineRecipes.Data[0];
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             
             
-            var blockId = BlockMaster.GetBlockId(recipe.BlockGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)

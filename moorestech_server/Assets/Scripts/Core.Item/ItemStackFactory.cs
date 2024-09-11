@@ -40,7 +40,7 @@ namespace Core.Item
         {
             if (count < 1) return CreatEmpty();
             
-            var id = ItemMaster.GetItemId(itemGuid);
+            var id = MasterHolder.ItemMaster.GetItemId(itemGuid);
             return Create(id, count, metaData);
         }
         

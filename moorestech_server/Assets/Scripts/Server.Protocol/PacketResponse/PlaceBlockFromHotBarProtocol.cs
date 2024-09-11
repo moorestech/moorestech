@@ -45,10 +45,10 @@ namespace Server.Protocol.PacketResponse
             
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             var item = inventoryData.MainOpenableInventory.GetItem(data.InventorySlot);
-            if (!BlockMaster.IsBlock(item.Id)) return;
+            if (!MasterHolder.BlockMaster.IsBlock(item.Id)) return;
             
             // ブロックIDの設定
-            var blockId = BlockMaster.ItemIdToBlockId(item.Id);
+            var blockId = MasterHolder.BlockMaster.ItemIdToBlockId(item.Id);
             blockId = GetOverrideBlockId(blockId, placeInfo.VerticalDirection);
             
             //ブロックの設置
@@ -61,20 +61,20 @@ namespace Server.Protocol.PacketResponse
         
         static BlockId GetOverrideBlockId(BlockId blockId,BlockVerticalDirection verticalDirection)
         {
-            var blockElement = BlockMaster.GetBlockMaster(blockId);
+            var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var overrideBlock = blockElement.OverrideVerticalBlock;
             
             if (verticalDirection is BlockVerticalDirection.Up && overrideBlock.UpBlockGuid != Guid.Empty)
             {
-                return BlockMaster.GetBlockId(overrideBlock.UpBlockGuid);
+                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.UpBlockGuid);
             }
             if (verticalDirection is BlockVerticalDirection.Horizontal && overrideBlock.HorizontalBlockGuid != Guid.Empty)
             {
-                return BlockMaster.GetBlockId(overrideBlock.HorizontalBlockGuid);
+                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.HorizontalBlockGuid);
             }
             if (verticalDirection is  BlockVerticalDirection.Down && overrideBlock.DownBlockGuid != Guid.Empty)
             {
-                return BlockMaster.GetBlockId(overrideBlock.DownBlockGuid);
+                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.DownBlockGuid);
             }
             
             return blockId;

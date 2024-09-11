@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Core
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
             var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
-            var generatorConfigParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam;
+            var generatorConfigParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var fuelItem1 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem1Id].ItemGuid, 1);
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Core
             var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.InfinityGeneratorId, new BlockInstanceId(10), posInfo);
             var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
             
-            var generatorConfigParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.InfinityGeneratorId).BlockParam as ElectricGeneratorBlockParam;
+            var generatorConfigParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.InfinityGeneratorId).BlockParam as ElectricGeneratorBlockParam;
             
             //1回目のループ
             GameUpdater.UpdateWithWait();

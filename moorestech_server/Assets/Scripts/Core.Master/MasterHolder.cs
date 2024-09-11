@@ -18,27 +18,23 @@ namespace Core.Master
 {
     public class MasterHolder
     {
-        public static Items Items { get; private set; }
-        public static Blocks Blocks { get; private set; }
-        
-        public static Challenges Challenges { get; private set; }
-        public static CraftRecipes CraftRecipes { get; private set; }
-        public static MachineRecipes MachineRecipes { get; private set; }
-        public static MapObjects MapObjects { get; private set; }
+        public static ItemMaster ItemMaster { get; private set; }
+        public static BlockMaster BlockMaster { get; private set; }
+        public static ChallengeMaster ChallengeMaster { get; private set; }
+        public static CraftRecipeMaster CraftRecipeMaster { get; private set; }
+        public static MachineRecipesMaster MachineRecipesMaster { get; private set; }
+        public static MapObjectMaster MapObjectMaster { get; private set; }
         
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
-            Items = ItemsLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("items")));
-            ItemMaster.Load();
+            ItemMaster = new ItemMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
+            BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")), ItemMaster);
+            ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
             
-            Blocks = BlocksLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
-            BlockMaster.Load(); // TODO こういうメソッドは自動で呼べるようにする
+            CraftRecipeMaster = new CraftRecipeMaster(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));
             
-            Challenges = ChallengesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
-            CraftRecipes = CraftRecipesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));
-            
-            MachineRecipes = MachineRecipesLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
-            MapObjects = MapObjectsLoader.Load(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
+            MachineRecipesMaster = new MachineRecipesMaster(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
+            MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
         }
         
         private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer,JsonFileName jsonFileName)

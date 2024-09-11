@@ -34,9 +34,9 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
             
-            var recipe = MasterHolder.MachineRecipes.Data[GearMachineRecipeIndex];
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[GearMachineRecipeIndex];
             
-            var blockId = BlockMaster.GetBlockId(recipe.BlockGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Core
             }
             
             var gearMachineComponent = block.GetComponent<VanillaGearMachineComponent>();
-            var gearMachineParam = BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as GearMachineBlockParam;
+            var gearMachineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as GearMachineBlockParam;
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
@@ -71,9 +71,9 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
             
-            var recipe = MasterHolder.MachineRecipes.Data[GearMachineRecipeIndex];
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[GearMachineRecipeIndex];
             
-            var recipeBlockId = BlockMaster.GetBlockId(recipe.BlockGuid);
+            var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             var lackRpmBlock = blockFactory.Create(recipeBlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var lackTorqueBlock = blockFactory.Create(recipeBlockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.zero));
             
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreNotEqual(0, output.Count);
             for (var i = 0; i < output.Count; i++)
             {
-                var outputItemId = ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
+                var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
                 Assert.AreEqual(outputItemId, output[i].Id);
                 Assert.AreEqual(recipe.OutputItems[i].Count, output[i].Count);
             }

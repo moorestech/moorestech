@@ -52,7 +52,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             foreach (var itemOutput in machineRecipeElement.OutputItems)
             {
-                var outputItemId = ItemMaster.GetItemId(itemOutput.ItemGuid);
+                var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
                 var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
                 
                 var isAllowed = OutputSlot.Aggregate(false, (current, slot) => slot.IsAllowedToAdd(outputItemStack) || current);
@@ -69,7 +69,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             foreach (var itemOutput in machineRecipeElement.OutputItems)
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
-                    var outputItemId = ItemMaster.GetItemId(itemOutput.ItemGuid);
+                    var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
                     var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
                     
                     if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;

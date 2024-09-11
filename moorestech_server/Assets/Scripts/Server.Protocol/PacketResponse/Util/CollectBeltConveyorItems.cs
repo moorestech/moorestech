@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse.Util
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
                 
-                var type = BlockMaster.GetBlockMaster(block.BlockId).BlockType;
+                var type = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).BlockType;
                 
                 if (type != VanillaBlockType.BeltConveyor) continue;
                 

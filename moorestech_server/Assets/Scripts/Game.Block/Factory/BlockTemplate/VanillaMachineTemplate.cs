@@ -32,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var inputSlot = machineParam.InputItemSlotCount;
             var outputSlot = machineParam.OutputItemSlotCount;
-            var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var processor = new VanillaMachineProcessorComponent(input, output, null, new ElectricPower(machineParam.RequiredPower));
@@ -60,7 +60,7 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var inputSlot = machineParam.InputItemSlotCount;
             var outputSlot = machineParam.OutputItemSlotCount;
-            var blockId = BlockMaster.GetBlockId(blockElement.BlockGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var processor = BlockTemplateUtil.MachineLoadState(state, input, output, new ElectricPower(machineParam.RequiredPower));

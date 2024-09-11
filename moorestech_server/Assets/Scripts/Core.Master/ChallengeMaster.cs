@@ -1,51 +1,26 @@
 using System;
 using System.Collections.Generic;
+using Mooresmaster.Loader.ChallengesModule;
 using Mooresmaster.Model.ChallengesModule;
+using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
     public class ChallengeMaster
     {
-        private static Dictionary<Guid, List<Guid>> _nextChallenges;
-        private static List<Guid> _initialChallenge;
+        public Challenges Challenges;
+        public readonly List<Guid> InitialChallenge;
         
-        public static List<Guid> GetNextChallenges(Guid challengeGuid)
-        {
-            _nextChallenges ??= BuildNextChallenges();
-            
-            if (!_nextChallenges.TryGetValue(challengeGuid, out var nextChallenges))
-            {
-                throw new InvalidOperationException($"Next challenges not found. ChallengeGuid:{challengeGuid}");
-            }
-            return nextChallenges;
-        }
+        private readonly Dictionary<Guid, List<Guid>> _nextChallenges;
         
-        public static List<Guid> GetInitialChallenge()
+        public ChallengeMaster(JToken challengeJToken)
         {
-            var initialChallenge = new List<Guid>();
-            foreach (var challengeElement in MasterHolder.Challenges.Data)
-            {
-                if (challengeElement.ChallengeGuid == Guid.Empty)
-                {
-                    initialChallenge.Add(challengeElement.ChallengeGuid);
-                }
-            }
-            
-            return initialChallenge;
-        }
-        
-        public static ChallengeElement GetChallenge(Guid guid)
-        {
-            return Array.Find(MasterHolder.Challenges.Data, x => x.ChallengeGuid == guid);
-        }
-        
-        private static Dictionary<Guid, List<Guid>> BuildNextChallenges()
-        {
-            var nextChallenges = new Dictionary<Guid, List<Guid>>();
-            foreach (var challengeElement in MasterHolder.Challenges.Data)
+            Challenges = ChallengesLoader.Load(challengeJToken);
+            _nextChallenges = new Dictionary<Guid, List<Guid>>();
+            foreach (var challengeElement in Challenges.Data)
             {
                 var next = new List<Guid>();
-                foreach (var checkTarget in MasterHolder.Challenges.Data)
+                foreach (var checkTarget in Challenges.Data)
                 {
                     if (challengeElement.ChallengeGuid == checkTarget.PrevChallengeGuid)
                     {
@@ -53,10 +28,32 @@ namespace Core.Master
                     }
                 }
                 
-                nextChallenges.Add(challengeElement.ChallengeGuid, next);
+                _nextChallenges.Add(challengeElement.ChallengeGuid, next);
             }
             
+            InitialChallenge = new List<Guid>();
+            foreach (var challengeElement in Challenges.Data)
+            {
+                // prevが自分自身のものが初期チャレンジとして扱う
+                if (challengeElement.ChallengeGuid == challengeElement.PrevChallengeGuid)
+                {
+                    InitialChallenge.Add(challengeElement.ChallengeGuid);
+                }
+            }
+        }
+        
+        public List<Guid> GetNextChallenges(Guid challengeGuid)
+        {
+            if (!_nextChallenges.TryGetValue(challengeGuid, out var nextChallenges))
+            {
+                throw new InvalidOperationException($"Next challenges not found. ChallengeGuid:{challengeGuid}");
+            }
             return nextChallenges;
+        }
+        
+        public ChallengeElement GetChallenge(Guid guid)
+        {
+            return Array.Find(Challenges.Data, x => x.ChallengeGuid == guid);
         }
     }
 }

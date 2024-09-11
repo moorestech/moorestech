@@ -15,7 +15,7 @@ namespace Game.World.Interface.DataStore
         public WorldBlockData(IBlock block, Vector3Int originalPos, BlockDirection blockDirection)
         {
             Block = block;
-            var blockSize = BlockMaster.GetBlockMaster(block.BlockId).BlockSize;
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).BlockSize;
             BlockPositionInfo = new BlockPositionInfo(originalPos, blockDirection, blockSize);
         }
     }

@@ -25,14 +25,14 @@ namespace Core.Master
         public static bool RecipeConfirmation(this MachineRecipeElement recipe, BlockId blockId, IReadOnlyList<IItemStack> inputSlot)
         {
             if (_machineRecipes == null) BuildMachineRecipes();
-            var recipeBlockId = BlockMaster.GetBlockId(recipe.BlockGuid);
+            var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             if (recipeBlockId != blockId) return false;
             
             // アイテムが十分な数満たされている数が、必要とする数と一致するか
             var okCnt = 0;
             foreach (var slot in inputSlot)
             {
-                var slotGuid = ItemMaster.GetItemMaster(slot.Id).ItemGuid;
+                var slotGuid = MasterHolder.ItemMaster.GetItemMaster(slot.Id).ItemGuid;
                 okCnt += recipe.InputItems.Count(input => slotGuid == input.ItemGuid && input.Count <= slot.Count);
             }
             
@@ -42,16 +42,16 @@ namespace Core.Master
         private static void BuildMachineRecipes()
         {
             _machineRecipes = new Dictionary<string, MachineRecipeElement>();
-            foreach (var recipe in MasterHolder.MachineRecipes.Data)
+            foreach (var recipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
             {
                 var inputItemStacks = new List<IItemStack>();
                 foreach (var inputItem in recipe.InputItems)
                 {
-                    var item = ServerContext.ItemStackFactory.Create(ItemMaster.GetItemId(inputItem.ItemGuid), inputItem.Count);
+                    var item = ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid), inputItem.Count);
                     inputItemStacks.Add(item);
                 }
                 
-                var blockId = BlockMaster.GetBlockId(recipe.BlockGuid);
+                var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
                 var key = GetRecipeElementKey(blockId, inputItemStacks);
                 _machineRecipes.Add(key, recipe);
             }

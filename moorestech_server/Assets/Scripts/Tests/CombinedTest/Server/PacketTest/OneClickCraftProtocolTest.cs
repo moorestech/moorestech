@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
-            var craftElement = MasterHolder.CraftRecipes.Data[CraftRecipeId];
+            var craftElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)).ToList());
             
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //アイテムがあるときにクラフトできるかのテスト
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var craftElement = MasterHolder.CraftRecipes.Data[CraftRecipeId];
+            var craftElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
             
             //必要なアイテムをインベントリに追加
             for (var i = 0; i < craftElement.RequiredItems.Length; i++)
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var resultItem = craftElement.ResultItem;
             
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
-            var resultItemGuid = ItemMaster.GetItemId(resultItem.ItemGuid);
+            var resultItemGuid = MasterHolder.ItemMaster.GetItemId(resultItem.ItemGuid);
             Assert.AreEqual(resultItemGuid, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
             Assert.AreEqual(resultItem.Count, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //アイテムが一つ足りないときにクラフトできないかのテスト
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var craftElement = MasterHolder.CraftRecipes.Data[CraftRecipeId];
+            var craftElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
             
             //必要なアイテムをインベントリに追加
             for (var i = 0; i < craftElement.RequiredItems.Length; i++)
@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInv = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var craftElement = MasterHolder.CraftRecipes.Data[CraftRecipeId];
+            var craftElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
             
             
             //不要なアテムを追加
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             for (var i = 0; i < craftElement.RequiredItems.Length; i++)
             {
                 var info = craftElement.RequiredItems[i];
-                var itemId = ItemMaster.GetItemId(info.ItemGuid);
+                var itemId = MasterHolder.ItemMaster.GetItemId(info.ItemGuid);
                 Assert.AreEqual(itemId, playerInv.MainOpenableInventory.GetItem(i).Id);
                 Assert.AreEqual(info.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
             }

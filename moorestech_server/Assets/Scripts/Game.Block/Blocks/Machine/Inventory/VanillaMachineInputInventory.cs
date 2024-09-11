@@ -64,7 +64,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             foreach (var item in recipe.InputItems)
                 for (var i = 0; i < InputSlot.Count; i++)
                 {
-                    var itemId = ItemMaster.GetItemId(item.ItemGuid);
+                    var itemId = MasterHolder.ItemMaster.GetItemId(item.ItemGuid);
                     
                     if (_itemDataStoreService.InventoryItems[i].Id != itemId || item.Count > InputSlot[i].Count) continue;
                     //アイテムを減らす
