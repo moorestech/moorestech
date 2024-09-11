@@ -156,6 +156,11 @@ public static class LoaderGenerator
 
 
         return $$$"""
+                  if (json.Parent == null || json.Parent.Parent == null)
+                  {
+                      throw new global::System.Exception($"Parent is null or Parent.Parent is null JSON: {json.ToString()}");
+                  }
+                  
                   if ((string)(json.Parent.Parent["{{{propertyName}}}"]) == "{{{constValue}}}")
                   {
                       return {{{name.GetLoaderName()}}}.Load(json);
