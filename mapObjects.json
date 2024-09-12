@@ -6,7 +6,7 @@
   "properties": {
     "data": {
       "type": "array",
-      "overrideCodeGeneratePropertyName": "MapObjectElement",
+      "overrideCodeGeneratePropertyName": "MapObjectMasterElement",
       
       "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
       "items": {
