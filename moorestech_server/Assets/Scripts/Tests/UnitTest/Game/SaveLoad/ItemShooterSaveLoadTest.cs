@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(str);
             
             //セーブデータをロード
-            var newShooter = blockFactory.Load(itemShooter.BlockElement.BlockGuid, new BlockInstanceId(0), str, posInfo).GetComponent<ItemShooterComponent>();
+            var newShooter = blockFactory.Load(itemShooter.BlockMasterElement.BlockGuid, new BlockInstanceId(0), str, posInfo).GetComponent<ItemShooterComponent>();
             var newInventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(newShooter);
             
             //アイテムが一致するかチェック

@@ -53,12 +53,12 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _itemDataStoreService.InsertItem(itemStacks);
         }
         
-        public bool TryGetRecipeElement(out MachineRecipeElement recipe)
+        public bool TryGetRecipeElement(out MachineRecipeMasterElement recipe)
         {
             return MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, out recipe);
         }
         
-        public void ReduceInputSlot(MachineRecipeElement recipe)
+        public void ReduceInputSlot(MachineRecipeMasterElement recipe)
         {
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.InputItems)

@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
         
-        private static bool IsCraftable(IOpenableInventory mainInventory, CraftRecipeElement recipe)
+        private static bool IsCraftable(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
             var resultItem = ServerContext.ItemStackFactory.Create(recipe.ResultItem.ItemGuid, recipe.ResultItem.Count);
@@ -105,7 +105,7 @@ namespace Server.Protocol.PacketResponse
         /// <summary>
         ///     クラフトしてアイテムを消費する
         /// </summary>
-        private static void SubItem(IOpenableInventory mainInventory, CraftRecipeElement recipe)
+        private static void SubItem(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count

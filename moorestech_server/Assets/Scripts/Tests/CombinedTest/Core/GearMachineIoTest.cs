@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Core
             
             var lackRpmGearMachine = lackRpmBlock.GetComponent<VanillaGearMachineComponent>();
             var lackTorqueGearMachine = lackTorqueBlock.GetComponent<VanillaGearMachineComponent>();
-            var gearMachineParam = lackRpmBlock.BlockElement.BlockParam as GearMachineBlockParam;
+            var gearMachineParam = lackRpmBlock.BlockMasterElement.BlockParam as GearMachineBlockParam;
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time * 2);
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core
             AssertInventory(lackTorqueInventory, recipe);
         }
         
-        private void AssertInventory(VanillaMachineBlockInventoryComponent inventory, MachineRecipeElement recipe)
+        private void AssertInventory(VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
         {
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(inventory);
             

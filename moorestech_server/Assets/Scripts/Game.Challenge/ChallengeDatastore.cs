@@ -98,7 +98,7 @@ namespace Game.Challenge
             }
         }
         
-        private IChallengeTask CreateChallenge(int playerId, ChallengeElement challengeElement)
+        private IChallengeTask CreateChallenge(int playerId, ChallengeMasterElement challengeElement)
         {
             var challenge = _challengeFactory.CreateChallengeTask(playerId, challengeElement);
             challenge.OnChallengeComplete.Subscribe(CompletedChallenge);
@@ -111,9 +111,9 @@ namespace Game.Challenge
             var challengeInfo = _playerChallengeInfos[playerId];
             
             challengeInfo.CurrentChallenges.Remove(currentChallenge);
-            challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeElement.ChallengeGuid);
+            challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             
-            var nextIds = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeElement.ChallengeGuid);
+            var nextIds = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             foreach (var nextId in nextIds)
             {
                 var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextId);

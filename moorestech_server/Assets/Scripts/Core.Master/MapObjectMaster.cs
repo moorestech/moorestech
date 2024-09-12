@@ -14,7 +14,7 @@ namespace Core.Master
             MapObjects = MapObjectsLoader.Load(jToken);
         }
         
-        public MapObjectElement GetMapObjectElement(Guid guid)
+        public MapObjectMasterElement GetMapObjectElement(Guid guid)
         {
             return Array.Find(MapObjects.Data, x => x.MapObjectGuid == guid);
         }

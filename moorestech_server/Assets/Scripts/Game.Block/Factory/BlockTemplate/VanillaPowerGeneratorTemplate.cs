@@ -12,9 +12,9 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaPowerGeneratorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var generatorParam = blockElement.BlockParam as ElectricGeneratorBlockParam;
+            var generatorParam = blockMasterElement.BlockParam as ElectricGeneratorBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(generatorParam.InventoryConnectors, blockPositionInfo);
             
             var properties = new VanillaPowerGeneratorProperties(blockInstanceId, generatorParam, blockPositionInfo, inputConnectorComponent);
@@ -26,12 +26,12 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var generatorParam = blockElement.BlockParam as ElectricGeneratorBlockParam;
+            var generatorParam = blockMasterElement.BlockParam as ElectricGeneratorBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(generatorParam.InventoryConnectors, blockPositionInfo);
             
             var properties = new VanillaPowerGeneratorProperties(blockInstanceId, generatorParam, blockPositionInfo, inputConnectorComponent);
@@ -43,7 +43,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
     

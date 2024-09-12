@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -7,7 +8,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     public class BlockPlacePreviewObjectPool
     {
         private readonly Transform _parentTransform;
-        private readonly Dictionary<int, List<PreviewObject>> _blockPreviewObjects = new();
+        private readonly Dictionary<BlockId, List<PreviewObject>> _blockPreviewObjects = new();
         
         public BlockPlacePreviewObjectPool(Transform parentTransform)
         {
@@ -20,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             public bool IsUsed;
         }
         
-        public BlockPreviewObject GetObject(int blockId)
+        public BlockPreviewObject GetObject(BlockId blockId)
         {
             if (!_blockPreviewObjects.ContainsKey(blockId))
             {
@@ -47,7 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             #region Internal
             
-            BlockPreviewObject CreatePreviewObject(int id)
+            BlockPreviewObject CreatePreviewObject(BlockId id)
             {
                 var previewBlock = ClientContext.BlockGameObjectContainer.CreatePreviewBlock(id);
                 previewBlock.transform.SetParent(_parentTransform);

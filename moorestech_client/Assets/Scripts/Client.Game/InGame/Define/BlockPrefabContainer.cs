@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
-using Client.Mod.Glb;
 using Core.Const;
+using Core.Master;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.Define
@@ -13,17 +14,9 @@ namespace Client.Game.InGame.Define
     {
         [SerializeField] private List<BlockPrefabInfo> blockPrefabs;
         
-        public GameObject GetBlockPrefab(string modId, string blockName)
+        public Dictionary<BlockId,BlockObjectInfo> GetBlockDataList()
         {
-            foreach (var blockPrefab in blockPrefabs)
-                if (blockPrefab.ModId == modId && blockPrefab.BlockName == blockName)
-                    return blockPrefab.BlockPrefab;
-            return null;
-        }
-        
-        public List<BlockData> GetBlockDataList()
-        {
-            var result = new List<BlockData>();
+            var result = new Dictionary<BlockId,BlockObjectInfo>();
             
             var blockConfigs = ServerContext.BlockConfig.BlockConfigList;
             foreach (var blockConfig in blockConfigs)
@@ -33,10 +26,18 @@ namespace Client.Game.InGame.Define
                 
                 var blockName = blockConfig.Name;
                 var type = blockConfig.Type;
-                result.Add(new BlockData(blockPrefab, blockName, type, blockConfig));
+                result.Add(new BlockObjectInfo(blockPrefab, blockName, type));
             }
             
             return result;
+        }
+        
+        private GameObject GetBlockPrefab(string blockName)
+        {
+            foreach (var blockPrefab in blockPrefabs)
+                if (blockPrefab.ModId == modId && blockPrefab.BlockName == blockName)
+                    return blockPrefab.BlockPrefab;
+            return null;
         }
     }
     
@@ -52,5 +53,23 @@ namespace Client.Game.InGame.Define
         public string BlockName => blockName;
         
         public GameObject BlockPrefab => blockPrefab;
+    }
+    
+    
+    
+    public class BlockObjectInfo
+    {
+        public readonly BlockMasterElement BlockMasterElement;
+        public readonly GameObject BlockObject;
+        public readonly string Name;
+        public readonly string Type;
+        
+        public BlockObjectInfo(GameObject blockObject, string name, string type, BlockMasterElement blockMasterElement)
+        {
+            BlockObject = blockObject;
+            Name = name;
+            Type = type;
+            BlockMasterElement = blockMasterElement;
+        }
     }
 }

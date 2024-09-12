@@ -62,13 +62,13 @@ namespace Client.Game.InGame.Map.MapObject
             
             if (_currentMapObjectGameObject != null)
             {
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectGuid);
                 isPickUpable = mapObjectConfig.MiningTools.Count == 0;
                 var text = string.Empty;
                 if (isMinenable)
                     text = isPickUpable ? "左クリックで取得" : "左クリック長押しで採掘";
                 else
-                    text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType));
+                    text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectGuid));
                 
                 MouseCursorExplainer.Instance.Show(text, isLocalize: false);
             }
@@ -110,7 +110,7 @@ namespace Client.Game.InGame.Map.MapObject
                 if (_currentMapObjectGameObject == null) return false;
                 
                 
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectGuid);
                 
                 return miningToolInfo != null || mapObjectConfig.MiningTools.Count == 0;
             }
@@ -148,7 +148,7 @@ namespace Client.Game.InGame.Map.MapObject
                 var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
                 var currentItem = _localPlayerInventory[slotIndex];
                 
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectType);
+                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectGuid);
                 
                 return mapObjectConfig.MiningTools.FirstOrDefault(tool => tool.ToolItemId == currentItem.Id);
             }
@@ -187,7 +187,7 @@ namespace Client.Game.InGame.Map.MapObject
             void PlaySoundEffect()
             {
                 SoundEffectType soundEffectType;
-                switch (_currentMapObjectGameObject.MapObjectType)
+                switch (_currentMapObjectGameObject.MapObjectGuid)
                 {
                     case VanillaMapObjectType.VanillaPebble:
                         soundEffectType = SoundEffectType.DestroyStone;

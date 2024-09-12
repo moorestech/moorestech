@@ -17,7 +17,7 @@ namespace Core.Master
     {
         public readonly Items Items;
         
-        private readonly Dictionary<ItemId,ItemElement> _itemElementTableById; 
+        private readonly Dictionary<ItemId,ItemMasterElement> _itemElementTableById; 
         private readonly Dictionary<Guid,ItemId> _itemGuidToItemId;
         
         public ItemMaster(JToken itemJToken)
@@ -28,7 +28,7 @@ namespace Core.Master
             var sortedItemElements = Items.Data.ToList().OrderBy(x => x.ItemGuid).ToList();
             
             // アイテムID 0は空のアイテムとして予約しているので、1から始める
-            _itemElementTableById = new Dictionary<ItemId,ItemElement>();
+            _itemElementTableById = new Dictionary<ItemId,ItemMasterElement>();
             _itemGuidToItemId = new Dictionary<Guid,ItemId>();
             for (var i = 1; i < sortedItemElements.Count; i++)
             {
@@ -37,7 +37,7 @@ namespace Core.Master
             }
         }
         
-        public ItemElement GetItemMaster(ItemId itemId)
+        public ItemMasterElement GetItemMaster(ItemId itemId)
         {
             if (!_itemElementTableById.TryGetValue(itemId, out var element))
             {
@@ -46,7 +46,7 @@ namespace Core.Master
             return element;
         }
         
-        public ItemElement GetItemMaster(Guid itemGuid)
+        public ItemMasterElement GetItemMaster(Guid itemGuid)
         {
             var itemId = GetItemId(itemGuid);
             return GetItemMaster(itemId);

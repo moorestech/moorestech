@@ -8,7 +8,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPreviewObject : MonoBehaviour
     {
-        public BlockConfigData BlockConfig { get; private set; }
+        public BlockMasterElement BlockConfig { get; private set; }
         
         public bool IsCollisionGround
         {

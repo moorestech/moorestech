@@ -52,7 +52,8 @@
         "Game.Gear",
         "Game.Challenge",
         "Game.Challenge.Interface",
-        "UniTask.DOTween"
+        "UniTask.DOTween",
+        "Core.Master"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

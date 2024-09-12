@@ -9,9 +9,9 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaItemShooterTemplate : IBlockTemplate
     {
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var itemShooter = blockElement.BlockParam as ItemShooterBlockParam;
+            var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
@@ -22,12 +22,12 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var itemShooter = blockElement.BlockParam as ItemShooterBlockParam;
+            var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
@@ -38,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

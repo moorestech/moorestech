@@ -11,18 +11,18 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaShaftTemplate : IBlockTemplate
     {
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(blockElement, blockInstanceId, blockPositionInfo);
+            return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(blockElement, blockInstanceId, blockPositionInfo);
+            return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateGear(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateGear(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var configParam = blockElement.BlockParam as ShaftBlockParam;
+            var configParam = blockMasterElement.BlockParam as ShaftBlockParam;
             var connectSetting = configParam.GearConnects;
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var gearEnergyTransformer = new GearEnergyTransformer(new Torque(configParam.RequireTorque), blockInstanceId, blockComponent);
@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
                 blockComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

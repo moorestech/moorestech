@@ -15,10 +15,10 @@ namespace Game.Block.Factory.BlockTemplate
         public const string Hueru = "gear belt conveyor hueru";
         public const string Kieru = "gear belt conveyor kieru";
         
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var beltParam = blockElement.BlockParam as BeltConveyorBlockParam;
-            var blockName = blockElement.Name;
+            var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
+            var blockName = blockMasterElement.Name;
             
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
             var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
@@ -28,14 +28,14 @@ namespace Game.Block.Factory.BlockTemplate
                 connectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             //TODo UP bletからの入力を受付?
-            var beltParam = blockElement.BlockParam as BeltConveyorBlockParam;
-            var blockName = blockElement.Name;
+            var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
+            var blockName = blockMasterElement.Name;
             
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
             var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
@@ -45,7 +45,7 @@ namespace Game.Block.Factory.BlockTemplate
                 connectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

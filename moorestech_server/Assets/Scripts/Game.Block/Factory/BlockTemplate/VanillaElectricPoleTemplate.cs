@@ -9,7 +9,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaElectricPoleTemplate : IBlockTemplate
     {
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>
@@ -17,10 +17,10 @@ namespace Game.Block.Factory.BlockTemplate
                 transformer,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>
@@ -28,7 +28,7 @@ namespace Game.Block.Factory.BlockTemplate
                 transformer,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

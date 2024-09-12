@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
             
             var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
-            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeElement.ChallengeGuid).ToList();
+            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeMasterElement.ChallengeGuid).ToList();
             
             return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
         }

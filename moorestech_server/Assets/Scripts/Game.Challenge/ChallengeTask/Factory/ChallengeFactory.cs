@@ -5,7 +5,7 @@ namespace Game.Challenge.Task.Factory
 {
     public class ChallengeFactory
     {
-        public delegate IChallengeTask ChallengeTaskCreator(int playerId, ChallengeElement challengeElement);
+        public delegate IChallengeTask ChallengeTaskCreator(int playerId, ChallengeMasterElement challengeElement);
         
         private readonly Dictionary<string,ChallengeTaskCreator> _taskCreators = new();
         
@@ -16,7 +16,7 @@ namespace Game.Challenge.Task.Factory
             _taskCreators.Add(VanillaChallengeType.BlockPlaceTask,BlockPlaceChallengeTask.Create);
         }
         
-        public IChallengeTask CreateChallengeTask(int playerId, ChallengeElement challengeElement)
+        public IChallengeTask CreateChallengeTask(int playerId, ChallengeMasterElement challengeElement)
         {
             var creator = _taskCreators[challengeElement.TaskCompletionType];
             return creator(playerId, challengeElement);

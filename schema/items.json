@@ -7,7 +7,7 @@
   "properties": {
     "data": {
       "type": "array",
-      "overrideCodeGeneratePropertyName": "ItemElement",
+      "overrideCodeGeneratePropertyName": "ItemMasterElement",
       
       "items": {
         "type": "object",

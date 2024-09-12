@@ -11,19 +11,19 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearTemplate : IBlockTemplate
     {
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(blockElement, blockInstanceId, blockPositionInfo);
+            return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateGear(blockElement, blockInstanceId, blockPositionInfo);
+            return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateGear(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateGear(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var configParam = blockElement.BlockParam as GearBlockParam;
+            var configParam = blockMasterElement.BlockParam as GearBlockParam;
             var connectSetting = configParam.GearConnects;
             
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
@@ -35,7 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
                 gearConnector,
             };
             
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

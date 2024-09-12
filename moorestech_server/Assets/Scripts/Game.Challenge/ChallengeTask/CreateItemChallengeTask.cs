@@ -10,7 +10,7 @@ namespace Game.Challenge.Task
 {
     public class CreateItemChallengeTask : IChallengeTask
     {
-        public ChallengeElement ChallengeElement { get; }
+        public ChallengeMasterElement ChallengeMasterElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
@@ -19,26 +19,26 @@ namespace Game.Challenge.Task
         private bool _completed;
         
         
-        public static IChallengeTask Create(int playerId, ChallengeElement challengeElement)
+        public static IChallengeTask Create(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            return new CreateItemChallengeTask(playerId, challengeElement);
+            return new CreateItemChallengeTask(playerId, challengeMasterElement);
         }
-        public CreateItemChallengeTask(int playerId, ChallengeElement challengeElement)
+        public CreateItemChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            ChallengeElement = challengeElement;
+            ChallengeMasterElement = challengeMasterElement;
             PlayerId = playerId;
             
             var craftEvent = ServerContext.GetService<CraftEvent>();
             craftEvent.OnCraftItem.Subscribe(CreateItem);
         }
         
-        private void CreateItem(CraftRecipeElement craftRecipeElement)
+        private void CreateItem(CraftRecipeMasterElement craftRecipeMasterElement)
         {
             if (_completed) return;
             
-            var param = ChallengeElement.TaskParam as CreateItemTaskParam;
+            var param = ChallengeMasterElement.TaskParam as CreateItemTaskParam;
             
-            if (craftRecipeElement.ResultItem.ItemGuid == param.ItemGuid)
+            if (craftRecipeMasterElement.ResultItem.ItemGuid == param.ItemGuid)
             {
                 _completed = true;
                 _onChallengeComplete.OnNext(this);

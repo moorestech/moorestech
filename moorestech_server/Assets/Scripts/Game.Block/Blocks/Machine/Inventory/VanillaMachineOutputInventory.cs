@@ -46,11 +46,11 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <summary>
         ///     アウトプットスロットにアイテムを入れれるかチェック
         /// </summary>
-        /// <param name="machineRecipeElement"></param>
+        /// <param name="machineRecipe"></param>
         /// <returns>スロットに空きがあったらtrue</returns>
-        public bool IsAllowedToOutputItem(MachineRecipeElement machineRecipeElement)
+        public bool IsAllowedToOutputItem(MachineRecipeMasterElement machineRecipe)
         {
-            foreach (var itemOutput in machineRecipeElement.OutputItems)
+            foreach (var itemOutput in machineRecipe.OutputItems)
             {
                 var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
                 var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
@@ -63,10 +63,10 @@ namespace Game.Block.Blocks.Machine.Inventory
             return true;
         }
         
-        public void InsertOutputSlot(MachineRecipeElement machineRecipeElement)
+        public void InsertOutputSlot(MachineRecipeMasterElement machineRecipe)
         {
             //アウトプットスロットにアイテムを格納する
-            foreach (var itemOutput in machineRecipeElement.OutputItems)
+            foreach (var itemOutput in machineRecipe.OutputItems)
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
                     var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);

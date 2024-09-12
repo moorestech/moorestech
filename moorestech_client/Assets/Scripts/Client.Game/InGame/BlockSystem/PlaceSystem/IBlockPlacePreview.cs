@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
-using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -10,7 +8,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         bool IsActive { get; }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> currentPlaceInfos, BlockConfigData holdingBlockConfig);
+        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
         
         public void SetActive(bool active);
     }

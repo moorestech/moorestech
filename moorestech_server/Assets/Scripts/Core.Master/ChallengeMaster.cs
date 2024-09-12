@@ -51,7 +51,7 @@ namespace Core.Master
             return nextChallenges;
         }
         
-        public ChallengeElement GetChallenge(Guid guid)
+        public ChallengeMasterElement GetChallenge(Guid guid)
         {
             return Array.Find(Challenges.Data, x => x.ChallengeGuid == guid);
         }

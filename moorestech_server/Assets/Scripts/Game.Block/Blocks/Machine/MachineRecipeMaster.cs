@@ -9,9 +9,9 @@ namespace Core.Master
 {
     public static class MachineRecipeMasterUtil
     {
-        private static Dictionary<string, MachineRecipeElement> _machineRecipes;
+        private static Dictionary<string, MachineRecipeMasterElement> _machineRecipes;
         
-        public static bool TryGetRecipeElement(BlockId blockId, IReadOnlyList<IItemStack> inputSlot,out MachineRecipeElement recipe)
+        public static bool TryGetRecipeElement(BlockId blockId, IReadOnlyList<IItemStack> inputSlot,out MachineRecipeMasterElement recipe)
         {
             if (_machineRecipes == null) BuildMachineRecipes();
             
@@ -22,7 +22,7 @@ namespace Core.Master
             return _machineRecipes.TryGetValue(key, out recipe);
         }
         
-        public static bool RecipeConfirmation(this MachineRecipeElement recipe, BlockId blockId, IReadOnlyList<IItemStack> inputSlot)
+        public static bool RecipeConfirmation(this MachineRecipeMasterElement recipe, BlockId blockId, IReadOnlyList<IItemStack> inputSlot)
         {
             if (_machineRecipes == null) BuildMachineRecipes();
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
@@ -41,7 +41,7 @@ namespace Core.Master
         
         private static void BuildMachineRecipes()
         {
-            _machineRecipes = new Dictionary<string, MachineRecipeElement>();
+            _machineRecipes = new Dictionary<string, MachineRecipeMasterElement>();
             foreach (var recipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
             {
                 var inputItemStacks = new List<IItemStack>();

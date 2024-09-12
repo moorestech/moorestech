@@ -72,7 +72,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         {
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPole.BlockInstanceId);
             var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
-            var poleConfig = block.BlockElement.BlockParam as ElectricPoleBlockParam;
+            var poleConfig = block.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
             
             
             //周辺の機械、発電機を取得

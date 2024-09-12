@@ -38,7 +38,7 @@ namespace Game.World.EventHandler.EnergyEvent
             
             
             //接続範囲内の電柱を取得
-            var electricPoleConfigParam = updateProperties.BlockData.Block.BlockElement.BlockParam as ElectricPoleBlockParam;
+            var electricPoleConfigParam = updateProperties.BlockData.Block.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
             var electricPoles = FindElectricPoleFromPeripheralService.Find(pos, electricPoleConfigParam);
             
             //削除した電柱のセグメントを取得

@@ -23,7 +23,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //必要なデータを取得
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(removedElectricPole.BlockInstanceId);
             var removedBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
-            var poleConfig = removedBlock.BlockElement.BlockParam as ElectricPoleBlockParam;
+            var poleConfig = removedBlock.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
             
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
@@ -47,7 +47,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
             var connectedPos = ServerContext.WorldBlockDatastore.GetBlockPosition(electricPoles[0].BlockInstanceId);
             var connectedBlock = ServerContext.WorldBlockDatastore.GetBlock(connectedPos);
-            var connectedPoleConfig = connectedBlock.BlockElement.BlockParam as ElectricPoleBlockParam;
+            var connectedPoleConfig = connectedBlock.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
             
             (var connectedBlocks, var connectedGenerators) = FindMachineAndGeneratorFromPeripheralService.Find(connectedPos, connectedPoleConfig);
             

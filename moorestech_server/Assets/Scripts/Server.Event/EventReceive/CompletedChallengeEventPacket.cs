@@ -20,7 +20,7 @@ namespace Server.Event.EventReceive
         
         private void OnCompletedChallenge(IChallengeTask currentChallenge)
         {
-            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeElement.ChallengeGuid);
+            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             var playerId = currentChallenge.PlayerId;

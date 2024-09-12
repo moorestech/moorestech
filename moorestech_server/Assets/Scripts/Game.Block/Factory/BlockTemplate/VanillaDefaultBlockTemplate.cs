@@ -8,14 +8,14 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaDefaultBlock : IBlockTemplate
     {
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
         }
     }
 }

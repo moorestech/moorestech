@@ -13,10 +13,10 @@ namespace Client.DebugSystem
         
         public override IEnumerator Initialize()
         {
-            var itemIds = ItemMaster.GetItemIds();
+            var itemIds = MasterHolder.ItemMaster.GetItemIds();
             foreach (var itemId in itemIds)
             {
-                var itemElement = ItemMaster.GetItemMaster(itemId);
+                var itemElement = MasterHolder.ItemMaster.GetItemMaster(itemId);
                 //TODO: あとでItemImageContainer.GetItemViewの引数をItemIdにする
                 var itemImage = ClientContext.ItemImageContainer.GetItemView(itemId.AsPrimitive()); 
                 var subText = $"Count:{itemElement.MaxStack}";

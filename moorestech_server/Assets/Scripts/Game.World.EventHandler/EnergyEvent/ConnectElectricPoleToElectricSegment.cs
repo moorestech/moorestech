@@ -34,7 +34,7 @@ namespace Game.World.EventHandler.EnergyEvent
             //設置されたブロックが電柱だった時の処理
             if (!worldBlockDatastore.ExistsComponent<IElectricTransformer>(pos)) return;
             
-            var poleBlockParam = updateProperties.BlockData.Block.BlockElement.BlockParam as ElectricPoleBlockParam;
+            var poleBlockParam = updateProperties.BlockData.Block.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
             
             //電柱と電気セグメントを接続する
             var electricSegment = GetAndConnectElectricSegment(pos, poleBlockParam, worldBlockDatastore.GetBlock<IElectricTransformer>(pos));

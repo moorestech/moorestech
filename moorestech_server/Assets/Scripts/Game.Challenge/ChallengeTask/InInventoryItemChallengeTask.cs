@@ -9,7 +9,7 @@ namespace Game.Challenge.Task
 {
     public class InInventoryItemChallengeTask : IChallengeTask
     {
-        public ChallengeElement ChallengeElement { get; }
+        public ChallengeMasterElement ChallengeMasterElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
@@ -20,16 +20,16 @@ namespace Game.Challenge.Task
         private readonly InInventoryItemTaskParam _inInventoryItemTaskParam;
         private readonly PlayerInventoryData _playerInventory;
         
-        public static IChallengeTask Create(int playerId, ChallengeElement challengeElement)
+        public static IChallengeTask Create(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            return new InInventoryItemChallengeTask(playerId, challengeElement);
+            return new InInventoryItemChallengeTask(playerId, challengeMasterElement);
         }
-        public InInventoryItemChallengeTask(int playerId, ChallengeElement challengeElement)
+        public InInventoryItemChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            ChallengeElement = challengeElement;
+            ChallengeMasterElement = challengeMasterElement;
             PlayerId = playerId;
             
-            _inInventoryItemTaskParam = (InInventoryItemTaskParam)challengeElement.TaskParam;
+            _inInventoryItemTaskParam = (InInventoryItemTaskParam)challengeMasterElement.TaskParam;
             _playerInventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
         }
         

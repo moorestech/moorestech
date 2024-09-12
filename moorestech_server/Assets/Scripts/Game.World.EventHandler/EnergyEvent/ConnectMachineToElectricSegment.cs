@@ -74,7 +74,7 @@ namespace Game.World.EventHandler.EnergyEvent
             var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
             var pole = block.GetComponent<TTransformer>();
             //その電柱のコンフィグを取得
-            var configParam = block.BlockElement.BlockParam as ElectricPoleBlockParam;
+            var configParam = block.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
             var range = configParam.MachineConnectionRange;
             
             //その電柱から見て機械が範囲内に存在するか確認

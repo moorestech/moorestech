@@ -14,7 +14,7 @@ namespace Core.Master
             CraftRecipes = CraftRecipesLoader.Load(craftRecipeJToken);
         }
         
-        public CraftRecipeElement GetCraftRecipe(Guid guid)
+        public CraftRecipeMasterElement GetCraftRecipe(Guid guid)
         {
             return Array.Find(CraftRecipes.Data, x => x.CraftRecipeGuid == guid);
         }

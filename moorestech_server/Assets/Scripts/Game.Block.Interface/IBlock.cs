@@ -10,7 +10,7 @@ namespace Game.Block.Interface
         public BlockInstanceId BlockInstanceId { get; }
         public BlockId BlockId { get; }
         public Guid BlockGuid { get; }
-        public BlockElement BlockElement { get; }
+        public BlockMasterElement BlockMasterElement { get; }
         public IBlockComponentManager ComponentManager { get; }
         public BlockPositionInfo BlockPositionInfo { get; }
         

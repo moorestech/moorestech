@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.Machine
         
         public double RemainingSecond { get; private set; }
         
-        public Guid RecipeGuid => _processingRecipeElement.MachineRecipeGuid;
+        public Guid RecipeGuid => _processingRecipe.MachineRecipeGuid;
         public IObservable<BlockState> OnChangeBlockState => _changeState;
         
         private readonly Subject<BlockState> _changeState = new();
@@ -29,17 +29,17 @@ namespace Game.Block.Blocks.Machine
         
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
-        private MachineRecipeElement _processingRecipeElement;
+        private MachineRecipeMasterElement _processingRecipe;
         
         
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineRecipeElement machineRecipeElement, ElectricPower requestPower)
+            MachineRecipeMasterElement machineRecipe, ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            _processingRecipeElement = machineRecipeElement;
+            _processingRecipe = machineRecipe;
             RequestPower = requestPower;
             
             //TODO コンポーネント化する
@@ -48,13 +48,13 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, double remainingSecond, MachineRecipeElement processingRecipeElement,
+            ProcessState currentState, double remainingSecond, MachineRecipeMasterElement processingRecipe,
             ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             
-            _processingRecipeElement = processingRecipeElement;
+            _processingRecipe = processingRecipe;
             RequestPower = requestPower;
             RemainingSecond = remainingSecond;
             
@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
             
-            var processingRate = _processingRecipeElement != null ? 1 - (float)RemainingSecond / _processingRecipeElement.Time : 0;
+            var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
             var currentState = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate));
             return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),currentState);
         }
@@ -108,9 +108,9 @@ namespace Game.Block.Blocks.Machine
             if (isStartProcess)
             {
                 CurrentState = ProcessState.Processing;
-                _processingRecipeElement = recipe;
-                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipeElement);
-                RemainingSecond = _processingRecipeElement.Time;
+                _processingRecipe = recipe;
+                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
+                RemainingSecond = _processingRecipe.Time;
             }
         }
         
@@ -120,7 +120,7 @@ namespace Game.Block.Blocks.Machine
             if (RemainingSecond <= 0)
             {
                 CurrentState = ProcessState.Idle;
-                _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeElement);
+                _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
             }
             
             //電力を消費する

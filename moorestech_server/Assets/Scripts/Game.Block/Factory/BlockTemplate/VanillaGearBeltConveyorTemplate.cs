@@ -13,10 +13,10 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearBeltConveyorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var gearBeltParam = blockElement.BlockParam as GearBeltConveyorBlockParam;
-            var blockName = blockElement.Name;
+            var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
+            var blockName = blockMasterElement.Name;
             
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
                 gearBeltParam.GearConnects,
@@ -40,9 +40,9 @@ namespace Game.Block.Factory.BlockTemplate
                 gearEnergyTransformerConnector,
                 inventoryConnector,
             };
-            return new BlockSystem(blockInstanceId, blockElement.BlockGuid, blockComponents, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
         }
-        public IBlock Load(string state, BlockElement blockElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             throw new NotImplementedException("さっさと実装しろ！");
         }

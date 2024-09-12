@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             
@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             // 何もクリアしていないことを確認
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Game
             var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeElement.ChallengeGuid);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             

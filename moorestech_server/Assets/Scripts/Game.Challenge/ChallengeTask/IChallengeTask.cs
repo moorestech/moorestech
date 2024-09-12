@@ -5,7 +5,7 @@ namespace Game.Challenge.Task
 {
     public interface IChallengeTask
     {
-        public ChallengeElement ChallengeElement { get; }
+        public ChallengeMasterElement ChallengeMasterElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete { get; }

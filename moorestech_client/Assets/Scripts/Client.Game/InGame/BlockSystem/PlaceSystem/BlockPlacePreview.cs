@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
-using Client.Game.InGame.Block;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Extension;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
-        private BlockConfigData _previewBlockConfig;
+        private BlockMasterElement _previewBlockMasterElement;
         private BlockPlacePreviewObjectPool _blockPlacePreviewObjectPool;
         
         public bool IsActive => gameObject.activeSelf;
@@ -21,12 +20,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
         }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockConfigData blockConfig)
+        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
         {
             // さっきと違うブロックだったら削除する
-            if (_previewBlockConfig == null || _previewBlockConfig.BlockId != blockConfig.BlockId)
+            if (_previewBlockMasterElement == null || _previewBlockMasterElement.BlockGuid != holdingBlockMaster.BlockGuid)
             {
-                _previewBlockConfig = blockConfig;
+                _previewBlockMasterElement = holdingBlockMaster;
                 _blockPlacePreviewObjectPool.AllDestroy();
             }
             
@@ -36,13 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var isGroundDetectedList = new List<bool>();
             foreach (var placeInfo in placePointInfos)
             {
-                var verticalDirection = placeInfo.VerticalDirection;
-                
-                var blockId = blockConfig.BlockId;
-                if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((blockId, verticalDirection), out var verticalBlockId))
-                {
-                    blockId = verticalBlockId;
-                }
+                var blockId = holdingBlockMaster.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
                 
                 var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Position, placeInfo.Direction, blockId);
                 var rot = placeInfo.Direction.GetRotation();

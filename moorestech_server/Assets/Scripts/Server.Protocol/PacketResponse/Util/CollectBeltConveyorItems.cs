@@ -86,12 +86,12 @@ namespace Server.Protocol.PacketResponse.Util
                 var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
                 
                 var block = ServerContext.WorldBlockDatastore.GetOriginPosBlock(pos);
-                if (block.Block.BlockElement.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
+                if (block.Block.BlockMasterElement.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
                 {
                     y += percent;
                     y += 0.1f;
                 }
-                else if (block.Block.BlockElement.Name == VanillaBeltConveyorTemplate.SlopeDownBeltConveyor)
+                else if (block.Block.BlockMasterElement.Name == VanillaBeltConveyorTemplate.SlopeDownBeltConveyor)
                 {
                     y -= percent;
                     y += 0.1f;

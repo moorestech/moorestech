@@ -8,7 +8,7 @@ namespace Game.Challenge.Task
 {
     public class BlockPlaceChallengeTask : IChallengeTask
     {
-        public ChallengeElement ChallengeElement { get; }
+        public ChallengeMasterElement ChallengeMasterElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
@@ -16,13 +16,13 @@ namespace Game.Challenge.Task
         
         private bool _completed;
         
-        public static IChallengeTask Create(int playerId, ChallengeElement challengeElement)
+        public static IChallengeTask Create(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            return new BlockPlaceChallengeTask(playerId, challengeElement);
+            return new BlockPlaceChallengeTask(playerId, challengeMasterElement);
         }
-        public BlockPlaceChallengeTask(int playerId, ChallengeElement challengeElement)
+        public BlockPlaceChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            ChallengeElement = challengeElement;
+            ChallengeMasterElement = challengeMasterElement;
             PlayerId = playerId;
             
             var worldEvent = ServerContext.WorldBlockUpdateEvent;
@@ -33,7 +33,7 @@ namespace Game.Challenge.Task
         {
             if (_completed) return;
             
-            var param = ChallengeElement.TaskParam as BlockPlaceTaskParam;
+            var param = ChallengeMasterElement.TaskParam as BlockPlaceTaskParam;
             if (param.BlockGuid == properties.BlockData.Block.BlockGuid)
             {
                 _completed = true;

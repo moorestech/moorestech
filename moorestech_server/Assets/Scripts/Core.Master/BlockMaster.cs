@@ -17,7 +17,7 @@ namespace Core.Master
     {
         public readonly Blocks Blocks;
 
-        private readonly Dictionary<BlockId,BlockElement> _blockElementTableById; 
+        private readonly Dictionary<BlockId,BlockMasterElement> _blockElementTableById; 
         private readonly Dictionary<Guid,BlockId> _blockGuidToBlockId;
         
         private readonly Dictionary<ItemId, BlockId> _itemIdToBlockId;
@@ -29,7 +29,7 @@ namespace Core.Master
             var sortedBlockElements = Blocks.Data.ToList().OrderBy(x => x.BlockGuid).ToList();
             
             // アイテムID 0は空のアイテムとして予約しているので、1から始める
-            _blockElementTableById = new Dictionary<BlockId,BlockElement>();
+            _blockElementTableById = new Dictionary<BlockId,BlockMasterElement>();
             _blockGuidToBlockId = new Dictionary<Guid,BlockId>();
             for (var i = 1; i < sortedBlockElements.Count; i++)
             {
@@ -46,7 +46,7 @@ namespace Core.Master
             }
         }
         
-        public BlockElement GetBlockMaster(BlockId blockId)
+        public BlockMasterElement GetBlockMaster(BlockId blockId)
         {
             if (!_blockElementTableById.TryGetValue(blockId, out var element))
             {
@@ -55,7 +55,7 @@ namespace Core.Master
             return element;
         }
         
-        public BlockElement GetBlockMaster(Guid blockGuid)
+        public BlockMasterElement GetBlockMaster(Guid blockGuid)
         {
             var blockId = GetBlockId(blockGuid);
             return GetBlockMaster(blockId);
@@ -68,6 +68,11 @@ namespace Core.Master
                 throw new InvalidOperationException($"ItemElement not found. ItemGuid:{blockGuid}");
             }
             return blockId;
+        }
+        
+        public List<BlockId> GetBlockIds()
+        {
+            return _blockElementTableById.Keys.ToList();
         }
         
         public bool IsBlock(ItemId itemId)
