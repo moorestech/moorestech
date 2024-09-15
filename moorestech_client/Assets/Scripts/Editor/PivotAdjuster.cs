@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -39,8 +38,7 @@ public sealed class PivotAdjuster : EditorWindow
         ItemShooter,
     }
     
-    private const string UndoAlignPivot = nameof(UndoAlignPivot);
-    private const float HeightOffsetDefault = 0.3f;
+    private const string DefaultSavePath = "Assets/Asset/Block/Prefab";
     
     [MenuItem("Tools/Pivot Adjuster")]
     private static void ShowWindow() => GetWindow<PivotAdjuster>(nameof(PivotAdjuster));
@@ -49,50 +47,37 @@ public sealed class PivotAdjuster : EditorWindow
     {
         var root = rootVisualElement;
         root.style.paddingTop = 10;
- 
-        var objectsListView = new ListView
+        
+        var objectField = new ObjectField("Target Object")
         {
-            reorderMode = ListViewReorderMode.Animated,
-            showAddRemoveFooter = true,
-            showBorder = true,
-            showFoldoutHeader = true,
-            headerTitle = "Target Objects",
-            virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
-            viewController =
-            {
-                
-            },
-            makeItem = () =>
-            {
-                Debug.Log("makeItem");
-                var objectField = new ObjectField()
-                {
-                    objectType = typeof(GameObject),
-                    allowSceneObjects = true,
-                };
-                objectField.RegisterValueChangedCallback(evt =>
-                {
-                    if (evt.newValue == null) return;
-                    if (PrefabUtility.GetPrefabAssetType(evt.newValue) != PrefabAssetType.NotAPrefab)
-                    {
-                        objectField.value = null;
-                        Debug.LogError("Prefab is not supported.");
-                    }
-                });
-                return objectField;
-            },
+            objectType = typeof(GameObject),
+            allowSceneObjects = true,
         };
-        
-        root.Add(objectsListView);
-        
-        // header
-        root.Add(new Label("Name Parameter") { style = { unityFontStyleAndWeight = FontStyle.Bold } });
-        
-        var nameField = new TextField
+        objectField.RegisterValueChangedCallback(evt =>
         {
-            isReadOnly = true,
-            style = { opacity = 0.5f },
-        };
+            if (evt.newValue == null) return;
+            if (PrefabUtility.GetPrefabAssetType(evt.newValue) != PrefabAssetType.NotAPrefab)
+            {
+                objectField.value = null;
+                Debug.LogError("Prefab is not supported.");
+            }
+        });
+        // when the object is clicked, the object is zoomed in
+        objectField.RegisterCallback<MouseDownEvent>(evt =>
+        {
+            var target = objectField.value as GameObject; 
+            if (target== null) return;
+            var sceneView = SceneView.lastActiveSceneView;
+            if (sceneView == null) return;
+            sceneView.LookAt(target.transform.position);
+        });
+        
+        root.Add(objectField);
+        
+        // name parameters
+        root.Add(CreateHeader("Name Parameter"));
+        
+        var nameField = new TextField{ isReadOnly = true, style = { opacity = 0.5f }};
         root.Add(nameField);
         
         var genreField = new EnumField("ジャンル", Genre.Modern);
@@ -109,7 +94,71 @@ public sealed class PivotAdjuster : EditorWindow
         routeField.RegisterValueChangedCallback(OnNameParameterChanged);
         partsField.RegisterValueChangedCallback(OnNameParameterChanged);
         
-        root.Add(new Button() { name = "Prefab生成" } );
+        // other parameters
+        root.Add(CreateHeader("Other Parameter"));
+        
+        var heightOffsetField = new FloatField("Height Offset") { value = 0.3f };
+        root.Add(heightOffsetField);
+        
+        var pathView = new VisualElement { style = { flexDirection = FlexDirection.Row, justifyContent = Justify.FlexEnd } };
+        var pathField = new TextField
+        {
+            value = DefaultSavePath, 
+            isReadOnly = true, 
+            style = { opacity = 0.5f, flexGrow = 1 }
+        };
+        var button = new Button(() =>
+        {
+            var newPath = EditorUtility.OpenFolderPanel("Select output location", pathField.value, "");
+            if (!string.IsNullOrEmpty(newPath))
+            {
+                if (!newPath.Contains(Application.dataPath))
+                {
+                    Debug.LogError($"Selected path {newPath} must be in the Unity Assets directory");
+                    return;
+                }
+                pathField.value = newPath.Replace(Application.dataPath, "Assets");
+            }
+        }) { text = "..." };
+        pathView.Add(pathField);
+        pathView.Add(button);
+        root.Add(pathView);
+        
+        root.Add(new Button(() =>
+        {
+            if (objectField.value == null || string.IsNullOrEmpty(pathField.value))
+            {
+                Debug.LogError("Please set the target object and path.");
+                return;
+            }
+            var target = Instantiate(objectField.value as GameObject);
+            if (target == null) return;
+            var renderers = target.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length < 1)
+            {
+                Debug.LogException(new InvalidOperationException("Renderer not found."));
+                return;
+            }
+            
+            var parent = new GameObject(nameField.value).transform;
+            parent.position = GetPivotPos(renderers, heightOffsetField.value);
+            
+            var activeTransform = target.transform;
+            
+            activeTransform.SetParent(parent);
+            
+            parent.position = Vector3.zero;
+            PrefabUtility.SaveAsPrefabAsset(parent.gameObject, $"{pathField.value}/{nameField.value}.prefab", out var success);
+            DestroyImmediate(parent.gameObject);
+            if (success)
+            {
+                Debug.Log("Prefab generated.");
+            }
+            else
+            {
+                Debug.LogError("Failed to generate prefab.");
+            }
+        }) { text = "Prefab生成" } );
         
         return;
         
@@ -120,33 +169,7 @@ public sealed class PivotAdjuster : EditorWindow
             var parts = partsField.value;
             nameField.value = $"{genre}_{route}_{parts}";
         }
-    }
-    
-    /// <summary>
-    /// ゲームシーン上の選択中のゲームオブジェクトのピボットを調整します.
-    /// </summary>
-    /// <exception cref="Exception">プレハブはサポートされていません.</exception>
-    [MenuItem("GameObject/Adjust Pivot")]
-    private static void AdjustPivot()
-    {
-        // 複数選択対応
-        foreach (var activeTransform in Selection.transforms)
-        {
-            var renderers = activeTransform.GetComponentsInChildren<Renderer>(true);
-            if (renderers.Length < 1)
-            {
-                throw new InvalidOperationException("Renderer not found.");
-            }
-            
-            var root = new GameObject(activeTransform.name).transform;
-            root.position = GetPivotPos(renderers, HeightOffsetDefault);
-            
-            Undo.RegisterCreatedObjectUndo(root.gameObject, UndoAlignPivot);
-            Undo.SetTransformParent(activeTransform, root, UndoAlignPivot);
-            
-            activeTransform.SetParent(root);
-        }
-        
+
         static Vector3 GetPivotPos(in ReadOnlySpan<Renderer> renderers, float heightOffset)
         {
             var fullyBounds = renderers[0].bounds;
@@ -157,5 +180,8 @@ public sealed class PivotAdjuster : EditorWindow
             var (min, max) = (fullyBounds.min, fullyBounds.max);
             return new Vector3(min.x, max.y - heightOffset, min.z);
         }
+        
+        static VisualElement CreateHeader(string text) 
+            => new Label(text) { style = { unityFontStyleAndWeight = FontStyle.Bold } };
     }
 }
