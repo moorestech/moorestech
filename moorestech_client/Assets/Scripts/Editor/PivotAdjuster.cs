@@ -143,14 +143,12 @@ public sealed class PivotAdjuster : EditorWindow
                 return;
             }
             
-            var parent = new GameObject(nameField.value).transform;
-            parent.position = GetPivotPos(renderers, heightOffsetField.value);
-            
             var activeTransform = target.transform;
+            activeTransform.position -= GetPivotPos(renderers, heightOffsetField.value);
             
+            var parent = new GameObject(nameField.value).transform;
             activeTransform.SetParent(parent);
-            
-            parent.position = Vector3.zero;
+
             PrefabUtility.SaveAsPrefabAsset(parent.gameObject, $"{pathField.value}/{nameField.value}.prefab", out var success);
             DestroyImmediate(parent.gameObject);
             if (success)
