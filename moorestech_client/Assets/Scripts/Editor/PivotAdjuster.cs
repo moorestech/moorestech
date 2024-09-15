@@ -91,10 +91,11 @@ public sealed class PivotAdjuster : EditorWindow
         var partsField = new EnumField("パーツ種別", Parts.BeltConveyor);
         root.Add(partsField);
 
-        OnNameParameterChanged(default);
-        genreField.RegisterValueChangedCallback(OnNameParameterChanged);
-        routeField.RegisterValueChangedCallback(OnNameParameterChanged);
-        partsField.RegisterValueChangedCallback(OnNameParameterChanged);
+        var fields = (genreField, routeField, partsField, nameField);
+        OnNameParameterChanged(default, fields);
+        genreField.RegisterCallback<ChangeEvent<Enum>, ValueTuple<EnumField, EnumField, EnumField, TextField>>(OnNameParameterChanged, fields);
+        routeField.RegisterCallback<ChangeEvent<Enum>, ValueTuple<EnumField, EnumField, EnumField, TextField>>(OnNameParameterChanged, fields);
+        partsField.RegisterCallback<ChangeEvent<Enum>, ValueTuple<EnumField, EnumField, EnumField, TextField>>(OnNameParameterChanged, fields);
         
         // other parameters
         root.Add(CreateHeader("Other Parameter"));
@@ -164,12 +165,12 @@ public sealed class PivotAdjuster : EditorWindow
         
         return;
         
-        void OnNameParameterChanged(ChangeEvent<Enum> _)
+        static void OnNameParameterChanged(ChangeEvent<Enum> _, (EnumField genre, EnumField route, EnumField parts, TextField name) fields)
         {
-            var genre = genreField.value;
-            var route = routeField.value;
-            var parts = partsField.value;
-            nameField.value = $"{genre}_{route}_{parts}";
+            var genre = fields.genre.value;
+            var route = fields.route.value;
+            var parts = fields.parts.value;
+            fields.name.value = $"{genre}_{route}_{parts}";
         }
 
         static Vector3 GetPivotPos(in ReadOnlySpan<Renderer> renderers, float heightOffset)
