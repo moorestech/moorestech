@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 /// <summary>
 /// ピボット簡易調整エディタ拡張
@@ -53,24 +54,25 @@ public sealed class PivotAdjuster : EditorWindow
             objectType = typeof(GameObject),
             allowSceneObjects = true,
         };
-        objectField.RegisterValueChangedCallback(evt =>
+        objectField.RegisterCallback<ChangeEvent<Object>, ObjectField>(static (evt, field) =>
         {
             if (evt.newValue == null) return;
             if (PrefabUtility.GetPrefabAssetType(evt.newValue) != PrefabAssetType.NotAPrefab)
             {
-                objectField.value = null;
+                field.value = null;
                 Debug.LogError("Prefab is not supported.");
             }
-        });
+        }, objectField);
         // when the object is clicked, the object is zoomed in
-        objectField.RegisterCallback<MouseDownEvent>(_ =>
+        objectField.RegisterCallback<MouseDownEvent, ObjectField>(static (_, field) =>
         {
-            var target = objectField.value as GameObject; 
+            var target = field.value as GameObject; 
             if (target== null) return;
             var sceneView = SceneView.lastActiveSceneView;
             if (sceneView == null) return;
             sceneView.LookAt(target.transform.position);
-        });
+            Selection.activeGameObject = target;
+        }, objectField);
         
         root.Add(objectField);
         
