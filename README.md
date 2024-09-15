@@ -7,6 +7,29 @@
 # 起動方法
 mooresech_server、clientともにUnityで開き、serverを再生した後、clientのMainGameシーンを再生してください
 
+
+# subtreeの設定
+
+## 初期設定
+remoteの追加
+
+```sh
+git remote add schema git@github.com:moorestech/VanillaSchema.git
+git fetch schema
+```
+
+## コミットをVanillaSchemaにpush
+
+```sh
+git subtree push --prefix=schema schema main 
+```
+
+## Vani;aSchemaからpull
+```sh
+git subtree pull --prefix=schema schema main 
+```
+
+
 ### OSSに関する表記
 
 TODO この辺ちゃんとする

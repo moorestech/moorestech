@@ -28,7 +28,7 @@
               "itemGuid": {
                 "type": "string",
                 "format": "uuid",
-                "foreignKey": "items:itemId:name"
+                "foreignKey": "items:itemGuid:name"
               },
               "count": {
                 "type": "integer",
@@ -46,7 +46,7 @@
                 "itemGuid": {
                   "type": "string",
                   "format": "uuid",
-                  "foreignKey": "items:itemId:name"
+                  "foreignKey": "items:itemGuid:name"
                 },
                 "count": {
                   "type": "integer",
