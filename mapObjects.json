@@ -35,6 +35,10 @@
             },
             "default": [0]
           },
+          "soundEffectType":{
+            "type": "string",
+            "enum":["tree","stone"]
+          },
           "earnItems": {
             "type": "array",
             "items": {
@@ -61,12 +65,12 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["toolItemModId", "toolItemName", "damage", "attackSpeed"],
+              "required": ["toolItemGuid", "toolItemName", "damage", "attackSpeed"],
               "properties": {
-                "toolItemModId": {
+                "toolItemGuid": {
                   "type": "string",
                   "format": "uuid",
-                  "foreignKey": "items:itemId:name"
+                  "foreignKey": "items:itemGuid:name"
                 },
                 "damage": {
                   "type": "integer",
