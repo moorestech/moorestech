@@ -63,7 +63,7 @@ public sealed class PivotAdjuster : EditorWindow
             }
         });
         // when the object is clicked, the object is zoomed in
-        objectField.RegisterCallback<MouseDownEvent>(evt =>
+        objectField.RegisterCallback<MouseDownEvent>(_ =>
         {
             var target = objectField.value as GameObject; 
             if (target== null) return;
