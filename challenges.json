@@ -36,6 +36,69 @@
             "default": "New Challenge summary"
           },
 
+          "playSkitType": {
+            "type": "string",
+            "default": "createItem",
+            "enum": ["None", "BackgroundSkit"]
+          },
+
+          "playSkitParam": {
+            "oneOf": [
+              {
+                "if": {
+                  "properties": {
+                    "playSkitType": { "const": "None" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "playSkitType": { "const": "BackgroundSkit" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "fireSkitName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "taskCompletionType": { "const": "blockPlace" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "required": ["blockGuid"],
+                  "properties": {
+
+                    "blockGuid": {
+                      "type": "string",
+                      "format": "uuid",
+                      "foreignKey": "items:itemGuid:name"
+                    },
+                    "itemCount": {
+                      "type": "integer",
+                        "default": 1
+                    }
+
+                  }
+                }
+              }
+            ]
+          },
+
+
           "taskCompletionType": {
             "type": "string",
             "default": "createItem",
