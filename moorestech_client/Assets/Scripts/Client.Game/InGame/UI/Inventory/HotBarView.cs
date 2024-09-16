@@ -91,9 +91,7 @@ namespace Client.Game.InGame.UI.Inventory
                 
                 if (itemId == ItemConst.EmptyItemId) return;
                 
-                var itemConfig = ServerContext.ItemConfig.GetItemConfig(itemId);
-                
-                var itemObjectData = itemObjectContainer.GetItemPrefab(itemConfig.ModId, itemConfig.Name);
+                var itemObjectData = itemObjectContainer.GetItemPrefab(itemId);
                 if (itemObjectData != null)
                 {
                     _currentGrabItem = Instantiate(itemObjectData.ItemPrefab);

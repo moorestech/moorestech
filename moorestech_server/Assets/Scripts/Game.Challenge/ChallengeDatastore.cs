@@ -82,12 +82,12 @@ namespace Game.Challenge
                     // 完了したチャレンジの次のチャレンジがクリア済みでなければ、CurrentChallengeに追加
                     //var challenge = MasterHolder.ChallengeMaster.GetChallenge();
                     
-                    var nextIds = MasterHolder.ChallengeMaster.GetNextChallenges(Guid.Parse(completedId));
-                    foreach (var nextId in nextIds)
+                    var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(Guid.Parse(completedId));
+                    foreach (var nextChallenge in nextChallenges)
                     {
-                        if (challengeJsonObject.CompletedGuids.Contains(nextId.ToString())) continue;
+                        if (challengeJsonObject.CompletedGuids.Contains(nextChallenge.ToString())) continue;
                         
-                        var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextId);
+                        var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
                         var initialChallenge = CreateChallenge(playerId, challengeElement);
                         currentChallenges.Add(initialChallenge);
                     }
@@ -113,10 +113,10 @@ namespace Game.Challenge
             challengeInfo.CurrentChallenges.Remove(currentChallenge);
             challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             
-            var nextIds = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeMasterElement.ChallengeGuid);
-            foreach (var nextId in nextIds)
+            var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            foreach (var nextChallengeMaster in nextChallenges)
             {
-                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextId);
+                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
                 
                 var nextChallenge = CreateChallenge(playerId, challengeElement);
                 challengeInfo.CurrentChallenges.Add(nextChallenge);

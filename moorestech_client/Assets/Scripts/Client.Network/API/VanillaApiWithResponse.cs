@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Client.Network.Settings;
 using Core.Item.Interface;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Challenge;
 using Game.Context;
@@ -85,11 +86,11 @@ namespace Client.Network.API
             
             var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryResponseProtocolMessagePack>(request, ct);
             
-            var items = new List<IItemStack>(response.ItemIds.Length);
-            for (var i = 0; i < response.ItemIds.Length; i++)
+            var items = new List<IItemStack>(response.Items.Length);
+            for (var i = 0; i < response.Items.Length; i++)
             {
-                var id = response.ItemIds[i];
-                var count = response.ItemCounts[i];
+                var id = response.Items[i].Id;
+                var count = response.Items[i].Count;
                 items.Add(_itemStackFactory.Create(id, count));
             }
             
@@ -145,9 +146,8 @@ namespace Client.Network.API
             var request = new RequestChallengeMessagePack(playerId);
             var response = await _packetExchangeManager.GetPacketResponse<ResponseChallengeInfoMessagePack>(request, ct);
             
-            var challengeConfig = ServerContext.ChallengeConfig;
-            var current = response.CurrentChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
-            var completed = response.CompletedChallengeIds.Select(c => challengeConfig.GetChallenge(c)).ToList();
+            var current = response.CurrentChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            var completed = response.CompletedChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             
             return new ChallengeResponse(current, completed);
         }

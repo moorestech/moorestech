@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 var direction = random.Next(0, 4);
                 
                 //設置したブロックを保持する
-                blocks.Add(new TestBlockData(pos, blockId, direction));
+                blocks.Add(new TestBlockData(pos, (BlockId)blockId, direction));
                 //ブロックの設置
                 worldBlockDataStore.TryAddBlock((BlockId)blockId, pos, (BlockDirection)direction, out _);
             }
@@ -97,11 +97,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private class TestBlockData
         {
             public readonly BlockDirection BlockDirection;
-            public readonly int id;
+            public readonly BlockId id;
             public readonly int X;
             public readonly int Y;
             
-            public TestBlockData(Vector3Int pos, int id, int blockDirectionNum)
+            public TestBlockData(Vector3Int pos, BlockId id, int blockDirectionNum)
             {
                 X = pos.x;
                 Y = pos.y;

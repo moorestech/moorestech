@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Game.Challenge;
 using Game.Challenge.Task;
@@ -47,12 +48,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(PlayerId, challengeInfo.PlayerId);
             
             Assert.AreEqual(3, challengeInfo.CompletedChallengeGuids.Count);
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge1Guid));
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge2Guid));
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge3Guid));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge1Guid)));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge2Guid)));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge3Guid)));
             
             Assert.AreEqual(1, challengeInfo.CompletedChallengeGuids.Count);
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Challenge4Guid));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge4Guid)));
         }
     }
 }

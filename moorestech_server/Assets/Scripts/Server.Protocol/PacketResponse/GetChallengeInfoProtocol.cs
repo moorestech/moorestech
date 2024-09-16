@@ -50,10 +50,11 @@ namespace Server.Protocol.PacketResponse
     public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
     {
         [Key(2)] public int PlayerId { get; set; }
+        [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
+        [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
         
-        [Key(3)] public List<string> CurrentChallengeGuids { get; set; }
-        
-        [Key(4)] public List<string> CompletedChallengeGuids { get; set; }
+        public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
+        public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseChallengeInfoMessagePack()
@@ -64,8 +65,8 @@ namespace Server.Protocol.PacketResponse
         {
             Tag = GetChallengeInfoProtocol.Tag;
             PlayerId = playerId;
-            CurrentChallengeGuids = currentChallengeIds.Select(x => x.ToString()).ToList();
-            CompletedChallengeGuids = completedChallengeIds.Select(x => x.ToString()).ToList();
+            CurrentChallengeGuidsStr = currentChallengeIds.Select(x => x.ToString()).ToList();
+            CompletedChallengeGuidsStr = completedChallengeIds.Select(x => x.ToString()).ToList();
         }
     }
 }

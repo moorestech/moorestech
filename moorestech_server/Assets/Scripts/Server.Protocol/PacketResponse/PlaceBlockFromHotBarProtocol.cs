@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
             if (!MasterHolder.BlockMaster.IsBlock(item.Id)) return;
             
             // ブロックIDの設定
-            var blockId = MasterHolder.BlockMaster.ItemIdToBlockId(item.Id);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(item.Id);
             blockId = GetOverrideBlockId(blockId, placeInfo.VerticalDirection);
             
             //ブロックの設置

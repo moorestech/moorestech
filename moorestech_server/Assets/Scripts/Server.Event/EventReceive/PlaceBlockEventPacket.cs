@@ -55,19 +55,19 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class BlockDataMessagePack
     {
-        [Key(0)] public int BlockId { get; set; }
+        [Key(0)] public int BlockIdInt { get; set; }
         [Key(1)] public Vector3IntMessagePack BlockPos { get; set; }
         [Key(2)] public int Direction { get; set; }
         
-        
         [IgnoreMember] public BlockDirection BlockDirection => (BlockDirection)Direction;
+        [IgnoreMember] public BlockId BlockId => (BlockId)BlockIdInt;
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlockDataMessagePack() { }
         
         public BlockDataMessagePack(BlockId blockId, Vector3Int blockPos, BlockDirection blockDirection)
         {
-            BlockId = (int)blockId;
+            BlockIdInt = (int)blockId;
             BlockPos = new Vector3IntMessagePack(blockPos);
             Direction = (int)blockDirection;
         }

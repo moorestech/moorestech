@@ -1,4 +1,6 @@
 ﻿using System;
+using Core.Master;
+using Mooresmaster.Model.MapObjectsModule;
 using UniRx;
 using UnityEditor;
 using UnityEngine;
@@ -13,6 +15,7 @@ namespace Client.Game.InGame.Map.MapObject
     {
         public int InstanceId => instanceId;
         public Guid MapObjectGuid => new(mapObjectGuid);
+        public MapObjectMasterElement MapObjectMasterElement => MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
         
         [SerializeField] private GameObject outlineObject;
         [SerializeField] private int instanceId;

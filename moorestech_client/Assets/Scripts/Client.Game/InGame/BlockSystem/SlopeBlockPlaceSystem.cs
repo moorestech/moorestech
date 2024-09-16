@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using UnityEngine;
@@ -14,10 +15,10 @@ namespace Client.Game.InGame.BlockSystem
         /// <summary>
         ///     TODO ここの定義の場所を変える
         /// </summary>
-        public static Vector3 GetBlockPositionToPlacePosition(Vector3Int blockPosition, BlockDirection blockDirection, int blockId)
+        public static Vector3 GetBlockPositionToPlacePosition(Vector3Int blockPosition, BlockDirection blockDirection, BlockId blockId)
         {
             // 大きさをBlockDirection系に変換
-            var blockSize = ServerContext.BlockConfig.GetBlockConfig(blockId).BlockSize;
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var originPos = blockDirection.GetBlockOriginPos(blockPosition, blockSize);
             
             return originPos;

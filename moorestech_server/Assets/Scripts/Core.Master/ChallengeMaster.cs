@@ -42,13 +42,13 @@ namespace Core.Master
             }
         }
         
-        public List<Guid> GetNextChallenges(Guid challengeGuid)
+        public List<ChallengeMasterElement> GetNextChallenges(Guid challengeGuid)
         {
             if (!_nextChallenges.TryGetValue(challengeGuid, out var nextChallenges))
             {
                 throw new InvalidOperationException($"Next challenges not found. ChallengeGuid:{challengeGuid}");
             }
-            return nextChallenges;
+            return nextChallenges.ConvertAll(GetChallenge);
         }
         
         public ChallengeMasterElement GetChallenge(Guid guid)

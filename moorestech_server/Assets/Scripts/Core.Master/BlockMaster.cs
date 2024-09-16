@@ -80,7 +80,7 @@ namespace Core.Master
             return _itemIdToBlockId.ContainsKey(itemId);
         }
         
-        public BlockId ItemIdToBlockId(ItemId itemId)
+        public BlockId GetBlockId(ItemId itemId)
         {
             return _itemIdToBlockId[itemId];
         }

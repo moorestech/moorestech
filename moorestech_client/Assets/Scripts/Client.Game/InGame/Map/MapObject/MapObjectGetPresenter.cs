@@ -10,11 +10,10 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.Util;
 using Client.Input;
+using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Context;
-using Game.Map.Interface.Config;
-using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
+using Mooresmaster.Model.MapObjectsModule;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -37,6 +36,15 @@ namespace Client.Game.InGame.Map.MapObject
         private IPlayerObjectController _playerObjectController;
         private UIStateControl _uiStateControl;
         
+        
+        [Inject]
+        public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
+        {
+            _uiStateControl = uiStateControl;
+            _localPlayerInventory = localPlayerInventory;
+            _playerObjectController = playerObjectController;
+            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
+        }
         
         private void Start()
         {
@@ -62,13 +70,13 @@ namespace Client.Game.InGame.Map.MapObject
             
             if (_currentMapObjectGameObject != null)
             {
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectGuid);
-                isPickUpable = mapObjectConfig.MiningTools.Count == 0;
+                var miningTool = _currentMapObjectGameObject.MapObjectMasterElement.MiningTools;
+                isPickUpable = miningTool.Length == 0;
                 var text = string.Empty;
                 if (isMinenable)
                     text = isPickUpable ? "左クリックで取得" : "左クリック長押しで採掘";
                 else
-                    text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectGuid));
+                    text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId());
                 
                 MouseCursorExplainer.Instance.Show(text, isLocalize: false);
             }
@@ -110,9 +118,9 @@ namespace Client.Game.InGame.Map.MapObject
                 if (_currentMapObjectGameObject == null) return false;
                 
                 
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectGuid);
+                var mapObjectMaster = MasterHolder.MapObjectMaster.GetMapObjectElement(_currentMapObjectGameObject.MapObjectGuid);
                 
-                return miningToolInfo != null || mapObjectConfig.MiningTools.Count == 0;
+                return miningToolInfo != null || mapObjectMaster.MiningTools.Length == 0;
             }
             
             async UniTask Mining()
@@ -141,26 +149,24 @@ namespace Client.Game.InGame.Map.MapObject
                 }
             }
             
-            MapObjectToolItemConfigInfo GetMiningToolInfo()
+            MiningToolsElement GetMiningToolInfo()
             {
                 if (_currentMapObjectGameObject == null) return null;
                 
                 var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
-                var currentItem = _localPlayerInventory[slotIndex];
+                var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(_localPlayerInventory[slotIndex].Id).ItemGuid;
                 
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(_currentMapObjectGameObject.MapObjectGuid);
-                
-                return mapObjectConfig.MiningTools.FirstOrDefault(tool => tool.ToolItemId == currentItem.Id);
+                var miningTools = _currentMapObjectGameObject.MapObjectMasterElement.MiningTools;
+                return miningTools.FirstOrDefault(tool => tool.ToolItemGuid == currentItemGuid);
             }
             
-            List<string> GetRecommendItemId(string mapObjectType)
+            List<string> GetRecommendItemId()
             {
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(mapObjectType);
                 var result = new List<string>();
-                foreach (var tool in mapObjectConfig.MiningTools)
+                foreach (var tool in _currentMapObjectGameObject.MapObjectMasterElement.MiningTools)
                 {
-                    var itemConfig = ServerContext.ItemConfig.GetItemConfig(tool.ToolItemId);
-                    result.Add(itemConfig.Name);
+                    var itemMaster = MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid);
+                    result.Add(itemMaster.Name);
                 }
                 
                 return result;
@@ -187,12 +193,12 @@ namespace Client.Game.InGame.Map.MapObject
             void PlaySoundEffect()
             {
                 SoundEffectType soundEffectType;
-                switch (_currentMapObjectGameObject.MapObjectGuid)
+                switch (_currentMapObjectGameObject.MapObjectMasterElement.SoundEffectType)
                 {
-                    case VanillaMapObjectType.VanillaPebble:
+                    case "stone":
                         soundEffectType = SoundEffectType.DestroyStone;
                         break;
-                    case VanillaMapObjectType.VanillaTree:
+                    case "tree":
                         soundEffectType = SoundEffectType.DestroyTree;
                         break;
                     default:
@@ -205,15 +211,6 @@ namespace Client.Game.InGame.Map.MapObject
             }
             
             #endregion
-        }
-        
-        [Inject]
-        public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
-        {
-            _uiStateControl = uiStateControl;
-            _localPlayerInventory = localPlayerInventory;
-            _playerObjectController = playerObjectController;
-            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
         
         private MapObjectGameObject GetMapObject()

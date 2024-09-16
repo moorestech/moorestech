@@ -18,24 +18,23 @@ namespace Client.Game.InGame.Define
         {
             var result = new Dictionary<BlockId,BlockObjectInfo>();
             
-            var blockConfigs = ServerContext.BlockConfig.BlockConfigList;
-            foreach (var blockConfig in blockConfigs)
+            foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
             {
-                var blockPrefab = GetBlockPrefab(blockConfig.ModId, blockConfig.Name);
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                
+                var blockPrefab = GetBlockPrefab(blockMasterElement.BlockGuid);
                 if (blockPrefab == null) continue;
                 
-                var blockName = blockConfig.Name;
-                var type = blockConfig.Type;
-                result.Add(new BlockObjectInfo(blockPrefab, blockName, type));
+                result.Add(blockId, new BlockObjectInfo(blockPrefab, blockMasterElement));
             }
             
             return result;
         }
         
-        private GameObject GetBlockPrefab(string blockName)
+        private GameObject GetBlockPrefab(Guid blockGuid)
         {
             foreach (var blockPrefab in blockPrefabs)
-                if (blockPrefab.ModId == modId && blockPrefab.BlockName == blockName)
+                if (blockPrefab.BlockGuid == blockGuid.ToString())
                     return blockPrefab.BlockPrefab;
             return null;
         }
@@ -44,15 +43,11 @@ namespace Client.Game.InGame.Define
     [Serializable]
     public class BlockPrefabInfo
     {
-        [SerializeField] private string blockName;
-        [SerializeField] private GameObject blockPrefab;
-        
-        public string ModId => AlphaMod.ModId;
-        //TODO 将来的に設定できるようにする [SerializeField] private string modId = AlphaMod.ModId;
-        
-        public string BlockName => blockName;
-        
+        public string BlockGuid => blockGuid;
         public GameObject BlockPrefab => blockPrefab;
+        
+        [SerializeField] private string blockGuid;
+        [SerializeField] private GameObject blockPrefab;
     }
     
     
@@ -61,14 +56,10 @@ namespace Client.Game.InGame.Define
     {
         public readonly BlockMasterElement BlockMasterElement;
         public readonly GameObject BlockObject;
-        public readonly string Name;
-        public readonly string Type;
         
-        public BlockObjectInfo(GameObject blockObject, string name, string type, BlockMasterElement blockMasterElement)
+        public BlockObjectInfo(GameObject blockObject, BlockMasterElement blockMasterElement)
         {
             BlockObject = blockObject;
-            Name = name;
-            Type = type;
             BlockMasterElement = blockMasterElement;
         }
     }

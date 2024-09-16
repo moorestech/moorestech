@@ -1,16 +1,13 @@
 using System.Collections.Generic;
-using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Define;
-using Client.Mod.Glb;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Block.Interface;
-using Game.Context;
 using UnityEngine;
 
 namespace Client.Game.InGame.Context
@@ -22,82 +19,92 @@ namespace Client.Game.InGame.Context
     public class BlockGameObjectContainer
     {
         private readonly Dictionary<BlockId,BlockObjectInfo> _blockObjects;
-        private readonly BlockGameObject _nothingIndexBlockObject;
+        private readonly BlockGameObject _missingBlockIdObject;
         
-        public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, Dictionary<BlockId,BlockObjectInfo> blockObjects)
+        public BlockGameObjectContainer(BlockGameObject missingBlockIdObject, Dictionary<BlockId,BlockObjectInfo> blockObjects)
         {
-            _nothingIndexBlockObject = nothingIndexBlockObject;
+            _missingBlockIdObject = missingBlockIdObject;
             _blockObjects = blockObjects;
         }
         
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockPrefabContainer blockPrefabContainer, BlockGameObject nothingIndexBlockObject)
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(BlockPrefabContainer blockPrefabContainer, BlockGameObject missingBlockIdObject)
         {
             // TODO アドレッサブルの対応
             var blockObjectList = blockPrefabContainer.GetBlockDataList();
             
-            return new BlockGameObjectContainer(nothingIndexBlockObject, blockObjectList);
+            return new BlockGameObjectContainer(missingBlockIdObject, blockObjectList);
         }
-        
         
         public BlockGameObject CreateBlock(BlockId blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition, BlockDirection direction)
         {
-            //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
-            var blockConfigIndex = blockId - 1;
-            var blockConfig = ServerContext.BlockConfig.GetBlockConfig(blockId);
-            
-            if (blockConfigIndex < 0 || _blockObjects.Count <= blockConfigIndex)
+            if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
             {
                 //ブロックIDがないのでない時用のブロックを作る
-                Debug.LogError("Not Id " + blockConfigIndex);
-                var nothing = Object.Instantiate(_nothingIndexBlockObject, position, rotation, parent);
-                var nothingBlockPosInfo = new BlockPositionInfo(blockPosition, direction, Vector3Int.one);
-                nothing.Initialize(blockConfig, nothingBlockPosInfo, new NullBlockStateChangeProcessor());
-                return nothing.GetComponent<BlockGameObject>();
+                return CreateMissingIdBlock();
             }
             
             //ブロックの作成とセットアップをして返す
-            var block = Object.Instantiate(_blockObjects[blockConfigIndex].BlockObject, position, rotation, parent);
+            return CreateBlockObject();
             
-            //コンポーネントの設定
-            var blockObj = block.AddComponent<BlockGameObject>();
-            //子要素のコンポーネントの設定
-            foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
+            #region Internal
+            
+            BlockGameObject CreateMissingIdBlock()
             {
-                mesh.gameObject.AddComponent<BlockGameObjectChild>();
-                mesh.gameObject.AddComponent<MeshCollider>();
+                var missingIdBlock = Object.Instantiate(_missingBlockIdObject, position, rotation, parent);
+                var missingPosInfo = new BlockPositionInfo(blockPosition, direction, Vector3Int.one);
+                
+                //TODO nullのblock masterを入れる
+                //missingIdBlock.Initialize(blockConfig, missingPosInfo, new NullBlockStateChangeProcessor());
+                
+                return missingIdBlock.GetComponent<BlockGameObject>();
             }
             
-            var blockType = _blockObjects[blockConfigIndex].Type;
-            blockObj.gameObject.SetActive(true);
-            var posInfo = new BlockPositionInfo(blockPosition, direction, blockConfig.BlockSize);
-            blockObj.Initialize(blockConfig, posInfo, GetBlockStateChangeProcessor(blockObj, blockType));
+            BlockGameObject CreateBlockObject()
+            {
+                //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                
+                //ブロックの作成とセットアップをして返す
+                var block = Object.Instantiate(blockObjectInfo.BlockObject, position, rotation, parent);
+                
+                //コンポーネントの設定
+                var blockObj = block.AddComponent<BlockGameObject>();
+                //子要素のコンポーネントの設定
+                foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
+                {
+                    mesh.gameObject.AddComponent<BlockGameObjectChild>();
+                    mesh.gameObject.AddComponent<MeshCollider>();
+                }
+                
+                blockObj.gameObject.SetActive(true);
+                var posInfo = new BlockPositionInfo(blockPosition, direction, blockMasterElement.BlockSize);
+                var blockType = blockMasterElement.BlockType;
+                blockObj.Initialize(blockMasterElement, posInfo, GetBlockStateChangeProcessor(blockObj, blockType));
+                
+                //ブロックが開けるものの場合はそのコンポーネントを付与する
+                if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
+                return block.GetComponent<BlockGameObject>();
+            }
             
-            //ブロックが開けるものの場合はそのコンポーネントを付与する
-            if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
-            return block.GetComponent<BlockGameObject>();
+            #endregion
         }
         
         public BlockPreviewObject CreatePreviewBlock(BlockId blockId)
         {
-            var blockConfigIndex = blockId - 1;
-            if (blockConfigIndex < 0 || _blockObjects.Count <= blockConfigIndex) return null;
+            if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
+            {
+                return null;
+            }
             
             //ブロックの作成とセットアップをして返す
-            var block = Object.Instantiate(_blockObjects[blockConfigIndex].BlockObject, Vector3.zero, Quaternion.identity);
+            var block = Object.Instantiate(blockObjectInfo.BlockObject, Vector3.zero, Quaternion.identity);
             block.SetActive(true);
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
             previewGameObject.SetTriggerCollider(true);
-            previewGameObject.Initialize(ServerContext.BlockConfig.GetBlockConfig(blockId));
+            previewGameObject.Initialize(blockId);
             
             return previewGameObject;
-        }
-        
-        public string GetName(int index)
-        {
-            if (_blockObjects.Count <= index) return "Null";
-            
-            return _blockObjects[index].Name;
         }
         
         /// <summary>
@@ -109,7 +116,6 @@ namespace Client.Game.InGame.Context
         {
             return type is VanillaBlockType.Chest or VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMiner or VanillaBlockType.ElectricMachine;
         }
-        
         
         /// <summary>
         ///     どのブロックステートプロセッサーを使うかを決める

@@ -183,10 +183,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 //アイテムを持ってない時に右クリックするとアイテムを半分とる処理
                 
-                
                 //空スロットの時はアイテムを持たない
                 var item = _playerInventory.LocalPlayerInventory[slotIndex];
-                if (item.Id == ItemConstant.NullItemId) return;
+                if (item.Id == ItemConst.EmptyItemId) return;
                 
                 var halfItemCount = item.Count / 2;
                 
@@ -198,7 +197,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             if (IsGrabItem)
             {
-                var isSlotEmpty = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConstant.NullItemId;
+                var isSlotEmpty = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConst.EmptyItemId;
                 
                 if (isSlotEmpty)
                 {
@@ -249,20 +248,24 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             if (!_playerInventory.LocalPlayerInventory[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
             
-            if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex) &&
-                (_playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConstant.NullItemId || _playerInventory.LocalPlayerInventory[slotIndex].Id == _grabInventoryBeforeDrag.Id))
-                //まだスロットをドラッグしてない時 か アイテムがない時か、同じアイテムがあるとき
+            // まだスロットをドラッグしてない時
+            var doNotDragging = !_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex);
+            // アイテムがない時か、同じアイテムがあるとき
+            var isNotSlotOrSameItem = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConst.EmptyItemId || _playerInventory.LocalPlayerInventory[slotIndex].Id == _grabInventoryBeforeDrag.Id;
+            
+            // まだスロットをドラッグしてない時 か アイテムがない時か、同じアイテムがあるとき
+            if (doNotDragging && isNotSlotOrSameItem)
+            {
                 //ドラッグ中のアイテムに設定
                 _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.LocalPlayerInventory[slotIndex]));
+            }
             
             //一度Grabインベントリをリセットする
             _playerInventory.SetGrabItem(_grabInventoryBeforeDrag);
             foreach (var itemSplit in _itemSplitDraggedSlots) _playerInventory.SetMainItem(itemSplit.Slot, itemSplit.BeforeDragItem);
             
-            
-            var grabItem = _playerInventory.GrabInventory;
-            
             //1スロットあたりのアイテム数
+            var grabItem = _playerInventory.GrabInventory;
             var dragItemCount = grabItem.Count / _itemSplitDraggedSlots.Count;
             //余っているアイテム数
             var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;

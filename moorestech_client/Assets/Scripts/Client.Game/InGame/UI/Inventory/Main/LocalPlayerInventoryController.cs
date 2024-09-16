@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.Context;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -9,18 +10,17 @@ namespace Client.Game.InGame.UI.Inventory.Main
 {
     public class LocalPlayerInventoryController
     {
-        private readonly LocalPlayerInventory _mainAndSubCombine;
+        public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
+        public IItemStack GrabInventory { get; private set; }
         
+        private readonly LocalPlayerInventory _mainAndSubCombine;
         private ISubInventory _subInventory;
         
         public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
-            GrabInventory = ServerContext.ItemStackFactory.Create(0, 0);
+            GrabInventory = ServerContext.ItemStackFactory.Create(new ItemId(0), 0);
         }
-        
-        public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
-        public IItemStack GrabInventory { get; private set; }
         
         public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData = true)
         {

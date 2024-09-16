@@ -61,7 +61,7 @@ namespace Core.Master
             return itemId;
         }
         
-        public IEnumerable<ItemId> GetItemIds()
+        public IEnumerable<ItemId> GetItemAllIds()
         {
             return _itemElementTableById.Keys;
         }

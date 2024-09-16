@@ -2,6 +2,7 @@ using System;
 using Game.Challenge;
 using Game.Challenge.Task;
 using MessagePack;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Server.Event.EventReceive
@@ -31,7 +32,8 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class CompletedChallengeEventMessage
     {
-        [Key(0)] public string CompletedChallengeGuid { get; set; }
+        [Key(0)] public string CompletedChallengeGuidStr { get; set; }
+        [JsonIgnore] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CompletedChallengeEventMessage()
@@ -40,7 +42,7 @@ namespace Server.Event.EventReceive
         
         public CompletedChallengeEventMessage(Guid completedChallengeGuid)
         {
-            CompletedChallengeGuid = completedChallengeGuid.ToString();
+            CompletedChallengeGuidStr = completedChallengeGuid.ToString();
         }
     }
 }
