@@ -145,6 +145,7 @@ public sealed class PivotAdjuster : EditorWindow
             
             var activeTransform = target.transform;
             activeTransform.position -= GetPivotPos(renderers, heightOffsetField.value);
+            activeTransform.Rotate(0, -90, 0);
             
             var parent = new GameObject(nameField.value).transform;
             activeTransform.SetParent(parent);
