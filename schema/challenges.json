@@ -1,7 +1,6 @@
 {
   "$id": "challenges",
   "type": "object",
-  "required": ["data"],
   "isDefaultOpen": true,
 
   "properties": {
@@ -11,7 +10,6 @@
 
       "items": {
         "type": "object",
-        "required": ["challengeId","prevId", "title", "summary", "taskCompletionType", "taskParam", "tutorials"],
         "properties": {
 
           "challengeGuid": {
@@ -79,7 +77,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["blockGuid"],
                   "properties": {
 
                     "blockGuid": {
@@ -115,7 +112,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["itemGuid"],
                   "properties": {
                     "itemGuid": {
                       "type": "string",
@@ -133,7 +129,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["itemGuid", "itemCount"],
                   "properties": {
                     "itemGuid": {
                       "type": "string",
@@ -155,7 +150,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["blockGuid"],
                   "properties": {
 
                     "blockGuid": {
@@ -179,7 +173,6 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["tutorialType", "tutorialParam"],
               "properties": {
 
                 "tutorialType": {
@@ -198,7 +191,6 @@
                       },
                       "then": {
                         "type": "object",
-                        "required": ["mapObjectType", "pinText"],
                         "properties": {
                           "mapObjectGuid": {
                             "type": "string",
@@ -216,8 +208,7 @@
                       "if": {
                         "properties": {
                           "tutorialType": { "const": "keyControl" }
-                        },
-                        "required": ["uiState", "controlText"]
+                        }
                       },
                       "then": {
                         "type": "object",
@@ -238,8 +229,7 @@
                       "if": {
                         "properties": {
                           "tutorialType": { "const": "uiHighLight" }
-                        },
-                        "required": ["highLightUIObjectId", "highLightText"]
+                        }
                       },
                       "then": {
                         "type": "object",

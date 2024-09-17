@@ -1,7 +1,6 @@
 {
   "$id": "items",
   "type": "object",
-  "required": [ "data" ],
   "isDefaultOpen": true,
 
   "properties": {
@@ -11,7 +10,6 @@
       
       "items": {
         "type": "object",
-        "required": [ "itemGuid", "itemStack" ],
         "thumbnail": "imagePath",
 
         "properties": {
