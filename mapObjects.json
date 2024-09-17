@@ -7,8 +7,7 @@
     "data": {
       "type": "array",
       "overrideCodeGeneratePropertyName": "MapObjectMasterElement",
-      
-      "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
+
       "items": {
         "type": "object",
         "properties": {
@@ -43,7 +42,6 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["itemId", "itemName", "minCount", "maxCount"],
               "properties": {
                 "itemId": {
                   "type": "string",
@@ -65,7 +63,6 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["toolItemGuid", "toolItemName", "damage", "attackSpeed"],
               "properties": {
                 "toolItemGuid": {
                   "type": "string",

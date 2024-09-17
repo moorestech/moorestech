@@ -1,7 +1,6 @@
 {
   "$id": "blocks",
   "type": "object",
-  "required": [ "data" ],
   "isDefaultOpen": true,
 
   "properties": {
@@ -12,7 +11,6 @@
 
       "items": {
         "type": "object",
-        "required": ["blockGuid", "name", "blockType", "itemGuid", "size", "blockParam", "modelTransform"],
 
         "properties": {
           "blockGuid": {
@@ -60,8 +58,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["beltConveyorItemCount", "timeOfItemEnterToExit", "inventoryConnectors"],
+                  "type": "object"
 
                   "properties": {
                     "beltConveyorItemCount": {"type": "integer", "default": 1},
@@ -81,8 +78,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["chestItemSlotCount", "inventoryConnectors"],
+                  "type": "object"
 
                   "properties": {
                     "chestItemSlotCount": {"type": "integer", "default": 5},
@@ -101,8 +97,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["inputItemSlotCount", "outputItemSlotCount", "requiredPower", "inventoryConnectors"],
+                  "type": "object"
 
                   "properties": {
                     "inputItemSlotCount": {"type": "integer", "default": 1},
@@ -123,8 +118,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["poleConnectionRange", "machineConnectionRange"],
+                  "type": "object"
 
                   "properties": {
                     "poleConnectionRange": {"type": "integer", "default": 5},
@@ -141,8 +135,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["fuelItemSlotCount", "isInfinityPower", "infinityPower", "fuelItems", "inventoryConnectors"],
+                  "type": "object"
 
                   "properties": {
                     "fuelItemSlotCount": {"type": "integer", "default": 3},
@@ -153,8 +146,7 @@
                     "fuelItems": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "required": [ "itemGuid", "time", "power" ],
+                        "type": "object"
 
                         "properties": {
                           "itemGuid": {
@@ -189,8 +181,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["requiredPower","outputItemSlotCount","mineSettings","inventoryConnectors"],
+                  "type": "object"
 
                   "properties": {
                     "requiredPower": {"type": "number", "default": 5},
@@ -198,8 +189,7 @@
                     "mineSettings": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "required": [ "itemGuid", "time" ],
+                        "type": "object"
 
                         "properties": {
                           "itemGuid": {
@@ -230,8 +220,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["teethCount", "requireTorque", "gearConnects"],
+                  "type": "object"
 
                   "properties": {
                     "teethCount": {"type": "integer", "default": 10},
@@ -251,8 +240,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["requireTorque", "gearConnects"],
+                  "type": "object"
 
                   "properties": {
                     "requireTorque": {"type": "number", "default": 1},
@@ -271,8 +259,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["inputItemSlotCount", "outputItemSlotCount", "teethCount","requireTorque","requiredRpm", "inventoryConnectors", "gearConnects"],
+                  "type": "object"
 
                   "properties": {
                     "inputItemSlotCount": {"type": "integer", "default": 1},
@@ -298,8 +285,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["teethCount","generateRpm","generateTorque", "gearConnects"],
+                  "type": "object"
 
                   "properties": {
                     "teethCount": {"type": "integer", "default": 10},
@@ -321,8 +307,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["beltConveyorItemCount", "beltConveyorSpeed", "requireTorque", "inventoryConnectors", "gearConnects"],
+                  "type": "object"
 
                   "properties": {
                     "beltConveyorItemCount": {"type": "integer", "default": 4},
@@ -347,8 +332,7 @@
                   }
                 },
                 "then": {
-                  "type": "object",
-                  "required": ["inventoryItemNum", "initialShootSpeed", "itemShootSpeed", "acceleration", "inventoryConnectors"],
+                  "type": "object"
 
                   "properties": {
                     "inventoryItemNum": {"type": "integer", "default": 4},
@@ -365,8 +349,9 @@
           },
 
           "overrideVerticalBlock": {
-
             "type": "object",
+            "optional": true,
+
             "properties": {
 
               "upBlockGuid" : {
@@ -387,10 +372,6 @@
 
             }
 
-          },
-
-          "modelTransform": {
-            "$ref": "modelTransform"
           }
         }
       }
