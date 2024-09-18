@@ -54,6 +54,7 @@
               }
             },
             "then": {
+              "optional": true,
               "type": "object",
               "properties": {
               }
