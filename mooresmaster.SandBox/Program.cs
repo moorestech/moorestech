@@ -20,6 +20,7 @@ internal static class Program
         var machineRecipes = MachineRecipesLoader.Load(GetJson("machineRecipes"));
         var mapObjects = MapObjectsLoader.Load(GetJson("mapObjects"));
 
+
         // Console.WriteLine(blocks);
         // Console.WriteLine(challenges);
         // Console.WriteLine(craftRecipes);
