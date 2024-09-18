@@ -16,7 +16,7 @@ public static class JsonSchemaParser
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
     {
         if (root.Nodes.ContainsKey("oneOf")) return ParseOneOf(root, parent, schemaTable);
-        if (root.Nodes.ContainsKey("$ref")) return ParseRef((root["$ref"] as JsonString)!, parent, schemaTable);
+        if (root.Nodes.ContainsKey("$ref")) return ParseRef(root, parent, schemaTable);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
@@ -32,7 +32,7 @@ public static class JsonSchemaParser
 
     private static SchemaId ParseObject(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), []));
+        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json)));
 
         var propertiesJson = (json["properties"] as JsonObject)!;
         var requiredJson = json["required"] as JsonArray;
@@ -42,7 +42,7 @@ public static class JsonSchemaParser
             .Select(kvp => (kvp.Key, Parse((kvp.Value as JsonObject)!, objectSchemaId, table)))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Item2);
 
-        table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required));
+        table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required, IsNullable(json)));
 
         return objectSchemaId;
     }
@@ -53,7 +53,7 @@ public static class JsonSchemaParser
         var overrideCodeGeneratePropertyName = json["overrideCodeGeneratePropertyName"] as JsonString;
         var arraySchemaId = SchemaId.New();
         var items = Parse((json["items"] as JsonObject)!, arraySchemaId, table);
-        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, pattern, overrideCodeGeneratePropertyName));
+        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, pattern, overrideCodeGeneratePropertyName, IsNullable(json)));
         return arraySchemaId;
     }
 
@@ -71,33 +71,39 @@ public static class JsonSchemaParser
             ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson, schemaId, table)));
         }
 
-        table.Add(schemaId, new OneOfSchema(json.PropertyName, parent, ifThenList.ToArray()));
+        table.Add(schemaId, new OneOfSchema(json.PropertyName, parent, ifThenList.ToArray(), IsNullable(json)));
         return schemaId;
     }
 
-    private static SchemaId ParseRef(JsonString json, SchemaId? parent, SchemaTable table)
+    private static SchemaId ParseRef(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        return table.Add(new RefSchema(json.PropertyName, parent, json.Literal));
+        var refJson = json["$ref"] as JsonString;
+        return table.Add(new RefSchema(refJson.PropertyName, parent, refJson.Literal, IsNullable((JsonObject)json.Parent)));
     }
 
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var format = json["format"] as JsonString;
-        return table.Add(new StringSchema(json.PropertyName, parent, format));
+        return table.Add(new StringSchema(json.PropertyName, parent, format, IsNullable(json)));
     }
 
     private static SchemaId ParseNumber(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        return table.Add(new NumberSchema(json.PropertyName, parent));
+        return table.Add(new NumberSchema(json.PropertyName, parent, IsNullable(json)));
     }
 
     private static SchemaId ParseInteger(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        return table.Add(new IntegerSchema(json.PropertyName, parent));
+        return table.Add(new IntegerSchema(json.PropertyName, parent, IsNullable(json)));
     }
 
     private static SchemaId ParseBoolean(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        return table.Add(new BooleanSchema(json.PropertyName, parent));
+        return table.Add(new BooleanSchema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static bool IsNullable(JsonObject json)
+    {
+        return json["optional"] is JsonBoolean { Literal: true };
     }
 }

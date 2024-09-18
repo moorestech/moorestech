@@ -82,8 +82,9 @@ public record TypeSemantics(PropertyId[] Properties, ISchema Schema)
     public ISchema Schema = Schema;
 }
 
-public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, ITypeId? PropertyType, ISchema Schema)
+public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, ITypeId? PropertyType, ISchema Schema, bool IsNullable)
 {
+    public bool IsNullable = IsNullable;
     public ITypeId ParentTypeId = ParentTypeId;
     public string PropertyName = PropertyName;
     public ITypeId? PropertyType = PropertyType;

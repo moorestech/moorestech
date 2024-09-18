@@ -10,7 +10,7 @@ public record Type
 {
     public static Type GetType(NameTable nameTable, ITypeId? typeId, ISchema schema, Semantics semantics, SchemaTable schemaTable)
     {
-        return schema switch
+        Type type = schema switch
         {
             ArraySchema arraySchema => arraySchema.Pattern?.Literal switch
             {
@@ -42,6 +42,7 @@ public record Type
             RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)]),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };
+        return schema.IsNullable ? new NullableType(type) : type;
     }
 
     private static ITypeId GetRefTypeId(RefSchema schema, Semantics semantics)
@@ -68,9 +69,15 @@ public record Type
             Vector3Type vector3Type => "global::UnityEngine.Vector3",
             Vector4Type vector4Type => "global::UnityEngine.Vector4",
             CustomType customType => customType.Name.GetModelName(),
+            NullableType nullableType => $"{nullableType.InnerType.GetName()}?",
             _ => throw new ArgumentOutOfRangeException()
         };
     }
+}
+
+public record NullableType(Type InnerType) : Type
+{
+    public Type InnerType = InnerType;
 }
 
 public record BuiltinType : Type;

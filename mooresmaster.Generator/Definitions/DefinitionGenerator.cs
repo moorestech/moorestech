@@ -74,19 +74,19 @@ public static class DefinitionGenerator
         switch (typeSemantics.Schema)
         {
             case ArraySchema arraySchema:
-                propertyTable["items"] = new PropertyDefinition(new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items]], table.Table[arraySchema.Items], semantics, table)), null);
+                propertyTable["items"] = new PropertyDefinition(new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items]], table.Table[arraySchema.Items], semantics, table)), null, arraySchema.IsNullable);
                 break;
             case BooleanSchema:
-                propertyTable["value"] = new PropertyDefinition(new BooleanType(), null);
+                propertyTable["value"] = new PropertyDefinition(new BooleanType(), null, typeSemantics.Schema.IsNullable);
                 break;
             case IntegerSchema:
-                propertyTable["value"] = new PropertyDefinition(new IntType(), null);
+                propertyTable["value"] = new PropertyDefinition(new IntType(), null, typeSemantics.Schema.IsNullable);
                 break;
             case NumberSchema:
-                propertyTable["value"] = new PropertyDefinition(new FloatType(), null);
+                propertyTable["value"] = new PropertyDefinition(new FloatType(), null, typeSemantics.Schema.IsNullable);
                 break;
             case StringSchema:
-                propertyTable["value"] = new PropertyDefinition(new StringType(), null);
+                propertyTable["value"] = new PropertyDefinition(new StringType(), null, typeSemantics.Schema.IsNullable);
                 break;
             case ObjectSchema objectSchema:
                 foreach (var propertyId in typeSemantics.Properties)
@@ -95,15 +95,15 @@ public static class DefinitionGenerator
                     var propertyTypeId = propertySemantics.PropertyType;
                     var schema = semantics.PropertySemanticsTable[propertyId].Schema;
                     var name = nameTable.PropertyNames[propertyId];
-                    propertyTable[name] = new PropertyDefinition(Type.GetType(nameTable, propertyTypeId, schema, semantics, table), propertyId);
+                    propertyTable[name] = new PropertyDefinition(Type.GetType(nameTable, propertyTypeId, schema, semantics, table), propertyId, typeSemantics.Schema.IsNullable);
                 }
 
                 break;
             case OneOfSchema:
-                propertyTable["value"] = new PropertyDefinition(new CustomType(nameTable.TypeNames[classId]), null);
+                propertyTable["value"] = new PropertyDefinition(new CustomType(nameTable.TypeNames[classId]), null, typeSemantics.Schema.IsNullable);
                 break;
             case RefSchema refSchema:
-                propertyTable["value"] = new PropertyDefinition(new CustomType(refSchema.GetRefName()), null);
+                propertyTable["value"] = new PropertyDefinition(new CustomType(refSchema.GetRefName()), null, typeSemantics.Schema.IsNullable);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(typeSemantics.Schema));

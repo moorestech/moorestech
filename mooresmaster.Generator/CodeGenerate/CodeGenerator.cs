@@ -110,6 +110,7 @@ public static class CodeGenerator
             Vector3IntType => "global::UnityEngine.Vector3Int",
             UUIDType => "global::System.Guid",
             CustomType customType => $"{customType.Name.GetModelName()}",
+            NullableType nullableType => $"{GenerateTypeCode(nullableType.InnerType)}?",
             _ => throw new ArgumentOutOfRangeException(type.GetType().Name)
         };
     }

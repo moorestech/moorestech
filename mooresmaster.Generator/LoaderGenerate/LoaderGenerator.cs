@@ -128,7 +128,7 @@ public static class LoaderGenerator
     {
         StringBuilder builder = new();
 
-        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue))
+        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue).Where(v => !semantics.PropertySemanticsTable[v.PropertyId!.Value].IsNullable))
         {
             var propertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
 
@@ -203,7 +203,7 @@ public static class LoaderGenerator
         if (typeDefinition.PropertyTable.Count == 0) return string.Empty;
         var property = typeDefinition.PropertyTable.First();
 
-        return $"var {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";
+        return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";
     }
 
     private static string GeneratePropertiesLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
@@ -212,7 +212,7 @@ public static class LoaderGenerator
             "\n",
             typeDefinition
                 .PropertyTable
-                .Select(property => $"var {property.Key} = {GeneratePropertyLoaderCode(
+                .Select(property => $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(
                     property.Value.Type,
                     $$$"""
                        json["{{{semantics.PropertySemanticsTable[property.Value.PropertyId.Value].PropertyName}}}"]
@@ -241,19 +241,35 @@ public static class LoaderGenerator
                 or Vector4Type => $$$"""
                                      {{{GetLoaderName(type)}}}({{{json}}})
                                      """,
+
             CustomType => $$$"""
                              {{{GetLoaderName(type)}}}({{{json}}})
                              """,
 
             ArrayType arrayType => $$$"""
-                                      global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, value => {{{GetLoaderName(arrayType.InnerType)}}}(value)))
+                                      global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, value => {{{GeneratePropertyLoaderCode(arrayType.InnerType, "value")}}}))
                                       """,
+
             DictionaryType dictionaryType => $$$"""
                                                 new global::System.Collections.Generic.Dictionary<{{{dictionaryType.KeyType.GetName()}}}, {{{dictionaryType.ValueType.GetName()}}}>()
-                                                {{{json}}}.ToDictionary(key => {{{GetLoaderName(dictionaryType.KeyType)}}}(key), value => {{{GetLoaderName(dictionaryType.ValueType)}}}(value))
+                                                {{{json}}}.ToDictionary(key => {{{GeneratePropertyLoaderCode(dictionaryType.KeyType, "key")}}}, value => {{{GeneratePropertyLoaderCode(dictionaryType.ValueType, "value")}}})
                                                 """,
 
+            NullableType nullableType => $$$"""
+                                            ((json == null) ? null : {{{GeneratePropertyLoaderCode(nullableType.InnerType, json)}}})
+                                            """,
+
             _ => throw new ArgumentOutOfRangeException(nameof(type))
+        };
+    }
+
+    private static string GenerateNullableUnwrapCode(Type type)
+    {
+        return type switch
+        {
+            BooleanType or FloatType or IntType or UUIDType or Vector2IntType or Vector2Type or Vector3IntType or Vector3Type or Vector4Type => "!.Value", // 値型のため!.Valueを追加
+            ArrayType or DictionaryType or StringType or CustomType => "", // 参照型のためそのまま
+            _ => throw new ArgumentOutOfRangeException(nameof(type)) // nullableは来てはいけない
         };
     }
 
@@ -273,6 +289,7 @@ public static class LoaderGenerator
                 Vector3Type vector3Type => "Mooresmaster.Loader.BuiltinLoader.LoadVector3",
                 Vector4Type vector4Type => "Mooresmaster.Loader.BuiltinLoader.LoadVector4",
                 CustomType customType => $"{customType.Name.GetLoaderName()}.Load",
+                NullableType nullableType => GetLoaderName(nullableType.InnerType),
                 _ => throw new ArgumentOutOfRangeException(nameof(type))
             }
         }";
