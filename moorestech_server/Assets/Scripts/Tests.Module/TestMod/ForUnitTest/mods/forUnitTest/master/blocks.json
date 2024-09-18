@@ -60,7 +60,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -92,7 +93,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -126,7 +128,8 @@
       "name": "TestBlock",
       "blockType": "Block",
       "itemGuid": "20000000-0000-0000-0000-000000000000",
-      "blockGuid": "828761da-652c-419e-8d1e-79ee1c667675"
+      "blockGuid": "828761da-652c-419e-8d1e-79ee1c667675",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -186,7 +189,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "outputConnects": [
@@ -203,7 +207,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -351,7 +356,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -383,7 +389,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -448,7 +455,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -480,7 +488,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -551,7 +560,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -583,7 +593,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -618,7 +629,8 @@
       "name": "MultiBlock1",
       "blockType": "Block",
       "itemGuid": "90000000-0000-0000-0000-000000000000",
-      "blockGuid": "3f12ba81-274c-4d25-a8cb-999cd4036f27"
+      "blockGuid": "3f12ba81-274c-4d25-a8cb-999cd4036f27",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -646,7 +658,8 @@
       "name": "MultiBlock2",
       "itemGuid": "11000000-0000-0000-0000-000000000000",
       "blockGuid": "90c233a5-3e24-405b-b0cc-5ea68ba0e228",
-      "blockType": "Block"
+      "blockType": "Block",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -674,7 +687,8 @@
       "itemGuid": "12000000-0000-0000-0000-000000000000",
       "name": "MultiBlock3",
       "blockGuid": "07509108-21d2-4137-b6b2-89ebf6ff625e",
-      "blockType": "Block"
+      "blockType": "Block",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -1037,7 +1051,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1069,7 +1084,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -1574,7 +1590,8 @@
                   -1,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1606,7 +1623,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -1664,7 +1682,8 @@
                   -1,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1681,7 +1700,8 @@
                   1,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -1734,7 +1754,8 @@
                   1,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1756,7 +1777,8 @@
                   -1,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
