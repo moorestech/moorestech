@@ -1,17 +1,15 @@
 {
   "$id": "challenges",
   "type": "object",
-  "required": ["data"],
   "isDefaultOpen": true,
 
   "properties": {
     "data": {
       "type": "array",
-      "overrideCodeGeneratePropertyName": "ChallengeElement",
+      "overrideCodeGeneratePropertyName": "ChallengeMasterElement",
 
       "items": {
         "type": "object",
-        "required": ["challengeId","prevId", "title", "summary", "taskCompletionType", "taskParam", "tutorials"],
         "properties": {
 
           "challengeGuid": {
@@ -36,6 +34,68 @@
             "default": "New Challenge summary"
           },
 
+          "playSkitType": {
+            "type": "string",
+            "default": "createItem",
+            "enum": ["None", "BackgroundSkit"]
+          },
+
+          "playSkitParam": {
+            "oneOf": [
+              {
+                "if": {
+                  "properties": {
+                    "playSkitType": { "const": "None" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "playSkitType": { "const": "BackgroundSkit" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "fireSkitName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "taskCompletionType": { "const": "blockPlace" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "blockGuid": {
+                      "type": "string",
+                      "format": "uuid",
+                      "foreignKey": "items:itemGuid:name"
+                    },
+                    "itemCount": {
+                      "type": "integer",
+                        "default": 1
+                    }
+
+                  }
+                }
+              }
+            ]
+          },
+
+
           "taskCompletionType": {
             "type": "string",
             "default": "createItem",
@@ -52,7 +112,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["itemGuid"],
                   "properties": {
                     "itemGuid": {
                       "type": "string",
@@ -70,7 +129,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["itemGuid", "itemCount"],
                   "properties": {
                     "itemGuid": {
                       "type": "string",
@@ -92,7 +150,6 @@
                 },
                 "then": {
                   "type": "object",
-                  "required": ["blockGuid"],
                   "properties": {
 
                     "blockGuid": {
@@ -116,7 +173,6 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["tutorialType", "tutorialParam"],
               "properties": {
 
                 "tutorialType": {
@@ -135,11 +191,11 @@
                       },
                       "then": {
                         "type": "object",
-                        "required": ["mapObjectType", "pinText"],
                         "properties": {
-                          "mapObjectType": {
+                          "mapObjectGuid": {
                             "type": "string",
-                            "foreignKey": "mapObjects:mapObjectType:mapObjectType"
+                            "format": "uuid",
+                            "foreignKey": "mapObjects:mapObjectGuid:mapObjectName"
                           },
                           "pinText": {
                             "type": "string",
@@ -152,8 +208,7 @@
                       "if": {
                         "properties": {
                           "tutorialType": { "const": "keyControl" }
-                        },
-                        "required": ["uiState", "controlText"]
+                        }
                       },
                       "then": {
                         "type": "object",
@@ -174,8 +229,7 @@
                       "if": {
                         "properties": {
                           "tutorialType": { "const": "uiHighLight" }
-                        },
-                        "required": ["highLightUIObjectId", "highLightText"]
+                        }
                       },
                       "then": {
                         "type": "object",

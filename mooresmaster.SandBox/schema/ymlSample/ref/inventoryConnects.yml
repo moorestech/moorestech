@@ -1,0 +1,7 @@
+id: inventoryConnects
+type: object
+properties:
+- key: inputConnects
+  ref: blockConnectInfo
+- key: outputConnects
+  ref: blockConnectInfo
