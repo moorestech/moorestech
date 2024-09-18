@@ -101,7 +101,8 @@ public static class SemanticsGenerator
                             typeId,
                             property.Key,
                             objectInnerTypeId,
-                            schema
+                            schema,
+                            schema.IsNullable
                         )
                     ));
                     break;
@@ -113,7 +114,8 @@ public static class SemanticsGenerator
                             typeId,
                             property.Key,
                             oneOfInnerTypeId,
-                            schema
+                            schema,
+                            schema.IsNullable
                         )
                     ));
                     break;
@@ -124,7 +126,8 @@ public static class SemanticsGenerator
                             typeId,
                             property.Key,
                             null,
-                            schema
+                            schema,
+                            schema.IsNullable
                         )
                     ));
                     break;

@@ -26,6 +26,7 @@ public class SchemaTable
 public interface ISchema
 {
     string? PropertyName { get; }
+    bool IsNullable { get; }
     SchemaId? Parent { get; }
 }
 
@@ -35,41 +36,40 @@ public record Schema(string SchemaId, SchemaId InnerSchema)
     public string SchemaId = SchemaId;
 }
 
-public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required) : ISchema
+public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required, bool IsNullable) : ISchema
 {
     public Dictionary<string, SchemaId> Properties = Properties;
     public string[] Required = Required;
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern, JsonString? OverrideCodeGeneratePropertyName) : ISchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable) : ISchema
 {
+    public SchemaId Items = Items;
+    public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
+    public JsonString? Pattern = Pattern;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
     public string? PropertyName { get; } = PropertyName;
-    
-    public SchemaId Items = Items;
-    public JsonString? Pattern = Pattern;
-    public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
 }
 
 public static class ArraySchemaExtension
 {
     public static string GetPropertyName(this ArraySchema arraySchema)
     {
-        if (arraySchema.OverrideCodeGeneratePropertyName != null)
-        {
-            return arraySchema.OverrideCodeGeneratePropertyName.Literal;
-        }
-        
+        if (arraySchema.OverrideCodeGeneratePropertyName != null) return arraySchema.OverrideCodeGeneratePropertyName.Literal;
+
         return $"{arraySchema.PropertyName!}Element";
     }
 }
 
-public record OneOfSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray) : ISchema
+public record OneOfSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray, bool IsNullable) : ISchema
 {
     public IfThenSchema[] IfThenArray = IfThenArray;
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
@@ -79,35 +79,40 @@ public record IfThenSchema(JsonObject If, SchemaId Then)
     public SchemaId Then = Then;
 }
 
-public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format) : ISchema
+public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable) : ISchema
 {
     public JsonString? Format = Format;
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record NumberSchema(string? PropertyName, SchemaId? Parent) : ISchema
+public record NumberSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema
 {
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record IntegerSchema(string? PropertyName, SchemaId? Parent) : ISchema
+public record IntegerSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema
 {
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record BooleanSchema(string? PropertyName, SchemaId? Parent) : ISchema
+public record BooleanSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema
 {
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref) : ISchema
+public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, bool IsNullable) : ISchema
 {
     public string Ref = Ref;
     public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 
     public TypeName GetRefName()
