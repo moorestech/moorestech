@@ -6,9 +6,8 @@
   "properties": {
     "data": {
       "type": "array",
-      "overrideCodeGeneratePropertyName": "MapObjectElement",
-      
-      "required": ["type", "hp", "earnItemHps", "earnItems", "miningTools"],
+      "overrideCodeGeneratePropertyName": "MapObjectMasterElement",
+
       "items": {
         "type": "object",
         "properties": {
@@ -35,11 +34,14 @@
             },
             "default": [0]
           },
+          "soundEffectType":{
+            "type": "string",
+            "enum":["tree","stone"]
+          },
           "earnItems": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["itemId", "itemName", "minCount", "maxCount"],
               "properties": {
                 "itemId": {
                   "type": "string",
@@ -61,9 +63,8 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["toolItemModId", "toolItemName", "damage", "attackSpeed"],
               "properties": {
-                "toolItemModId": {
+                "toolItemGuid": {
                   "type": "string",
                   "format": "uuid",
                   "foreignKey": "items:itemGuid:name"
