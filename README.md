@@ -15,7 +15,7 @@ git fetch schema
 git subtree push --prefix=mooresmaster.SandBox/schema schema main 
 ```
 
-## Vani;aSchemaからpull
+## VanillaSchemaからpull
 ```sh
 git subtree pull --prefix=mooresmaster.SandBox/schema schema main 
 ```
