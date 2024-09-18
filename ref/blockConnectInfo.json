@@ -6,7 +6,6 @@
 
   "items": {
     "type": "object",
-    "required": ["connectType","offset", "directions","connectOption"],
 
     "properties": {
 
@@ -55,6 +54,7 @@
             },
             "then": {
               "type": "object",
+              "optional": true,
               "properties": {
               }
             }
@@ -72,7 +72,7 @@
 
                 "isReverse": {
                   "type": "boolean",
-                  "default": false
+                  "default": true
                 },
                 "onlySpecifiedTypes": {
                   "type": "array",

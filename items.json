@@ -1,17 +1,15 @@
 {
   "$id": "items",
   "type": "object",
-  "required": [ "data" ],
   "isDefaultOpen": true,
 
   "properties": {
     "data": {
       "type": "array",
-      "overrideCodeGeneratePropertyName": "ItemElement",
+      "overrideCodeGeneratePropertyName": "ItemMasterElement",
       
       "items": {
         "type": "object",
-        "required": [ "itemGuid", "itemStack" ],
         "thumbnail": "imagePath",
 
         "properties": {
