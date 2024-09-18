@@ -180,6 +180,13 @@ public static class LoaderGenerator
         );
     }
 
+    private static string GenerateInterfaceCheckCode(string currentJson, string propertyName, string constValue)
+    {
+        return $$$"""
+                  (string)({{{currentJson}}}.Parent.Parent["{{{propertyName}}}"]) == "{{{constValue}}}"
+                  """;
+    }
+
     private static string GenerateInterfaceInheritedTypeLoaderCode(JsonObject ifObject, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
@@ -190,7 +197,7 @@ public static class LoaderGenerator
 
 
         return $$$"""
-                  if ((string)(json.Parent.Parent["{{{propertyName}}}"]) == "{{{constValue}}}")
+                  if ({{{GenerateInterfaceCheckCode("json", propertyName, constValue)}}})
                   {
                       return {{{name.GetLoaderName()}}}.Load(json);
                   }
@@ -256,7 +263,7 @@ public static class LoaderGenerator
                                                 """,
 
             NullableType nullableType => $$$"""
-                                            ((json == null) ? null : {{{GeneratePropertyLoaderCode(nullableType.InnerType, json)}}})
+                                            (({{{json}}} == null) ? null : {{{GeneratePropertyLoaderCode(nullableType.InnerType, json)}}})
                                             """,
 
             _ => throw new ArgumentOutOfRangeException(nameof(type))
