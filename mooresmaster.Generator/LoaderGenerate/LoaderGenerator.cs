@@ -172,7 +172,7 @@ public static class LoaderGenerator
                        {
                            {{{string.Join("\n", interfaceSemantics.Types.Select(value => GenerateInterfaceInheritedTypeLoaderCode(value.Item1, value.Item2, nameTable))).Indent(level: 3)}}}
                            
-                           throw new global::System.NotImplementedException();
+                           throw new global::System.NotImplementedException(json.Path);
                        }
                    }
                }

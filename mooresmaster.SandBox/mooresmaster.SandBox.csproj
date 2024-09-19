@@ -22,7 +22,6 @@
 
         <AdditionalFiles Include="schema\ref\blockConnectInfo.json"/>
         <AdditionalFiles Include="schema\ref\inventoryConnects.json"/>
-        <AdditionalFiles Include="schema\ref\modelTransform.json"/>
     </ItemGroup>
 
     <ItemGroup>

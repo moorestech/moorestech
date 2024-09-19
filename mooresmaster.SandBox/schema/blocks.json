@@ -53,6 +53,19 @@
                 "if": {
                   "properties": {
                     "blockType": {
+                      "const": "Block"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
                       "const": "BeltConveyor"
                     }
                   }

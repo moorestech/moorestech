@@ -76,6 +76,7 @@
                 },
                 "onlySpecifiedTypes": {
                   "type": "array",
+                  "optional": true,
                   "items": {
                     "type": "string"
                   }

@@ -43,10 +43,10 @@
             "items": {
               "type": "object",
               "properties": {
-                "itemId": {
+                "itemGuid": {
                   "type": "string",
                   "format": "uuid",
-                  "foreignKey": "items:itemId:name"
+                  "foreignKey": "items:itemGuid:name"
                 },
                 "minCount": {
                   "type": "integer",
