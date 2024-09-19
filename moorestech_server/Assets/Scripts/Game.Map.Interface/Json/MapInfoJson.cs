@@ -14,7 +14,7 @@ namespace Game.Map.Interface.Json
     public class MapObjectInfoJson
     {
         [JsonProperty("instanceId")] public int InstanceId;
-        [JsonProperty("guid")] public string MapObjectGuidStr;
+        [JsonProperty("mapObjectGuid")] public string MapObjectGuidStr;
         [JsonIgnore] public Guid MapObjectGuid => new(MapObjectGuidStr);
         
         [JsonProperty("x")] public float X;

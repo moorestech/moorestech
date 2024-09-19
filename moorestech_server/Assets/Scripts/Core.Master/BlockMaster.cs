@@ -35,7 +35,7 @@ namespace Core.Master
             for (var i = 0; i < sortedBlockElements.Count; i++)
             {
                 var blockId = new BlockId(i+1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
-                _blockElementTableById.Add(new BlockId(i), sortedBlockElements[i]);
+                _blockElementTableById.Add(blockId, sortedBlockElements[i]);
                 _blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, new BlockId(i));
             }
             

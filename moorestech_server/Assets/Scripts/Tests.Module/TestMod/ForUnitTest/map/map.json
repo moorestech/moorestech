@@ -1,14 +1,14 @@
 ﻿{
   "mapObjects": [
     {
-      "type": "vanilla:Tree",
+      "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
       "instanceId": 0
     },
     {
-      "type": "vanilla:Tree",
+      "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
@@ -17,8 +17,7 @@
   ],
   "mapVeins": [
     {
-      "veinItemModId": "Test Author:forUniTest",
-      "veinItemName": "Test1",
+      "veinItemGuid": "10000000-0000-0000-0000-000000000000",
       "xMin": 0,
       "xMax": 0,
       "yMin": 5,
