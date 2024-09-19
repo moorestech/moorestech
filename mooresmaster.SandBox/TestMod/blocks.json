@@ -60,7 +60,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -92,7 +93,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -126,7 +128,8 @@
       "name": "TestBlock",
       "blockType": "Block",
       "itemGuid": "20000000-0000-0000-0000-000000000000",
-      "blockGuid": "828761da-652c-419e-8d1e-79ee1c667675"
+      "blockGuid": "828761da-652c-419e-8d1e-79ee1c667675",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -186,7 +189,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "outputConnects": [
@@ -203,7 +207,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -271,6 +276,7 @@
       "blockParam": {
         "fuelItemSlotCount": 10,
         "isInfinityPower": false,
+        "infinityPower": 0,
         "fuelItems": [
           {
             "power": 100,
@@ -282,7 +288,11 @@
             "time": 2,
             "itemGuid": "20000000-0000-0000-0000-000000000000"
           }
-        ]
+        ],
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": []
+        }
       },
       "itemGuid": "50000000-0000-0000-0000-000000000000",
       "blockGuid": "9d7d461b-2959-4b64-a627-096dad977769"
@@ -351,7 +361,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -383,7 +394,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -448,7 +460,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -480,7 +493,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -551,7 +565,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -583,7 +598,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -618,7 +634,8 @@
       "name": "MultiBlock1",
       "blockType": "Block",
       "itemGuid": "90000000-0000-0000-0000-000000000000",
-      "blockGuid": "3f12ba81-274c-4d25-a8cb-999cd4036f27"
+      "blockGuid": "3f12ba81-274c-4d25-a8cb-999cd4036f27",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -646,7 +663,8 @@
       "name": "MultiBlock2",
       "itemGuid": "11000000-0000-0000-0000-000000000000",
       "blockGuid": "90c233a5-3e24-405b-b0cc-5ea68ba0e228",
-      "blockType": "Block"
+      "blockType": "Block",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -674,7 +692,8 @@
       "itemGuid": "12000000-0000-0000-0000-000000000000",
       "name": "MultiBlock3",
       "blockGuid": "07509108-21d2-4137-b6b2-89ebf6ff625e",
-      "blockType": "Block"
+      "blockType": "Block",
+      "blockParam": { }
     },
     {
       "modelTransform": {
@@ -1037,7 +1056,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1069,7 +1089,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -1257,6 +1278,51 @@
             "connectType": "Gear",
             "connectOption": {
               "isReverse": true
+            },
+            "directions": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                -1,
+                0
+              ]
+            ]
+          },
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
             }
           }
         ]
@@ -1519,7 +1585,60 @@
               ]
             ]
           }
-        ]
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": { }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": { }
+            }
+          ]
+        }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "ff40f02e-5be7-4107-a795-2320fbada3d2"
@@ -1574,7 +1693,8 @@
                   -1,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1606,7 +1726,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -1664,7 +1785,8 @@
                   -1,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1681,7 +1803,8 @@
                   1,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
@@ -1734,7 +1857,8 @@
                   1,
                   1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ],
           "inputConnects": [
@@ -1756,7 +1880,8 @@
                   -1,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": { }
             }
           ]
         }
