@@ -5,6 +5,7 @@ using Mooresmaster.Loader.BlocksModule;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json.Linq;
 using UnitGenerator;
+using UnityEngine;
 
 namespace Core.Master
 {
@@ -31,8 +32,9 @@ namespace Core.Master
             // アイテムID 0は空のアイテムとして予約しているので、1から始める
             _blockElementTableById = new Dictionary<BlockId,BlockMasterElement>();
             _blockGuidToBlockId = new Dictionary<Guid,BlockId>();
-            for (var i = 1; i < sortedBlockElements.Count; i++)
+            for (var i = 0; i < sortedBlockElements.Count; i++)
             {
+                var blockId = new BlockId(i+1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
                 _blockElementTableById.Add(new BlockId(i), sortedBlockElements[i]);
                 _blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, new BlockId(i));
             }
@@ -42,7 +44,14 @@ namespace Core.Master
             foreach (var blockElement in Blocks.Data)
             {
                 var itemId = itemMaster.GetItemId(blockElement.ItemGuid);
-                _itemIdToBlockId.Add(itemId, _blockGuidToBlockId[blockElement.BlockGuid]);
+                if (_itemIdToBlockId.TryGetValue(itemId, out var blockId))
+                {
+                    throw new InvalidOperationException($"Duplicate itemId. ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
+                }
+                else
+                {
+                    _itemIdToBlockId.Add(itemId, _blockGuidToBlockId[blockElement.BlockGuid]);
+                }
             }
         }
         
