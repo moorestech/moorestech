@@ -12,17 +12,18 @@
         {
           "attackSpeed": 1.6,
           "damage": 1,
-          "toolItemModId": "value itemIdが未設定 foreignKey items:itemId:name0.22563141637467998"
+          "toolItemGuid": "10000000-0000-0000-0000-000000000000"
         }
       ],
       "earnItems": [
         {
           "maxCount": 5,
           "minCount": 3,
-          "itemId": "10000000-0000-0000-0000-000000000000"
+          "itemGuid": "10000000-0000-0000-0000-000000000000"
         }
       ],
-      "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd"
+      "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
+      "soundEffectType": "tree"
     }
   ]
 }

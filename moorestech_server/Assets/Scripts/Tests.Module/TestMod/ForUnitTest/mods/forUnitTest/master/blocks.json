@@ -276,6 +276,7 @@
       "blockParam": {
         "fuelItemSlotCount": 10,
         "isInfinityPower": false,
+        "infinityPower": 0,
         "fuelItems": [
           {
             "power": 100,
@@ -287,7 +288,11 @@
             "time": 2,
             "itemGuid": "20000000-0000-0000-0000-000000000000"
           }
-        ]
+        ],
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": []
+        }
       },
       "itemGuid": "50000000-0000-0000-0000-000000000000",
       "blockGuid": "9d7d461b-2959-4b64-a627-096dad977769"
@@ -1273,6 +1278,51 @@
             "connectType": "Gear",
             "connectOption": {
               "isReverse": true
+            },
+            "directions": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                -1,
+                0
+              ]
+            ]
+          },
+          {
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "directions": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ],
+            "connectType": "Gear",
+            "connectOption": {
+              "isReverse": false
             }
           }
         ]
@@ -1535,7 +1585,60 @@
               ]
             ]
           }
-        ]
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": { }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": { }
+            }
+          ]
+        }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "ff40f02e-5be7-4107-a795-2320fbada3d2"
