@@ -44,7 +44,7 @@ namespace Game.Map
             foreach (var earnItemConfig in mapObjectConfig.EarnItems)
             {
                 var itemCount = random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
-                var itemStack = ServerContext.ItemStackFactory.Create(earnItemConfig.ItemId, itemCount);
+                var itemStack = ServerContext.ItemStackFactory.Create(earnItemConfig.ItemGuid, itemCount);
                 
                 EarnItems.Add(itemStack);
             }
