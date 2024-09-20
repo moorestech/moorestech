@@ -79,8 +79,9 @@ public record IfThenSchema(JsonObject If, SchemaId Then)
     public SchemaId Then = Then;
 }
 
-public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable) : ISchema
+public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable, string[]? Enums) : ISchema
 {
+    public string[]? Enums = Enums;
     public JsonString? Format = Format;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;

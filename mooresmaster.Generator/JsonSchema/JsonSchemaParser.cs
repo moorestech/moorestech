@@ -84,7 +84,21 @@ public static class JsonSchemaParser
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var format = json["format"] as JsonString;
-        return table.Add(new StringSchema(json.PropertyName, parent, format, IsNullable(json)));
+        var enumJson = json["enum"];
+        List<string>? enums = null;
+        if (enumJson is JsonArray enumArray)
+        {
+            enums = new List<string>();
+            foreach (var enumNode in enumArray.Nodes)
+            {
+                if (enumNode is not JsonString enumString)
+                    throw new Exception("Enum must be an array of strings");
+
+                enums.Add(enumString.Literal);
+            }
+        }
+
+        return table.Add(new StringSchema(json.PropertyName, parent, format, IsNullable(json), enums?.ToArray()));
     }
 
     private static SchemaId ParseNumber(JsonObject json, SchemaId? parent, SchemaTable table)
