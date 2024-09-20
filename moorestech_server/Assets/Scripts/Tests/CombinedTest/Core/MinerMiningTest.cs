@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
             
             var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
-            var miningTime = (int)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningTime = (float)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             
             
             var dummyInventory = new DummyBlockInventory();
