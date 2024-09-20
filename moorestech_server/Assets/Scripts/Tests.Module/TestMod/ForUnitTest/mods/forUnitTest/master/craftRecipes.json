@@ -1,3 +1,79 @@
 {
-  "data": []
+  "data": [
+    {
+      "time": 1,
+      "summary": "New Challenge summary",
+      "title": "New Challenge",
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "resultItem": {
+        "count": 2,
+        "itemGuid": "30000000-0000-0000-0000-000000000000"
+      },
+      "requiredItems": [
+        {
+          "percent": 1,
+          "count": 2,
+          "maxCount": 3,
+          "minCount": 1,
+          "itemGuid": "10000000-0000-0000-0000-000000000000"
+        },
+        {
+          "count": 3,
+          "itemGuid": "20000000-0000-0000-0000-000000000000"
+        },
+        {
+          "count": 2,
+          "itemGuid": "30000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "craftRecipeGuid": "a7b03292-073b-460f-aed4-78d9dc6db7a8"
+    },
+    {
+      "resultItem": {
+        "count": 2,
+        "itemGuid": "10000000-0000-0000-0000-000000000000"
+      },
+      "requiredItems": [
+        {
+          "count": 2,
+          "itemGuid": "10000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "craftRecipeGuid": "aab28fa7-d853-4446-9509-a87070f423f0"
+    },
+    {
+      "resultItem": {
+        "count": 80,
+        "itemGuid": "60000000-0000-0000-0000-000000000000"
+      },
+      "requiredItems": [
+        {
+          "count": 5,
+          "itemGuid": "60000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "craftRecipeGuid": "f94c8265-be95-4a1e-810f-e4d986f05006"
+    },
+    {
+      "resultItem": {
+        "count": 1,
+        "itemGuid": "30000000-0000-0000-0000-000000000000"
+      },
+      "requiredItems": [
+        {
+          "count": 3,
+          "itemGuid": "10000000-0000-0000-0000-000000000000"
+        },
+        {
+          "count": 5,
+          "itemGuid": "30000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "craftRecipeGuid": "f1b23a8e-83fc-43f2-8f79-6d236c56e81b"
+    }
+  ]
 }

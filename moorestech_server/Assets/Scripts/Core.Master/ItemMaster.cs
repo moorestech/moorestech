@@ -10,7 +10,7 @@ namespace Core.Master
 {
     // アイテムId専用の方を定義
     // NOTE このIDは永続化されれることはなく、メモリ上、ネットワーク通信上でのみ使用する値
-    [UnitOf(typeof(int))]
+    [UnitOf(typeof(int), UnitGenerateOptions.MessagePackFormatter)]
     public partial struct ItemId { }
     
     public class ItemMaster
