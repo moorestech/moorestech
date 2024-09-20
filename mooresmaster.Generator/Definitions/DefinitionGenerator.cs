@@ -74,36 +74,36 @@ public static class DefinitionGenerator
         switch (typeSemantics.Schema)
         {
             case ArraySchema arraySchema:
-                propertyTable["items"] = new PropertyDefinition(new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items]], table.Table[arraySchema.Items], semantics, table)), null, arraySchema.IsNullable);
+                propertyTable["items"] = new PropertyDefinition(new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items]], table.Table[arraySchema.Items], semantics, table)), null, arraySchema.IsNullable, null);
                 break;
             case BooleanSchema:
-                propertyTable["value"] = new PropertyDefinition(new BooleanType(), null, typeSemantics.Schema.IsNullable);
+                propertyTable["value"] = new PropertyDefinition(new BooleanType(), null, typeSemantics.Schema.IsNullable, null);
                 break;
             case IntegerSchema:
-                propertyTable["value"] = new PropertyDefinition(new IntType(), null, typeSemantics.Schema.IsNullable);
+                propertyTable["value"] = new PropertyDefinition(new IntType(), null, typeSemantics.Schema.IsNullable, null);
                 break;
             case NumberSchema:
-                propertyTable["value"] = new PropertyDefinition(new FloatType(), null, typeSemantics.Schema.IsNullable);
+                propertyTable["value"] = new PropertyDefinition(new FloatType(), null, typeSemantics.Schema.IsNullable, null);
                 break;
-            case StringSchema:
-                propertyTable["value"] = new PropertyDefinition(new StringType(), null, typeSemantics.Schema.IsNullable);
+            case StringSchema stringSchema:
+                propertyTable["value"] = new PropertyDefinition(new StringType(), null, typeSemantics.Schema.IsNullable, stringSchema.Enums);
                 break;
-            case ObjectSchema objectSchema:
+            case ObjectSchema:
                 foreach (var propertyId in typeSemantics.Properties)
                 {
                     var propertySemantics = semantics.PropertySemanticsTable[propertyId];
                     var propertyTypeId = propertySemantics.PropertyType;
                     var schema = semantics.PropertySemanticsTable[propertyId].Schema;
                     var name = nameTable.PropertyNames[propertyId];
-                    propertyTable[name] = new PropertyDefinition(Type.GetType(nameTable, propertyTypeId, schema, semantics, table), propertyId, typeSemantics.Schema.IsNullable);
+                    propertyTable[name] = new PropertyDefinition(Type.GetType(nameTable, propertyTypeId, schema, semantics, table), propertyId, typeSemantics.Schema.IsNullable, null);
                 }
 
                 break;
             case OneOfSchema:
-                propertyTable["value"] = new PropertyDefinition(new CustomType(nameTable.TypeNames[classId]), null, typeSemantics.Schema.IsNullable);
+                propertyTable["value"] = new PropertyDefinition(new CustomType(nameTable.TypeNames[classId]), null, typeSemantics.Schema.IsNullable, null);
                 break;
             case RefSchema refSchema:
-                propertyTable["value"] = new PropertyDefinition(new CustomType(refSchema.GetRefName()), null, typeSemantics.Schema.IsNullable);
+                propertyTable["value"] = new PropertyDefinition(new CustomType(refSchema.GetRefName()), null, typeSemantics.Schema.IsNullable, null);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(typeSemantics.Schema));
