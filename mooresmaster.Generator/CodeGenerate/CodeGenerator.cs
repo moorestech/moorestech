@@ -68,6 +68,8 @@ public static class CodeGenerator
                           {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
                           
                           {{{GenerateTypeConstructorCode(typeDef).Indent(level: 2)}}}
+                          
+                          {{{GenerateConstEnumCode(typeDef).Indent(level: 2)}}}
                       }
                   }
                   """;
@@ -90,6 +92,30 @@ public static class CodeGenerator
                   {
                       {{{string.Join("\n", typeDef.PropertyTable.Select(kvp => $"this.{kvp.Key} = {kvp.Key};")).Indent()}}}
                   }
+                  """;
+    }
+
+    private static string GenerateConstEnumCode(TypeDefinition typeDef)
+    {
+        var enumCodes = new List<string>();
+
+        foreach (var kvp in typeDef.PropertyTable)
+        {
+            var name = kvp.Key;
+            var property = kvp.Value;
+            if (property.Enums is null)
+                continue;
+
+            enumCodes.Add($$$"""
+                             public static class {{{name}}}Const
+                             {
+                             {{{string.Join("\n", property.Enums.Select(e => $"    public const string {e} = \"{e}\";"))}}}
+                             }
+                             """);
+        }
+
+        return $$$"""
+                  {{{string.Join("\n", enumCodes)}}}
                   """;
     }
 

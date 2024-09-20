@@ -95,7 +95,10 @@ public static class DefinitionGenerator
                     var propertyTypeId = propertySemantics.PropertyType;
                     var schema = semantics.PropertySemanticsTable[propertyId].Schema;
                     var name = nameTable.PropertyNames[propertyId];
-                    propertyTable[name] = new PropertyDefinition(Type.GetType(nameTable, propertyTypeId, schema, semantics, table), propertyId, typeSemantics.Schema.IsNullable, null);
+                    string[]? enums = null;
+                    if (schema is StringSchema stringSchema) enums = stringSchema.Enums;
+
+                    propertyTable[name] = new PropertyDefinition(Type.GetType(nameTable, propertyTypeId, schema, semantics, table), propertyId, typeSemantics.Schema.IsNullable, enums);
                 }
 
                 break;
