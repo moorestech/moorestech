@@ -14,7 +14,7 @@ using mooresmaster.Generator.Semantic;
 namespace mooresmaster.Generator;
 
 [Generator(LanguageNames.CSharp)]
-public class SampleIncrementalSourceGenerator : IIncrementalGenerator
+public class MooresmasterSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
