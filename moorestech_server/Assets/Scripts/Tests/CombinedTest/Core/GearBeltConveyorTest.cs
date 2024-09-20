@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core
             
             const int torqueRate = 1;
             const int generatorRpm = 10;
-            var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as GearBeltConveyorBlockParam;
+            var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
             var duration = 1f / (generatorRpm * torqueRate * gearBeltConveyorBlockParam.BeltConveyorSpeed);
             var expectedEndTime = DateTime.Now.AddSeconds(duration);
             var startTime = DateTime.Now;

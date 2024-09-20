@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.Gear
             base(new Torque(0), blockInstanceId, connectorComponent)
         {
             TeethCount = simpleGearGeneratorBlockParam.TeethCount;
-            GenerateRpm = new RPM(simpleGearGeneratorBlockParam.GenerateTorque);
+            GenerateRpm = new RPM(simpleGearGeneratorBlockParam.GenerateRpm);
             GenerateTorque = new Torque(simpleGearGeneratorBlockParam.GenerateTorque);
             GenerateIsClockwise = true;
         }
