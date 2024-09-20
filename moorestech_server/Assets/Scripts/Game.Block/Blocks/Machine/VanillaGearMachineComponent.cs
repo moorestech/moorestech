@@ -16,6 +16,13 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public class VanillaGearMachineComponent : IGear
     {
+        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
+        public int TeethCount => _gearMachineBlockParam.TeethCount;
+        public BlockInstanceId BlockInstanceId { get; }
+        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
+        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        public bool IsRocked => _simpleGearService.IsRocked;
+        
         private readonly GearMachineBlockParam _gearMachineBlockParam;
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         
@@ -29,12 +36,6 @@ namespace Game.Block.Blocks.Machine
             _connectorComponent = connectorComponent;
             _simpleGearService = new SimpleGearService();
         }
-        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
-        public int TeethCount => _gearMachineBlockParam.TeethCount;
-        public BlockInstanceId BlockInstanceId { get; }
-        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
-        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
-        public bool IsRocked => _simpleGearService.IsRocked;
         
         public IReadOnlyList<GearConnect> Connects =>
             _connectorComponent.ConnectedTargets.Select(
@@ -70,7 +71,9 @@ namespace Game.Block.Blocks.Machine
             var torqueRate = Mathf.Min((torque / _gearMachineBlockParam.RequireTorque).AsPrimitive(), 1);
             var powerRate = rpmRate * torqueRate;
             
-            _vanillaMachineProcessorComponent.SupplyPower(new ElectricPower(_gearMachineBlockParam.RequireTorque * powerRate));
+            var requiredGearPower = _gearMachineBlockParam.RequiredRpm * _gearMachineBlockParam.RequireTorque;
+            var currentElectricPower = new ElectricPower(requiredGearPower * powerRate);
+            _vanillaMachineProcessorComponent.SupplyPower(currentElectricPower);
         }
         
         public List<GearConnect> GetGearConnects()

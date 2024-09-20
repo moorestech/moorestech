@@ -29,5 +29,9 @@ namespace Tests.Module.TestMod
         public static readonly BlockId StraightItemShooter = (BlockId)22;
         public static readonly BlockId DownItemShooter = (BlockId)23;
         public static readonly BlockId UpItemShooter = (BlockId)24;
+        
+        public static readonly BlockId MachineRecipeTest1 = (BlockId)25;
+        public static readonly BlockId MachineRecipeTest2 = (BlockId)26;
+        public static readonly BlockId MachineRecipeTest3 = (BlockId)27;
     }
 }

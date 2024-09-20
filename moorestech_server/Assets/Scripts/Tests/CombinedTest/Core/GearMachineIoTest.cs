@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Core
             }
             
             var gearMachineComponent = block.GetComponent<VanillaGearMachineComponent>();
-            var gearMachineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as GearMachineBlockParam;
+            var gearMachineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine).BlockParam as GearMachineBlockParam;
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);

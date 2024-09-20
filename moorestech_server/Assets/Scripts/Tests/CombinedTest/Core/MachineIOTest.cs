@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingOutputTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.MachineIoTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
@@ -58,7 +58,12 @@ namespace Tests.CombinedTest.Core
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
             
             Assert.AreNotEqual(0, output.Count);
-            for (var i = 0; i < output.Count; i++) Assert.AreEqual(recipe.OutputItems[i].ItemGuid, output[i]);
+            for (var i = 0; i < output.Count; i++)
+            {
+                var expectedOutputId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
+                Assert.AreEqual(expectedOutputId, output[i].Id);
+                Assert.AreEqual(recipe.OutputItems[i].Count, output[i].Count);
+            }
         }
         
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)

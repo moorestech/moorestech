@@ -155,6 +155,24 @@
       "name": "GearBeltConveyor",
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestElectricMachine1",
+      "itemGuid": "11900000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestElectricMachine2",
+      "itemGuid": "12010000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
+    },
+    {
+      "maxStack": 100,
+      "name": "TestElectricMachine3",
+      "itemGuid": "12102000-0000-0000-0000-000000000000",
+      "imagePath": "Test1"
     }
   ]
 }

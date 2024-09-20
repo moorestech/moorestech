@@ -33,7 +33,7 @@ namespace Core.Master
             {
                 var itemId = new ItemId(i+1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
                 _itemElementTableById.Add(itemId, sortedItemElements[i]);
-                _itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, new ItemId(i));
+                _itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, itemId);
             }
         }
         
