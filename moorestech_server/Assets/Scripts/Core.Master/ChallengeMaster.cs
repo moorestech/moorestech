@@ -34,8 +34,8 @@ namespace Core.Master
             InitialChallenge = new List<Guid>();
             foreach (var challengeElement in Challenges.Data)
             {
-                // prevが自分自身のものが初期チャレンジとして扱う
-                if (challengeElement.ChallengeGuid == challengeElement.PrevChallengeGuid)
+                // prevがnullの場合が初期チャレンジ
+                if (!challengeElement.PrevChallengeGuid.HasValue)
                 {
                     InitialChallenge.Add(challengeElement.ChallengeGuid);
                 }

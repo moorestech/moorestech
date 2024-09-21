@@ -53,8 +53,8 @@ namespace Server.Protocol.PacketResponse
         [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
         [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
         
-        public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
-        public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
+        [IgnoreMember] public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
+        [IgnoreMember] public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseChallengeInfoMessagePack()

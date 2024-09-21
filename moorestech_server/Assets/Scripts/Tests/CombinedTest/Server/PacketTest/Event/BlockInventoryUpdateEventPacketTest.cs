@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Vector3Int pos = new(5, 7);
             
             //ブロックをセットアップ
-            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.BlockId, pos, BlockDirection.North, out var block);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             
             
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var data = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
             
             Assert.AreEqual(1, data.Slot); // slot id
-            Assert.AreEqual(4, data.Item.Id); // item id
+            Assert.AreEqual(4, data.Item.Id.AsPrimitive()); // item id
             Assert.AreEqual(8, data.Item.Count); // item count
             Assert.AreEqual(5, data.Position.X); // x
             Assert.AreEqual(7, data.Position.Y); // y
@@ -89,10 +89,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //ブロック1をセットアップ
-            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.BlockId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
             
             //ブロック2をセットアップ
-            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.BlockId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
             
             
             //一つ目のブロックインベントリを開く

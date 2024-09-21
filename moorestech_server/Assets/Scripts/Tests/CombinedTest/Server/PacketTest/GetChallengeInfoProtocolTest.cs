@@ -15,11 +15,10 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class GetChallengeInfoProtocolTest
     {
         private const int PlayerId = 1;
-        private const string Challenge1Guid = "";
-        private const string Challenge2Guid = "";
-        private const string Challenge3Guid = "";
-        private const string Challenge4Guid = "";
-        private const string Challenge5Guid = "";
+        private const string Challenge1Guid = "00000000-0000-0000-4567-000000000001";
+        private const string Challenge2Guid = "00000000-0000-0000-4567-000000000002";
+        private const string Challenge3Guid = "00000000-0000-0000-4567-000000000003";
+        private const string Challenge4Guid = "00000000-0000-0000-4567-000000000004";
         
         [Test]
         public void GetCompletedChallengeTest()
@@ -52,8 +51,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge2Guid)));
             Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge3Guid)));
             
-            Assert.AreEqual(1, challengeInfo.CompletedChallengeGuids.Count);
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge4Guid)));
+            Assert.AreEqual(1, challengeInfo.CurrentChallengeGuids.Count);
+            Assert.IsTrue(challengeInfo.CurrentChallengeGuids.Contains(Guid.Parse(Challenge4Guid)));
         }
     }
 }

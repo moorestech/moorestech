@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -106,7 +107,8 @@ namespace Tests.CombinedTest.Game
             // Check that the challenge is cleared
             var loadedChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);
-            Assert.AreEqual(1000, loadedChallengeInfo.CompletedChallengeGuids[0]);
+            var challengeGuid = new Guid("00000000-0000-0000-4567-000000000001");
+            Assert.AreEqual(challengeGuid, loadedChallengeInfo.CompletedChallengeGuids[0]);
             
             Assert.AreEqual(currentChallengeCount, loadedChallengeInfo.CurrentChallenges.Count);
             for (int i = 0; i < loadedChallengeInfo.CompletedChallengeGuids.Count; i++)

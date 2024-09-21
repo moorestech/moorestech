@@ -32,9 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var blockDirection = (BlockDirection)random.Next(0, 4);
                 var pos = new Vector3Int(random.Next(-40, 40), random.Next(-40, 40));
                 
-                var blockId = random.Next(0, 3) == 1
-                    ? random.Next(short.MaxValue, int.MaxValue)
-                    : random.Next(1, 20);
+                var blockId = random.Next(1, 20);
                 worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, out _);
             }
             

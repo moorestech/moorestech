@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Core.Master;
 using Core.Update;
@@ -42,7 +43,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
-            Assert.AreEqual(1000, completedChallenge.CompletedChallengeGuid);
+            var challengeId = new Guid("00000000-0000-0000-4567-000000000001");
+            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
         }
         
         public static void ClearCraftChallenge(PacketResponseCreator packet, ServiceProvider serviceProvider)
@@ -90,7 +92,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
-            Assert.AreEqual(1010, completedChallenge.CompletedChallengeGuid);
+            var challengeId = new Guid("00000000-0000-0000-4567-000000000002");
+            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
         }
         
         [Test]
@@ -110,7 +113,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
-            Assert.AreEqual(1020, completedChallenge.CompletedChallengeGuid);
+            var challengeId = new Guid("00000000-0000-0000-4567-000000000003");
+            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
         }
     }
 }

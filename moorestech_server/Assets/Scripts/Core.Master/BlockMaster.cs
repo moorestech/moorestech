@@ -59,7 +59,7 @@ namespace Core.Master
         {
             if (!_blockElementTableById.TryGetValue(blockId, out var element))
             {
-                throw new InvalidOperationException($"ItemElement not found. ItemId:{blockId}");
+                throw new InvalidOperationException($"BlockElement not found. BlockId:{blockId}");
             }
             return element;
         }

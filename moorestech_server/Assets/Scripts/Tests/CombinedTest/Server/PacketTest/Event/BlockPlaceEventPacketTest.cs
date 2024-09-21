@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 var x = random.Next(-10000, 10000);
                 var y = random.Next(-10000, 10000);
                 var pos = new Vector3Int(x, y);
-                var blockId = random.Next(1, 1000);
+                var blockId = random.Next(1, 20);
                 var direction = random.Next(0, 4);
                 
                 //設置したブロックを保持する

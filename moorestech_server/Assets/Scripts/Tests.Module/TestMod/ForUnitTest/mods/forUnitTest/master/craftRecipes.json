@@ -1,14 +1,6 @@
 {
   "data": [
     {
-      "time": 1,
-      "summary": "New Challenge summary",
-      "title": "New Challenge",
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
       "resultItem": {
         "count": 2,
         "itemGuid": "00000000-0000-0000-1234-000000000003"
@@ -35,11 +27,11 @@
     {
       "resultItem": {
         "count": 2,
-        "itemGuid": "00000000-0000-0000-1234-000000000001"
+        "itemGuid": "00000000-0000-0000-1234-000000000003"
       },
       "requiredItems": [
         {
-          "count": 2,
+          "count": 1,
           "itemGuid": "00000000-0000-0000-1234-000000000001"
         }
       ],
