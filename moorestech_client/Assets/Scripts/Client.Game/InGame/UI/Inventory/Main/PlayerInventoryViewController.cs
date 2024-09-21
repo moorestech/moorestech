@@ -8,6 +8,7 @@ using Client.Game.InGame.UI.Inventory.Element;
 using Client.Input;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using UniRx;
@@ -40,7 +41,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         private ISubInventory _subInventory;
         
-        private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
+        private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemMaster.EmptyItemId;
         
         private void Awake()
         {
@@ -185,7 +186,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 
                 //空スロットの時はアイテムを持たない
                 var item = _playerInventory.LocalPlayerInventory[slotIndex];
-                if (item.Id == ItemConst.EmptyItemId) return;
+                if (item.Id == ItemMaster.EmptyItemId) return;
                 
                 var halfItemCount = item.Count / 2;
                 
@@ -197,7 +198,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             if (IsGrabItem)
             {
-                var isSlotEmpty = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConst.EmptyItemId;
+                var isSlotEmpty = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemMaster.EmptyItemId;
                 
                 if (isSlotEmpty)
                 {
@@ -251,7 +252,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             // まだスロットをドラッグしてない時
             var doNotDragging = !_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex);
             // アイテムがない時か、同じアイテムがあるとき
-            var isNotSlotOrSameItem = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConst.EmptyItemId || _playerInventory.LocalPlayerInventory[slotIndex].Id == _grabInventoryBeforeDrag.Id;
+            var isNotSlotOrSameItem = _playerInventory.LocalPlayerInventory[slotIndex].Id == ItemMaster.EmptyItemId || _playerInventory.LocalPlayerInventory[slotIndex].Id == _grabInventoryBeforeDrag.Id;
             
             // まだスロットをドラッグしてない時 か アイテムがない時か、同じアイテムがあるとき
             if (doNotDragging && isNotSlotOrSameItem)

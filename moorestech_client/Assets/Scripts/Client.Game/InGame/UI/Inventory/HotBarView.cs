@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using UnityEngine;
@@ -89,7 +90,7 @@ namespace Client.Game.InGame.UI.Inventory
                 
                 var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
                 
-                if (itemId == ItemConst.EmptyItemId) return;
+                if (itemId == ItemMaster.EmptyItemId) return;
                 
                 var itemObjectData = itemObjectContainer.GetItemPrefab(itemId);
                 if (itemObjectData != null)

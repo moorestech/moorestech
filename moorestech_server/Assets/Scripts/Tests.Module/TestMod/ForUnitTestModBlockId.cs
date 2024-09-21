@@ -21,8 +21,8 @@ namespace Tests.Module.TestMod
         public static readonly BlockId GearMachine = (BlockId)15;
         public static readonly BlockId SimpleGearGenerator = (BlockId)16;
         public static readonly BlockId SimpleFastGearGenerator = (BlockId)17;
-        public static readonly BlockId SmallRequireTorqueGear = (BlockId)18;
-        public static readonly BlockId BigRequireTorqueGear = (BlockId)19;
+        public static readonly BlockId Teeth10RequireTorqueTestGear = (BlockId)18;
+        public static readonly BlockId Teeth20RequireTorqueTestGear = (BlockId)19;
         public static readonly BlockId InfinityTorqueSimpleGearGenerator = (BlockId)20;
         public static readonly BlockId GearBeltConveyor = (BlockId)21;
         

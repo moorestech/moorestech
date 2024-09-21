@@ -2,6 +2,7 @@
 using Client.Game.InGame.UI.Util;
 using Client.Mod.Texture;
 using Core.Const;
+using Core.Master;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -60,7 +61,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
             
             countText.text = count != 0 ? count.ToString() : string.Empty;
             
-            if (itemView.ItemId == ItemConst.EmptyItemId)
+            if (itemView.ItemId == ItemMaster.EmptyItemId)
             {
                 itemImage.gameObject.SetActive(false);
                 

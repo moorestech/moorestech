@@ -174,7 +174,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             var itemPerCount = new Dictionary<ItemId, int>();
             foreach (var item in _localPlayerInventory)
             {
-                if (item.Id == ItemConst.EmptyItemId) continue;
+                if (item.Id == ItemMaster.EmptyItemId) continue;
                 if (itemPerCount.ContainsKey(item.Id))
                     itemPerCount[item.Id] += item.Count;
                 else
@@ -198,7 +198,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             var itemPerCount = new Dictionary<ItemId, int>();
             foreach (var item in _localPlayerInventory)
             {
-                if (item.Id == ItemConst.EmptyItemId) continue;
+                if (item.Id == ItemMaster.EmptyItemId) continue;
                 if (itemPerCount.ContainsKey(item.Id))
                     itemPerCount[item.Id] += item.Count;
                 else

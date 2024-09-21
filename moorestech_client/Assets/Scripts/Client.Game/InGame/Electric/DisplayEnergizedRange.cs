@@ -103,7 +103,7 @@ namespace Client.Game.InGame.Electric
                 var hotBarSlot = _hotBarView.SelectIndex;
                 var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
                 
-                if (id == ItemConst.EmptyItemId) return (false, false);
+                if (id == ItemMaster.EmptyItemId) return (false, false);
                 
 
                 if (!MasterHolder.BlockMaster.IsBlock(id)) return (false, false);
