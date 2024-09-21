@@ -9,8 +9,8 @@
         "itemName": "Test3"
       },
       "summary": "テスト1",
-      "skitType": "",
-      "fireSkitName": ""
+      "playSkitType": "None",
+      "playSkitParam": {}
     },
     {
       "id": 1010,
@@ -22,8 +22,8 @@
         "itemCount": 3
       },
       "summary": "テスト2",
-      "skitType": "",
-      "fireSkitName": ""
+      "playSkitType": "None",
+      "playSkitParam": {}
     },
     {
       "id": 1020,
@@ -34,8 +34,8 @@
         "blockName": "TestElectricMachine"
       },
       "summary": "テスト2",
-      "skitType": "",
-      "fireSkitName": ""
+      "playSkitType": "None",
+      "playSkitParam": {}
     },
     {
       "id": 1030,
@@ -47,8 +47,8 @@
         "itemCount": 3
       },
       "summary": "テスト1をクリアしたら始まるチャレンジ",
-      "skitType": "",
-      "fireSkitName": ""
+      "playSkitType": "None",
+      "playSkitParam": {}
     }
   ]
 }
