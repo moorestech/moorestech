@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -31,8 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 3);
-            var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 1);
+            var item1 = itemStackFactory.Create(new ItemId(1), 3);
+            var item2 = itemStackFactory.Create(new ItemId(2), 1);
             
             var blockInventory = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
             

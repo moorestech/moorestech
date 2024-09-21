@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -17,7 +17,6 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
-        private readonly IBlockConfig _blockConfig;
         private readonly IBlockFactory _blockFactory;
         private readonly Dictionary<BlockInstanceId, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
         
@@ -26,10 +25,9 @@ namespace Game.World.DataStore
         
         private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         
-        public WorldBlockDatastore(IBlockFactory blockFactory, IBlockConfig blockConfig)
+        public WorldBlockDatastore(IBlockFactory blockFactory)
         {
             _blockFactory = blockFactory;
-            _blockConfig = blockConfig;
         }
         
         //メインのデータストア
@@ -38,10 +36,11 @@ namespace Game.World.DataStore
         //イベント
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         
-        public bool TryAddLoadedBlock(long blockHash, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block)
+        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block)
         {
-            var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockHash).BlockSize);
-            block = _blockFactory.Load(blockHash, blockInstanceId, state, blockPositionInfo);
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockGuid).BlockSize;
+            var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
+            block = _blockFactory.Load(blockGuid, blockInstanceId, state, blockPositionInfo);
             return TryAddBlock(block);
         }
         public bool RemoveBlock(Vector3Int pos)
@@ -92,9 +91,10 @@ namespace Game.World.DataStore
             throw new Exception("ブロックがありません");
         }
         
-        public bool TryAddBlock(int blockId, Vector3Int position, BlockDirection direction, out IBlock block)
+        public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block)
         {
-            var blockPositionInfo = new BlockPositionInfo(position, direction, _blockConfig.GetBlockConfig(blockId).BlockSize);
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
             block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
             return TryAddBlock(block);
         }
@@ -108,7 +108,7 @@ namespace Game.World.DataStore
             if (!_blockMasterDictionary.ContainsKey(block.BlockInstanceId) &&
                 !_coordinateDictionary.ContainsKey(pos))
             {
-                var data = new WorldBlockData(block, pos, blockDirection, ServerContext.BlockConfig);
+                var data = new WorldBlockData(block, pos, blockDirection);
                 _blockMasterDictionary.Add(block.BlockInstanceId, data);
                 _coordinateDictionary.Add(pos, block.BlockInstanceId);
                 ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
@@ -146,7 +146,7 @@ namespace Game.World.DataStore
             foreach (KeyValuePair<BlockInstanceId, WorldBlockData> block in _blockMasterDictionary)
                 list.Add(new BlockJsonObject(
                     block.Value.BlockPositionInfo.OriginalPos,
-                    block.Value.Block.BlockHash,
+                    block.Value.Block.BlockGuid.ToString(),
                     block.Value.Block.BlockInstanceId.AsPrimitive(),
                     block.Value.Block.GetSaveState(),
                     (int)block.Value.BlockPositionInfo.BlockDirection));
@@ -160,12 +160,15 @@ namespace Game.World.DataStore
             var blockFactory = ServerContext.BlockFactory;
             foreach (var blockSave in saveBlockDataList)
             {
+                var blockId = MasterHolder.BlockMaster.GetBlockId(blockSave.BlockGuid);
+                
                 var pos = blockSave.Pos;
                 var direction = (BlockDirection)blockSave.Direction;
-                var size = ServerContext.BlockConfig.GetBlockConfig(blockSave.BlockHash).BlockSize;
+                var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+                
                 var blockData = new BlockPositionInfo(pos, direction, size);
                 Debug.Log($"BlockLoad {blockSave.EntityId}");
-                var block = blockFactory.Load(blockSave.BlockHash, new BlockInstanceId(blockSave.EntityId), blockSave.State, blockData);
+                var block = blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.EntityId), blockSave.State, blockData);
                 
                 TryAddBlock(block);
             }

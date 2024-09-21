@@ -8,7 +8,8 @@
     "UniRx",
     "MessagePack",
     "MessagePack.Annotations",
-    "Core.Inventory"
+    "Core.Inventory",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
-using Core.Item.Interface.Config;
+using Core.Master;
 using Game.Context;
 using Mod.Loader;
+using Mooresmaster.Model.ItemsModule;
 using UnityEngine;
 
 namespace Client.Mod.Texture
@@ -12,32 +13,38 @@ namespace Client.Mod.Texture
     {
         private const string ModTextureDirectory = "assets/item/";
         
-        public static List<ItemViewData> GetItemTexture(string modDirectory)
+        public static Dictionary<ItemId,ItemViewData> GetItemTexture(string modDirectory)
         {
-            var textureList = new List<ItemViewData>();
+            var textureList = new Dictionary<ItemId,ItemViewData>();
             
             var mods = new ModsResource(modDirectory);
             
             foreach (var mod in mods.Mods)
             {
-                var itemIds = ServerContext.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
-                var itemConfigs = itemIds.Select(ServerContext.ItemConfig.GetItemConfig).ToList();
+                // TODO MooresmasterのmodId対応が入ってから、modごとにアイテムを取得する用になる
                 
-                textureList.AddRange(GetTextures(itemConfigs, mod.Value));
+                // 今は仮で全てのアイテムに対してテクスチャを取得する
+                var itemIds = MasterHolder.ItemMaster.GetItemAllIds().ToList();
+                foreach (var texture in GetTextures(itemIds, mod.Value))
+                {
+                    textureList.Add(texture.ItemId, texture);
+                }
             }
             
             return textureList;
         }
         
         
-        private static List<ItemViewData> GetTextures(List<IItemConfigData> itemConfigs, global::Mod.Loader.Mod mod)
+        private static List<ItemViewData> GetTextures(List<ItemId> itemIds, global::Mod.Loader.Mod mod)
         {
             var textureList = new List<ItemViewData>();
-            foreach (var config in itemConfigs)
+            foreach (var itemId in itemIds)
             {
-                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, config.ImagePath);
-                if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + config.Name);
-                textureList.Add(new ItemViewData(texture.ToSprite(), texture, config));
+                var itemIdMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, itemIdMaster.ImagePath);
+                if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemIdMaster.Name);
+                
+                textureList.Add(new ItemViewData(texture.ToSprite(), texture, itemIdMaster));
             }
             
             return textureList;
@@ -47,19 +54,19 @@ namespace Client.Mod.Texture
     
     public class ItemViewData
     {
-        public readonly IItemConfigData ItemConfigData;
+        public readonly ItemId ItemId;
+        public string ItemName => ItemMasterElement.Name;
+        public readonly ItemMasterElement ItemMasterElement;
         
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
         
-        public ItemViewData(Sprite itemImage, UnityEngine.Texture itemTexture, IItemConfigData itemConfigData)
+        public ItemViewData(Sprite itemImage, UnityEngine.Texture itemTexture, ItemMasterElement itemMasterElement)
         {
             ItemImage = itemImage;
-            ItemConfigData = itemConfigData;
             ItemTexture = itemTexture;
+            ItemMasterElement = itemMasterElement;
+            ItemId = MasterHolder.ItemMaster.GetItemId(itemMasterElement.ItemGuid);
         }
-        
-        public int ItemId => ItemConfigData.ItemId;
-        public string ItemName => ItemConfigData.Name;
     }
 }

@@ -1,15 +1,12 @@
 using System.Collections.Generic;
-using Core.Const;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Miner;
-using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
-using Game.Block.Factory.Extension;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -22,45 +19,49 @@ namespace Game.Block.Factory.BlockTemplate
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var (requestPower, outputSlot) = GetData(config);
+            var (requestPower, outputSlot) = GetData(blockMasterElement);
             
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var minerComponent = new VanillaElectricMinerComponent(config.BlockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            
+            var minerComponent = new VanillaElectricMinerComponent(blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
             {
                 minerComponent,
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var (requestPower, outputSlot) = GetData(config);
+            var (requestPower, outputSlot) = GetData(blockMasterElement);
             
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var minerComponent = new VanillaElectricMinerComponent(state, config.BlockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            
+            var minerComponent = new VanillaElectricMinerComponent(state, blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
             var components = new List<IBlockComponent>
             {
                 minerComponent,
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        private (ElectricPower requestPower, int outputSlot) GetData(BlockConfigData param)
+        private (ElectricPower requestPower, int outputSlot) GetData(BlockMasterElement blockMasterElement)
         {
-            var minerParam = param.Param as MinerBlockConfigParam;
+            var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
             
-            var oreItem = ItemConst.EmptyItemId;
             var requestPower = minerParam.RequiredPower;
-            var miningTime = int.MaxValue;
             
-            return (requestPower, minerParam.OutputSlot);
+            return (new ElectricPower(requestPower), minerParam.OutputItemSlotCount);
         }
     }
 }

@@ -16,7 +16,8 @@
     "Game.Map.Interface",
     "Game.Gear",
     "MessagePack",
-    "MessagePack.Annotations"
+    "MessagePack.Annotations",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

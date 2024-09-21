@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -27,22 +28,18 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var blockConfig = ServerContext.BlockConfig;
-            var config = (GearBeltConveyorConfigParam)blockConfig.GetBlockConfig(ForUnitTestModBlockId.GearBeltConveyor).Param;
-            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             const int id = 2;
             const int count = 3;
-            var item = itemStackFactory.Create(id, count);
+            var item = itemStackFactory.Create(new ItemId(id), count);
             var dummy = new DummyBlockInventory();
             
             
             // gearBeltConveyorブロックを生成
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, out var gearBeltConveyor);
-            var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, (null, null));
@@ -61,7 +58,8 @@ namespace Tests.CombinedTest.Core
             
             const int torqueRate = 1;
             const int generatorRpm = 10;
-            var duration = 1f / (generatorRpm * torqueRate * config.BeltConveyorSpeed);
+            var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
+            var duration = 1f / (generatorRpm * torqueRate * gearBeltConveyorBlockParam.BeltConveyorSpeed);
             var expectedEndTime = DateTime.Now.AddSeconds(duration);
             var startTime = DateTime.Now;
             beltConveyorComponent.InsertItem(item);

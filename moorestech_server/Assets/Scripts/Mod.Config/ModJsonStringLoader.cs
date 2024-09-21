@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using Core.ConfigJson;
+using Core.Master;
 using Mod.Loader;
 
 namespace Mod.Config
@@ -15,14 +15,39 @@ namespace Mod.Config
         private const string MapObjectConfigPath = "config/mapObject.json";
         private const string ChallengeConfigPath = "config/challenge.json";
         
-        public static Dictionary<string, ConfigJson> GetConfigString(ModsResource modResource)
+        public static Dictionary<string, MasterJsonCpntens> GetConfigString(ModsResource modResource)
         {
-            var configDict = new Dictionary<string, ConfigJson>();
+            // TODO 上が不要になったら下のコードを使うようにする
+            var configs = new List<MasterJsonCpntens>();
+            
+            //展開済みzipファイルの中身のjsonファイルを読み込む
+            foreach (var mod in modResource.Mods)
+            {
+                var modId = new ModId(mod.Value.ModMetaJson.ModId);
+                var extractedPath = mod.Value.ExtractedPath;
+                
+                // master/ 以下のjsonファイルをすべて取得する
+                var masterJsonContents = new Dictionary<JsonFileName, string>();
+                foreach (var masterJsonPath in Directory.GetFiles(extractedPath, "master/*.json"))
+                {
+                    var fileName = new JsonFileName(Path.GetFileNameWithoutExtension(masterJsonPath));
+                    var jsonContents = File.ReadAllText(masterJsonPath);
+                    masterJsonContents.Add(fileName, jsonContents);
+                }
+                configs.Add(new MasterJsonCpntens(modId,masterJsonContents));
+            }
+            
+            //TODO 下のコードが不要になったらこのreturnを使う return configs;
+            
+            // -------------下は旧コード------------
+            
+            
+            var configDict = new Dictionary<string, MasterJsonCpntens>();
             
             //zipファイルの中身のjsonファイルを読み込む
             foreach (var mod in modResource.Mods)
             {
-                var modId = mod.Value.ModMetaJson.ModId;
+                var modIdStr = mod.Value.ModMetaJson.ModId;
                 var extractedPath = mod.Value.ExtractedPath;
                 
                 var itemConfigJson = LoadConfigFile(extractedPath, ItemConfigPath);
@@ -32,14 +57,28 @@ namespace Mod.Config
                 var mapObjectConfigJson = LoadConfigFile(extractedPath, MapObjectConfigPath);
                 var challengeConfigJson = LoadConfigFile(extractedPath, ChallengeConfigPath);
                 
-                configDict.Add(modId, new ConfigJson(
-                    modId,
-                    itemConfigJson,
+                
+                
+                
+                var modId = new ModId(mod.Value.ModMetaJson.ModId);
+                
+                // master/ 以下のjsonファイルをすべて取得する
+                var masterJsonContents = new Dictionary<JsonFileName, string>();
+                foreach (var masterJsonPath in Directory.GetFiles(extractedPath, "master/*.json"))
+                {
+                    var fileName = new JsonFileName(Path.GetFileNameWithoutExtension(masterJsonPath));
+                    var jsonContents = File.ReadAllText(masterJsonPath);
+                    masterJsonContents.Add(fileName, jsonContents);
+                }
+                configs.Add(new MasterJsonCpntens(modId,masterJsonContents));
+                
+                
+                configDict.Add(modIdStr, new MasterJsonCpntens(itemConfigJson,
                     blockConfigJson,
                     machineRecipeConfigJson,
                     craftRecipeConfigJson,
                     mapObjectConfigJson,
-                    challengeConfigJson));
+                    challengeConfigJson,modId, masterJsonContents));
             }
             
             return configDict;

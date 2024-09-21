@@ -2,7 +2,7 @@
   "name": "Core.Const",
   "rootNamespace": "",
   "references": [
-    ""
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

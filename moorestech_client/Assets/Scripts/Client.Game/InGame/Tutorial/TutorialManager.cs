@@ -1,42 +1,41 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Tutorial.UIHighlight;
-using Game.Challenge.Config.TutorialParam;
+using Core.Master;
 using Game.Context;
-using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
 {
     public class TutorialManager
     {
-        private readonly Dictionary<int, List<ITutorialView>> _tutorialViews = new();
-        
+        private readonly Dictionary<Guid, List<ITutorialView>> _tutorialViews = new();
         private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
         
         public TutorialManager(MapObjectPin mapObjectPin, UIHighlightTutorialManager uiHighlightTutorialManager, KeyControlTutorialManager keyControlTutorialManager)
         {
-            _tutorialViewManagers.Add(MapObjectPinTutorialParam.TaskCompletionType, mapObjectPin);
-            _tutorialViewManagers.Add(UIHighLightTutorialParam.TaskCompletionType, uiHighlightTutorialManager);
-            _tutorialViewManagers.Add(KeyControlTutorialParam.TaskCompletionType, keyControlTutorialManager);
+            _tutorialViewManagers.Add(MapObjectPin.TutorialType, mapObjectPin);
+            _tutorialViewManagers.Add(UIHighlightTutorialManager.TutorialType, uiHighlightTutorialManager);
+            _tutorialViewManagers.Add(KeyControlTutorialManager.TutorialType, keyControlTutorialManager);
         }
         
-        public void ApplyTutorial(int challengeId)
+        public void ApplyTutorial(Guid challengeGuid)
         {
             var tutorialViews = new List<ITutorialView>();
-            var challenge = ServerContext.ChallengeConfig.GetChallenge(challengeId);
+            var challenge = MasterHolder.ChallengeMaster.GetChallenge(challengeGuid);
             
             // チュートリアルを実際のManagerに適用する
             // Apply the tutorial to the actual Manager
             foreach (var tutorial in challenge.Tutorials)
             {
-                var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial.Param);
+                var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial.TutorialParam);
                 
                 if (tutorialView != null) tutorialViews.Add(tutorialView);
             }
             
-            _tutorialViews.Add(challengeId, tutorialViews);
+            _tutorialViews.Add(challengeGuid, tutorialViews);
         }
         
-        public void CompleteChallenge(int challengeId)
+        public void CompleteChallenge(Guid challengeId)
         {
             if (!_tutorialViews.TryGetValue(challengeId, out var tutorialViews)) return;
             

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.Master;
 using Game.Challenge;
 using Game.Context;
 using Game.SaveLoad.Interface;
@@ -28,11 +31,11 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = (List<ChallengeInfo>)ServerContext.ChallengeConfig.InitialChallenges;
+            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.Id == currentChallenge.Config.Id);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             
@@ -53,12 +56,12 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.Id == currentChallenge.Config.Id);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             // 何もクリアしていないことを確認
             // Check that nothing is cleared
-            Assert.AreEqual(0,challengeInfo.CompletedChallengeIds.Count);
+            Assert.AreEqual(0,challengeInfo.CompletedChallengeGuids.Count);
         }
         
         [Test]
@@ -74,10 +77,10 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = (List<ChallengeInfo>)ServerContext.ChallengeConfig.InitialChallenges;
+            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.Id == currentChallenge.Config.Id);
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
                 Assert.IsNotNull(challenge);
             }
             
@@ -87,7 +90,7 @@ namespace Tests.CombinedTest.Game
             
             // クラフトのチャレンジがクリアされたことを確認する
             // Check that the craft challenge is cleared
-            Assert.AreEqual(1, challengeInfo.CompletedChallengeIds.Count);
+            Assert.AreEqual(1, challengeInfo.CompletedChallengeGuids.Count);
             var currentChallengeCount = challengeInfo.CurrentChallenges.Count;
             
             // セーブ
@@ -103,13 +106,14 @@ namespace Tests.CombinedTest.Game
             // チャレンジがクリアされていることを確認する
             // Check that the challenge is cleared
             var loadedChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeIds.Count);
-            Assert.AreEqual(1000, loadedChallengeInfo.CompletedChallengeIds[0]);
+            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);
+            var challengeGuid = new Guid("00000000-0000-0000-4567-000000000001");
+            Assert.AreEqual(challengeGuid, loadedChallengeInfo.CompletedChallengeGuids[0]);
             
             Assert.AreEqual(currentChallengeCount, loadedChallengeInfo.CurrentChallenges.Count);
-            for (int i = 0; i < loadedChallengeInfo.CompletedChallengeIds.Count; i++)
+            for (int i = 0; i < loadedChallengeInfo.CompletedChallengeGuids.Count; i++)
             {
-                Assert.AreEqual(challengeInfo.CompletedChallengeIds[i], loadedChallengeInfo.CompletedChallengeIds[i]);
+                Assert.AreEqual(challengeInfo.CompletedChallengeGuids[i], loadedChallengeInfo.CompletedChallengeGuids[i]);
             }
         }
     }

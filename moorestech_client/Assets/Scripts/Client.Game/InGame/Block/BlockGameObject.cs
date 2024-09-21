@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -12,8 +13,8 @@ namespace Client.Game.InGame.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
-        public int BlockId { get; private set; }
-        public BlockConfigData BlockConfig { get; private set; }
+        public BlockId BlockId { get; private set; }
+        public BlockMasterElement BlockConfig { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
         
@@ -23,11 +24,11 @@ namespace Client.Game.InGame.Block
         private List<VisualEffect> _visualEffects;
         
         
-        public void Initialize(BlockConfigData blockConfig, BlockPositionInfo posInfo, IBlockStateChangeProcessor blockStateChangeProcessor)
+        public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo, IBlockStateChangeProcessor blockStateChangeProcessor)
         {
             BlockPosInfo = posInfo;
-            BlockId = blockConfig.BlockId;
-            BlockConfig = blockConfig;
+            BlockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            BlockConfig = blockMasterElement;
             BlockStateChangeProcessor = blockStateChangeProcessor;
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();

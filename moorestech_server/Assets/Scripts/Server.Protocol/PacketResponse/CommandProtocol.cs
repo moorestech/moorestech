@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -29,7 +30,11 @@ namespace Server.Protocol.PacketResponse
             if (command[0] == "give")
             {
                 var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
-                var item = ServerContext.ItemStackFactory.Create(int.Parse(command[2]), int.Parse(command[3]));
+                
+                var itemId = new ItemId(int.Parse(command[2]));
+                var count = int.Parse(command[3]);
+                
+                var item = ServerContext.ItemStackFactory.Create(itemId, count);
                 inventory.MainOpenableInventory.InsertItem(item);
             }
             
@@ -41,6 +46,8 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)] public string Command { get; set; }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public SendCommandProtocolMessagePack()
         {
@@ -51,7 +58,5 @@ namespace Server.Protocol.PacketResponse
             Tag = SendCommandProtocol.Tag;
             Command = command;
         }
-        
-        [Key(2)] public string Command { get; set; }
     }
 }

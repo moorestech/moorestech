@@ -5,7 +5,8 @@
     "Core.Item.Interface",
     "Core.Inventory",
     "Game.Context",
-    "Game.Block.Interface"
+    "Game.Block.Interface",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

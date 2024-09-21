@@ -13,6 +13,7 @@
     "Core.Ore",
     "Core.Update",
     "Core.Util",
+    "Core.Master",
     "Game.Base",
     "Game.Block",
     "Game.Block.Interface",

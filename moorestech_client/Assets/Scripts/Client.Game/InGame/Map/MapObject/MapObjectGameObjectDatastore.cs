@@ -49,9 +49,9 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
         
-        public List<MapObjectGameObject> CreateMapObjectList(string mapObjectType)
+        public List<MapObjectGameObject> CreateMapObjectList(Guid mapObjectGuid)
         {
-            return mapObjects.Where(x => x.MapObjectType == mapObjectType && !x.IsDestroyed).ToList();
+            return mapObjects.Where(x => x.MapObjectGuid == mapObjectGuid && !x.IsDestroyed).ToList();
         }
         
 #if UNITY_EDITOR

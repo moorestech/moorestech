@@ -1,20 +1,18 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.ItemShooter;
-using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Factory.Extension;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaItemShooterTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var itemShooter = config.Param as ItemShooterConfigParam;
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
             var chestComponent = new ItemShooterComponent(inputConnectorComponent, itemShooter);
@@ -24,13 +22,13 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var itemShooter = config.Param as ItemShooterConfigParam;
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
+            var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
             var chestComponent = new ItemShooterComponent(state, inputConnectorComponent, itemShooter);
@@ -40,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

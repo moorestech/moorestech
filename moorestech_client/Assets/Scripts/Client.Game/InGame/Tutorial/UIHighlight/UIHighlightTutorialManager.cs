@@ -1,17 +1,18 @@
-using Game.Challenge;
-using Game.Challenge.Config.TutorialParam;
+using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
     public class UIHighlightTutorialManager : MonoBehaviour, ITutorialViewManager
     {
+        public const string TutorialType = "uiHighLight";
+        
         [SerializeField] private UIHighlightTutorialView highlightTutorialViewPrefab;
         [SerializeField] private RectTransform highlightParent;
         
         public ITutorialView ApplyTutorial(ITutorialParam param)
         {
-            var highlightParam = (UIHighLightTutorialParam)param;
+            var highlightParam = (UiHighLightTutorialParam)param;
             
             var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
             foreach (var targetObject in highlightTargetObjects)

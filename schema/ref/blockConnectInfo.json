@@ -6,7 +6,6 @@
 
   "items": {
     "type": "object",
-    "required": ["connectType","offset", "directions","connectOption"],
 
     "properties": {
 
@@ -31,6 +30,7 @@
 
       "directions": {
         "type": "array",
+        "optional": true,
         "items": {
           "type": "array",
           "pattern": "@vector3Int",
@@ -55,6 +55,7 @@
             },
             "then": {
               "type": "object",
+              "optional": true,
               "properties": {
               }
             }
@@ -76,6 +77,7 @@
                 },
                 "onlySpecifiedTypes": {
                   "type": "array",
+                  "optional": true,
                   "items": {
                     "type": "string"
                   }

@@ -1,6 +1,7 @@
 using System;
 using Client.Common;
 using Core.Const;
+using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.Define
@@ -14,11 +15,17 @@ namespace Client.Game.InGame.Define
     {
         [SerializeField] private ItemObjectData[] itemObjects;
         
-        public ItemObjectData GetItemPrefab(string modId, string name)
+        public ItemObjectData GetItemPrefab(ItemId itemId)
         {
+            var itemGuid = MasterHolder.ItemMaster.GetItemMaster(itemId).ItemGuid;
             foreach (var itemObject in itemObjects)
-                if (itemObject.ModId == modId && itemObject.Name == name)
+            {
+                if (itemObject.ItemGuid == itemGuid)
+                {
                     return itemObject;
+                }
+            }
+            
             return null;
         }
     }
@@ -26,19 +33,14 @@ namespace Client.Game.InGame.Define
     [Serializable]
     public class ItemObjectData
     {
-        [SerializeField] private string modId = AlphaMod.ModId;
-        [SerializeField] private string name;
+        public Guid ItemGuid => Guid.Parse(itemGuid);
+        public GameObject ItemPrefab => itemPrefab;
+        public Vector3 Position => position;
+        public Vector3 Rotation => rotation;
+        
+        [SerializeField] private string itemGuid;
         [SerializeField] private GameObject itemPrefab;
         [SerializeField] private Vector3 position;
         [SerializeField] private Vector3 rotation;
-        public string ModId => modId;
-        
-        public string Name => name;
-        
-        public GameObject ItemPrefab => itemPrefab;
-        
-        public Vector3 Position => position;
-        
-        public Vector3 Rotation => rotation;
     }
 }

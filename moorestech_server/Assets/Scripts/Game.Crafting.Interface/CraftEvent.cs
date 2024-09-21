@@ -1,16 +1,17 @@
 using System;
+using Mooresmaster.Model.CraftRecipesModule;
 using UniRx;
 
 namespace Game.Crafting.Interface
 {
     public class CraftEvent
     {
-        private readonly Subject<CraftingConfigInfo> _onCraftItem = new();
-        public IObservable<CraftingConfigInfo> OnCraftItem => _onCraftItem;
+        private readonly Subject<CraftRecipeMasterElement> _onCraftItem = new();
+        public IObservable<CraftRecipeMasterElement> OnCraftItem => _onCraftItem;
         
-        public void InvokeCraftItem(CraftingConfigInfo craftConfig)
+        public void InvokeCraftItem(CraftRecipeMasterElement craftMasterElement)
         {
-            _onCraftItem.OnNext(craftConfig);
+            _onCraftItem.OnNext(craftMasterElement);
         }
     }
 }

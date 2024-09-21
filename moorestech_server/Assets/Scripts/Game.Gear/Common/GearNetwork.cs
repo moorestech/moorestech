@@ -74,7 +74,7 @@ namespace Game.Gear.Common
             var generatorGearRotationInfo = new GearRotationInfo(fastestOriginGenerator.GenerateRpm, fastestOriginGenerator.GenerateIsClockwise, fastestOriginGenerator);
             _checkedGearComponents.Add(fastestOriginGenerator.BlockInstanceId, generatorGearRotationInfo);
             var rocked = false;
-            foreach (var connect in fastestOriginGenerator.Connects)
+            foreach (var connect in fastestOriginGenerator.GetGearConnects())
             {
                 rocked = CalcGearInfo(connect, generatorGearRotationInfo);
                 //ロックを検知したので処理を終了
@@ -134,7 +134,7 @@ namespace Game.Gear.Common
                 _checkedGearComponents.Add(transformer.BlockInstanceId, gearRotationInfo);
                 
                 // この歯車が接続している歯車を再帰的に計算する
-                foreach (var connect in transformer.Connects)
+                foreach (var connect in transformer.GetGearConnects())
                 {
                     var isRocked = CalcGearInfo(connect, gearRotationInfo);
                     //ロックを検知したので処理を終了

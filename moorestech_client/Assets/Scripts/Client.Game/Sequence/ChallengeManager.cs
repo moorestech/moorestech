@@ -5,10 +5,12 @@ using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial;
 using Client.Network.API;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Challenge;
 using Game.Context;
 using MessagePack;
+using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using TMPro;
 using UnityEngine;
@@ -40,47 +42,44 @@ namespace Client.Game.Sequence
                 
                 // チュートリアルの適用
                 // Apply tutorial
-                initialHandshakeResponse.Challenge.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.Id));
+                initialHandshakeResponse.Challenge.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
             }
         }
         
         private void OnCompletedChallenge(byte[] packet)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(packet);
-            var challengeInfo = ServerContext.ChallengeConfig.GetChallenge(message.CompletedChallengeId);
-            var nextIds = challengeInfo.NextIds;
+            var challengeInfo = MasterHolder.ChallengeMaster.GetChallenge(message.CompletedChallengeGuid);
+            var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(challengeInfo.ChallengeGuid);
             
             // チュートリアルを完了
-            _tutorialManager.CompleteChallenge(message.CompletedChallengeId);
+            _tutorialManager.CompleteChallenge(message.CompletedChallengeGuid);
             
             // スキットの再生
             // Play background skit
-            PlaySkit(nextIds).Forget();
+            PlaySkit(nextChallenges).Forget();
             
             // チャレンジのテキストの更新 TODO 複数のチャレンジに対応させる
             // Update challenge text TODO Correspond to multiple challenges
-            if (challengeInfo.NextIds.Count != 0)
+            if (nextChallenges.Count != 0)
             {
-                var nextId = challengeInfo.NextIds.First();
-                var nextChallenge = ServerContext.ChallengeConfig.GetChallenge(nextId);
-                
+                var nextChallenge = nextChallenges.First();
                 currentChallengeSummary.text = nextChallenge.Summary;
             }
             
             // チュートリアルの適用
             // Apply tutorial
-            nextIds.ForEach(id => _tutorialManager.ApplyTutorial(id));
+            nextChallenges.ForEach(id => _tutorialManager.ApplyTutorial(id.ChallengeGuid));
         }
         
-        private async UniTask PlaySkit(List<int> nextIds)
+        private async UniTask PlaySkit(List<ChallengeMasterElement> nextChallenges)
         {
-            foreach (var id in nextIds)
+            foreach (var challenge in nextChallenges)
             {
-                var challengeInfo = ServerContext.ChallengeConfig.GetChallenge(id);
-                
-                if (challengeInfo.FireSkitType == ChallengeInfo.BackgroundSkitType)
+                if (challenge.PlaySkitType == "BackgroundSkit") // TODO いい感じの位置に置きたい
                 {
-                    var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == challengeInfo.FireSkitName);
+                    var skitParam = (BackgroundSkitPlaySkitParam) challenge.PlaySkitParam;
+                    var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == skitParam.FireSkitName);
                     if (challengeTextAsset == null) continue;
                     
                     await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);

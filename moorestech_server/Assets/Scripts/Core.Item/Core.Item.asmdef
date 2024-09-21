@@ -5,7 +5,8 @@
     "Core.Const",
     "Core.ConfigJson",
     "Core.Item.Interface",
-    "Game.Context"
+    "Game.Context",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

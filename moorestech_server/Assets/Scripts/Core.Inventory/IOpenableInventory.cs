@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Item.Interface;
+using Core.Master;
 
 namespace Core.Inventory
 {
@@ -14,12 +15,12 @@ namespace Core.Inventory
         
         public IItemStack GetItem(int slot);
         void SetItem(int slot, IItemStack itemStack);
-        void SetItem(int slot, int itemId, int count);
+        void SetItem(int slot, ItemId itemId, int count);
         public IItemStack ReplaceItem(int slot, IItemStack itemStack);
-        public IItemStack ReplaceItem(int slot, int itemId, int count);
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count);
         
         public IItemStack InsertItem(IItemStack itemStack);
-        public IItemStack InsertItem(int itemId, int count);
+        public IItemStack InsertItem(ItemId itemId, int count);
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks);
         public bool InsertionCheck(List<IItemStack> itemStacks);
         public int GetSlotSize();

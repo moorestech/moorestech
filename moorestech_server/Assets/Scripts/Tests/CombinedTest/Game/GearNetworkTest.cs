@@ -3,11 +3,11 @@ using System.Linq;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -284,9 +284,9 @@ namespace Tests.CombinedTest.Game
             var gearPosition2 = new Vector3Int(1, 0, 1);
             var gearPosition3 = new Vector3Int(2, 0, 1);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition1, BlockDirection.North, out var gear1Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition2, BlockDirection.North, out var gear2Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition3, BlockDirection.North, out var gear3Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block);
             
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -306,6 +306,12 @@ namespace Tests.CombinedTest.Game
         public void ServeTorqueOverTest()
         {
             //トルクが多いとその分供給トルクが減るテスト
+            // ジェネレーターは3のトルクを生成するが、6つの歯車がつながっているため、要求するトルクは6になる
+            // 結果、供給されるトルクは3/6=0.5になる
+            // Test that the supply torque decreases as the torque increases
+            // The generator generates 3 torque, but since it is connected to 6 gears, the required torque becomes 6
+            // As a result, the supplied torque becomes 3/6=0.5
+            
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -314,7 +320,6 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
             
-            
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(0, 0, 2);
             var gearPosition3 = new Vector3Int(1, 0, 2);
@@ -322,12 +327,12 @@ namespace Tests.CombinedTest.Game
             var gearPosition5 = new Vector3Int(2, 0, 3);
             var gearPosition6 = new Vector3Int(3, 0, 3);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition1, BlockDirection.North, out var gear1Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigRequireTorqueGear, gearPosition2, BlockDirection.North, out var gear2Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition3, BlockDirection.North, out var gear3Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition4, BlockDirection.North, out var gear4Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigRequireTorqueGear, gearPosition5, BlockDirection.North, out var gear5Block);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallRequireTorqueGear, gearPosition6, BlockDirection.North, out var gear6Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition5, BlockDirection.North, out var gear5Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition6, BlockDirection.North, out var gear6Block);
             
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -392,8 +397,8 @@ namespace Tests.CombinedTest.Game
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectedTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectedTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectedTargets).Add(gear2Transform, (new GearConnectOption(true,new string[]{}), new GearConnectOption(true, new string[]{})));
+            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectedTargets).Add(gear1Transform, (new GearConnectOption(true,new string[]{}), new GearConnectOption(true, new string[]{})));
         }
     }
 }

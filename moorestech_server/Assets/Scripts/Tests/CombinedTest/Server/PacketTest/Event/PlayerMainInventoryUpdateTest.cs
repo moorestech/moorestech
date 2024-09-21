@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -29,14 +30,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //インベントリにアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            playerInventoryData.MainOpenableInventory.SetItem(5, itemStackFactory.Create(1, 5));
+            playerInventoryData.MainOpenableInventory.SetItem(5, itemStackFactory.Create(new ItemId(1), 5));
             
             //追加時のイベントのキャッチ
             response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(5, data.Slot);
-            Assert.AreEqual(1, data.Item.Id);
+            Assert.AreEqual(1, data.Item.Id.AsPrimitive());
             Assert.AreEqual(5, data.Item.Count);
             
             
@@ -58,10 +59,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(5, setMainInventory.Slot); //移動時のスロット確認
             Assert.AreEqual(4, outMainInventory.Slot);
             
-            Assert.AreEqual(1, grabUp.Item.Id); //アイテムIDの確認
-            Assert.AreEqual(1, setMainInventory.Item.Id);
-            Assert.AreEqual(1, outMainInventory.Item.Id);
-            Assert.AreEqual(0, grabDown.Item.Id);
+            Assert.AreEqual(1, grabUp.Item.Id.AsPrimitive()); //アイテムIDの確認
+            Assert.AreEqual(1, setMainInventory.Item.Id.AsPrimitive());
+            Assert.AreEqual(1, outMainInventory.Item.Id.AsPrimitive());
+            Assert.AreEqual(0, grabDown.Item.Id.AsPrimitive());
             
             Assert.AreEqual(3, grabUp.Item.Count); //アイテム数の確認
             Assert.AreEqual(2, setMainInventory.Item.Count);
@@ -85,10 +86,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, setMainInventory.Slot); //移動時のスロット確認
             Assert.AreEqual(5, outMainInventory.Slot);
             
-            Assert.AreEqual(1, grabUp.Item.Id); //アイテムIDの確認
-            Assert.AreEqual(0, setMainInventory.Item.Id);
-            Assert.AreEqual(1, outMainInventory.Item.Id);
-            Assert.AreEqual(0, grabDown.Item.Id);
+            Assert.AreEqual(1, grabUp.Item.Id.AsPrimitive()); //アイテムIDの確認
+            Assert.AreEqual(0, setMainInventory.Item.Id.AsPrimitive());
+            Assert.AreEqual(1, outMainInventory.Item.Id.AsPrimitive());
+            Assert.AreEqual(0, grabDown.Item.Id.AsPrimitive());
             
             Assert.AreEqual(3, grabUp.Item.Count); //アイテム数の確認
             Assert.AreEqual(0, setMainInventory.Item.Count);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -20,7 +21,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     /// </summary>
     public class BlockInventoryUpdateEventPacketTest
     {
-        private const int MachineBlockId = 1;
         private const int PlayerId = 3;
         private const short PacketId = 16;
         
@@ -36,14 +36,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Vector3Int pos = new(5, 7);
             
             //ブロックをセットアップ
-            worldBlockDataStore.TryAddBlock(MachineBlockId, pos, BlockDirection.North, out var block);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             
             
             //インベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true));
             //ブロックにアイテムを入れる
-            blockInventory.SetItem(1, itemStackFactory.Create(4, 8));
+            blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていることをチェック
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var data = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
             
             Assert.AreEqual(1, data.Slot); // slot id
-            Assert.AreEqual(4, data.Item.Id); // item id
+            Assert.AreEqual(4, data.Item.Id.AsPrimitive()); // item id
             Assert.AreEqual(8, data.Item.Count); // item count
             Assert.AreEqual(5, data.Position.X); // x
             Assert.AreEqual(7, data.Position.Y); // y
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false));
             
             //ブロックにアイテムを入れる
-            blockInventory.SetItem(2, itemStackFactory.Create(4, 8));
+            blockInventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていないことをチェック
@@ -89,10 +89,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //ブロック1をセットアップ
-            worldBlockDataStore.TryAddBlock(MachineBlockId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
             
             //ブロック2をセットアップ
-            worldBlockDataStore.TryAddBlock(MachineBlockId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
             
             
             //一つ目のブロックインベントリを開く
@@ -103,7 +103,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //一つ目のブロックインベントリにアイテムを入れる
             var block1Inventory = block1.GetComponent<VanillaMachineBlockInventoryComponent>();
-            block1Inventory.SetItem(2, itemStackFactory.Create(4, 8));
+            block1Inventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていないことをチェック

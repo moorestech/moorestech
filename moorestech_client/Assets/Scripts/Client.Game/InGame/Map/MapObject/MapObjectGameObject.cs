@@ -1,4 +1,6 @@
 ﻿using System;
+using Core.Master;
+using Mooresmaster.Model.MapObjectsModule;
 using UniRx;
 using UnityEditor;
 using UnityEngine;
@@ -11,12 +13,14 @@ namespace Client.Game.InGame.Map.MapObject
     /// </summary>
     public class MapObjectGameObject : MonoBehaviour
     {
+        public int InstanceId => instanceId;
+        public Guid MapObjectGuid => new(mapObjectGuid);
+        public MapObjectMasterElement MapObjectMasterElement => MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
+        
         [SerializeField] private GameObject outlineObject;
         [SerializeField] private int instanceId;
-        [SerializeField] private string mapObjectType;
+        [SerializeField] private string mapObjectGuid;
         
-        public int InstanceId => instanceId;
-        public string MapObjectType => mapObjectType;
         public bool IsDestroyed { get; private set; }
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;

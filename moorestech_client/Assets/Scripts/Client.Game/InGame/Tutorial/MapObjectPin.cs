@@ -3,8 +3,7 @@ using System.Linq;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
-using Game.Challenge;
-using Game.Challenge.Config.TutorialParam;
+using Mooresmaster.Model.ChallengesModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -14,6 +13,8 @@ namespace Client.Game.InGame.Tutorial
 {
     public class MapObjectPin : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
+        public const string TutorialType = "mapObjectPin";
+        
         [SerializeField] private TMP_Text pinText;
         
         private InGameCameraController _inGameCameraController;
@@ -45,12 +46,12 @@ namespace Client.Game.InGame.Tutorial
             _mapObjectOnDestroy?.Dispose();
             
             // 近くのMapObjectを探してピンを表示
-            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(_currentTutorialParam.MapObjectType);
+            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(_currentTutorialParam.MapObjectGuid);
             var playerPos = _playerObjectController.Position;
             var sortedMapObjects = mapObjects.OrderBy(x => (playerPos - x.GetPosition()).sqrMagnitude).ToList();
             if (sortedMapObjects.Count == 0)
             {
-                Debug.LogWarning($"未破壊のMapObject {_currentTutorialParam.MapObjectType} が存在しません");
+                Debug.LogWarning($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
                 return null;
             }
             

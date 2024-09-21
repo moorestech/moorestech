@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.ComponentAttribute;
 using Game.Context;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using UnityEngine;
 
 namespace Game.Block.Component
@@ -24,7 +24,7 @@ namespace Game.Block.Component
         
         private readonly BlockPositionInfo _blockPositionInfo;
         
-        public BlockConnectorComponent(List<ConnectSettings> inputConnectSettings, List<ConnectSettings> outputConnectSettings, BlockPositionInfo blockPositionInfo)
+        public BlockConnectorComponent(BlockConnectInfo inputConnectInfo, BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
             _blockPositionInfo = blockPositionInfo;
             var blockPos = blockPositionInfo.OriginalPos;
@@ -47,37 +47,37 @@ namespace Game.Block.Component
             
             void CreateInputConnectPoss()
             {
-                if (inputConnectSettings == null) return;
-                foreach (var inputConnectSetting in inputConnectSettings)
+                if (inputConnectInfo == null) return;
+                foreach (var inputConnectSetting in inputConnectInfo.items)
                 {
                     var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
                     
-                    var inputConnectorPos = blockPos + blockPosConvertAction(inputConnectSetting.ConnectorPosOffset);
-                    var directions = inputConnectSetting.ConnectorDirections;
+                    var inputConnectorPos = blockPos + blockPosConvertAction(inputConnectSetting.Offset);
+                    var directions = inputConnectSetting.Directions;
                     if (directions == null)
                     {
                         _inputConnectPoss.Add(inputConnectorPos, null);
                         continue;
                     }
                     
-                    var targetPositions = directions.Select(c => (blockPosConvertAction(c) + inputConnectorPos, inputConnectSetting.Option)).ToList();
+                    var targetPositions = directions.Select(c => (blockPosConvertAction(c) + inputConnectorPos, inputConnectSetting.ConnectOption)).ToList();
                     if (!_inputConnectPoss.TryAdd(inputConnectorPos, targetPositions)) _inputConnectPoss[inputConnectorPos] = _inputConnectPoss[inputConnectorPos].Concat(targetPositions).ToList();
                 }
             }
             
             void CreateOutputTargetToOutputConnector()
             {
-                if (outputConnectSettings == null) return;
+                if (outputConnectInfo == null) return;
                 
-                foreach (var connectSetting in outputConnectSettings)
+                foreach (var connectSetting in outputConnectInfo.items)
                 {
                     var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
                     
-                    var outputConnectorPos = blockPos + blockPosConvertAction(connectSetting.ConnectorPosOffset);
-                    var directions = connectSetting.ConnectorDirections;
+                    var outputConnectorPos = blockPos + blockPosConvertAction(connectSetting.Offset);
+                    var directions = connectSetting.Directions;
                     var targetPoss = directions.Select(c => blockPosConvertAction(c) + outputConnectorPos).ToList();
                     
-                    foreach (var targetPos in targetPoss) _outputTargetToOutputConnector.Add(targetPos, (outputConnectorPos, connectSetting.Option));
+                    foreach (var targetPos in targetPoss) _outputTargetToOutputConnector.Add(targetPos, (outputConnectorPos, connectSetting.ConnectOption));
                 }
             }
             

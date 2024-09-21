@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.Const;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -33,21 +34,21 @@ namespace Tests.CombinedTest.Server.PacketTest
             //プレイヤーインベントリの検証
             for (var i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
             {
-                Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
+                Assert.AreEqual(ItemMaster.EmptyItemId, data.Main[i].Id);
                 Assert.AreEqual(0, data.Main[i].Count);
             }
             
             //グラブインベントリの検証
-            Assert.AreEqual(0, data.Grab.Id);
+            Assert.AreEqual(0, data.Grab.Id.AsPrimitive());
             Assert.AreEqual(0, data.Grab.Count);
             
             
             //インベントリにアイテムが入っている時のテスト
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var itemStackFactory = ServerContext.ItemStackFactory;
-            playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(1, 5));
-            playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(3, 1));
-            playerInventoryData.MainOpenableInventory.SetItem(34, itemStackFactory.Create(10, 7));
+            playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(new ItemId(1), 5));
+            playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(new ItemId(3), 1));
+            playerInventoryData.MainOpenableInventory.SetItem(34, itemStackFactory.Create(new ItemId(10), 7));
             
             
             //2回目のデータ要求
@@ -59,22 +60,22 @@ namespace Tests.CombinedTest.Server.PacketTest
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 if (i == 0)
                 {
-                    Assert.AreEqual(1, data.Main[i].Id);
+                    Assert.AreEqual(1, data.Main[i].Id.AsPrimitive());
                     Assert.AreEqual(5, data.Main[i].Count);
                 }
                 else if (i == 20)
                 {
-                    Assert.AreEqual(3, data.Main[i].Id);
+                    Assert.AreEqual(3, data.Main[i].Id.AsPrimitive());
                     Assert.AreEqual(1, data.Main[i].Count);
                 }
                 else if (i == 34)
                 {
-                    Assert.AreEqual(10, data.Main[i].Id);
+                    Assert.AreEqual(10, data.Main[i].Id.AsPrimitive());
                     Assert.AreEqual(7, data.Main[i].Count);
                 }
                 else
                 {
-                    Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
+                    Assert.AreEqual(ItemMaster.EmptyItemId, data.Main[i].Id);
                     Assert.AreEqual(0, data.Main[i].Count);
                 }
         }

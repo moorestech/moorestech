@@ -1,3 +1,4 @@
+using Core.Master;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -15,10 +16,8 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(7, 100)]
         public void JsonStackTest(int id, int stack)
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = ServerContext.ItemConfig;
-            Assert.AreEqual(stack, itemConfig.GetItemConfig(id).MaxStack);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            Assert.AreEqual(stack, MasterHolder.ItemMaster.GetItemMaster(new ItemId(id)).MaxStack);
         }
         
         [TestCase(1, "Test1")]
@@ -30,10 +29,8 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(7, "Test7")]
         public void JsonNameTest(int id, string name)
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = ServerContext.ItemConfig;
-            Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            Assert.AreEqual(name, MasterHolder.ItemMaster.GetItemMaster(new ItemId(id)).Name);
         }
     }
 }

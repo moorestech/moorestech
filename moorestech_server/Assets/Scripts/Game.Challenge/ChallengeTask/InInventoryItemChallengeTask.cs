@@ -1,13 +1,15 @@
 using System;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 
 namespace Game.Challenge.Task
 {
     public class InInventoryItemChallengeTask : IChallengeTask
     {
-        public ChallengeInfo Config { get; }
+        public ChallengeMasterElement ChallengeMasterElement { get; }
         public int PlayerId { get; }
         
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
@@ -18,16 +20,16 @@ namespace Game.Challenge.Task
         private readonly InInventoryItemTaskParam _inInventoryItemTaskParam;
         private readonly PlayerInventoryData _playerInventory;
         
-        public static IChallengeTask Create(int playerId, ChallengeInfo config)
+        public static IChallengeTask Create(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            return new InInventoryItemChallengeTask(playerId, config);
+            return new InInventoryItemChallengeTask(playerId, challengeMasterElement);
         }
-        public InInventoryItemChallengeTask(int playerId, ChallengeInfo config)
+        public InInventoryItemChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
         {
-            Config = config;
+            ChallengeMasterElement = challengeMasterElement;
             PlayerId = playerId;
             
-            _inInventoryItemTaskParam = (InInventoryItemTaskParam)Config.TaskParam;
+            _inInventoryItemTaskParam = (InInventoryItemTaskParam)challengeMasterElement.TaskParam;
             _playerInventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
         }
         
@@ -38,10 +40,11 @@ namespace Game.Challenge.Task
             var itemCount = 0;
             foreach (var item in _playerInventory.MainOpenableInventory.InventoryItems)
             {
-                if (item.Id != _inInventoryItemTaskParam.ItemId) continue;
+                var taskItemId = MasterHolder.ItemMaster.GetItemId(_inInventoryItemTaskParam.ItemGuid);
+                if (item.Id != taskItemId) continue;
                 
                 itemCount += item.Count;
-                if (itemCount < _inInventoryItemTaskParam.Count) continue;
+                if (itemCount < _inInventoryItemTaskParam.ItemCount) continue;
                 
                 _onChallengeComplete.OnNext(this);
                 _completed = true;

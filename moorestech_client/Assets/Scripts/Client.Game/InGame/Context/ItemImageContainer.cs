@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Client.Mod.Texture;
-using Core.Item.Config;
+using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.Context
@@ -10,39 +11,37 @@ namespace Client.Game.InGame.Context
     /// </summary>
     public class ItemImageContainer
     {
-        private readonly List<ItemViewData> _itemImageList = new();
-        private readonly ItemViewData _nothingIndexItemImage;
+        private readonly Dictionary<ItemId,ItemViewData> _itemImageList = new();
         
-        private ItemImageContainer(List<ItemViewData> itemImageList, ItemViewData nothingIndexItemImage)
+        private ItemImageContainer(Dictionary<ItemId,ItemViewData> itemImageList)
         {
             _itemImageList = itemImageList;
-            _nothingIndexItemImage = nothingIndexItemImage;
         }
         
         public static ItemImageContainer CreateAndLoadItemImageContainer(string modsDirectory)
         {
-            var nothingIndexItemImage = new ItemViewData(null, null, new ItemConfigData("Not item", 100, "Not mod", 0));
-            var itemImageList = new List<ItemViewData>();
+            var itemImageList = ItemTextureLoader.GetItemTexture(modsDirectory);
             
-            itemImageList.Add(nothingIndexItemImage); //id 0番は何もないことを表すので、何もない画像を追加
-            
-            var textures = ItemTextureLoader.GetItemTexture(modsDirectory);
-            itemImageList.AddRange(textures);
-            
-            return new ItemImageContainer(itemImageList, nothingIndexItemImage);
+            return new ItemImageContainer(itemImageList);
         }
         
-        
-        public ItemViewData GetItemView(int itemId)
+        public ItemViewData GetItemView(Guid itemGuid)
         {
-            if (_itemImageList.Count <= itemId)
+            var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+            return GetItemView(itemId);
+        }
+        
+        public ItemViewData GetItemView(ItemId itemId)
+        {
+            if (itemId == ItemMaster.EmptyItemId)
             {
-                Debug.Log("存在しないアイテムIDです。" + itemId);
-                return _nothingIndexItemImage;
+                return null;
             }
             
+            if (_itemImageList.TryGetValue(itemId, out var view)) return view;
             
-            return _itemImageList[itemId];
+            Debug.LogError($"ItemViewData not found. itemId:{itemId}");
+            return null;
         }
     }
 }

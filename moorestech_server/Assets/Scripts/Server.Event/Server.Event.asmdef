@@ -14,7 +14,8 @@
     "UniRx",
     "Game.Context",
     "Game.Challenge",
-    "Game.Challenge.Interface"
+    "Game.Challenge.Interface",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

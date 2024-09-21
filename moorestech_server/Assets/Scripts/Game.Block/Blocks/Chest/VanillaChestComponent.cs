@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Event;
@@ -33,10 +34,10 @@ namespace Game.Block.Blocks.Chest
         public VanillaChestComponent(string saveData, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
             this(blockInstanceId, slotNum, blockConnectorComponent)
         {
-            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackJsonObject>>(saveData);
+            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(saveData);
             for (var i = 0; i < itemJsons.Count; i++)
             {
-                var itemStack = itemJsons[i].ToItem();
+                var itemStack = itemJsons[i].ToItemStack();
                 _itemDataStoreService.SetItem(i, itemStack);
             }
         }
@@ -82,16 +83,16 @@ namespace Game.Block.Blocks.Chest
         {
             BlockException.CheckDestroy(this);
             
-            var itemJson = new List<ItemStackJsonObject>();
+            var itemJson = new List<ItemStackSaveJsonObject>();
             foreach (var item in _itemDataStoreService.InventoryItems)
             {
-                itemJson.Add(new ItemStackJsonObject(item));
+                itemJson.Add(new ItemStackSaveJsonObject(item));
             }
             
             return JsonConvert.SerializeObject(itemJson);
         }
         
-        public void SetItem(int slot, int itemId, int count)
+        public void SetItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
@@ -105,14 +106,14 @@ namespace Game.Block.Blocks.Chest
             return _itemDataStoreService.ReplaceItem(slot, itemStack);
         }
         
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             
             return _itemDataStoreService.ReplaceItem(slot, itemId, count);
         }
         
-        public IItemStack InsertItem(int itemId, int count)
+        public IItemStack InsertItem(ItemId itemId, int count)
         {
             BlockException.CheckDestroy(this);
             

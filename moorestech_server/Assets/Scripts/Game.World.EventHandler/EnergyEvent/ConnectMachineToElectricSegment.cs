@@ -1,9 +1,10 @@
-using Game.Block.Config.LoadConfig.Param;
+using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
 
@@ -73,9 +74,8 @@ namespace Game.World.EventHandler.EnergyEvent
             var block = ServerContext.WorldBlockDatastore.GetBlock(polePos);
             var pole = block.GetComponent<TTransformer>();
             //その電柱のコンフィグを取得
-            var blockConfig = ServerContext.BlockConfig.GetBlockConfig(block.BlockId);
-            var configParam = blockConfig.Param as ElectricPoleConfigParam;
-            var range = configParam.machineConnectionRange;
+            var configParam = block.BlockMasterElement.BlockParam as ElectricPoleBlockParam;
+            var range = configParam.MachineConnectionRange;
             
             //その電柱から見て機械が範囲内に存在するか確認
             var poleX = polePos.x;

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Block.Interface.BlockConfig;
+using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Interface.Component
 {

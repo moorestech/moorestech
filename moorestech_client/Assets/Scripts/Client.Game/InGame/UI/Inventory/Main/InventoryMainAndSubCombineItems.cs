@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using UniRx;
@@ -15,7 +16,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public IObservable<int> OnItemChange { get; }
         
         public int Count { get; }
-        public bool IsItemExist(int itemId, int itemSlot);
+        public bool IsItemExist(ItemId itemId, int itemSlot);
     }
     
     /// <summary>
@@ -23,9 +24,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
     /// </summary>
     public class LocalPlayerInventory : ILocalPlayerInventory
     {
-        private readonly List<IItemStack> _mainInventory;
+        public IObservable<int> OnItemChange => _onItemChange;
         private readonly Subject<int> _onItemChange = new();
         
+        public int Count => _mainInventory.Count + _subInventory.Count;
+        
+        private readonly List<IItemStack> _mainInventory;
         private ISubInventory _subInventory;
         
         public LocalPlayerInventory()
@@ -37,8 +41,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             _subInventory = new EmptySubInventory();
         }
-        
-        public IObservable<int> OnItemChange => _onItemChange;
         
         public IEnumerator<IItemStack> GetEnumerator()
         {
@@ -53,10 +55,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             return GetEnumerator();
         }
         
-        
-        public int Count => _mainInventory.Count + _subInventory.Count;
-        
-        public bool IsItemExist(int itemId, int itemSlot)
+        public bool IsItemExist(ItemId itemId, int itemSlot)
         {
             if (itemSlot < _mainInventory.Count) return _mainInventory[itemSlot].Id == itemId;
             
@@ -68,7 +67,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
             Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + itemSlot);
             return false;
         }
-        
         
         public IItemStack this[int index]
         {

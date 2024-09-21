@@ -6,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.SoundEffect;
 using Client.Network.API;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using MessagePack;
@@ -101,7 +102,7 @@ namespace Client.Game.InGame.World
             _entitiesDatastore.OnEntitiesUpdate(worldData.Entities);
         }
         
-        private void PlaceBlock(Vector3Int position, int id, BlockDirection blockDirection)
+        private void PlaceBlock(Vector3Int position, BlockId id, BlockDirection blockDirection)
         {
             if (id == BlockConstant.NullBlockId)
             {

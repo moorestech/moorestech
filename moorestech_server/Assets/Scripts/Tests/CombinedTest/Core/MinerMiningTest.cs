@@ -6,12 +6,12 @@ using Core.Update;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -22,8 +22,6 @@ namespace Tests.CombinedTest.Core
 {
     public class MinerMiningTest
     {
-        private const int MinerId = ForUnitTestModBlockId.MinerId;
-        
         //一定時間たったら鉱石が出るテスト
         [Test]
         public void MiningTest()
@@ -35,13 +33,13 @@ namespace Tests.CombinedTest.Core
             
             //手動で鉱石の設定を行う
             var (mapVein, pos) = GetMapVein();
-            worldBlockDatastore.TryAddBlock(MinerId, pos, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MinerId, pos, BlockDirection.North, out _);
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.GetComponent<VanillaElectricMinerComponent>();
             
             var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
-            var miningTime = (int)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningTime = (float)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             
             
             var dummyInventory = new DummyBlockInventory();
