@@ -5,7 +5,7 @@
       "title": "テスト1",
       "taskCompletionType": "createItem",
       "taskParam": {
-        "itemGuid": "30000000-0000-0000-0000-000000000000"
+        "itemGuid": "00000000-0000-0000-1234-000000000003"
       },
       "challengeGuid": "51e1bab3-d989-4f64-a5e2-a95ae3d3c84f",
       "prevChallengeGuid": "51e1bab3-d989-4f64-a5e2-a95ae3d3c84f",
@@ -19,7 +19,7 @@
       "taskCompletionType": "inInventoryItem",
       "taskParam": {
         "itemCount": 3,
-        "itemGuid": "10000000-0000-0000-0000-000000000000"
+        "itemGuid": "00000000-0000-0000-1234-000000000001"
       },
       "challengeGuid": "150f2ce6-2c5a-4ec8-94e0-b3a6d88d980d",
       "prevChallengeGuid": "150f2ce6-2c5a-4ec8-94e0-b3a6d88d980d",
@@ -47,7 +47,7 @@
       "taskCompletionType": "inInventoryItem",
       "taskParam": {
         "itemCount": 3,
-        "itemGuid": "30000000-0000-0000-0000-000000000000"
+        "itemGuid": "00000000-0000-0000-1234-000000000003"
       },
       "prevChallengeGuid": "51e1bab3-d989-4f64-a5e2-a95ae3d3c84f",
       "challengeGuid": "43fd8411-3c7f-417a-83d1-588631b135ad",
