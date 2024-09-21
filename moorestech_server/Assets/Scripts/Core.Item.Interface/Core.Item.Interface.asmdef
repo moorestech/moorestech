@@ -4,7 +4,8 @@
   "references": [
     "MessagePack",
     "MessagePack.Annotations",
-    "Core.Master"
+    "Core.Master",
+    "Core.Const"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

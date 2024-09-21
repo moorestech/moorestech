@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Core.Block
             while (true)
             {
                 var item = waitTarget.GetItem(0);
-                if (item.Id != ItemConst.EmptyItemId)
+                if (item.Id != ItemMaster.EmptyItemId)
                 {
                     // アイテム挿入時間を出力
                     var shooterItem = GetShooterItem(waitTarget);

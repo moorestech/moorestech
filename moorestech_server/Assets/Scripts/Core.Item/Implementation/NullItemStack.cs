@@ -8,7 +8,7 @@ namespace Core.Item.Implementation
 {
     internal class NullItemStack : IItemStack
     {
-        public ItemId Id => ItemConst.EmptyItemId;
+        public ItemId Id => ItemMaster.EmptyItemId;
         public int Count => 0;
         public long ItemHash => 0;
         public ItemInstanceId ItemInstanceId { get; }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.Machine;
@@ -59,7 +60,9 @@ namespace Game.Block.Factory.BlockTemplate
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
             }
             
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid.ToString() == jsonObject.RecipeId);
+            var recipe = jsonObject.RecipeGuid == Guid.Empty ?
+                null :
+                MasterHolder.MachineRecipesMaster.MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid.ToString() == jsonObject.RecipeGuidStr);
             
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,

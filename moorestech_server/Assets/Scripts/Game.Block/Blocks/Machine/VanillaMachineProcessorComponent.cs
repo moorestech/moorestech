@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.Machine
         
         public double RemainingSecond { get; private set; }
         
-        public Guid RecipeGuid => _processingRecipe.MachineRecipeGuid;
+        public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
         public IObservable<BlockState> OnChangeBlockState => _changeState;
         
         private readonly Subject<BlockState> _changeState = new();

@@ -15,6 +15,8 @@ namespace Core.Master
     
     public class ItemMaster
     {
+        public static readonly ItemId EmptyItemId = new(0);
+        
         public readonly Items Items;
         
         private readonly Dictionary<ItemId,ItemMasterElement> _itemElementTableById; 
@@ -54,6 +56,11 @@ namespace Core.Master
         
         public ItemId GetItemId(Guid itemGuid)
         {
+            if (itemGuid == Guid.Empty)
+            {
+                return EmptyItemId;
+            }
+            
             if (!_itemGuidToItemId.TryGetValue(itemGuid, out var itemId))
             {
                 throw new InvalidOperationException($"ItemElement not found. ItemGuid:{itemGuid}");

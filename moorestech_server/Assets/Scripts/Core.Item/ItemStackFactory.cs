@@ -19,7 +19,7 @@ namespace Core.Item
         
         public IItemStack Create(ItemId id, int count, Dictionary<string, ItemStackMetaData> metaData = null)
         {
-            if (id == ItemConst.EmptyItemId) return CreatEmpty();
+            if (id == ItemMaster.EmptyItemId) return CreatEmpty();
             
             if (count < 1) return CreatEmpty();
             
@@ -29,7 +29,7 @@ namespace Core.Item
         
         public IItemStack Create(ItemId id, int count, ItemInstanceId instanceId, Dictionary<string, ItemStackMetaData> metaData = null)
         {
-            if (id == ItemConst.EmptyItemId) return CreatEmpty();
+            if (id == ItemMaster.EmptyItemId) return CreatEmpty();
             
             if (count < 1) return CreatEmpty();
             

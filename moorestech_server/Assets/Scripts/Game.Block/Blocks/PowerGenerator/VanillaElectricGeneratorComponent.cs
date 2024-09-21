@@ -28,7 +28,7 @@ namespace Game.Block.Blocks.PowerGenerator
         private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        private ItemId _currentFuelItemId = ItemConst.EmptyItemId;
+        private ItemId _currentFuelItemId = ItemMaster.EmptyItemId;
         private double _remainingFuelTime;
         
         public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
@@ -180,12 +180,12 @@ namespace Game.Block.Blocks.PowerGenerator
             
             //現在燃料を消費しているか判定
             //燃料が在る場合は燃料残り時間をUpdate時間分減らす
-            if (_currentFuelItemId != ItemConst.EmptyItemId)
+            if (_currentFuelItemId != ItemMaster.EmptyItemId)
             {
                 _remainingFuelTime -= GameUpdater.UpdateSecondTime;
                 
                 //残り時間が0以下の時は燃料の設定をNullItemIdにする
-                if (_remainingFuelTime <= 0) _currentFuelItemId = ItemConst.EmptyItemId;
+                if (_remainingFuelTime <= 0) _currentFuelItemId = ItemMaster.EmptyItemId;
                 
                 return;
             }

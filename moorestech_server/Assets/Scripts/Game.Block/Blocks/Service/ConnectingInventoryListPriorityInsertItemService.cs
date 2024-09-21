@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 
@@ -25,7 +26,7 @@ namespace Game.Block.Blocks.Service
         {
             IReadOnlyList<IBlockInventory> inventories = _blockConnectorComponent.ConnectedTargets.Keys.ToArray();
             
-            for (var i = 0; i < inventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
+            for (var i = 0; i < inventories.Count && itemStack.Id != ItemMaster.EmptyItemId; i++)
                 lock (inventories)
                 {
                     AddIndex();

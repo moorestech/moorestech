@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //プレイヤーインベントリの検証
             for (var i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
             {
-                Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
+                Assert.AreEqual(ItemMaster.EmptyItemId, data.Main[i].Id);
                 Assert.AreEqual(0, data.Main[i].Count);
             }
             
@@ -75,7 +75,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 }
                 else
                 {
-                    Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
+                    Assert.AreEqual(ItemMaster.EmptyItemId, data.Main[i].Id);
                     Assert.AreEqual(0, data.Main[i].Count);
                 }
         }

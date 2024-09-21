@@ -80,7 +80,7 @@ namespace Game.Block.Blocks.ItemShooter
                         var output = connector.Key.InsertItem(insertItem);
                         
                         //渡した結果がnullItemだったらそのアイテムを消す
-                        if (output.Id == ItemConst.EmptyItemId) _inventoryItems[i] = null;
+                        if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
                     }
                     
                     continue;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
@@ -41,7 +42,7 @@ namespace Game.Block.Blocks.Machine
                 OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
                 RemainingTime = _vanillaMachineProcessorComponent.RemainingSecond,
-                RecipeId = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
+                RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
             };
             
             return JsonConvert.SerializeObject(jsonObject);
@@ -54,8 +55,11 @@ namespace Game.Block.Blocks.Machine
         public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
         public List<ItemStackSaveJsonObject> OutputSlot;
-        [JsonProperty("recipeId")]
-        public string RecipeId;
+        [JsonProperty("recipeGuid")]
+        public string RecipeGuidStr;
+        [JsonIgnore]
+        public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
+        
         [JsonProperty("remainingTime")]
         public double RemainingTime;
         

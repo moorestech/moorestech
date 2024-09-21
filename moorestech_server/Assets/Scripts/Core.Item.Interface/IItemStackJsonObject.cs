@@ -1,4 +1,5 @@
 using System;
+using Core.Const;
 using Core.Master;
 using Newtonsoft.Json;
 
@@ -8,7 +9,7 @@ namespace Core.Item.Interface
     {
         [JsonProperty("itemGuid")]
         public string ItemGuidStr;
-        [JsonProperty("id")]
+        [JsonProperty("count")]
         public int Count;
         
         [JsonIgnore]
@@ -18,8 +19,11 @@ namespace Core.Item.Interface
         
         public ItemStackSaveJsonObject(IItemStack itemStack)
         {
+            ItemGuidStr = 
+                itemStack.Id == ItemMaster.EmptyItemId ?
+                    Guid.Empty.ToString() : 
+                    MasterHolder.ItemMaster.GetItemMaster(itemStack.Id).ItemGuid.ToString();
             Count = itemStack.Count;
-            ItemGuidStr = MasterHolder.ItemMaster.GetItemMaster(itemStack.Id).ItemGuid.ToString();
         }
     }
 }

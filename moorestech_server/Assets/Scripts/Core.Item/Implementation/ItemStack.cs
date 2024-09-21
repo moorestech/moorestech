@@ -16,7 +16,7 @@ namespace Core.Item.Implementation
         
         public ItemStack(ItemId id, int count, Dictionary<string, ItemStackMetaData> metaData)
         {
-            if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
+            if (id == ItemMaster.EmptyItemId) throw new ArgumentException("Item id cannot be null");
             if (count < 1) throw new ArgumentOutOfRangeException();
             
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(id);
@@ -80,13 +80,13 @@ namespace Core.Item.Implementation
         {
             var tmpStack = MasterHolder.ItemMaster.GetItemMaster(Id).MaxStack;
             
-            return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
+            return (Id == item.Id || item.Id == ItemMaster.EmptyItemId) &&
                    item.Count + Count <= tmpStack;
         }
         
         public bool IsAllowedToAddWithRemain(IItemStack item)
         {
-            return Id == item.Id || item.Id == ItemConst.EmptyItemId;
+            return Id == item.Id || item.Id == ItemMaster.EmptyItemId;
         }
         
         public ItemStackMetaData GetMeta(string key)

@@ -110,7 +110,7 @@ namespace Tests.CombinedTest.Core
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(inventory);
             
             Assert.AreEqual(0, input.Count);
-            foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);
+            foreach (var inputItem in input) Assert.AreEqual(ItemMaster.EmptyItemId, inputItem.Id);
             
             Assert.AreNotEqual(0, output.Count);
             for (var i = 0; i < output.Count; i++)
