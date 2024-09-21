@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Reflection;
 using Core.Master;
 using Game.Block.Interface;
@@ -51,6 +53,8 @@ namespace Tests.CombinedTest.Game
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loadWorldBlockDatastore = ServerContext.WorldBlockDatastore;
             
+            // ファイルを削除
+            File.Delete(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
             
             //追加したブロックのチェック
             var block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
@@ -67,6 +71,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(3, block.BlockId.AsPrimitive());
             Assert.AreEqual(block2.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(30, -10)));
+            
         }
         
         private void ChangeFilePath(SaveJsonFileName instance, string fileName)
@@ -76,7 +81,8 @@ namespace Tests.CombinedTest.Game
                 BindingFlags.Instance | BindingFlags.NonPublic);
             
             // バッキングフィールドの値を更新する
-            fieldInfo.SetValue(instance, fileName);
+            var path = Path.Combine(Environment.CurrentDirectory, "../", "moorestech_server", fileName);
+            fieldInfo.SetValue(instance, path);
         }
     }
 }
