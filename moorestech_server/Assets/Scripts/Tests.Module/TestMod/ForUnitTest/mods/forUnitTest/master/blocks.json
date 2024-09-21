@@ -632,10 +632,61 @@
       ],
       "maxStack": 100,
       "name": "MultiBlock1",
-      "blockType": "Block",
+      "blockType": "ElectricGenerator",
       "itemGuid": "00000000-0000-0000-1234-000000000009",
       "blockGuid": "00000000-0000-0000-0000-000000000009",
-      "blockParam": {}
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "isInfinityPower": true,
+        "infinityPower": 10,
+        "fuelItems": [],
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      }
     },
     {
       "modelTransform": {
@@ -663,8 +714,16 @@
       "name": "MultiBlock2",
       "itemGuid": "00000000-0000-0000-1234-000000000010",
       "blockGuid": "00000000-0000-0000-0000-00000000000a",
-      "blockType": "Block",
-      "blockParam": {}
+      "blockType": "ElectricGenerator",
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "infinityPower": 10,
+        "isInfinityPower": true,
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": []
+        }
+      }
     },
     {
       "modelTransform": {
@@ -692,8 +751,16 @@
       "itemGuid": "00000000-0000-0000-1234-000000000011",
       "name": "MultiBlock3",
       "blockGuid": "00000000-0000-0000-0000-00000000000b",
-      "blockType": "Block",
-      "blockParam": {}
+      "blockType": "ElectricGenerator",
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "infinityPower": 10,
+        "isInfinityPower": true,
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": []
+        }
+      }
     },
     {
       "modelTransform": {
