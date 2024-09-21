@@ -649,7 +649,13 @@
                 0
               ],
               "connectType": "Inventory",
-              "connectOption": {}
+              "connectOption": {},
+              "directions": [
+                [0, 0, -1],
+                [0, 0, 1],
+                [1, 0, 0],
+                [-1, 0, 0]
+              ]
             }
           ],
           "inputConnects": [
@@ -660,28 +666,7 @@
                 0
               ],
               "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
+              "directions": [],
               "connectOption": {}
             }
           ]
@@ -720,7 +705,32 @@
         "infinityPower": 10,
         "isInfinityPower": true,
         "inventoryConnectors": {
-          "outputConnects": [],
+          "outputConnects": [
+            {
+              "offset": [
+                2,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [0, 0, 1]
+              ],
+              "connectOption": {}
+            },
+            {
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [0, 0, -1]
+              ],
+              "connectOption": {}
+            }
+          ],
           "inputConnects": []
         }
       }
@@ -757,8 +767,35 @@
         "infinityPower": 10,
         "isInfinityPower": true,
         "inventoryConnectors": {
-          "outputConnects": [],
-          "inputConnects": []
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [0, 0, -1],
+                [0, 0, 1],
+                [1, 0, 0],
+                [-1, 0, 0]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
+            }
+          ]
         }
       }
     },
