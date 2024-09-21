@@ -30,6 +30,7 @@
 
       "directions": {
         "type": "array",
+        "optional": true,
         "items": {
           "type": "array",
           "pattern": "@vector3Int",
