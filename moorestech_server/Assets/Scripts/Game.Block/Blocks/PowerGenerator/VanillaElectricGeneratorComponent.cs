@@ -54,7 +54,7 @@ namespace Game.Block.Blocks.PowerGenerator
             
             for (var i = 0; i < saveData.Items.Count; i++)
             {
-                _itemDataStoreService.SetItem(i, saveData.Items[i].ToItem());
+                _itemDataStoreService.SetItem(i, saveData.Items[i].ToItemStack());
             }
         }
         public BlockPositionInfo BlockPositionInfo { get; }

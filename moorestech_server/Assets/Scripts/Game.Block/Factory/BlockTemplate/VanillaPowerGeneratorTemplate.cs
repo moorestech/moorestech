@@ -61,10 +61,14 @@ namespace Game.Block.Factory.BlockTemplate
         public VanillaPowerGeneratorProperties(BlockInstanceId blockInstanceId,ElectricGeneratorBlockParam param, BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             FuelSettings = new Dictionary<ItemId, FuelItemsElement>();
-            foreach (var fuelItem in param.FuelItems)
+            
+            if (param.FuelItems != null)
             {
-                var itemId = MasterHolder.ItemMaster.GetItemId(fuelItem.ItemGuid);
-                FuelSettings.Add(itemId, fuelItem);
+                foreach (var fuelItem in param.FuelItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(fuelItem.ItemGuid);
+                    FuelSettings.Add(itemId, fuelItem);
+                }
             }
             
             BlockInstanceId = blockInstanceId;

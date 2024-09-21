@@ -9,22 +9,20 @@ namespace Core.Master
 {
     public static class MachineRecipeMasterUtil
     {
-        private static Dictionary<string, MachineRecipeMasterElement> _machineRecipes;
-        
         public static bool TryGetRecipeElement(BlockId blockId, IReadOnlyList<IItemStack> inputSlot,out MachineRecipeMasterElement recipe)
         {
-            if (_machineRecipes == null) BuildMachineRecipes();
+            var itemIds = new List<ItemId>(inputSlot.Count);
+            foreach (var inputItem in inputSlot)
+            {
+                if (inputItem.Id == ItemMaster.EmptyItemId) continue;
+                itemIds.Add(inputItem.Id);
+            }
             
-            var tmpInputItem = inputSlot.Where(i => i.Count != 0).ToList();
-            var key = GetRecipeElementKey(blockId, tmpInputItem);
-            
-            // ReSharper disable once PossibleNullReferenceException
-            return _machineRecipes.TryGetValue(key, out recipe);
+            return MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, out recipe);
         }
         
         public static bool RecipeConfirmation(this MachineRecipeMasterElement recipe, BlockId blockId, IReadOnlyList<IItemStack> inputSlot)
         {
-            if (_machineRecipes == null) BuildMachineRecipes();
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             if (recipeBlockId != blockId) return false;
             
@@ -37,39 +35,6 @@ namespace Core.Master
             }
             
             return okCnt == recipe.InputItems.Length;
-        }
-        
-        private static void BuildMachineRecipes()
-        {
-            _machineRecipes = new Dictionary<string, MachineRecipeMasterElement>();
-            foreach (var recipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
-            {
-                var inputItemStacks = new List<IItemStack>();
-                foreach (var inputItem in recipe.InputItems)
-                {
-                    var item = ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid), inputItem.Count);
-                    inputItemStacks.Add(item);
-                }
-                
-                var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-                var key = GetRecipeElementKey(blockId, inputItemStacks);
-                _machineRecipes.Add(key, recipe);
-            }
-        }
-        
-        private static string GetRecipeElementKey(BlockId blockId, List<IItemStack> itemIds)
-        {
-            StringBuilder items = new StringBuilder();
-            items.Append(blockId);
-            items.Append('_');
-            
-            itemIds.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
-            itemIds.ForEach(i =>
-            {
-                items.Append('_');
-                items.Append(i.Id);
-            });
-            return items.ToString();
         }
     }
 }

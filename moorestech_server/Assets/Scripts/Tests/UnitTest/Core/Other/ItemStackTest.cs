@@ -67,7 +67,7 @@ namespace Tests.UnitTest.Core.Other
             
             var result = mineItemStack.SubItem(subamo);
             Assert.AreEqual(ansamo, result.Count);
-            Assert.AreEqual(ansID, result.Id);
+            Assert.AreEqual(ansID, result.Id.AsPrimitive());
         }
         
         

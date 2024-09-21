@@ -40,13 +40,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             Assert.AreEqual(ForUnitTestModBlockId.MachineId, data.BlockId); // block id
             
-            Assert.AreEqual(1, data.Items[0].Id); // item id
+            Assert.AreEqual(1, data.Items[0].Id.AsPrimitive()); // item id
             Assert.AreEqual(2, data.Items[0].Count); // item count
             
-            Assert.AreEqual(0, data.Items[1].Id);
+            Assert.AreEqual(0, data.Items[1].Id.AsPrimitive());
             Assert.AreEqual(0, data.Items[1].Count);
             
-            Assert.AreEqual(4, data.Items[2].Id);
+            Assert.AreEqual(4, data.Items[2].Id.AsPrimitive());
             Assert.AreEqual(5, data.Items[2].Count);
         }
         

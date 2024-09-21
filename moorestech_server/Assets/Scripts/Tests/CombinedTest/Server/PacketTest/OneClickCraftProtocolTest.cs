@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)).ToList());
             
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
-            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
+            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id.AsPrimitive());
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
         
@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //アイテムがクラフトされていないことをテスト
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
-            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
+            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id.AsPrimitive());
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
         
@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 var info = craftElement.RequiredItems[i];
                 var itemId = MasterHolder.ItemMaster.GetItemId(info.ItemGuid);
-                Assert.AreEqual(itemId, playerInv.MainOpenableInventory.GetItem(i).Id);
+                Assert.AreEqual(itemId, playerInv.MainOpenableInventory.GetItem(i).Id.AsPrimitive());
                 Assert.AreEqual(info.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
             }
         }

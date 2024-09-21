@@ -11,11 +11,9 @@ namespace Game.PlayerInventory.Interface
     {
         [JsonProperty("PlayerId")] public int PlayerId;
         
-        [JsonProperty("MainItemId")] public List<string> MainItemGuIds;
-        [JsonProperty("MainItemCount")] public List<int> MainItemCounts;
+        [JsonProperty("MainInventoryItems")] public List<ItemStackSaveJsonObject> MainInventoryItems;
         
-        [JsonProperty("GrabItemId")] public string GrabItemGuid;
-        [JsonProperty("GrabItemCount")] public int GrabItemCount;
+        [JsonProperty("GrabInventoryItems")] public ItemStackSaveJsonObject GrabInventoryItem;
         
         public PlayerInventorySaveJsonObject()
         {
@@ -23,21 +21,15 @@ namespace Game.PlayerInventory.Interface
         
         public PlayerInventorySaveJsonObject(int playerId, PlayerInventoryData playerInventoryData)
         {
-            MainItemGuIds = new List<string>();
-            MainItemCounts = new List<int>();
+            MainInventoryItems = new List<ItemStackSaveJsonObject>();
             for (var i = 0; i < playerInventoryData.MainOpenableInventory.GetSlotSize(); i++)
             {
                 var item = playerInventoryData.MainOpenableInventory.GetItem(i);
-                var master = MasterHolder.ItemMaster.GetItemMaster(item.Id);
-                MainItemGuIds.Add(master.ItemGuid.ToString());
-                MainItemCounts.Add(item.Count);
+                MainInventoryItems.Add(new ItemStackSaveJsonObject(item));
             }
             
-            var grabItem = playerInventoryData.GrabInventory.GetItem(0);
-            var grabItemMaster = MasterHolder.ItemMaster.GetItemMaster(grabItem.Id);
-            GrabItemGuid = grabItemMaster.ItemGuid.ToString();
-            GrabItemCount = grabItem.Count;
-            
+            var grabItemStack = playerInventoryData.GrabInventory.GetItem(0);
+            GrabInventoryItem = new ItemStackSaveJsonObject(grabItemStack);
             
             PlayerId = playerId;
         }
@@ -45,13 +37,12 @@ namespace Game.PlayerInventory.Interface
         public (List<IItemStack> mainInventory, IItemStack grabItem) GetPlayerInventoryData()
         {
             var mainItemStack = new List<IItemStack>();
-            for (var i = 0; i < MainItemGuIds.Count; i++)
+            foreach (var items in MainInventoryItems)
             {
-                var item = ServerContext.ItemStackFactory.Create(new Guid(MainItemGuIds[i]), MainItemCounts[i]);
-                mainItemStack.Add(item);
+                mainItemStack.Add(items.ToItemStack());
             }
+            var grabItem = GrabInventoryItem.ToItemStack();
             
-            var grabItem = ServerContext.ItemStackFactory.Create(new Guid(GrabItemGuid), GrabItemCount);
             return (mainItemStack, grabItem);
         }
     }

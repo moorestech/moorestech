@@ -82,7 +82,7 @@ namespace Game.Block.Blocks.Miner
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
             for (var i = 0; i < saveJsonObject.Items.Count; i++)
             {
-                var itemStack = saveJsonObject.Items[i].ToItem();
+                var itemStack = saveJsonObject.Items[i].ToItemStack();
                 _openableInventoryItemDataStoreService.SetItem(i, itemStack);
             }
             

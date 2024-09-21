@@ -59,11 +59,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
-            Assert.AreEqual(1, newInventoryItems[0].ItemId);
+            Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
             Assert.AreEqual(0.3f, newInventoryItems[0].RemainingPercent);
-            Assert.AreEqual(2, newInventoryItems[2].ItemId);
+            Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
             Assert.AreEqual(0.5f, newInventoryItems[2].RemainingPercent);
-            Assert.AreEqual(5, newInventoryItems[3].ItemId);
+            Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
             Assert.AreEqual(1f, newInventoryItems[3].RemainingPercent);
         }
     }

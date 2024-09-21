@@ -56,7 +56,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 if (items[i].ItemStack == null) continue;
                 
-                var itemStack = items[i].ItemStack.ToItem();
+                var itemStack = items[i].ItemStack.ToItemStack();
                 _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
                 _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }

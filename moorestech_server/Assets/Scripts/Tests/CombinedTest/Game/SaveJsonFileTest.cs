@@ -54,17 +54,17 @@ namespace Tests.CombinedTest.Game
             
             //追加したブロックのチェック
             var block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            Assert.AreEqual(1, block.BlockId);
+            Assert.AreEqual(1, block.BlockId.AsPrimitive());
             Assert.AreEqual(block0.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.North, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(0, 0)));
             
             block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 1));
-            Assert.AreEqual(2, block.BlockId);
+            Assert.AreEqual(2, block.BlockId.AsPrimitive());
             Assert.AreEqual(block1.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.East, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(0, 1)));
             
             block = loadWorldBlockDatastore.GetBlock(new Vector3Int(30, -10));
-            Assert.AreEqual(3, block.BlockId);
+            Assert.AreEqual(3, block.BlockId.AsPrimitive());
             Assert.AreEqual(block2.BlockInstanceId, block.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(30, -10)));
         }

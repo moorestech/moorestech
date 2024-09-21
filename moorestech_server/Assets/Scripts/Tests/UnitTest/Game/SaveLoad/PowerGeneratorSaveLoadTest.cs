@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var powerGeneratorBlock = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(10), generatorPosInfo);
             var powerGenerator = powerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
             
-            const int fuelItemId = 5;
+             var fuelItemId = new ItemId(5);
             const int remainingFuelTime = 567;
             
             //検証元の発電機を作成
@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedPowerGeneratorBlock = blockFactory.Load(blockGuid, new BlockInstanceId(10), saveText, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
             //発電機を再作成した結果を検証
-            var loadedFuelItemId = (int)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadedFuelItemId = (ItemId)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
             Assert.AreEqual(fuelItemId, loadedFuelItemId);
             

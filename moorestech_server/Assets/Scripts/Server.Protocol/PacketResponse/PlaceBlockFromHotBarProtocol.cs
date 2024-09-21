@@ -63,6 +63,10 @@ namespace Server.Protocol.PacketResponse
         {
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var overrideBlock = blockElement.OverrideVerticalBlock;
+            if (overrideBlock == null)
+            {
+                return blockId;
+            }
             
             if (verticalDirection is BlockVerticalDirection.Up && overrideBlock.UpBlockGuid != Guid.Empty)
             {

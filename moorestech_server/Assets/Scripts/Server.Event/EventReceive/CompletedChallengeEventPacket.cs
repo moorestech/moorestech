@@ -33,7 +33,7 @@ namespace Server.Event.EventReceive
     public class CompletedChallengeEventMessage
     {
         [Key(0)] public string CompletedChallengeGuidStr { get; set; }
-        [JsonIgnore] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
+        [IgnoreMember] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CompletedChallengeEventMessage()

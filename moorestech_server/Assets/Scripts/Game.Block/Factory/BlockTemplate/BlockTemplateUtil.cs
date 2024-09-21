@@ -48,13 +48,13 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
             
-            var inputItems = jsonObject.InputSlot.Select(item => item.ToItem()).ToList();
+            var inputItems = jsonObject.InputSlot.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < inputItems.Count; i++)
             {
                 vanillaMachineInputInventory.SetItem(i, inputItems[i]);
             }
             
-            var outputItems = jsonObject.OutputSlot.Select(item => item.ToItem()).ToList();
+            var outputItems = jsonObject.OutputSlot.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < outputItems.Count; i++)
             {
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
@@ -62,7 +62,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var recipe = jsonObject.RecipeGuid == Guid.Empty ?
                 null :
-                MasterHolder.MachineRecipesMaster.MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid.ToString() == jsonObject.RecipeGuidStr);
+                MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
             
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,

@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //ブロックが置かれているかチェック
             var world = ServerContext.WorldBlockDatastore;
-            Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2, 4)).BlockId);
+            Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2, 4)).BlockId.AsPrimitive());
             //アイテムが減っているかチェック
             Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
             

@@ -4,7 +4,7 @@ namespace Game.Context
 {
     public static class ItemStackSaveJsonObjectExtension
     {
-        public static IItemStack ToItem(this ItemStackSaveJsonObject itemStackSaveJsonObject)
+        public static IItemStack ToItemStack(this ItemStackSaveJsonObject itemStackSaveJsonObject)
         {
             return ServerContext.ItemStackFactory.Create(itemStackSaveJsonObject.ItemGuid, itemStackSaveJsonObject.Count);
         }

@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             //ブロック内のアイテムがインベントリに入っているか
-            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id.AsPrimitive());
             Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
             
             //削除したブロックは次のスロットに入っているのでそれをチェック
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //インベントリの2つのスロットを残してインベントリを満杯にする
             for (var i = 2; i < mainInventory.GetSlotSize(); i++)
-                mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(1000), 1));
+                mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(10), 1));
             
             //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
             var id3MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(3)).MaxStack;
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //インベントリを満杯にする
             for (var i = 0; i < mainInventory.GetSlotSize(); i++)
-                mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(1000), 1));
+                mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(10), 1));
             
             //ブロックを設置
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out _);

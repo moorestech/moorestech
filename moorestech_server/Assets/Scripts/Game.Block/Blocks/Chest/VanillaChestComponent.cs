@@ -37,7 +37,7 @@ namespace Game.Block.Blocks.Chest
             var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(saveData);
             for (var i = 0; i < itemJsons.Count; i++)
             {
-                var itemStack = itemJsons[i].ToItem();
+                var itemStack = itemJsons[i].ToItemStack();
                 _itemDataStoreService.SetItem(i, itemStack);
             }
         }

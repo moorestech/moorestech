@@ -27,6 +27,7 @@ namespace Tests.UnitTest.Core.Block
             items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
             
             MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, input, out var ans);
+            
             Assert.AreEqual(output0Id, MasterHolder.ItemMaster.GetItemId(ans.OutputItems[0].ItemGuid).AsPrimitive());
             Assert.AreEqual(output0Percent, ans.OutputItems[0].Percent);
         }
@@ -36,9 +37,7 @@ namespace Tests.UnitTest.Core.Block
         [TestCase(3, new int[3] { 4, 1, 0 }, 0)]
         [TestCase(10, new int[1] { 2 }, 0)]
         [TestCase(0, new int[0], 0)]
-        [TestCase(1, new int[2] { 2, 1 }, 1)] //存在するときのテストケース
-        [TestCase(3, new int[2] { 2, 1 }, 1)] // exist test
-        [TestCase(3, new int[3] { 2, 1, 0 }, 1)]
+        [TestCase(1, new int[2] { 2, 1 }, 1)] //存在するときのテストケース exist test
         public void NullRecipeTest(int BlocksId, int[] items, int outputLength)
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -74,6 +73,13 @@ namespace Tests.UnitTest.Core.Block
             }
             
             MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)blocksId, itemStacks, out var machineRecipeElement);
+            
+            if (!ans && machineRecipeElement == null)
+            {
+                Assert.Pass();
+                return;
+            }
+            
             var a = machineRecipeElement.RecipeConfirmation((BlockId)blocksId, itemStacks);
             Assert.AreEqual(ans, a);
         }

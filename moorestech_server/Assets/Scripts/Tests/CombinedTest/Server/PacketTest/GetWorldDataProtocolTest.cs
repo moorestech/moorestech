@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 
                 var blockId = random.Next(0, 3) == 1
                     ? random.Next(short.MaxValue, int.MaxValue)
-                    : random.Next(1, 500);
+                    : random.Next(1, 20);
                 worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, out _);
             }
             

@@ -131,7 +131,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 if (random.Next(0, 2) == 0) continue;
-                var id = new ItemId(random.Next(1, 100));
+                var id = new ItemId(random.Next(1, 20));
                 var count = random.Next(1, 20);
                 items.Add(i, itemStackFactory.Create(id, count));
             }

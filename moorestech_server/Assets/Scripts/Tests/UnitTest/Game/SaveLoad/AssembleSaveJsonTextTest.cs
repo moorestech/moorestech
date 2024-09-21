@@ -36,11 +36,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var worldLoadBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var b0 = worldLoadBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            Assert.AreEqual(1, b0.BlockId);
+            Assert.AreEqual(1, b0.BlockId.AsPrimitive());
             Assert.AreEqual(block0.BlockInstanceId, b0.BlockInstanceId.AsPrimitive());
             
             var b1 = worldLoadBlockDatastore.GetBlock(new Vector3Int(10, -15));
-            Assert.AreEqual(2, b1.BlockId);
+            Assert.AreEqual(2, b1.BlockId.AsPrimitive());
             Assert.AreEqual(block1.BlockInstanceId, b1.BlockInstanceId.AsPrimitive());
         }
     }

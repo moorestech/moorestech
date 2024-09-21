@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             }
             
             //グラブインベントリの検証
-            Assert.AreEqual(0, data.Grab.Id);
+            Assert.AreEqual(0, data.Grab.Id.AsPrimitive());
             Assert.AreEqual(0, data.Grab.Count);
             
             
@@ -60,17 +60,17 @@ namespace Tests.CombinedTest.Server.PacketTest
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 if (i == 0)
                 {
-                    Assert.AreEqual(1, data.Main[i].Id);
+                    Assert.AreEqual(1, data.Main[i].Id.AsPrimitive());
                     Assert.AreEqual(5, data.Main[i].Count);
                 }
                 else if (i == 20)
                 {
-                    Assert.AreEqual(3, data.Main[i].Id);
+                    Assert.AreEqual(3, data.Main[i].Id.AsPrimitive());
                     Assert.AreEqual(1, data.Main[i].Count);
                 }
                 else if (i == 34)
                 {
-                    Assert.AreEqual(10, data.Main[i].Id);
+                    Assert.AreEqual(10, data.Main[i].Id.AsPrimitive());
                     Assert.AreEqual(7, data.Main[i].Count);
                 }
                 else
