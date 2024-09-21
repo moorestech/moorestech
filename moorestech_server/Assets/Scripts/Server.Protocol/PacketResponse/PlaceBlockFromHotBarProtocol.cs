@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -49,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックIDの設定
             var blockId = MasterHolder.BlockMaster.GetBlockId(item.Id);
-            blockId = GetOverrideBlockId(blockId, placeInfo.VerticalDirection);
+            blockId = blockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
             
             //ブロックの設置
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block);
@@ -57,31 +58,6 @@ namespace Server.Protocol.PacketResponse
             //アイテムを減らし、セットする
             item = item.SubItem(1);
             inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);
-        }
-        
-        static BlockId GetOverrideBlockId(BlockId blockId,BlockVerticalDirection verticalDirection)
-        {
-            var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var overrideBlock = blockElement.OverrideVerticalBlock;
-            if (overrideBlock == null)
-            {
-                return blockId;
-            }
-            
-            if (verticalDirection is BlockVerticalDirection.Up && overrideBlock.UpBlockGuid != Guid.Empty)
-            {
-                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.UpBlockGuid);
-            }
-            if (verticalDirection is BlockVerticalDirection.Horizontal && overrideBlock.HorizontalBlockGuid != Guid.Empty)
-            {
-                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.HorizontalBlockGuid);
-            }
-            if (verticalDirection is  BlockVerticalDirection.Down && overrideBlock.DownBlockGuid != Guid.Empty)
-            {
-                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.DownBlockGuid);
-            }
-            
-            return blockId;
         }
         
         #endregion

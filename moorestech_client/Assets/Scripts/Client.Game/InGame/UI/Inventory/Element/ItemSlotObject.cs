@@ -61,7 +61,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
             
             countText.text = count != 0 ? count.ToString() : string.Empty;
             
-            if (itemView.ItemId == ItemMaster.EmptyItemId)
+            if (itemView == null || itemView.ItemId == ItemMaster.EmptyItemId)
             {
                 itemImage.gameObject.SetActive(false);
                 

@@ -33,8 +33,15 @@ namespace Client.Game.InGame.Context
         
         public ItemViewData GetItemView(ItemId itemId)
         {
-            //TODO アイテムがないときの対応
-            return _itemImageList[itemId];
+            if (itemId == ItemMaster.EmptyItemId)
+            {
+                return null;
+            }
+            
+            if (_itemImageList.TryGetValue(itemId, out var view)) return view;
+            
+            Debug.LogError($"ItemViewData not found. itemId:{itemId}");
+            return null;
         }
     }
 }
