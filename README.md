@@ -24,7 +24,7 @@ git fetch schema
 git subtree push --prefix=schema schema main 
 ```
 
-## Vani;aSchemaからpull
+## VanillaSchemaからpull
 ```sh
 git subtree pull --prefix=schema schema main 
 ```
