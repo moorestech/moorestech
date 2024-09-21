@@ -31,14 +31,14 @@ namespace Tests.UnitTest.Core.Block
             Assert.AreEqual(output0Percent, ans.OutputItems[0].Percent);
         }
         
-        [TestCase(3, new int[4] { 2, 1, 0, 5 }, 0)] //nullの時のテスト
-        [TestCase(0, new int[3] { 2, 1, 0 }, 0)]
+        [TestCase(3, new int[4] { 2, 1, 0, 5 }, 0)] //レシピが存在しない時のテスト
+        [TestCase(0, new int[3] { 2, 1, 0 }, 0)] // not exist test
         [TestCase(3, new int[3] { 4, 1, 0 }, 0)]
-        [TestCase(3, new int[2] { 2, 1 }, 0)]
         [TestCase(10, new int[1] { 2 }, 0)]
-        [TestCase(3, new int[3] { 2, 1, 0 }, 0)]
-        [TestCase(1, new int[2] { 2, 1 }, 1)] //存在するときのテストケース
         [TestCase(0, new int[0], 0)]
+        [TestCase(1, new int[2] { 2, 1 }, 1)] //存在するときのテストケース
+        [TestCase(3, new int[2] { 2, 1 }, 1)] // exist test
+        [TestCase(3, new int[3] { 2, 1, 0 }, 1)]
         public void NullRecipeTest(int BlocksId, int[] items, int outputLength)
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
