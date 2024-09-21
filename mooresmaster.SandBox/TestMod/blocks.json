@@ -61,7 +61,7 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -94,13 +94,13 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
-      "itemGuid": "10000000-0000-0000-0000-000000000000",
-      "blockGuid": "80a4df8d-722c-4db8-957d-1bf74862c960"
+      "itemGuid": "00000000-0000-0000-1234-000000000001",
+      "blockGuid": "00000000-0000-0000-0000-000000000001"
     },
     {
       "modelTransform": {
@@ -127,9 +127,9 @@
       ],
       "name": "TestBlock",
       "blockType": "Block",
-      "itemGuid": "20000000-0000-0000-0000-000000000000",
-      "blockGuid": "828761da-652c-419e-8d1e-79ee1c667675",
-      "blockParam": { }
+      "itemGuid": "00000000-0000-0000-1234-000000000002",
+      "blockGuid": "00000000-0000-0000-0000-000000000002",
+      "blockParam": {}
     },
     {
       "modelTransform": {
@@ -190,7 +190,7 @@
                   0
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "outputConnects": [
@@ -208,13 +208,13 @@
                   1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
-      "itemGuid": "30000000-0000-0000-0000-000000000000",
-      "blockGuid": "593fbde9-acea-4313-833d-14bfc419e8ec"
+      "itemGuid": "00000000-0000-0000-1234-000000000003",
+      "blockGuid": "00000000-0000-0000-0000-000000000003"
     },
     {
       "modelTransform": {
@@ -245,8 +245,8 @@
         "machineConnectionRange": 5,
         "poleConnectionRange": 7
       },
-      "itemGuid": "40000000-0000-0000-0000-000000000000",
-      "blockGuid": "73c5d6d7-1436-4cde-8311-2140d5986cda"
+      "itemGuid": "00000000-0000-0000-1234-000000000004",
+      "blockGuid": "00000000-0000-0000-0000-000000000004"
     },
     {
       "modelTransform": {
@@ -281,12 +281,12 @@
           {
             "power": 100,
             "time": 1,
-            "itemGuid": "10000000-0000-0000-0000-000000000000"
+            "itemGuid": "00000000-0000-0000-1234-000000000001"
           },
           {
             "power": 200,
             "time": 2,
-            "itemGuid": "20000000-0000-0000-0000-000000000000"
+            "itemGuid": "00000000-0000-0000-1234-000000000002"
           }
         ],
         "inventoryConnectors": {
@@ -294,8 +294,8 @@
           "inputConnects": []
         }
       },
-      "itemGuid": "50000000-0000-0000-0000-000000000000",
-      "blockGuid": "9d7d461b-2959-4b64-a627-096dad977769"
+      "itemGuid": "00000000-0000-0000-1234-000000000005",
+      "blockGuid": "00000000-0000-0000-0000-000000000005"
     },
     {
       "modelTransform": {
@@ -328,7 +328,7 @@
         "mineSettings": [
           {
             "time": 1,
-            "itemGuid": "10000000-0000-0000-0000-000000000000"
+            "itemGuid": "00000000-0000-0000-1234-000000000001"
           }
         ],
         "inventoryConnectors": {
@@ -362,7 +362,7 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -395,13 +395,13 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
-      "itemGuid": "60000000-0000-0000-0000-000000000000",
-      "blockGuid": "9b222109-d132-41aa-b034-961553ca3257"
+      "itemGuid": "00000000-0000-0000-1234-000000000006",
+      "blockGuid": "00000000-0000-0000-0000-000000000006"
     },
     {
       "modelTransform": {
@@ -461,7 +461,7 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -494,13 +494,13 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
-      "itemGuid": "70000000-0000-0000-0000-000000000000",
-      "blockGuid": "688d6d06-e714-4393-90f5-85fb0f2b8dca"
+      "itemGuid": "00000000-0000-0000-1234-000000000007",
+      "blockGuid": "00000000-0000-0000-0000-000000000007"
     },
     {
       "modelTransform": {
@@ -566,7 +566,7 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -599,13 +599,13 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
-      "itemGuid": "80000000-0000-0000-0000-000000000000",
-      "blockGuid": "61010283-0396-4314-aa7e-bf6421c55eff"
+      "itemGuid": "00000000-0000-0000-1234-000000000008",
+      "blockGuid": "00000000-0000-0000-0000-000000000008"
     },
     {
       "modelTransform": {
@@ -632,10 +632,61 @@
       ],
       "maxStack": 100,
       "name": "MultiBlock1",
-      "blockType": "Block",
-      "itemGuid": "90000000-0000-0000-0000-000000000000",
-      "blockGuid": "3f12ba81-274c-4d25-a8cb-999cd4036f27",
-      "blockParam": { }
+      "blockType": "ElectricGenerator",
+      "itemGuid": "00000000-0000-0000-1234-000000000009",
+      "blockGuid": "00000000-0000-0000-0000-000000000009",
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "isInfinityPower": true,
+        "infinityPower": 10,
+        "fuelItems": [],
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      }
     },
     {
       "modelTransform": {
@@ -661,10 +712,18 @@
         2
       ],
       "name": "MultiBlock2",
-      "itemGuid": "11000000-0000-0000-0000-000000000000",
-      "blockGuid": "90c233a5-3e24-405b-b0cc-5ea68ba0e228",
-      "blockType": "Block",
-      "blockParam": { }
+      "itemGuid": "00000000-0000-0000-1234-000000000010",
+      "blockGuid": "00000000-0000-0000-0000-00000000000a",
+      "blockType": "ElectricGenerator",
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "infinityPower": 10,
+        "isInfinityPower": true,
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": []
+        }
+      }
     },
     {
       "modelTransform": {
@@ -689,11 +748,19 @@
         2,
         3
       ],
-      "itemGuid": "12000000-0000-0000-0000-000000000000",
+      "itemGuid": "00000000-0000-0000-1234-000000000011",
       "name": "MultiBlock3",
-      "blockGuid": "07509108-21d2-4137-b6b2-89ebf6ff625e",
-      "blockType": "Block",
-      "blockParam": { }
+      "blockGuid": "00000000-0000-0000-0000-00000000000b",
+      "blockType": "ElectricGenerator",
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "infinityPower": 10,
+        "isInfinityPower": true,
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": []
+        }
+      }
     },
     {
       "modelTransform": {
@@ -782,8 +849,8 @@
           }
         ]
       },
-      "itemGuid": "15000000-0000-0000-0000-000000000000",
-      "blockGuid": "7b8b1c06-0676-4f0a-afea-bf7cee575ac7"
+      "itemGuid": "00000000-0000-0000-1234-000000000014",
+      "blockGuid": "00000000-0000-0000-0000-00000000000c"
     },
     {
       "modelTransform": {
@@ -912,7 +979,7 @@
         ]
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
-      "blockGuid": "a7dc8164-ca79-4d35-89f2-80feb304f0af"
+      "blockGuid": "00000000-0000-0000-0000-00000000000d"
     },
     {
       "modelTransform": {
@@ -968,7 +1035,7 @@
         ]
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
-      "blockGuid": "be233ce3-352c-40f7-9b9d-2c68f4898343"
+      "blockGuid": "00000000-0000-0000-0000-00000000000e"
     },
     {
       "modelTransform": {
@@ -1057,7 +1124,7 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -1090,13 +1157,13 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
-      "blockGuid": "15c245ce-1990-4206-92a8-a53039612c5f"
+      "blockGuid": "00000000-0000-0000-0000-00000000000f"
     },
     {
       "modelTransform": {
@@ -1165,7 +1232,7 @@
         ]
       },
       "itemGuid": "19000000-0000-0000-0000-000000000000",
-      "blockGuid": "e5b67f40-fccc-4096-a522-1d7280e2a956"
+      "blockGuid": "00000000-0000-0000-0000-000000000010"
     },
     {
       "modelTransform": {
@@ -1236,7 +1303,7 @@
         ]
       },
       "itemGuid": "11100000-0000-0000-0000-000000000000",
-      "blockGuid": "a4f03705-9966-4778-a226-5d4be4abca4f"
+      "blockGuid": "00000000-0000-0000-0000-000000000011"
     },
     {
       "modelTransform": {
@@ -1328,7 +1395,7 @@
         ]
       },
       "name": "SmallRequireTorqueTestGear",
-      "blockGuid": "00455de8-8691-4104-85eb-25b79c14ba95"
+      "blockGuid": "00000000-0000-0000-0000-000000000012"
     },
     {
       "modelTransform": {
@@ -1461,7 +1528,7 @@
           }
         ]
       },
-      "blockGuid": "d6366435-5d84-4cf1-8f27-994031eb0157"
+      "blockGuid": "00000000-0000-0000-0000-000000000013"
     },
     {
       "modelTransform": {
@@ -1530,7 +1597,7 @@
         ]
       },
       "itemGuid": "11400000-0000-0000-0000-000000000000",
-      "blockGuid": "513eee83-f255-43ed-8b8e-091ecf6267e9"
+      "blockGuid": "00000000-0000-0000-0000-000000000014"
     },
     {
       "modelTransform": {
@@ -1617,7 +1684,7 @@
                   0
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "outputConnects": [
@@ -1635,13 +1702,13 @@
                   1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
-      "blockGuid": "ff40f02e-5be7-4107-a795-2320fbada3d2"
+      "blockGuid": "00000000-0000-0000-0000-000000000015"
     },
     {
       "modelTransform": {
@@ -1694,7 +1761,7 @@
                   1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -1727,13 +1794,13 @@
                   0
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
       "itemGuid": "11500000-0000-0000-0000-000000000000",
-      "blockGuid": "0bae2b07-55b9-461f-992c-f39873fbf7c3"
+      "blockGuid": "00000000-0000-0000-0000-000000000016"
     },
     {
       "modelTransform": {
@@ -1786,7 +1853,7 @@
                   1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -1804,13 +1871,13 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
-      "itemGuid": "11500000-0000-0000-0000-000000000000",
-      "blockGuid": "1bae2b07-55b9-461f-992c-f39873fbf7c3"
+      "itemGuid": "11600000-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-000000000017"
     },
     {
       "modelTransform": {
@@ -1858,7 +1925,7 @@
                   1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ],
           "inputConnects": [
@@ -1881,13 +1948,319 @@
                   -1
                 ]
               ],
-              "connectOption": { }
+              "connectOption": {}
             }
           ]
         }
       },
       "itemGuid": "11700000-0000-0000-0000-000000000000",
-      "blockGuid": "2bae2b07-55b9-461f-992c-f39873fbf7c3"
+      "blockGuid": "00000000-0000-0000-0000-000000000018"
+    },
+    {
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "MachineRecipeTest1",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 101,
+        "outputItemSlotCount": 100,
+        "inputItemSlotCount": 100,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11900000-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-000000000019"
+    },
+    {
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "MachineRecipeTest2",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 101,
+        "outputItemSlotCount": 100,
+        "inputItemSlotCount": 100,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "12010000-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-00000000001a"
+    },
+    {
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "MachineRecipeTest3",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 101,
+        "outputItemSlotCount": 100,
+        "inputItemSlotCount": 100,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "12102000-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-00000000001b"
     }
   ]
 }

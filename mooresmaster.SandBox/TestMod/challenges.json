@@ -1,3 +1,59 @@
 {
-  "data": []
+  "data": [
+    {
+      "summary": "テスト1",
+      "title": "テスト1",
+      "taskCompletionType": "createItem",
+      "taskParam": {
+        "itemGuid": "00000000-0000-0000-1234-000000000003"
+      },
+      "challengeGuid": "51e1bab3-d989-4f64-a5e2-a95ae3d3c84f",
+      "prevChallengeGuid": "51e1bab3-d989-4f64-a5e2-a95ae3d3c84f",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": []
+    },
+    {
+      "summary": "テスト2",
+      "title": "テスト2",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 3,
+        "itemGuid": "00000000-0000-0000-1234-000000000001"
+      },
+      "challengeGuid": "150f2ce6-2c5a-4ec8-94e0-b3a6d88d980d",
+      "prevChallengeGuid": "150f2ce6-2c5a-4ec8-94e0-b3a6d88d980d",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": []
+    },
+    {
+      "summary": "テスト3",
+      "title": "テスト3",
+      "taskCompletionType": "blockPlace",
+      "taskParam": {
+        "itemCount": 1,
+        "blockGuid": "00000000-0000-0000-0000-000000000001"
+      },
+      "challengeGuid": "a9ed9449-97bd-458e-a75f-827ff35e3ff6",
+      "prevChallengeGuid": "a9ed9449-97bd-458e-a75f-827ff35e3ff6",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": []
+    },
+    {
+      "summary": "テスト1をクリアしたら始まるチャレンジ",
+      "title": "テスト4",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 3,
+        "itemGuid": "00000000-0000-0000-1234-000000000003"
+      },
+      "prevChallengeGuid": "51e1bab3-d989-4f64-a5e2-a95ae3d3c84f",
+      "challengeGuid": "43fd8411-3c7f-417a-83d1-588631b135ad",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": []
+    }
+  ]
 }
