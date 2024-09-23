@@ -1,6 +1,131 @@
 {
   "mapObjects": [
-   
+    {
+      "instanceId": 0,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -64.31,
+      "y": 0.0,
+      "z": 15.88
+    },
+    {
+      "instanceId": 1,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": 7.91905975,
+      "y": 0.0,
+      "z": 14.517909
+    },
+    {
+      "instanceId": 2,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": 23.89048,
+      "y": 0.0,
+      "z": 3.029808
+    },
+    {
+      "instanceId": 3,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -5.517436,
+      "y": 0.0,
+      "z": -1.00720072
+    },
+    {
+      "instanceId": 4,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -16.5618439,
+      "y": 0.0,
+      "z": -6.646616
+    },
+    {
+      "instanceId": 5,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -15.4159279,
+      "y": 0.0,
+      "z": 10.9789886
+    },
+    {
+      "instanceId": 6,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -25.2269,
+      "y": 0.0,
+      "z": -14.074297
+    },
+    {
+      "instanceId": 7,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": 5.183031,
+      "y": 0.0,
+      "z": -15.1864538
+    },
+    {
+      "instanceId": 8,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -14.61,
+      "y": 0.0,
+      "z": -22.6
+    },
+    {
+      "instanceId": 9,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -12.7703638,
+      "y": 0.0,
+      "z": -33.5295944
+    },
+    {
+      "instanceId": 10,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -31.0041351,
+      "y": 0.0,
+      "z": 14.989809
+    },
+    {
+      "instanceId": 11,
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": 8.462477,
+      "y": 0.0,
+      "z": -2.25707245
+    },
+    {
+      "instanceId": 12,
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "x": 4.17,
+      "y": -0.191,
+      "z": 5.16
+    },
+    {
+      "instanceId": 13,
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "x": -5.97445154,
+      "y": -0.191,
+      "z": 6.527356
+    },
+    {
+      "instanceId": 14,
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "x": 5.3447156,
+      "y": -0.191,
+      "z": 0.7242422
+    },
+    {
+      "instanceId": 15,
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "x": -15.3937588,
+      "y": -0.191,
+      "z": 7.5777216
+    },
+    {
+      "instanceId": 16,
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "x": -15.17057,
+      "y": -0.191,
+      "z": -0.248250008
+    },
+    {
+      "instanceId": 17,
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "x": -22.2132721,
+      "y": -0.191,
+      "z": -0.347028255
+    }
   ],
   "mapVeins": []
 }

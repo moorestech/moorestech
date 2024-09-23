@@ -69,7 +69,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   outlineObject: {fileID: 5631076428431296696}
   instanceId: 0
-  mapObjectType: vanilla:Pebble
+  mapObjectGuid: 12081941-baa5-42b1-a3ee-5f97f5ee5871
 --- !u!65 &4025926000838640696
 BoxCollider:
   m_ObjectHideFlags: 0
