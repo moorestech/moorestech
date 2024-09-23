@@ -1,29 +1,20 @@
 {
   "data": [
     {
+      "maxStack": 100,
       "earnItemHps": [
-        0,
-        10,
-        20
+        0
       ],
-      "hp": 30,
-      "mapObjectName": "vanilla:Tree",
-      "miningTools": [
-        {
-          "attackSpeed": 1.6,
-          "damage": 1,
-          "toolItemGuid": "00000000-0000-0000-1234-000000000001"
-        }
-      ],
+      "hp": 0,
+      "mapObjectName": "石",
       "earnItems": [
         {
-          "maxCount": 5,
-          "minCount": 3,
-          "itemGuid": "00000000-0000-0000-1234-000000000001"
+          "maxCount": 1,
+          "minCount": 1,
+          "itemId": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
         }
       ],
-      "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
-      "soundEffectType": "tree"
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871"
     }
   ]
 }

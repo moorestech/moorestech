@@ -2,177 +2,23 @@
   "data": [
     {
       "maxStack": 100,
-      "name": "Test1",
-      "itemGuid": "00000000-0000-0000-1234-000000000001",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 50,
-      "name": "Test2",
-      "itemGuid": "00000000-0000-0000-1234-000000000002",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 300,
-      "name": "Test3",
-      "itemGuid": "00000000-0000-0000-1234-000000000003",
-      "imagePath": "assets/item/stone.png"
+      "name": "石",
+      "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
     },
     {
       "maxStack": 100,
-      "name": "Test4",
-      "itemGuid": "00000000-0000-0000-1234-000000000004",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 200,
-      "name": "Test5",
-      "itemGuid": "00000000-0000-0000-1234-000000000005",
-      "imagePath": "assets/item/stone.png"
+      "name": "石器",
+      "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
     },
     {
       "maxStack": 100,
-      "name": "Test6",
-      "itemGuid": "00000000-0000-0000-1234-000000000006",
-      "imagePath": "assets/item/stone.png"
+      "name": "木",
+      "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
     },
     {
       "maxStack": 100,
-      "name": "Test7",
-      "itemGuid": "00000000-0000-0000-1234-000000000007",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "Test8",
-      "itemGuid": "00000000-0000-0000-1234-000000000008",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "Test9",
-      "itemGuid": "00000000-0000-0000-1234-000000000009",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "Test10",
-      "itemGuid": "00000000-0000-0000-1234-000000000010",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "Test11",
-      "itemGuid": "00000000-0000-0000-1234-000000000011",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "tree",
-      "itemGuid": "00000000-0000-0000-1234-000000000012",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "stone",
-      "itemGuid": "00000000-0000-0000-1234-000000000013",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "SmallTestGear",
-      "itemGuid": "00000000-0000-0000-1234-000000000014",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "BigTestGear",
-      "itemGuid": "16000000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestShaft",
-      "itemGuid": "17000000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestGearMachine",
-      "itemGuid": "18000000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestSimpleGearGenerator",
-      "itemGuid": "19000000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestFastSimpleGearGenerator",
-      "itemGuid": "11100000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "SmallRequireTorqueTestGear",
-      "itemGuid": "11200000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "BigRequireTorqueTestGear",
-      "itemGuid": "11300000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "InfinityTestSimpleGearGenerator",
-      "itemGuid": "11400000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "StraightTestItemShooter",
-      "itemGuid": "11500000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "DownTestItemShooter",
-      "itemGuid": "11600000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "UpTestItemShooter",
-      "itemGuid": "11700000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "GearBeltConveyor",
-      "itemGuid": "11800000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestElectricMachine1",
-      "itemGuid": "11900000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestElectricMachine2",
-      "itemGuid": "12010000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "TestElectricMachine3",
-      "itemGuid": "12102000-0000-0000-0000-000000000000",
-      "imagePath": "assets/item/stone.png"
+      "name": "石斧",
+      "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
     }
   ]
 }
