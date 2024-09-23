@@ -154,6 +154,7 @@
 
                     "fuelItems": {
                       "type": "array",
+                      "optional": true,
                       "items": {
                         "type": "object",
                         "properties": {
