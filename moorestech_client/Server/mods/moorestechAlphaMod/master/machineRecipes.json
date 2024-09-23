@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "maxStack": 100,
+      "resultItem": {
+        "count": 1
+      },
+      "time": 1,
+      "blockGuid": "f4d3859a-d527-444e-87b5-9ffc05870871",
+      "machineRecipeGuid": "1c171ae8-da02-4dea-87d5-5c8bf8787747",
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 2,
+          "itemGuid": "dcfc5c0c-9f8e-4059-95ff-167ab3c6f79f"
+        }
+      ],
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
+        }
+      ]
+    }
+  ]
+}

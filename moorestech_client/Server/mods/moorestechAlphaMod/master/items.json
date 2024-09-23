@@ -19,6 +19,50 @@
       "maxStack": 100,
       "name": "石斧",
       "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
+    },
+    {
+      "maxStack": 100,
+      "name": "シェルター",
+      "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729"
+    },
+    {
+      "maxStack": 100,
+      "name": "製材用石",
+      "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363"
+    },
+    {
+      "maxStack": 100,
+      "name": "木の歯車",
+      "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e"
+    },
+    {
+      "maxStack": 100,
+      "name": "簡易製材機",
+      "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5"
+    },
+    {
+      "resultItem": {
+        "count": 1
+      },
+      "maxStack": 100,
+      "name": "製材済み木材",
+      "itemGuid": "dcfc5c0c-9f8e-4059-95ff-167ab3c6f79f"
+    },
+    {
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "木製アイテムシューター",
+      "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba"
+    },
+    {
+      "maxStack": 100,
+      "name": "チェスト",
+      "itemGuid": "79462a6b-d0a2-47ca-ac03-d952cb1da2eb"
     }
   ]
 }

@@ -1,0 +1,101 @@
+{
+  "data": [
+    {
+      "time": 1,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1
+      },
+      "blockGuid": "f4d3859a-d527-444e-87b5-9ffc05870871",
+      "name": "簡易製材機"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": 1,
+        "itemShootSpeed": 2,
+        "initialShootSpeed": 3,
+        "inventoryItemNum": 4
+      },
+      "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba",
+      "blockGuid": "82a0b854-7621-42dc-baac-782e0d8d2320",
+      "name": "木製アイテムシューター",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "106c8157-223c-497e-bcec-365631680ffd",
+        "downBlockGuid": "4649936a-87d7-4dd6-9472-e179d1c704c7",
+        "horizontalBlockGuid": "82a0b854-7621-42dc-baac-782e0d8d2320"
+      }
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "木製アイテムシューター UP",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1,
+        "acceleration": -0.1,
+        "itemShootSpeed": 2,
+        "initialShootSpeed": 3,
+        "inventoryItemNum": 4
+      },
+      "blockGuid": "106c8157-223c-497e-bcec-365631680ffd"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "木製アイテムシューター DOWN",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": -0.05,
+        "itemShootSpeed": 2,
+        "initialShootSpeed": 3,
+        "inventoryItemNum": 4
+      },
+      "blockGuid": "4649936a-87d7-4dd6-9472-e179d1c704c7"
+    }
+  ]
+}
