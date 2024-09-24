@@ -7,23 +7,6 @@
       ],
       "hp": 100,
       "mapObjectName": "mapObjectName",
-      "modelTransform": {
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "position": [
-          0,
-          0,
-          0
-        ]
-      },
       "blockSize": [
         1,
         1,
@@ -35,7 +18,53 @@
       "blockParam": {
         "requiredPower": 0,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {}
+            }
+          ]
+        }
       },
       "blockGuid": "f4d3859a-d527-444e-87b5-9ffc05870871",
       "name": "簡易製材機"
@@ -52,7 +81,65 @@
         "acceleration": 1,
         "itemShootSpeed": 2,
         "initialShootSpeed": 3,
-        "inventoryItemNum": 4
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
       },
       "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba",
       "blockGuid": "82a0b854-7621-42dc-baac-782e0d8d2320",
@@ -77,7 +164,50 @@
         "acceleration": -0.1,
         "itemShootSpeed": 2,
         "initialShootSpeed": 3,
-        "inventoryItemNum": 4
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
       },
       "blockGuid": "106c8157-223c-497e-bcec-365631680ffd"
     },
@@ -93,7 +223,50 @@
         "acceleration": -0.05,
         "itemShootSpeed": 2,
         "initialShootSpeed": 3,
-        "inventoryItemNum": 4
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
       },
       "blockGuid": "4649936a-87d7-4dd6-9472-e179d1c704c7"
     }

@@ -3,66 +3,68 @@
     {
       "maxStack": 100,
       "name": "石",
-      "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
+      "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "石器",
-      "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+      "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "木",
-      "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
+      "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "石斧",
-      "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
+      "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "シェルター",
-      "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729"
+      "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "製材用石",
-      "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363"
+      "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "木の歯車",
-      "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e"
+      "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "簡易製材機",
-      "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5"
+      "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5",
+      "imagePath": "assets/item/stone.png"
     },
     {
-      "resultItem": {
-        "count": 1
-      },
       "maxStack": 100,
       "name": "製材済み木材",
-      "itemGuid": "dcfc5c0c-9f8e-4059-95ff-167ab3c6f79f"
+      "itemGuid": "dcfc5c0c-9f8e-4059-95ff-167ab3c6f79f",
+      "imagePath": "assets/item/stone.png"
     },
     {
-      "time": 1,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "maxStack": 100,
       "name": "木製アイテムシューター",
-      "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba"
+      "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "チェスト",
-      "itemGuid": "79462a6b-d0a2-47ca-ac03-d952cb1da2eb"
+      "itemGuid": "79462a6b-d0a2-47ca-ac03-d952cb1da2eb",
+      "imagePath": "assets/item/stone.png"
     }
   ]
 }
