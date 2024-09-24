@@ -209,7 +209,8 @@
           ]
         }
       },
-      "blockGuid": "106c8157-223c-497e-bcec-365631680ffd"
+      "blockGuid": "106c8157-223c-497e-bcec-365631680ffd",
+      "itemGuid": "d319d14b-b88e-489b-b519-98e1b012a6fc"
     },
     {
       "blockSize": [
@@ -268,7 +269,8 @@
           ]
         }
       },
-      "blockGuid": "4649936a-87d7-4dd6-9472-e179d1c704c7"
+      "blockGuid": "4649936a-87d7-4dd6-9472-e179d1c704c7",
+      "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f"
     }
   ]
 }
