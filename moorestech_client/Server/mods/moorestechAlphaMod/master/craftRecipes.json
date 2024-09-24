@@ -112,7 +112,8 @@
     },
     {
       "resultItem": {
-        "count": 1
+        "count": 1,
+        "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba"
       },
       "requiredItems": [
         {

@@ -13,6 +13,7 @@ using Mooresmaster.Model.MapObjectsModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Mooresmaster;
+using UnityEngine;
 
 namespace Core.Master
 {

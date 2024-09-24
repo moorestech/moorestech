@@ -69,12 +69,14 @@
     {
       "maxStack": 100,
       "name": "木製アイテムシューター UP",
-      "itemGuid": "d319d14b-b88e-489b-b519-98e1b012a6fc"
+      "itemGuid": "d319d14b-b88e-489b-b519-98e1b012a6fc",
+      "imagePath": "assets/item/stone.png"
     },
     {
       "maxStack": 100,
       "name": "木製アイテムシューター DOWN",
-      "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f"
+      "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f",
+      "imagePath": "assets/item/stone.png"
     }
   ]
 }

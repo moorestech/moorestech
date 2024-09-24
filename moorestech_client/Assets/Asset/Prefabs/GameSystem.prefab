@@ -584,7 +584,7 @@ MonoBehaviour:
   commandUIInput: {fileID: 8470828304828716410}
   hotBarView: {fileID: 1409822626637412669}
   playerObjectController: {fileID: 8327004088713836899}
-  mapObjectGetPresenter: {fileID: 6370490414090957468}
+  mapObjectMiningController: {fileID: 6370490414090957468}
   entityObjectDatastore: {fileID: 9004822369202094949}
   uIStateControl: {fileID: 4694271036350155273}
   pauseMenuObject: {fileID: 7499633600282642158}
@@ -869,7 +869,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1117507317063226134, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 80.275
       objectReference: {fileID: 0}
     - target: {fileID: 1117507317063226134, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchoredPosition.y

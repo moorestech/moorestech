@@ -8,6 +8,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
@@ -48,7 +49,7 @@ namespace Client.Starter
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private PlayerObjectController playerObjectController;
-        [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
+        [SerializeField] private MapObjectMiningController mapObjectMiningController;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
         
@@ -144,7 +145,7 @@ namespace Client.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(mapObjectGetPresenter);
+            builder.RegisterComponent(mapObjectMiningController);
             
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entityObjectDatastore);
