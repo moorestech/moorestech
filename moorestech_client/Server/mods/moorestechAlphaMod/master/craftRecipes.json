@@ -90,6 +90,37 @@
         }
       ],
       "craftRecipeGuid": "691b1cb4-c957-4f09-9cd9-999cebe3335e"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "resultItem": {
+        "count": 1,
+        "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba"
+      },
+      "requiredItems": [
+        {
+          "count": 1,
+          "itemGuid": "d319d14b-b88e-489b-b519-98e1b012a6fc"
+        }
+      ],
+      "craftRecipeGuid": "ec0b4d40-72ba-45d1-9493-95a4d6557430"
+    },
+    {
+      "resultItem": {
+        "count": 1
+      },
+      "requiredItems": [
+        {
+          "count": 1,
+          "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f"
+        }
+      ],
+      "craftRecipeGuid": "7e631005-e7da-41a6-9414-a558fafd06c9"
     }
   ]
 }
