@@ -78,7 +78,7 @@
       ],
       "blockType": "ItemShooter",
       "blockParam": {
-        "acceleration": 1,
+        "acceleration": -0.2,
         "itemShootSpeed": 2,
         "initialShootSpeed": 3,
         "inventoryItemNum": 4,
@@ -161,7 +161,7 @@
       "blockParam": {
         "timeOfItemEnterToExit": 1,
         "beltConveyorItemCount": 1,
-        "acceleration": -0.1,
+        "acceleration": -0.9,
         "itemShootSpeed": 2,
         "initialShootSpeed": 3,
         "inventoryItemNum": 4,
@@ -221,7 +221,7 @@
       "name": "木製アイテムシューター DOWN",
       "blockType": "ItemShooter",
       "blockParam": {
-        "acceleration": -0.05,
+        "acceleration": 0.7,
         "itemShootSpeed": 2,
         "initialShootSpeed": 3,
         "inventoryItemNum": 4,
