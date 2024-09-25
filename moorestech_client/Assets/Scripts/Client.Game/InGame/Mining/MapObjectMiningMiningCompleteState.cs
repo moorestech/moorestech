@@ -1,8 +1,6 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.SoundEffect;
-using Client.Input;
-using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.MapObjectsModule;
 using UnityEngine;
 
@@ -26,6 +24,7 @@ namespace Client.Game.InGame.Mining
             PlaySoundEffect(masterElement);
             
             var instanceId = _completedMapObjectGameObject.InstanceId;
+            Debug.Log("Complete Mining");
             ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, _attackDamage);
             
             return context.CurrentFocusMapObjectGameObject == null
