@@ -10,73 +10,73 @@
       "maxStack": 100,
       "name": "石器",
       "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/stone tool.png"
     },
     {
       "maxStack": 100,
       "name": "木",
       "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/log.jpeg"
     },
     {
       "maxStack": 100,
       "name": "石斧",
       "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/stone tool.png"
     },
     {
       "maxStack": 100,
       "name": "シェルター",
       "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/shelter.jpeg"
     },
     {
       "maxStack": 100,
       "name": "製材用石",
       "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/cutted stone.png"
     },
     {
       "maxStack": 100,
       "name": "木の歯車",
       "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/wooden gear.png"
     },
     {
       "maxStack": 100,
       "name": "簡易製材機",
       "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/簡易製材機.png"
     },
     {
       "maxStack": 100,
       "name": "製材済み木材",
       "itemGuid": "dcfc5c0c-9f8e-4059-95ff-167ab3c6f79f",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/wood.png"
     },
     {
       "maxStack": 100,
       "name": "木製アイテムシューター",
       "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/itemshooter.png"
     },
     {
       "maxStack": 100,
       "name": "チェスト",
       "itemGuid": "79462a6b-d0a2-47ca-ac03-d952cb1da2eb",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/itemshooter.png"
     },
     {
       "maxStack": 100,
       "name": "木製アイテムシューター UP",
       "itemGuid": "d319d14b-b88e-489b-b519-98e1b012a6fc",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/itemshooter up.png"
     },
     {
       "maxStack": 100,
       "name": "木製アイテムシューター DOWN",
       "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/itemshooter down.png"
     }
   ]
 }

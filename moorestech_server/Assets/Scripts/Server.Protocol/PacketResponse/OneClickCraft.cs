@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             //クラフト可能な場合はクラフトを実行
             
             //クラフトに必要なアイテムを消費
-            SubItem(mainInventory, craftConfig);
+            ConsumptionItem(mainInventory, craftConfig);
             //クラフト結果をプレイヤーインベントリに追加
             var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.ResultItem.ItemGuid, craftConfig.ResultItem.Count);
             playerInventory.MainOpenableInventory.InsertItem(resultItem);
@@ -105,7 +105,7 @@ namespace Server.Protocol.PacketResponse
         /// <summary>
         ///     クラフトしてアイテムを消費する
         /// </summary>
-        private static void SubItem(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
+        private static void ConsumptionItem(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count
@@ -115,9 +115,9 @@ namespace Server.Protocol.PacketResponse
                 var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                 
                 if (requiredItems.ContainsKey(requiredItemId))
-                    requiredItems[requiredItemId] += requiredItems.Count;
+                    requiredItems[requiredItemId] += requiredItem.Count;
                 else
-                    requiredItems.Add(requiredItemId, requiredItems.Count);
+                    requiredItems.Add(requiredItemId, requiredItem.Count);
             }
             
             //クラフトのために消費する
