@@ -21,7 +21,8 @@
           "prevChallengeGuid": {
             "type": "string",
             "format": "uuid",
-            "foreignKey": "challenges:challengeGuid:title"
+            "foreignKey": "challenges:challengeGuid:title",
+            "optional": true
           },
 
           "title": {
