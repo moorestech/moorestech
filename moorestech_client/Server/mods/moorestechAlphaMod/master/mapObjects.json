@@ -36,31 +36,19 @@
           "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
         }
       ],
-      "miningTools": [
-        {
-          "attackSpeed": 1.25,
-          "damage": 10,
-          "toolItemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
-        },
-        {
-          "attackSpeed": 1.5,
-          "damage": 5,
-          "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
-        }
-      ],
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
       "miningType": "Mining",
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 1.5,
+            "attackSpeed": 3,
             "damage": 10,
             "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
           },
           {
-            "attackSpeed": 1,
+            "attackSpeed": 3,
             "damage": 10,
-            "toolItemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
+            "toolItemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
           }
         ]
       }

@@ -24,7 +24,6 @@ namespace Client.Game.InGame.Mining
             PlaySoundEffect(masterElement);
             
             var instanceId = _completedMapObjectGameObject.InstanceId;
-            Debug.Log("Complete Mining");
             ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, _attackDamage);
             
             return context.CurrentFocusMapObjectGameObject == null

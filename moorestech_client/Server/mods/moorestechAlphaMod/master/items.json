@@ -22,11 +22,11 @@
       "maxStack": 100,
       "name": "石斧",
       "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98",
-      "imagePath": "assets/item/stone tool.png"
+      "imagePath": "assets/item/stone ax.png"
     },
     {
       "maxStack": 100,
-      "name": "シェルター",
+      "name": "作業台",
       "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729",
       "imagePath": "assets/item/shelter.jpeg"
     },

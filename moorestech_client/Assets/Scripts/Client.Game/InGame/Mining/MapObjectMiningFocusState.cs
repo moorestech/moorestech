@@ -57,7 +57,6 @@ namespace Client.Game.InGame.Mining
             
             // 何も選択していない場合はフォーカスを維持
             // If nothing is selected, maintain focus
-            var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(inventoryItem.Id).ItemGuid;
             var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
             if (inventoryItem.Id == ItemMaster.EmptyItemId)
             {
@@ -69,6 +68,7 @@ namespace Client.Game.InGame.Mining
             // マイニングツールとして登録されているかどうかをチェック
             // Check if it is registered as a mining tool
             MiningToolsElement usableMiningTool = null; 
+            var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(inventoryItem.Id).ItemGuid;
             foreach (var miningTool in miningTools)
             {
                 if (miningTool.ToolItemGuid != currentItemGuid) continue;
