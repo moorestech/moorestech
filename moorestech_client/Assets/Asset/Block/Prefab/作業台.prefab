@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 2365148491506962722}
   - component: {fileID: 7569603348367376124}
   - component: {fileID: 8898197670320716334}
-  m_Layer: 0
+  - component: {fileID: 6223119087744421160}
+  m_Layer: 7
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,6 +106,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6223119087744421160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 850497040779211511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6a8b248509240ba80eb88fe34ed8a79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3978568427011400544
 GameObject:
   m_ObjectHideFlags: 0
@@ -114,8 +127,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7302078999814900957}
-  m_Layer: 0
-  m_Name: "\u7C21\u6613\u88FD\u6750\u6A5F"
+  m_Layer: 7
+  m_Name: "\u4F5C\u696D\u53F0"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149,7 +162,7 @@ GameObject:
   - component: {fileID: 8596066984467358829}
   - component: {fileID: 8509353069450606043}
   - component: {fileID: 1258280530966430134}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -237,7 +250,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7C21\u6613\u88FD\u6750\u6A5F"
+  m_text: "\u4F5C\u696D\u53F0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 75338526785cbac4e8f0f85c9c635e75, type: 2}
   m_sharedMaterial: {fileID: 5734235435605505953, guid: 75338526785cbac4e8f0f85c9c635e75, type: 2}
