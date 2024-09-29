@@ -118,7 +118,8 @@
         1
       ],
       "name": "アップグレードした石器",
-      "itemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+      "itemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0",
+      "imagePath": "assets/item/upgrade stoon tools.png"
     }
   ]
 }
