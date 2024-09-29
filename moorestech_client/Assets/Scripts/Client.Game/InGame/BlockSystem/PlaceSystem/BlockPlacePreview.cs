@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -15,9 +16,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public bool IsActive => gameObject.activeSelf;
         
         
-        private void Start()
+        private void Awake()
         {
             _blockPlacePreviewObjectPool = new BlockPlacePreviewObjectPool(transform);
+            SetActive(false);
         }
         
         public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)

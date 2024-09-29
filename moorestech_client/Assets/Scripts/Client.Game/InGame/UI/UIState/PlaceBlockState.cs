@@ -5,6 +5,7 @@ using Client.Game.InGame.Control;
 using Client.Game.Skit;
 using Client.Input;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
@@ -64,7 +65,7 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
+            if (BlockClickDetect.IsClickOpenableBlock(_blockPlacePreview)) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
@@ -93,14 +94,6 @@ namespace Client.Game.InGame.UI.UIState
             BlockPlaceSystem.SetEnableBlockPlace(false);
             
             _inGameCameraController.StartTweenCamera(_startCameraRotation, _startCameraDistance, TweenDuration);
-        }
-        
-        private bool IsClickOpenableBlock()
-        {
-            if (_blockPlacePreview.IsActive) return false; //ブロック設置中の場合は無効
-            if (BlockClickDetect.TryGetClickBlock(out var block)) return block.GetComponent<OpenableInventoryBlock>();
-            
-            return false;
         }
     }
 }

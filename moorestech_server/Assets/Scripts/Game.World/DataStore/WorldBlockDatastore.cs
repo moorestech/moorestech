@@ -167,7 +167,6 @@ namespace Game.World.DataStore
                 var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
                 
                 var blockData = new BlockPositionInfo(pos, direction, size);
-                Debug.Log($"BlockLoad {blockSave.EntityId}");
                 var block = blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.EntityId), blockSave.State, blockData);
                 
                 TryAddBlock(block);

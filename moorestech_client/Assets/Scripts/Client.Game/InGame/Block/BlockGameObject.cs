@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Block
     public class BlockGameObject : MonoBehaviour
     {
         public BlockId BlockId { get; private set; }
-        public BlockMasterElement BlockConfig { get; private set; }
+        public BlockMasterElement BlockMasterElement { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
         
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.Block
         {
             BlockPosInfo = posInfo;
             BlockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            BlockConfig = blockMasterElement;
+            BlockMasterElement = blockMasterElement;
             BlockStateChangeProcessor = blockStateChangeProcessor;
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
