@@ -71,6 +71,41 @@
       "name": "木製アイテムシューター DOWN",
       "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f",
       "imagePath": "assets/item/itemshooter down.png"
+    },
+    {
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "maxStack": 100,
+      "name": "麻",
+      "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d",
+      "imagePath": "assets/item/麻.png"
+    },
+    {
+      "maxStack": 100,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "resultItem": {
+        "count": 1,
+        "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d"
+      },
+      "name": "麻紐",
+      "itemGuid": "d382f613-8dec-4c87-b72c-c75f8d18ce73",
+      "imagePath": "assets/item/麻縄.jpg"
+    },
+    {
+      "resultItem": {
+        "count": 1
+      },
+      "maxStack": 100,
+      "name": "小枝",
+      "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46",
+      "imagePath": "assets/item/stone ax handle.png"
     }
   ]
 }

@@ -17,16 +17,16 @@
     {
       "instanceId": 2,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -5.517436,
+      "x": 23.89048,
       "y": 0.0,
-      "z": -1.00720072
+      "z": 3.029808
     },
     {
       "instanceId": 3,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": 23.89048,
+      "x": -5.517436,
       "y": 0.0,
-      "z": 3.029808
+      "z": -1.00720072
     },
     {
       "instanceId": 4,
@@ -45,16 +45,16 @@
     {
       "instanceId": 6,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": 5.183031,
+      "x": -25.2269,
       "y": 0.0,
-      "z": -15.1864538
+      "z": -14.074297
     },
     {
       "instanceId": 7,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -25.2269,
+      "x": 5.183031,
       "y": 0.0,
-      "z": -14.074297
+      "z": -15.1864538
     },
     {
       "instanceId": 8,
@@ -86,115 +86,199 @@
     },
     {
       "instanceId": 12,
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "x": 13.71,
+      "y": 0.0009999275,
+      "z": 8.54
+    },
+    {
+      "instanceId": 13,
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "x": 9.1,
+      "y": 0.0009999275,
+      "z": 9.92
+    },
+    {
+      "instanceId": 14,
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "x": 0.61,
+      "y": 0.0009999275,
+      "z": -12.69
+    },
+    {
+      "instanceId": 15,
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "x": 18.45,
+      "y": 0.0009999275,
+      "z": -2.69
+    },
+    {
+      "instanceId": 16,
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "x": 3.42,
+      "y": 0.0009999275,
+      "z": 9.12
+    },
+    {
+      "instanceId": 17,
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "x": 13.43,
+      "y": 0.0009999275,
+      "z": 14.9
+    },
+    {
+      "instanceId": 18,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 4.17,
       "y": -0.191,
       "z": 5.16
     },
     {
-      "instanceId": 13,
+      "instanceId": 19,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -5.97445154,
       "y": -0.191,
       "z": 6.527356
     },
     {
-      "instanceId": 14,
+      "instanceId": 20,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 11.68,
       "y": -0.191,
       "z": 0.88
     },
     {
-      "instanceId": 15,
+      "instanceId": 21,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -0.4,
       "y": -0.191,
       "z": -2.02
     },
     {
-      "instanceId": 16,
+      "instanceId": 22,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 2.93,
       "y": -0.191,
       "z": -3.24
     },
     {
-      "instanceId": 17,
+      "instanceId": 23,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -0.14,
       "y": -0.191,
       "z": 14.73
     },
     {
-      "instanceId": 18,
+      "instanceId": 24,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 6.74,
       "y": -0.191,
       "z": 10.79
     },
     {
-      "instanceId": 19,
+      "instanceId": 25,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 15.56,
       "y": -0.191,
       "z": 1.87
     },
     {
-      "instanceId": 20,
+      "instanceId": 26,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 5.3447156,
       "y": -0.191,
       "z": 0.7242422
     },
     {
-      "instanceId": 21,
+      "instanceId": 27,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -15.3937588,
       "y": -0.191,
       "z": 7.5777216
     },
     {
-      "instanceId": 22,
+      "instanceId": 28,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -15.17057,
       "y": -0.191,
       "z": -0.248250008
     },
     {
-      "instanceId": 23,
+      "instanceId": 29,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -22.2132721,
       "y": -0.191,
       "z": -0.347028255
     },
     {
-      "instanceId": 24,
+      "instanceId": 30,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -7.01,
       "y": -0.191,
       "z": -3.23
     },
     {
-      "instanceId": 25,
+      "instanceId": 31,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 1.07,
       "y": -0.191,
       "z": -6.58
     },
     {
-      "instanceId": 26,
+      "instanceId": 32,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 12.68,
       "y": -0.191,
       "z": 11.73
     },
     {
-      "instanceId": 27,
+      "instanceId": 33,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 12.2,
       "y": -0.191,
       "z": 6.06
+    },
+    {
+      "instanceId": 34,
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
+      "x": 5.87,
+      "y": 0.0,
+      "z": -3.2
+    },
+    {
+      "instanceId": 35,
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
+      "x": 9.59,
+      "y": 0.0,
+      "z": 3.7
+    },
+    {
+      "instanceId": 36,
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
+      "x": 4.36,
+      "y": 0.0,
+      "z": 12.21
+    },
+    {
+      "instanceId": 37,
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
+      "x": 18.46,
+      "y": 0.0,
+      "z": 10.15
+    },
+    {
+      "instanceId": 38,
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
+      "x": 18.06,
+      "y": 0.0,
+      "z": 2.96
+    },
+    {
+      "instanceId": 39,
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
+      "x": 13.15,
+      "y": 0.0,
+      "z": -3.18
     }
   ],
   "mapVeins": []

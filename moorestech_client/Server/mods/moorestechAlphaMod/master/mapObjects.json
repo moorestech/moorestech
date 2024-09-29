@@ -52,6 +52,72 @@
           }
         ]
       }
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "earnItemHps": [
+        0,
+        2
+      ],
+      "hp": 2,
+      "mapObjectName": "Bush",
+      "soundEffectType": "stone",
+      "miningType": "Mining",
+      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
+      "earnItems": [
+        {
+          "maxCount": 2,
+          "minCount": 1,
+          "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d"
+        }
+      ],
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 2,
+            "damage": 1,
+            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+          }
+        ]
+      }
+    },
+    {
+      "maxStack": 100,
+      "resultItem": {
+        "count": 1
+      },
+      "time": 1,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 1,
+      "mapObjectName": "小枝",
+      "miningType": "Mining",
+      "soundEffectType": "tree",
+      "earnItems": [
+        {
+          "count": 1,
+          "percent": 1,
+          "maxCount": 2,
+          "minCount": 1,
+          "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46"
+        }
+      ],
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 1,
+            "damage": 1,
+            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+          }
+        ]
+      },
+      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709"
     }
   ]
 }
