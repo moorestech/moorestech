@@ -106,6 +106,19 @@
       "name": "小枝",
       "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46",
       "imagePath": "assets/item/stone ax handle.png"
+    },
+    {
+      "maxStack": 100,
+      "resultItem": {
+        "count": 1
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "アップグレードした石器",
+      "itemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
     }
   ]
 }
