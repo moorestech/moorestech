@@ -1,12 +1,14 @@
 ﻿using System;
+using Client.Game.InGame.UI.Util;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Sub
 {
-    public class CraftButton : MonoBehaviour
+    public class CraftButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         private const float TmpDuration = 5; //TODO クラフト時間を取得するようにする
         [SerializeField] private RectTransform rectTransform;
@@ -81,6 +83,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public void SetInteractable(bool interactable)
         {
+            Debug.Log("aaaa");
             button.interactable = interactable;
         }
         
@@ -91,5 +94,20 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private bool restartElapsedTimeUpdateOnPointerEnter;
         
         #endregion
+        
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            MouseCursorExplainer.Instance.Show("");
+        }
+        
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            MouseCursorExplainer.Instance.Hide();
+        }
+        
+        private void OnDisable()
+        {
+            MouseCursorExplainer.Instance.Hide();
+        }
     }
 }
