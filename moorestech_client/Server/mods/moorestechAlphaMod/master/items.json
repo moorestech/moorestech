@@ -26,12 +26,6 @@
     },
     {
       "maxStack": 100,
-      "name": "作業台",
-      "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729",
-      "imagePath": "assets/item/shelter.jpeg"
-    },
-    {
-      "maxStack": 100,
       "name": "製材用石",
       "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363",
       "imagePath": "assets/item/cutted stone.png"
@@ -44,7 +38,7 @@
     },
     {
       "maxStack": 100,
-      "name": "簡易製材機",
+      "name": "作業台",
       "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5",
       "imagePath": "assets/item/簡易製材機.png"
     },

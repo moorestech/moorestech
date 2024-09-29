@@ -14,23 +14,6 @@
       ]
     },
     {
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
-      },
-      "requiredItems": [
-        {
-          "count": 1,
-          "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
-        },
-        {
-          "count": 2,
-          "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
-        }
-      ],
-      "craftRecipeGuid": "af685674-4cb8-44ee-8bc3-bac95f56be05"
-    },
-    {
       "blockSize": [
         1,
         1,
@@ -38,7 +21,7 @@
       ],
       "resultItem": {
         "count": 1,
-        "itemGuid": "47af2516-83dc-4dba-8068-06bbdcf2c729"
+        "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5"
       },
       "requiredItems": [
         {
@@ -47,81 +30,6 @@
         }
       ],
       "craftRecipeGuid": "fa70cf3b-333d-4fb5-9d43-30ba35506e46"
-    },
-    {
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363"
-      },
-      "requiredItems": [
-        {
-          "count": 3,
-          "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
-        }
-      ],
-      "craftRecipeGuid": "e980bfd3-5b9e-4e3f-8484-54f6872a35a2"
-    },
-    {
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e"
-      },
-      "requiredItems": [
-        {
-          "count": 4,
-          "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e"
-        }
-      ],
-      "craftRecipeGuid": "ce350e97-db06-4e4f-a4a3-5b9905fe3635"
-    },
-    {
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "640572c4-f8f8-4ca3-abdb-6be0cdca18a5"
-      },
-      "requiredItems": [
-        {
-          "count": 3,
-          "itemGuid": "eadc7ae4-8714-4f1f-a0f7-c46723629d0e"
-        },
-        {
-          "count": 2,
-          "itemGuid": "876567fc-ba5b-4036-8ca1-c1931d7cd363"
-        }
-      ],
-      "craftRecipeGuid": "691b1cb4-c957-4f09-9cd9-999cebe3335e"
-    },
-    {
-      "maxStack": 100,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba"
-      },
-      "requiredItems": [
-        {
-          "count": 1,
-          "itemGuid": "d319d14b-b88e-489b-b519-98e1b012a6fc"
-        }
-      ],
-      "craftRecipeGuid": "ec0b4d40-72ba-45d1-9493-95a4d6557430"
-    },
-    {
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "d3b1b7f1-5c38-470c-9b46-72aed50cf6ba"
-      },
-      "requiredItems": [
-        {
-          "count": 1,
-          "itemGuid": "f3fe1844-7774-4eff-9c88-c6be13e7ab6f"
-        }
-      ],
-      "craftRecipeGuid": "7e631005-e7da-41a6-9414-a558fafd06c9"
     }
   ]
 }
