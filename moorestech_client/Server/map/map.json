@@ -3,16 +3,16 @@
     {
       "instanceId": 0,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -64.31,
+      "x": 7.91905975,
       "y": 0.0,
-      "z": 15.88
+      "z": 14.517909
     },
     {
       "instanceId": 1,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": 7.91905975,
+      "x": -64.31,
       "y": 0.0,
-      "z": 14.517909
+      "z": 15.88
     },
     {
       "instanceId": 2,
@@ -45,16 +45,16 @@
     {
       "instanceId": 6,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -25.2269,
+      "x": 5.183031,
       "y": 0.0,
-      "z": -14.074297
+      "z": -15.1864538
     },
     {
       "instanceId": 7,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": 5.183031,
+      "x": -25.2269,
       "y": 0.0,
-      "z": -15.1864538
+      "z": -14.074297
     },
     {
       "instanceId": 8,
