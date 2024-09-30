@@ -8,11 +8,14 @@ using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Sub
 {
-    public class CraftButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class CraftButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         private const float TmpDuration = 5; //TODO クラフト時間を取得するようにする
         [SerializeField] private RectTransform rectTransform;
-        [SerializeField] private Button button;
+        
+        [SerializeField] private Image buttonImage;
+        [SerializeField] private Color interactableColor = Color.white;
+        [SerializeField] private Color nonInteractableColor = Color.gray;
         
         [SerializeField] private RectMask2D mask;
         [SerializeField] private float filledPadding = 13.2f;
@@ -21,28 +24,10 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private float _buttonDownElapsed;
         private bool _isButtonDown;
         private bool _isCursorStay = true;
+        private bool _isInteractable = true;
         
         public IObservable<Unit> OnCraftFinish => _onCraftFinishSubject;
         private readonly Subject<Unit> _onCraftFinishSubject = new();
-        
-        private void Awake()
-        {
-            button.OnPointerDownAsObservable().Subscribe(_ => _isButtonDown = true).AddTo(this);
-            button.OnPointerUpAsObservable().Subscribe(_ =>
-            {
-                _isButtonDown = false;
-                _buttonDownElapsed = 0;
-            }).AddTo(this);
-            button.OnPointerExitAsObservable().Subscribe(_ =>
-            {
-                if (resetElapsedTimeOnPointerExit) _buttonDownElapsed = 0;
-                if (stopElapsedTimeUpdateOnPointerExit) _isCursorStay = false;
-            });
-            button.OnPointerEnterAsObservable().Subscribe(_ =>
-            {
-                if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
-            });
-        }
         
         private void Update()
         {
@@ -83,8 +68,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public void SetInteractable(bool interactable)
         {
-            Debug.Log("aaaa");
-            button.interactable = interactable;
+            _isInteractable = interactable;
+            buttonImage.color = interactable ? interactableColor : nonInteractableColor;
         }
         
         #region このフラグはあとで決定して消す
@@ -95,14 +80,37 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         #endregion
         
+        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (_isInteractable)
+            {
+                _isButtonDown = true;
+            }
+        }
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (_isInteractable)
+            {
+                _isButtonDown = false;
+                _buttonDownElapsed = 0;
+            }
+        }
+        
         public void OnPointerEnter(PointerEventData eventData)
         {
-            MouseCursorExplainer.Instance.Show("");
+            if (!_isInteractable)
+            {
+                MouseCursorExplainer.Instance.Show("アイテムが足りないためクラフトできません",isLocalize:false);
+            }
+            if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
         }
         
         public void OnPointerExit(PointerEventData eventData)
         {
             MouseCursorExplainer.Instance.Hide();
+            if (resetElapsedTimeOnPointerExit) _buttonDownElapsed = 0;
+            if (stopElapsedTimeUpdateOnPointerExit) _isCursorStay = false;
         }
         
         private void OnDisable()
