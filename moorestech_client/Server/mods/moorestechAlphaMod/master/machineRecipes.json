@@ -2,29 +2,26 @@
   "data": [
     {
       "maxStack": 100,
-      "resultItem": {
-        "count": 1
-      },
-      "time": 0.1,
-      "blockGuid": "f4d3859a-d527-444e-87b5-9ffc05870871",
-      "machineRecipeGuid": "1c171ae8-da02-4dea-87d5-5c8bf8787747",
+      "time": 1,
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
+      "inputItems": [
+        {
+          "count": 3,
+          "itemGuid": "7b383152-2043-4218-b294-750af4021049"
+        },
+        {
+          "count": 20,
+          "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46"
+        }
+      ],
       "outputItems": [
         {
           "percent": 1,
           "count": 1,
-          "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
+          "itemGuid": "ad0101cd-da14-4874-97dd-69a786407b13"
         }
       ],
-      "inputItems": [
-        {
-          "count": 7,
-          "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
-        },
-        {
-          "count": 1,
-          "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
-        }
-      ]
+      "machineRecipeGuid": "93b30a46-1acc-482e-ba52-aaeb0388c861"
     }
   ]
 }

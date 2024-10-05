@@ -3,16 +3,16 @@
     {
       "instanceId": 0,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": 7.91905975,
+      "x": -64.31,
       "y": 0.0,
-      "z": 14.517909
+      "z": 15.88
     },
     {
       "instanceId": 1,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -64.31,
+      "x": 7.91905975,
       "y": 0.0,
-      "z": 15.88
+      "z": 14.517909
     },
     {
       "instanceId": 2,
@@ -86,199 +86,178 @@
     },
     {
       "instanceId": 12,
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
-      "x": 13.71,
-      "y": 0.0009999275,
-      "z": 8.54
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": 11.31,
+      "y": 0.0,
+      "z": 5.56
     },
     {
       "instanceId": 13,
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
-      "x": 9.1,
-      "y": 0.0009999275,
-      "z": 9.92
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "x": -9.87,
+      "y": 0.0,
+      "z": 15.65
     },
     {
       "instanceId": 14,
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
-      "x": 0.61,
-      "y": 0.0009999275,
-      "z": -12.69
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": 7.92,
+      "y": 0.0,
+      "z": 2.83
     },
     {
       "instanceId": 15,
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
-      "x": 18.45,
-      "y": 0.0009999275,
-      "z": -2.69
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": 5.09,
+      "y": 0.0,
+      "z": -2.93
     },
     {
       "instanceId": 16,
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
-      "x": 3.42,
-      "y": 0.0009999275,
-      "z": 9.12
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": 4.75,
+      "y": 0.0,
+      "z": 12.14
     },
     {
       "instanceId": 17,
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
-      "x": 13.43,
-      "y": 0.0009999275,
-      "z": 14.9
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": 9.55,
+      "y": 0.0,
+      "z": 9.1
     },
     {
       "instanceId": 18,
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": -3.31,
+      "y": 0.0,
+      "z": 11.32
+    },
+    {
+      "instanceId": 19,
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": 2.17,
+      "y": 0.0,
+      "z": 8.15
+    },
+    {
+      "instanceId": 20,
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7",
+      "x": 6.6,
+      "y": 0.0,
+      "z": 5.91
+    },
+    {
+      "instanceId": 21,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 4.17,
       "y": -0.191,
       "z": 5.16
     },
     {
-      "instanceId": 19,
+      "instanceId": 22,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -5.97445154,
       "y": -0.191,
       "z": 6.527356
     },
     {
-      "instanceId": 20,
+      "instanceId": 23,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 11.68,
       "y": -0.191,
       "z": 0.88
     },
     {
-      "instanceId": 21,
+      "instanceId": 24,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -0.4,
       "y": -0.191,
       "z": -2.02
     },
     {
-      "instanceId": 22,
+      "instanceId": 25,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 2.93,
       "y": -0.191,
       "z": -3.24
     },
     {
-      "instanceId": 23,
+      "instanceId": 26,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -0.14,
       "y": -0.191,
       "z": 14.73
     },
     {
-      "instanceId": 24,
+      "instanceId": 27,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 6.74,
       "y": -0.191,
       "z": 10.79
     },
     {
-      "instanceId": 25,
+      "instanceId": 28,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 15.56,
       "y": -0.191,
       "z": 1.87
     },
     {
-      "instanceId": 26,
+      "instanceId": 29,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 5.3447156,
       "y": -0.191,
       "z": 0.7242422
     },
     {
-      "instanceId": 27,
+      "instanceId": 30,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -15.3937588,
       "y": -0.191,
       "z": 7.5777216
     },
     {
-      "instanceId": 28,
+      "instanceId": 31,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -15.17057,
       "y": -0.191,
       "z": -0.248250008
     },
     {
-      "instanceId": 29,
+      "instanceId": 32,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -22.2132721,
       "y": -0.191,
       "z": -0.347028255
     },
     {
-      "instanceId": 30,
+      "instanceId": 33,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": -7.01,
       "y": -0.191,
       "z": -3.23
     },
     {
-      "instanceId": 31,
+      "instanceId": 34,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 1.07,
       "y": -0.191,
       "z": -6.58
     },
     {
-      "instanceId": 32,
+      "instanceId": 35,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 12.68,
       "y": -0.191,
       "z": 11.73
     },
     {
-      "instanceId": 33,
+      "instanceId": 36,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "x": 12.2,
       "y": -0.191,
       "z": 6.06
-    },
-    {
-      "instanceId": 34,
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
-      "x": 5.87,
-      "y": 0.0,
-      "z": -3.2
-    },
-    {
-      "instanceId": 35,
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
-      "x": 9.59,
-      "y": 0.0,
-      "z": 3.7
-    },
-    {
-      "instanceId": 36,
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
-      "x": 4.36,
-      "y": 0.0,
-      "z": 12.21
-    },
-    {
-      "instanceId": 37,
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
-      "x": 18.46,
-      "y": 0.0,
-      "z": 10.15
-    },
-    {
-      "instanceId": 38,
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
-      "x": 18.06,
-      "y": 0.0,
-      "z": 2.96
-    },
-    {
-      "instanceId": 39,
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709",
-      "x": 13.15,
-      "y": 0.0,
-      "z": -3.18
     }
   ],
   "mapVeins": []

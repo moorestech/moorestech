@@ -13,11 +13,5 @@ MonoBehaviour:
   m_Name: BlockPrefabContainer
   m_EditorClassIdentifier: 
   blockPrefabs:
-  - blockGuid: 82a0b854-7621-42dc-baac-782e0d8d2320
-    blockPrefab: {fileID: 3768646863689960170, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
-  - blockGuid: 106c8157-223c-497e-bcec-365631680ffd
-    blockPrefab: {fileID: 8017889718239260649, guid: c35136d02ef7ece45addc80eae509ea1, type: 3}
-  - blockGuid: 4649936a-87d7-4dd6-9472-e179d1c704c7
-    blockPrefab: {fileID: 8819789125630594113, guid: d793aaf0184d71c448ea70d6f7a7fab9, type: 3}
-  - blockGuid: f4d3859a-d527-444e-87b5-9ffc05870871
-    blockPrefab: {fileID: 3978568427011400544, guid: 55ea1d24ef9724ab49e54472f1949a33, type: 3}
+  - blockGuid: a6f37336-8392-458a-b486-10d5b63c6e1a
+    blockPrefab: {fileID: 5595802654781065204, guid: aec28d5cf61a6ce4db83c4c669c55eb7, type: 3}

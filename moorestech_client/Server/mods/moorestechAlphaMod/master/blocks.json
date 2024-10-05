@@ -12,7 +12,11 @@
       "blockParam": {
         "requiredPower": 5,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       },
       "name": "製鉄炉",
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a"

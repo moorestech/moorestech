@@ -33,7 +33,12 @@
         {
           "maxCount": 3,
           "minCount": 1,
-          "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
+          "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46"
+        },
+        {
+          "maxCount": 8,
+          "minCount": 2,
+          "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d"
         }
       ],
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
@@ -41,88 +46,68 @@
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 3,
+            "attackSpeed": 8,
             "damage": 10,
             "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
           },
           {
-            "attackSpeed": 3,
-            "damage": 10,
+            "attackSpeed": 5,
+            "damage": 20,
             "toolItemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
+          },
+          {
+            "attackSpeed": 4,
+            "damage": 10,
+            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+          },
+          {
+            "attackSpeed": 3,
+            "damage": 20,
+            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
           }
         ]
       }
     },
     {
+      "resultItem": {
+        "count": 1
+      },
       "blockSize": [
         1,
         1,
         1
       ],
-      "maxStack": 100,
       "earnItemHps": [
         0,
-        1
+        1,
+        2
       ],
-      "hp": 2,
-      "mapObjectName": "Bush",
+      "hp": 3,
+      "mapObjectName": "ブロンズ鉱石",
       "soundEffectType": "stone",
       "miningType": "Mining",
-      "mapObjectGuid": "8238c6d2-1897-4391-81c4-997bcd8726bb",
       "earnItems": [
         {
-          "maxCount": 2,
+          "maxCount": 1,
           "minCount": 1,
-          "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d"
+          "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
         }
       ],
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 3,
+            "attackSpeed": 7,
             "damage": 1,
-            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+            "toolItemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
           },
           {
-            "attackSpeed": 1.75,
-            "damage": 10,
-            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
-          }
-        ]
-      }
-    },
-    {
-      "maxStack": 100,
-      "resultItem": {
-        "count": 1
-      },
-      "time": 1,
-      "earnItemHps": [
-        0
-      ],
-      "hp": 1,
-      "mapObjectName": "小枝",
-      "miningType": "Mining",
-      "soundEffectType": "tree",
-      "earnItems": [
-        {
-          "count": 1,
-          "percent": 1,
-          "maxCount": 2,
-          "minCount": 1,
-          "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46"
-        }
-      ],
-      "miningParam": {
-        "miningTools": [
-          {
-            "attackSpeed": 1,
+            "attackSpeed": 4,
             "damage": 1,
-            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
           }
         ]
       },
-      "mapObjectGuid": "17fefdcd-c10c-4a0e-97a9-d7702ff35709"
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7"
     }
   ]
 }
