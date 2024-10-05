@@ -2,7 +2,8 @@
   "name": "Core.Inventory",
   "rootNamespace": "",
   "references": [
-    "Core.Item.Interface"
+    "Core.Item.Interface",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -16,7 +17,7 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class PlaceHotBarBlockProtocolTest
     {
         private const int PlacedBlockId = 1;
-        private const int BlockItemId = 1;
+        private static readonly ItemId BlockItemId = new(1);
         private const int PlayerId = 3;
         private const int HotBarSlot = 3;
         
@@ -39,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //ブロックが置かれているかチェック
             var world = ServerContext.WorldBlockDatastore;
-            Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2, 4)).BlockId);
+            Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2, 4)).BlockId.AsPrimitive());
             //アイテムが減っているかチェック
             Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
             

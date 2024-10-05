@@ -25,7 +25,7 @@ namespace Client.Starter
     /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
-        [SerializeField] private BlockGameObject nothingIndexBlock;
+        [SerializeField] private BlockGameObject missingBlockIdObject;
         [SerializeField] private BlockPrefabContainer blockPrefabContainer;
         
         [SerializeField] private TMP_Text loadingLog;
@@ -120,7 +120,7 @@ namespace Client.Starter
             
             async UniTask LoadBlockAssets()
             {
-                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory, blockPrefabContainer, nothingIndexBlock);
+                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(blockPrefabContainer, missingBlockIdObject);
                 loadingLog.text += $"\nブロックロード完了  {loadingStopwatch.Elapsed}";
             }
             

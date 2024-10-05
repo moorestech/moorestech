@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
 using Core.Item.Util;
+using Core.Master;
 using Game.Block.Interface.Component;
 
 namespace Tests.Module
@@ -27,8 +28,8 @@ namespace Tests.Module
         {
             get
             {
-                var a = _insertedItems.Where(i => i.Id != ItemConst.EmptyItemId).ToList();
-                a.Sort((a, b) => a.Id - b.Id);
+                var a = _insertedItems.Where(i => i.Id != ItemMaster.EmptyItemId).ToList();
+                a.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
                 return a.ToList();
             }
         }

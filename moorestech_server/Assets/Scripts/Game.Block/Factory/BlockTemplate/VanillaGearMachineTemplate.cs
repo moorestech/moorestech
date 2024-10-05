@@ -1,16 +1,16 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
-using Game.Block.Factory.Extension;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.EnergySystem;
 using Game.Gear.Common;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -23,17 +23,21 @@ namespace Game.Block.Factory.BlockTemplate
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
-            var machineParam = (GearMachineConfigParam)config.Param;
+            var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
-            var connectSetting = machineParam.GearConnectSettings;
+            var inputSlot = machineParam.InputItemSlotCount;
+            var outputSlot = machineParam.OutputItemSlotCount;
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
+            
+            var connectSetting = machineParam.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             
-            var emptyRecipe = ServerContext.MachineRecipeConfig.GetEmptyRecipeData();
-            var processor = new VanillaMachineProcessorComponent(input, output, emptyRecipe, machineParam.RequiredPower);
+            var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);
+            var processor = new VanillaMachineProcessorComponent(input, output, null, requirePower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
@@ -49,26 +53,32 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockConfigData config, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var inputConnectorComponent = config.CreateInventoryConnector(blockPositionInfo);
-            var (input, output) = VanillaMachineTemplate.GetDependencies(config, blockInstanceId, inputConnectorComponent, _blockInventoryUpdateEvent);
-            var machineParam = (GearMachineConfigParam)config.Param;
+            var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
-            var vanillaGearParam = config.Param as GearMachineConfigParam;
-            var connectSetting = vanillaGearParam.GearConnectSettings;
+            var inputSlot = machineParam.InputItemSlotCount;
+            var outputSlot = machineParam.OutputItemSlotCount;
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
+            var connectSetting = machineParam.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             
-            var processor = VanillaMachineTemplate.LoadState(state, input, output, machineParam.RequiredPower);
+            var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);
+            
+            // パラメーターをロード
+            // Load the parameters
+            var processor = BlockTemplateUtil.MachineLoadState(state, input, output, requirePower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             
-            var machineComponent = new VanillaGearMachineComponent(vanillaGearParam, processor, gearConnector, blockInstanceId);
+            var machineComponent = new VanillaGearMachineComponent(machineParam, processor, gearConnector, blockInstanceId);
             
             var components = new List<IBlockComponent>
             {
@@ -79,7 +89,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
-            return new BlockSystem(blockInstanceId, config.BlockId, components, blockPositionInfo);
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
 }

@@ -1,18 +1,16 @@
+using System;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapVein
 {
     public class MapVeinGameObject : MonoBehaviour
     {
-        [SerializeField] private Vector2Int veinRangeMax;
-        [SerializeField] private string veinItemModId;
-        [SerializeField] private string veinItemId;
         public Vector2Int VeinRangeMinPos => new((int)transform.position.x, (int)transform.position.z);
-        
         public Vector2Int VeinRangeMaxPos => veinRangeMax + VeinRangeMinPos;
+        public Guid VeinItemGuid => Guid.Parse(veinItemGuid);
         
-        public string VeinItemModId => veinItemModId;
-        public string VeinItemId => veinItemId;
+        [SerializeField] private string veinItemGuid;
+        [SerializeField] private Vector2Int veinRangeMax;
         
         private void OnDrawGizmos()
         {

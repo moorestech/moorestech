@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "maxStack": 100,
+      "name": "石",
+      "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
+    },
+    {
+      "maxStack": 100,
+      "name": "石器",
+      "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+    },
+    {
+      "maxStack": 100,
+      "name": "木",
+      "itemGuid": "b0609f09-3950-4cdd-9680-dff20a767d86"
+    },
+    {
+      "maxStack": 100,
+      "name": "石斧",
+      "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
+    }
+  ]
+}

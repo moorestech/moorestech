@@ -1,10 +1,11 @@
 using System.Reflection;
 using Core.Inventory;
+using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -14,7 +15,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class PowerGeneratorSaveLoadTest
     {
-        private const int PowerGeneratorId = ForUnitTestModBlockId.GeneratorId;
         
         [Test]
         public void PowerGeneratorTest()
@@ -23,12 +23,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var fuelSlotCount = (ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam).FuelSlot;
+            var fuelSlotCount = (MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam).FuelItemSlotCount;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var powerGeneratorBlock = blockFactory.Create(PowerGeneratorId, new BlockInstanceId(10), generatorPosInfo);
+            var powerGeneratorBlock = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(10), generatorPosInfo);
             var powerGenerator = powerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
             
-            const int fuelItemId = 5;
+             var fuelItemId = new ItemId(5);
             const int remainingFuelTime = 567;
             
             //検証元の発電機を作成
@@ -40,8 +40,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var fuelItemStacks = (OpenableInventoryItemDataStoreService)type
                 .GetField("_itemDataStoreService", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(powerGenerator);
-            fuelItemStacks.SetItem(0, itemStackFactory.Create(1, 5));
-            fuelItemStacks.SetItem(2, itemStackFactory.Create(3, 5));
+            fuelItemStacks.SetItem(0, itemStackFactory.Create(new ItemId(1), 5));
+            fuelItemStacks.SetItem(2, itemStackFactory.Create(new ItemId(3), 5));
             
             
             //セーブのテキストを取得
@@ -49,12 +49,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(saveText);
             
             
-            var blockHash = ServerContext.BlockConfig.GetBlockConfig(PowerGeneratorId).BlockHash;
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockGuid;
             //発電機を再作成
-            var loadedPowerGeneratorBlock = blockFactory.Load(blockHash, new BlockInstanceId(10), saveText, generatorPosInfo);
+            var loadedPowerGeneratorBlock = blockFactory.Load(blockGuid, new BlockInstanceId(10), saveText, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
             //発電機を再作成した結果を検証
-            var loadedFuelItemId = (int)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadedFuelItemId = (ItemId)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
             Assert.AreEqual(fuelItemId, loadedFuelItemId);
             

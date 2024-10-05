@@ -4,7 +4,8 @@
   "references": [
     "Core.Item.Interface",
     "Core.Inventory",
-    "UniRx"
+    "UniRx",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

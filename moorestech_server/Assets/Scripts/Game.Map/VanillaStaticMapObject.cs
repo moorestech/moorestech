@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.Map.Interface.MapObject;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace Game.Map
     public class VanillaStaticMapObject : IMapObject
     {
         public int InstanceId { get; }
-        public string Type { get; }
+        public Guid MapObjectGuid { get; }
         public bool IsDestroyed { get; private set; }
         public Vector3 Position { get; }
         public int CurrentHp { get; private set; }
@@ -24,17 +25,17 @@ namespace Game.Map
         
         public event Action OnDestroy;
         
-        private readonly List<int> _earnItemHps;
+        private readonly int[] _earnItemHps;
         
-        public VanillaStaticMapObject(int instanceId, string type, bool isDestroyed, int currentHp, Vector3 position)
+        public VanillaStaticMapObject(int instanceId, Guid mapObjectGuid, bool isDestroyed, int currentHp, Vector3 position)
         {
+            var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
             InstanceId = instanceId;
-            Type = type;
+            MapObjectGuid = mapObjectGuid;
             IsDestroyed = isDestroyed;
             Position = position;
             CurrentHp = currentHp;
             
-            var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(type);
             
             _earnItemHps = mapObjectConfig.EarnItemHps;
             
@@ -43,7 +44,7 @@ namespace Game.Map
             foreach (var earnItemConfig in mapObjectConfig.EarnItems)
             {
                 var itemCount = random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
-                var itemStack = ServerContext.ItemStackFactory.Create(earnItemConfig.ItemId, itemCount);
+                var itemStack = ServerContext.ItemStackFactory.Create(earnItemConfig.ItemGuid, itemCount);
                 
                 EarnItems.Add(itemStack);
             }

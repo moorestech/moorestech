@@ -11,7 +11,9 @@ namespace Game.Map.Interface.Json
         [JsonProperty("instanceId")] public int instanceId;
         [JsonProperty("isDestroyed")] public bool isDestroyed;
         [JsonProperty("hp")] public int hp;
-        [JsonProperty("type")] public string type;
+        [JsonProperty("guid")] public string guidStr;
+        [JsonIgnore] public Guid MapObjectGuid => new(guidStr);
+        
         [JsonProperty("x")] public float x;
         [JsonProperty("y")] public float y;
         [JsonProperty("z")] public float z;
@@ -25,7 +27,7 @@ namespace Game.Map.Interface.Json
         {
             instanceId = mapObject.InstanceId;
             isDestroyed = mapObject.IsDestroyed;
-            type = mapObject.Type;
+            guidStr = mapObject.MapObjectGuid.ToString();
             hp = mapObject.CurrentHp;
             x = mapObject.Position.x;
             y = mapObject.Position.y;

@@ -1,7 +1,5 @@
-using System;
 using Client.Game.InGame.UI.UIState;
-using Game.Challenge;
-using Game.Challenge.Config.TutorialParam;
+using Mooresmaster.Model.ChallengesModule;
 using TMPro;
 using UnityEngine;
 using VContainer;
@@ -10,6 +8,8 @@ namespace Client.Game.InGame.Tutorial
 {
     public class KeyControlTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
+        public const string TutorialType = "keyControl";
+        
         [SerializeField] private GameObject keyControlUIObject;
         [SerializeField] private TMP_Text keyControlTutorialText;
         

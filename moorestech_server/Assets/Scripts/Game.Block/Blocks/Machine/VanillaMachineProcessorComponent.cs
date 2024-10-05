@@ -3,16 +3,23 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.RecipeConfig;
 using Game.Block.Interface.State;
 using Game.EnergySystem;
 using MessagePack;
+using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineProcessorComponent : IBlockStateChange, IUpdatableBlockComponent
     {
+        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
+        
+        public double RemainingSecond { get; private set; }
+        
+        public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
+        public IObservable<BlockState> OnChangeBlockState => _changeState;
+        
         private readonly Subject<BlockState> _changeState = new();
         
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
@@ -22,17 +29,17 @@ namespace Game.Block.Blocks.Machine
         
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
-        private MachineRecipeData _processingRecipeData;
+        private MachineRecipeMasterElement _processingRecipe;
         
         
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineRecipeData machineRecipeData, ElectricPower requestPower)
+            MachineRecipeMasterElement machineRecipe, ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            _processingRecipeData = machineRecipeData;
+            _processingRecipe = machineRecipe;
             RequestPower = requestPower;
             
             //TODO コンポーネント化する
@@ -41,40 +48,26 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, double remainingSecond, MachineRecipeData processingRecipeData,
+            ProcessState currentState, double remainingSecond, MachineRecipeMasterElement processingRecipe,
             ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             
-            _processingRecipeData = processingRecipeData;
+            _processingRecipe = processingRecipe;
             RequestPower = requestPower;
             RemainingSecond = remainingSecond;
             
             CurrentState = currentState;
         }
         
-        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-        
-        public double RemainingSecond { get; private set; }
-        
-        public int RecipeDataId => _processingRecipeData.RecipeId;
-        public IObservable<BlockState> OnChangeBlockState => _changeState;
-        
         public BlockState GetBlockState()
         {
             BlockException.CheckDestroy(this);
             
-            var processingRate = 1 - (float)RemainingSecond / _processingRecipeData.Time;
-            return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),
-                MessagePackSerializer.Serialize(
-                    new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate)));
-        }
-        
-        public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
+            var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
+            var currentState = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate));
+            return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),currentState);
         }
         
         public void SupplyPower(ElectricPower power)
@@ -107,13 +100,17 @@ namespace Game.Block.Blocks.Machine
         
         private void Idle()
         {
-            var isStartProcess = IsAllowedToStartProcess();
+            var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
+            var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
+                   _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
+                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+            
             if (isStartProcess)
             {
                 CurrentState = ProcessState.Processing;
-                _processingRecipeData = _vanillaMachineInputInventory.GetRecipeData();
-                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipeData);
-                RemainingSecond = _processingRecipeData.Time;
+                _processingRecipe = recipe;
+                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
+                RemainingSecond = _processingRecipe.Time;
             }
         }
         
@@ -123,26 +120,18 @@ namespace Game.Block.Blocks.Machine
             if (RemainingSecond <= 0)
             {
                 CurrentState = ProcessState.Idle;
-                _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
+                _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
             }
             
             //電力を消費する
             _currentPower = new ElectricPower(0);
         }
         
-        private bool IsAllowedToStartProcess()
+        public bool IsDestroy { get; private set; }
+        public void Destroy()
         {
-            var recipe = _vanillaMachineInputInventory.GetRecipeData();
-            return CurrentState == ProcessState.Idle &&
-                   _vanillaMachineInputInventory.IsAllowedToStartProcess &&
-                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+            IsDestroy = true;
         }
-    }
-    
-    public enum ProcessState
-    {
-        Idle,
-        Processing,
     }
     
     public static class ProcessStateExtension
@@ -160,5 +149,11 @@ namespace Game.Block.Blocks.Machine
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
+    }
+    
+    public enum ProcessState
+    {
+        Idle,
+        Processing,
     }
 }

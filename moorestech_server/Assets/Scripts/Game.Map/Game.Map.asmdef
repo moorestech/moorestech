@@ -8,7 +8,8 @@
     "Game.SaveLoad.Interface",
     "Game.SaveLoad",
     "Game.Context",
-    "Core.ConfigJson"
+    "Core.ConfigJson",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -9,6 +9,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -122,11 +123,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
             
-            if (!ServerContext.BlockConfig.IsBlock(itemId)) return; // 置けるブロックかどうか
+            if (!MasterHolder.BlockMaster.IsBlock(itemId)) return; // 置けるブロックかどうか
             if (!TryGetRayHitPosition(out hitPoint)) return; // ブロック設置用のrayが当たっているか
             
             //設置座標計算 calculate place point
-            var holdingBlockConfig = ServerContext.BlockConfig.ItemIdToBlockConfig(itemId);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(itemId);
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var placePoint = CalcPlacePoint();
             
             if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
@@ -154,14 +156,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
                 }
                 
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockConfig);
-                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
+                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
             }
             else
             {
                 _isStartZDirection = null;
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockConfig);
-                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockConfig);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
+                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
             }
             
             // Placeableの更新
@@ -199,7 +201,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             Vector3Int CalcPlacePoint()
             {
                 var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
-                var rotatedSize = rotateAction(holdingBlockConfig.BlockSize).Abs();
+                var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
                 
                 var point = Vector3Int.zero;
                 point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));

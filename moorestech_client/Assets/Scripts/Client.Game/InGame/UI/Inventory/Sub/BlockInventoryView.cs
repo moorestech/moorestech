@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
-using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Interface.BlockConfig;
+using Core.Master;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using TMPro;
 using UnityEngine;
@@ -21,18 +21,20 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         #endregion
         
-        private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
-        public List<IItemStack> SubInventory { get; private set; }
         public int Count => _blockItemSlotObjects.Count;
+        
+        public List<IItemStack> SubInventory { get; private set; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
+        
+        private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
         }
         
-        public void SetBlockInventoryType(BlockInventoryType type, Vector3Int blockPos, IBlockConfigParam param, int blockId)
+        public void SetBlockInventoryType(BlockInventoryType type, Vector3Int blockPos, IBlockParam param, BlockId blockId)
         {
             var itemStackFactory = ServerContext.ItemStackFactory;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockPos);
@@ -72,8 +74,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 chestItemParent.gameObject.SetActive(true);
                 
                 var itemList = new List<IItemStack>();
-                var chestParam = (ChestConfigParam)param;
-                for (var i = 0; i < chestParam.ChestItemNum; i++)
+                var chestParam = (ChestBlockParam)param;
+                for (var i = 0; i < chestParam.ChestItemSlotCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -88,9 +90,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 minerItemParent.gameObject.SetActive(true);
                 
                 var itemList = new List<IItemStack>();
-                var minerParam = (MinerBlockConfigParam)param;
+                var minerParam = (ElectricMinerBlockParam)param;
                 
-                for (var i = 0; i < minerParam.OutputSlot; i++)
+                for (var i = 0; i < minerParam.OutputItemSlotCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -98,32 +100,29 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 }
                 
                 SetItemList(itemList);
-                
-                var outputImage = ClientContext.ItemImageContainer.GetItemView(minerParam.OutputSlot);
-                minerResourceSlot.SetItem(outputImage, 0);
             }
             
             void Machine()
             {
                 machineUIParent.gameObject.SetActive(true);
                 var itemList = new List<IItemStack>();
-                var machineParam = (MachineBlockConfigParam)param;
-                for (var i = 0; i < machineParam.InputSlot; i++)
+                var machineParam = (ElectricMachineBlockParam)param;
+                for (var i = 0; i < machineParam.InputItemSlotCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 
-                for (var i = 0; i < machineParam.OutputSlot; i++)
+                for (var i = 0; i < machineParam.OutputItemSlotCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 
-                var config = ServerContext.BlockConfig.GetBlockConfig(blockId);
-                machineBlockNameText.text = config.Name;
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                machineBlockNameText.text = blockMasterElement.Name;
                 SetItemList(itemList);
             }
             
@@ -132,8 +131,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 powerGeneratorFuelItemParent.gameObject.SetActive(true);
                 
                 var itemList = new List<IItemStack>();
-                var generatorParam = (PowerGeneratorConfigParam)param;
-                for (var i = 0; i < generatorParam.FuelSlot; i++)
+                var generatorParam = (ElectricGeneratorBlockParam)param;
+                for (var i = 0; i < generatorParam.FuelItemSlotCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
                     _blockItemSlotObjects.Add(slotObject);

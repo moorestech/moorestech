@@ -14,6 +14,7 @@
     "Client.Common",
     "moorestechServer",
     "ClassLibrary",
+    "Core.Master",
     "Core.Block",
     "Core.ConfigJson",
     "Core.Const",

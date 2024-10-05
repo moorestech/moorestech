@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using MessagePack;
@@ -48,13 +49,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 var x = random.Next(-10000, 10000);
                 var y = random.Next(-10000, 10000);
                 var pos = new Vector3Int(x, y);
-                var blockId = random.Next(1, 1000);
+                var blockId = random.Next(1, 20);
                 var direction = random.Next(0, 4);
                 
                 //設置したブロックを保持する
-                blocks.Add(new TestBlockData(pos, blockId, direction));
+                blocks.Add(new TestBlockData(pos, (BlockId)blockId, direction));
                 //ブロックの設置
-                worldBlockDataStore.TryAddBlock(blockId, pos, (BlockDirection)direction, out _);
+                worldBlockDataStore.TryAddBlock((BlockId)blockId, pos, (BlockDirection)direction, out _);
             }
             
             
@@ -96,11 +97,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private class TestBlockData
         {
             public readonly BlockDirection BlockDirection;
-            public readonly int id;
+            public readonly BlockId id;
             public readonly int X;
             public readonly int Y;
             
-            public TestBlockData(Vector3Int pos, int id, int blockDirectionNum)
+            public TestBlockData(Vector3Int pos, BlockId id, int blockDirectionNum)
             {
                 X = pos.x;
                 Y = pos.y;

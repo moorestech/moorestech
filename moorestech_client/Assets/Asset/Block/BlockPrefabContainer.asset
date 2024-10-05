@@ -13,27 +13,5 @@ MonoBehaviour:
   m_Name: BlockPrefabContainer
   m_EditorClassIdentifier: 
   blockPrefabs:
-  - blockName: iron furnace with bellows
+  - blockGuid: 00000000-0000-0000-0000-000000000001
     blockPrefab: {fileID: 3080275620989080107, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-  - blockName: static steam engine
-    blockPrefab: {fileID: 7152712139784919903, guid: 4685e69708529f14084d76cb7178947d, type: 3}
-  - blockName: gear belt conveyor up
-    blockPrefab: {fileID: 3661652225155609364, guid: d53243d74377b724f9ad131c7510fa39, type: 3}
-  - blockName: gear belt conveyor down
-    blockPrefab: {fileID: 213257732635183545, guid: df26304a296b7e44daa5a26c3739abcc, type: 3}
-  - blockName: gear belt conveyor
-    blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-  - blockName: gear belt conveyor hueru
-    blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-  - blockName: gear belt conveyor kieru
-    blockPrefab: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-  - blockName: campfire
-    blockPrefab: {fileID: 5595802654781065204, guid: aec28d5cf61a6ce4db83c4c669c55eb7, type: 3}
-  - blockName: BigTestGear
-    blockPrefab: {fileID: 6697832017047719167, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
-  - blockName: TestShaft
-    blockPrefab: {fileID: 6697832017047719167, guid: e939d603e0ddc4cde80e504f56368881, type: 3}
-  - blockName: SmallTestGear
-    blockPrefab: {fileID: 6697832017047719167, guid: 278ea2ee295354217ab12bd5e9c2aad4, type: 3}
-  - blockName: TestSimpleGearGenerator
-    blockPrefab: {fileID: 9055832900192800997, guid: 5b349ac7c57a647f38b973f299dbd5a1, type: 3}

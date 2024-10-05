@@ -1,4 +1,5 @@
 using System.IO;
+using Core.Master;
 using Mod.Config;
 using Mod.Loader;
 using NUnit.Framework;
@@ -20,18 +21,17 @@ namespace Tests.UnitTest.Mod
             
             Assert.AreEqual(loaded.Count, 2);
             
-            var test1modId = "Test Author 1:testMod1";
+            var test1modId = new ModId("Test Author 1:testMod1");
+            //var test1Config = loaded.Find(x => x.ModId == test1modId);
+            var test1Config = loaded["Test Author 1:testMod1"];
+            Assert.AreEqual("testItemJson1", test1Config.JsonContents[new JsonFileName("item")]);
+            Assert.AreEqual("testBlockJson1", test1Config.JsonContents[new JsonFileName("block")]);
             
-            Assert.AreEqual("testItemJson1", loaded[test1modId].ItemConfigJson);
-            Assert.AreEqual("testBlockJson1", loaded[test1modId].BlockConfigJson);
-            Assert.AreEqual("", loaded[test1modId].MachineRecipeConfigJson);
-            Assert.AreEqual("", loaded[test1modId].CraftRecipeConfigJson);
-            
-            var test2modId = "Test Author 2:testMod2";
-            Assert.AreEqual("", loaded[test2modId].ItemConfigJson);
-            Assert.AreEqual("", loaded[test2modId].BlockConfigJson);
-            Assert.AreEqual("testMachineRecipeJson1", loaded[test2modId].MachineRecipeConfigJson);
-            Assert.AreEqual("testCraftRecipeJson1", loaded[test2modId].CraftRecipeConfigJson);
+            var test2modId = new ModId("Test Author 2:testMod2");
+            //var test2Config = loaded.Find(x => x.ModId == test2modId);
+            var test2Config = loaded["Test Author 2:testMod2"];
+            Assert.AreEqual("testMachineRecipeJson1", test2Config.JsonContents[new JsonFileName("machineRecipe")]);
+            Assert.AreEqual("testCraftRecipeJson1", test2Config.JsonContents[new JsonFileName("craftRecipe")]);
         }
     }
 }

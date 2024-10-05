@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
-using Client.Mod.Glb;
 using Core.Const;
+using Core.Master;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.Define
@@ -13,44 +14,53 @@ namespace Client.Game.InGame.Define
     {
         [SerializeField] private List<BlockPrefabInfo> blockPrefabs;
         
-        public GameObject GetBlockPrefab(string modId, string blockName)
+        public Dictionary<BlockId,BlockObjectInfo> GetBlockDataList()
         {
-            foreach (var blockPrefab in blockPrefabs)
-                if (blockPrefab.ModId == modId && blockPrefab.BlockName == blockName)
-                    return blockPrefab.BlockPrefab;
-            return null;
-        }
-        
-        public List<BlockData> GetBlockDataList()
-        {
-            var result = new List<BlockData>();
+            var result = new Dictionary<BlockId,BlockObjectInfo>();
             
-            var blockConfigs = ServerContext.BlockConfig.BlockConfigList;
-            foreach (var blockConfig in blockConfigs)
+            foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
             {
-                var blockPrefab = GetBlockPrefab(blockConfig.ModId, blockConfig.Name);
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                
+                var blockPrefab = GetBlockPrefab(blockMasterElement.BlockGuid);
                 if (blockPrefab == null) continue;
                 
-                var blockName = blockConfig.Name;
-                var type = blockConfig.Type;
-                result.Add(new BlockData(blockPrefab, blockName, type, blockConfig));
+                result.Add(blockId, new BlockObjectInfo(blockPrefab, blockMasterElement));
             }
             
             return result;
+        }
+        
+        private GameObject GetBlockPrefab(Guid blockGuid)
+        {
+            foreach (var blockPrefab in blockPrefabs)
+                if (blockPrefab.BlockGuid == blockGuid.ToString())
+                    return blockPrefab.BlockPrefab;
+            return null;
         }
     }
     
     [Serializable]
     public class BlockPrefabInfo
     {
-        [SerializeField] private string blockName;
-        [SerializeField] private GameObject blockPrefab;
-        
-        public string ModId => AlphaMod.ModId;
-        //TODO 将来的に設定できるようにする [SerializeField] private string modId = AlphaMod.ModId;
-        
-        public string BlockName => blockName;
-        
+        public string BlockGuid => blockGuid;
         public GameObject BlockPrefab => blockPrefab;
+        
+        [SerializeField] private string blockGuid;
+        [SerializeField] private GameObject blockPrefab;
+    }
+    
+    
+    
+    public class BlockObjectInfo
+    {
+        public readonly BlockMasterElement BlockMasterElement;
+        public readonly GameObject BlockObject;
+        
+        public BlockObjectInfo(GameObject blockObject, BlockMasterElement blockMasterElement)
+        {
+            BlockObject = blockObject;
+            BlockMasterElement = blockMasterElement;
+        }
     }
 }

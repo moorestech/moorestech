@@ -5,7 +5,8 @@
     "Game.Block.Interface",
     "Core.Util",
     "Game.EnergySystem",
-    "Core.Const"
+    "Core.Const",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

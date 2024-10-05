@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Challenge;
+using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -56,7 +58,7 @@ namespace Client.Network.API
     public class BlockInfo
     {
         public readonly BlockDirection BlockDirection;
-        public readonly int BlockId;
+        public readonly BlockId BlockId;
         public readonly Vector3Int BlockPos;
         
         public BlockInfo(BlockDataMessagePack blockDataMessagePack)
@@ -85,10 +87,10 @@ namespace Client.Network.API
     
     public class ChallengeResponse
     {
-        public readonly List<ChallengeInfo> CompletedChallenges;
-        public readonly List<ChallengeInfo> CurrentChallenges;
+        public readonly List<ChallengeMasterElement> CompletedChallenges;
+        public readonly List<ChallengeMasterElement> CurrentChallenges;
         
-        public ChallengeResponse(List<ChallengeInfo> currentChallenges, List<ChallengeInfo> completedChallenges)
+        public ChallengeResponse(List<ChallengeMasterElement> currentChallenges, List<ChallengeMasterElement> completedChallenges)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallenges = completedChallenges;

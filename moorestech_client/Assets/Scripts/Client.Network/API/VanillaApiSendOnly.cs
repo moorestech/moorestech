@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Network.Settings;
 using Server.Protocol.PacketResponse;
@@ -49,7 +50,7 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void Craft(int craftRecipeId)
+        public void Craft(Guid craftRecipeId)
         {
             var request = new RequestOneClickCraftProtocolMessagePack(_playerId, craftRecipeId);
             _packetSender.Send(request);

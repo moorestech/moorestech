@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -29,7 +30,7 @@ namespace Client.Game.InGame.Block
         }
         
         
-        public void PlaceBlock(Vector3Int blockPosition, int blockId, BlockDirection blockDirection)
+        public void PlaceBlock(Vector3Int blockPosition, BlockId blockId, BlockDirection blockDirection)
         {
             //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
             if (_blockObjectsDictionary.ContainsKey(blockPosition))

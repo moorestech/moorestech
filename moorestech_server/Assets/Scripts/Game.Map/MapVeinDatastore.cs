@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item.Interface.Config;
+using Core.Master;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.Vein;
 using UnityEngine;
@@ -10,12 +10,12 @@ namespace Game.Map
     {
         private readonly List<IMapVein> _mapVeins = new();
         
-        public MapVeinDatastore(MapInfoJson mapInfoJson, IItemConfig itemConfig)
+        public MapVeinDatastore(MapInfoJson mapInfoJson)
         {
             //configからmap obejctを生成
             foreach (var veinJson in mapInfoJson.MapVeins)
             {
-                var itemId = itemConfig.GetItemId(veinJson.ItemModId, veinJson.ItemId);
+                var itemId = MasterHolder.ItemMaster.GetItemId(veinJson.VeinItemGuid);
                 var vein = new MapVein(itemId,
                     new Vector3Int(veinJson.XMin, veinJson.YMin),
                     new Vector3Int(veinJson.XMax, veinJson.YMax));

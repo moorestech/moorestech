@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Context;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
@@ -25,10 +26,10 @@ namespace Game.Map
             
             foreach (var mapObjectInfo in mapInfoJson.MapObjects)
             {
-                var mapObjectConfig = ServerContext.MapObjectConfig.GetConfig(mapObjectInfo.Type);
+                var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectInfo.MapObjectGuid);
                 var hp = mapObjectConfig.Hp;
                 
-                var mapObject = _mapObjectFactory.Create(mapObjectInfo.InstanceId, mapObjectInfo.Type, hp, false, mapObjectInfo.Position);
+                var mapObject = _mapObjectFactory.Create(mapObjectInfo.InstanceId, mapObjectInfo.MapObjectGuid, hp, false, mapObjectInfo.Position);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
                 mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }

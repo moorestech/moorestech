@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Linq;
 using Client.Game.InGame.Context;
+using Core.Master;
 using Game.Context;
 using UnityDebugSheet.Runtime.Core.Scripts;
 
@@ -11,16 +13,18 @@ namespace Client.DebugSystem
         
         public override IEnumerator Initialize()
         {
-            var items = ServerContext.ItemConfig.ItemConfigDataList;
-            foreach (var itemConfig in items)
+            var itemIds = MasterHolder.ItemMaster.GetItemAllIds();
+            foreach (var itemId in itemIds)
             {
-                var itemImage = ClientContext.ItemImageContainer.GetItemView(itemConfig.ItemId);
-                var subText = $"Count:{itemConfig.MaxStack}";
+                var itemElement = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                //TODO: あとでItemImageContainer.GetItemViewの引数をItemIdにする
+                var itemImage = ClientContext.ItemImageContainer.GetItemView(itemId); 
+                var subText = $"Count:{itemElement.MaxStack}";
                 
                 AddButton(itemImage.ItemName, subText, icon: itemImage.ItemImage, clicked: () =>
                 {
                     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-                    var command = $"give {playerId} {itemConfig.ItemId} {itemConfig.MaxStack}";
+                    var command = $"give {playerId} {itemId} {itemElement.MaxStack}";
                     ClientContext.VanillaApi.SendOnly.SendCommand(command);
                 });
             }

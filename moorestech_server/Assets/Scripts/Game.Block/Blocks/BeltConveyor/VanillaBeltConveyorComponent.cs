@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Component;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
@@ -35,7 +34,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
         {
             _blockName = blockName;
             InventoryItemNum = inventoryItemNum;
@@ -45,7 +44,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, int timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
             this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, blockName)
         {
             //stateから復元
@@ -57,7 +56,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 if (items[i].ItemStack == null) continue;
                 
-                var itemStack = items[i].ItemStack.ToItem();
+                var itemStack = items[i].ItemStack.ToItemStack();
                 _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
                 _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
             }
@@ -131,7 +130,7 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
             
-            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(4, ItemInstanceId.Create());
+            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(4), ItemInstanceId.Create());
             for (var i = 0; i < count; i++)
             {
                 var item = _inventoryItems[i];
@@ -162,12 +161,11 @@ namespace Game.Block.Blocks.BeltConveyor
                     
                     if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
                     
-                    KeyValuePair<IBlockInventory, (IConnectOption selfOption, IConnectOption targetOption)> connector = _blockConnectorComponent.ConnectedTargets.First();
+                    var connector = _blockConnectorComponent.ConnectedTargets.First();
                     var output = connector.Key.InsertItem(insertItem);
                     
-                    
                     //渡した結果がnullItemだったらそのアイテムを消す
-                    if (output.Id == ItemConst.EmptyItemId) _inventoryItems[i] = null;
+                    if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
                     
                     continue;
                 }
@@ -191,7 +189,7 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class BeltConveyorItemJsonObject
     {
-        [JsonProperty("itemStack")] public ItemStackJsonObject ItemStack;
+        [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStack;
         
         [JsonProperty("remainingTime")] public double RemainingPercent;
         
@@ -205,7 +203,7 @@ namespace Game.Block.Blocks.BeltConveyor
             }
             
             var item = ServerContext.ItemStackFactory.Create(beltConveyorInventoryItem.ItemId, 1);
-            ItemStack = new ItemStackJsonObject(item);
+            ItemStack = new ItemStackSaveJsonObject(item);
             RemainingPercent = beltConveyorInventoryItem.RemainingPercent;
         }
     }

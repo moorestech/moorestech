@@ -1,5 +1,6 @@
 using System.Reflection;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.ItemShooter;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -34,11 +35,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item1RemainingPercent = 0.5f;
             var item2RemainingPercent = 0.3f;
             var item3RemainingPercent = 0.0f;
-            inventoryItems[0] = new ShooterInventoryItem(1, new ItemInstanceId(0), item1Speed);
+            inventoryItems[0] = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed);
             inventoryItems[0].RemainingPercent = item1RemainingPercent;
-            inventoryItems[2] = new ShooterInventoryItem(2, new ItemInstanceId(0), item2Speed);
+            inventoryItems[2] = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed);
             inventoryItems[2].RemainingPercent = item2RemainingPercent;
-            inventoryItems[3] = new ShooterInventoryItem(5, new ItemInstanceId(0), item3Speed);
+            inventoryItems[3] = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed);
             inventoryItems[3].RemainingPercent = item3RemainingPercent;
             
             
@@ -47,23 +48,23 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(str);
             
             //セーブデータをロード
-            var newShooter = blockFactory.Load(itemShooter.BlockConfigData.BlockHash, new BlockInstanceId(0), str, posInfo).GetComponent<ItemShooterComponent>();
+            var newShooter = blockFactory.Load(itemShooter.BlockMasterElement.BlockGuid, new BlockInstanceId(0), str, posInfo).GetComponent<ItemShooterComponent>();
             var newInventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(newShooter);
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             
-            Assert.AreEqual(1, newInventoryItems[0].ItemId);
+            Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
             Assert.AreEqual(item1Speed, newInventoryItems[0].CurrentSpeed);
             Assert.AreEqual(item1RemainingPercent, newInventoryItems[0].RemainingPercent);
             
             Assert.IsTrue(newInventoryItems[1] == null);
             
-            Assert.AreEqual(2, newInventoryItems[2].ItemId);
+            Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
             Assert.AreEqual(item2Speed, newInventoryItems[2].CurrentSpeed);
             Assert.AreEqual(item2RemainingPercent, newInventoryItems[2].RemainingPercent);
             
-            Assert.AreEqual(5, newInventoryItems[3].ItemId);
+            Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
             Assert.AreEqual(item3Speed, newInventoryItems[3].CurrentSpeed);
             Assert.AreEqual(item3RemainingPercent, newInventoryItems[3].RemainingPercent);
         }

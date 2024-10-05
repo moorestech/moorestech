@@ -2,6 +2,7 @@ using System;
 using Game.Challenge;
 using Game.Challenge.Task;
 using MessagePack;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Server.Event.EventReceive
@@ -20,7 +21,7 @@ namespace Server.Event.EventReceive
         
         private void OnCompletedChallenge(IChallengeTask currentChallenge)
         {
-            var messagePack = new CompletedChallengeEventMessage(currentChallenge.Config.Id);
+            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             var playerId = currentChallenge.PlayerId;
@@ -31,16 +32,17 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class CompletedChallengeEventMessage
     {
-        [Key(0)] public int CompletedChallengeId { get; set; }
+        [Key(0)] public string CompletedChallengeGuidStr { get; set; }
+        [IgnoreMember] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CompletedChallengeEventMessage()
         {
         }
         
-        public CompletedChallengeEventMessage(int completedChallengeId)
+        public CompletedChallengeEventMessage(Guid completedChallengeGuid)
         {
-            CompletedChallengeId = completedChallengeId;
+            CompletedChallengeGuidStr = completedChallengeGuid.ToString();
         }
     }
 }

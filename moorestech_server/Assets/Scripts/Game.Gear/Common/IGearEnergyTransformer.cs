@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Gear.Common
 {
@@ -18,12 +19,12 @@ namespace Game.Gear.Common
         public Torque CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }
         
-        public IReadOnlyList<GearConnect> Connects { get; }
-        
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise);
         
         public void Rocked();
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise);
+        
+        public List<GearConnect> GetGearConnects();
     }
     
     public readonly struct GearConnect

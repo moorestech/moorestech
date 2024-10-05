@@ -82,7 +82,7 @@
       },
       "param": {
         "slot": 4,
-        "time": 2,
+        "time": 2000,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -167,13 +167,13 @@
           {
             "itemModId": "Test Author:forUniTest",
             "itemName": "Test1",
-            "time": 1,
+            "time": 1000,
             "power": 100
           },
           {
             "itemModId": "Test Author:forUniTest",
             "itemName": "Test2",
-            "time": 2,
+            "time": 2000,
             "power": 200
           }
         ],
@@ -236,7 +236,7 @@
         "outputSlot": 3,
         "mineSettings": [
           {
-            "time": 1,
+            "time": 1000,
             "itemModId": "Test Author:forUniTest",
             "itemName": "Test1"
           }

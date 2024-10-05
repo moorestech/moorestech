@@ -1,6 +1,7 @@
 using Client.Common;
 using Client.Game.InGame.Block;
-using Game.Block.Interface.BlockConfig;
+using Core.Master;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -8,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class BlockPreviewObject : MonoBehaviour
     {
-        public BlockConfigData BlockConfig { get; private set; }
+        public BlockMasterElement BlockMasterElement { get; private set; }
         
         public bool IsCollisionGround
         {
@@ -24,9 +25,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private GroundCollisionDetector[] _collisionDetectors;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         
-        public void Initialize(BlockConfigData blockConfigData)
+        public void Initialize(BlockId blockId)
         {
-            BlockConfig = blockConfigData;
+            BlockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             

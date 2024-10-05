@@ -1,6 +1,6 @@
 using System;
-using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -10,6 +10,7 @@ namespace Tests.UnitTest.Core.Other
 {
     public class ItemStackTest
     {
+        private const int EmptyItemId = 0;
         private IItemStackFactory _itemStackFactory;
         
         [SetUp]
@@ -19,30 +20,30 @@ namespace Tests.UnitTest.Core.Other
             _itemStackFactory = ServerContext.ItemStackFactory;
         }
         
-        [TestCase(1, 1, 1, 1, 2, 0, 1, ItemConst.EmptyItemId)]
-        [TestCase(1, 5, 1, 1, 6, 0, 1, ItemConst.EmptyItemId)]
-        [TestCase(ItemConst.EmptyItemId, 0, 1, 3, 3, 0, 1, ItemConst.EmptyItemId)]
-        [TestCase(ItemConst.EmptyItemId, 0, 2, 9, 9, 0, 2, ItemConst.EmptyItemId)]
-        [TestCase(ItemConst.EmptyItemId, 5, 1, 1, 1, 0, 1, ItemConst.EmptyItemId)]
-        [TestCase(1, 1, ItemConst.EmptyItemId, 0, 1, 0, 1, ItemConst.EmptyItemId)]
-        [TestCase(1, 1, ItemConst.EmptyItemId, 0, 1, 0, 1, ItemConst.EmptyItemId)]
-        [TestCase(1, 5, ItemConst.EmptyItemId, 0, 5, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(1, 1, 1, 1, 2, 0, 1, EmptyItemId)]
+        [TestCase(1, 5, 1, 1, 6, 0, 1, EmptyItemId)]
+        [TestCase(EmptyItemId, 0, 1, 3, 3, 0, 1, EmptyItemId)]
+        [TestCase(EmptyItemId, 0, 2, 9, 9, 0, 2, EmptyItemId)]
+        [TestCase(EmptyItemId, 5, 1, 1, 1, 0, 1, EmptyItemId)]
+        [TestCase(1, 1, EmptyItemId, 0, 1, 0, 1, EmptyItemId)]
+        [TestCase(1, 1, EmptyItemId, 0, 1, 0, 1, EmptyItemId)]
+        [TestCase(1, 5, EmptyItemId, 0, 5, 0, 1, EmptyItemId)]
         [TestCase(3, 1, 1, 8, 1, 8, 3, 1)]
         [TestCase(1, 1, 3, 1, 1, 1, 1, 3)]
         [TestCase(2, 5, 5, 3, 5, 3, 2, 5)]
         public void AddTest(int mid, int mamo, int rid, int ramo, int ansMAmo, int ansRAmo, int ansMid, int ansRID)
         {
             IItemStack mineItemStack;
-            if (mid == ItemConst.EmptyItemId)
+            if (mid == EmptyItemId)
                 mineItemStack = _itemStackFactory.CreatEmpty();
             else
-                mineItemStack = _itemStackFactory.Create(mid, mamo);
+                mineItemStack = _itemStackFactory.Create(new ItemId(mid), mamo);
             
             IItemStack receivedItemStack;
-            if (rid == ItemConst.EmptyItemId)
+            if (rid == EmptyItemId)
                 receivedItemStack = _itemStackFactory.CreatEmpty();
             else
-                receivedItemStack = _itemStackFactory.Create(rid, ramo);
+                receivedItemStack = _itemStackFactory.Create(new ItemId(rid), ramo);
             
             var result = mineItemStack.AddItem(receivedItemStack);
             Assert.AreEqual(result.ProcessResultItemStack.Count, ansMAmo);
@@ -52,21 +53,21 @@ namespace Tests.UnitTest.Core.Other
         }
         
         [TestCase(1, 5, 1, 4, 1)]
-        [TestCase(ItemConst.EmptyItemId, 5, 1, 0, ItemConst.EmptyItemId)]
-        [TestCase(1, 5, 10, 0, ItemConst.EmptyItemId)]
-        [TestCase(1, 8, 8, 0, ItemConst.EmptyItemId)]
-        [TestCase(1, 8, 9, 0, ItemConst.EmptyItemId)]
+        [TestCase(EmptyItemId, 5, 1, 0, EmptyItemId)]
+        [TestCase(1, 5, 10, 0, EmptyItemId)]
+        [TestCase(1, 8, 8, 0, EmptyItemId)]
+        [TestCase(1, 8, 9, 0, EmptyItemId)]
         public void SubTest(int mid, int mamo, int subamo, int ansamo, int ansID)
         {
             IItemStack mineItemStack;
-            if (mid == ItemConst.EmptyItemId)
+            if (mid == EmptyItemId)
                 mineItemStack = _itemStackFactory.CreatEmpty();
             else
-                mineItemStack = _itemStackFactory.Create(mid, mamo);
+                mineItemStack = _itemStackFactory.Create(new ItemId(mid), mamo);
             
             var result = mineItemStack.SubItem(subamo);
             Assert.AreEqual(ansamo, result.Count);
-            Assert.AreEqual(ansID, result.Id);
+            Assert.AreEqual(ansID, result.Id.AsPrimitive());
         }
         
         
@@ -78,11 +79,11 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(3, 300, 300, 300)]
         public void ItemAddToOverFlowTest(int id, int baseAmount, int addAmount, int overflowAmount)
         {
-            var baseItem = _itemStackFactory.Create(id, baseAmount);
+            var baseItem = _itemStackFactory.Create(new ItemId(id), baseAmount);
             
             
-            var result = baseItem.AddItem(_itemStackFactory.Create(id, addAmount));
-            Assert.True(_itemStackFactory.Create(id, overflowAmount).Equals(result.RemainderItemStack));
+            var result = baseItem.AddItem(_itemStackFactory.Create(new ItemId(id), addAmount));
+            Assert.True(_itemStackFactory.Create(new ItemId(id), overflowAmount).Equals(result.RemainderItemStack));
         }
         
         [TestCase(1, 100, false)]
@@ -92,7 +93,7 @@ namespace Tests.UnitTest.Core.Other
         {
             try
             {
-                _itemStackFactory.Create(id, baseAmo);
+                _itemStackFactory.Create(new ItemId(id), baseAmo);
                 Assert.False(isthrow);
             }
             catch (Exception e)
@@ -110,7 +111,7 @@ namespace Tests.UnitTest.Core.Other
         {
             var nullItem = _itemStackFactory.CreatEmpty();
             Assert.False(nullItem.Equals(obj));
-            var item = _itemStackFactory.Create(5, 1);
+            var item = _itemStackFactory.Create(new ItemId(5), 1);
             Assert.False(item.Equals(obj));
         }
         
@@ -119,9 +120,9 @@ namespace Tests.UnitTest.Core.Other
         {
             var item = _itemStackFactory.CreatEmpty();
             Assert.True(item.ToString() == "ID:0 Count:0");
-            item = _itemStackFactory.Create(1, 5);
+            item = _itemStackFactory.Create(new ItemId(1), 5);
             Assert.True(item.ToString() == "ID:1 Count:5");
-            item = _itemStackFactory.Create(13, 10);
+            item = _itemStackFactory.Create(new ItemId(13), 10);
             Assert.True(item.ToString() == "ID:13 Count:10");
         }
     }

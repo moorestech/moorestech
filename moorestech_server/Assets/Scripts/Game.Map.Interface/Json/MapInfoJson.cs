@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -13,7 +14,8 @@ namespace Game.Map.Interface.Json
     public class MapObjectInfoJson
     {
         [JsonProperty("instanceId")] public int InstanceId;
-        [JsonProperty("type")] public string Type;
+        [JsonProperty("mapObjectGuid")] public string MapObjectGuidStr;
+        [JsonIgnore] public Guid MapObjectGuid => new(MapObjectGuidStr);
         
         [JsonProperty("x")] public float X;
         [JsonProperty("y")] public float Y;
@@ -24,8 +26,8 @@ namespace Game.Map.Interface.Json
     
     public class MapVeinInfoJson
     {
-        [JsonProperty("veinItemName")] public string ItemId;
-        [JsonProperty("veinItemModId")] public string ItemModId;
+        [JsonProperty("veinItemGuid")] public string VeinItemGuidStr;
+        [JsonIgnore] public Guid VeinItemGuid => Guid.Parse(VeinItemGuidStr);
         
         [JsonProperty("xMax")] public int XMax;
         

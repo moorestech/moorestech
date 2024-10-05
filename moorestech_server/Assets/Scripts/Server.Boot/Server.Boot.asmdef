@@ -31,7 +31,8 @@
     "Core.Item",
     "Game.Gear",
     "Game.Challenge",
-    "Game.Challenge.Interface"
+    "Game.Challenge.Interface",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

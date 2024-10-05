@@ -4,10 +4,11 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Core.Const;
+using Core.Master;
 using Game.Block;
-using Game.Block.Config.LoadConfig.Param;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using VContainer;
 
@@ -79,18 +80,16 @@ namespace Client.Game.InGame.Electric
         
         private void CreateRangeObject()
         {
-            var blockConfig = ServerContext.BlockConfig;
-            
             var (isElectricalBlock, isPole) = IsDisplay();
             //電気ブロックでも電柱でもない
             if (!isElectricalBlock && !isPole) return;
             
-            
             //電気系のブロックなので電柱の範囲を表示する
             foreach (var electricalPole in GetElectricalPoles())
             {
-                var config = (ElectricPoleConfigParam)blockConfig.GetBlockConfig(electricalPole.BlockId).Param;
-                var range = isElectricalBlock ? config.machineConnectionRange : config.poleConnectionRange;
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(electricalPole.BlockId);
+                var electricPoleParam = (ElectricPoleBlockParam)blockMasterElement.BlockParam;
+                var range = isElectricalBlock ? electricPoleParam.MachineConnectionRange : electricPoleParam.PoleConnectionRange;
                 
                 var rangeObject = Instantiate(rangePrefab, electricalPole.transform.position, Quaternion.identity, transform);
                 rangeObject.SetRange(range);
@@ -104,12 +103,15 @@ namespace Client.Game.InGame.Electric
                 var hotBarSlot = _hotBarView.SelectIndex;
                 var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
                 
-                if (id == ItemConst.EmptyItemId) return (false, false);
-                if (!blockConfig.IsBlock(id)) return (false, false);
+                if (id == ItemMaster.EmptyItemId) return (false, false);
                 
-                var config = blockConfig.GetBlockConfig(blockConfig.ItemIdToBlockId(id));
+
+                if (!MasterHolder.BlockMaster.IsBlock(id)) return (false, false);
                 
-                return (IsElectricalBlock(config.Type), IsPole(config.Type));
+                var blockId = MasterHolder.BlockMaster.GetBlockId(id);
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                
+                return (IsElectricalBlock(blockMaster.BlockType), IsPole(blockMaster.BlockType));
             }
             
             List<BlockGameObject> GetElectricalPoles()
@@ -117,8 +119,8 @@ namespace Client.Game.InGame.Electric
                 var resultBlocks = new List<BlockGameObject>();
                 foreach (var blocks in _blockGameObjectDataStore.BlockGameObjectDictionary)
                 {
-                    var blockType = blockConfig.GetBlockConfig(blocks.Value.BlockId).Type;
-                    if (blockType != VanillaBlockType.ElectricPole) continue;
+                    var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blocks.Value.BlockId);
+                    if (blockMaster.BlockType != VanillaBlockType.ElectricPole) continue;
                     
                     resultBlocks.Add(blocks.Value);
                 }

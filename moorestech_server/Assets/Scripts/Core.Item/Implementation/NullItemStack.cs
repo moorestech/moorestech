@@ -2,12 +2,13 @@
 using System;
 using Core.Const;
 using Core.Item.Interface;
+using Core.Master;
 
 namespace Core.Item.Implementation
 {
     internal class NullItemStack : IItemStack
     {
-        public int Id => ItemConst.EmptyItemId;
+        public ItemId Id => ItemMaster.EmptyItemId;
         public int Count => 0;
         public long ItemHash => 0;
         public ItemInstanceId ItemInstanceId { get; }

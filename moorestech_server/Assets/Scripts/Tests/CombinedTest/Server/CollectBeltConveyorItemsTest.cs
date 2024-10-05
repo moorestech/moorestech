@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
@@ -164,7 +165,7 @@ namespace Tests.CombinedTest.Server
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
             
-            inventoryItems[0] = new BeltConveyorInventoryItem(1, new ItemInstanceId(ItemInstanceId));
+            inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
             inventoryItems[1] = null;
             inventoryItems[2] = null;
             inventoryItems[3] = null;

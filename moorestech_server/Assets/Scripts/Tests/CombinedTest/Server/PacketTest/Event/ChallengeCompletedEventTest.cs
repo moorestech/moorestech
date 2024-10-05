@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Challenge;
@@ -41,7 +43,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
-            Assert.AreEqual(1000, completedChallenge.CompletedChallengeId);
+            var challengeId = new Guid("00000000-0000-0000-4567-000000000001");
+            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
         }
         
         public static void ClearCraftChallenge(PacketResponseCreator packet, ServiceProvider serviceProvider)
@@ -49,15 +52,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // クラフトの素材をインベントリに追加
             // Add crafting materials to the inventory
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            foreach (var craftInfo in ServerContext.CraftingConfig.GetCraftingConfigData(CraftRecipeId).CraftRequiredItemInfos)
+            var craftRecipeElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
+            foreach (var requiredItem in craftRecipeElement.RequiredItems)
             {
-                var requiredItem = craftInfo.ItemStack;
-                playerInventoryData.MainOpenableInventory.InsertItem(requiredItem);
+                var item = ServerContext.ItemStackFactory.Create(requiredItem.ItemGuid, requiredItem.Count);
+                playerInventoryData.MainOpenableInventory.InsertItem(item);
             }
             
             // クラフトを実行
             // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)).ToList());
         }
         
         [Test]
@@ -71,10 +75,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // インベントリに別々にアイテムを追加
+            const int itemId = 1;
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var item1 = ServerContext.ItemStackFactory.Create("Test Author:forUniTest", "Test1", 2);
+            var item1 = ServerContext.ItemStackFactory.Create(new ItemId(itemId), 2);
             playerInventoryData.MainOpenableInventory.SetItem(1, item1);
-            var item2 = ServerContext.ItemStackFactory.Create("Test Author:forUniTest", "Test1", 1);
+            var item2 = ServerContext.ItemStackFactory.Create(new ItemId(itemId), 1);
             playerInventoryData.MainOpenableInventory.SetItem(2, item2);
             
             // アップデートしてチャレンジをコンプリートする
@@ -87,7 +92,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
-            Assert.AreEqual(1010, completedChallenge.CompletedChallengeId);
+            var challengeId = new Guid("00000000-0000-0000-4567-000000000002");
+            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
         }
         
         [Test]
@@ -98,7 +104,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // ブロックを設置
-            ServerContext.WorldBlockDatastore.TryAddBlock(1, new Vector3Int(0,0,0), BlockDirection.East, out _);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, out _);
             
             // イベントを受け取り、テストする
             // Receive and test the event
@@ -107,7 +113,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
             
-            Assert.AreEqual(1020, completedChallenge.CompletedChallengeId);
+            var challengeId = new Guid("00000000-0000-0000-4567-000000000003");
+            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
         }
     }
 }

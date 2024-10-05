@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
@@ -14,9 +15,9 @@ namespace Tests.CombinedTest.Game
     public class ConnectElectricSegmentTest
     {
         //ブロックIDが変わったらここを変える
-        private const int ElectricPoleId = ForUnitTestModBlockId.ElectricPoleId;
-        private const int MachineId = ForUnitTestModBlockId.MachineId;
-        private const int GenerateId = ForUnitTestModBlockId.GeneratorId;
+        private static readonly BlockId ElectricPoleId = ForUnitTestModBlockId.ElectricPoleId;
+        private static readonly BlockId MachineId = ForUnitTestModBlockId.MachineId;
+        private static readonly BlockId GenerateId = ForUnitTestModBlockId.GeneratorId;
         
         //電柱を設置し、電柱に接続するテスト
         [Test]

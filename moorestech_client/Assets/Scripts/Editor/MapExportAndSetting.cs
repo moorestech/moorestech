@@ -44,7 +44,7 @@ public class MapExportAndSetting : EditorWindow
                 
                 var config = new MapObjectInfoJson
                 {
-                    Type = mapObject.MapObjectType,
+                    MapObjectGuidStr = mapObject.MapObjectGuid.ToString(),
                     InstanceId = mapObject.InstanceId,
                     X = mapObject.GetPosition().x,
                     Y = mapObject.GetPosition().y,
@@ -65,8 +65,7 @@ public class MapExportAndSetting : EditorWindow
             {
                 var config = new MapVeinInfoJson
                 {
-                    ItemModId = vein.VeinItemModId,
-                    ItemId = vein.VeinItemId,
+                    VeinItemGuidStr = vein.VeinItemGuid.ToString(),
                     XMin = vein.VeinRangeMinPos.x,
                     YMin = vein.VeinRangeMinPos.y,
                     XMax = vein.VeinRangeMaxPos.x,

@@ -1,17 +1,15 @@
 {
   "$id": "craftRecipes",
   "type": "object",
-  "required": [ "data" ],
   "isDefaultOpen": true,
 
   "properties": {
     "data": {
       "type": "array",
-      "overrideCodeGeneratePropertyName": "CraftRecipeElement",
+      "overrideCodeGeneratePropertyName": "CraftRecipeMasterElement",
 
       "items": {
         "type": "object",
-        "required": [ "craftRecipeGuid","requiredItems", "resultItem" ],
 
         "properties": {
 
@@ -23,7 +21,6 @@
 
           "resultItem": {
             "type": "object",
-            "required": [ "itemGuid", "count"],
             "properties": {
               "itemGuid": {
                 "type": "string",
@@ -41,7 +38,6 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": [ "itemGuid", "count"],
               "properties": {
                 "itemGuid": {
                   "type": "string",

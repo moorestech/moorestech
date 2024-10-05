@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "maxStack": 100,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 0,
+      "mapObjectName": "石",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemId": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
+        }
+      ],
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871"
+    }
+  ]
+}

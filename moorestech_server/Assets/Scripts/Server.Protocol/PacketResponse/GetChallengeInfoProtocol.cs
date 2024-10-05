@@ -23,9 +23,9 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
             
             var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
-            var currentChallengeIds = info.CurrentChallenges.Select(c => c.Config.Id).ToList();
+            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeMasterElement.ChallengeGuid).ToList();
             
-            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeIds);
+            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
         }
     }
     
@@ -50,22 +50,23 @@ namespace Server.Protocol.PacketResponse
     public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
     {
         [Key(2)] public int PlayerId { get; set; }
+        [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
+        [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
         
-        [Key(3)] public List<int> CurrentChallengeIds { get; set; }
-        
-        [Key(4)] public List<int> CompletedChallengeIds { get; set; }
+        [IgnoreMember] public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
+        [IgnoreMember] public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseChallengeInfoMessagePack()
         {
         }
         
-        public ResponseChallengeInfoMessagePack(int playerId, List<int> currentChallengeIds, List<int> completedChallengeIds)
+        public ResponseChallengeInfoMessagePack(int playerId, List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
         {
             Tag = GetChallengeInfoProtocol.Tag;
             PlayerId = playerId;
-            CurrentChallengeIds = currentChallengeIds;
-            CompletedChallengeIds = completedChallengeIds;
+            CurrentChallengeGuidsStr = currentChallengeIds.Select(x => x.ToString()).ToList();
+            CompletedChallengeGuidsStr = completedChallengeIds.Select(x => x.ToString()).ToList();
         }
     }
 }

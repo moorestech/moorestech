@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Network.API;
+using Core.Master;
 using Game.Entity.Interface;
 using UnityEngine;
 
@@ -57,7 +58,7 @@ namespace Client.Game.InGame.Entity
             {
                 var item = Instantiate(itemPrefab, entity.Position, Quaternion.identity, transform);
                 
-                var id = int.Parse(entity.State.Split(',')[0]);
+                var id = new ItemId(int.Parse(entity.State.Split(',')[0]));
                 var texture = ClientContext.ItemImageContainer.GetItemView(id).ItemTexture;
                 item.SetTexture(texture);
                 return item;

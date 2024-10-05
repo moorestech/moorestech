@@ -1,4 +1,4 @@
-using Game.Challenge;
+using Mooresmaster.Model.ChallengesModule;
 
 namespace Client.Game.InGame.Tutorial
 {

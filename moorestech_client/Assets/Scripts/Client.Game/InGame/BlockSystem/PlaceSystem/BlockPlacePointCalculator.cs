@@ -1,11 +1,13 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -18,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockConfigData holdingBlockConfig)
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
@@ -237,16 +239,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return infos;
             }
             
+            // 設置予定地にブロックが既に存在しているかどうか
             bool IsNotExistBlock(PlaceInfo placeInfo)
             {
-                // 設置予定地にブロックが既に存在しているかどうか
-                var blockId = holdingBlockConfig.BlockId;
-                if (BlockVerticalConfig.BlockVerticalDictionary.TryGetValue((holdingBlockConfig.BlockId, placeInfo.VerticalDirection), out var verticalBlockId))
-                {
-                    blockId = verticalBlockId;
-                }
+                // 設置の縦方向のguidを取得
+                var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
                 
-                var size = ServerContext.BlockConfig.GetBlockConfig(blockId).BlockSize;
+                var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
                 var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
                 
                 return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);

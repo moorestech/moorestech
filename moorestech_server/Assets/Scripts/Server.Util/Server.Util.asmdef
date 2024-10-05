@@ -6,7 +6,8 @@
     "Game.Entity.Interface",
     "Core.Item.Interface",
     "Core.Util",
-    "Game.Base"
+    "Game.Base",
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

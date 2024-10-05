@@ -6,6 +6,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Input;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Context;
@@ -54,9 +55,9 @@ namespace Client.Game.InGame.UI.UIState
             
             //ブロックインベントリのビューを設定する
             var id = _blockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
-            var config = ServerContext.BlockConfig.GetBlockConfig(id);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(id);
             
-            var type = config.Type switch
+            var type = blockMaster.BlockType switch
             {
                 VanillaBlockType.Chest => BlockInventoryType.Chest,
                 VanillaBlockType.ElectricMiner => BlockInventoryType.Miner,
@@ -65,7 +66,7 @@ namespace Client.Game.InGame.UI.UIState
                 _ => throw new ArgumentOutOfRangeException(),
             };
             
-            _blockInventoryView.SetBlockInventoryType(type, _openBlockPos, config.Param, id);
+            _blockInventoryView.SetBlockInventoryType(type, _openBlockPos, blockMaster.BlockParam, id);
             
             //UIのオブジェクトをオンにする
             _blockInventoryView.SetActive(true);
