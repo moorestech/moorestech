@@ -22,7 +22,8 @@
           "imagePath": {
             "type": "string",
             "pattern": "@imagePath",
-            "thumbnail": true
+            "thumbnail": true,
+            "optional": true
           },
 
           "name": {

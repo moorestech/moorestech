@@ -112,18 +112,35 @@
     },
     {
       "maxStack": 100,
+      "name": "生レンガ",
+      "itemGuid": "41b014db-2937-40f1-82bd-54d923ba5e87",
+      "imagePath": "assets/item/raw brick.png"
+    },
+    {
+      "maxStack": 100,
       "name": "レンガ",
-      "itemGuid": "136afb8f-dc32-43ab-84c9-219fb2bcc1c9"
+      "itemGuid": "136afb8f-dc32-43ab-84c9-219fb2bcc1c9",
+      "imagePath": "assets/item/burned brick.png"
     },
     {
       "maxStack": 100,
       "name": "炭窯",
-      "itemGuid": "cf4f08af-27b8-4264-81ac-147882b10bc3"
+      "itemGuid": "cf4f08af-27b8-4264-81ac-147882b10bc3",
+      "imagePath": "assets/item/charcoal kiln.png"
     },
     {
       "maxStack": 100,
       "name": "木炭",
-      "itemGuid": "c5cfbb0c-55c7-4458-85c5-07d86549b7ba"
+      "itemGuid": "c5cfbb0c-55c7-4458-85c5-07d86549b7ba",
+      "imagePath": "assets/item/charcoal.png"
+    },
+    {
+      "time": 1,
+      "hp": 100,
+      "name": "木炭の粉",
+      "itemGuid": "85b5fb15-fd39-44a3-8b77-0226ef9d63df",
+      "maxStack": 100,
+      "imagePath": "assets/item/charcoal powder.png"
     },
     {
       "maxStack": 100,
@@ -156,32 +173,9 @@
       "itemGuid": "53db01f6-339a-4f23-be46-8c831cea246f"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "maxStack": 100,
       "name": "溶鉱炉",
       "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637"
-    },
-    {
-      "time": 1,
-      "blockGuid": "70aa5dd1-6b96-466b-8460-c9ff25b4b963",
-      "maxStack": 100,
-      "name": "生レンガ",
-      "itemGuid": "41b014db-2937-40f1-82bd-54d923ba5e87"
-    },
-    {
-      "time": 1,
-      "maxStack": 100,
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
-      "name": "木炭の粉",
-      "itemGuid": "85b5fb15-fd39-44a3-8b77-0226ef9d63df"
     }
   ]
 }
