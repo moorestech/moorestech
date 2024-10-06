@@ -43,6 +43,10 @@
                 "count": {
                   "type": "integer",
                   "default": 1
+                },
+                "isRemain": {
+                  "type": "boolean",
+                  "default": false
                 }
               }
             }
