@@ -112,6 +112,11 @@ namespace Server.Protocol.PacketResponse
             var requiredItems = new Dictionary<ItemId, int>();
             foreach (var requiredItem in recipe.RequiredItems)
             {
+                if (requiredItem.IsRemain.HasValue && requiredItem.IsRemain.Value) 
+                {
+                    continue;
+                }
+                
                 var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                 
                 if (requiredItems.ContainsKey(requiredItemId))
