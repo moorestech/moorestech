@@ -41,7 +41,8 @@
     {
       "maxStack": 100,
       "name": "原木",
-      "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+      "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488",
+      "imagePath": "assets/item/log.png"
     },
     {
       "maxStack": 100,
@@ -64,17 +65,20 @@
     {
       "maxStack": 100,
       "name": "低品質なブロンズの塊",
-      "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752"
+      "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752",
+      "imagePath": "assets/item/低品質なブロンズの塊.png"
     },
     {
       "maxStack": 100,
       "name": "粘土",
-      "itemGuid": "73359948-c725-42b6-8392-0024b0be46e2"
+      "itemGuid": "73359948-c725-42b6-8392-0024b0be46e2",
+      "imagePath": "assets/item/clay.png"
     },
     {
       "maxStack": 100,
       "name": "ブロンズハンマーヘッドの型",
-      "itemGuid": "79a7ebea-db98-4399-b0af-ba6ca7e3992e"
+      "itemGuid": "79a7ebea-db98-4399-b0af-ba6ca7e3992e",
+      "imagePath": "assets/item/bronze axe head 型.png"
     },
     {
       "maxStack": 100,
@@ -91,7 +95,8 @@
     {
       "maxStack": 100,
       "name": "加工した原木",
-      "itemGuid": "f24bc66f-4738-4952-b75f-b3a89a8ddb6a"
+      "itemGuid": "f24bc66f-4738-4952-b75f-b3a89a8ddb6a",
+      "imagePath": "assets/item/log.png"
     },
     {
       "maxStack": 100,
@@ -102,7 +107,8 @@
     {
       "maxStack": 100,
       "name": "キャンプファイア",
-      "itemGuid": "c60d22eb-267a-4291-8084-9744a169b79c"
+      "itemGuid": "c60d22eb-267a-4291-8084-9744a169b79c",
+      "imagePath": "assets/item/campfier.png"
     },
     {
       "maxStack": 100,
@@ -148,6 +154,34 @@
       "maxStack": 100,
       "name": "Mk.2 ブロンズ採掘機",
       "itemGuid": "53db01f6-339a-4f23-be46-8c831cea246f"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "溶鉱炉",
+      "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637"
+    },
+    {
+      "time": 1,
+      "blockGuid": "70aa5dd1-6b96-466b-8460-c9ff25b4b963",
+      "maxStack": 100,
+      "name": "生レンガ",
+      "itemGuid": "41b014db-2937-40f1-82bd-54d923ba5e87"
+    },
+    {
+      "time": 1,
+      "maxStack": 100,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "name": "木炭の粉",
+      "itemGuid": "85b5fb15-fd39-44a3-8b77-0226ef9d63df"
     }
   ]
 }
