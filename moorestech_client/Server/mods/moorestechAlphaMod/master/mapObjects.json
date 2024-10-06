@@ -33,7 +33,7 @@
         {
           "maxCount": 3,
           "minCount": 1,
-          "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46"
+          "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
         },
         {
           "maxCount": 8,
@@ -49,11 +49,6 @@
             "attackSpeed": 8,
             "damage": 10,
             "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
-          },
-          {
-            "attackSpeed": 5,
-            "damage": 20,
-            "toolItemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
           },
           {
             "attackSpeed": 4,
@@ -98,7 +93,7 @@
           {
             "attackSpeed": 7,
             "damage": 1,
-            "toolItemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98"
+            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
           },
           {
             "attackSpeed": 4,

@@ -36,7 +36,11 @@
       "blockParam": {
         "requiredPower": 5,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       }
     },
     {
@@ -52,7 +56,11 @@
       "blockParam": {
         "requiredPower": 5,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       }
     },
     {
@@ -67,7 +75,17 @@
       "blockParam": {
         "inputItemSlotCount": 1,
         "requiredPower": 5,
-        "outputItemSlotCount": 1
+        "outputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "mineSettings": [
+          {
+            "time": 1,
+            "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
+          }
+        ]
       },
       "name": "ブロンズ採掘機"
     },
@@ -84,7 +102,11 @@
       "blockParam": {
         "requiredPower": 5,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       },
       "blockGuid": "fac2e58f-48d0-41f1-b65d-9f1d5f79f7e3",
       "name": "溶鉱炉"
