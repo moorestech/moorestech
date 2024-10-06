@@ -13,12 +13,6 @@
       "imagePath": "assets/item/stone tool.png"
     },
     {
-      "maxStack": 100,
-      "name": "石斧",
-      "itemGuid": "78e3fa24-ccce-43af-9250-7f4001b3ea98",
-      "imagePath": "assets/item/stone ax.png"
-    },
-    {
       "earnItemHps": [
         0
       ],
@@ -46,50 +40,58 @@
     },
     {
       "maxStack": 100,
-      "resultItem": {
-        "count": 1
-      },
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
+      "name": "原木",
+      "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+    },
+    {
+      "maxStack": 100,
       "name": "アップグレードした石器",
       "itemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0",
       "imagePath": "assets/item/upgrade stoon tools.png"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "maxStack": 100,
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
-      "resultItem": {
-        "count": 1
-      },
-      "time": 1,
-      "summary": "New Challenge summary",
-      "title": "New Challenge",
+      "name": "ブロンズ鉱石",
+      "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0",
+      "imagePath": "assets/item/bronze ore.png"
+    },
+    {
+      "maxStack": 100,
       "name": "原始的な溶鉱炉",
       "itemGuid": "0990bb6b-de52-4a2f-9e69-6e7d398cfbcf",
       "imagePath": "assets/item/campfier.png"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "maxStack": 100,
-      "name": "ブロンズ鉱石",
-      "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0",
-      "imagePath": "assets/item/bronze ore.png"
+      "name": "低品質なブロンズの塊",
+      "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752"
+    },
+    {
+      "maxStack": 100,
+      "name": "粘土",
+      "itemGuid": "73359948-c725-42b6-8392-0024b0be46e2"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッドの型",
+      "itemGuid": "79a7ebea-db98-4399-b0af-ba6ca7e3992e"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッド",
+      "itemGuid": "ad0101cd-da14-4874-97dd-69a786407b13",
+      "imagePath": "assets/item/bronze axe head.png"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズハンマー",
+      "itemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11",
+      "imagePath": "assets/item/bronze axe.png"
+    },
+    {
+      "maxStack": 100,
+      "name": "加工した原木",
+      "itemGuid": "f24bc66f-4738-4952-b75f-b3a89a8ddb6a"
     },
     {
       "maxStack": 100,
@@ -99,97 +101,28 @@
     },
     {
       "maxStack": 100,
-      "resultItem": {
-        "count": 3,
-        "itemGuid": "7b383152-2043-4218-b294-750af4021049"
-      },
-      "requiredItems": [
-        {
-          "count": 1,
-          "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
-        }
-      ],
-      "time": 5,
-      "name": "ブロンズの斧頭",
-      "itemGuid": "ad0101cd-da14-4874-97dd-69a786407b13",
-      "imagePath": "assets/item/bronze axe head.png"
+      "name": "キャンプファイア",
+      "itemGuid": "c60d22eb-267a-4291-8084-9744a169b79c"
     },
     {
       "maxStack": 100,
-      "name": "丸太",
-      "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+      "name": "レンガ",
+      "itemGuid": "136afb8f-dc32-43ab-84c9-219fb2bcc1c9"
     },
     {
       "maxStack": 100,
-      "name": "皮を剥いだ丸太",
-      "itemGuid": "3576ba2c-bfdc-48f3-8fe6-1b47a49b31cb"
+      "name": "炭窯",
+      "itemGuid": "cf4f08af-27b8-4264-81ac-147882b10bc3"
     },
     {
       "maxStack": 100,
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
-      "time": 1,
-      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
-      "inputItems": [
-        {
-          "count": 12,
-          "itemGuid": "7b383152-2043-4218-b294-750af4021049"
-        },
-        {
-          "count": 20,
-          "itemGuid": "327337b9-f1f8-465e-82ed-1a3ff45bcf46"
-        }
-      ],
-      "outputItems": [
-        {
-          "maxCount": 3,
-          "minCount": 1,
-          "percent": 1,
-          "count": 1,
-          "itemGuid": "ad0101cd-da14-4874-97dd-69a786407b13"
-        }
-      ],
-      "name": "ブロンズの斧",
-      "itemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11",
-      "imagePath": "assets/item/bronze axe.png"
+      "name": "木炭",
+      "itemGuid": "c5cfbb0c-55c7-4458-85c5-07d86549b7ba"
     },
     {
       "maxStack": 100,
-      "name": "ブロンズの丸ノコ",
-      "itemGuid": "f14bc66f-4738-4952-b75f-b3a89a8ddb6a"
-    },
-    {
-      "maxStack": 100,
-      "name": "低品質なブロンズの塊",
-      "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752"
-    },
-    {
-      "maxStack": 100,
-      "name": "斧の型",
-      "itemGuid": "8aa677e5-565f-499f-8ca2-bc535485fd11"
-    },
-    {
-      "maxStack": 100,
-      "name": "丸ノコの型",
-      "itemGuid": "cc3ccc67-ecf7-4779-937b-09a07703307b"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズの採掘ブレードチップ",
-      "itemGuid": "6bc70d1a-a0e3-4fc9-ad0b-e97f8e540f90"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズの採掘ブレードチップの型",
-      "itemGuid": "849cb7fc-5a06-4ea8-a5d5-e56667e89f6c"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズ刃の採掘機",
-      "itemGuid": "061c3c90-9bcc-4384-9346-6ae2664db035"
+      "name": "マイニングチップの型",
+      "itemGuid": "475a97cb-17f7-40c2-a75e-7cd156f4ab87"
     }
   ]
 }
