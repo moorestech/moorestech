@@ -121,8 +121,36 @@
     },
     {
       "maxStack": 100,
-      "name": "マイニングチップの型",
+      "name": "ブロンズドリルの型",
       "itemGuid": "475a97cb-17f7-40c2-a75e-7cd156f4ab87"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズドリル",
+      "itemGuid": "8d2bb3df-617c-472e-b36a-81672b4d4b4b"
+    },
+    {
+      "maxStack": 100,
+      "resultItem": {
+        "count": 1
+      },
+      "name": "ブロンズ採掘機",
+      "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c"
+    },
+    {
+      "maxStack": 100,
+      "name": "Mk.2 ブロンズドリル",
+      "itemGuid": "d2a3e9a5-24c8-46ed-b4b0-d7175abfdbd8"
+    },
+    {
+      "maxStack": 100,
+      "name": "Mk.2 ブロンズ採掘機",
+      "itemGuid": "53db01f6-339a-4f23-be46-8c831cea246f"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズ",
+      "itemGuid": "d91c35d3-749c-440e-a167-4a56f37b019b"
     }
   ]
 }
