@@ -84,6 +84,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 {
                     return;
                 }
+                
                 ClientContext.VanillaApi.SendOnly.Craft(_currentCraftRecipes[_currentCraftingConfigIndex].CraftRecipeGuid);
             }).AddTo(this);
         }
@@ -145,9 +146,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             void SetResultSlot()
             {
-                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftingConfigInfo.ResultItem.ItemGuid);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftingConfigInfo.CraftResultItemGuid);
                 _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
-                _craftResultSlot.SetItem(itemViewData, craftingConfigInfo.ResultItem.Count);
+                _craftResultSlot.SetItem(itemViewData, craftingConfigInfo.CraftResultCount);
             }
             
             void UpdateButtonAndText()
@@ -157,7 +158,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftRecipes.Length}";
                 craftButton.SetInteractable(IsCraftable(craftingConfigInfo));
                 
-                var itemName = MasterHolder.ItemMaster.GetItemMaster(craftingConfigInfo.ResultItem.ItemGuid).Name;
+                var itemName = MasterHolder.ItemMaster.GetItemMaster(craftingConfigInfo.CraftResultItemGuid).Name;
                 itemNameText.text = itemName;
             }
             
@@ -209,7 +210,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             foreach (var craftMaster in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
             {
-                var resultItemId = MasterHolder.ItemMaster.GetItemId(craftMaster.ResultItem.ItemGuid);
+                var resultItemId = MasterHolder.ItemMaster.GetItemId(craftMaster.CraftResultItemGuid);
                 if (result.Contains(resultItemId)) continue; //すでにクラフト可能なアイテムならスキップ
                 var isCraftable = true;
                 foreach (var requiredItem in craftMaster.RequiredItems)

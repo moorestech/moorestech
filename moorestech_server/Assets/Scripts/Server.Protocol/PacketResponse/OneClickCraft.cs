@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを消費
             ConsumptionItem(mainInventory, craftConfig);
             //クラフト結果をプレイヤーインベントリに追加
-            var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.ResultItem.ItemGuid, craftConfig.ResultItem.Count);
+            var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.CraftResultItemGuid, craftConfig.CraftResultCount);
             playerInventory.MainOpenableInventory.InsertItem(resultItem);
             
             _craftEvent.InvokeCraftItem(craftConfig);
@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
         private static bool IsCraftable(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
-            var resultItem = ServerContext.ItemStackFactory.Create(recipe.ResultItem.ItemGuid, recipe.ResultItem.Count);
+            var resultItem = ServerContext.ItemStackFactory.Create(recipe.CraftResultItemGuid, recipe.CraftResultCount);
             var resultItemList = new List<IItemStack> { resultItem };
             if (!mainInventory.InsertionCheck(resultItemList))
                 return false;
@@ -156,6 +156,8 @@ namespace Server.Protocol.PacketResponse
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestOneClickCraftProtocolMessagePack() { }
+        public RequestOneClickCraftProtocolMessagePack()
+        {
+        }
     }
 }
