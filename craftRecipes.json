@@ -46,7 +46,8 @@
                 },
                 "isRemain": {
                   "type": "boolean",
-                  "default": false
+                  "default": false,
+                  "optional": true
                 }
               }
             }
