@@ -131,11 +131,13 @@
     },
     {
       "maxStack": 100,
-      "resultItem": {
-        "count": 1
-      },
       "name": "ブロンズ採掘機",
       "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズ",
+      "itemGuid": "d91c35d3-749c-440e-a167-4a56f37b019b"
     },
     {
       "maxStack": 100,
@@ -146,11 +148,6 @@
       "maxStack": 100,
       "name": "Mk.2 ブロンズ採掘機",
       "itemGuid": "53db01f6-339a-4f23-be46-8c831cea246f"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズ",
-      "itemGuid": "d91c35d3-749c-440e-a167-4a56f37b019b"
     }
   ]
 }
