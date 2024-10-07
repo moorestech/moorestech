@@ -10,7 +10,7 @@
       "itemGuid": "0990bb6b-de52-4a2f-9e69-6e7d398cfbcf",
       "blockType": "ElectricMachine",
       "blockParam": {
-        "requiredPower": 5,
+        "requiredPower": 0,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 3,
         "inventoryConnectors": {
@@ -34,7 +34,7 @@
       "name": "キャンプファイア",
       "blockType": "ElectricMachine",
       "blockParam": {
-        "requiredPower": 5,
+        "requiredPower": 0,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
         "inventoryConnectors": {
@@ -54,7 +54,7 @@
       "name": "炭窯",
       "blockType": "ElectricMachine",
       "blockParam": {
-        "requiredPower": 5,
+        "requiredPower": 0,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
         "inventoryConnectors": {
@@ -100,7 +100,7 @@
       "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637",
       "blockType": "ElectricMachine",
       "blockParam": {
-        "requiredPower": 5,
+        "requiredPower": 0,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
         "inventoryConnectors": {
