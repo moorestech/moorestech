@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
-using Core.Const;
 using Core.Master;
-using Game.Context;
 using Mooresmaster.Model.CraftRecipesModule;
 using TMPro;
 using UniRx;
@@ -15,14 +12,13 @@ using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.Sub
 {
+    //TODO CraftITemViewにリネーム
     public class CraftInventoryView : MonoBehaviour
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
         [SerializeField] private RectTransform craftMaterialParent;
         [SerializeField] private RectTransform craftResultParent;
-        
-        [SerializeField] private RectTransform itemListParent;
         
         [SerializeField] private CraftButton craftButton;
         [SerializeField] private Button nextRecipeButton;
@@ -32,7 +28,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private TMP_Text recipeCountText;
         
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
-        private readonly List<ItemSlotObject> _itemListObjects = new();
         private ItemSlotObject _craftResultSlot;
         private int _currentCraftingConfigIndex;
         
@@ -44,25 +39,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         public void Construct(ILocalPlayerInventory localPlayerInventory)
         {
             _localPlayerInventory = localPlayerInventory;
-            _localPlayerInventory.OnItemChange.Subscribe(OnItemChange);
             
-            foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
-            {
-                var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
-                
-                // アイテムリストを設定
-                // Set the item list
-                var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
-                itemSlotObject.SetItem(itemViewData, 0);
-                itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
-                _itemListObjects.Add(itemSlotObject);
-                
-                // ハイライトオブジェクトを設定
-                // Set the highlight object
-                var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                target.Initialize("itemRecipeList:" + itemMaster.Name);
-            }
+
             
             nextRecipeButton.onClick.AddListener(() =>
             {
@@ -89,23 +67,13 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             }).AddTo(this);
         }
         
-        private void OnClickItemList(ItemSlotObject slot)
+        public void OnClickItemList(ItemSlotObject slot)
         {
             _currentCraftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(slot.ItemViewData.ItemId);
             if (_currentCraftRecipes.Length == 0) return;
             
             _currentCraftingConfigIndex = 0;
             DisplayRecipe(0);
-        }
-        
-        private void OnItemChange(int slot)
-        {
-            var enableItem = IsAllItemCraftable();
-            foreach (var itemUI in _itemListObjects)
-            {
-                var isGrayOut = !enableItem.Contains(itemUI.ItemViewData.ItemId);
-                itemUI.SetGrayOut(isGrayOut);
-            }
         }
         
         
@@ -193,41 +161,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             return true;
         }
         
-        
-        private HashSet<ItemId> IsAllItemCraftable()
-        {
-            var itemPerCount = new Dictionary<ItemId, int>();
-            foreach (var item in _localPlayerInventory)
-            {
-                if (item.Id == ItemMaster.EmptyItemId) continue;
-                if (itemPerCount.ContainsKey(item.Id))
-                    itemPerCount[item.Id] += item.Count;
-                else
-                    itemPerCount.Add(item.Id, item.Count);
-            }
-            
-            var result = new HashSet<ItemId>();
-            
-            foreach (var craftMaster in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
-            {
-                var resultItemId = MasterHolder.ItemMaster.GetItemId(craftMaster.CraftResultItemGuid);
-                if (result.Contains(resultItemId)) continue; //すでにクラフト可能なアイテムならスキップ
-                var isCraftable = true;
-                foreach (var requiredItem in craftMaster.RequiredItems)
-                {
-                    var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-                    if (!itemPerCount.ContainsKey(requiredItemId) || itemPerCount[requiredItemId] < requiredItem.Count)
-                    {
-                        isCraftable = false;
-                        break;
-                    }
-                }
-                
-                if (isCraftable) result.Add(resultItemId);
-            }
-            
-            return result;
-        }
         
         
         public void SetActive(bool isActive)

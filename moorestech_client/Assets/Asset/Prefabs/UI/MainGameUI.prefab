@@ -4476,7 +4476,6 @@ MonoBehaviour:
   itemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   craftMaterialParent: {fileID: 8299249361103004977}
   craftResultParent: {fileID: 7154508325735355237}
-  itemListParent: {fileID: 1875256008886003271}
   craftButton: {fileID: 0}
   nextRecipeButton: {fileID: 8915801518316534857}
   prevRecipeButton: {fileID: 0}
@@ -7856,7 +7855,6 @@ MonoBehaviour:
   itemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   craftMaterialParent: {fileID: 4886474124826281129}
   craftResultParent: {fileID: 2061700108881186972}
-  itemListParent: {fileID: 4178271342224977091}
   craftButton: {fileID: 6748881672478100712}
   nextRecipeButton: {fileID: 7885722958363309220}
   prevRecipeButton: {fileID: 8122030075278338625}
@@ -14377,7 +14375,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 80.275
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -15034,7 +15032,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_AnchorMin.x
@@ -15042,7 +15040,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_SizeDelta.x
@@ -15082,11 +15080,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 47
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -20.1322
       objectReference: {fileID: 0}
     - target: {fileID: 374871282265294534, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -15103,6 +15101,10 @@ PrefabInstance:
     - target: {fileID: 5722631091496563800, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
       propertyPath: m_Name
       value: Recipe Viwer Tab
+      objectReference: {fileID: 0}
+    - target: {fileID: 5722631091496563800, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
