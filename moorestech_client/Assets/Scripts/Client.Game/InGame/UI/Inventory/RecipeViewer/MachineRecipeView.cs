@@ -44,7 +44,9 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         public void Construct(ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
         {
             machineObject.SetFrame(ItemSlotFrameType.MachineSlot);
+            machineObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
             _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
+
             
             nextRecipeButton.onClick.AddListener(() =>
             {
@@ -149,14 +151,14 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 itemNameText.text = itemName;
             }
             
-            void OnClickMaterialItem(ItemSlotObject itemSlotObject)
-            {
-                var itemId = itemSlotObject.ItemViewData.ItemId;
-                var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
-                _onClickItem.OnNext(itemRecipes);
-            }
-            
             #endregion
+        }
+        
+        private void OnClickMaterialItem(ItemSlotObject itemSlotObject)
+        {
+            var itemId = itemSlotObject.ItemViewData.ItemId;
+            var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+            _onClickItem.OnNext(itemRecipes);
         }
         
         public void SetActive(bool isActive)

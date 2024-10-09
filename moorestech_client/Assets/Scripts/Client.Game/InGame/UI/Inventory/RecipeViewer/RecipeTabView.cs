@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.Inventory.Sub;
 using Core.Master;
 using UniRx;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
@@ -12,6 +13,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
     {
         [SerializeField] private RecipeViewerTabElement tabElementPrefab;
         [SerializeField] private Transform tabElementParent;
+        [SerializeField] private HorizontalLayoutGroup tabElementLayoutGroup; 
         
         public IObservable<BlockId?> OnClickTab => onClickTab; // nullならCraftを選択したことを意味する
         private readonly Subject<BlockId?> onClickTab = new(); // If null, it means that Craft is selected
@@ -27,16 +29,21 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             
             _currentTabs.Clear();
             
+            // クラフトタブがあればそれを優先的異選択
+            // If there is a craft tab, select it preferentially
+            var isFirstCraft = false;
             if (recipes.CraftRecipes.Count != 0)
             {
                 var tabElement = Instantiate(tabElementPrefab, tabElementParent);
                 tabElement.Initialize();
                 tabElement.SetCraftIcon();
                 tabElement.SetSelected(true);
-                tabElement.OnClickTab.Subscribe(onClickTab.OnNext);
+                tabElement.OnClickTab.Subscribe(OnClickTabAction);
                 _currentTabs.Add(tabElement);
+                isFirstCraft = true;
             }
             
+            var isFirst = true;
             foreach (var machineRecipe in recipes.MachineRecipes)
             {
                 var blockId = machineRecipe.Key;
@@ -46,9 +53,42 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 var tabElement = Instantiate(tabElementPrefab, tabElementParent);
                 tabElement.Initialize();
                 tabElement.SetMachineItem(blockId, blockItemView);
-                tabElement.OnClickTab.Subscribe(onClickTab.OnNext);
+                tabElement.OnClickTab.Subscribe(OnClickTabAction);
                 _currentTabs.Add(tabElement);
+                
+                // クラフトタブがない場合は最初のタブを選択
+                // If there is no craft tab, select the first tab
+                tabElement.SetSelected(isFirst && !isFirstCraft);
+                isFirst = false;
             }
+            
+            // レイアウトの適用を強制  
+            // Force the layout to be applied
+            UpdateLayoutGroup();
+        }
+        
+        
+        private void OnClickTabAction(RecipeViewerTabElement tabElement)
+        {
+            tabElement.SetSelected(true);
+            foreach (var tab in _currentTabs)
+            {
+                if (tab == tabElement) continue;
+                tab.SetSelected(false);
+            }
+            
+            onClickTab.OnNext(tabElement.CurrentBlockId);
+            
+            UpdateLayoutGroup();
+        }
+        
+        private void UpdateLayoutGroup()
+        {
+            tabElementLayoutGroup.CalculateLayoutInputHorizontal();
+            tabElementLayoutGroup.CalculateLayoutInputVertical();
+            
+            tabElementLayoutGroup.SetLayoutHorizontal();
+            tabElementLayoutGroup.SetLayoutVertical();
         }
     }
 }
