@@ -76,10 +76,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         {
             _currentItemRecipes = recipeViewerItemRecipes;
             _currentIndex = 0;
-            DisplayRecipe(_currentIndex);
         }
         
-        private void DisplayRecipe(int index)
+        public void DisplayRecipe(int index)
         {
             var craftRecipe = _currentItemRecipes.CraftRecipes[index];
             
@@ -137,7 +136,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             void OnClickMaterialItem(ItemSlotObject itemSlotObject)
             {
                 var itemId = itemSlotObject.ItemViewData.ItemId;
-                var itemRecipes = _itemRecipeViewerDataContainer.CraftRecipeViewerElements[itemId];
+                var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
                 _onClickItem.OnNext(itemRecipes);
             }
             

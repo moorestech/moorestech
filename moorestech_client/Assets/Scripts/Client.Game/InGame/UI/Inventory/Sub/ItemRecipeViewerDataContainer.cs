@@ -9,7 +9,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     // TODO クラフトレシピ改善時にこれを使う
     public class ItemRecipeViewerDataContainer
     {
-        public readonly Dictionary<ItemId, RecipeViewerItemRecipes> CraftRecipeViewerElements = new();
+        private readonly Dictionary<ItemId, RecipeViewerItemRecipes> _recipeViewerElements = new();
         
         public ItemRecipeViewerDataContainer()
         {
@@ -18,9 +18,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             var machineRecipeDictionary = new Dictionary<ItemId, List<MachineRecipeMasterElement>>();
             foreach (var machineRecipeMaster in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
             {
-                foreach (var inputItem in machineRecipeMaster.InputItems)
+                foreach (var outputItem in machineRecipeMaster.OutputItems)
                 {
-                    var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);
+                    var itemId = MasterHolder.ItemMaster.GetItemId(outputItem.ItemGuid);
                     if (!machineRecipeDictionary.ContainsKey(itemId))
                     {
                         machineRecipeDictionary.Add(itemId, new List<MachineRecipeMasterElement>());
@@ -55,14 +55,38 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     }
                 }
                 
-                CraftRecipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes, itemId));
+                _recipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes, itemId));
             }
+            
+            // レシピが存在しないアイテムを除外する
+            // Exclude items with no recipes
+            var removeList = new List<ItemId>();
+            foreach (var kv in _recipeViewerElements)
+            {
+                var itemId = kv.Key;
+                var recipe = kv.Value;
+                
+                if (recipe.CraftRecipes.Count == 0 && recipe.MachineRecipes.Count == 0)
+                {
+                    removeList.Add(itemId);
+                }
+            }
+            foreach (var itemId in removeList)
+            {
+                _recipeViewerElements.Remove(itemId);
+            }
+        }
+        
+        public RecipeViewerItemRecipes GetItem(ItemId itemId)
+        {
+            return _recipeViewerElements.GetValueOrDefault(itemId);
         }
     }
     
     public class RecipeViewerItemRecipes
     {
         public readonly ItemId ResultItemId;
+        
         //TODO 他のmodの他のレシピにも対応できるようの柔軟性をもたせた設計を考える
         public readonly List<CraftRecipeMasterElement> CraftRecipes;
         public readonly Dictionary<BlockId, List<MachineRecipeMasterElement>> MachineRecipes;

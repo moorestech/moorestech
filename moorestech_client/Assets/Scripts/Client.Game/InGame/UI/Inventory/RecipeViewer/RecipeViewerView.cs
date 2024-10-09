@@ -18,14 +18,32 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         {
             itemListView.OnClickItem.Subscribe(SetItemListView);
             craftInventoryView.OnClickItem.Subscribe(SetItemListView);
+            machineRecipeView.OnClickItem.Subscribe(SetItemListView);
             recipeTabView.OnClickTab.Subscribe(OnClickTab);
         }
         
         private void SetItemListView(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
+            if (recipeViewerItemRecipes == null)
+            {
+                return;
+            }
+            
             craftInventoryView.SetRecipes(recipeViewerItemRecipes);
             machineRecipeView.SetRecipes(recipeViewerItemRecipes);
             recipeTabView.SetRecipeTabView(recipeViewerItemRecipes);
+            
+            var isFirstCraft = recipeViewerItemRecipes.CraftRecipes.Count != 0; 
+            craftInventoryView.SetActive(isFirstCraft);
+            machineRecipeView.SetActive(!isFirstCraft);
+            if (isFirstCraft)
+            {
+                craftInventoryView.DisplayRecipe(0);
+            }
+            else
+            {
+                machineRecipeView.DisplayRecipe(0);
+            }
         }
         
         private void OnClickTab(BlockId? blockId)

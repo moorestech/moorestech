@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Sub;
@@ -63,6 +64,11 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
             _currentItemRecipes = recipeViewerItemRecipes;
+            _currentIndex = 0;
+            if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
+            {
+                _currentBlockId = recipeViewerItemRecipes.MachineRecipes.First().Key;
+            }
         }
         
         public void SetBlockId(BlockId blockId)
@@ -72,15 +78,15 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             DisplayRecipe(_currentIndex);
         }
         
-        private void DisplayRecipe(int index)
+        public void DisplayRecipe(int index)
         {
             var machineRecipes = _currentItemRecipes.MachineRecipes[_currentBlockId][index];
             
             ClearSlotObject();
             
             SetInputSlot();
-            
             SetOutputSlot();
+            SetMachineSlot();
             
             UpdateButtonAndText();
             
@@ -117,13 +123,20 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, inputParent);
+                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, outputParent);
                     itemSlotObject.SetItem(itemViewData, requiredItem.Count);
                     _outputSlotList.Add(itemSlotObject);
                     
                     // 原材料をクリックしたときにそのレシピを表示するようにする
                     itemSlotObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
                 }
+            }
+            
+            void SetMachineSlot()
+            {
+                var blockItemId = MasterHolder.BlockMaster.GetItemId(_currentBlockId);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(blockItemId);
+                machineObject.SetItem(itemViewData, 0);
             }
             
             void UpdateButtonAndText()
@@ -139,7 +152,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             void OnClickMaterialItem(ItemSlotObject itemSlotObject)
             {
                 var itemId = itemSlotObject.ItemViewData.ItemId;
-                var itemRecipes = _itemRecipeViewerDataContainer.CraftRecipeViewerElements[itemId];
+                var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
                 _onClickItem.OnNext(itemRecipes);
             }
             

@@ -52,13 +52,12 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             }
         }
         
-        
         private void OnClickItemList(ItemSlotObject slot)
         {
-            var itemRecipes = _itemRecipeViewerDataContainer.CraftRecipeViewerElements[slot.ItemViewData.ItemId];
+            var itemId = slot.ItemViewData.ItemId;
+            var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
             _onClickItem.OnNext(itemRecipes);
         }
-        
         
         private void OnInventoryItemChange(int slot)
         {
