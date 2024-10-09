@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
@@ -27,59 +28,60 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private TMP_Text itemNameText;
         [SerializeField] private TMP_Text recipeCountText;
         
+        public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
+        private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
+        
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         private ItemSlotObject _craftResultSlot;
+        private ILocalPlayerInventory _localPlayerInventory;
+        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        
+        private int CraftRecipeCount => _currentItemRecipes.CraftRecipes.Count;
+        private RecipeViewerItemRecipes _currentItemRecipes;
         private int _currentCraftingConfigIndex;
         
-        private CraftRecipeMasterElement[] _currentCraftRecipes;
-        
-        private ILocalPlayerInventory _localPlayerInventory;
         
         [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory)
+        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
         {
+            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
             _localPlayerInventory = localPlayerInventory;
-            
-
             
             nextRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex++;
-                if (_currentCraftRecipes.Length <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
+                if (CraftRecipeCount <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
             
             prevRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex--;
-                if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = _currentCraftRecipes.Length - 1;
+                if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = CraftRecipeCount - 1;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
             
             craftButton.OnCraftFinish.Subscribe(_ =>
             {
-                if (_currentCraftRecipes == null || _currentCraftRecipes.Length == 0)
+                if (_currentItemRecipes == null || CraftRecipeCount == 0)
                 {
                     return;
                 }
                 
-                ClientContext.VanillaApi.SendOnly.Craft(_currentCraftRecipes[_currentCraftingConfigIndex].CraftRecipeGuid);
+                var currentCraftGuid = _currentItemRecipes.CraftRecipes[_currentCraftingConfigIndex].CraftRecipeGuid;
+                ClientContext.VanillaApi.SendOnly.Craft(currentCraftGuid);
             }).AddTo(this);
         }
         
-        public void OnClickItemList(ItemSlotObject slot)
+        public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
-            _currentCraftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(slot.ItemViewData.ItemId);
-            if (_currentCraftRecipes.Length == 0) return;
-            
-            _currentCraftingConfigIndex = 0;
-            DisplayRecipe(0);
+            _currentItemRecipes = recipeViewerItemRecipes;
         }
         
         
         private void DisplayRecipe(int index)
         {
-            var craftingConfigInfo = _currentCraftRecipes[index];
+            var craftRecipe = _currentItemRecipes.CraftRecipes[index];
             
             ClearSlotObject();
             
@@ -100,39 +102,47 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             void SetMaterialSlot()
             {
-                foreach (var requiredItem in craftingConfigInfo.RequiredItems)
+                foreach (var requiredItem in craftRecipe.RequiredItems)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
                     itemSlotObject.SetItem(itemViewData, requiredItem.Count);
-                    itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                     _craftMaterialSlotList.Add(itemSlotObject);
+                    
+                    // 原材料をクリックしたときにそのレシピを表示するようにする
+                    itemSlotObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
                 }
             }
             
             void SetResultSlot()
             {
-                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftingConfigInfo.CraftResultItemGuid);
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftRecipe.CraftResultItemGuid);
                 _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
-                _craftResultSlot.SetItem(itemViewData, craftingConfigInfo.CraftResultCount);
+                _craftResultSlot.SetItem(itemViewData, craftRecipe.CraftResultCount);
             }
             
             void UpdateButtonAndText()
             {
-                prevRecipeButton.interactable = _currentCraftRecipes.Length != 1;
-                nextRecipeButton.interactable = _currentCraftRecipes.Length != 1;
-                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftRecipes.Length}";
-                craftButton.SetInteractable(IsCraftable(craftingConfigInfo));
+                prevRecipeButton.interactable = CraftRecipeCount != 1;
+                nextRecipeButton.interactable = CraftRecipeCount != 1;
+                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {CraftRecipeCount}";
+                craftButton.SetInteractable(IsCraftable(craftRecipe));
                 
-                var itemName = MasterHolder.ItemMaster.GetItemMaster(craftingConfigInfo.CraftResultItemGuid).Name;
+                var itemName = MasterHolder.ItemMaster.GetItemMaster(craftRecipe.CraftResultItemGuid).Name;
                 itemNameText.text = itemName;
+            }
+            
+            void OnClickMaterialItem(ItemSlotObject itemSlotObject)
+            {
+                var itemId = itemSlotObject.ItemViewData.ItemId;
+                var itemRecipes = _itemRecipeViewerDataContainer.CraftRecipeViewerElements[itemId];
+                _onClickItem.OnNext(itemRecipes);
             }
             
             #endregion
         }
-        
         
         /// <summary>
         ///     そのレシピがクラフト可能かどうかを返す
@@ -160,8 +170,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             return true;
         }
-        
-        
         
         public void SetActive(bool isActive)
         {

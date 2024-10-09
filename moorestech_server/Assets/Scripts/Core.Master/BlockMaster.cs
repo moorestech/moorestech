@@ -11,15 +11,17 @@ namespace Core.Master
 {
     // アイテムId専用の方を定義
     // NOTE このIDは永続化されれることはなく、メモリ上、ネットワーク通信上でのみ使用する値
-    [UnitOf(typeof(int),UnitGenerateOptions.MessagePackFormatter)]
-    public partial struct BlockId { }
+    [UnitOf(typeof(int), UnitGenerateOptions.MessagePackFormatter)]
+    public partial struct BlockId
+    {
+    }
     
     public class BlockMaster
     {
         public readonly Blocks Blocks;
-
-        private readonly Dictionary<BlockId,BlockMasterElement> _blockElementTableById; 
-        private readonly Dictionary<Guid,BlockId> _blockGuidToBlockId;
+        
+        private readonly Dictionary<BlockId, BlockMasterElement> _blockElementTableById;
+        private readonly Dictionary<Guid, BlockId> _blockGuidToBlockId;
         
         private readonly Dictionary<ItemId, BlockId> _itemIdToBlockId;
         
@@ -30,11 +32,11 @@ namespace Core.Master
             var sortedBlockElements = Blocks.Data.ToList().OrderBy(x => x.BlockGuid).ToList();
             
             // アイテムID 0は空のアイテムとして予約しているので、1から始める
-            _blockElementTableById = new Dictionary<BlockId,BlockMasterElement>();
-            _blockGuidToBlockId = new Dictionary<Guid,BlockId>();
+            _blockElementTableById = new Dictionary<BlockId, BlockMasterElement>();
+            _blockGuidToBlockId = new Dictionary<Guid, BlockId>();
             for (var i = 0; i < sortedBlockElements.Count; i++)
             {
-                var blockId = new BlockId(i+1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
+                var blockId = new BlockId(i + 1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
                 _blockElementTableById.Add(blockId, sortedBlockElements[i]);
                 _blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, blockId);
             }
@@ -61,6 +63,7 @@ namespace Core.Master
             {
                 throw new InvalidOperationException($"BlockElement not found. BlockId:{blockId}");
             }
+            
             return element;
         }
         
@@ -76,6 +79,7 @@ namespace Core.Master
             {
                 throw new InvalidOperationException($"ItemElement not found. ItemGuid:{blockGuid}");
             }
+            
             return blockId;
         }
         
@@ -92,6 +96,19 @@ namespace Core.Master
         public BlockId GetBlockId(ItemId itemId)
         {
             return _itemIdToBlockId[itemId];
+        }
+        
+        public ItemId GetItemId(BlockId blockId)
+        {
+            foreach (var pair in _itemIdToBlockId)
+            {
+                if (pair.Value == blockId)
+                {
+                    return pair.Key;
+                }
+            }
+            
+            throw new InvalidOperationException($"ItemElement not found. BlockId:{blockId}");
         }
     }
 }

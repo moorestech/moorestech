@@ -9,12 +9,13 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     // TODO クラフトレシピ改善時にこれを使う
     public class ItemRecipeViewerDataContainer
     {
-        public readonly Dictionary<ItemId,ItemRecipes> CraftRecipeViewerElements = new();
+        public readonly Dictionary<ItemId, RecipeViewerItemRecipes> CraftRecipeViewerElements = new();
         
         public ItemRecipeViewerDataContainer()
         {
+            // そのアイテムを作成するための機械のレシピを取得
+            // Get the recipe of the machine to create the item
             var machineRecipeDictionary = new Dictionary<ItemId, List<MachineRecipeMasterElement>>();
-            
             foreach (var machineRecipeMaster in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
             {
                 foreach (var inputItem in machineRecipeMaster.InputItems)
@@ -24,36 +25,51 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     {
                         machineRecipeDictionary.Add(itemId, new List<MachineRecipeMasterElement>());
                     }
+                    
                     machineRecipeDictionary[itemId].Add(machineRecipeMaster);
                 }
             }
             
+            // そのアイテムを作成するためのクラフトレシピを取得
+            // Get the craft recipe to create the item
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
-                var craftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemId).ToList();
+                var resultCraftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemId).ToList();
                 
-                var machineRecipeMasterElements = new List<MachineRecipeMasterElement>();
-                if (machineRecipeDictionary.TryGetValue(itemId, out List<MachineRecipeMasterElement> value))
+                // そのアイテムを作成するための機械のレシピを機械ごとに作成
+                // Create a machine recipe for each machine to create the item
+                var resultMachineRecipes = new Dictionary<BlockId, List<MachineRecipeMasterElement>>();
+                if (machineRecipeDictionary.TryGetValue(itemId, out var machineRecipesList))
                 {
-                    machineRecipeMasterElements.AddRange(value);
+                    foreach (var machineRecipe in machineRecipesList)
+                    {
+                        var blockId = MasterHolder.BlockMaster.GetBlockId(machineRecipe.BlockGuid);
+                        if (resultMachineRecipes.ContainsKey(blockId))
+                        {
+                            resultMachineRecipes[blockId].Add(machineRecipe);
+                        }
+                        else
+                        {
+                            resultMachineRecipes.Add(blockId, new List<MachineRecipeMasterElement> { machineRecipe });
+                        }
+                    }
                 }
                 
-                CraftRecipeViewerElements.Add(itemId, new ItemRecipes(craftRecipes, machineRecipeMasterElements));
+                CraftRecipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes));
             }
         }
     }
     
-    public class ItemRecipes
+    public class RecipeViewerItemRecipes
     {
+        //TODO 他のmodの他のレシピにも対応できるようの柔軟性をもたせた設計を考える
         public readonly List<CraftRecipeMasterElement> CraftRecipes;
-        public readonly List<MachineRecipeMasterElement> MachineRecipes;
+        public readonly Dictionary<BlockId, List<MachineRecipeMasterElement>> MachineRecipes;
         
-        public ItemRecipes(List<CraftRecipeMasterElement> craftRecipes, List<MachineRecipeMasterElement> machineRecipes)
+        public RecipeViewerItemRecipes(List<CraftRecipeMasterElement> craftRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> machineRecipes)
         {
             CraftRecipes = craftRecipes;
             MachineRecipes = machineRecipes;
         }
-        
-        //TODO 他のmodの他のレシピにも対応できるようの柔軟性をもたせた設計を考える
     }
 }

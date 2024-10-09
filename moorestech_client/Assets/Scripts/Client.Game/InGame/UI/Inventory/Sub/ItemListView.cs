@@ -17,15 +17,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemListParent;
         
-        [SerializeField] private CraftInventoryView craftInventoryView;
+        public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
+        private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
         
-        private readonly List<ItemSlotObject> _itemListObjects = new();
         private ILocalPlayerInventory _localPlayerInventory;
+        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        private readonly List<ItemSlotObject> _itemListObjects = new();
         
         private void Awake()
         {
             _localPlayerInventory.OnItemChange.Subscribe(OnInventoryItemChange);
-
+            
             
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
@@ -35,7 +37,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 // Set the item list
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);
-                itemSlotObject.OnLeftClickUp.Subscribe(craftInventoryView.OnClickItemList);
+                itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                 _itemListObjects.Add(itemSlotObject);
                 
                 // ハイライトオブジェクトを設定
@@ -44,6 +46,13 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
                 target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.Name));
             }
+        }
+        
+        
+        private void OnClickItemList(ItemSlotObject slot)
+        {
+            var itemRecipes = _itemRecipeViewerDataContainer.CraftRecipeViewerElements[slot.ItemViewData.ItemId];
+            _onClickItem.OnNext(itemRecipes);
         }
         
         

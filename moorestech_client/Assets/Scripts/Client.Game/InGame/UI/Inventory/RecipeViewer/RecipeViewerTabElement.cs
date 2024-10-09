@@ -1,11 +1,10 @@
-using System;
 using Client.Mod.Texture;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Client.Game.InGame.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
-    public class RecipeViewerTab : MonoBehaviour
+    public class RecipeViewerTabElement : MonoBehaviour
     {
         [SerializeField] private RectTransform selectedTab;
         [SerializeField] private RectTransform unselectedTab;
