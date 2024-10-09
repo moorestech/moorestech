@@ -18,7 +18,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         {
             itemListView.OnClickItem.Subscribe(SetItemListView);
             craftInventoryView.OnClickItem.Subscribe(SetItemListView);
-            
             recipeTabView.OnClickTab.Subscribe(OnClickTab);
         }
         
@@ -45,7 +44,11 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 
                 machineRecipeView.SetBlockId(blockId.Value);
             }
-            
+        }
+        
+        public void SetActive(bool isActive)
+        {
+            gameObject.SetActive(isActive);
         }
     }
 }

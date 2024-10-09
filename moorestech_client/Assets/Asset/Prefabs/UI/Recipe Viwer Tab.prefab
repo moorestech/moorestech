@@ -247,7 +247,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectedTab: {fileID: 6646886777648301962}
   unselectedTab: {fileID: 9142904049133629153}
-  selectedIcon: {fileID: 828361949221870253}
+  selectedIcon: {fileID: 2851129259812559693}
   unselectedIcon: {fileID: 828361949221870253}
   craftIcon: {fileID: 21300000, guid: 798b2dade9f454c3bba67827d27e8996, type: 3}
 --- !u!1 &6513717632576713026

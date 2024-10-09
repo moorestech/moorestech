@@ -17,6 +17,7 @@ using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -57,8 +58,11 @@ namespace Client.Starter
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockInventoryView blockInventoryView;
-        [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
+        [SerializeField] private CraftInventoryView craftInventoryView;
+        [SerializeField] private MachineRecipeView machineRecipeView;
+        [SerializeField] private RecipeViewerView recipeViewerView;
+        [SerializeField] private ItemListView itemListView;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -125,6 +129,7 @@ namespace Client.Starter
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
+            builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
             // チュートリアル関連
             // register tutorial
@@ -151,8 +156,11 @@ namespace Client.Starter
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
-            builder.RegisterComponent(craftInventoryView);
             builder.RegisterComponent(challengeManager);
+            builder.RegisterComponent(craftInventoryView);
+            builder.RegisterComponent(machineRecipeView);
+            builder.RegisterComponent(recipeViewerView);
+            builder.RegisterComponent(itemListView);
             
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);

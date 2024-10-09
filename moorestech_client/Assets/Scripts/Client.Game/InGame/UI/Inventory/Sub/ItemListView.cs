@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using UniRx;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.Sub
 {
@@ -24,10 +25,13 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         private readonly List<ItemSlotObject> _itemListObjects = new();
         
-        private void Awake()
+        [Inject]
+        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
         {
-            _localPlayerInventory.OnItemChange.Subscribe(OnInventoryItemChange);
+            _localPlayerInventory = localPlayerInventory;
+            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
             
+            _localPlayerInventory.OnItemChange.Subscribe(OnInventoryItemChange);
             
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {

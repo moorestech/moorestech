@@ -55,21 +55,23 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     }
                 }
                 
-                CraftRecipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes));
+                CraftRecipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes, itemId));
             }
         }
     }
     
     public class RecipeViewerItemRecipes
     {
+        public readonly ItemId ResultItemId;
         //TODO 他のmodの他のレシピにも対応できるようの柔軟性をもたせた設計を考える
         public readonly List<CraftRecipeMasterElement> CraftRecipes;
         public readonly Dictionary<BlockId, List<MachineRecipeMasterElement>> MachineRecipes;
         
-        public RecipeViewerItemRecipes(List<CraftRecipeMasterElement> craftRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> machineRecipes)
+        public RecipeViewerItemRecipes(List<CraftRecipeMasterElement> craftRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> machineRecipes, ItemId resultItemId)
         {
             CraftRecipes = craftRecipes;
             MachineRecipes = machineRecipes;
+            ResultItemId = resultItemId;
         }
     }
 }

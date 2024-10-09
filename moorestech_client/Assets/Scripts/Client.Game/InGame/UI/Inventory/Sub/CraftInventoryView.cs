@@ -38,8 +38,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private int CraftRecipeCount => _currentItemRecipes.CraftRecipes.Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
-        private int _currentCraftingConfigIndex;
-        
+        private int _currentIndex;
         
         [Inject]
         public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
@@ -49,16 +48,16 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             nextRecipeButton.onClick.AddListener(() =>
             {
-                _currentCraftingConfigIndex++;
-                if (CraftRecipeCount <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
-                DisplayRecipe(_currentCraftingConfigIndex);
+                _currentIndex++;
+                if (CraftRecipeCount <= _currentIndex) _currentIndex = 0;
+                DisplayRecipe(_currentIndex);
             });
             
             prevRecipeButton.onClick.AddListener(() =>
             {
-                _currentCraftingConfigIndex--;
-                if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = CraftRecipeCount - 1;
-                DisplayRecipe(_currentCraftingConfigIndex);
+                _currentIndex--;
+                if (_currentIndex < 0) _currentIndex = CraftRecipeCount - 1;
+                DisplayRecipe(_currentIndex);
             });
             
             craftButton.OnCraftFinish.Subscribe(_ =>
@@ -68,7 +67,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     return;
                 }
                 
-                var currentCraftGuid = _currentItemRecipes.CraftRecipes[_currentCraftingConfigIndex].CraftRecipeGuid;
+                var currentCraftGuid = _currentItemRecipes.CraftRecipes[_currentIndex].CraftRecipeGuid;
                 ClientContext.VanillaApi.SendOnly.Craft(currentCraftGuid);
             }).AddTo(this);
         }
@@ -76,8 +75,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
             _currentItemRecipes = recipeViewerItemRecipes;
+            _currentIndex = 0;
+            DisplayRecipe(_currentIndex);
         }
-        
         
         private void DisplayRecipe(int index)
         {
@@ -127,7 +127,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 prevRecipeButton.interactable = CraftRecipeCount != 1;
                 nextRecipeButton.interactable = CraftRecipeCount != 1;
-                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {CraftRecipeCount}";
+                recipeCountText.text = $"{_currentIndex + 1} / {CraftRecipeCount}";
                 craftButton.SetInteractable(IsCraftable(craftRecipe));
                 
                 var itemName = MasterHolder.ItemMaster.GetItemMaster(craftRecipe.CraftResultItemGuid).Name;

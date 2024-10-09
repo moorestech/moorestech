@@ -16,7 +16,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         public IObservable<BlockId?> OnClickTab => onClickTab; // nullならCraftを選択したことを意味する
         private readonly Subject<BlockId?> onClickTab = new(); // If null, it means that Craft is selected
         
-        private List<RecipeViewerTabElement> _currentTabs;
+        private readonly List<RecipeViewerTabElement> _currentTabs = new();
         
         public void SetRecipeTabView(RecipeViewerItemRecipes recipes)
         {
@@ -33,6 +33,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 tabElement.Initialize();
                 tabElement.SetCraftIcon();
                 tabElement.SetSelected(true);
+                tabElement.OnClickTab.Subscribe(onClickTab.OnNext);
                 _currentTabs.Add(tabElement);
             }
             
@@ -44,7 +45,8 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 
                 var tabElement = Instantiate(tabElementPrefab, tabElementParent);
                 tabElement.Initialize();
-                tabElement.SetMachineItem(blockItemView);
+                tabElement.SetMachineItem(blockId, blockItemView);
+                tabElement.OnClickTab.Subscribe(onClickTab.OnNext);
                 _currentTabs.Add(tabElement);
             }
         }

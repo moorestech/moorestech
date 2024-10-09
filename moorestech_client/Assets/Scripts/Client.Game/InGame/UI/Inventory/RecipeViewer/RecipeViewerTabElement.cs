@@ -1,10 +1,14 @@
+using System;
 using Client.Mod.Texture;
+using Core.Master;
+using UniRx;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
-    public class RecipeViewerTabElement : MonoBehaviour
+    public class RecipeViewerTabElement : MonoBehaviour, IPointerDownHandler
     {
         [SerializeField] private RectTransform selectedTab;
         [SerializeField] private RectTransform unselectedTab;
@@ -13,7 +17,11 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         [SerializeField] private Sprite craftIcon;
         
+        public IObservable<BlockId?> OnClickTab => onClickTab; // nullならCraftを選択したことを意味する
+        private readonly Subject<BlockId?> onClickTab = new(); // If null, it means that Craft is selected
+        
         private RectTransform _rectTransform;
+        private BlockId? _currentBlockId;
         
         public void Initialize()
         {
@@ -29,16 +37,24 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             _rectTransform.sizeDelta = new Vector2(width, _rectTransform.sizeDelta.y);
         }
         
-        public void SetMachineItem(ItemViewData itemViewData)
+        public void SetMachineItem(BlockId blockId, ItemViewData itemViewData)
         {
+            _currentBlockId = blockId;
             selectedIcon.sprite = itemViewData.ItemImage;
             unselectedIcon.sprite = itemViewData.ItemImage;
+            
         }
         
         public void SetCraftIcon()
         {
+            _currentBlockId = null;
             selectedIcon.sprite = craftIcon;
             unselectedIcon.sprite = craftIcon;
+        }
+        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            onClickTab.OnNext(_currentBlockId);
         }
     }
 }
