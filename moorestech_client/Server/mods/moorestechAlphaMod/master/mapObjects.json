@@ -5,16 +5,104 @@
       "earnItemHps": [
         0
       ],
-      "hp": 0,
-      "mapObjectName": "石",
+      "hp": 1,
+      "mapObjectName": "Pebble",
       "earnItems": [
         {
           "maxCount": 1,
           "minCount": 1,
-          "itemId": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
+          "itemId": "f92c51ab-1979-4a44-8c35-e86a51b33e61",
+          "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
         }
       ],
-      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871"
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "soundEffectType": "stone",
+      "miningType": "PickUp",
+      "miningParam": {}
+    },
+    {
+      "earnItemHps": [
+        0,
+        10,
+        20
+      ],
+      "hp": 30,
+      "mapObjectName": "Tree",
+      "soundEffectType": "tree",
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 1,
+          "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+        },
+        {
+          "maxCount": 8,
+          "minCount": 2,
+          "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d"
+        }
+      ],
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "miningType": "Mining",
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 8,
+            "damage": 10,
+            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+          },
+          {
+            "attackSpeed": 4,
+            "damage": 10,
+            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+          },
+          {
+            "attackSpeed": 3,
+            "damage": 20,
+            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
+          }
+        ]
+      }
+    },
+    {
+      "resultItem": {
+        "count": 1
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "earnItemHps": [
+        0,
+        1,
+        2
+      ],
+      "hp": 3,
+      "mapObjectName": "ブロンズ鉱石",
+      "soundEffectType": "stone",
+      "miningType": "Mining",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
+        }
+      ],
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 7,
+            "damage": 1,
+            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+          },
+          {
+            "attackSpeed": 4,
+            "damage": 1,
+            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
+          }
+        ]
+      },
+      "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7"
     }
   ]
 }

@@ -1,0 +1,115 @@
+{
+  "data": [
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "0990bb6b-de52-4a2f-9e69-6e7d398cfbcf",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "name": "原始的な溶鉱炉",
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a"
+    },
+    {
+      "craftResultCount": 1,
+      "time": 1,
+      "blockGuid": "70aa5dd1-6b96-466b-8460-c9ff25b4b963",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "c60d22eb-267a-4291-8084-9744a169b79c",
+      "name": "キャンプファイア",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "cf4f08af-27b8-4264-81ac-147882b10bc3",
+      "blockGuid": "e0b5dd62-9d8c-4b84-8a28-6b804ccf1efb",
+      "name": "炭窯",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c",
+      "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
+      "blockType": "ElectricMiner",
+      "blockParam": {
+        "inputItemSlotCount": 1,
+        "requiredPower": 5,
+        "outputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "mineSettings": [
+          {
+            "time": 1,
+            "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
+          }
+        ]
+      },
+      "name": "ブロンズ採掘機"
+    },
+    {
+      "craftResultCount": 1,
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "blockGuid": "fac2e58f-48d0-41f1-b65d-9f1d5f79f7e3",
+      "name": "溶鉱炉"
+    }
+  ]
+}

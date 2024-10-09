@@ -43,9 +43,9 @@ namespace Server.Protocol.PacketResponse
             //クラフト可能な場合はクラフトを実行
             
             //クラフトに必要なアイテムを消費
-            SubItem(mainInventory, craftConfig);
+            ConsumptionItem(mainInventory, craftConfig);
             //クラフト結果をプレイヤーインベントリに追加
-            var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.ResultItem.ItemGuid, craftConfig.ResultItem.Count);
+            var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.CraftResultItemGuid, craftConfig.CraftResultCount);
             playerInventory.MainOpenableInventory.InsertItem(resultItem);
             
             _craftEvent.InvokeCraftItem(craftConfig);
@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
         private static bool IsCraftable(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
         {
             //クラフト結果のアイテムをインサートできるかどうかをチェックする
-            var resultItem = ServerContext.ItemStackFactory.Create(recipe.ResultItem.ItemGuid, recipe.ResultItem.Count);
+            var resultItem = ServerContext.ItemStackFactory.Create(recipe.CraftResultItemGuid, recipe.CraftResultCount);
             var resultItemList = new List<IItemStack> { resultItem };
             if (!mainInventory.InsertionCheck(resultItemList))
                 return false;
@@ -105,19 +105,24 @@ namespace Server.Protocol.PacketResponse
         /// <summary>
         ///     クラフトしてアイテムを消費する
         /// </summary>
-        private static void SubItem(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
+        private static void ConsumptionItem(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
         {
             //クラフトに必要なアイテムを収集する
             //key itemId value count
             var requiredItems = new Dictionary<ItemId, int>();
             foreach (var requiredItem in recipe.RequiredItems)
             {
+                if (requiredItem.IsRemain.HasValue && requiredItem.IsRemain.Value) 
+                {
+                    continue;
+                }
+                
                 var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                 
                 if (requiredItems.ContainsKey(requiredItemId))
-                    requiredItems[requiredItemId] += requiredItems.Count;
+                    requiredItems[requiredItemId] += requiredItem.Count;
                 else
-                    requiredItems.Add(requiredItemId, requiredItems.Count);
+                    requiredItems.Add(requiredItemId, requiredItem.Count);
             }
             
             //クラフトのために消費する
@@ -156,6 +161,8 @@ namespace Server.Protocol.PacketResponse
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestOneClickCraftProtocolMessagePack() { }
+        public RequestOneClickCraftProtocolMessagePack()
+        {
+        }
     }
 }

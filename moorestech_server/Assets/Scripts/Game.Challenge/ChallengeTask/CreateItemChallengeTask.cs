@@ -23,6 +23,7 @@ namespace Game.Challenge.Task
         {
             return new CreateItemChallengeTask(playerId, challengeMasterElement);
         }
+        
         public CreateItemChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
         {
             ChallengeMasterElement = challengeMasterElement;
@@ -38,7 +39,7 @@ namespace Game.Challenge.Task
             
             var param = ChallengeMasterElement.TaskParam as CreateItemTaskParam;
             
-            if (craftRecipeMasterElement.ResultItem.ItemGuid == param.ItemGuid)
+            if (craftRecipeMasterElement.CraftResultItemGuid == param.ItemGuid)
             {
                 _completed = true;
                 _onChallengeComplete.OnNext(this);
@@ -47,7 +48,6 @@ namespace Game.Challenge.Task
         
         public void ManualUpdate()
         {
-            
         }
     }
 }
