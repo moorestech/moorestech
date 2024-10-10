@@ -231,8 +231,8 @@
                   "properties": {
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -249,8 +249,8 @@
                   "type": "object",
                   "properties": {
                     "requireTorque": {"type": "number", "default": 1},
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -274,8 +274,8 @@
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -295,8 +295,8 @@
                     "generateRpm": {"type": "number", "default": 5},
                     "generateTorque": {"type": "number", "default": 1},
                     "requireTorque": {"type": "number", "default": 1},
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -319,8 +319,8 @@
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }

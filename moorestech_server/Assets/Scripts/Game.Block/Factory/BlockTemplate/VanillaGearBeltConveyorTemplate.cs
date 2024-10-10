@@ -19,8 +19,8 @@ namespace Game.Block.Factory.BlockTemplate
             var blockName = blockMasterElement.Name;
             
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
-                gearBeltParam.GearConnects,
-                gearBeltParam.GearConnects,
+                gearBeltParam.Gear.GearConnects,
+                gearBeltParam.Gear.GearConnects,
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
