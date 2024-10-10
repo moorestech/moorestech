@@ -1,0 +1,8 @@
+id: gear
+type: object
+properties:
+- key: gearConnects
+  ref: blockConnectInfo
+  fixedParameter:
+    path: ./connectType
+    parameter: Gear

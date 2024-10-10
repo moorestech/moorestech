@@ -3,5 +3,11 @@ type: object
 properties:
 - key: inputConnects
   ref: blockConnectInfo
+  fixedParameter:
+    path: ./connectType
+    parameter: Inventory
 - key: outputConnects
   ref: blockConnectInfo
+  fixedParameter:
+    path: ./connectType
+    parameter: Inventory
