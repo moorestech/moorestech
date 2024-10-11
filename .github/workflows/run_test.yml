@@ -46,7 +46,7 @@ jobs:
           testMode: editmode
 
       # テストの実行結果をアーティファクトにアップロードしてダウンロードして参照できるようにする
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Test results

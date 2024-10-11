@@ -66,7 +66,7 @@ jobs:
       # Upload Build for Windows, Mac
       - name: ${{ matrix.platform.name }} Upload
         if: matrix.platform.name != 'StandaloneLinux64'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Output_${{ matrix.platform.name }}
           path: moorestech_client/Output_${{ matrix.platform.name }}
@@ -80,7 +80,7 @@ jobs:
       # Upload Archival for Linux
       - name: Upload Archival for Linux
         if: matrix.platform.name == 'StandaloneLinux64'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Output_${{ matrix.platform.name }}
           path: ./output.tar.gz
