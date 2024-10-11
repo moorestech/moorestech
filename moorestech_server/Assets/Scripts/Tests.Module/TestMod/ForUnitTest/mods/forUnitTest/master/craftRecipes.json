@@ -1,10 +1,9 @@
 {
   "data": [
     {
-      "resultItem": {
-        "count": 2,
-        "itemGuid": "00000000-0000-0000-1234-000000000003"
-      },
+      "craftResultCount": 2,
+      "craftResultItemGuid": "00000000-0000-0000-1234-000000000003",
+      
       "requiredItems": [
         {
           "percent": 1,
@@ -25,10 +24,9 @@
       "craftRecipeGuid": "a7b03292-073b-460f-aed4-78d9dc6db7a8"
     },
     {
-      "resultItem": {
-        "count": 2,
-        "itemGuid": "00000000-0000-0000-1234-000000000003"
-      },
+      "craftResultCount": 2,
+      "craftResultItemGuid": "00000000-0000-0000-1234-000000000003",
+      
       "requiredItems": [
         {
           "count": 1,
@@ -38,10 +36,9 @@
       "craftRecipeGuid": "aab28fa7-d853-4446-9509-a87070f423f0"
     },
     {
-      "resultItem": {
-        "count": 80,
-        "itemGuid": "00000000-0000-0000-1234-000000000006"
-      },
+      "craftResultCount": 80,
+      "craftResultItemGuid": "00000000-0000-0000-1234-000000000006",
+
       "requiredItems": [
         {
           "count": 5,
@@ -51,10 +48,9 @@
       "craftRecipeGuid": "f94c8265-be95-4a1e-810f-e4d986f05006"
     },
     {
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "00000000-0000-0000-1234-000000000003"
-      },
+      "craftResultCount": 1,
+      "craftResultItemGuid": "00000000-0000-0000-1234-000000000003",
+
       "requiredItems": [
         {
           "count": 3,

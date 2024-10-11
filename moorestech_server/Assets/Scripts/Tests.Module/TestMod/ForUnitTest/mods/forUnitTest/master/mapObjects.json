@@ -23,7 +23,9 @@
         }
       ],
       "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
-      "soundEffectType": "tree"
+      "soundEffectType": "tree",
+      "miningType": "PickUp",
+      "miningParam": {}
     }
   ]
 }
