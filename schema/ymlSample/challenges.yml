@@ -27,6 +27,7 @@ properties:
       enum:
       - None
       - BackgroundSkit
+      # TODO ↓ ここおかしい、変換スクリプトチェック
     - key: playSkitParam
     - key: taskCompletionType
       type: string
