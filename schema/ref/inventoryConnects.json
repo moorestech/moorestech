@@ -7,7 +7,7 @@
     "inputConnects": {
       "fixedParameter": {
         "path" : "./connectType",
-        "parameter": "Inventory"
+        "value": "Inventory"
       },
       "$ref" : "blockConnectInfo"
     },
@@ -15,7 +15,7 @@
     "outputConnects": {
       "fixedParameter": {
         "path" : "./connectType",
-        "parameter": "Inventory"
+        "value": "Inventory"
       },
       "$ref" : "blockConnectInfo"
     }

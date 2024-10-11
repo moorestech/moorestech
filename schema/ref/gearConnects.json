@@ -7,7 +7,7 @@
     "gearConnects": {
       "fixedParameter": {
         "path" : "./connectType",
-        "parameter": "Gear"
+        "value": "Gear"
       },
       "$ref" : "blockConnectInfo"
     }
