@@ -38,7 +38,7 @@
       "time": 1,
       "inputItems": [
         {
-          "count": 3,
+          "count": 1,
           "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752"
         },
         {
@@ -63,7 +63,7 @@
     {
       "craftResultCount": 1,
       "time": 1,
-      "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
       "inputItems": [
         {
           "count": 1,
@@ -119,6 +119,59 @@
         }
       ],
       "machineRecipeGuid": "cfd3e418-e08b-48e3-b40b-ef42a148999f"
+    },
+    {
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "craftResultCount": 1,
+      "time": 1,
+      "maxStack": 100,
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "7b383152-2043-4218-b294-750af4021049"
+        },
+        {
+          "count": 10,
+          "itemGuid": "f24bc66f-4738-4952-b75f-b3a89a8ddb6a"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752"
+        }
+      ],
+      "machineRecipeGuid": "80e77f4a-7639-423b-925a-07685de5f926"
+    },
+    {
+      "time": 1,
+      "craftResultCount": 1,
+      "craftResultItemGuid": "475a97cb-17f7-40c2-a75e-7cd156f4ab87",
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
+      "inputItems": [
+        {
+          "count": 3,
+          "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752"
+        },
+        {
+          "count": 1,
+          "itemGuid": "475a97cb-17f7-40c2-a75e-7cd156f4ab87"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "8d2bb3df-617c-472e-b36a-81672b4d4b4b"
+        }
+      ],
+      "machineRecipeGuid": "b5fc25b8-bc60-47f0-92e4-37aa5bf49896"
     }
   ]
 }

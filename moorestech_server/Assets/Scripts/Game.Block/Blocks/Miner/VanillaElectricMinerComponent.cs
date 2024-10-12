@@ -26,6 +26,11 @@ namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMinerComponent : IElectricConsumer, IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange, IUpdatableBlockComponent
     {
+        public BlockInstanceId BlockInstanceId { get; }
+        public bool IsDestroy { get; private set; }
+        public ElectricPower RequestEnergy { get; }
+        public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
+        
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -122,7 +127,6 @@ namespace Game.Block.Blocks.Miner
             return JsonConvert.SerializeObject(saveData);
         }
         
-        public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
         
         public BlockState GetBlockState()
         {
@@ -131,9 +135,6 @@ namespace Game.Block.Blocks.Miner
             var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
             return state;
         }
-        public BlockInstanceId BlockInstanceId { get; }
-        public bool IsDestroy { get; private set; }
-        public ElectricPower RequestEnergy { get; }
         
         
         public void SupplyEnergy(ElectricPower power)

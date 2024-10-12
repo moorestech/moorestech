@@ -103,6 +103,49 @@
         ]
       },
       "mapObjectGuid": "c5ad5661-9ae8-4863-9fc2-94819aff4cf7"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "craftResultCount": 1,
+      "earnItemHps": [
+        0,
+        2
+      ],
+      "hp": 1,
+      "mapObjectName": "粘土",
+      "soundEffectType": "stone",
+      "miningType": "Mining",
+      "earnItems": [
+        {
+          "maxCount": 2,
+          "minCount": 1,
+          "itemGuid": "73359948-c725-42b6-8392-0024b0be46e2"
+        }
+      ],
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 2,
+            "damage": 1,
+            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+          },
+          {
+            "attackSpeed": 4,
+            "damage": 1,
+            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+          },
+          {
+            "attackSpeed": 1,
+            "damage": 1,
+            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
+          }
+        ]
+      },
+      "mapObjectGuid": "0ea1f1d6-4921-42a7-a7a6-bbb674e29089"
     }
   ]
 }
