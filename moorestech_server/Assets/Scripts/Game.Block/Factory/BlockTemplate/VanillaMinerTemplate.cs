@@ -27,10 +27,12 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             
-            var minerComponent = new VanillaElectricMinerComponent(blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
             var components = new List<IBlockComponent>
             {
-                minerComponent,
+                minerProcessorComponent,
+                electricMinerComponent,
                 inputConnectorComponent,
             };
             
@@ -45,10 +47,12 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             
-            var minerComponent = new VanillaElectricMinerComponent(state, blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var minerProcessorComponent = new VanillaMinerProcessorComponent(state, blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo);
+            var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
             var components = new List<IBlockComponent>
             {
-                minerComponent,
+                minerProcessorComponent,
+                electricMinerComponent,
                 inputConnectorComponent,
             };
             
