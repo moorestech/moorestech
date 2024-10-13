@@ -9,7 +9,7 @@ namespace Tests.Module.TestMod
         public static readonly BlockId BeltConveyorId = (BlockId)3;
         public static readonly BlockId ElectricPoleId = (BlockId)4;
         public static readonly BlockId GeneratorId = (BlockId)5;
-        public static readonly BlockId MinerId = (BlockId)6;
+        public static readonly BlockId ElectricMinerId = (BlockId)6;
         public static readonly BlockId ChestId = (BlockId)7;
         public static readonly BlockId InfinityGeneratorId = (BlockId)8;
         
