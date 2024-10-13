@@ -117,6 +117,7 @@ namespace Game.Gear.Common
             // 自身をnetworkから削除
             var network = _instance._blockEntityToGearNetwork[gear.BlockInstanceId];
             network.RemoveGear(gear);
+            _instance._blockEntityToGearNetwork.Remove(gear.BlockInstanceId);
             
             //削除する歯車以外の元々接続していたブロックをすべて取得
             var transformers = new List<IGearEnergyTransformer>();
