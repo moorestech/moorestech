@@ -95,7 +95,8 @@ namespace Client.Game.InGame.Context
         {
             if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
             {
-                return null;
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                throw new System.Exception($"ブロックの登録がありません。Name:{blockMasterElement.Name} GUID:{blockMasterElement.BlockGuid}");
             }
             
             //ブロックの作成とセットアップをして返す
@@ -116,7 +117,13 @@ namespace Client.Game.InGame.Context
         /// <returns></returns>
         private bool IsOpenableInventory(string type)
         {
-            return type is BlockTypeConst.Chest or BlockTypeConst.ElectricGenerator or BlockTypeConst.ElectricMiner or BlockTypeConst.ElectricMachine;
+            return type is
+                BlockTypeConst.Chest or
+                BlockTypeConst.ElectricGenerator or
+                BlockTypeConst.ElectricMiner or
+                BlockTypeConst.ElectricMachine or
+                BlockTypeConst.GearMachine or
+                BlockTypeConst.GearMiner;
         }
         
         /// <summary>

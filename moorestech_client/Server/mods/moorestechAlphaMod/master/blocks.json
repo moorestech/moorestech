@@ -71,7 +71,7 @@
       ],
       "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c",
       "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
-      "blockType": "ElectricMiner",
+      "blockType": "GearMiner",
       "blockParam": {
         "inputItemSlotCount": 1,
         "requiredPower": 5,
@@ -85,7 +85,37 @@
             "time": 1,
             "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
           }
-        ]
+        ],
+        "teethCount": 10,
+        "requiredRpm": 1,
+        "requireTorque": 1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
       },
       "name": "ブロンズ採掘機"
     },
@@ -110,6 +140,92 @@
       },
       "blockGuid": "fac2e58f-48d0-41f1-b65d-9f1d5f79f7e3",
       "name": "溶鉱炉"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "acba1a0d-6baf-49fe-96c5-15acef03e751",
+      "blockType": "SimpleGearGenerator",
+      "blockParam": {
+        "requireTorque": 1,
+        "generateTorque": 1,
+        "generateRpm": 1,
+        "teethCount": 10,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "blockGuid": "14c8c080-2c6d-44f5-b80a-ea3860bf8eb8",
+      "name": "原始的な風車"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "d5cfac45-1ab8-4f51-87b9-00ab88da1bda",
+      "blockType": "Shaft",
+      "blockParam": {
+        "requireTorque": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "blockGuid": "30c41beb-e95b-4514-9e3c-75a066571d49",
+      "name": "原始的なシャフト"
     }
   ]
 }

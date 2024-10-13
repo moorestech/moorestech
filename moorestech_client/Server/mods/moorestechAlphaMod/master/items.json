@@ -176,6 +176,21 @@
       "maxStack": 100,
       "name": "溶鉱炉",
       "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "原始的な風車",
+      "itemGuid": "acba1a0d-6baf-49fe-96c5-15acef03e751"
+    },
+    {
+      "maxStack": 100,
+      "name": "原始的なシャフト",
+      "itemGuid": "d5cfac45-1ab8-4f51-87b9-00ab88da1bda"
     }
   ]
 }

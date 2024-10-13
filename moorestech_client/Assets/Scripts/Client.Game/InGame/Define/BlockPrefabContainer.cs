@@ -34,7 +34,7 @@ namespace Client.Game.InGame.Define
         private GameObject GetBlockPrefab(Guid blockGuid)
         {
             foreach (var blockPrefab in blockPrefabs)
-                if (blockPrefab.BlockGuid == blockGuid.ToString())
+                if (blockPrefab.BlockGuid == blockGuid)
                     return blockPrefab.BlockPrefab;
             return null;
         }
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.Define
     [Serializable]
     public class BlockPrefabInfo
     {
-        public string BlockGuid => blockGuid;
+        public Guid BlockGuid => Guid.Parse(blockGuid);
         public GameObject BlockPrefab => blockPrefab;
         
         [SerializeField] private string blockGuid;
