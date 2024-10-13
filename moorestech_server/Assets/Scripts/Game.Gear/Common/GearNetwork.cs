@@ -7,6 +7,9 @@ namespace Game.Gear.Common
 {
     public class GearNetwork
     {
+        public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
+        public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
+        
         private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
@@ -16,10 +19,6 @@ namespace Game.Gear.Common
         {
             NetworkId = networkId;
         }
-        
-        public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
-        
-        public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         
         public void AddGear(IGearEnergyTransformer gear)
         {

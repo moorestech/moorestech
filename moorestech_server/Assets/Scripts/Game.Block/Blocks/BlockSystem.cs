@@ -9,6 +9,7 @@ using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks
 {
@@ -70,8 +71,18 @@ namespace Game.Block.Blocks
         
         public void Destroy()
         {
-            _blockComponentManager.Destroy();
             _blockUpdateDisposable.Dispose();
+            
+            try
+            {
+                _blockComponentManager.Destroy();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("ブロックの破壊に失敗しました。");
+                Debug.LogException(e);
+                throw;
+            }
         }
         
         public bool Equals(IBlock other)
