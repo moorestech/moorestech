@@ -2,6 +2,7 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
@@ -28,15 +29,10 @@ namespace Game.Block.Blocks.Machine
         
         private void OnGearUpdate(GearUpdateType gearUpdateType)
         {
-            var currentRpm = _gearEnergyTransformer.CurrentRpm;
-            var currentTorque = _gearEnergyTransformer.CurrentTorque;
+            var requiredRpm = new RPM(_gearMachineBlockParam.RequiredRpm);
+            var requireTorque = new Torque(_gearMachineBlockParam.RequireTorque);
             
-            var rpmRate = Mathf.Min((currentRpm / _gearMachineBlockParam.RequiredRpm).AsPrimitive(), 1);
-            var torqueRate = Mathf.Min((currentTorque / _gearMachineBlockParam.RequireTorque).AsPrimitive(), 1);
-            var powerRate = rpmRate * torqueRate;
-            
-            var requiredGearPower = _gearMachineBlockParam.RequiredRpm * _gearMachineBlockParam.RequireTorque;
-            var currentElectricPower = new ElectricPower(requiredGearPower * powerRate);
+            var currentElectricPower = _gearEnergyTransformer.CalcMachineSupplyPower(requiredRpm, requireTorque);
             _vanillaMachineProcessorComponent.SupplyPower(currentElectricPower);
         }
         

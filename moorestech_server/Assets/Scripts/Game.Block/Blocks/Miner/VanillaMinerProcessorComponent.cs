@@ -17,7 +17,7 @@ using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
 using MessagePack;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.MineSettingsModule;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -29,6 +29,7 @@ namespace Game.Block.Blocks.Miner
         public ElectricPower RequestEnergy { get; }
         public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
         
+        private readonly MineSettings _mineSettings;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -45,8 +46,9 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockId blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
+        public VanillaMinerProcessorComponent(BlockId blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
+            _mineSettings = mineSettings;
             _blockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
             
@@ -66,8 +68,7 @@ namespace Game.Block.Blocks.Miner
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
                 
-                var minerBlockParam = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockParam as ElectricMinerBlockParam;
-                foreach (var miningSetting in minerBlockParam.MineSettings)
+                foreach (var miningSetting in _mineSettings.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(miningSetting.ItemGuid);
                     if (itemId != veins[0].VeinItemId) continue;
@@ -80,8 +81,8 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(string saveData, BlockId blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo)
-            : this(blockId, blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo)
+        public VanillaMinerProcessorComponent(string saveData, BlockId blockId, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+            : this(blockId, blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
             for (var i = 0; i < saveJsonObject.Items.Count; i++)
@@ -93,13 +94,12 @@ namespace Game.Block.Blocks.Miner
             _remainingSecond = saveJsonObject.RemainingSecond;
         }
         
-        public void SupplyEnergy(ElectricPower power)
+        public void SupplyPower(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
             
             _currentPower = power;
         }
-        
         
         public string GetSaveState()
         {

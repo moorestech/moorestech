@@ -4,9 +4,11 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
+using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -73,6 +75,24 @@ namespace Game.Block.Blocks.Gear
             IsDestroy = true;
             GearNetworkDatastore.RemoveGear(this);
             _simpleGearService.Destroy();
+        }
+    }
+    
+    public static class GearEnergyTransformerExtension
+    {
+        public static ElectricPower CalcMachineSupplyPower(this GearEnergyTransformer energyTransformer, RPM requiredRpm, Torque requiredTorque)
+        {
+            var currentRpm = energyTransformer.CurrentRpm;
+            var currentTorque = energyTransformer.CurrentTorque;
+            
+            var rpmRate = Mathf.Min((currentRpm / requiredRpm).AsPrimitive(), 1);
+            var torqueRate = Mathf.Min((currentTorque / requiredTorque).AsPrimitive(), 1);
+            var powerRate = rpmRate * torqueRate;
+            
+            var requiredGearPower = requiredRpm.AsPrimitive() * requiredTorque.AsPrimitive();
+            var currentElectricPower = new ElectricPower(requiredGearPower * powerRate);
+            
+            return currentElectricPower;
         }
     }
 }

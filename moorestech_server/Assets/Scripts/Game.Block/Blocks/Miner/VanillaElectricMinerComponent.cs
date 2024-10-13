@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.Miner
         
         public void SupplyEnergy(ElectricPower power)
         {
-            _vanillaMinerProcessorComponent.SupplyEnergy(power);
+            _vanillaMinerProcessorComponent.SupplyPower(power);
         }
         
         public bool IsDestroy { get; private set; }
