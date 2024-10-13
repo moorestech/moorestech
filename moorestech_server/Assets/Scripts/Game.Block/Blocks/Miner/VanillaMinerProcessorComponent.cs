@@ -28,10 +28,10 @@ namespace Game.Block.Blocks.Miner
         public bool IsDestroy { get; private set; }
         public ElectricPower RequestEnergy { get; }
         public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
+        private Subject<BlockState> _blockStateChangeSubject = new();
         
         private readonly MineSettings _mineSettings;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly Subject<BlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly List<IItemStack> _miningItems = new();
         
@@ -300,6 +300,8 @@ namespace Game.Block.Blocks.Miner
         public void Destroy()
         {
             IsDestroy = true;
+            _blockStateChangeSubject.Dispose();
+            _blockStateChangeSubject = null;
         }
     }
     
