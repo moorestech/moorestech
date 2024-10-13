@@ -15,16 +15,13 @@ namespace Tests.UnitTest.Game
         public static readonly BlockId Block_3x2_Id = (BlockId)10;
         public static readonly BlockId Block_1x2x3_Id = (BlockId)11;
         
-        private IBlockFactory _blockFactory;
         private IWorldBlockDatastore worldDatastore;
         
         [Test]
         public void BlockPlaceAndGetTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            _blockFactory = ServerContext.BlockFactory;
             worldDatastore = ServerContext.WorldBlockDatastore;
             
             //平面設置の検証
@@ -69,7 +66,6 @@ namespace Tests.UnitTest.Game
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            _blockFactory = ServerContext.BlockFactory;
             worldDatastore = ServerContext.WorldBlockDatastore;
             
             worldDatastore.TryAddBlock(Block_1x4_Id, new Vector3Int(10, 0, 10), BlockDirection.North, out _);
@@ -85,7 +81,6 @@ namespace Tests.UnitTest.Game
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            _blockFactory = ServerContext.BlockFactory;
             worldDatastore = ServerContext.WorldBlockDatastore;
             
             worldDatastore.TryAddBlock(Block_1x4_Id, new Vector3Int(10, 0, 10), BlockDirection.North, out _);
