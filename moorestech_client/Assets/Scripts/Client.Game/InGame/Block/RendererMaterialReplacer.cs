@@ -14,8 +14,8 @@ namespace Client.Game.InGame.Block
         /// </summary>
         private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/" };
         
-        private readonly List<Material> _originalMaterials;
         private readonly Renderer _renderer;
+        private readonly List<Material> _originalMaterials = new();
         private readonly List<Material> _replacedMaterials = new();
         
         public RendererMaterialReplacer(Renderer renderer)
