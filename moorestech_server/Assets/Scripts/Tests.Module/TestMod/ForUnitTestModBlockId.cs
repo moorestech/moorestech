@@ -33,5 +33,7 @@ namespace Tests.Module.TestMod
         public static readonly BlockId MachineRecipeTest1 = (BlockId)25;
         public static readonly BlockId MachineRecipeTest2 = (BlockId)26;
         public static readonly BlockId MachineRecipeTest3 = (BlockId)27;
+        
+        public static readonly BlockId GearMiner = (BlockId)28;
     }
 }

@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);
         }
         
-        private (IMapVein mapVein, Vector3Int pos) GetMapVein()
+        public static (IMapVein mapVein, Vector3Int pos) GetMapVein()
         {
             var pos = new Vector3Int(0, 0);
             for (var i = 0; i < 500; i++)
