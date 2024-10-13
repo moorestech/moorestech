@@ -16,10 +16,15 @@ namespace Core.Update
         public static void Update()
         {
             //アップデートの実行
+            UpdateDeltaTime();
+            _updateSubject.OnNext(Unit.Default);
+        }
+        
+        public static void UpdateDeltaTime()
+        {
             UpdateSecondTime = (DateTime.Now - _lastUpdateTime).TotalSeconds;
             _lastUpdateTime = DateTime.Now;
             
-            _updateSubject.OnNext(Unit.Default);
         }
         
         public static void ResetUpdate()
@@ -45,6 +50,11 @@ namespace Core.Update
         {
             //TODO ゲームループ周りの修正についてはちょっと考えたい
             Update();
+            Wait();
+        }
+        
+        public static void Wait()
+        {
             Thread.Sleep(5);
         }
 #endif

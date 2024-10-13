@@ -9,8 +9,11 @@ namespace Game.Block.Blocks.Gear
     public class SimpleGearService
     {
         private string _currentState = IGearEnergyTransformer.WorkingStateName;
-        private Subject<BlockState> _onBlockStateChange = new();
         public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<BlockState> _onBlockStateChange = new();
+        
+        public IObservable<GearUpdateType> OnGearUpdate => _onGearUpdate;
+        private readonly Subject<GearUpdateType> _onGearUpdate = new();
         
         public RPM CurrentRpm { get; private set; }
         public Torque CurrentTorque { get; private set; }
@@ -26,6 +29,7 @@ namespace Game.Block.Blocks.Gear
             
             var state = new BlockState(IGearEnergyTransformer.RockedStateName, _currentState);
             _onBlockStateChange.OnNext(state);
+            _onGearUpdate.OnNext(GearUpdateType.Rocked);
         }
         
         public BlockState GetBlockState()
@@ -54,11 +58,18 @@ namespace Game.Block.Blocks.Gear
             }
             
             _currentState = IGearEnergyTransformer.WorkingStateName;
+            _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
         }
         
         public void Destroy()
         {
-            _onBlockStateChange = null;
+            _onBlockStateChange.Dispose();
         }
+    }
+    
+    public enum GearUpdateType
+    {
+        SupplyPower,
+        Rocked,
     }
 }

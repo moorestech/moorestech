@@ -6,12 +6,15 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using UniRx;
 
 namespace Game.Block.Blocks.Gear
 {
     public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
     {
         public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
+        
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
         public Torque CurrentTorque => _simpleGearService.CurrentTorque;
