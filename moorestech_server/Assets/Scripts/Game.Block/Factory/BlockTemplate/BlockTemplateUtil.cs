@@ -22,7 +22,6 @@ namespace Game.Block.Factory.BlockTemplate
                 inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
         }
         
-        
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
             BlockId blockId,BlockInstanceId blockInstanceId,
             int inputSlotCount,int outputSlotCount,

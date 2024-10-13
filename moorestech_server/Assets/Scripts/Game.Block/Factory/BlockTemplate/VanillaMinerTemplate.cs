@@ -26,9 +26,8 @@ namespace Game.Block.Factory.BlockTemplate
             var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
             var miningSettings = minerParam.MineSettings;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             
-            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
+            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
             var components = new List<IBlockComponent>
             {
@@ -47,9 +46,8 @@ namespace Game.Block.Factory.BlockTemplate
             var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
             var miningSettings = minerParam.MineSettings;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             
-            var minerProcessorComponent = new VanillaMinerProcessorComponent(state, blockId, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
+            var minerProcessorComponent = new VanillaMinerProcessorComponent(state, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
             var components = new List<IBlockComponent>
             {
