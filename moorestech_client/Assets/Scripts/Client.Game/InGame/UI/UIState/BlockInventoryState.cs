@@ -8,9 +8,8 @@ using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Input;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Block;
-using Game.Context;
 using UnityEngine;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Game.InGame.UI.UIState
 {
@@ -59,10 +58,10 @@ namespace Client.Game.InGame.UI.UIState
             
             var type = blockMaster.BlockType switch
             {
-                VanillaBlockType.Chest => BlockInventoryType.Chest,
-                VanillaBlockType.ElectricMiner => BlockInventoryType.Miner,
-                VanillaBlockType.ElectricMachine => BlockInventoryType.Machine,
-                VanillaBlockType.ElectricGenerator => BlockInventoryType.Generator,
+                BlockTypeConst.Chest => BlockInventoryType.Chest,
+                BlockTypeConst.ElectricMiner => BlockInventoryType.Miner,
+                BlockTypeConst.ElectricMachine => BlockInventoryType.Machine,
+                BlockTypeConst.ElectricGenerator => BlockInventoryType.Generator,
                 _ => throw new ArgumentOutOfRangeException(),
             };
             

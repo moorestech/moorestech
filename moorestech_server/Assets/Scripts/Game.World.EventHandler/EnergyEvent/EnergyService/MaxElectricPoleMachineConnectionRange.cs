@@ -1,6 +1,7 @@
 using Core.Master;
 using Game.Block;
 using Mooresmaster.Model.BlocksModule;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
@@ -12,7 +13,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         {
             foreach (var blockElement in MasterHolder.BlockMaster.Blocks.Data)
             {
-                if (blockElement.BlockType != VanillaBlockType.ElectricPole) continue;
+                if (blockElement.BlockType != BlockTypeConst.ElectricPole) continue;
                 
                 var param = blockElement.BlockParam as ElectricPoleBlockParam;
                 if (_maxElectricPoleMachineConnectionRange < param.MachineConnectionRange)

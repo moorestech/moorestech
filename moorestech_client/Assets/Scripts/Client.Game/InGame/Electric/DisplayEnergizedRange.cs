@@ -3,14 +3,12 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
-using Core.Const;
 using Core.Master;
-using Game.Block;
-using Game.Context;
 using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using VContainer;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Game.InGame.Electric
 {
@@ -120,7 +118,7 @@ namespace Client.Game.InGame.Electric
                 foreach (var blocks in _blockGameObjectDataStore.BlockGameObjectDictionary)
                 {
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blocks.Value.BlockId);
-                    if (blockMaster.BlockType != VanillaBlockType.ElectricPole) continue;
+                    if (blockMaster.BlockType != BlockTypeConst.ElectricPole) continue;
                     
                     resultBlocks.Add(blocks.Value);
                 }
@@ -131,12 +129,12 @@ namespace Client.Game.InGame.Electric
             //TODO 電気系のブロックかどうか判定するロジック
             bool IsElectricalBlock(string type)
             {
-                return type is VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMachine or VanillaBlockType.ElectricMiner;
+                return type is BlockTypeConst.ElectricGenerator or BlockTypeConst.ElectricMachine or BlockTypeConst.ElectricMiner;
             }
             
             bool IsPole(string type)
             {
-                return type is VanillaBlockType.ElectricPole;
+                return type is BlockTypeConst.ElectricPole;
             }
             
             #endregion

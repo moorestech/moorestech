@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface.Event;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Game.Block.Factory
 {
@@ -18,22 +19,23 @@ namespace Game.Block.Factory
             
             //TODO 動的に構築するようにする
             BlockTypesDictionary = new Dictionary<string, IBlockTemplate>();
-            BlockTypesDictionary.Add(VanillaBlockType.Block, new VanillaDefaultBlock());
-            BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor, new VanillaBeltConveyorTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.Chest, new VanillaChestTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.Block, new VanillaDefaultBlock());
+            BlockTypesDictionary.Add(BlockTypeConst.BeltConveyor, new VanillaBeltConveyorTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.ElectricPole, new VanillaElectricPoleTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.Chest, new VanillaChestTemplate());
             
-            BlockTypesDictionary.Add(VanillaBlockType.ElectricMachine, new VanillaMachineTemplate(blockInventoryEvent));
-            BlockTypesDictionary.Add(VanillaBlockType.ElectricGenerator, new VanillaPowerGeneratorTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.ElectricMiner, new VanillaMinerTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(BlockTypeConst.ElectricMachine, new VanillaMachineTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(BlockTypeConst.ElectricGenerator, new VanillaPowerGeneratorTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.ElectricMiner, new VanillaMinerTemplate(blockInventoryEvent));
             
-            BlockTypesDictionary.Add(VanillaBlockType.ItemShooter, new VanillaItemShooterTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.ItemShooter, new VanillaItemShooterTemplate());
             
-            BlockTypesDictionary.Add(VanillaBlockType.Gear, new VanillaGearTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.Shaft, new VanillaShaftTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaGearMachineTemplate(blockInventoryEvent));
-            BlockTypesDictionary.Add(VanillaBlockType.GearBeltConveyor, new VanillaGearBeltConveyorTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.Gear, new VanillaGearTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.Shaft, new VanillaShaftTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.GearMiner, new VanillaGearMinerTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(BlockTypeConst.GearMachine, new VanillaGearMachineTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(BlockTypeConst.GearBeltConveyor, new VanillaGearBeltConveyorTemplate());
         }
     }
 }

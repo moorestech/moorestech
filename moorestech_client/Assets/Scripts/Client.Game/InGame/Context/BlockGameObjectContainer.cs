@@ -9,6 +9,8 @@ using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Block.Interface;
 using UnityEngine;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+
 
 namespace Client.Game.InGame.Context
 {
@@ -114,7 +116,7 @@ namespace Client.Game.InGame.Context
         /// <returns></returns>
         private bool IsOpenableInventory(string type)
         {
-            return type is VanillaBlockType.Chest or VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMiner or VanillaBlockType.ElectricMachine;
+            return type is BlockTypeConst.Chest or BlockTypeConst.ElectricGenerator or BlockTypeConst.ElectricMiner or BlockTypeConst.ElectricMachine;
         }
         
         /// <summary>
@@ -126,7 +128,7 @@ namespace Client.Game.InGame.Context
             
             return blockType switch
             {
-                VanillaBlockType.ElectricMiner => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
+                BlockTypeConst.ElectricMiner => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
                 _ => new NullBlockStateChangeProcessor(),
             };
         }

@@ -10,6 +10,8 @@ using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
 using UnityEngine;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+
 
 namespace Server.Protocol.PacketResponse.Util
 {
@@ -39,7 +41,7 @@ namespace Server.Protocol.PacketResponse.Util
                 
                 var type = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).BlockType;
                 
-                if (type != VanillaBlockType.BeltConveyor) continue;
+                if (type != BlockTypeConst.BeltConveyor) continue;
                 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
                 var component = block.GetComponent<IItemCollectableBeltConveyor>();
