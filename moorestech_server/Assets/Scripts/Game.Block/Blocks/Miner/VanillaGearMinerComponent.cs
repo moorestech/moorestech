@@ -13,8 +13,9 @@ namespace Game.Block.Blocks.Miner
         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
         private readonly GearMinerBlockParam _gearMinerBlockParam;
         
-        public VanillaGearMinerComponent(VanillaMinerProcessorComponent vanillaMinerProcessorComponent, GearEnergyTransformer gearEnergyTransformer)
+        public VanillaGearMinerComponent(VanillaMinerProcessorComponent vanillaMinerProcessorComponent, GearEnergyTransformer gearEnergyTransformer, GearMinerBlockParam gearMinerBlockParam)
         {
+            _gearMinerBlockParam = gearMinerBlockParam;
             _vanillaMinerProcessorComponent = vanillaMinerProcessorComponent;
             _gearEnergyTransformer = gearEnergyTransformer;
             _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
