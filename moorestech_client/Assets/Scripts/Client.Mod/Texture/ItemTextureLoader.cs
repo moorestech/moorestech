@@ -2,7 +2,6 @@
 using System.Linq;
 using Client.Common;
 using Core.Master;
-using Game.Context;
 using Mod.Loader;
 using Mooresmaster.Model.ItemsModule;
 using UnityEngine;
@@ -13,9 +12,9 @@ namespace Client.Mod.Texture
     {
         private const string ModTextureDirectory = "assets/item/";
         
-        public static Dictionary<ItemId,ItemViewData> GetItemTexture(string modDirectory)
+        public static Dictionary<ItemId, ItemViewData> GetItemTexture(string modDirectory)
         {
-            var textureList = new Dictionary<ItemId,ItemViewData>();
+            var textureList = new Dictionary<ItemId, ItemViewData>();
             
             var mods = new ModsResource(modDirectory);
             
@@ -41,10 +40,17 @@ namespace Client.Mod.Texture
             foreach (var itemId in itemIds)
             {
                 var itemIdMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, itemIdMaster.ImagePath);
-                if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemIdMaster.Name);
+                Texture2D texture = null;
+                Sprite sprite = null;
                 
-                textureList.Add(new ItemViewData(texture.ToSprite(), texture, itemIdMaster));
+                if (itemIdMaster.ImagePath != null)
+                {
+                    texture = GetExtractedZipTexture.Get(mod.ExtractedPath, itemIdMaster.ImagePath);
+                    if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemIdMaster.Name);
+                    sprite = texture.ToSprite();
+                }
+                
+                textureList.Add(new ItemViewData(sprite, texture, itemIdMaster));
             }
             
             return textureList;

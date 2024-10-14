@@ -30,6 +30,10 @@ namespace Core.Master
             var okCnt = 0;
             foreach (var slot in inputSlot)
             {
+                if (slot.Id == ItemMaster.EmptyItemId )
+                { 
+                  continue;  
+                }
                 var slotGuid = MasterHolder.ItemMaster.GetItemMaster(slot.Id).ItemGuid;
                 okCnt += recipe.InputItems.Count(input => slotGuid == input.ItemGuid && input.Count <= slot.Count);
             }

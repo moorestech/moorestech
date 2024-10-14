@@ -13,23 +13,11 @@ MonoBehaviour:
   m_Name: ItemObjectContainer
   m_EditorClassIdentifier: 
   itemObjects:
-  - modId: sakastudio:moorestechAlphaMod
-    name: iron ax
-    itemPrefab: {fileID: 8540780840031707349, guid: ed3249b02b17d6045a21c7b7191be646, type: 3}
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
-  - modId: sakastudio:moorestechAlphaMod
-    name: iron pickaxe
-    itemPrefab: {fileID: 4943182025781157099, guid: 16aebe0f0262e994396d2fe75361dcd9, type: 3}
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
-  - modId: sakastudio:moorestechAlphaMod
-    name: stone ax
+  - itemGuid: 78e3fa24-ccce-43af-9250-7f4001b3ea98
     itemPrefab: {fileID: 8122209911152568220, guid: ffc08046489a6cc42ae58e5199ae6603, type: 3}
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0}
-  - modId: sakastudio:moorestechAlphaMod
-    name: stone tool
+  - itemGuid: 12ec97f4-9c80-453a-902e-ea02c2531d83
     itemPrefab: {fileID: 6704801324916059687, guid: f620ddbeef6140248947551a289f0681, type: 3}
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0}

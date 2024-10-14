@@ -49,12 +49,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)).ToList());
             
-            var resultItem = craftElement.ResultItem;
-            
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
-            var resultItemGuid = MasterHolder.ItemMaster.GetItemId(resultItem.ItemGuid);
+            var resultItemGuid = MasterHolder.ItemMaster.GetItemId(craftElement.CraftResultItemGuid);
             Assert.AreEqual(resultItemGuid, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
-            Assert.AreEqual(resultItem.Count, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
+            Assert.AreEqual(craftElement.CraftResultCount, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
         
         [Test]

@@ -32,6 +32,7 @@ namespace Core.Master
                         var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);
                         inputItemIds.Add(itemId);
                     }
+                    
                     var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
                     
                     var key = GetRecipeElementKey(blockId, inputItemIds);
@@ -42,7 +43,7 @@ namespace Core.Master
             #endregion
         }
         
-        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds,out MachineRecipeMasterElement recipe)
+        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, out MachineRecipeMasterElement recipe)
         {
             var key = GetRecipeElementKey(blockId, inputItemIds);
             return _machineRecipesByRecipeKey.TryGetValue(key, out recipe);
@@ -66,6 +67,15 @@ namespace Core.Master
             });
             
             return items.ToString();
+        }
+    }
+    
+    public static class MachineRecipeMasterExtension
+    {
+        public static ItemId GetBlockItemId(this MachineRecipeMasterElement recipe)
+        {
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            return MasterHolder.BlockMaster.GetItemId(blockId);
         }
     }
 }

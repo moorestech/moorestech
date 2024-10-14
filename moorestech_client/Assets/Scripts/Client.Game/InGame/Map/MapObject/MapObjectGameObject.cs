@@ -28,7 +28,10 @@ namespace Client.Game.InGame.Map.MapObject
         
         public void OutlineEnable(bool enable)
         {
-            outlineObject.SetActive(enable);
+            if (outlineObject != null)
+            {
+                outlineObject.SetActive(enable);
+            }
         }
         
         public void DestroyMapObject()

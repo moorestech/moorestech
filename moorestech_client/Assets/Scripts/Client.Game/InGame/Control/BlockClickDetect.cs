@@ -1,6 +1,8 @@
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Input;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -36,6 +38,23 @@ namespace Client.Game.InGame.Control
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && TryGetCursorOnBlock(out blockObject)) return true;
             
             blockObject = null;
+            return false;
+        }
+        
+        public static bool IsClickOpenableBlock(IBlockPlacePreview blockPlacePreview)
+        {
+            if (blockPlacePreview.IsActive) return false; //ブロック設置中の場合は無効
+            if (TryGetClickBlock(out var block))
+            {
+                var openable = block.BlockMasterElement.BlockType is
+                    BlockMasterElement.BlockTypeConst.Chest or
+                    BlockMasterElement.BlockTypeConst.ElectricMachine or
+                    BlockMasterElement.BlockTypeConst.ElectricGenerator or
+                    BlockMasterElement.BlockTypeConst.ElectricMiner or
+                    BlockMasterElement.BlockTypeConst.GearMachine;
+                return openable;
+            }
+            
             return false;
         }
         

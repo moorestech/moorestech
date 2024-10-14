@@ -41,7 +41,9 @@ properties:
     - key: blockParam
       switch: blockType
       cases:
-        # ここのWhenはパスで指定するようにするので、他のサンプルを用意している
+      - when: Block
+        type: object
+        properties: []
       - when: BeltConveyor
         type: object
         properties:
@@ -98,6 +100,7 @@ properties:
           default: 0
         - key: fuelItems
           type: array
+          optional: true
           items:
             type: object
             properties:
@@ -143,16 +146,16 @@ properties:
         - key: requireTorque
           type: number
           default: 1
-        - key: gearConnects
-          ref: blockConnectInfo
+        - key: gear
+          ref: gear
       - when: Shaft
         type: object
         properties:
         - key: requireTorque
           type: number
           default: 1
-        - key: gearConnects
-          ref: blockConnectInfo
+        - key: gear
+          ref: gear
       - when: GearMachine
         type: object
         properties:
@@ -173,8 +176,8 @@ properties:
           default: 5
         - key: inventoryConnectors
           ref: inventoryConnects
-        - key: gearConnects
-          ref: blockConnectInfo
+        - key: gear
+          ref: gear
       - when: SimpleGearGenerator
         type: object
         properties:
@@ -190,8 +193,8 @@ properties:
         - key: requireTorque
           type: number
           default: 1
-        - key: gearConnects
-          ref: blockConnectInfo
+        - key: gear
+          ref: gear
       - when: GearBeltConveyor
         type: object
         properties:
@@ -206,8 +209,8 @@ properties:
           default: 2
         - key: inventoryConnectors
           ref: inventoryConnects
-        - key: gearConnects
-          ref: blockConnectInfo
+        - key: gear
+          ref: gear
       - when: ItemShooter
         type: object
         properties:

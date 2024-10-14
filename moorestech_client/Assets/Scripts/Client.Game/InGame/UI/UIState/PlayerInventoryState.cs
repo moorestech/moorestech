@@ -2,7 +2,7 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.Sub;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
@@ -12,19 +12,20 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class PlayerInventoryState : IUIState
     {
-        private readonly CraftInventoryView _craftInventory;
+        private readonly RecipeViewerView _recipeViewerView;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
         
         private CancellationTokenSource _cancellationTokenSource;
         
-        public PlayerInventoryState(CraftInventoryView craftInventory, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, InitialHandshakeResponse handshakeResponse)
+        public PlayerInventoryState(RecipeViewerView recipeViewerView,PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, InitialHandshakeResponse handshakeResponse)
         {
-            _craftInventory = craftInventory;
+            _recipeViewerView = recipeViewerView;
             _playerInventoryViewController = playerInventoryViewController;
             _localPlayerInventoryController = localPlayerInventoryController;
             
-            craftInventory.SetActive(false);
+            _playerInventoryViewController.SetActive(false); //TODO この辺のオンオフをまとめたい
+            _recipeViewerView.SetActive(false);
             
             //インベントリの初期設定
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
@@ -45,7 +46,7 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            _craftInventory.SetActive(true);
+            _recipeViewerView.SetActive(true);
             _playerInventoryViewController.SetActive(true);
             _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
             
@@ -60,7 +61,7 @@ namespace Client.Game.InGame.UI.UIState
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
             
-            _craftInventory.SetActive(false);
+            _recipeViewerView.SetActive(false);
             _playerInventoryViewController.SetActive(false);
         }
         

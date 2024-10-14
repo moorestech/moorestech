@@ -14,6 +14,7 @@ properties:
     - key: prevChallengeGuid
       type: uuid
       foreignKey: challenges:challengeGuid:title
+      optional: true
     - key: title
       type: string
       default: New Challenge
@@ -26,17 +27,8 @@ properties:
       enum:
       - None
       - BackgroundSkit
+      # TODO ↓ ここおかしい、変換スクリプトチェック
     - key: playSkitParam
-      switch: playSkitType
-      cases:
-      - when: None
-        type: object
-        properties: []
-      - when: BackgroundSkit
-        type: object
-        properties:
-        - key: fireSkitName
-          type: string
     - key: taskCompletionType
       type: string
       default: createItem
@@ -67,7 +59,7 @@ properties:
         properties:
         - key: blockGuid
           type: uuid
-          foreignKey: items:itemGuid:name
+          foreignKey: blocks:blockGuid:name
         - key: itemCount
           type: integer
           default: 1

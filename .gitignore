@@ -87,3 +87,7 @@ crashlytics-build.properties
 /moorestech_*/Output_StandaloneOSX/
 /moorestech_*/Output_StandaloneLinux64/
 moorestech_client/.vscode/settings.json
+
+# Core.Master recompile
+/moorestech_server/Assets/Scripts/Core.Master/Dummy.cs
+/moorestech_server/Assets/Scripts/Core.Master/Dummy.cs.meta

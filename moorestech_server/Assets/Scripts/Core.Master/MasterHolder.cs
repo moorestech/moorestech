@@ -1,18 +1,5 @@
-using Mooresmaster.Loader.BlocksModule;
-using Mooresmaster.Loader.ChallengesModule;
-using Mooresmaster.Loader.CraftRecipesModule;
-using Mooresmaster.Loader.ItemsModule;
-using Mooresmaster.Loader.MachineRecipesModule;
-using Mooresmaster.Loader.MapObjectsModule;
-using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.ChallengesModule;
-using Mooresmaster.Model.CraftRecipesModule;
-using Mooresmaster.Model.ItemsModule;
-using Mooresmaster.Model.MachineRecipesModule;
-using Mooresmaster.Model.MapObjectsModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Mooresmaster;
 
 namespace Core.Master
 {
@@ -37,7 +24,7 @@ namespace Core.Master
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
         }
         
-        private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer,JsonFileName jsonFileName)
+        private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)
         {
             var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
             var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];

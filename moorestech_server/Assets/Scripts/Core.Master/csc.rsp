@@ -6,3 +6,4 @@
 /additionalfile:Assets/../../schema/blocks.json
 /additionalfile:Assets/../../schema/ref/blockConnectInfo.json
 /additionalfile:Assets/../../schema/ref/inventoryConnects.json
+/additionalfile:Assets/../../schema/ref/gearConnects.json

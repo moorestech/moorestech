@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
-            var connectSetting = machineParam.GearConnects;
+            var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             
             var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);
@@ -66,7 +66,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inputConnectorComponent, _blockInventoryUpdateEvent);
             
-            var connectSetting = machineParam.GearConnects;
+            var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             
             var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);

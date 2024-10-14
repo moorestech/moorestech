@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Mooresmaster.Loader.CraftRecipesModule;
 using Mooresmaster.Model.CraftRecipesModule;
 using Newtonsoft.Json.Linq;
@@ -24,7 +22,7 @@ namespace Core.Master
         public CraftRecipeMasterElement[] GetResultItemCraftRecipes(ItemId itemId)
         {
             var itemGuid = MasterHolder.ItemMaster.GetItemMaster(itemId).ItemGuid;
-            return Array.FindAll(CraftRecipes.Data, x => x.ResultItem.ItemGuid == itemGuid);
+            return Array.FindAll(CraftRecipes.Data, x => x.CraftResultItemGuid == itemGuid);
         }
         
         public CraftRecipeMasterElement[] GetAllCraftRecipes()

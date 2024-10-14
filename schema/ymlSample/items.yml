@@ -15,6 +15,7 @@ properties:
     - key: imagePath
       type: string
       thumbnail: true
+      optional: true
     - key: name
       type: string
     - key: maxStack

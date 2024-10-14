@@ -33,6 +33,7 @@ public class MapExportAndSetting : EditorWindow
         {
             var datastore = FindObjectOfType<MapObjectGameObjectDatastore>();
             datastore.FindMapObjects();
+            EditorUtility.SetDirty(datastore);
             
             var instanceId = 0;
             var result = new List<MapObjectInfoJson>();

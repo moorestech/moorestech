@@ -827,64 +827,66 @@
       "blockParam": {
         "requireTorque": 0,
         "teethCount": 10,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ]
             },
-            "directions": [
-              [
-                1,
+            {
+              "offset": [
+                0,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
               ],
-              [
-                0,
-                1,
-                0
-              ],
-              [
-                0,
-                -1,
-                0
-              ]
-            ]
-          },
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "directions": [
-              [
-                0,
-                0,
-                -1
-              ],
-              [
-                0,
-                0,
-                1
-              ]
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
       "blockGuid": "00000000-0000-0000-0000-00000000000c"
@@ -917,103 +919,105 @@
       "blockParam": {
         "requireTorque": 0,
         "teethCount": 20,
-        "gearConnects": [
-          {
-            "offset": [
-              1,
-              1,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
-                0,
-                0,
-                -1
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                1,
+                1,
+                0
               ],
-              [
-                0,
-                0,
-                1
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
               ]
-            ]
-          },
-          {
-            "offset": [
-              0,
-              1,
-              0
-            ],
-            "directions": [
-              [
-                -1,
-                0,
-                0
-              ]
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
-            }
-          },
-          {
-            "offset": [
-              2,
-              1,
-              0
-            ],
-            "directions": [
-              [
-                1,
-                0,
-                0
-              ]
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
-            }
-          },
-          {
-            "offset": [
-              1,
-              2,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
             },
-            "directions": [
-              [
+            {
+              "offset": [
                 0,
                 1,
                 0
-              ]
-            ]
-          },
-          {
-            "offset": [
-              1,
-              0,
-              0
-            ],
-            "directions": [
-              [
-                0,
-                -1,
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              }
+            },
+            {
+              "offset": [
+                2,
+                1,
                 0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              }
+            },
+            {
+              "offset": [
+                1,
+                2,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  0,
+                  1,
+                  0
+                ]
               ]
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000d"
@@ -1045,31 +1049,33 @@
       "blockType": "Shaft",
       "blockParam": {
         "requireTorque": 0.1,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
                 0,
                 0,
-                -1
+                0
               ],
-              [
-                0,
-                0,
-                1
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
               ]
-            ]
-          }
-        ]
+            }
+          ]
+        }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000e"
@@ -1105,31 +1111,33 @@
         "teethCount": 10,
         "outputItemSlotCount": 3,
         "inputItemSlotCount": 2,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
                 0,
                 0,
-                -1
+                0
               ],
-              [
-                0,
-                0,
-                1
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
               ]
-            ]
-          }
-        ],
+            }
+          ]
+        },
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -1232,41 +1240,43 @@
         "generateTorque": 3,
         "generateRpm": 10,
         "teethCount": 10,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
                 0,
-                0,
-                -1
-              ],
-              [
-                0,
-                0,
-                1
-              ],
-              [
-                1,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ]
-            ]
-          }
-        ]
+            }
+          ]
+        }
       },
       "itemGuid": "19000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000010"
@@ -1303,41 +1313,43 @@
         "generateTorque": 1,
         "generateRpm": 20,
         "teethCount": 10,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
                 0,
-                0,
-                -1
-              ],
-              [
-                0,
-                0,
-                1
-              ],
-              [
-                1,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ]
-            ]
-          }
-        ]
+            }
+          ]
+        }
       },
       "itemGuid": "11100000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000011"
@@ -1370,64 +1382,66 @@
       "blockParam": {
         "requireTorque": 1,
         "teethCount": 10,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ]
             },
-            "directions": [
-              [
-                1,
+            {
+              "offset": [
+                0,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
               ],
-              [
-                0,
-                1,
-                0
-              ],
-              [
-                0,
-                -1,
-                0
-              ]
-            ]
-          },
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "directions": [
-              [
-                0,
-                0,
-                -1
-              ],
-              [
-                0,
-                0,
-                1
-              ]
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       "name": "Teeth10RequireTorqueTestGear",
       "blockGuid": "00000000-0000-0000-0000-000000000012"
@@ -1461,64 +1475,66 @@
       "blockParam": {
         "requireTorque": 1,
         "teethCount": 20,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": true
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ]
             },
-            "directions": [
-              [
-                1,
+            {
+              "offset": [
+                0,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
               ],
-              [
-                0,
-                1,
-                0
-              ],
-              [
-                0,
-                -1,
-                0
-              ]
-            ]
-          },
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "directions": [
-              [
-                0,
-                0,
-                -1
-              ],
-              [
-                0,
-                0,
-                1
-              ]
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000013"
     },
@@ -1552,41 +1568,43 @@
         "generateTorque": 1000000,
         "generateRpm": 10,
         "teethCount": 10,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
                 0,
-                0,
-                -1
-              ],
-              [
-                0,
-                0,
-                1
-              ],
-              [
-                1,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ]
-            ]
-          }
-        ]
+            }
+          ]
+        }
       },
       "itemGuid": "11400000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000014"
@@ -1620,31 +1638,33 @@
         "requireTorque": 1,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
-        "gearConnects": [
-          {
-            "offset": [
-              0,
-              0,
-              0
-            ],
-            "connectType": "Gear",
-            "connectOption": {
-              "isReverse": false
-            },
-            "directions": [
-              [
-                1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
                 0,
                 0
               ],
-              [
-                -1,
-                0,
-                0
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ]
-            ]
-          }
-        ],
+            }
+          ]
+        },
         "inventoryConnectors": {
           "inputConnects": [
             {

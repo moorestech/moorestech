@@ -48,6 +48,7 @@ namespace Core.Master
             {
                 throw new InvalidOperationException($"Next challenges not found. ChallengeGuid:{challengeGuid}");
             }
+            
             return nextChallenges.ConvertAll(GetChallenge);
         }
         
