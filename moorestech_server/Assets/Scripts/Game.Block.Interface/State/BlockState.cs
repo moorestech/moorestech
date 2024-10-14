@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Game.Block.Interface.Component;
+
 namespace Game.Block.Interface.State
 {
     /// <summary>
@@ -8,15 +11,22 @@ namespace Game.Block.Interface.State
     public class BlockState
     {
         public readonly string CurrentState;
-        
-        public readonly byte[] CurrentStateData;
         public readonly string PreviousState;
         
-        public BlockState(string currentState, string previousState, byte[] currentStateData = null)
+        public readonly Dictionary<string, byte[]> CurrentStateDetail;
+        
+        public BlockState(string currentState, string previousState, Dictionary<string, byte[]> currentStateDetail = null)
         {
             CurrentState = currentState;
             PreviousState = previousState;
-            CurrentStateData = currentStateData;
+            CurrentStateDetail = currentStateDetail ?? new Dictionary<string, byte[]>();
+        }
+        
+        public BlockState(BlockStateTypes blockStateTypes, Dictionary<string, byte[]> currentStateDetail)
+        {
+            CurrentState = blockStateTypes.CurrentStateType;
+            PreviousState = blockStateTypes.PreviousStateType;
+            CurrentStateDetail = currentStateDetail;
         }
     }
 }

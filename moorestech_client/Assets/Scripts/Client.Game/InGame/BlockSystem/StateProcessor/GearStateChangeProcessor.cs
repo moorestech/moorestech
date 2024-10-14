@@ -1,6 +1,7 @@
 using System;
 using Game.Gear.Common;
 using MessagePack;
+using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
@@ -31,9 +32,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             }
         }
         
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
+        public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
-            _gearStateData = MessagePackSerializer.Deserialize<GearStateData>(currentStateData);
+            _gearStateData = blockState.GetStateDetail<GearStateData>(GearStateData.BlockStateDetailKey);
         }
     }
     

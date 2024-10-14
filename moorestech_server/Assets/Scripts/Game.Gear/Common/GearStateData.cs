@@ -5,6 +5,8 @@ namespace Game.Gear.Common
     [MessagePackObject]
     public class GearStateData
     {
+        public const string BlockStateDetailKey = "GearStateData";
+        
         public GearStateData(float currentRpm, bool isClockwise)
         {
             CurrentRpm = currentRpm;

@@ -153,7 +153,7 @@
       "blockParam": {
         "requireTorque": 1,
         "generateTorque": 1,
-        "generateRpm": 1,
+        "generateRpm": 30,
         "teethCount": 10,
         "gear": {
           "gearConnects": [

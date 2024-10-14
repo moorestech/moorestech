@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MessagePack;
+using Server.Event.EventReceive;
 
 namespace Server.Event
 {
@@ -76,5 +77,7 @@ namespace Server.Event
         [Key(0)] public string Tag { get; set; }
         
         [Key(1)] public byte[] Payload { get; set; }
+        
+        [Key(2)] public Dictionary<string,ChangeBlockStateMessagePack> MessagePacks { get; set; }
     }
 }

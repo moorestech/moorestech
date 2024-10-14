@@ -28,8 +28,10 @@ namespace Game.Block.Blocks
         
         private readonly IBlockStateChange _blockStateChange;
         private readonly Subject<BlockState> _onBlockStateChange = new();
-        private readonly IUpdatableBlockComponent[] _updatableComponents;
         private readonly IDisposable _blockUpdateDisposable;
+        
+        private readonly IUpdatableBlockComponent[] _updatableComponents;
+        private readonly IBlockStateDetail[] _blockStateDetails;
         
         
         public BlockSystem(BlockInstanceId blockInstanceId, Guid blockGuid, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
@@ -43,17 +45,28 @@ namespace Game.Block.Blocks
             _blockComponentManager.AddComponents(blockComponents);
             
             _blockStateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
-            _blockStateChange?.OnChangeBlockState.Subscribe(state => { _onBlockStateChange.OnNext(state); });
+            _blockStateChange?.OnChangeBlockState.Subscribe(_ => { _onBlockStateChange.OnNext(GetBlockState()); });
             
             // NOTE 他の場所からコンポーネントを追加するようになったら、このリストに追加するようにする
             _updatableComponents = blockComponents.OfType<IUpdatableBlockComponent>().ToArray();
+            _blockStateDetails = blockComponents.OfType<IBlockStateDetail>().ToArray();
             
             _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public BlockState GetBlockState()
         {
-            return _blockStateChange?.GetBlockState();
+            if (_blockStateChange == null) return null;
+            
+            var state = _blockStateChange.GetBlockState();
+            var detailStates = new Dictionary<string, byte[]>();
+            foreach (var component in _blockStateDetails)
+            {
+                var detailState = component.GetBlockStateDetail();
+                detailStates.Add(detailState.Key, detailState.Value);
+            }
+            
+            return new BlockState(state, detailStates);
         }
         
         public string GetSaveState()

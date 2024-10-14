@@ -11,16 +11,15 @@ using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateChange, IUpdatableBlockComponent
+    public class VanillaMachineProcessorComponent : IBlockStateChange, IBlockStateDetail, IUpdatableBlockComponent
     {
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
         
         public double RemainingSecond { get; private set; }
         
         public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
-        public IObservable<BlockState> OnChangeBlockState => _changeState;
-        
-        private readonly Subject<BlockState> _changeState = new();
+        public IObservable<Unit> OnChangeBlockState => _changeState;
+        private readonly Subject<Unit> _changeState = new();
         
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -61,13 +60,19 @@ namespace Game.Block.Blocks.Machine
             CurrentState = currentState;
         }
         
-        public BlockState GetBlockState()
+        public BlockStateTypes GetBlockState()
+        {
+            BlockException.CheckDestroy(this);
+            return new BlockStateTypes(CurrentState.ToStr(), _lastState.ToStr());
+        }
+        
+        public BlockStateDetail GetBlockStateDetail()
         {
             BlockException.CheckDestroy(this);
             
             var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
             var currentState = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate));
-            return new BlockState(CurrentState.ToStr(), _lastState.ToStr(),currentState);
+            return new BlockStateDetail(CommonMachineBlockStateChangeData.BlockStateDetailKey, currentState);
         }
         
         public void SupplyPower(ElectricPower power)
@@ -92,8 +97,7 @@ namespace Game.Block.Blocks.Machine
             //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
             if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
             {
-                var state = GetBlockState();
-                _changeState.OnNext(state);
+                _changeState.OnNext(Unit.Default);
                 _lastState = CurrentState;
             }
         }

@@ -16,7 +16,7 @@ namespace Client.Game.InGame.Block
         public BlockId BlockId { get; private set; }
         public BlockMasterElement BlockMasterElement { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
-        public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
+        public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; }
         
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Block
             BlockPosInfo = posInfo;
             BlockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             BlockMasterElement = blockMasterElement;
-            BlockStateChangeProcessor = blockStateChangeProcessor;
+            BlockStateChangeProcessors = new List<IBlockStateChangeProcessor>() {blockStateChangeProcessor}; //TODO ここの構成は考える
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
            

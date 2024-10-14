@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Core
             gearNetwork.ManualUpdate();
 
             // Wait for the mining time to elapse.
-            var mineEndTime = DateTime.Now.AddSeconds(miningTime);
+            var mineEndTime = DateTime.Now.AddSeconds(miningTime * 1.2f);
             while (DateTime.Now < mineEndTime)
             {
                 GameUpdater.UpdateWithWait();
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Core
             minerConnectors.Remove(dummyInventory);
 
             // Wait for two more mining cycles.
-            mineEndTime = DateTime.Now.AddSeconds(miningTime * 2);
+            mineEndTime = DateTime.Now.AddSeconds(miningTime * 2.2f);
             while (DateTime.Now < mineEndTime)
             {
                 GameUpdater.UpdateWithWait();

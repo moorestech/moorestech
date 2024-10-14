@@ -12,9 +12,9 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
+    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange, IBlockStateDetail
     {
-        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
         
         public BlockInstanceId BlockInstanceId { get; }
@@ -40,9 +40,14 @@ namespace Game.Block.Blocks.Gear
             GearNetworkDatastore.AddGear(this);
         }
         
-        public BlockState GetBlockState()
+        public BlockStateTypes GetBlockState()
         {
             return _simpleGearService.GetBlockState();
+        }
+        
+        public BlockStateDetail GetBlockStateDetail()
+        {
+            return _simpleGearService.GetBlockStateDetail();
         }
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)

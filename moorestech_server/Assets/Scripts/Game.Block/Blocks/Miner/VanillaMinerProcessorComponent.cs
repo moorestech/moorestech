@@ -23,14 +23,13 @@ using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaMinerProcessorComponent : IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange, IUpdatableBlockComponent
+    public class VanillaMinerProcessorComponent : IBlockInventory, IOpenableInventory, IBlockSaveState, IBlockStateChange, IBlockStateDetail, IUpdatableBlockComponent
     {
         public bool IsDestroy { get; private set; }
         public ElectricPower RequestEnergy { get; }
-        public IObservable<BlockState> OnChangeBlockState => _blockStateChangeSubject;
-        private Subject<BlockState> _blockStateChangeSubject = new();
+        public IObservable<Unit> OnChangeBlockState => _blockStateChangeSubject;
+        private Subject<Unit> _blockStateChangeSubject = new();
         
-        private readonly MineSettings _mineSettings;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly List<IItemStack> _miningItems = new();
@@ -48,7 +47,6 @@ namespace Game.Block.Blocks.Miner
         
         public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
-            _mineSettings = mineSettings;
             _blockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
             
@@ -68,7 +66,7 @@ namespace Game.Block.Blocks.Miner
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
                 
-                foreach (var miningSetting in _mineSettings.items)
+                foreach (var miningSetting in mineSettings.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(miningSetting.ItemGuid);
                     if (itemId != veins[0].VeinItemId) continue;
@@ -180,8 +178,7 @@ namespace Game.Block.Blocks.Miner
             {
                 BlockException.CheckDestroy(this);
                 
-                var state = GetBlockState();
-                _blockStateChangeSubject.OnNext(state);
+                _blockStateChangeSubject.OnNext(Unit.Default);
             }
             
             
@@ -199,12 +196,16 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public BlockState GetBlockState()
+        public BlockStateTypes GetBlockState()
+        {
+            return new BlockStateTypes(_currentState.ToStr(), _lastMinerState.ToStr());
+        }
+        
+        public BlockStateDetail GetBlockStateDetail()
         {
             var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
-            var binaryData = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate));
-            var state = new BlockState(_currentState.ToStr(), _lastMinerState.ToStr(), binaryData);
-            return state;
+            var currentState = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate));
+            return new BlockStateDetail(CommonMachineBlockStateChangeData.BlockStateDetailKey, currentState);
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)

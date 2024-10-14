@@ -2,6 +2,7 @@ using System;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface.State;
 using MessagePack;
+using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
@@ -31,9 +32,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         }
         
         
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
+        public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
-            var data = MessagePackSerializer.Deserialize<CommonMachineBlockStateChangeData>(currentStateData);
+            var data = blockState.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
+            var currentState = blockState.CurrentState;
+            var previousState = blockState.PreviousState;
+            
             _processingRate = data.processingRate;
             switch (currentState)
             {
