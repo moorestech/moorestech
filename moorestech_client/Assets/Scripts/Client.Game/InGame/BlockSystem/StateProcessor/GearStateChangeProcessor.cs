@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using Game.Gear.Common;
-using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
 
@@ -8,7 +8,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
     public class GearStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
-        [SerializeField] private RotationInfo[] rotationInfos;
+        public IReadOnlyList<RotationInfo> RotationInfos => rotationInfos;
+        [SerializeField] private List<RotationInfo> rotationInfos;
         
         private GearStateData _gearStateData;
         
@@ -16,7 +17,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         {
             if (_gearStateData == null) return;
             
-            var rpm = _gearStateData.CurrentRpm;
+        }
+        
+        public void Rotate(GearStateData gearStateData)
+        {
+            var rpm = gearStateData.CurrentRpm;
             var rotation = rpm / 60 * Time.deltaTime * 360;
             foreach (var rotationInfo in rotationInfos)
             {
@@ -27,7 +32,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     RotationAxis.Z => new Vector3(0, 0, rotation),
                     _ => Vector3.zero,
                 };
-                rotate *= _gearStateData.IsClockwise ? 1 : -1;
+                rotate *= rotationInfo.IsReverse ? -1 : 1;
+                rotate *= gearStateData.IsClockwise ? 1 : -1;
+                
                 rotationInfo.RotationTransform.Rotate(rotate);
             }
         }
@@ -43,8 +50,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     {
         [SerializeField] private RotationAxis rotationAxis;
         [SerializeField] private Transform rotationTransform;
+        [SerializeField] private bool isReverse;
+        
         public RotationAxis RotationAxis => rotationAxis;
         public Transform RotationTransform => rotationTransform;
+        public bool IsReverse => isReverse;
     }
     
     public enum RotationAxis
