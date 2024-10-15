@@ -33,9 +33,16 @@ namespace Server.Util.MessagePack
         [Key(0)] public float X { get; set; }
         [Key(1)] public float Y { get; set; }
         
+        [IgnoreMember] public Vector2 Vector2 => new(X, Y);
+        
         public static implicit operator Vector2(Vector2MessagePack pack)
         {
-            return new Vector2(pack.X, pack.Y);
+            return pack.Vector2;
+        }
+        
+        public override string ToString()
+        {
+            return Vector2.ToString();
         }
     }
 }

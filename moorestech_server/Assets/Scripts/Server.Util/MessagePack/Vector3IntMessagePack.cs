@@ -30,9 +30,16 @@ namespace Server.Util.MessagePack
         [Key(1)] public int Y { get; set; }
         [Key(2)] public int Z { get; set; }
         
+        [IgnoreMember] public Vector3Int Vector3Int => new(X, Y, Z); 
+        
         public static implicit operator Vector3Int(Vector3IntMessagePack pack)
         {
-            return new Vector3Int(pack.X, pack.Y, pack.Z);
+            return pack.Vector3Int;
+        }
+        
+        public override string ToString()
+        {
+            return Vector3Int.ToString();
         }
     }
 }
