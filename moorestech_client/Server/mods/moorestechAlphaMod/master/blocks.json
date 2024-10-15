@@ -65,9 +65,9 @@
     },
     {
       "blockSize": [
+        2,
         1,
-        1,
-        1
+        2
       ],
       "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c",
       "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
@@ -144,9 +144,9 @@
     {
       "maxStack": 100,
       "blockSize": [
-        1,
-        1,
-        1
+        2,
+        5,
+        2
       ],
       "itemGuid": "acba1a0d-6baf-49fe-96c5-15acef03e751",
       "blockType": "SimpleGearGenerator",
@@ -169,26 +169,29 @@
               },
               "directions": [
                 [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
                   -1,
                   0,
                   0
                 ]
               ]
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
             }
           ]
         }
