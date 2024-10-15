@@ -1583,12 +1583,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationInfos:
-  - rotationAxis: 0
+  - rotationAxis: 1
     rotationTransform: {fileID: 1249975213152999919}
+    isReverse: 1
   - rotationAxis: 1
     rotationTransform: {fileID: 1484686555961022137}
+    isReverse: 0
   - rotationAxis: 0
     rotationTransform: {fileID: 6466623224438294828}
+    isReverse: 0
 --- !u!1 &5706012872980177505
 GameObject:
   m_ObjectHideFlags: 0
