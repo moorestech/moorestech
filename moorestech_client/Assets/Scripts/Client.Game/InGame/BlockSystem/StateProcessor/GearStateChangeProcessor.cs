@@ -11,12 +11,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         public IReadOnlyList<RotationInfo> RotationInfos => rotationInfos;
         [SerializeField] private List<RotationInfo> rotationInfos;
         
-        private GearStateData _gearStateData;
+        public GearStateData CurrentGearState { get; private set; }
+        
+        public void OnChangeState(ChangeBlockStateMessagePack blockState)
+        {
+            CurrentGearState = blockState.GetStateDetail<GearStateData>(GearStateData.BlockStateDetailKey);
+        }
         
         private void Update()
         {
-            if (_gearStateData == null) return;
+            if (CurrentGearState == null) return;
             
+            Rotate(CurrentGearState);
         }
         
         public void Rotate(GearStateData gearStateData)
@@ -37,11 +43,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                 
                 rotationInfo.RotationTransform.Rotate(rotate);
             }
-        }
-        
-        public void OnChangeState(ChangeBlockStateMessagePack blockState)
-        {
-            _gearStateData = blockState.GetStateDetail<GearStateData>(GearStateData.BlockStateDetailKey);
         }
     }
     

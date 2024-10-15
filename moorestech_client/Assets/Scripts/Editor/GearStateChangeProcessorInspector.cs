@@ -17,6 +17,7 @@ public class GearStateChangeProcessorInspector : Editor
 
     public override void OnInspectorGUI()
     {
+        // RPMと回転方向のプロパティ
         // RPM and rotation direction properties
         rpm = EditorGUILayout.FloatField("RPM", rpm);
         isClockwise = EditorGUILayout.Toggle("Is Clockwise", isClockwise);
@@ -24,6 +25,16 @@ public class GearStateChangeProcessorInspector : Editor
         var processor = target as GearStateChangeProcessor;
         if (processor == null) return;
 
+        // 現在の状態を表示
+        // Display the current state
+        if (processor.CurrentGearState != null)
+        {
+            EditorGUILayout.LabelField("Current Gear State");
+            EditorGUILayout.LabelField($"RPM: {processor.CurrentGearState.CurrentRpm}");
+            EditorGUILayout.LabelField($"Is Clockwise: {processor.CurrentGearState.IsClockwise}");
+        }
+        
+        // シミュレーション開始/停止ボタン
         // Simulation start/stop button
         if (isSimulating)
         {
@@ -71,6 +82,7 @@ public class GearStateChangeProcessorInspector : Editor
             Rotate(processor);
         }
 
+        // シミュレーション中はInspectorを再描画して変更を反映
         // Repaint the inspector to reflect changes
         Repaint();
     }

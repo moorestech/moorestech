@@ -87,7 +87,7 @@
           }
         ],
         "teethCount": 10,
-        "requiredRpm": 1,
+        "requiredRpm": 30,
         "requireTorque": 1,
         "gear": {
           "gearConnects": [
@@ -103,12 +103,25 @@
               },
               "directions": [
                 [
-                  1,
+                  -1,
                   0,
                   0
-                ],
+                ]
+              ]
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
                 [
-                  -1,
+                  1,
                   0,
                   0
                 ]
@@ -151,7 +164,7 @@
       "itemGuid": "acba1a0d-6baf-49fe-96c5-15acef03e751",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 1,
+        "requireTorque": 0,
         "generateTorque": 1,
         "generateRpm": 30,
         "teethCount": 10,
