@@ -58,9 +58,9 @@ namespace Client.Game.InGame.UI.UIState
             
             var type = blockMaster.BlockType switch
             {
-                BlockTypeConst.Chest => BlockInventoryType.Chest,
-                BlockTypeConst.ElectricMiner => BlockInventoryType.Miner,
-                BlockTypeConst.ElectricMachine => BlockInventoryType.Machine,
+                BlockTypeConst.Chest => BlockInventoryType.Chest, // TODO ブロックインベントリの整理箇所
+                BlockTypeConst.ElectricMiner or BlockTypeConst.GearMiner => BlockInventoryType.Miner,
+                BlockTypeConst.ElectricMachine or BlockTypeConst.GearMachine => BlockInventoryType.Machine,
                 BlockTypeConst.ElectricGenerator => BlockInventoryType.Generator,
                 _ => throw new ArgumentOutOfRangeException(),
             };

@@ -2,9 +2,9 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Input;
-using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Game.InGame.Control
 {
@@ -47,11 +47,12 @@ namespace Client.Game.InGame.Control
             if (TryGetClickBlock(out var block))
             {
                 var openable = block.BlockMasterElement.BlockType is
-                    BlockMasterElement.BlockTypeConst.Chest or
-                    BlockMasterElement.BlockTypeConst.ElectricMachine or
-                    BlockMasterElement.BlockTypeConst.ElectricGenerator or
-                    BlockMasterElement.BlockTypeConst.ElectricMiner or
-                    BlockMasterElement.BlockTypeConst.GearMachine;
+                    BlockTypeConst.Chest or
+                    BlockTypeConst.ElectricMachine or
+                    BlockTypeConst.ElectricGenerator or
+                    BlockTypeConst.ElectricMiner or
+                    BlockTypeConst.GearMachine or
+                    BlockTypeConst.GearMiner;
                 return openable;
             }
             

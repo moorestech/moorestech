@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Sub
 {
+    /// <summary>
+    /// TODO このへんもユーザー拡張できるように整理する
+    /// </summary>
     public class BlockInventoryView : MonoBehaviour, ISubInventory
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
@@ -90,9 +93,14 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 minerItemParent.gameObject.SetActive(true);
                 
                 var itemList = new List<IItemStack>();
-                var minerParam = (ElectricMinerBlockParam)param;
+                var outputCount = param switch
+                {
+                    ElectricMinerBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                    GearMinerBlockParam blockParam => blockParam.OutputItemSlotCount,
+                    _ => 0
+                };
                 
-                for (var i = 0; i < minerParam.OutputItemSlotCount; i++)
+                for (var i = 0; i < outputCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -106,15 +114,27 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 machineUIParent.gameObject.SetActive(true);
                 var itemList = new List<IItemStack>();
-                var machineParam = (ElectricMachineBlockParam)param;
-                for (var i = 0; i < machineParam.InputItemSlotCount; i++)
+                var inputCount = param switch
+                {
+                    ElectricMachineBlockParam blockParam => blockParam.InputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                    GearMachineBlockParam blockParam => blockParam.InputItemSlotCount,
+                    _ => 0
+                };
+                var outputCount = param switch
+                {
+                    ElectricMachineBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                    GearMachineBlockParam blockParam => blockParam.OutputItemSlotCount,
+                    _ => 0
+                };
+                
+                for (var i = 0; i < inputCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 
-                for (var i = 0; i < machineParam.OutputItemSlotCount; i++)
+                for (var i = 0; i < outputCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                     _blockItemSlotObjects.Add(slotObject);

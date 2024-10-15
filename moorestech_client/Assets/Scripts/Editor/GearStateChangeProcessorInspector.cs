@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Game.Gear.Common;
@@ -8,69 +7,102 @@ using UnityEngine;
 [CustomEditor(typeof(GearStateChangeProcessor))]
 public class GearStateChangeProcessorInspector : Editor
 {
-    [SerializeField] private float rpm = 60;
-    [SerializeField] private bool isClockwise = true;
-    private bool isSimulating = false;
+    [SerializeField] private float simulateRpm = 60;
+    [SerializeField] private bool simulateIsClockwise = true;
+    private bool _isSimulating = false;
     
-    private Dictionary<Transform,Quaternion> _initialRotations = new();
-
+    private readonly Dictionary<Transform, Quaternion> _initialRotations = new();
 
     public override void OnInspectorGUI()
     {
-        // RPMと回転方向のプロパティ
-        // RPM and rotation direction properties
-        rpm = EditorGUILayout.FloatField("RPM", rpm);
-        isClockwise = EditorGUILayout.Toggle("Is Clockwise", isClockwise);
-
         var processor = target as GearStateChangeProcessor;
-        if (processor == null) return;
-
-        // 現在の状態を表示
-        // Display the current state
-        if (processor.CurrentGearState != null)
+        if (processor == null)
         {
-            EditorGUILayout.LabelField("Current Gear State");
-            EditorGUILayout.LabelField($"RPM: {processor.CurrentGearState.CurrentRpm}");
-            EditorGUILayout.LabelField($"Is Clockwise: {processor.CurrentGearState.IsClockwise}");
+            return;
         }
         
-        // シミュレーション開始/停止ボタン
-        // Simulation start/stop button
-        if (isSimulating)
-        {
-            if (GUILayout.Button("Stop Simulate"))
-            {
-                foreach (var rotationInfo in processor.RotationInfos)
-                {
-                    if (_initialRotations.TryGetValue(rotationInfo.RotationTransform, out var initialRotation))
-                    {
-                        rotationInfo.RotationTransform.rotation = initialRotation;
-                    }
-                }
-                isSimulating = false;
-                EditorApplication.update -= OnEditorUpdate;
-            }
-        }
-        else
-        {
-            if (GUILayout.Button("Start Simulate"))
-            {
-                _initialRotations.Clear();
-                foreach (var rotationInfo in processor.RotationInfos)
-                {
-                    _initialRotations.Add(rotationInfo.RotationTransform, rotationInfo.RotationTransform.rotation);
-                }
-                isSimulating = true;
-                EditorApplication.update += OnEditorUpdate;
-            }
-        }
+        GUILayout.BeginVertical("Editor only info", "window");
+        
+        EditorGUILayout.LabelField("Simulate Gear State", EditorStyles.boldLabel);
+        ShowSimulateProperty();
+        ShowSimulateButton();
+        
+        GUILayout.Space(10);
+        
+        ShowCurrentState();
+
+        GUILayout.EndVertical();
+        GUILayout.Space(10);
 
         base.OnInspectorGUI();
+        
+        #region Internal
+        
+        void ShowSimulateProperty()
+        {
+            // RPMと回転方向のプロパティ
+            // RPM and rotation direction properties
+            simulateRpm = EditorGUILayout.FloatField("RPM", simulateRpm);
+            simulateIsClockwise = EditorGUILayout.Toggle("Is Clockwise", simulateIsClockwise);
+        }
+        
+        void ShowSimulateButton()
+        {
+            // シミュレーション開始/停止ボタン
+            // Simulation start/stop button
+            if (_isSimulating)
+            {
+                if (GUILayout.Button("Stop Simulate"))
+                {
+                    foreach (var rotationInfo in processor.RotationInfos)
+                    {
+                        if (_initialRotations.TryGetValue(rotationInfo.RotationTransform, out var initialRotation))
+                        {
+                            rotationInfo.RotationTransform.rotation = initialRotation;
+                        }
+                    }
+                    _isSimulating = false;
+                    EditorApplication.update -= OnEditorUpdate;
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Start Simulate"))
+                {
+                    _initialRotations.Clear();
+                    foreach (var rotationInfo in processor.RotationInfos)
+                    {
+                        _initialRotations.Add(rotationInfo.RotationTransform, rotationInfo.RotationTransform.rotation);
+                    }
+                    _isSimulating = true;
+                    EditorApplication.update += OnEditorUpdate;
+                }
+            }
+        }
+        
+        void ShowCurrentState()
+        {
+            // 現在の状態を表示
+            // Display the current state
+            EditorGUILayout.LabelField("Current Gear State", EditorStyles.boldLabel);
+            if (processor.CurrentGearState == null)
+            {
+                EditorGUILayout.LabelField("State data is null");
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"RPM: {processor.CurrentGearState.CurrentRpm}");
+                EditorGUILayout.LabelField($"Is Clockwise: {processor.CurrentGearState.IsClockwise}");
+            }
+        }
+        
+        
+  #endregion
     }
 
     private void OnEditorUpdate()
     {
-        if (!isSimulating)
+        if (!_isSimulating)
         {
             EditorApplication.update -= OnEditorUpdate;
             return;
@@ -82,14 +114,13 @@ public class GearStateChangeProcessorInspector : Editor
             Rotate(processor);
         }
 
-        // シミュレーション中はInspectorを再描画して変更を反映
         // Repaint the inspector to reflect changes
         Repaint();
     }
 
     private void Rotate(GearStateChangeProcessor processor)
     {
-        var state = new GearStateData(rpm, isClockwise);
+        var state = new GearStateData(simulateRpm, simulateIsClockwise);
         processor.Rotate(state);
     }
     
