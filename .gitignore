@@ -77,6 +77,8 @@ crashlytics-build.properties
 /moorestech_*/[Aa]ssets/PersonalAssets/
 *.DS_Store
 
+*mono_crash*.json
+
 
 # lilToon
 /moorestech_client/Assets/Dependencies/lilToon/Editor/CurrentRP.txt
