@@ -1,14 +1,15 @@
 using System;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface.State;
-using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
-    public class MachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
+    public class CommonMachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
+        public CommonMachineBlockStateChangeData CurrentMachineState { get; private set; }
+        
         private AudioSource _audioSource;
         private ParticleSystem _machineEffect;
         private float _processingRate;
@@ -34,11 +35,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
-            var data = blockState.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
+            CurrentMachineState = blockState.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
             var currentState = blockState.CurrentState;
             var previousState = blockState.PreviousState;
             
-            _processingRate = data.processingRate;
+            _processingRate = CurrentMachineState.processingRate;
             switch (currentState)
             {
                 case VanillaMachineBlockStateConst.ProcessingState:

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
 using Game.Context;
@@ -31,6 +33,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private ItemSlotObject minerResourceSlot;
         [SerializeField] private RectTransform minerResultsParent;
         
+        [SerializeField] private ProgressArrowView minerProgressArrow;
+        
         #endregion
         
         #region Machine
@@ -40,6 +44,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
+        
+        [SerializeField] private ProgressArrowView machineProgressArrow;
         
         #endregion
         
@@ -217,6 +223,22 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             // ブロックの登録がなければ処理を終了
             if (_currentBlockGameObject == null) return;
             
+            switch (_currentBlockInventoryType)
+            {
+                case BlockInventoryType.Miner or BlockInventoryType.Machine:
+                    CommonMachineUpdate();
+                    break;
+            }
+            
+            
+        }
+        private void CommonMachineUpdate()
+        {
+            // ここが重かったら検討
+            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_currentBlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor); 
+            if (commonProcessor == null) return;
+            var progressArrow = _currentBlockInventoryType == BlockInventoryType.Miner ? minerProgressArrow : machineProgressArrow;
+            progressArrow.SetProgress(commonProcessor.CurrentMachineState.processingRate);
         }
     }
     

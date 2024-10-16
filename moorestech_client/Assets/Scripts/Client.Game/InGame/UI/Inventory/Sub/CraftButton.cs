@@ -17,7 +17,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private Color interactableColor = Color.white;
         [SerializeField] private Color nonInteractableColor = Color.gray;
         
-        [SerializeField] private ProgressArrow progressArrow;
+        [SerializeField] private ProgressArrowView progressArrow;
         
         private float _buttonDownElapsed;
         private bool _isButtonDown;

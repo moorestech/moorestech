@@ -135,7 +135,7 @@ namespace Client.Game.InGame.Context
             
             return blockType switch
             {
-                BlockTypeConst.ElectricMiner => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
+                BlockTypeConst.ElectricMiner => block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>(),
                 _ => new NullBlockStateChangeProcessor(),
             };
         }
