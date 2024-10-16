@@ -53,8 +53,8 @@ namespace Client.Game.InGame.UI.UIState
             
             
             //ブロックインベントリのビューを設定する
-            var id = _blockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(id);
+            var blockGameObject = _blockGameObjectDataStore.GetBlockGameObject(_openBlockPos);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockGameObject.BlockId);
             
             var type = blockMaster.BlockType switch
             {
@@ -65,7 +65,7 @@ namespace Client.Game.InGame.UI.UIState
                 _ => throw new ArgumentOutOfRangeException(),
             };
             
-            _blockInventoryView.SetBlockInventoryType(type, _openBlockPos, blockMaster.BlockParam, id);
+            _blockInventoryView.SetBlockInventoryType(type, blockGameObject);
             
             //UIのオブジェクトをオンにする
             _blockInventoryView.SetActive(true);

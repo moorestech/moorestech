@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
@@ -13,6 +14,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 {
     /// <summary>
     /// TODO このへんもユーザー拡張できるように整理する
+    /// TODO いい感じに分割する
     /// </summary>
     public class BlockInventoryView : MonoBehaviour, ISubInventory
     {
@@ -30,6 +32,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         public List<IItemStack> SubInventory { get; private set; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
         
+        private BlockGameObject _currentBlockGameObject;
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
         public void SetActive(bool isActive)
@@ -37,10 +40,12 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             gameObject.SetActive(isActive);
         }
         
-        public void SetBlockInventoryType(BlockInventoryType type, Vector3Int blockPos, IBlockParam param, BlockId blockId)
+        public void SetBlockInventoryType(BlockInventoryType type, BlockGameObject blockGameObject)
         {
+            _currentBlockGameObject = blockGameObject;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockPos);
+            var param = blockGameObject.BlockMasterElement.BlockParam;
+            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
             
             Clear();
             
@@ -141,8 +146,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 
-                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                machineBlockNameText.text = blockMasterElement.Name;
+                machineBlockNameText.text = blockGameObject.BlockMasterElement.Name;
                 SetItemList(itemList);
             }
             
