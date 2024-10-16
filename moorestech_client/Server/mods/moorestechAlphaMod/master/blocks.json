@@ -75,14 +75,14 @@
       "blockParam": {
         "inputItemSlotCount": 1,
         "requiredPower": 5,
-        "outputItemSlotCount": 1,
+        "outputItemSlotCount": 2,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
         },
         "mineSettings": [
           {
-            "time": 1,
+            "time": 5,
             "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
           }
         ],

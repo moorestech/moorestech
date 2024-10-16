@@ -11,7 +11,7 @@
       ],
       "hp": 100,
       "mapObjectName": "mapObjectName",
-      "time": 1,
+      "time": 5,
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
       "outputItems": [
         {
@@ -35,7 +35,7 @@
       "machineRecipeGuid": "7939fed3-00ac-46ac-9d10-78c3d7b18f78"
     },
     {
-      "time": 1,
+      "time": 5,
       "inputItems": [
         {
           "count": 1,
@@ -62,7 +62,7 @@
     },
     {
       "craftResultCount": 1,
-      "time": 1,
+      "time": 5,
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
       "inputItems": [
         {
@@ -85,7 +85,7 @@
     },
     {
       "maxStack": 100,
-      "time": 1,
+      "time": 3,
       "blockGuid": "70aa5dd1-6b96-466b-8460-c9ff25b4b963",
       "outputItems": [
         {
@@ -103,7 +103,7 @@
       "machineRecipeGuid": "4f77d972-e2e4-475a-a44d-a88b8e35a2a7"
     },
     {
-      "time": 1,
+      "time": 2,
       "blockGuid": "e0b5dd62-9d8c-4b84-8a28-6b804ccf1efb",
       "inputItems": [
         {
@@ -127,7 +127,7 @@
       "hp": 100,
       "mapObjectName": "mapObjectName",
       "craftResultCount": 1,
-      "time": 1,
+      "time": 3,
       "maxStack": 100,
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
       "inputItems": [
@@ -150,7 +150,7 @@
       "machineRecipeGuid": "80e77f4a-7639-423b-925a-07685de5f926"
     },
     {
-      "time": 1,
+      "time": 7,
       "craftResultCount": 1,
       "craftResultItemGuid": "475a97cb-17f7-40c2-a75e-7cd156f4ab87",
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
