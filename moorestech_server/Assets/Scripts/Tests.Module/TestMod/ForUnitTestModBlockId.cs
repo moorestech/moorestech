@@ -9,7 +9,7 @@ namespace Tests.Module.TestMod
         public static readonly BlockId BeltConveyorId = (BlockId)3;
         public static readonly BlockId ElectricPoleId = (BlockId)4;
         public static readonly BlockId GeneratorId = (BlockId)5;
-        public static readonly BlockId MinerId = (BlockId)6;
+        public static readonly BlockId ElectricMinerId = (BlockId)6;
         public static readonly BlockId ChestId = (BlockId)7;
         public static readonly BlockId InfinityGeneratorId = (BlockId)8;
         
@@ -33,5 +33,7 @@ namespace Tests.Module.TestMod
         public static readonly BlockId MachineRecipeTest1 = (BlockId)25;
         public static readonly BlockId MachineRecipeTest2 = (BlockId)26;
         public static readonly BlockId MachineRecipeTest3 = (BlockId)27;
+        
+        public static readonly BlockId GearMiner = (BlockId)28;
     }
 }

@@ -6,7 +6,7 @@ namespace Game.Block.Interface
     [UnitOf(typeof(int), UnitGenerateOptions.MessagePackFormatter | UnitGenerateOptions.Comparable)]
     public readonly partial struct BlockInstanceId
     {
-        private static readonly Random Random = new(130851);
+        private static readonly Random Random = new();
         
         public static BlockInstanceId Create()
         {

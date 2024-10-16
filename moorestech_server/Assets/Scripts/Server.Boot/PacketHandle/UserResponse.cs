@@ -43,8 +43,8 @@ namespace Server.Boot.PacketHandle
             catch (Exception e)
             {
                 _client.Close();
-                Debug.Log("エラーによる切断");
-                Debug.Log(e);
+                Debug.LogError("moorestech内のロジックによるエラーで切断");
+                Debug.LogException(e);
             }
         }
         

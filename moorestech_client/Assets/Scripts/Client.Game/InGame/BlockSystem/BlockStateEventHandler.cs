@@ -41,7 +41,10 @@ namespace Client.Game.InGame.BlockSystem
             else
             {
                 var blockObject = _blockGameObjectDataStore.BlockGameObjectDictionary[pos];
-                blockObject.BlockStateChangeProcessor.OnChangeState(state.CurrentState, state.PreviousState, state.CurrentStateData);
+                foreach (var processor in blockObject.BlockStateChangeProcessors)
+                {
+                    processor.OnChangeState(state);
+                }
             }
         }
     }

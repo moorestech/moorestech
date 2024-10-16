@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, changeStateData.Position.X);
             Assert.AreEqual(0, changeStateData.Position.Y);
             
-            var detailChangeData = changeStateData.GetStateData<CommonMachineBlockStateChangeData>();
+            var detailChangeData = changeStateData.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
             Assert.AreEqual(1.0f, detailChangeData.powerRate);
         }
     }

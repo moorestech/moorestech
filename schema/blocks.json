@@ -29,7 +29,7 @@
               "Block","BeltConveyor","Chest",
               "ElectricMachine","ElectricPole","ElectricGenerator","ElectricMiner",
 
-              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor",
+              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
               "ItemShooter"]
           },
 
@@ -195,22 +195,7 @@
                     "requiredPower": {"type": "number", "default": 5},
                     "outputItemSlotCount": {"type": "integer", "default": 3},
                     "mineSettings": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "itemGuid": {
-                            "type": "string",
-                            "format": "uuid",
-                            "foreignKey": "items:itemGuid:name"
-                          },
-
-                          "time": {
-                            "type": "number",
-                            "default": 1
-                          }
-                        }
-                      }
+                      "$ref": "mineSettings"
                     },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
@@ -342,6 +327,36 @@
                     "acceleration": {"type": "number", "default": 1},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "GearMiner"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "teethCount": {"type": "integer", "default": 10},
+                    "requireTorque": {"type": "number", "default": 1},
+                    "requiredRpm": {"type": "number", "default": 5},
+                    
+                    "outputItemSlotCount": {"type": "integer", "default": 3},
+                    
+                    "mineSettings": {
+                      "$ref": "mineSettings"
+                    },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    },
+                    
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }

@@ -33,13 +33,13 @@ namespace Tests.CombinedTest.Core
             
             //手動で鉱石の設定を行う
             var (mapVein, pos) = GetMapVein();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MinerId, pos, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, out _);
             var miner = worldBlockDatastore.GetBlock(pos);
-            var minerComponent = miner.GetComponent<VanillaElectricMinerComponent>();
+            var minerComponent = miner.GetComponent<VanillaMinerProcessorComponent>();
             
-            var miningItems = (List<IItemStack>)typeof(VanillaElectricMinerComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
-            var miningTime = (float)typeof(VanillaElectricMinerComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningTime = (float)typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             
             
             var dummyInventory = new DummyBlockInventory();
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Core
             while (mineEndTime.AddSeconds(0.05).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石2個が残っているかチェック
-            var outputSlot = miner.GetComponent<VanillaElectricMinerComponent>().InventoryItems[0];
+            var outputSlot = miner.GetComponent<VanillaMinerProcessorComponent>().InventoryItems[0];
             Assert.AreEqual(miningItemId, outputSlot.Id);
             Assert.AreEqual(2, outputSlot.Count);
             
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);
         }
         
-        private (IMapVein mapVein, Vector3Int pos) GetMapVein()
+        public static (IMapVein mapVein, Vector3Int pos) GetMapVein()
         {
             var pos = new Vector3Int(0, 0);
             for (var i = 0; i < 500; i++)

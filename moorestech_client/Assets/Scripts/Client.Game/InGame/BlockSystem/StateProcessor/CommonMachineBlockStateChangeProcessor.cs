@@ -1,20 +1,24 @@
 using System;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface.State;
-using MessagePack;
+using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
-    public class MachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
+    /// <summary>
+    /// TODO マシーン系は自動でつけるみたいなシステムが欲しいな、、、
+    /// </summary>
+    public class CommonMachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
+        public CommonMachineBlockStateChangeData CurrentMachineState { get; private set; }
+        
         private AudioSource _audioSource;
         private ParticleSystem _machineEffect;
-        private float _processingRate;
         
         private void Awake()
         {
-            _machineSoundClip ??= Resources.Load<AudioClip>("Machine/MachineProcess");
+            _machineSoundClip ??= Resources.Load<AudioClip>("Machine/MachineProcess"); // TODO ここ消したいなぁ
             _machineEffectPrefab ??= Resources.Load<GameObject>("Machine/MachineProcessEffect");
         }
         
@@ -31,10 +35,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         }
         
         
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
+        public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
-            var data = MessagePackSerializer.Deserialize<CommonMachineBlockStateChangeData>(currentStateData);
-            _processingRate = data.processingRate;
+            CurrentMachineState = blockState.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
+            var currentState = blockState.CurrentState;
+            var previousState = blockState.PreviousState;
+            
             switch (currentState)
             {
                 case VanillaMachineBlockStateConst.ProcessingState:
@@ -49,8 +55,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     _audioSource.Stop();
                     _machineEffect.Stop();
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(currentState), currentState, null);
             }
         }
         

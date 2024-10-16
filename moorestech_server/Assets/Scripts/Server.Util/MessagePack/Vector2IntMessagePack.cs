@@ -28,9 +28,16 @@ namespace Server.Util.MessagePack
         
         [Key(1)] public int Y { get; set; }
         
+        [IgnoreMember] public Vector2Int Vector2Int => new(X, Y);
+        
         public static implicit operator Vector2Int(Vector2IntMessagePack pack)
         {
-            return new Vector2Int(pack.X, pack.Y);
+            return pack.Vector2Int;
+        }
+        
+        public override string ToString()
+        {
+            return Vector2Int.ToString();
         }
     }
 }

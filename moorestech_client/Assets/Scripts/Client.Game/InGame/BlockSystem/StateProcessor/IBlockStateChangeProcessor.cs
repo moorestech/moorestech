@@ -1,3 +1,5 @@
+using Server.Event.EventReceive;
+
 namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
     /// <summary>
@@ -10,6 +12,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         ///     ブロックのステートに基づいてアニメーションを再生する
         ///     タイプに応じてアニメーションを再生する
         /// </summary>
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData);
+        public void OnChangeState(ChangeBlockStateMessagePack blockState);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
+using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Util;
 using UniRx;
-using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,9 +17,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private Color interactableColor = Color.white;
         [SerializeField] private Color nonInteractableColor = Color.gray;
         
-        [SerializeField] private RectMask2D mask;
-        [SerializeField] private float filledPadding = 13.2f;
-        [SerializeField] private float unfilledPadding = 89.3f;
+        [SerializeField] private ProgressArrowView progressArrow;
         
         private float _buttonDownElapsed;
         private bool _isButtonDown;
@@ -42,23 +40,12 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             if (_isButtonDown)
             {
                 var percent = Mathf.Clamp(_buttonDownElapsed, 0, TmpDuration) / TmpDuration;
-                UpdateMaskFill(percent);
+                progressArrow.SetProgress(percent);
             }
             else
             {
-                mask.padding = new Vector4(unfilledPadding, 0, 0, 0);
+                progressArrow.SetProgress(1);
             }
-            
-            
-            #region Internal
-            
-            void UpdateMaskFill(float percent)
-            {
-                var p = Mathf.Lerp(filledPadding, unfilledPadding, percent);
-                mask.padding = new Vector4(p, 0, 0, 0);
-            }
-            
-            #endregion
         }
         
         private void OnDestroy()

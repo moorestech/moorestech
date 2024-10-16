@@ -112,7 +112,7 @@ namespace Client.Starter
             
             //プレゼンターアセンブリ
             // register presenter assembly
-            builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
+            builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();

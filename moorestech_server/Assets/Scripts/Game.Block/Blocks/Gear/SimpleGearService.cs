@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
 using MessagePack;
@@ -9,8 +10,11 @@ namespace Game.Block.Blocks.Gear
     public class SimpleGearService
     {
         private string _currentState = IGearEnergyTransformer.WorkingStateName;
-        private Subject<BlockState> _onBlockStateChange = new();
-        public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
+        public IObservable<Unit> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<Unit> _onBlockStateChange = new();
+        
+        public IObservable<GearUpdateType> OnGearUpdate => _onGearUpdate;
+        private readonly Subject<GearUpdateType> _onGearUpdate = new();
         
         public RPM CurrentRpm { get; private set; }
         public Torque CurrentTorque { get; private set; }
@@ -24,15 +28,19 @@ namespace Game.Block.Blocks.Gear
             CurrentRpm = new RPM(0);
             CurrentTorque = new Torque(0);
             
-            var state = new BlockState(IGearEnergyTransformer.RockedStateName, _currentState);
-            _onBlockStateChange.OnNext(state);
+            _onBlockStateChange.OnNext(Unit.Default);
+            _onGearUpdate.OnNext(GearUpdateType.Rocked);
         }
         
-        public BlockState GetBlockState()
+        public BlockStateTypes GetBlockState()
+        {
+            return new BlockStateTypes(IGearEnergyTransformer.WorkingStateName, _currentState);
+        }
+        
+        public BlockStateDetail GetBlockStateDetail()
         {
             var stateData = MessagePackSerializer.Serialize(new GearStateData(CurrentRpm.AsPrimitive(), IsCurrentClockwise));
-            var state = new BlockState(IGearEnergyTransformer.WorkingStateName, _currentState, stateData);
-            return state;
+            return new BlockStateDetail(GearStateData.BlockStateDetailKey, stateData);
         }
         
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
@@ -49,16 +57,22 @@ namespace Game.Block.Blocks.Gear
             
             if (isChanged)
             {
-                var state = GetBlockState();
-                _onBlockStateChange.OnNext(state);
+                _onBlockStateChange.OnNext(Unit.Default);
             }
             
             _currentState = IGearEnergyTransformer.WorkingStateName;
+            _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
         }
         
         public void Destroy()
         {
-            _onBlockStateChange = null;
+            _onBlockStateChange.Dispose();
         }
+    }
+    
+    public enum GearUpdateType
+    {
+        SupplyPower,
+        Rocked,
     }
 }

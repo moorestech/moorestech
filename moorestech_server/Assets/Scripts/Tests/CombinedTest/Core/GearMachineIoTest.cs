@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Core.Const;
+using System.Threading;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
@@ -44,8 +45,9 @@ namespace Tests.CombinedTest.Core
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
             
-            var gearMachineComponent = block.GetComponent<VanillaGearMachineComponent>();
+            var gearEnergyTransformer = block.GetComponent<GearEnergyTransformer>();
             var gearMachineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine).BlockParam as GearMachineBlockParam;
+            var machineProcessor = block.GetComponent<VanillaMachineProcessorComponent>();
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
@@ -53,8 +55,10 @@ namespace Tests.CombinedTest.Core
             {
                 var requiredRpm = new RPM(gearMachineParam.RequiredRpm);
                 var requiredTorque = new Torque(gearMachineParam.RequireTorque);
-                gearMachineComponent.SupplyPower(requiredRpm, requiredTorque, true);
-                GameUpdater.UpdateWithWait();
+                gearEnergyTransformer.SupplyPower(requiredRpm, requiredTorque, true);
+                machineProcessor.Update();
+                GameUpdater.Wait();
+                GameUpdater.UpdateDeltaTime();
             }
             
             //検証
@@ -86,9 +90,12 @@ namespace Tests.CombinedTest.Core
                 lackTorqueInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
             
-            var lackRpmGearMachine = lackRpmBlock.GetComponent<VanillaGearMachineComponent>();
-            var lackTorqueGearMachine = lackTorqueBlock.GetComponent<VanillaGearMachineComponent>();
+            var lackRpmGearMachine = lackRpmBlock.GetComponent<GearEnergyTransformer>();
+            var lackTorqueGearMachine = lackTorqueBlock.GetComponent<GearEnergyTransformer>();
             var gearMachineParam = lackRpmBlock.BlockMasterElement.BlockParam as GearMachineBlockParam;
+            
+            var lackRpmProcessor = lackRpmBlock.GetComponent<VanillaMachineProcessorComponent>();
+            var lackTorqueProcessor = lackTorqueBlock.GetComponent<VanillaMachineProcessorComponent>();
             
             //最大クラフト時間を超過するまでクラフトする
             var craftTime = DateTime.Now.AddSeconds(recipe.Time * 2);
@@ -97,7 +104,12 @@ namespace Tests.CombinedTest.Core
                 var rpm = new RPM(gearMachineParam.RequiredRpm / 2f);
                 lackRpmGearMachine.SupplyPower(rpm, new Torque(gearMachineParam.RequireTorque), true);
                 lackTorqueGearMachine.SupplyPower(new RPM(gearMachineParam.RequiredRpm), (Torque)gearMachineParam.RequireTorque / 2f, true);
-                GameUpdater.UpdateWithWait();
+                
+                lackRpmProcessor.Update();
+                lackTorqueProcessor.Update();
+                
+                GameUpdater.Wait();
+                GameUpdater.UpdateDeltaTime();
             }
             
             //検証

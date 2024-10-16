@@ -9,6 +9,7 @@ namespace Game.Gear.Common
 {
     public class GearNetworkDatastore
     {
+        // TODO これってなんでstaticにしたんだっけ？こういうのは全般的にサービスロケーターにしたほうが良いような気がしてきた
         private static GearNetworkDatastore _instance;
         
         private readonly Dictionary<BlockInstanceId, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
@@ -116,29 +117,24 @@ namespace Game.Gear.Common
             // 自身をnetworkから削除
             var network = _instance._blockEntityToGearNetwork[gear.BlockInstanceId];
             network.RemoveGear(gear);
+            _instance._blockEntityToGearNetwork.Remove(gear.BlockInstanceId);
+            
+            //削除する歯車以外の元々接続していたブロックをすべて取得
+            var transformers = new List<IGearEnergyTransformer>();
+            transformers.AddRange(network.GearTransformers);
+            transformers.AddRange(network.GearGenerators);
             
             //接続していた歯車ネットワークをデータベースから破棄
             _instance._gearNetworks.Remove(network.NetworkId);
             
             //gearに接続されている全てのgearをblockEntityToGearNetworkから削除
-            var gearStack = new Stack<IGearEnergyTransformer>();
-            gearStack.Push(gear);
-            while (gearStack.TryPop(out var stackGear))
+            foreach (var transformer in transformers)
             {
-                _instance._blockEntityToGearNetwork.Remove(stackGear.BlockInstanceId);
-                
-                foreach (var connectedGear in stackGear.GetGearConnects())
-                    if (_instance._blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.BlockInstanceId))
-                        gearStack.Push(connectedGear.Transformer);
+                _instance._blockEntityToGearNetwork.Remove(transformer.BlockInstanceId);
             }
             
-            //もともと接続していたブロックをすべてAddする
-            var transformers = network.GearTransformers;
-            var generators = network.GearGenerators;
-            
-            //重くなったらアルゴリズムを変える
+            // 歯車を再追加する。重くなったらアルゴリズムを変える。
             foreach (var transformer in transformers) AddGear(transformer);
-            foreach (var generator in generators) AddGear(generator);
         }
         
         private void Update()

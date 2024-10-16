@@ -8,9 +8,8 @@ using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Input;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Block;
-using Game.Context;
 using UnityEngine;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Game.InGame.UI.UIState
 {
@@ -30,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState
             _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
             
-            blockInventoryView.SetActive(false);
+            blockInventoryView.CloseBlockInventory();
         }
         
         public UIStateEnum GetNext()
@@ -54,22 +53,21 @@ namespace Client.Game.InGame.UI.UIState
             
             
             //ブロックインベントリのビューを設定する
-            var id = _blockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(id);
+            var blockGameObject = _blockGameObjectDataStore.GetBlockGameObject(_openBlockPos);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockGameObject.BlockId);
             
             var type = blockMaster.BlockType switch
             {
-                VanillaBlockType.Chest => BlockInventoryType.Chest,
-                VanillaBlockType.ElectricMiner => BlockInventoryType.Miner,
-                VanillaBlockType.ElectricMachine => BlockInventoryType.Machine,
-                VanillaBlockType.ElectricGenerator => BlockInventoryType.Generator,
+                BlockTypeConst.Chest => BlockInventoryType.Chest, // TODO ブロックインベントリの整理箇所
+                BlockTypeConst.ElectricMiner or BlockTypeConst.GearMiner => BlockInventoryType.Miner,
+                BlockTypeConst.ElectricMachine or BlockTypeConst.GearMachine => BlockInventoryType.Machine,
+                BlockTypeConst.ElectricGenerator => BlockInventoryType.Generator,
                 _ => throw new ArgumentOutOfRangeException(),
             };
             
-            _blockInventoryView.SetBlockInventoryType(type, _openBlockPos, blockMaster.BlockParam, id);
+            _blockInventoryView.OpenBlockInventoryType(type, blockGameObject);
             
             //UIのオブジェクトをオンにする
-            _blockInventoryView.SetActive(true);
             _playerInventoryViewController.SetActive(true);
             _playerInventoryViewController.SetSubInventory(_blockInventoryView);
         }
@@ -81,7 +79,7 @@ namespace Client.Game.InGame.UI.UIState
             
             ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
             
-            _blockInventoryView.SetActive(false);
+            _blockInventoryView.CloseBlockInventory();
             _playerInventoryViewController.SetActive(false);
         }
         

@@ -10,6 +10,8 @@ namespace Game.Block.Interface.State
     [MessagePackObject]
     public class CommonMachineBlockStateChangeData
     {
+        public const string BlockStateDetailKey = "CommonMachine";
+        
         /// <summary>
         ///     必要な電力に対してどの程度電力が来ているかを表す
         ///     アニメーションを再生する速度に利用する

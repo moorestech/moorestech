@@ -22,11 +22,8 @@ namespace Game.Block.Component
         private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
         private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
         
-        private readonly BlockPositionInfo _blockPositionInfo;
-        
         public BlockConnectorComponent(BlockConnectInfo inputConnectInfo, BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
-            _blockPositionInfo = blockPositionInfo;
             var blockPos = blockPositionInfo.OriginalPos;
             var blockDirection = blockPositionInfo.BlockDirection;
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;

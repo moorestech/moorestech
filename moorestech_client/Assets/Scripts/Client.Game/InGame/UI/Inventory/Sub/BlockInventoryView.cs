@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
+using System.Linq;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
-using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -11,9 +12,42 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Sub
 {
+    /// <summary>
+    /// TODO このへんもユーザー拡張できるように整理する
+    /// TODO いい感じに分割する
+    /// </summary>
     public class BlockInventoryView : MonoBehaviour, ISubInventory
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
+        
+        #region Chest
+        
+        [SerializeField] private RectTransform chestItemParent;
+        [SerializeField] private RectTransform chestSlotsParent;
+        
+        #endregion
+        
+        #region Miner
+        
+        [SerializeField] private RectTransform minerItemParent;
+        [SerializeField] private ItemSlotObject minerResourceSlot;
+        [SerializeField] private RectTransform minerResultsParent;
+        
+        [SerializeField] private ProgressArrowView minerProgressArrow;
+        
+        #endregion
+        
+        #region Machine
+        
+        [SerializeField] private GameObject machineUIParent;
+        
+        [SerializeField] private RectTransform machineInputItemParent;
+        [SerializeField] private RectTransform machineOutputItemParent;
+        [SerializeField] private TMP_Text machineBlockNameText;
+        
+        [SerializeField] private ProgressArrowView machineProgressArrow;
+        
+        #endregion
         
         #region Generator
         
@@ -23,23 +57,24 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public int Count => _blockItemSlotObjects.Count;
-        
-        public List<IItemStack> SubInventory { get; private set; }
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
-        
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
-        public void SetActive(bool isActive)
-        {
-            gameObject.SetActive(isActive);
-        }
+        public List<IItemStack> SubInventory { get; private set; } = new();
+        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
         
-        public void SetBlockInventoryType(BlockInventoryType type, Vector3Int blockPos, IBlockParam param, BlockId blockId)
+        private BlockGameObject _currentBlockGameObject;
+        private BlockInventoryType _currentBlockInventoryType;
+        
+        public void OpenBlockInventoryType(BlockInventoryType type, BlockGameObject blockGameObject)
         {
+            _currentBlockGameObject = blockGameObject;
+            _currentBlockInventoryType = type;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockPos);
+            var param = blockGameObject.BlockMasterElement.BlockParam;
+            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
             
             Clear();
+            gameObject.SetActive(true);
             
             switch (type)
             {
@@ -90,9 +125,14 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 minerItemParent.gameObject.SetActive(true);
                 
                 var itemList = new List<IItemStack>();
-                var minerParam = (ElectricMinerBlockParam)param;
+                var outputCount = param switch
+                {
+                    ElectricMinerBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                    GearMinerBlockParam blockParam => blockParam.OutputItemSlotCount,
+                    _ => 0
+                };
                 
-                for (var i = 0; i < minerParam.OutputItemSlotCount; i++)
+                for (var i = 0; i < outputCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -106,23 +146,34 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 machineUIParent.gameObject.SetActive(true);
                 var itemList = new List<IItemStack>();
-                var machineParam = (ElectricMachineBlockParam)param;
-                for (var i = 0; i < machineParam.InputItemSlotCount; i++)
+                var inputCount = param switch
+                {
+                    ElectricMachineBlockParam blockParam => blockParam.InputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                    GearMachineBlockParam blockParam => blockParam.InputItemSlotCount,
+                    _ => 0
+                };
+                var outputCount = param switch
+                {
+                    ElectricMachineBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                    GearMachineBlockParam blockParam => blockParam.OutputItemSlotCount,
+                    _ => 0
+                };
+                
+                for (var i = 0; i < inputCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 
-                for (var i = 0; i < machineParam.OutputItemSlotCount; i++)
+                for (var i = 0; i < outputCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 
-                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                machineBlockNameText.text = blockMasterElement.Name;
+                machineBlockNameText.text = blockGameObject.BlockMasterElement.Name;
                 SetItemList(itemList);
             }
             
@@ -145,12 +196,18 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             #endregion
         }
         
+        public void CloseBlockInventory()
+        {
+            gameObject.SetActive(false);
+            _currentBlockGameObject = null;
+        }
+        
         public void SetItemList(List<IItemStack> itemStacks)
         {
             SubInventory = itemStacks;
         }
         
-        public void SetItemSlot(int slot, IItemStack item)
+        public void UpdateInventorySlot(int slot, IItemStack item)
         {
             if (SubInventory.Count <= slot)
             {
@@ -161,31 +218,28 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             SubInventory[slot] = item;
         }
         
-        
-        #region Chest
-        
-        [SerializeField] private RectTransform chestItemParent;
-        [SerializeField] private RectTransform chestSlotsParent;
-        
-        #endregion
-        
-        #region Miner
-        
-        [SerializeField] private RectTransform minerItemParent;
-        [SerializeField] private ItemSlotObject minerResourceSlot;
-        [SerializeField] private RectTransform minerResultsParent;
-        
-        #endregion
-        
-        #region Machine
-        
-        [SerializeField] private GameObject machineUIParent;
-        
-        [SerializeField] private RectTransform machineInputItemParent;
-        [SerializeField] private RectTransform machineOutputItemParent;
-        [SerializeField] private TMP_Text machineBlockNameText;
-        
-        #endregion
+        private void Update()
+        {
+            // ブロックの登録がなければ処理を終了
+            if (_currentBlockGameObject == null) return;
+            
+            switch (_currentBlockInventoryType)
+            {
+                case BlockInventoryType.Miner or BlockInventoryType.Machine:
+                    CommonMachineUpdate();
+                    break;
+            }
+            
+            
+        }
+        private void CommonMachineUpdate()
+        {
+            // ここが重かったら検討
+            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_currentBlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor); 
+            if (commonProcessor == null) return;
+            var progressArrow = _currentBlockInventoryType == BlockInventoryType.Miner ? minerProgressArrow : machineProgressArrow;
+            progressArrow.SetProgress(commonProcessor.CurrentMachineState.processingRate);
+        }
     }
     
     public enum BlockInventoryType

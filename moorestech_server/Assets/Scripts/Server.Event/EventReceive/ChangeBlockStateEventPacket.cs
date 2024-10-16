@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -43,7 +44,7 @@ namespace Server.Event.EventReceive
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;
             
-            CurrentStateData = state.CurrentStateData;
+            CurrentStateDetail = state.CurrentStateDetail;
             Position = new Vector3IntMessagePack(pos);
         }
         
@@ -51,13 +52,13 @@ namespace Server.Event.EventReceive
         
         [Key(1)] public string PreviousState { get; set; }
         
-        [Key(2)] public byte[] CurrentStateData { get; set; }
+        [Key(2)] public Dictionary<string,byte[]> CurrentStateDetail { get; set; }
         
         [Key(3)] public Vector3IntMessagePack Position { get; set; }
         
-        public TBlockState GetStateData<TBlockState>()
+        public TBlockState GetStateDetail<TBlockState>(string stateKey)
         {
-            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateData);
+            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateDetail[stateKey]);
         }
     }
 }

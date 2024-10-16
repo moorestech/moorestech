@@ -29,10 +29,14 @@ namespace Game.Map.Interface.Json
         [JsonProperty("veinItemGuid")] public string VeinItemGuidStr;
         [JsonIgnore] public Guid VeinItemGuid => Guid.Parse(VeinItemGuidStr);
         
-        [JsonProperty("xMax")] public int XMax;
+        [JsonIgnore] public Vector3Int MinPosition => new(MinX, MinY, MinZ);
+        [JsonProperty("minX")] public int MinX;
+        [JsonProperty("minY")] public int MinY;
+        [JsonProperty("minZ")] public int MinZ;
         
-        [JsonProperty("xMin")] public int XMin;
-        [JsonProperty("yMax")] public int YMax;
-        [JsonProperty("yMin")] public int YMin;
+        [JsonIgnore] public Vector3Int MaxPosition => new(MaxX, MaxY, MaxZ);
+        [JsonProperty("maxX")] public int MaxX;
+        [JsonProperty("maxY")] public int MaxY;
+        [JsonProperty("maxZ")] public int MaxZ;
     }
 }

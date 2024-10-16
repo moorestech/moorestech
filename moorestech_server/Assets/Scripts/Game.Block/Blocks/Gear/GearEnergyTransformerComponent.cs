@@ -4,14 +4,19 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
+using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange
+    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange, IBlockStateDetail
     {
-        public IObservable<BlockState> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;
+        public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
+        
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
         public Torque CurrentTorque => _simpleGearService.CurrentTorque;
@@ -35,9 +40,14 @@ namespace Game.Block.Blocks.Gear
             GearNetworkDatastore.AddGear(this);
         }
         
-        public BlockState GetBlockState()
+        public BlockStateTypes GetBlockState()
         {
             return _simpleGearService.GetBlockState();
+        }
+        
+        public BlockStateDetail GetBlockStateDetail()
+        {
+            return _simpleGearService.GetBlockStateDetail();
         }
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
@@ -70,6 +80,24 @@ namespace Game.Block.Blocks.Gear
             IsDestroy = true;
             GearNetworkDatastore.RemoveGear(this);
             _simpleGearService.Destroy();
+        }
+    }
+    
+    public static class GearEnergyTransformerExtension
+    {
+        public static ElectricPower CalcMachineSupplyPower(this GearEnergyTransformer energyTransformer, RPM requiredRpm, Torque requiredTorque)
+        {
+            var currentRpm = energyTransformer.CurrentRpm;
+            var currentTorque = energyTransformer.CurrentTorque;
+            
+            var rpmRate = Mathf.Min((currentRpm / requiredRpm).AsPrimitive(), 1);
+            var torqueRate = Mathf.Min((currentTorque / requiredTorque).AsPrimitive(), 1);
+            var powerRate = rpmRate * torqueRate;
+            
+            var requiredGearPower = requiredRpm.AsPrimitive() * requiredTorque.AsPrimitive();
+            var currentElectricPower = new ElectricPower(requiredGearPower * powerRate);
+            
+            return currentElectricPower;
         }
     }
 }

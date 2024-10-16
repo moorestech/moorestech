@@ -173,6 +173,17 @@
       "name": "TestElectricMachine3",
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "imagePath": "Test1"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "GearMiner",
+      "imagePath": "Test1",
+      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
     }
   ]
 }

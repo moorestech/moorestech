@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Define;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Block;
 using Game.Block.Interface;
 using UnityEngine;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+
 
 namespace Client.Game.InGame.Context
 {
@@ -79,7 +79,7 @@ namespace Client.Game.InGame.Context
                 blockObj.gameObject.SetActive(true);
                 var posInfo = new BlockPositionInfo(blockPosition, direction, blockMasterElement.BlockSize);
                 var blockType = blockMasterElement.BlockType;
-                blockObj.Initialize(blockMasterElement, posInfo, GetBlockStateChangeProcessor(blockObj, blockType));
+                blockObj.Initialize(blockMasterElement, posInfo);
                 
                 //ブロックが開けるものの場合はそのコンポーネントを付与する
                 if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
@@ -93,7 +93,8 @@ namespace Client.Game.InGame.Context
         {
             if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
             {
-                return null;
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                throw new System.Exception($"ブロックの登録がありません。Name:{blockMasterElement.Name} GUID:{blockMasterElement.BlockGuid}");
             }
             
             //ブロックの作成とセットアップをして返す
@@ -114,21 +115,13 @@ namespace Client.Game.InGame.Context
         /// <returns></returns>
         private bool IsOpenableInventory(string type)
         {
-            return type is VanillaBlockType.Chest or VanillaBlockType.ElectricGenerator or VanillaBlockType.ElectricMiner or VanillaBlockType.ElectricMachine;
-        }
-        
-        /// <summary>
-        ///     どのブロックステートプロセッサーを使うかを決める
-        /// </summary>
-        private IBlockStateChangeProcessor GetBlockStateChangeProcessor(BlockGameObject block, string blockType)
-        {
-            if (block.TryGetComponent<IBlockStateChangeProcessor>(out var stateChangeProcessor)) return stateChangeProcessor;
-            
-            return blockType switch
-            {
-                VanillaBlockType.ElectricMiner => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
-                _ => new NullBlockStateChangeProcessor(),
-            };
+            return type is
+                BlockTypeConst.Chest or
+                BlockTypeConst.ElectricGenerator or
+                BlockTypeConst.ElectricMiner or
+                BlockTypeConst.ElectricMachine or
+                BlockTypeConst.GearMachine or
+                BlockTypeConst.GearMiner;
         }
     }
 }

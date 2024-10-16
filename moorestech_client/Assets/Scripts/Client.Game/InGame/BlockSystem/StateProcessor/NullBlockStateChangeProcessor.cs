@@ -1,3 +1,5 @@
+using Server.Event.EventReceive;
+
 namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
     /// <summary>
@@ -5,7 +7,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public class NullBlockStateChangeProcessor : IBlockStateChangeProcessor
     {
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
+        public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
         }
     }

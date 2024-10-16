@@ -5,7 +5,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
     public class ItemMoveInventoryInfo
     {
         public readonly ItemMoveInventoryType ItemMoveInventoryType;
-        public readonly Vector3Int Pos;
+        public readonly Vector3Int Pos; // TODO こういうところをポジションベースからinstance idベースにする
         
         /// <summary>
         ///     アイテム移動用のパラメータクラスです

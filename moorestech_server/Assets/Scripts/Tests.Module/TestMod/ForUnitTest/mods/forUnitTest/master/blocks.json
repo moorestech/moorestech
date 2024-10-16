@@ -651,10 +651,26 @@
               "connectType": "Inventory",
               "connectOption": {},
               "directions": [
-                [0, 0, -1],
-                [0, 0, 1],
-                [1, 0, 0],
-                [-1, 0, 0]
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ]
             }
           ],
@@ -714,7 +730,11 @@
               ],
               "connectType": "Inventory",
               "directions": [
-                [0, 0, 1]
+                [
+                  0,
+                  0,
+                  1
+                ]
               ],
               "connectOption": {}
             },
@@ -726,7 +746,11 @@
               ],
               "connectType": "Inventory",
               "directions": [
-                [0, 0, -1]
+                [
+                  0,
+                  0,
+                  -1
+                ]
               ],
               "connectOption": {}
             }
@@ -776,10 +800,26 @@
               ],
               "connectType": "Inventory",
               "directions": [
-                [0, 0, -1],
-                [0, 0, 1],
-                [1, 0, 0],
-                [-1, 0, 0]
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ],
               "connectOption": {}
             }
@@ -2273,6 +2313,124 @@
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001b"
+    },
+    {
+      "name": "GearMiner",
+      "blockType": "GearMiner",
+      "blockGuid": "00000000-0000-0000-0000-00000000001c",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        },
+        "requiredRpm": 10,
+        "teethCount": 10,
+        "requireTorque": 1,
+        "mineSettings": [
+          {
+            "time": 1,
+            "itemGuid": "00000000-0000-0000-1234-000000000001"
+          }
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
     }
   ]
 }
