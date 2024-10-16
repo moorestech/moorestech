@@ -16,9 +16,7 @@ namespace Game.Map
             foreach (var veinJson in mapInfoJson.MapVeins)
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(veinJson.VeinItemGuid);
-                var vein = new MapVein(itemId,
-                    new Vector3Int(veinJson.XMin, veinJson.YMin),
-                    new Vector3Int(veinJson.XMax, veinJson.YMax));
+                var vein = new MapVein(itemId, veinJson.MinPosition, veinJson.MaxPosition);
                 _mapVeins.Add(vein);
             }
         }

@@ -3,16 +3,16 @@
     {
       "instanceId": 0,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -64.31,
+      "x": 7.91905975,
       "y": 0.0,
-      "z": 15.88
+      "z": 14.517909
     },
     {
       "instanceId": 1,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": 7.91905975,
+      "x": -64.31,
       "y": 0.0,
-      "z": 14.517909
+      "z": 15.88
     },
     {
       "instanceId": 2,
@@ -122,16 +122,16 @@
     {
       "instanceId": 17,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -16.5618439,
+      "x": -15.4159279,
       "y": 0.0,
-      "z": -6.646616
+      "z": 10.9789886
     },
     {
       "instanceId": 18,
       "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
-      "x": -15.4159279,
+      "x": -16.5618439,
       "y": 0.0,
-      "z": 10.9789886
+      "z": -6.646616
     },
     {
       "instanceId": 19,
@@ -1842,5 +1842,15 @@
       "z": 1.39915466
     }
   ],
-  "mapVeins": []
+  "mapVeins": [
+    {
+      "veinItemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0",
+      "minX": 4,
+      "minY": 0,
+      "minZ": 7,
+      "maxX": 7,
+      "maxY": 1,
+      "maxZ": 10
+    }
+  ]
 }

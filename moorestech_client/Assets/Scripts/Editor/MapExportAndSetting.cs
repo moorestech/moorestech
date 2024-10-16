@@ -67,10 +67,13 @@ public class MapExportAndSetting : EditorWindow
                 var config = new MapVeinInfoJson
                 {
                     VeinItemGuidStr = vein.VeinItemGuid.ToString(),
-                    XMin = vein.VeinRangeMinPos.x,
-                    YMin = vein.VeinRangeMinPos.y,
-                    XMax = vein.VeinRangeMaxPos.x,
-                    YMax = vein.VeinRangeMaxPos.y,
+                    MinX = vein.MinPosition.x,
+                    MinY = vein.MinPosition.y,
+                    MinZ = vein.MinPosition.z,
+                    
+                    MaxX = vein.MaxPosition.x,
+                    MaxY = vein.MaxPosition.y,
+                    MaxZ = vein.MaxPosition.z,
                 };
                 result.Add(config);
             }
