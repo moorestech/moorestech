@@ -59,7 +59,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         public int Count => _blockItemSlotObjects.Count;
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
-        public List<IItemStack> SubInventory { get; private set; }
+        public List<IItemStack> SubInventory { get; private set; } = new();
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
         
         private BlockGameObject _currentBlockGameObject;

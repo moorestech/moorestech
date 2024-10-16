@@ -24,12 +24,12 @@ namespace Client.Game.InGame.Block
         private List<VisualEffect> _visualEffects;
         
         
-        public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo, IBlockStateChangeProcessor blockStateChangeProcessor)
+        public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
         {
             BlockPosInfo = posInfo;
             BlockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             BlockMasterElement = blockMasterElement;
-            BlockStateChangeProcessors = new List<IBlockStateChangeProcessor>() {blockStateChangeProcessor}; //TODO ここの構成は考える
+            BlockStateChangeProcessors = gameObject.GetComponentsInChildren<IBlockStateChangeProcessor>().ToList();
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
            
