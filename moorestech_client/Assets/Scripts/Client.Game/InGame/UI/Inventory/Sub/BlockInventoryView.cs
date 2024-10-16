@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
-using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -20,6 +18,31 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
+        #region Chest
+        
+        [SerializeField] private RectTransform chestItemParent;
+        [SerializeField] private RectTransform chestSlotsParent;
+        
+        #endregion
+        
+        #region Miner
+        
+        [SerializeField] private RectTransform minerItemParent;
+        [SerializeField] private ItemSlotObject minerResourceSlot;
+        [SerializeField] private RectTransform minerResultsParent;
+        
+        #endregion
+        
+        #region Machine
+        
+        [SerializeField] private GameObject machineUIParent;
+        
+        [SerializeField] private RectTransform machineInputItemParent;
+        [SerializeField] private RectTransform machineOutputItemParent;
+        [SerializeField] private TMP_Text machineBlockNameText;
+        
+        #endregion
+        
         #region Generator
         
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
@@ -28,26 +51,24 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public int Count => _blockItemSlotObjects.Count;
+        private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
         public List<IItemStack> SubInventory { get; private set; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
         
         private BlockGameObject _currentBlockGameObject;
-        private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
+        private BlockInventoryType _currentBlockInventoryType;
         
-        public void SetActive(bool isActive)
-        {
-            gameObject.SetActive(isActive);
-        }
-        
-        public void SetBlockInventoryType(BlockInventoryType type, BlockGameObject blockGameObject)
+        public void OpenBlockInventoryType(BlockInventoryType type, BlockGameObject blockGameObject)
         {
             _currentBlockGameObject = blockGameObject;
+            _currentBlockInventoryType = type;
             var itemStackFactory = ServerContext.ItemStackFactory;
             var param = blockGameObject.BlockMasterElement.BlockParam;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
             
             Clear();
+            gameObject.SetActive(true);
             
             switch (type)
             {
@@ -169,12 +190,18 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             #endregion
         }
         
+        public void CloseBlockInventory()
+        {
+            gameObject.SetActive(false);
+            _currentBlockGameObject = null;
+        }
+        
         public void SetItemList(List<IItemStack> itemStacks)
         {
             SubInventory = itemStacks;
         }
         
-        public void SetItemSlot(int slot, IItemStack item)
+        public void UpdateInventorySlot(int slot, IItemStack item)
         {
             if (SubInventory.Count <= slot)
             {
@@ -185,31 +212,12 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             SubInventory[slot] = item;
         }
         
-        
-        #region Chest
-        
-        [SerializeField] private RectTransform chestItemParent;
-        [SerializeField] private RectTransform chestSlotsParent;
-        
-        #endregion
-        
-        #region Miner
-        
-        [SerializeField] private RectTransform minerItemParent;
-        [SerializeField] private ItemSlotObject minerResourceSlot;
-        [SerializeField] private RectTransform minerResultsParent;
-        
-        #endregion
-        
-        #region Machine
-        
-        [SerializeField] private GameObject machineUIParent;
-        
-        [SerializeField] private RectTransform machineInputItemParent;
-        [SerializeField] private RectTransform machineOutputItemParent;
-        [SerializeField] private TMP_Text machineBlockNameText;
-        
-        #endregion
+        private void Update()
+        {
+            // ブロックの登録がなければ処理を終了
+            if (_currentBlockGameObject == null) return;
+            
+        }
     }
     
     public enum BlockInventoryType

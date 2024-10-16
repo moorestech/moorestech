@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState
             _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
             
-            blockInventoryView.SetActive(false);
+            blockInventoryView.CloseBlockInventory();
         }
         
         public UIStateEnum GetNext()
@@ -65,10 +65,9 @@ namespace Client.Game.InGame.UI.UIState
                 _ => throw new ArgumentOutOfRangeException(),
             };
             
-            _blockInventoryView.SetBlockInventoryType(type, blockGameObject);
+            _blockInventoryView.OpenBlockInventoryType(type, blockGameObject);
             
             //UIのオブジェクトをオンにする
-            _blockInventoryView.SetActive(true);
             _playerInventoryViewController.SetActive(true);
             _playerInventoryViewController.SetSubInventory(_blockInventoryView);
         }
@@ -80,7 +79,7 @@ namespace Client.Game.InGame.UI.UIState
             
             ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
             
-            _blockInventoryView.SetActive(false);
+            _blockInventoryView.CloseBlockInventory();
             _playerInventoryViewController.SetActive(false);
         }
         

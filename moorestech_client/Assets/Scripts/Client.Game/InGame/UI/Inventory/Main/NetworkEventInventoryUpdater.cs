@@ -52,7 +52,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
             var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
-            _blockInventoryView.SetItemSlot(packet.Slot, item);
+            _blockInventoryView.UpdateInventorySlot(packet.Slot, item);
         }
     }
 }
