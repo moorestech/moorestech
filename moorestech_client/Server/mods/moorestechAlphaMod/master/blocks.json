@@ -27,7 +27,7 @@
         1,
         2
       ],
-      "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
+      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2",
       "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
       "blockType": "GearMiner",
       "blockParam": {
@@ -192,18 +192,87 @@
     {
       "maxStack": 100,
       "blockSize": [
-        1,
-        1,
-        1
+        3,
+        2,
+        3
       ],
       "name": "ブロンズ製材機",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 5,
+        "requiredRpm": 30,
         "requireTorque": 1,
         "teethCount": 10,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Inventory"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                2,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        }
       },
       "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
       "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257"
@@ -237,7 +306,68 @@
       "blockType": "Gear",
       "blockParam": {
         "requireTorque": 1,
-        "teethCount": 10
+        "teethCount": 10,
+        
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        }
       },
       "blockGuid": "33dffd6d-b2d7-4f4d-b271-70851dada0ad"
     }
