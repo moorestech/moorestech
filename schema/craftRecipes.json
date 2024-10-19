@@ -30,6 +30,11 @@
             "default": 1
           },
 
+          "craftTime": {
+            "type": "number",
+            "default": 3
+          },
+
           "requiredItems": {
             "type": "array",
             "items": {
