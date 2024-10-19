@@ -48,17 +48,17 @@
           {
             "attackSpeed": 8,
             "damage": 10,
-            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
+            "toolItemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
           },
           {
-            "attackSpeed": 4,
+            "attackSpeed": 2,
             "damage": 10,
-            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+            "toolItemGuid": "433735a5-8e53-4942-8c0f-6b19f8c70dfa"
           },
           {
             "attackSpeed": 3,
-            "damage": 20,
-            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
+            "damage": 30,
+            "toolItemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e"
           }
         ]
       }
@@ -75,9 +75,10 @@
       "earnItemHps": [
         0,
         1,
-        2
+        2,
+        3
       ],
-      "hp": 3,
+      "hp": 4,
       "mapObjectName": "ブロンズ鉱石",
       "soundEffectType": "stone",
       "miningType": "Mining",
@@ -93,12 +94,12 @@
           {
             "attackSpeed": 7,
             "damage": 1,
-            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+            "toolItemGuid": "433735a5-8e53-4942-8c0f-6b19f8c70dfa"
           },
           {
-            "attackSpeed": 4,
+            "attackSpeed": 2,
             "damage": 1,
-            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
+            "toolItemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e"
           }
         ]
       },
@@ -129,19 +130,14 @@
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 2,
+            "attackSpeed": 5,
             "damage": 1,
-            "toolItemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0"
+            "toolItemGuid": "433735a5-8e53-4942-8c0f-6b19f8c70dfa"
           },
           {
-            "attackSpeed": 4,
+            "attackSpeed": 1.5,
             "damage": 1,
-            "toolItemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83"
-          },
-          {
-            "attackSpeed": 1,
-            "damage": 1,
-            "toolItemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11"
+            "toolItemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e"
           }
         ]
       },
