@@ -7,7 +7,7 @@
         1,
         1
       ],
-      "itemGuid": "0990bb6b-de52-4a2f-9e69-6e7d398cfbcf",
+      "itemGuid": "de89dc5c-b9d1-40f4-97ef-6b0bdcdd9379",
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 0,
@@ -22,54 +22,12 @@
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a"
     },
     {
-      "craftResultCount": 1,
-      "time": 1,
-      "blockGuid": "70aa5dd1-6b96-466b-8460-c9ff25b4b963",
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "itemGuid": "c60d22eb-267a-4291-8084-9744a169b79c",
-      "name": "キャンプファイア",
-      "blockType": "ElectricMachine",
-      "blockParam": {
-        "requiredPower": 0,
-        "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        }
-      }
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "itemGuid": "cf4f08af-27b8-4264-81ac-147882b10bc3",
-      "blockGuid": "e0b5dd62-9d8c-4b84-8a28-6b804ccf1efb",
-      "name": "炭窯",
-      "blockType": "ElectricMachine",
-      "blockParam": {
-        "requiredPower": 0,
-        "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        }
-      }
-    },
-    {
       "blockSize": [
         2,
         1,
         2
       ],
-      "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c",
+      "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
       "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
       "blockType": "GearMiner",
       "blockParam": {
@@ -130,29 +88,7 @@
           ]
         }
       },
-      "name": "ブロンズ採掘機"
-    },
-    {
-      "craftResultCount": 1,
-      "time": 1,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637",
-      "blockType": "ElectricMachine",
-      "blockParam": {
-        "requiredPower": 0,
-        "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        }
-      },
-      "blockGuid": "fac2e58f-48d0-41f1-b65d-9f1d5f79f7e3",
-      "name": "溶鉱炉"
+      "name": "ブロンズ製材機"
     },
     {
       "maxStack": 100,
@@ -161,7 +97,7 @@
         5,
         2
       ],
-      "itemGuid": "acba1a0d-6baf-49fe-96c5-15acef03e751",
+      "itemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
         "requireTorque": 0,
@@ -218,7 +154,7 @@
         1,
         1
       ],
-      "itemGuid": "d5cfac45-1ab8-4f51-87b9-00ab88da1bda",
+      "itemGuid": "0559e1c6-5a63-40bc-92d8-64167fa6c3ba",
       "blockType": "Shaft",
       "blockParam": {
         "requireTorque": 0,
@@ -252,6 +188,58 @@
       },
       "blockGuid": "30c41beb-e95b-4514-9e3c-75a066571d49",
       "name": "原始的なシャフト"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ブロンズ製材機",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 5,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1
+      },
+      "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
+      "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "レンガ作りの精錬炉",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 5,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1
+      },
+      "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311",
+      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "原始的な木の歯車",
+      "itemGuid": "0c17174c-bfb2-43a8-ab99-bb4274cb3927",
+      "blockType": "Gear",
+      "blockParam": {
+        "requireTorque": 1,
+        "teethCount": 10
+      },
+      "blockGuid": "33dffd6d-b2d7-4f4d-b271-70851dada0ad"
     }
   ]
 }
