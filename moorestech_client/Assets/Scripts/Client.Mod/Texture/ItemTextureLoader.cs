@@ -39,18 +39,17 @@ namespace Client.Mod.Texture
             var textureList = new List<ItemViewData>();
             foreach (var itemId in itemIds)
             {
-                var itemIdMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
                 Texture2D texture = null;
                 Sprite sprite = null;
                 
-                if (itemIdMaster.ImagePath != null)
-                {
-                    texture = GetExtractedZipTexture.Get(mod.ExtractedPath, itemIdMaster.ImagePath);
-                    if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemIdMaster.Name);
-                    sprite = texture.ToSprite();
-                }
+                var path = itemMaster.ImagePath ?? $"asset/item/{itemMaster.Name}.png";
                 
-                textureList.Add(new ItemViewData(sprite, texture, itemIdMaster));
+                texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
+                if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
+                sprite = texture.ToSprite();
+                
+                textureList.Add(new ItemViewData(sprite, texture, itemMaster));
             }
             
             return textureList;
