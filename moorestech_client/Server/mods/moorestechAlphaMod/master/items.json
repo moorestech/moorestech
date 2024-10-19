@@ -45,14 +45,7 @@
       "imagePath": "assets/item/bronze ore.png"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "maxStack": 100,
-      "craftTime": 3,
-      "craftResultCount": 1,
       "name": "加工した原木",
       "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
     },
@@ -110,6 +103,41 @@
       "maxStack": 100,
       "name": "原始的な風車",
       "itemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズカッターの型",
+      "itemGuid": "c82061f7-f4b2-45bc-8323-40f76dece8f2"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズドリル",
+      "itemGuid": "96e59fa9-8468-4315-b8b8-8e087a146dbb"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズ採掘機",
+      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2"
+    },
+    {
+      "maxStack": 100,
+      "name": "レンガ",
+      "itemGuid": "975384df-a166-48a6-a5cf-d631f48715c0"
+    },
+    {
+      "maxStack": 100,
+      "name": "レンガ作りの精錬炉",
+      "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311"
+    },
+    {
+      "maxStack": 100,
+      "name": "原始的な木の歯車",
+      "itemGuid": "0c17174c-bfb2-43a8-ab99-bb4274cb3927"
+    },
+    {
+      "maxStack": 100,
+      "name": "原始的な木のシャフト",
+      "itemGuid": "0559e1c6-5a63-40bc-92d8-64167fa6c3ba"
     }
   ]
 }
