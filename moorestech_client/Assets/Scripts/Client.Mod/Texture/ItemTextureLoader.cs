@@ -43,7 +43,7 @@ namespace Client.Mod.Texture
                 Texture2D texture = null;
                 Sprite sprite = null;
                 
-                var path = itemMaster.ImagePath ?? $"asset/item/{itemMaster.Name}.png";
+                var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? $@"assets\item\{itemMaster.Name}.png" : itemMaster.ImagePath;
                 
                 texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
                 if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);

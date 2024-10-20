@@ -62,6 +62,11 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         {
             _isInteractable = interactable;
             buttonImage.color = interactable ? interactableColor : nonInteractableColor;
+            
+            if (!_isInteractable)
+            {
+                ResetButton();
+            }
         }
         
         #region このフラグはあとで決定して消す
@@ -80,6 +85,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 _isButtonDown = true;
             }
         }
+        
         public void OnPointerUp(PointerEventData eventData)
         {
             if (_isInteractable)
@@ -93,8 +99,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         {
             if (!_isInteractable)
             {
-                MouseCursorExplainer.Instance.Show("アイテムが足りないためクラフトできません",isLocalize:false);
+                MouseCursorExplainer.Instance.Show("アイテムが足りないためクラフトできません", isLocalize: false);
             }
+            
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
         }
         
@@ -107,7 +114,15 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void OnDisable()
         {
+            ResetButton();
+        }
+        
+        private void ResetButton()
+        {
             MouseCursorExplainer.Instance.Hide();
+            _buttonDownElapsed = 0;
+            _isCursorStay = false;
+            _isButtonDown = false;
         }
     }
 }

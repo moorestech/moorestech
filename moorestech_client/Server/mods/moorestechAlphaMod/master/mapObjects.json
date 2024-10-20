@@ -48,7 +48,7 @@
           {
             "attackSpeed": 8,
             "damage": 10,
-            "toolItemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61"
+            "toolItemGuid": "f3934127-877a-4692-b9a0-cdaaca3d1b90"
           },
           {
             "attackSpeed": 2,
@@ -56,7 +56,7 @@
             "toolItemGuid": "433735a5-8e53-4942-8c0f-6b19f8c70dfa"
           },
           {
-            "attackSpeed": 3,
+            "attackSpeed": 1.5,
             "damage": 30,
             "toolItemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e"
           }

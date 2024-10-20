@@ -4,7 +4,7 @@
       "maxStack": 100,
       "name": "石",
       "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61",
-      "imagePath": "assets/item/stone.png"
+      "imagePath": "assets/item/石.png"
     },
     {
       "earnItemHps": [
@@ -36,13 +36,13 @@
       "maxStack": 100,
       "name": "原木",
       "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488",
-      "imagePath": "assets/item/log.png"
+      "imagePath": "assets/item/原木.png"
     },
     {
       "maxStack": 100,
       "name": "ブロンズ鉱石",
       "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0",
-      "imagePath": "assets/item/bronze ore.png"
+      "imagePath": "assets/item/ブロンズ鉱石.png"
     },
     {
       "maxStack": 100,
@@ -138,6 +138,18 @@
       "maxStack": 100,
       "name": "原始的な木のシャフト",
       "itemGuid": "0559e1c6-5a63-40bc-92d8-64167fa6c3ba"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "name": "石器",
+      "itemGuid": "f3934127-877a-4692-b9a0-cdaaca3d1b90"
     }
   ]
 }

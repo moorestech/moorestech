@@ -88,7 +88,7 @@
           ]
         }
       },
-      "name": "ブロンズ製材機"
+      "name": "ブロンズ採掘機"
     },
     {
       "maxStack": 100,
@@ -245,7 +245,7 @@
               "offset": [
                 0,
                 0,
-                1
+                0
               ],
               "connectType": "Gear",
               "connectOption": {
@@ -263,7 +263,7 @@
               "offset": [
                 2,
                 0,
-                1
+                0
               ],
               "directions": [
                 [

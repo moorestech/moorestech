@@ -11,7 +11,7 @@
           "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
         },
         {
-          "count": 5,
+          "count": 3,
           "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
         }
       ],
@@ -28,7 +28,7 @@
       "time": 1,
       "inputItems": [
         {
-          "count": 5,
+          "count": 3,
           "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
         },
         {
@@ -54,11 +54,11 @@
       "time": 1,
       "inputItems": [
         {
-          "count": 5,
+          "count": 8,
           "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
         },
         {
-          "count": 1,
+          "count": 2,
           "itemGuid": "693312d3-7e3a-4489-8746-4eebbc8dbd67"
         },
         {
@@ -74,17 +74,17 @@
         }
       ],
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
-      "machineRecipeGuid": "1239e81-7217-420a-b328-1939a19cb335"
+      "machineRecipeGuid": "261c5041-5bde-4fe5-b2e4-4dcb980979ba"
     },
     {
       "time": 1,
       "inputItems": [
         {
-          "count": 5,
+          "count": 15,
           "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
         },
         {
-          "count": 1,
+          "count": 5,
           "itemGuid": "693312d3-7e3a-4489-8746-4eebbc8dbd67"
         },
         {
@@ -100,7 +100,7 @@
         }
       ],
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
-      "machineRecipeGuid": "01a8e81-7217-420a-b328-1939a19cb335"
+      "machineRecipeGuid": "9e318e0b-75b9-4f4c-97d0-c024655cc9eb"
     },
     {
       "blockSize": [

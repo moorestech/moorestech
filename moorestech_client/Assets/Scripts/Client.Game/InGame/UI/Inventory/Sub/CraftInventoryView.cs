@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             _localPlayerInventory = localPlayerInventory;
             _localPlayerInventory.OnItemChange.Subscribe(_ =>
             {
-                if (_currentItemRecipes != null)
+                if (_currentItemRecipes != null && _currentIndex < CraftRecipeCount)
                 {
                     UpdateCraftButton(_currentItemRecipes.CraftRecipes[_currentIndex]);
                 }
