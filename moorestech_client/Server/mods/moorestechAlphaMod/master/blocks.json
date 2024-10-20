@@ -212,7 +212,10 @@
                 0,
                 0
               ],
-              "connectType": "Inventory"
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              }
             }
           ],
           "outputConnects": [
@@ -229,7 +232,10 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "isReverse": true
+              }
             }
           ]
         },
@@ -290,7 +296,14 @@
         "requireTorque": 1,
         "teethCount": 10,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1
+        "inputItemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "gear": {
+          "gearConnects": []
+        }
       },
       "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf"
@@ -307,7 +320,6 @@
       "blockParam": {
         "requireTorque": 1,
         "teethCount": 10,
-        
         "gear": {
           "gearConnects": [
             {

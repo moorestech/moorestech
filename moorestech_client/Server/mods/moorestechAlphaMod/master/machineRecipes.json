@@ -101,6 +101,31 @@
       ],
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
       "machineRecipeGuid": "01a8e81-7217-420a-b328-1939a19cb335"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "time": 1,
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
+      "inputItems": [
+        {
+          "count": 3,
+          "itemGuid": "0a706c5c-eb74-4bb1-b13c-1319f38ac154"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "975384df-a166-48a6-a5cf-d631f48715c0"
+        }
+      ],
+      "machineRecipeGuid": "2d5e4d0c-ed24-4753-b386-fb518e2fd9fa"
     }
   ]
 }
