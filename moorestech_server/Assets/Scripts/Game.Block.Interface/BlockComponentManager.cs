@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.ComponentAttribute;
 
 namespace Game.Block.Interface
 {
