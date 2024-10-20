@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.ComponentAttribute;
 
@@ -67,11 +68,20 @@ namespace Game.Block.Interface
             
             void CheckDisallowMultiple()
             {
-                var disallowMultiple = Attribute.GetCustomAttribute(blockComponent.GetType(), typeof(DisallowMultiple));
-                if (disallowMultiple == null) return;
+                var componentType = blockComponent.GetType();
+                var interfaces = componentType.GetInterfaces();
                 
-                if (_disallowMultiple.ContainsKey(blockComponent.GetType())) throw new InvalidOperationException($"This component is already added. {blockComponent.GetType()}");
-                _disallowMultiple.Add(blockComponent.GetType(), blockComponent);
+                foreach (var iface in interfaces)
+                {
+                    var attrs = iface.GetCustomAttributes(typeof(DisallowMultiple), true);
+                    if (attrs.Length > 0)
+                    {
+                        if (_blockComponents.Any(c => iface.IsInstanceOfType(c)))
+                        {
+                            throw new InvalidOperationException($"{iface.Name}は既に追加されています。");
+                        }
+                    }
+                }
             }
             
             #endregion
