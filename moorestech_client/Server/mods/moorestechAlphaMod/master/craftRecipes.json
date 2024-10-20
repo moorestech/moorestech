@@ -64,6 +64,100 @@
         }
       ],
       "craftRecipeGuid": "0141680f-4146-4bdb-b1be-c1bdb85bf981"
+    },
+    {
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "craftTime": 4,
+      "craftResultCount": 1,
+      "maxStack": 100,
+      "craftResultItemGuid": "6b54897e-e7cb-4df7-807e-1597c2a859da",
+      "requiredItems": [
+        {
+          "count": 3,
+          "itemGuid": "0a706c5c-eb74-4bb1-b13c-1319f38ac154"
+        }
+      ],
+      "craftRecipeGuid": "bc4efda0-9707-48dc-9474-834db250ffda"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "craftResultItemGuid": "99c95d35-9ba8-4027-9d88-48174a7322fa",
+      "requiredItems": [
+        {
+          "count": 3
+        }
+      ],
+      "craftRecipeGuid": "92585d73-55e4-4ce1-a3c9-9e67ebcf74b2"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "craftResultItemGuid": "c82061f7-f4b2-45bc-8323-40f76dece8f2",
+      "requiredItems": [
+        {
+          "count": 3
+        }
+      ],
+      "craftRecipeGuid": "5d6e5479-c2e7-49c5-bfdb-c0274515083c"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "craftResultItemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e",
+      "requiredItems": [
+        {
+          "count": 1,
+          "itemGuid": "92fe1a42-ad46-4ff3-aa9a-83a9262c34d6"
+        },
+        {
+          "count": 1,
+          "itemGuid": "d382f613-8dec-4c87-b72c-c75f8d18ce73"
+        },
+        {
+          "count": 1,
+          "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
+        }
+      ],
+      "craftRecipeGuid": "8ec19b21-7e01-4932-9198-1ea7e5f9c2bf"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "craftResultItemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
+      "requiredItems": [
+        {
+          "count": 1,
+          "itemGuid": "ee7c1edf-32ba-4bd2-962c-d29ee1309730"
+        },
+        {
+          "count": 10,
+          "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
+        }
+      ],
+      "craftRecipeGuid": "93c83117-c519-4673-9a81-062393722e51"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "requiredItems": [
+        {
+          "count": 15,
+          "itemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8"
+        }
+      ],
+      "craftRecipeGuid": "d0e72dca-b0f0-4d0b-af72-cfb5f489f7c8",
+      "craftResultItemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8"
     }
   ]
 }
