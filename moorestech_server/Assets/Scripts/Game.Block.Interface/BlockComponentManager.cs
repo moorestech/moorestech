@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.ComponentAttribute;
 
 namespace Game.Block.Interface
 {
@@ -74,12 +73,11 @@ namespace Game.Block.Interface
                 foreach (var iface in interfaces)
                 {
                     var attrs = iface.GetCustomAttributes(typeof(DisallowMultiple), true);
-                    if (attrs.Length > 0)
+                    if (attrs.Length == 0) continue;
+                    
+                    if (_blockComponents.Any(c => iface.IsInstanceOfType(c)))
                     {
-                        if (_blockComponents.Any(c => iface.IsInstanceOfType(c)))
-                        {
-                            throw new InvalidOperationException($"{iface.Name}は既に追加されています。");
-                        }
+                        throw new InvalidOperationException($"{iface.Name}は既に追加されています。");
                     }
                 }
             }
