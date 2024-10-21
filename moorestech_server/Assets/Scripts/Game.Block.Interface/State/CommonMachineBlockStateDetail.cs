@@ -33,14 +33,17 @@ namespace Game.Block.Interface.State
         /// </summary>
         [Key(3)] public float ProcessingRate;
         
-
-        
         public CommonMachineBlockStateDetail(float currentPower, float requestPower, float processingRate, string currentStateType, string previousStateType)
         {
             PowerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
             this.ProcessingRate = processingRate;
             CurrentStateType = currentStateType;
             PreviousStateType = previousStateType;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public CommonMachineBlockStateDetail()
+        {
         }
     }
 }

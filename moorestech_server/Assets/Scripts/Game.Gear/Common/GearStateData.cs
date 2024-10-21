@@ -1,3 +1,4 @@
+using System;
 using MessagePack;
 
 namespace Game.Gear.Common
@@ -14,6 +15,11 @@ namespace Game.Gear.Common
         {
             CurrentRpm = currentRpm;
             IsClockwise = isClockwise;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public GearStateData()
+        {
         }
     }
 }
