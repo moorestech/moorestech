@@ -229,9 +229,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     CommonMachineUpdate();
                     break;
             }
-            
-            
         }
+        
         private void CommonMachineUpdate()
         {
             // ここが重かったら検討
