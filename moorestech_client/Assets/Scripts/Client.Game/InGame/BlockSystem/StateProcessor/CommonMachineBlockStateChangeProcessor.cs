@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public class CommonMachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
-        public CommonMachineBlockStateChangeData CurrentMachineState { get; private set; }
+        public CommonMachineBlockStateDetail CurrentMachineState { get; private set; }
         
         private AudioSource _audioSource;
         private ParticleSystem _machineEffect;
@@ -37,9 +37,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
-            CurrentMachineState = blockState.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
-            var currentState = blockState.CurrentState;
-            var previousState = blockState.PreviousState;
+            CurrentMachineState = blockState.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+            var currentState = CurrentMachineState.CurrentStateType;
+            var previousState = CurrentMachineState.PreviousStateType;
             
             switch (currentState)
             {

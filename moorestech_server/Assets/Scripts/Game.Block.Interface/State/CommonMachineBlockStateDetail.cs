@@ -26,19 +26,19 @@ namespace Game.Block.Interface.State
         ///     必要な電力に対してどの程度電力が来ているかを表す
         ///     アニメーションを再生する速度に利用する
         /// </summary>
-        [Key(2)] public float powerRate;
+        [Key(2)] public float PowerRate;
         
         /// <summary>
         ///     アイテムの作成がどれくらい進んでいるかを表す
         /// </summary>
-        [Key(3)] public float processingRate;
+        [Key(3)] public float ProcessingRate;
         
 
         
         public CommonMachineBlockStateDetail(float currentPower, float requestPower, float processingRate, string currentStateType, string previousStateType)
         {
-            powerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
-            this.processingRate = processingRate;
+            PowerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
+            this.ProcessingRate = processingRate;
             CurrentStateType = currentStateType;
             PreviousStateType = previousStateType;
         }
