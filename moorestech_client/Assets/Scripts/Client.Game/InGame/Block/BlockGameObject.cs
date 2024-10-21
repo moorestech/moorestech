@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Block
         
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
-        private bool _isShaderAnimationing;
+        private bool _isShaderAnimating;
         private List<VisualEffect> _visualEffects;
         
         
@@ -47,16 +47,16 @@ namespace Client.Game.InGame.Block
         
         public async UniTask PlayPlaceAnimation()
         {
-            _isShaderAnimationing = true;
+            _isShaderAnimating = true;
             SetVfxActive(false);
             await _blockShaderAnimation.PlaceAnimation();
-            _isShaderAnimationing = false;
+            _isShaderAnimating = false;
             SetVfxActive(true);
         }
         
         public void SetRemovePreviewing()
         {
-            if (_isShaderAnimationing) return;
+            if (_isShaderAnimating) return;
             var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
             
             _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
@@ -66,13 +66,13 @@ namespace Client.Game.InGame.Block
         
         public void ResetMaterial()
         {
-            if (_isShaderAnimationing) return;
+            if (_isShaderAnimating) return;
             _rendererMaterialReplacerController.ResetMaterial();
         }
         
         public async UniTask DestroyBlock()
         {
-            _isShaderAnimationing = true;
+            _isShaderAnimating = true;
             SetVfxActive(false);
             await _blockShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
