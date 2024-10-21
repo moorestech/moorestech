@@ -10,7 +10,7 @@ namespace Client.Mod.Texture
         public static Texture2D Get(string extractedModDirectory, string path)
         {
             //TODO ログ基盤
-            var imgPath = extractedModDirectory + "\\" + path;
+            var imgPath = Path.Combine(extractedModDirectory, path);
             
             //そのパスにファイルがあるかを確認
             if (!File.Exists(imgPath))

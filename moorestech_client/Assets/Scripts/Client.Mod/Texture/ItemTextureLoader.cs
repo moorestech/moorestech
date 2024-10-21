@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Client.Common;
 using Core.Master;
@@ -10,7 +11,6 @@ namespace Client.Mod.Texture
 {
     public static class ItemTextureLoader
     {
-        private const string ModTextureDirectory = "assets/item/";
         
         public static Dictionary<ItemId, ItemViewData> GetItemTexture(string modDirectory)
         {
@@ -43,7 +43,9 @@ namespace Client.Mod.Texture
                 Texture2D texture = null;
                 Sprite sprite = null;
                 
-                var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? $@"assets\item\{itemMaster.Name}.png" : itemMaster.ImagePath;
+                var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? 
+                    Path.Combine("assets","item",$"{itemMaster.Name}.png") : 
+                    itemMaster.ImagePath;
                 
                 texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
                 if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
