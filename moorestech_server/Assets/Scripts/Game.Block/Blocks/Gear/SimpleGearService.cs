@@ -34,8 +34,8 @@ namespace Game.Block.Blocks.Gear
         
         public BlockStateDetail GetBlockStateDetail()
         {
-            var stateData = MessagePackSerializer.Serialize(new GearStateData(CurrentRpm.AsPrimitive(), IsCurrentClockwise));
-            return new BlockStateDetail(GearStateData.BlockStateDetailKey, stateData);
+            var stateData = MessagePackSerializer.Serialize(new GearStateDetail(CurrentRpm.AsPrimitive(), IsCurrentClockwise));
+            return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, stateData);
         }
         
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
