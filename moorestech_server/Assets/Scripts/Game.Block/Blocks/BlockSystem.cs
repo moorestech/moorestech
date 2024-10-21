@@ -20,18 +20,17 @@ namespace Game.Block.Blocks
         public Guid BlockGuid => BlockMasterElement.BlockGuid;
         public BlockMasterElement BlockMasterElement { get; }
         public IBlockComponentManager ComponentManager => _blockComponentManager;
+        private readonly BlockComponentManager _blockComponentManager = new();
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
-        
-        
-        private readonly BlockComponentManager _blockComponentManager = new();
-        
-        private readonly IBlockStateChange _blockStateChange;
         private readonly Subject<BlockState> _onBlockStateChange = new();
+        
+        
+        
         private readonly IDisposable _blockUpdateDisposable;
         
-        private readonly IUpdatableBlockComponent[] _updatableComponents;
-        private readonly IBlockStateDetail[] _blockStateDetails;
+        private readonly List<IUpdatableBlockComponent> _updatableComponents;
+        private readonly List<IBlockStateDetail> _blockStateDetails;
         
         
         public BlockSystem(BlockInstanceId blockInstanceId, Guid blockGuid, List<IBlockComponent> blockComponents, BlockPositionInfo blockPositionInfo)
@@ -44,21 +43,21 @@ namespace Game.Block.Blocks
             _blockComponentManager = new BlockComponentManager();
             _blockComponentManager.AddComponents(blockComponents);
             
-            _blockStateChange = _blockComponentManager.GetComponent<IBlockStateChange>();
-            _blockStateChange?.OnChangeBlockState.Subscribe(_ => { _onBlockStateChange.OnNext(GetBlockState()); });
+            // 各コンポーネントのステートの変化を検知
+            foreach (var blockState in _blockComponentManager.GetComponents<IBlockStateObservable>())
+            {
+                blockState.OnChangeBlockState.Subscribe(_ => { _onBlockStateChange.OnNext(GetBlockState()); });
+            }
             
             // NOTE 他の場所からコンポーネントを追加するようになったら、このリストに追加するようにする
-            _updatableComponents = blockComponents.OfType<IUpdatableBlockComponent>().ToArray();
-            _blockStateDetails = blockComponents.OfType<IBlockStateDetail>().ToArray();
+            _updatableComponents = _blockComponentManager.GetComponents<IUpdatableBlockComponent>();
+            _blockStateDetails = _blockComponentManager.GetComponents<IBlockStateDetail>();
             
             _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
         public BlockState GetBlockState()
         {
-            if (_blockStateChange == null) return null;
-            
-            var state = _blockStateChange.GetBlockState();
             var detailStates = new Dictionary<string, byte[]>();
             foreach (var component in _blockStateDetails)
             {
@@ -66,7 +65,7 @@ namespace Game.Block.Blocks
                 detailStates.Add(detailState.Key, detailState.Value);
             }
             
-            return new BlockState(state, detailStates);
+            return new BlockState(detailStates);
         }
         
         public string GetSaveState()

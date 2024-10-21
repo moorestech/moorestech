@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateChange, IBlockStateDetail
+    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable, IBlockStateDetail
     {
         public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
@@ -38,11 +38,6 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService = new SimpleGearService();
             
             GearNetworkDatastore.AddGear(this);
-        }
-        
-        public BlockStateTypes GetBlockState()
-        {
-            return _simpleGearService.GetBlockState();
         }
         
         public BlockStateDetail GetBlockStateDetail()

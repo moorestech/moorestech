@@ -10,23 +10,11 @@ namespace Game.Block.Interface.State
     /// </summary>
     public class BlockState
     {
-        public readonly string CurrentState;
-        public readonly string PreviousState;
+        public readonly Dictionary<string, byte[]> CurrentStateDetails;
         
-        public readonly Dictionary<string, byte[]> CurrentStateDetail;
-        
-        public BlockState(string currentState, string previousState, Dictionary<string, byte[]> currentStateDetail = null)
+        public BlockState(Dictionary<string, byte[]> currentStateDetails)
         {
-            CurrentState = currentState;
-            PreviousState = previousState;
-            CurrentStateDetail = currentStateDetail ?? new Dictionary<string, byte[]>();
-        }
-        
-        public BlockState(BlockStateTypes blockStateTypes, Dictionary<string, byte[]> currentStateDetail)
-        {
-            CurrentState = blockStateTypes.CurrentStateType;
-            PreviousState = blockStateTypes.PreviousStateType;
-            CurrentStateDetail = currentStateDetail;
+            CurrentStateDetails = currentStateDetails;
         }
     }
 }

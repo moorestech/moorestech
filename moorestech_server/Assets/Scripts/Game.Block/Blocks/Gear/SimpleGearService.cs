@@ -32,11 +32,6 @@ namespace Game.Block.Blocks.Gear
             _onGearUpdate.OnNext(GearUpdateType.Rocked);
         }
         
-        public BlockStateTypes GetBlockState()
-        {
-            return new BlockStateTypes(IGearEnergyTransformer.WorkingStateName, _currentState);
-        }
-        
         public BlockStateDetail GetBlockStateDetail()
         {
             var stateData = MessagePackSerializer.Serialize(new GearStateData(CurrentRpm.AsPrimitive(), IsCurrentClockwise));

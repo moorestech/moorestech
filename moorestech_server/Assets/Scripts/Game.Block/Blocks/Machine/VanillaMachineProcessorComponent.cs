@@ -11,7 +11,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateChange, IBlockStateDetail, IUpdatableBlockComponent
+    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
         
@@ -60,23 +60,20 @@ namespace Game.Block.Blocks.Machine
             CurrentState = currentState;
         }
         
-        public BlockStateTypes GetBlockState()
-        {
-            BlockException.CheckDestroy(this);
-            return new BlockStateTypes(CurrentState.ToStr(), _lastState.ToStr());
-        }
         
         public BlockStateDetail GetBlockStateDetail()
         {
             BlockException.CheckDestroy(this);
             
             var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
-            var currentState = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate));
-            return new BlockStateDetail(CommonMachineBlockStateChangeData.BlockStateDetailKey, currentState);
+            var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
+            var currentState = MessagePackSerializer.Serialize(stateDetail);
+            return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, currentState);
         }
         
         public void SupplyPower(ElectricPower power)
         {
+            BlockException.CheckDestroy(this);
             _currentPower = power;
         }
         

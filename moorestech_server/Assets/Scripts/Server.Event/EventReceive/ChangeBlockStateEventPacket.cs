@@ -34,6 +34,15 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class ChangeBlockStateMessagePack
     {
+        [Key(0)] public Dictionary<string,byte[]> CurrentStateDetail { get; set; }
+        
+        [Key(1)] public Vector3IntMessagePack Position { get; set; } // TODO ここをinstanceIdに変更する？
+        
+        public TBlockState GetStateDetail<TBlockState>(string stateKey)
+        {
+            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateDetail[stateKey]);
+        }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ChangeBlockStateMessagePack()
         {
@@ -41,24 +50,9 @@ namespace Server.Event.EventReceive
         
         public ChangeBlockStateMessagePack(BlockState state, Vector3Int pos)
         {
-            CurrentState = state.CurrentState;
-            PreviousState = state.PreviousState;
-            
-            CurrentStateDetail = state.CurrentStateDetail;
+            CurrentStateDetail = state.CurrentStateDetails;
             Position = new Vector3IntMessagePack(pos);
         }
-        
-        [Key(0)] public string CurrentState { get; set; }
-        
-        [Key(1)] public string PreviousState { get; set; }
-        
-        [Key(2)] public Dictionary<string,byte[]> CurrentStateDetail { get; set; }
-        
-        [Key(3)] public Vector3IntMessagePack Position { get; set; }
-        
-        public TBlockState GetStateDetail<TBlockState>(string stateKey)
-        {
-            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateDetail[stateKey]);
-        }
+
     }
 }
