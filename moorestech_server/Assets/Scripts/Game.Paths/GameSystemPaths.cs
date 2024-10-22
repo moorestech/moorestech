@@ -21,9 +21,9 @@ namespace Game.Paths
             }
         }
         
-        public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "tmp");
-        public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "extracted_mods");
-        public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "saves");
+        public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "Tmp");
+        public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "ExtractedMods");
+        public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "Saves");
         
         public static string GetExtractedModDirectory(string folderName)
         {

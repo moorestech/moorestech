@@ -110,10 +110,9 @@ namespace Mod.Loader
             var folderName = $"{fixModId}_ver_{fixModVersion}_sha1_{sha1Hash}";
             
             var path = GameSystemPaths.GetExtractedModDirectory(folderName);
-            //ディレクトリの中身をチェック
-            if (Directory.EnumerateFileSystemEntries(path).Any())
-                //すでに解凍済み
-                return path;
+            // 既に解凍済みかチェック
+            if (Directory.Exists(path)) return path;
+            
             //解凍を実行
             ZipFile.ExtractToDirectory(zipPath, path);
             return path;
