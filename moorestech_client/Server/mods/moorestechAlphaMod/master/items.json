@@ -4,13 +4,7 @@
       "maxStack": 100,
       "name": "石",
       "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61",
-      "imagePath": "assets/item/stone.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "石器",
-      "itemGuid": "12ec97f4-9c80-453a-902e-ea02c2531d83",
-      "imagePath": "assets/item/stone tool.png"
+      "imagePath": "assets/item/石.png"
     },
     {
       "earnItemHps": [
@@ -42,155 +36,120 @@
       "maxStack": 100,
       "name": "原木",
       "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488",
-      "imagePath": "assets/item/log.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "アップグレードした石器",
-      "itemGuid": "a97c5b3f-abca-418f-a20f-7b47a1eda1c0",
-      "imagePath": "assets/item/upgrade stoon tools.png"
+      "imagePath": "assets/item/原木.png"
     },
     {
       "maxStack": 100,
       "name": "ブロンズ鉱石",
       "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0",
-      "imagePath": "assets/item/bronze ore.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "原始的な溶鉱炉",
-      "itemGuid": "0990bb6b-de52-4a2f-9e69-6e7d398cfbcf",
-      "imagePath": "assets/item/campfier.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "低品質なブロンズの塊",
-      "itemGuid": "1d71b8f9-d868-46b9-9128-07d5852e1752",
-      "imagePath": "assets/item/低品質なブロンズの塊.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "粘土",
-      "itemGuid": "73359948-c725-42b6-8392-0024b0be46e2",
-      "imagePath": "assets/item/clay.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズハンマーヘッドの型",
-      "itemGuid": "79a7ebea-db98-4399-b0af-ba6ca7e3992e",
-      "imagePath": "assets/item/bronze axe head 型.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズハンマーヘッド",
-      "itemGuid": "ad0101cd-da14-4874-97dd-69a786407b13",
-      "imagePath": "assets/item/bronze axe head.png"
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズハンマー",
-      "itemGuid": "ceb5c9bf-7516-485f-aa7f-597b077f2c11",
-      "imagePath": "assets/item/bronze axe.png"
+      "imagePath": "assets/item/ブロンズ鉱石.png"
     },
     {
       "maxStack": 100,
       "name": "加工した原木",
-      "itemGuid": "f24bc66f-4738-4952-b75f-b3a89a8ddb6a",
-      "imagePath": "assets/item/log.png"
+      "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
     },
     {
       "maxStack": 100,
-      "name": "ブロンズ鉱石粉末",
-      "itemGuid": "7b383152-2043-4218-b294-750af4021049",
-      "imagePath": "assets/item/bronze ore powder.png"
+      "name": "石の斧",
+      "itemGuid": "433735a5-8e53-4942-8c0f-6b19f8c70dfa"
     },
     {
       "maxStack": 100,
-      "name": "キャンプファイア",
-      "itemGuid": "c60d22eb-267a-4291-8084-9744a169b79c",
-      "imagePath": "assets/item/campfier.png"
+      "name": "原始的な溶鉱炉",
+      "itemGuid": "de89dc5c-b9d1-40f4-97ef-6b0bdcdd9379"
     },
     {
       "maxStack": 100,
-      "name": "生レンガ",
-      "itemGuid": "41b014db-2937-40f1-82bd-54d923ba5e87",
-      "imagePath": "assets/item/raw brick.png"
+      "name": "低品質なブロンズの塊",
+      "itemGuid": "693312d3-7e3a-4489-8746-4eebbc8dbd67"
     },
     {
       "maxStack": 100,
-      "name": "レンガ",
-      "itemGuid": "136afb8f-dc32-43ab-84c9-219fb2bcc1c9",
-      "imagePath": "assets/item/burned brick.png"
+      "name": "粘土",
+      "itemGuid": "0a706c5c-eb74-4bb1-b13c-1319f38ac154"
     },
     {
       "maxStack": 100,
-      "name": "炭窯",
-      "itemGuid": "cf4f08af-27b8-4264-81ac-147882b10bc3",
-      "imagePath": "assets/item/charcoal kiln.png"
+      "name": "ブロンズハンマーヘッドの型",
+      "itemGuid": "6b54897e-e7cb-4df7-807e-1597c2a859da"
     },
     {
       "maxStack": 100,
-      "name": "木炭",
-      "itemGuid": "c5cfbb0c-55c7-4458-85c5-07d86549b7ba",
-      "imagePath": "assets/item/charcoal.png"
+      "name": "ブロンズハンマーヘッド",
+      "itemGuid": "92fe1a42-ad46-4ff3-aa9a-83a9262c34d6"
     },
     {
-      "time": 1,
-      "hp": 100,
-      "name": "木炭の粉",
-      "itemGuid": "85b5fb15-fd39-44a3-8b77-0226ef9d63df",
       "maxStack": 100,
-      "imagePath": "assets/item/charcoal powder.png"
+      "name": "ブロンズハンマー",
+      "itemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズカッターの型",
+      "itemGuid": "99c95d35-9ba8-4027-9d88-48174a7322fa"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズカッター",
+      "itemGuid": "ee7c1edf-32ba-4bd2-962c-d29ee1309730"
+    },
+    {
+      "maxStack": 100,
+      "name": "ブロンズ製材機",
+      "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927"
+    },
+    {
+      "maxStack": 100,
+      "name": "原始的な風車",
+      "itemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8"
     },
     {
       "maxStack": 100,
       "name": "ブロンズドリルの型",
-      "itemGuid": "475a97cb-17f7-40c2-a75e-7cd156f4ab87"
+      "itemGuid": "c82061f7-f4b2-45bc-8323-40f76dece8f2"
     },
     {
       "maxStack": 100,
       "name": "ブロンズドリル",
-      "itemGuid": "8d2bb3df-617c-472e-b36a-81672b4d4b4b"
+      "itemGuid": "96e59fa9-8468-4315-b8b8-8e087a146dbb"
     },
     {
       "maxStack": 100,
       "name": "ブロンズ採掘機",
-      "itemGuid": "c53fd3b0-5d32-4bd1-9bf1-a4c6c444456c"
+      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2"
     },
     {
       "maxStack": 100,
-      "name": "ブロンズ",
-      "itemGuid": "d91c35d3-749c-440e-a167-4a56f37b019b"
+      "name": "レンガ",
+      "itemGuid": "975384df-a166-48a6-a5cf-d631f48715c0"
     },
     {
       "maxStack": 100,
-      "name": "Mk.2 ブロンズドリル",
-      "itemGuid": "d2a3e9a5-24c8-46ed-b4b0-d7175abfdbd8"
+      "name": "レンガ作りの精錬炉",
+      "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311"
     },
     {
       "maxStack": 100,
-      "name": "Mk.2 ブロンズ採掘機",
-      "itemGuid": "53db01f6-339a-4f23-be46-8c831cea246f"
+      "name": "原始的な木の歯車",
+      "itemGuid": "0c17174c-bfb2-43a8-ab99-bb4274cb3927"
     },
     {
       "maxStack": 100,
-      "name": "溶鉱炉",
-      "itemGuid": "52ccbd70-42ea-4fd1-bf8b-2fd7d6c28637"
+      "name": "原始的な木のシャフト",
+      "itemGuid": "0559e1c6-5a63-40bc-92d8-64167fa6c3ba"
     },
     {
+      "maxStack": 100,
       "blockSize": [
         1,
         1,
         1
       ],
-      "maxStack": 100,
-      "name": "原始的な風車",
-      "itemGuid": "acba1a0d-6baf-49fe-96c5-15acef03e751"
-    },
-    {
-      "maxStack": 100,
-      "name": "原始的なシャフト",
-      "itemGuid": "d5cfac45-1ab8-4f51-87b9-00ab88da1bda"
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "name": "石器",
+      "itemGuid": "f3934127-877a-4692-b9a0-cdaaca3d1b90"
     }
   ]
 }

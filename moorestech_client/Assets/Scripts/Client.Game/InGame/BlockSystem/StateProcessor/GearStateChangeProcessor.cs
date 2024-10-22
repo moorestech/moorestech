@@ -11,11 +11,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         public IReadOnlyList<RotationInfo> RotationInfos => rotationInfos;
         [SerializeField] private List<RotationInfo> rotationInfos;
         
-        public GearStateData CurrentGearState { get; private set; }
+        public GearStateDetail CurrentGearState { get; private set; }
         
         public void OnChangeState(ChangeBlockStateMessagePack blockState)
         {
-            CurrentGearState = blockState.GetStateDetail<GearStateData>(GearStateData.BlockStateDetailKey);
+            CurrentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }
         
         private void Update()
@@ -25,9 +25,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             Rotate(CurrentGearState);
         }
         
-        public void Rotate(GearStateData gearStateData)
+        public void Rotate(GearStateDetail gearStateDetail)
         {
-            var rpm = gearStateData.CurrentRpm;
+            var rpm = gearStateDetail.CurrentRpm;
             var rotation = rpm / 60 * Time.deltaTime * 360;
             foreach (var rotationInfo in rotationInfos)
             {
@@ -39,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     _ => Vector3.zero,
                 };
                 rotate *= rotationInfo.IsReverse ? -1 : 1;
-                rotate *= gearStateData.IsClockwise ? 1 : -1;
+                rotate *= gearStateDetail.IsClockwise ? 1 : -1;
                 
                 rotationInfo.RotationTransform.Rotate(rotate);
             }

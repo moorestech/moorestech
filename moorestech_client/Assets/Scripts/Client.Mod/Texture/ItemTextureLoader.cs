@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Client.Common;
 using Core.Master;
@@ -10,7 +11,6 @@ namespace Client.Mod.Texture
 {
     public static class ItemTextureLoader
     {
-        private const string ModTextureDirectory = "assets/item/";
         
         public static Dictionary<ItemId, ItemViewData> GetItemTexture(string modDirectory)
         {
@@ -39,18 +39,19 @@ namespace Client.Mod.Texture
             var textureList = new List<ItemViewData>();
             foreach (var itemId in itemIds)
             {
-                var itemIdMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
                 Texture2D texture = null;
                 Sprite sprite = null;
                 
-                if (itemIdMaster.ImagePath != null)
-                {
-                    texture = GetExtractedZipTexture.Get(mod.ExtractedPath, itemIdMaster.ImagePath);
-                    if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemIdMaster.Name);
-                    sprite = texture.ToSprite();
-                }
+                var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? 
+                    Path.Combine("assets","item",$"{itemMaster.Name}.png") : 
+                    itemMaster.ImagePath;
                 
-                textureList.Add(new ItemViewData(sprite, texture, itemIdMaster));
+                texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
+                if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
+                sprite = texture.ToSprite();
+                
+                textureList.Add(new ItemViewData(sprite, texture, itemMaster));
             }
             
             return textureList;

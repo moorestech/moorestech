@@ -229,16 +229,15 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     CommonMachineUpdate();
                     break;
             }
-            
-            
         }
+        
         private void CommonMachineUpdate()
         {
             // ここが重かったら検討
             var commonProcessor = (CommonMachineBlockStateChangeProcessor)_currentBlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor); 
             if (commonProcessor == null) return;
             var progressArrow = _currentBlockInventoryType == BlockInventoryType.Miner ? minerProgressArrow : machineProgressArrow;
-            progressArrow.SetProgress(commonProcessor.CurrentMachineState.processingRate);
+            progressArrow.SetProgress(commonProcessor.CurrentMachineState.ProcessingRate);
         }
     }
     

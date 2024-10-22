@@ -10,7 +10,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
 {
     public class CraftButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
-        private const float TmpDuration = 5; //TODO クラフト時間を取得するようにする
         [SerializeField] private RectTransform rectTransform;
         
         [SerializeField] private Image buttonImage;
@@ -19,19 +18,20 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         [SerializeField] private ProgressArrowView progressArrow;
         
+        public IObservable<Unit> OnCraftFinish => _onCraftFinishSubject;
+        private readonly Subject<Unit> _onCraftFinishSubject = new();
+        
+        private float _currentCraftTime;
         private float _buttonDownElapsed;
         private bool _isButtonDown;
         private bool _isCursorStay = true;
         private bool _isInteractable = true;
         
-        public IObservable<Unit> OnCraftFinish => _onCraftFinishSubject;
-        private readonly Subject<Unit> _onCraftFinishSubject = new();
-        
         private void Update()
         {
             if (_isButtonDown && _isCursorStay) _buttonDownElapsed += Time.deltaTime;
             
-            if (_buttonDownElapsed >= TmpDuration)
+            if (_buttonDownElapsed >= _currentCraftTime)
             {
                 _buttonDownElapsed = 0;
                 _onCraftFinishSubject.OnNext(Unit.Default);
@@ -39,13 +39,18 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             if (_isButtonDown)
             {
-                var percent = Mathf.Clamp(_buttonDownElapsed, 0, TmpDuration) / TmpDuration;
+                var percent = Mathf.Clamp(_buttonDownElapsed, 0, _currentCraftTime) / _currentCraftTime;
                 progressArrow.SetProgress(percent);
             }
             else
             {
                 progressArrow.SetProgress(1);
             }
+        }
+        
+        public void SetCraftTime(float craftTime)
+        {
+            _currentCraftTime = craftTime;
         }
         
         private void OnDestroy()
@@ -57,6 +62,11 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         {
             _isInteractable = interactable;
             buttonImage.color = interactable ? interactableColor : nonInteractableColor;
+            
+            if (!_isInteractable)
+            {
+                ResetButton();
+            }
         }
         
         #region このフラグはあとで決定して消す
@@ -75,6 +85,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 _isButtonDown = true;
             }
         }
+        
         public void OnPointerUp(PointerEventData eventData)
         {
             if (_isInteractable)
@@ -88,8 +99,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         {
             if (!_isInteractable)
             {
-                MouseCursorExplainer.Instance.Show("アイテムが足りないためクラフトできません",isLocalize:false);
+                MouseCursorExplainer.Instance.Show("アイテムが足りないためクラフトできません", isLocalize: false);
             }
+            
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
         }
         
@@ -102,7 +114,15 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void OnDisable()
         {
+            ResetButton();
+        }
+        
+        private void ResetButton()
+        {
             MouseCursorExplainer.Instance.Hide();
+            _buttonDownElapsed = 0;
+            _isCursorStay = false;
+            _isButtonDown = false;
         }
     }
 }

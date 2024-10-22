@@ -23,7 +23,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateChange, IBlockStateDetail, IUpdatableBlockComponent
+    public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IBlockStateDetail, IUpdatableBlockComponent
     {
         public bool IsDestroy { get; private set; }
         public ElectricPower RequestEnergy { get; }
@@ -196,16 +196,13 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public BlockStateTypes GetBlockState()
-        {
-            return new BlockStateTypes(_currentState.ToStr(), _lastMinerState.ToStr());
-        }
         
         public BlockStateDetail GetBlockStateDetail()
         {
             var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
-            var currentState = MessagePackSerializer.Serialize(new CommonMachineBlockStateChangeData(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate));
-            return new BlockStateDetail(CommonMachineBlockStateChangeData.BlockStateDetailKey, currentState);
+            var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
+            var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
+            return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)

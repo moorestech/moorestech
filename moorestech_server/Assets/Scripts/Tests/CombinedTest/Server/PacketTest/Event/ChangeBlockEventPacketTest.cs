@@ -58,14 +58,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var payLoad = eventMessagePack.Events[0].Payload;
             
             var changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payLoad);
+            var stateDetail = changeStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
             
-            Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, changeStateData.PreviousState);
-            Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, changeStateData.CurrentState);
+            Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, stateDetail.PreviousStateType);
+            Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, stateDetail.CurrentStateType);
             Assert.AreEqual(0, changeStateData.Position.X);
             Assert.AreEqual(0, changeStateData.Position.Y);
             
-            var detailChangeData = changeStateData.GetStateDetail<CommonMachineBlockStateChangeData>(CommonMachineBlockStateChangeData.BlockStateDetailKey);
-            Assert.AreEqual(1.0f, detailChangeData.powerRate);
+            var detailChangeData = changeStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+            Assert.AreEqual(1.0f, detailChangeData.PowerRate);
         }
     }
 }

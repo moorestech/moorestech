@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Define;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -18,10 +19,10 @@ namespace Client.Game.InGame.Context
     /// </summary>
     public class BlockGameObjectContainer
     {
-        private readonly Dictionary<BlockId,BlockObjectInfo> _blockObjects;
+        private readonly Dictionary<BlockId, BlockObjectInfo> _blockObjects;
         private readonly BlockGameObject _missingBlockIdObject;
         
-        public BlockGameObjectContainer(BlockGameObject missingBlockIdObject, Dictionary<BlockId,BlockObjectInfo> blockObjects)
+        public BlockGameObjectContainer(BlockGameObject missingBlockIdObject, Dictionary<BlockId, BlockObjectInfo> blockObjects)
         {
             _missingBlockIdObject = missingBlockIdObject;
             _blockObjects = blockObjects;
@@ -77,13 +78,40 @@ namespace Client.Game.InGame.Context
                 }
                 
                 blockObj.gameObject.SetActive(true);
-                var posInfo = new BlockPositionInfo(blockPosition, direction, blockMasterElement.BlockSize);
                 var blockType = blockMasterElement.BlockType;
-                blockObj.Initialize(blockMasterElement, posInfo);
-                
                 //ブロックが開けるものの場合はそのコンポーネントを付与する
                 if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
+                // 機械の場合はそのプロセッサを付与する
+                if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
+                
+                // 初期化
+                var posInfo = new BlockPositionInfo(blockPosition, direction, blockMasterElement.BlockSize);
+                blockObj.Initialize(blockMasterElement, posInfo);
+                
                 return block.GetComponent<BlockGameObject>();
+            }
+            
+            
+            // todo ブロックコンフィグのロードのdynamicを辞める時に一緒にこれに対応したシステムを構築する
+            bool IsOpenableInventory(string type)
+            {
+                return type is
+                    BlockTypeConst.Chest or
+                    BlockTypeConst.ElectricGenerator or
+                    BlockTypeConst.ElectricMiner or
+                    BlockTypeConst.ElectricMachine or
+                    BlockTypeConst.GearMachine or
+                    BlockTypeConst.GearMiner;
+            }
+            
+            bool IsCommonMachine(string type)
+            {
+                return type is
+                    BlockTypeConst.ElectricGenerator or
+                    BlockTypeConst.ElectricMiner or
+                    BlockTypeConst.ElectricMachine or
+                    BlockTypeConst.GearMachine or
+                    BlockTypeConst.GearMiner;
             }
             
             #endregion
@@ -106,22 +134,6 @@ namespace Client.Game.InGame.Context
             previewGameObject.Initialize(blockId);
             
             return previewGameObject;
-        }
-        
-        /// <summary>
-        ///     todo ブロックコンフィグのロードのdynamicを辞める時に一緒にこれに対応したシステムを構築する
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private bool IsOpenableInventory(string type)
-        {
-            return type is
-                BlockTypeConst.Chest or
-                BlockTypeConst.ElectricGenerator or
-                BlockTypeConst.ElectricMiner or
-                BlockTypeConst.ElectricMachine or
-                BlockTypeConst.GearMachine or
-                BlockTypeConst.GearMiner;
         }
     }
 }

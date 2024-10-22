@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.ComponentAttribute;
 
@@ -17,7 +18,6 @@ namespace Game.Block.Interface
     public class BlockComponentManager : IBlockComponentManager
     {
         private readonly List<IBlockComponent> _blockComponents = new();
-        private readonly Dictionary<Type, IBlockComponent> _disallowMultiple = new();
         private bool IsDestroy { get; set; }
         
         public T GetComponent<T>() where T : IBlockComponent
@@ -25,6 +25,13 @@ namespace Game.Block.Interface
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
             
             return (T)_blockComponents.Find(x => x is T);
+        }
+        
+        public List<T> GetComponents<T>() where T : IBlockComponent
+        {
+            if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
+            
+            return _blockComponents.FindAll(x => x is T).Cast<T>().ToList();
         }
         
         public bool ExistsComponent<T>() where T : IBlockComponent
@@ -67,11 +74,19 @@ namespace Game.Block.Interface
             
             void CheckDisallowMultiple()
             {
-                var disallowMultiple = Attribute.GetCustomAttribute(blockComponent.GetType(), typeof(DisallowMultiple));
-                if (disallowMultiple == null) return;
+                var componentType = blockComponent.GetType();
+                var interfaces = componentType.GetInterfaces();
                 
-                if (_disallowMultiple.ContainsKey(blockComponent.GetType())) throw new InvalidOperationException($"This component is already added. {blockComponent.GetType()}");
-                _disallowMultiple.Add(blockComponent.GetType(), blockComponent);
+                foreach (var iface in interfaces)
+                {
+                    var attrs = iface.GetCustomAttributes(typeof(DisallowMultiple), true);
+                    if (attrs.Length == 0) continue;
+                    
+                    if (_blockComponents.Any(c => iface.IsInstanceOfType(c)))
+                    {
+                        throw new InvalidOperationException($"{iface.Name}は既に追加されています。");
+                    }
+                }
             }
             
             #endregion
