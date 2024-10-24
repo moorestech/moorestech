@@ -150,6 +150,51 @@
       "craftResultCount": 1,
       "name": "石器",
       "itemGuid": "f3934127-877a-4692-b9a0-cdaaca3d1b90"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "直進アイテムシューター",
+      "itemGuid": "3568d0bf-c71e-4f5a-beab-d7239da99829"
+    },
+    {
+      "maxStack": 100,
+      "name": "上りアイテムシューター",
+      "itemGuid": "91886efb-6f26-4ff5-80d8-5c5a1966b264"
+    },
+    {
+      "maxStack": 100,
+      "name": "下りアイテムシューター",
+      "itemGuid": "6690cf85-672a-46c0-97b2-45da0b6c954e"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "原始的な大きな歯車",
+      "itemGuid": "6e05a18a-8e6a-4ba5-9191-a778ed105ae4"
+    },
+    {
+      "maxStack": 100,
+      "name": "直進歯車ベルトコンベア",
+      "itemGuid": "a094cb43-422b-42d0-bb44-ee5bf6d0321b"
+    },
+    {
+      "maxStack": 100,
+      "name": "上り歯車ベルトコンベア",
+      "itemGuid": "bb6170ae-27f8-41a9-90b2-b3b272b05dc2"
+    },
+    {
+      "maxStack": 100,
+      "name": "下り歯車ベルトコンベア",
+      "itemGuid": "8f13936b-8c95-4091-a34a-3739187dca82"
     }
   ]
 }
