@@ -382,6 +382,316 @@
         }
       },
       "blockGuid": "33dffd6d-b2d7-4f4d-b271-70851dada0ad"
+    },
+
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "StraightTestItemShooter",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": -0.2,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11500000-0000-0000-0000-000000000000",
+      "blockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "DownTestItemShooter",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": 0.7,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11600000-0000-0000-0000-000000000000",
+      "blockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "UpTestItemShooter",
+      "blockType": "ItemShooter",
+      "blockParam": {
+        "acceleration": -0.9,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11700000-0000-0000-0000-000000000000",
+      "blockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539"
+    },
+    {
+      "blockSize": [
+        3,
+        3,
+        1
+      ],
+      "name": "BigTestGear",
+      "blockType": "Gear",
+      "blockParam": {
+        "requireTorque": 0,
+        "teethCount": 20,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                1,
+                1,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            },
+            {
+              "offset": [
+                0,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              }
+            },
+            {
+              "offset": [
+                2,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              }
+            },
+            {
+              "offset": [
+                1,
+                2,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ]
+        }
+      },
+      "itemGuid": "16000000-0000-0000-0000-000000000000",
+      "blockGuid": "b5c27dad-d803-41ee-abc9-404c2d1f9bea"
     }
   ]
 }
