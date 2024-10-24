@@ -383,7 +383,6 @@
       },
       "blockGuid": "33dffd6d-b2d7-4f4d-b271-70851dada0ad"
     },
-
     {
       "blockSize": [
         1,
@@ -692,6 +691,274 @@
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
       "blockGuid": "b5c27dad-d803-41ee-abc9-404c2d1f9bea"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "StraightGearBeltConveyor",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "requireTorque": 1,
+        "beltConveyorSpeed": 0.01,
+        "beltConveyorItemCount": 4,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "UpGearBeltConveyor",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "requireTorque": 1,
+        "beltConveyorSpeed": 0.01,
+        "beltConveyorItemCount": 4,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "DownGearBeltConveyor",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "requireTorque": 1,
+        "beltConveyorSpeed": 0.01,
+        "beltConveyorItemCount": 4,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2"
     }
   ]
 }
