@@ -126,6 +126,29 @@
         }
       ],
       "machineRecipeGuid": "2d5e4d0c-ed24-4753-b386-fb518e2fd9fa"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "time": 5,
+      "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 3,
+          "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5"
+        }
+      ],
+      "machineRecipeGuid": "c9103ef7-cb64-4216-8dd3-23f9e56991d5"
     }
   ]
 }

@@ -962,28 +962,72 @@
     },
     {
       "blockSize": [
+        2,
         1,
-        1,
-        1
+        2
       ],
       "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2",
-      "name": "ブロンズ採掘機",
-      "blockType": "ElectricMiner",
+      "blockGuid": "e23ff71a-c01f-439e-a0c2-697032bd941e",
+      "blockType": "GearMiner",
       "blockParam": {
-        "outputItemSlotCount": 3,
-        "requiredPower": 0,
-        "mineSettings": [
-          {
-            "time": 5,
-            "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
-          }
-        ],
+        "inputItemSlotCount": 1,
+        "requiredPower": 5,
+        "outputItemSlotCount": 2,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
+        },
+        "mineSettings": [
+          {
+            "time": 15,
+            "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+          }
+        ],
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "requireTorque": 1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
         }
       },
-      "blockGuid": "e23ff71a-c01f-439e-a0c2-697032bd941e"
+      "name": "ブロンズ採掘機"
     }
   ]
 }
