@@ -22,75 +22,6 @@
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a"
     },
     {
-      "blockSize": [
-        2,
-        1,
-        2
-      ],
-      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2",
-      "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
-      "blockType": "GearMiner",
-      "blockParam": {
-        "inputItemSlotCount": 1,
-        "requiredPower": 5,
-        "outputItemSlotCount": 2,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        },
-        "mineSettings": [
-          {
-            "time": 5,
-            "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0"
-          }
-        ],
-        "teethCount": 10,
-        "requiredRpm": 30,
-        "requireTorque": 1,
-        "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                1,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ]
-              ]
-            }
-          ]
-        }
-      },
-      "name": "ブロンズ採掘機"
-    },
-    {
       "maxStack": 100,
       "blockSize": [
         2,
@@ -959,6 +890,100 @@
       },
       "itemGuid": "8f13936b-8c95-4091-a34a-3739187dca82",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2"
+    },
+    {
+      "blockSize": [
+        2,
+        1,
+        2
+      ],
+      "itemGuid": "42ad9e08-907b-4540-ad64-1393e4dc401f",
+      "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
+      "blockType": "GearMiner",
+      "blockParam": {
+        "inputItemSlotCount": 1,
+        "requiredPower": 5,
+        "outputItemSlotCount": 2,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "mineSettings": [
+          {
+            "time": 5,
+            "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+          }
+        ],
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "requireTorque": 1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "name": "ブロンズ採掘機Mk2"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2",
+      "name": "ブロンズ採掘機",
+      "blockType": "ElectricMiner",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "requiredPower": 0,
+        "mineSettings": [
+          {
+            "time": 5,
+            "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "blockGuid": "e23ff71a-c01f-439e-a0c2-697032bd941e"
     }
   ]
 }

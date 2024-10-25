@@ -195,6 +195,16 @@
       "maxStack": 100,
       "name": "下り歯車ベルトコンベア",
       "itemGuid": "8f13936b-8c95-4091-a34a-3739187dca82"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "ブロンズ採掘機Mk2",
+      "itemGuid": "42ad9e08-907b-4540-ad64-1393e4dc401f"
     }
   ]
 }

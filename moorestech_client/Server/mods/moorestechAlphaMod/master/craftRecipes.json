@@ -1,7 +1,7 @@
 {
   "data": [
     {
-      "craftTime": 8,
+      "craftTime": 5,
       "craftResultCount": 1,
       "craftResultItemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5",
       "requiredItems": [
@@ -232,7 +232,7 @@
       ],
       "hp": 100,
       "mapObjectName": "mapObjectName",
-      "craftTime": 5,
+      "craftTime": 2,
       "craftResultCount": 1,
       "craftResultItemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5",
       "requiredItems": [
