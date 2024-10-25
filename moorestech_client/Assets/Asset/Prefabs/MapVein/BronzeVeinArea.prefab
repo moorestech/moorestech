@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 4727874556277572216}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.2008681, y: 1.0513248, z: 2.1617022}
+  m_LocalPosition: {x: 2, y: 1, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94484c2fa6f84337969a1626b361fbd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  veinItemGuid: 6b22a093-0c83-4543-9985-aad0ceb5f8b0
+  veinItemGuid: 94f7b602-d72f-4e28-b18a-202bf73ef488
   bounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 1, y: 1, z: 1}
