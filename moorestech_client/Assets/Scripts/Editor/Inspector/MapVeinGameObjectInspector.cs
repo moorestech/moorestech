@@ -31,6 +31,7 @@ public class MapVeinGameObjectInspector : Editor
             var bounds = new Bounds(_boxBoundsHandle.center, _boxBoundsHandle.size);
             mapVein.SetBounds(bounds);
             Undo.RecordObject(mapVein, "Change Bounds");
+            EditorUtility.SetDirty(mapVein);
         }
     }
 }
