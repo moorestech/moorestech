@@ -223,6 +223,17 @@
       "maxStack": 100,
       "name": "直進歯車ベルトコンベアシャフト",
       "itemGuid": "b8986659-052f-4208-a847-dbd975990d3c"
+    },
+    {
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "原始的なチェスト",
+      "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de"
     }
   ]
 }
