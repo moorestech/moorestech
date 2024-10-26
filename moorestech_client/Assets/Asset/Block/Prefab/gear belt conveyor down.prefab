@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5086658313194969459}
+  - component: {fileID: 9182847951572925802}
+  - component: {fileID: 6446912578113309129}
   m_Layer: 7
   m_Name: gear belt conveyor down
   m_TagString: Untagged
@@ -32,6 +34,42 @@ Transform:
   - {fileID: 8427910755559630401}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9182847951572925802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 213257732635183545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6672735753cd4c28b00a1822464f8d55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationInfos:
+  - rotationAxis: 1
+    rotationTransform: {fileID: 2477971098258162781}
+    isReverse: 0
+  - rotationAxis: 1
+    rotationTransform: {fileID: 2671674868993767854}
+    isReverse: 0
+  - rotationAxis: 1
+    rotationTransform: {fileID: 2097194405952621663}
+    isReverse: 1
+--- !u!114 &6446912578113309129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 213257732635183545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f199c4917df6407cb5f2de1856ff747a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  meshRenderer: {fileID: 8740718270851983499}
+  speed: 1
 --- !u!1 &1192615823919889596
 GameObject:
   m_ObjectHideFlags: 0
@@ -141,7 +179,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2574353410751142360}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.5929355, y: -0.38526282, z: -0.38526285, w: 0.5929356}
+  m_LocalRotation: {x: 0.59293556, y: -0.38526276, z: -0.38526288, w: 0.59293556}
   m_LocalPosition: {x: -0.5494, y: 0.0039, z: -0.4392}
   m_LocalScale: {x: 0.6468892, y: 0.8873911, z: 0.6468892}
   m_ConstrainProportionsScale: 0
@@ -208,7 +246,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8427910755559630401}
-  - component: {fileID: 7316880915807749281}
   m_Layer: 7
   m_Name: Model
   m_TagString: Untagged
@@ -239,27 +276,6 @@ Transform:
   - {fileID: 3730574674724763619}
   m_Father: {fileID: 5086658313194969459}
   m_LocalEulerAnglesHint: {x: 0, y: -270, z: 0}
---- !u!95 &7316880915807749281
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3763414243015773423}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: b94142a20e9854006afcabb54da3e869, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3851393317398477376
 GameObject:
   m_ObjectHideFlags: 0
@@ -286,7 +302,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3851393317398477376}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: -0, w: 0.7071067}
+  m_LocalRotation: {x: 0.7071068, y: 0.000000029802322, z: -0, w: 0.7071067}
   m_LocalPosition: {x: -0.38670027, y: -0.0000000050232236, z: -0.026443513}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -370,7 +386,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4153788072374072657}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.6532815, y: 0.27059805, z: 0.27059814, w: 0.65328145}
+  m_LocalRotation: {x: 0.6532815, y: 0.27059805, z: 0.27059817, w: 0.65328145}
   m_LocalPosition: {x: 0.39350823, y: 0.78020847, z: -0.02644335}
   m_LocalScale: {x: 0.99999994, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
