@@ -649,9 +649,14 @@
               },
               "directions": [
                 [
-                  1,
                   0,
-                  0
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ],
                 [
                   -1,
@@ -745,13 +750,18 @@
               },
               "directions": [
                 [
-                  1,
                   0,
-                  0
+                  1,
+                  1
                 ],
                 [
-                  -1,
                   0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
                   0
                 ]
               ]
@@ -1028,6 +1038,48 @@
         }
       },
       "name": "ブロンズ採掘機"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "Shaft",
+      "blockParam": {
+        "requireTorque": 1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "b8986659-052f-4208-a847-dbd975990d3c",
+      "name": "直進歯車ベルトコンベアシャフト",
+      "blockGuid": "a8ffee44-fb20-42a2-925f-de594ba79803"
     }
   ]
 }

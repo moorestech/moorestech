@@ -205,6 +205,24 @@
       "maxStack": 100,
       "name": "ブロンズ採掘機Mk2",
       "itemGuid": "42ad9e08-907b-4540-ad64-1393e4dc401f"
+    },
+    {
+      "time": 1,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "直進歯車ベルトコンベアシャフト",
+      "itemGuid": "b8986659-052f-4208-a847-dbd975990d3c"
     }
   ]
 }
