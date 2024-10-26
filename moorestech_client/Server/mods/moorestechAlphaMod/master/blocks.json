@@ -672,6 +672,11 @@
                   0,
                   -1,
                   1
+                ],
+                [
+                  1,
+                  0,
+                  0
                 ]
               ]
             }
@@ -732,7 +737,12 @@
         }
       },
       "itemGuid": "a094cb43-422b-42d0-bb44-ee5bf6d0321b",
-      "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
+      "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
+        "downBlockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
+        "horizontalBlockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
+      }
     },
     {
       "blockSize": [
@@ -1095,6 +1105,96 @@
       "itemGuid": "b8986659-052f-4208-a847-dbd975990d3c",
       "name": "直進歯車ベルトコンベアシャフト",
       "blockGuid": "a8ffee44-fb20-42a2-925f-de594ba79803"
+    },
+    {
+      "maxStack": 100,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "Chest",
+      "blockParam": {
+        "chestItemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "7a865b6e-77ac-4650-b052-d9cdae8693b3",
+      "name": "原始的なチェスト",
+      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed"
     }
   ]
 }
