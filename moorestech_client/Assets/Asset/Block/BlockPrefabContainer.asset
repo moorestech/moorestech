@@ -37,3 +37,5 @@ MonoBehaviour:
     blockPrefab: {fileID: 213257732635183545, guid: df26304a296b7e44daa5a26c3739abcc, type: 3}
   - blockGuid: a8ffee44-fb20-42a2-925f-de594ba79803
     blockPrefab: {fileID: 5188025818332770762, guid: f148ee4b0ebd54839ad8213503691341, type: 3}
+  - blockGuid: f3443d58-ca2b-4494-aad1-0298983ceeed
+    blockPrefab: {fileID: 6182539724762056065, guid: 6f66b5f793cadea49bd28b222c6c710b, type: 3}
