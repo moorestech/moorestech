@@ -15,6 +15,16 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
+            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        private static BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
             var blockName = blockMasterElement.Name;
             
@@ -24,12 +34,9 @@ namespace Game.Block.Factory.BlockTemplate
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
-            var vanillaBeltConveyorComponent = new VanillaBeltConveyorComponent(
-                gearBeltParam.BeltConveyorItemCount,
-                0,
-                inventoryConnector,
-                blockName
-            );
+            var vanillaBeltConveyorComponent = state == null ? 
+                new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName) : 
+                new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             
@@ -41,10 +48,6 @@ namespace Game.Block.Factory.BlockTemplate
                 inventoryConnector,
             };
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
-        }
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
-        {
-            throw new NotImplementedException("さっさと実装しろ！");
         }
     }
 }

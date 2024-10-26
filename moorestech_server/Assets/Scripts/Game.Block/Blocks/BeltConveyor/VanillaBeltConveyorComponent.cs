@@ -19,19 +19,16 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor, IUpdatableBlockComponent
     {
+        public const float DefaultBeltConveyorHeight = 0.3f;
+        
         public int InventoryItemNum { get; }
-        public double TimeOfItemEnterToExit { get; } //ベルトコンベアにアイテムが入って出るまでの時間
         public bool IsDestroy { get; private set; }
         
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
         
-        public const float DefaultBeltConveyorHeight = 0.3f;
-        
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        
         private readonly string _blockName;
-        
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
         public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)

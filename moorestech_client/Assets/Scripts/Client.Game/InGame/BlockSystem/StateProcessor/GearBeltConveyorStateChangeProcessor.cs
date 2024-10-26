@@ -22,6 +22,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         private void Update()
         {
+            if (CurrentGearState == null) return;
+            
             _offset.x += CurrentGearState.CurrentRpm / 60 * Time.time * speed;
             meshRenderer.sharedMaterial.SetTextureOffset(BaseMap, _offset);
         }
