@@ -28,6 +28,7 @@ properties:
       - GearMachine
       - SimpleGearGenerator
       - GearBeltConveyor
+      - GearMiner
       - ItemShooter
     - key: itemGuid
       type: uuid
@@ -125,16 +126,7 @@ properties:
           type: integer
           default: 3
         - key: mineSettings
-          type: array
-          items:
-            type: object
-            properties:
-            - key: itemGuid
-              type: uuid
-              foreignKey: items:itemGuid:name
-            - key: time
-              type: number
-              default: 1
+          ref: mineSettings
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: Gear
@@ -228,6 +220,27 @@ properties:
           default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
+      - when: GearMiner
+        type: object
+        properties:
+        - key: teethCount
+          type: integer
+          default: 10
+        - key: requireTorque
+          type: number
+          default: 1
+        - key: requiredRpm
+          type: number
+          default: 5
+        - key: outputItemSlotCount
+          type: integer
+          default: 3
+        - key: mineSettings
+          ref: mineSettings
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: gear
+          ref: gear
     - key: overrideVerticalBlock
       type: object
       optional: true

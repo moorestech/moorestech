@@ -38,8 +38,3 @@ items:
       - key: isReverse
         type: boolean
         default: true
-      - key: onlySpecifiedTypes
-        type: array
-        optional: true
-        items:
-          type: string

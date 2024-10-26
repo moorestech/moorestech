@@ -5,4 +5,4 @@ properties:
   ref: blockConnectInfo
   fixedParameter:
     path: ./connectType
-    parameter: Gear
+    value: Gear

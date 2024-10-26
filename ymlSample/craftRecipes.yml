@@ -17,6 +17,9 @@ properties:
     - key: craftResultCount
       type: integer
       default: 1
+    - key: craftTime
+      type: number
+      default: 3
     - key: requiredItems
       type: array
       items:
