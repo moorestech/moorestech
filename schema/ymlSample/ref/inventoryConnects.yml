@@ -5,9 +5,9 @@ properties:
   ref: blockConnectInfo
   fixedParameter:
     path: ./connectType
-    parameter: Inventory
+    value: Inventory
 - key: outputConnects
   ref: blockConnectInfo
   fixedParameter:
     path: ./connectType
-    parameter: Inventory
+    value: Inventory
