@@ -76,6 +76,7 @@
                   "properties": {
                     "beltConveyorItemCount": {"type": "integer", "default": 1},
                     "timeOfItemEnterToExit": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -300,7 +301,7 @@
                     "beltConveyorItemCount": {"type": "integer", "default": 4},
                     "beltConveyorSpeed": {"type": "number", "default": 2},
                     "requireTorque": {"type": "number", "default": 2},
-
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
@@ -325,6 +326,7 @@
                     "initialShootSpeed": {"type": "number", "default": 3},
                     "itemShootSpeed": {"type": "number", "default": 2},
                     "acceleration": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
