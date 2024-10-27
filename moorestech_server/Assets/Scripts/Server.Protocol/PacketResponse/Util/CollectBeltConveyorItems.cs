@@ -38,6 +38,7 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
+                // TODO 重かったら考える
                 if (!block.TryGetComponent<IItemCollectableBeltConveyor>(out var component))
                 {
                     continue;
