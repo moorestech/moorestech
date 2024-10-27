@@ -320,7 +320,7 @@
         1,
         1
       ],
-      "name": "StraightTestItemShooter",
+      "name": "直進アイテムシューター",
       "blockType": "ItemShooter",
       "blockParam": {
         "acceleration": -0.2,
@@ -388,7 +388,12 @@
         "slopeType": "Straight"
       },
       "itemGuid": "3568d0bf-c71e-4f5a-beab-d7239da99829",
-      "blockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192"
+      "blockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539",
+        "horizontalBlockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
+        "downBlockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115"
+      }
     },
     {
       "blockSize": [
@@ -396,7 +401,7 @@
         1,
         1
       ],
-      "name": "DownTestItemShooter",
+      "name": "下りアイテムシューター",
       "blockType": "ItemShooter",
       "blockParam": {
         "acceleration": 0.7,
@@ -457,7 +462,7 @@
         1,
         1
       ],
-      "name": "UpTestItemShooter",
+      "name": "上りアイテムシューター",
       "blockType": "ItemShooter",
       "blockParam": {
         "acceleration": -0.9,
