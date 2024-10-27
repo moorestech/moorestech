@@ -39,6 +39,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     _ => Vector3.zero,
                 };
                 rotate *= rotationInfo.IsReverse ? -1 : 1;
+                rotate *= rotationInfo.RotationSpeed;
                 rotate *= gearStateDetail.IsClockwise ? 1 : -1;
                 
                 rotationInfo.RotationTransform.Rotate(rotate);
@@ -52,10 +53,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private RotationAxis rotationAxis;
         [SerializeField] private Transform rotationTransform;
         [SerializeField] private bool isReverse;
+        [SerializeField] private float rotationSpeed = 1;
         
         public RotationAxis RotationAxis => rotationAxis;
         public Transform RotationTransform => rotationTransform;
         public bool IsReverse => isReverse;
+        public float RotationSpeed => rotationSpeed;
     }
     
     public enum RotationAxis

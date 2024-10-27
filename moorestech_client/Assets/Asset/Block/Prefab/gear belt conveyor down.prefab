@@ -50,12 +50,15 @@ MonoBehaviour:
   - rotationAxis: 1
     rotationTransform: {fileID: 2477971098258162781}
     isReverse: 0
+    rotationSpeed: 1
   - rotationAxis: 1
     rotationTransform: {fileID: 2671674868993767854}
     isReverse: 0
+    rotationSpeed: 1
   - rotationAxis: 1
     rotationTransform: {fileID: 2097194405952621663}
     isReverse: 1
+    rotationSpeed: 2
 --- !u!114 &6446912578113309129
 MonoBehaviour:
   m_ObjectHideFlags: 0
