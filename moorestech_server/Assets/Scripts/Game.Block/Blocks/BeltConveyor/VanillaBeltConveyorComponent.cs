@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -10,7 +9,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
-using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -24,6 +22,7 @@ namespace Game.Block.Blocks.BeltConveyor
         public int InventoryItemNum { get; }
         public bool IsDestroy { get; private set; }
         
+        public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly BeltConveyorInventoryItem[] _inventoryItems;
         
@@ -31,9 +30,10 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly string _blockName;
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName, BeltConveyorSlopeType slopeType)
         {
             _blockName = blockName;
+            SlopeType = slopeType;
             InventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _blockConnectorComponent = blockConnectorComponent;
@@ -41,8 +41,8 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName) :
-            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, blockName)
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName, BeltConveyorSlopeType slopeType) :
+            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, blockName, slopeType)
         {
             //stateから復元
             //データがないときは何もしない

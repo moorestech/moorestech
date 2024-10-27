@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -18,6 +17,7 @@ namespace Game.Block.Blocks.ItemShooter
 {
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
     {
+        public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly ShooterInventoryItem[] _inventoryItems;
         
@@ -28,9 +28,14 @@ namespace Game.Block.Blocks.ItemShooter
         {
             _blockConnectorComponent = blockConnectorComponent;
             _itemShooterBlockParam = itemShooterBlockParam;
+            SlopeType = itemShooterBlockParam.SlopeType switch
+            {
+                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
+            };
             
             _inventoryItems = new ShooterInventoryItem[_itemShooterBlockParam.InventoryItemNum];
-            
         }
         
         public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam) :

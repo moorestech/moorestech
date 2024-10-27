@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
@@ -34,9 +32,13 @@ namespace Game.Block.Factory.BlockTemplate
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
-            var vanillaBeltConveyorComponent = state == null ? 
-                new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName) : 
-                new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName);
+            var slopeType = gearBeltParam.SlopeType switch
+            {
+                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
+            };
+            var vanillaBeltConveyorComponent = state == null ? new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName, slopeType) : new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName, slopeType);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             
@@ -45,7 +47,7 @@ namespace Game.Block.Factory.BlockTemplate
                 gearBeltConveyorComponent,
                 vanillaBeltConveyorComponent,
                 gearEnergyTransformerConnector,
-                inventoryConnector,
+                inventoryConnector
             };
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
         }

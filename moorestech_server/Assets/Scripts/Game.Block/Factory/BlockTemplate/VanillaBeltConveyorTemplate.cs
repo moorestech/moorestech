@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
@@ -17,32 +16,36 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
-            var blockName = blockMasterElement.Name;
-            
-            var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
-            var beltComponent = new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
-            var components = new List<IBlockComponent>
-            {
-                beltComponent,
-                connectorComponent,
-            };
-            
-            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             //TODo UP bletからの入力を受付?
+            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        private BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
             var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
             var blockName = blockMasterElement.Name;
             
+            var slopeType = beltParam.SlopeType switch
+            {
+                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
+            };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
-            var beltComponent = new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName);
+            var beltComponent = state == null ? 
+                new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName, slopeType) : 
+                new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName, slopeType);
+            
+            
             var components = new List<IBlockComponent>
             {
                 beltComponent,
-                connectorComponent,
+                connectorComponent
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
