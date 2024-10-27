@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8963477831894855548}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: itemshooter straight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -80,6 +80,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7855493880976053290, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: -4819223349682164798, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 277094265346638427, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -88,10 +96,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: model
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 3410272414270506081, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: a155fcb6bc444cc46a1854d2e14c4544, type: 2}
+    - target: {fileID: 7296069837254451689, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 8449996119470504636, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
