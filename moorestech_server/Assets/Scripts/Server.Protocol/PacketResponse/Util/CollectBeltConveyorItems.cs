@@ -38,14 +38,12 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
-                
-                var type = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).BlockType;
-                
-                if (type != BlockTypeConst.BeltConveyor) continue;
+                if (!block.TryGetComponent<IItemCollectableBeltConveyor>(out var component))
+                {
+                    continue;
+                }
                 
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
-                var component = block.GetComponent<IItemCollectableBeltConveyor>();
-                
                 result.AddRange(CollectItemFromBeltConveyor(entityFactory, component, pos, direction));
             }
             
