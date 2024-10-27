@@ -128,11 +128,11 @@ namespace Game.Block.Blocks.ItemShooter
                 if (_inventoryItems[i] != null) continue;
                 
                 _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _itemShooterBlockParam.InitialShootSpeed);
+                //挿入したのでアイテムを減らして返す
                 return itemStack.SubItem(1);
             }
             
-            //挿入したのでアイテムを減らして返す
-            return itemStack.SubItem(1);
+            return itemStack;
         }
         
         public IItemStack GetItem(int slot)
