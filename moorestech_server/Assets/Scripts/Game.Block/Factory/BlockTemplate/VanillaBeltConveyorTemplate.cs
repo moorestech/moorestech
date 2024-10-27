@@ -9,8 +9,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaBeltConveyorTemplate : IBlockTemplate
     {
-        public const string SlopeUpBeltConveyor = "gear belt conveyor up";
-        public const string SlopeDownBeltConveyor = "gear belt conveyor down";
         public const string Hueru = "gear belt conveyor hueru";
         public const string Kieru = "gear belt conveyor kieru";
         

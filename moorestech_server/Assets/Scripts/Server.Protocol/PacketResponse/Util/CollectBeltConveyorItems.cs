@@ -51,12 +51,12 @@ namespace Server.Protocol.PacketResponse.Util
             return result;
         }
         
-        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, IItemCollectableBeltConveyor vanillaBeltConveyorComponent, Vector3Int pos, BlockDirection blockDirection)
+        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, IItemCollectableBeltConveyor beltConveyor, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
-            for (var i = 0; i < vanillaBeltConveyorComponent.BeltConveyorItems.Count; i++)
+            for (var i = 0; i < beltConveyor.BeltConveyorItems.Count; i++)
             {
-                var beltConveyorItem = vanillaBeltConveyorComponent.BeltConveyorItems[i];
+                var beltConveyorItem = beltConveyor.BeltConveyorItems[i];
                 if (beltConveyorItem == null) continue;
                 
                 //残り時間をどこまで進んだかに変換するために 1- する
@@ -86,13 +86,12 @@ namespace Server.Protocol.PacketResponse.Util
                 //この0.3という値は仮
                 var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
                 
-                var block = ServerContext.WorldBlockDatastore.GetOriginPosBlock(pos);
-                if (block.Block.BlockMasterElement.Name == VanillaBeltConveyorTemplate.SlopeUpBeltConveyor)
+                if (beltConveyor.SlopeType == BeltConveyorSlopeType.Up)
                 {
                     y += percent;
                     y += 0.1f;
                 }
-                else if (block.Block.BlockMasterElement.Name == VanillaBeltConveyorTemplate.SlopeDownBeltConveyor)
+                else if (beltConveyor.SlopeType == BeltConveyorSlopeType.Down)
                 {
                     y -= percent;
                     y += 0.1f;

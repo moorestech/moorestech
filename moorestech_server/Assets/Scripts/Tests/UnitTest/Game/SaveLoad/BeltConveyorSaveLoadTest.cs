@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, "");
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, "", BeltConveyorSlopeType.Straight);
             var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, "");
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, "", BeltConveyorSlopeType.Straight);
             var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
