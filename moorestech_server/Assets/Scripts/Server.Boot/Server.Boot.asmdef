@@ -32,7 +32,8 @@
     "Game.Gear",
     "Game.Challenge",
     "Game.Challenge.Interface",
-    "Core.Master"
+    "Core.Master",
+    "Game.CraftChainer"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

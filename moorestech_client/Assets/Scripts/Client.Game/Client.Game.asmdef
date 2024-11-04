@@ -53,7 +53,8 @@
         "Game.Challenge",
         "Game.Challenge.Interface",
         "UniTask.DOTween",
-        "Core.Master"
+        "Core.Master",
+        "Game.CraftChainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

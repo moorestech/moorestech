@@ -1,0 +1,17 @@
+{
+    "name": "Game.CraftChainer",
+    "rootNamespace": "",
+    "references": [
+        "Core.Item.Interface",
+        "Core.Master"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
