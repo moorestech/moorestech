@@ -9,6 +9,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Challenge;
 using Game.Context;
+using Game.CraftChainer.Util;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
 using Game.Entity;
@@ -88,6 +89,8 @@ namespace Server.Boot
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
+            
+            services.AddSingleton<ItemRecipeViewerDataContainer>();
             
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();

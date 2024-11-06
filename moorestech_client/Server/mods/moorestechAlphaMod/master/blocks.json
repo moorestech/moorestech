@@ -320,7 +320,7 @@
         1,
         1
       ],
-      "name": "StraightTestItemShooter",
+      "name": "直進アイテムシューター",
       "blockType": "ItemShooter",
       "blockParam": {
         "acceleration": -0.2,
@@ -384,10 +384,16 @@
               "connectOption": {}
             }
           ]
-        }
+        },
+        "slopeType": "Straight"
       },
       "itemGuid": "3568d0bf-c71e-4f5a-beab-d7239da99829",
-      "blockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192"
+      "blockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539",
+        "horizontalBlockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
+        "downBlockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115"
+      }
     },
     {
       "blockSize": [
@@ -395,7 +401,7 @@
         1,
         1
       ],
-      "name": "DownTestItemShooter",
+      "name": "下りアイテムシューター",
       "blockType": "ItemShooter",
       "blockParam": {
         "acceleration": 0.7,
@@ -444,7 +450,8 @@
               "connectOption": {}
             }
           ]
-        }
+        },
+        "slopeType": "Down"
       },
       "itemGuid": "6690cf85-672a-46c0-97b2-45da0b6c954e",
       "blockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115"
@@ -455,7 +462,7 @@
         1,
         1
       ],
-      "name": "UpTestItemShooter",
+      "name": "上りアイテムシューター",
       "blockType": "ItemShooter",
       "blockParam": {
         "acceleration": -0.9,
@@ -504,7 +511,8 @@
               "connectOption": {}
             }
           ]
-        }
+        },
+        "slopeType": "Up"
       },
       "itemGuid": "91886efb-6f26-4ff5-80d8-5c5a1966b264",
       "blockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539"
@@ -677,6 +685,16 @@
                   1,
                   0,
                   0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
                 ]
               ]
             }
@@ -711,6 +729,16 @@
                   -1,
                   0,
                   0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
                 ]
               ],
               "connectOption": {}
@@ -729,12 +757,18 @@
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  -1,
+                  1
                 ]
               ],
               "connectOption": {}
             }
           ]
-        }
+        },
+        "slopeType": "Straight"
       },
       "itemGuid": "a094cb43-422b-42d0-bb44-ee5bf6d0321b",
       "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
@@ -830,7 +864,8 @@
               "connectOption": {}
             }
           ]
-        }
+        },
+        "slopeType": "Up"
       },
       "itemGuid": "bb6170ae-27f8-41a9-90b2-b3b272b05dc2",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d"
@@ -921,7 +956,8 @@
               "connectOption": {}
             }
           ]
-        }
+        },
+        "slopeType": "Down"
       },
       "itemGuid": "8f13936b-8c95-4091-a34a-3739187dca82",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2"

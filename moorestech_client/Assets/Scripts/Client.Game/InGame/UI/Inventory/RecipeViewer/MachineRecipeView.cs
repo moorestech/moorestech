@@ -5,6 +5,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Core.Master;
+using Game.CraftChainer.Util;
 using TMPro;
 using UniRx;
 using UnityEngine;

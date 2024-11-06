@@ -74,7 +74,8 @@ public static class SchemaWatcher
     }
     
     // 変更のチェック
-    private static void CheckForChanges()
+    [MenuItem("moorestech/Check Schema Changes")]
+    public static void CheckForChanges()
     {
         var currentFileHashes = new Dictionary<string, string>();
         

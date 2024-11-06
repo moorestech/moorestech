@@ -5,6 +5,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
+using Game.CraftChainer.Util;
 using UniRx;
 using UnityEngine;
 using VContainer;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -18,19 +17,28 @@ namespace Game.Block.Blocks.ItemShooter
 {
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
     {
+        public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly ShooterInventoryItem[] _inventoryItems;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly ItemShooterBlockParam _itemShooterBlockParam;
+        private const float InsertItemInterval = 1f; // TODO to master
+        
+        private float _lastInsertElapsedTime;
         
         public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam)
         {
             _blockConnectorComponent = blockConnectorComponent;
             _itemShooterBlockParam = itemShooterBlockParam;
+            SlopeType = itemShooterBlockParam.SlopeType switch
+            {
+                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
+            };
             
             _inventoryItems = new ShooterInventoryItem[_itemShooterBlockParam.InventoryItemNum];
-            
         }
         
         public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam) :
@@ -56,6 +64,7 @@ namespace Game.Block.Blocks.ItemShooter
         {
             BlockException.CheckDestroy(this);
             
+            _lastInsertElapsedTime += (float)GameUpdater.UpdateSecondTime;
             var count = _inventoryItems.Length;
             
             for (var i = 0; i < count; i++)
@@ -117,17 +126,21 @@ namespace Game.Block.Blocks.ItemShooter
         {
             BlockException.CheckDestroy(this);
             
-            //新しく挿入可能か
+            // インサート間隔をチェック
+            if (_lastInsertElapsedTime < InsertItemInterval) return itemStack;
+            
+            // インサート可能なスロットに挿入
             for (var i = 0; i < _inventoryItems.Length; i++)
             {
                 if (_inventoryItems[i] != null) continue;
                 
                 _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _itemShooterBlockParam.InitialShootSpeed);
+                //挿入したのでアイテムを減らして返す
+                _lastInsertElapsedTime = 0;
                 return itemStack.SubItem(1);
             }
             
-            //挿入したのでアイテムを減らして返す
-            return itemStack.SubItem(1);
+            return itemStack;
         }
         
         public IItemStack GetItem(int slot)

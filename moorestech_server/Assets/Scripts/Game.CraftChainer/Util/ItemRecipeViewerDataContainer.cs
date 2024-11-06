@@ -4,7 +4,7 @@ using Core.Master;
 using Mooresmaster.Model.CraftRecipesModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
-namespace Client.Game.InGame.UI.Inventory.Sub
+namespace Game.CraftChainer.Util
 {
     // TODO クラフトレシピ改善時にこれを使う
     public class ItemRecipeViewerDataContainer

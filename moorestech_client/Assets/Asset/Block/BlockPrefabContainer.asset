@@ -39,3 +39,9 @@ MonoBehaviour:
     blockPrefab: {fileID: 5188025818332770762, guid: f148ee4b0ebd54839ad8213503691341, type: 3}
   - blockGuid: f3443d58-ca2b-4494-aad1-0298983ceeed
     blockPrefab: {fileID: 6182539724762056065, guid: 6f66b5f793cadea49bd28b222c6c710b, type: 3}
+  - blockGuid: 529f4fba-2ad0-4d19-bc17-2b62bb3a8192
+    blockPrefab: {fileID: 3768646863689960170, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
+  - blockGuid: 68e7a3bf-f72f-4e64-9004-73bf74f61539
+    blockPrefab: {fileID: 8017889718239260649, guid: c35136d02ef7ece45addc80eae509ea1, type: 3}
+  - blockGuid: f8d85e81-e75e-498d-a9c0-f7f33e2fc115
+    blockPrefab: {fileID: 8819789125630594113, guid: d793aaf0184d71c448ea70d6f7a7fab9, type: 3}
