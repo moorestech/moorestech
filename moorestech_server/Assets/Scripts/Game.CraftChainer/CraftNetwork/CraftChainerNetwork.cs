@@ -11,6 +11,7 @@ namespace Game.CraftChainer.CraftNetwork
             // TODO ルートを計算
             
             // TODO 次のノードを返す
+            return null;
         }
     }
 }
