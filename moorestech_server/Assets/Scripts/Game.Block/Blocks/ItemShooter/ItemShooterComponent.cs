@@ -25,7 +25,7 @@ namespace Game.Block.Blocks.ItemShooter
         private readonly ItemShooterBlockParam _itemShooterBlockParam;
         private const float InsertItemInterval = 1f; // TODO to master
         
-        private float _lastInsertElapsedTime;
+        private float _lastInsertElapsedTime = float.MaxValue;
         
         public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam)
         {
