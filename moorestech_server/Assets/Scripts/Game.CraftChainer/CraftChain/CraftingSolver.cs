@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using UnitGenerator;
-using UnityEngine;
 
 public class CraftingSolver
 {
     public static Dictionary<CraftingSolverRecipeId, int> Solve(
         List<CraftingSolverRecipe> recipes,
         Dictionary<ItemId, int> initialInventory,
-        ItemId targetItemName,
-        int targetQuantity)
+        CraftingSolverItem targetItem)
     {
         // Step 1: Build a mapping from items to the recipes that produce them
         // ステップ1：アイテムからそれを生産するレシピへのマッピングを構築する
@@ -19,7 +17,7 @@ public class CraftingSolver
 
         // Step 2: Initialize the initial state for BFS
         // ステップ2：BFSのための初期状態を初期化する
-        var initialState = InitializeState(initialInventory, targetItemName, targetQuantity);
+        var initialState = InitializeState(initialInventory, targetItem.ItemId, targetItem.Quantity);
 
         // Step 3: Prepare BFS structures
         // ステップ3：BFSの構造を準備する

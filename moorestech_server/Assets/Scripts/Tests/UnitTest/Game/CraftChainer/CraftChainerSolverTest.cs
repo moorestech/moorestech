@@ -277,8 +277,8 @@ D 1";
             string targetItemStr,
             string expectedStr)
         {
-            var (recipes, initialInventory, targetItemId, targetQuantity, expected) = ParseInput(recipesStr, initialInventoryStr, targetItemStr, expectedStr);
-            var actual = CraftingSolver.Solve(recipes, initialInventory, targetItemId, targetQuantity);
+            var (recipes, initialInventory, targetItem, expected) = ParseInput(recipesStr, initialInventoryStr, targetItemStr, expectedStr);
+            var actual = CraftingSolver.Solve(recipes, initialInventory, targetItem);
             
             if (expected == null)
             {
@@ -296,7 +296,7 @@ D 1";
             }
         }
         
-        private (List<CraftingSolverRecipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemId, int targetQuantity, Dictionary<CraftingSolverRecipeId, int> expected) ParseInput(
+        private (List<CraftingSolverRecipe> recipes, Dictionary<ItemId, int> initialInventory, CraftingSolverItem targetItem, Dictionary<CraftingSolverRecipeId, int> expected) ParseInput(
             string recipesStr,
             string initialInventoryStr,
             string targetItemStr,
@@ -304,10 +304,10 @@ D 1";
         {
             var recipes = ParseRecipes();
             var initialInventory = ParseInitialInventory();
-            var (targetItemId, targetQuantity) = ParseTargetItem();
+            var targetItem = ParseTargetItem();
             var expected = ParseExpected();
             
-            return (recipes, initialInventory, targetItemId, targetQuantity, expected);
+            return (recipes, initialInventory, targetItem, expected);
             
             #region Internal
             
@@ -348,13 +348,13 @@ D 1";
                 return result;
             }
             
-            (ItemId targetItemId, int targetQuantity) ParseTargetItem()
+            CraftingSolverItem ParseTargetItem()
             {
                 var itemName = targetItemStr.Split(' ')[0];
                 var itemId = new ItemId(GetItemId(itemName));
                 var quantity = int.Parse(targetItemStr.Split(' ')[1]);
                 
-                return (itemId, quantity);
+                return new CraftingSolverItem(itemId, quantity);
             }
             
             Dictionary<CraftingSolverRecipeId, int> ParseExpected()
