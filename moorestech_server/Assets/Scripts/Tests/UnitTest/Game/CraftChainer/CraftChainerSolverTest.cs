@@ -5,39 +5,59 @@ using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.CraftChainer
 {
+    /// <summary>
+    /// 凡例 legend
+    /// 
+    /// recipesStr
+    /// レシピ番号:アウトプットアイテム名 数量, アウトプットアイテム名 数量 ← インプットアイテム名 数量, インプットアイテム名 数量
+    /// RecipeId:OutputItemName Quantity, OutputItemName Quantity ← InputItemName Quantity, InputItemName Quantity
+    ///
+    /// initialInventoryStr
+    /// アイテム名 数量
+    /// ItemName Quantity
+    ///
+    /// targetItemStr
+    /// アイテム名 数量
+    /// ItemName Quantity
+    ///
+    /// expectedStr
+    /// レシピ番号:使用レシピ回数
+    /// RecipeId:UseRecipeCount
+    /// 
+    /// </summary>
     public class CraftChainerSolverTest
     {
         [Test]
         public void Case01()
         {
-            var recipeSettings = @"
+            var recipesStr = @"
 1:A 1 ← B 1, C 2
 2:B 1 ← C 2";
-            var initialSettings = @"
+            var initialInventoryStr = @"
 B 1";
             var targetItem = "A 1";
-            var expected = @"";
+            var expectedStr = @"";
             
-            ExecuteTest(recipeSettings, initialSettings, targetItem, expected);
+            ExecuteTest(recipesStr, initialInventoryStr, targetItem, expectedStr);
         }
         
         [Test]
         public void Case05()
         {
-            var recipeSettings = @"
+            var recipesStr = @"
 1:A 1 ← B 3
 2:B 1 ← C 2
 3:B 1 ← D 2
 4:D 1 ← E 1";
-            var initialSettings = @"
+            var initialInventoryStr = @"
 C 4
 D 2";
             var targetItem = "A 1";
-            var expected = @"
+            var expectedStr = @"
 1:1
 2:2
 3:1";
-            ExecuteTest(recipeSettings, initialSettings, targetItem, expected);
+            ExecuteTest(recipesStr, initialInventoryStr, targetItem, expectedStr);
         }
         
         
