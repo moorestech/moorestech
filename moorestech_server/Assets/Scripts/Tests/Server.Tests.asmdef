@@ -45,7 +45,8 @@
         "Game.Challenge.Interface",
         "UniRx",
         "Core.Master",
-        "Server.Tests.Module"
+        "Server.Tests.Module",
+        "Game.CraftChainer"
     ],
     "includePlatforms": [
         "Editor"

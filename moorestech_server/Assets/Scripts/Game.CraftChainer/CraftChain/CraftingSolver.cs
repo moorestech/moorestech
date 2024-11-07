@@ -6,8 +6,21 @@ using UnitGenerator;
 
 public class CraftingSolver
 {
-    public static Dictionary<RecipeId, int> Solve(Dictionary<ItemId, List<Recipe>> itemsProducedByRecipe,Dictionary<RecipeId, Recipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemName,int targetQuantity)
+    public static Dictionary<RecipeId, int> Solve(List<Recipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemName,int targetQuantity)
     {
+        Dictionary<ItemId, List<Recipe>> itemsProducedByRecipe = new Dictionary<ItemId, List<Recipe>>();
+        foreach (var recipe in recipes)
+        {
+            foreach (var output in recipe.Outputs)
+            {
+                if (!itemsProducedByRecipe.ContainsKey(output.ItemId))
+                    itemsProducedByRecipe[output.ItemId] = new List<Recipe>();
+                itemsProducedByRecipe[output.ItemId].Add(recipe);
+            }
+        }
+        
+        
+        
         // BFS Initialization
         var initialState = new State
         {
@@ -210,19 +223,38 @@ public class InputItem
 {
     public ItemId ItemId;
     public int Quantity;
+    
+    public InputItem(ItemId itemId, int quantity)
+    {
+        ItemId = itemId;
+        Quantity = quantity;
+    }
 }
 
 public class OutputItem
 {
     public ItemId ItemId;
     public int Quantity;
+    
+    public OutputItem(ItemId itemId, int quantity)
+    {
+        ItemId = itemId;
+        Quantity = quantity;
+    }
 }
 
 public class Recipe
 {
     public RecipeId RecipeId;
-    public List<OutputItem> Outputs;
     public List<InputItem> Inputs;
+    public List<OutputItem> Outputs;
+    
+    public Recipe(RecipeId recipeId, List<InputItem> inputs, List<OutputItem> outputs)
+    {
+        RecipeId = recipeId;
+        Inputs = inputs;
+        Outputs = outputs;
+    }
 }
 
 [UnitOf(typeof(int))]
