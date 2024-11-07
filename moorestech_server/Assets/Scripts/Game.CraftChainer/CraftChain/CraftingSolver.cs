@@ -7,215 +7,270 @@ using UnityEngine;
 
 public class CraftingSolver
 {
-    public static Dictionary<CraftingSolverRecipeId, int> Solve(List<CraftingSolverRecipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemName,int targetQuantity)
+    public static Dictionary<CraftingSolverRecipeId, int> Solve(
+        List<CraftingSolverRecipe> recipes,
+        Dictionary<ItemId, int> initialInventory,
+        ItemId targetItemName,
+        int targetQuantity)
     {
-        Dictionary<ItemId, List<CraftingSolverRecipe>> itemsProducedByRecipe = new Dictionary<ItemId, List<CraftingSolverRecipe>>();
+        // Step 1: Build a mapping from items to the recipes that produce them
+        var itemsProducedByRecipe = BuildItemsProducedByRecipe(recipes);
+
+        // Step 2: Initialize the initial state for BFS
+        var initialState = InitializeState(initialInventory, targetItemName, targetQuantity);
+
+        // Step 3: Prepare BFS structures
+        var (queue, visitedStates, bestState) = InitializeBFS(initialState);
+
+        // Step 4: Perform BFS to find the optimal crafting solution
+        while (queue.Count > 0)
+        {
+            var currentState = queue.Dequeue();
+
+            if (IsStateVisited(currentState, visitedStates))
+                continue;
+
+            MarkStateAsVisited(currentState, visitedStates);
+
+            if (IsGoalState(currentState))
+            {
+                bestState = UpdateBestState(currentState, bestState);
+                continue;
+            }
+
+            var neededItem = FindNeededItem(currentState);
+            if (neededItem == null)
+                continue;
+
+            if (TryFulfillNeedFromInventory(currentState, neededItem, queue))
+                continue;
+
+            ExpandState(currentState, neededItem, itemsProducedByRecipe, queue);
+        }
+
+        // Step 5: Return the best solution found
+        return bestState?.RecipesUsed;
+    }
+
+    private static Dictionary<ItemId, List<CraftingSolverRecipe>> BuildItemsProducedByRecipe(List<CraftingSolverRecipe> recipes)
+    {
+        var itemsProduced = new Dictionary<ItemId, List<CraftingSolverRecipe>>();
         foreach (var recipe in recipes)
         {
             foreach (var output in recipe.Outputs)
             {
-                if (!itemsProducedByRecipe.ContainsKey(output.ItemId))
-                    itemsProducedByRecipe[output.ItemId] = new List<CraftingSolverRecipe>();
-                itemsProducedByRecipe[output.ItemId].Add(recipe);
+                if (!itemsProduced.ContainsKey(output.ItemId))
+                    itemsProduced[output.ItemId] = new List<CraftingSolverRecipe>();
+                itemsProduced[output.ItemId].Add(recipe);
             }
         }
-        
-        // BFS Initialization
-        var initialState = new CraftingSolverState
+        return itemsProduced;
+    }
+
+    private static CraftingSolverState InitializeState(Dictionary<ItemId, int> inventory, ItemId targetItem, int targetQty)
+    {
+        var state = new CraftingSolverState
         {
-            Inventory = new Dictionary<ItemId, int>(initialInventory),
+            Inventory = new Dictionary<ItemId, int>(inventory),
             RecipesUsed = new Dictionary<CraftingSolverRecipeId, int>(),
             MaterialUsed = 0
         };
-        if (!initialState.Inventory.ContainsKey(targetItemName))
-            initialState.Inventory[targetItemName] = 0;
-        initialState.Inventory[targetItemName] -= targetQuantity; // Negative quantity indicates need
 
+        if (!state.Inventory.ContainsKey(targetItem))
+            state.Inventory[targetItem] = 0;
+        state.Inventory[targetItem] -= targetQty; // Negative quantity indicates a need
+
+        return state;
+    }
+
+    private static (Queue<CraftingSolverState>, HashSet<string>, CraftingSolverState) InitializeBFS(CraftingSolverState initialState)
+    {
         var queue = new Queue<CraftingSolverState>();
         queue.Enqueue(initialState);
 
-        var visited = new HashSet<string>();
-        CraftingSolverState bestCraftingSolverState = null;
+        var visitedStates = new HashSet<string>();
+        CraftingSolverState bestState = null;
 
-        while (queue.Count > 0)
+        return (queue, visitedStates, bestState);
+    }
+
+    private static bool IsStateVisited(CraftingSolverState state, HashSet<string> visitedStates)
+    {
+        var key = GenerateStateKey(state);
+        return visitedStates.Contains(key);
+    }
+
+    private static void MarkStateAsVisited(CraftingSolverState state, HashSet<string> visitedStates)
+    {
+        var key = GenerateStateKey(state);
+        visitedStates.Add(key);
+    }
+
+    private static bool IsGoalState(CraftingSolverState state)
+    {
+        return state.Inventory.Values.All(quantity => quantity >= 0);
+    }
+
+    private static CraftingSolverState UpdateBestState(CraftingSolverState currentState, CraftingSolverState bestState)
+    {
+        if (bestState == null || currentState.MaterialUsed < bestState.MaterialUsed)
+            return currentState;
+        return bestState;
+    }
+
+    private static KeyValuePair<ItemId, int>? FindNeededItem(CraftingSolverState state)
+    {
+        foreach (var kvp in state.Inventory)
         {
-            var state = queue.Dequeue();
+            if (kvp.Value < 0)
+                return kvp;
+        }
+        return null;
+    }
 
-            var stateKey = GetStateKey(state);
-            if (visited.Contains(stateKey))
-                continue;
-            visited.Add(stateKey);
+    private static bool TryFulfillNeedFromInventory(CraftingSolverState state, KeyValuePair<ItemId, int>? neededItem, Queue<CraftingSolverState> queue)
+    {
+        var itemId = neededItem.Value.Key;
+        int quantityNeeded = -neededItem.Value.Value;
 
-            // Check if all needed items are satisfied
-            if (state.Inventory.All(kvp => kvp.Value >= 0))
+        if (state.Inventory.TryGetValue(itemId, out int available) && available > 0)
+        {
+            int used = Math.Min(available, quantityNeeded);
+            var newState = CloneState(state);
+            newState.Inventory[itemId] -= used; // Consume from inventory
+            newState.Inventory[itemId] += quantityNeeded; // Fulfill the need
+            queue.Enqueue(newState);
+            return true;
+        }
+        return false;
+    }
+
+    private static void ExpandState(
+        CraftingSolverState state,
+        KeyValuePair<ItemId, int>? neededItem,
+        Dictionary<ItemId, List<CraftingSolverRecipe>> itemsProducedByRecipe,
+        Queue<CraftingSolverState> queue)
+    {
+        var itemId = neededItem.Value.Key;
+        int quantityNeeded = -neededItem.Value.Value;
+
+        if (itemsProducedByRecipe.TryGetValue(itemId, out var producingRecipes))
+        {
+            var maxRunsList = producingRecipes.Select(_ => 10).ToList(); // Limit runs to prevent infinite loops
+
+            var combinations = GenerateRecipeCombinations(producingRecipes, maxRunsList, quantityNeeded, state, itemId);
+
+            foreach (var combination in combinations)
             {
-                // Found a valid solution
-                if (bestCraftingSolverState == null || state.MaterialUsed < bestCraftingSolverState.MaterialUsed)
-                {
-                    bestCraftingSolverState = state;
-                }
-                continue;
-            }
-
-            // Find an item that is needed (negative quantity)
-            var neededItemKvp = state.Inventory.FirstOrDefault(kvp => kvp.Value < 0);
-            if (neededItemKvp.Key == null)
-                continue;
-
-            ItemId itemId = neededItemKvp.Key;
-            int quantityNeeded = -neededItemKvp.Value;
-
-            // Try to fulfill the need from inventory
-            if (state.Inventory.ContainsKey(itemId) && state.Inventory[itemId] > 0)
-            {
-                int available = state.Inventory[itemId];
-                int used = Math.Min(available, quantityNeeded);
-                var newState = CloneState(state);
-                newState.Inventory[itemId] -= used; // Consume inventory
-                newState.Inventory[itemId] += quantityNeeded; // Need fulfilled
-                queue.Enqueue(newState);
-                continue;
-            }
-
-            // Try combinations of recipes that produce the needed item
-            if (itemsProducedByRecipe.ContainsKey(itemId))
-            {
-                var producingRecipes = itemsProducedByRecipe[itemId];
-
-                // Calculate max runs for each recipe
-                var maxRunsList = new List<int>();
-                foreach (var recipe in producingRecipes)
-                {
-                    int maxRuns = 10; // Set an upper limit to prevent infinite loops
-                    maxRunsList.Add(maxRuns);
-                }
-
-                // Generate combinations of runs
-                var combinations = GenerateCombinations(producingRecipes, maxRunsList, quantityNeeded, state, itemId);
-
-                foreach (var combination in combinations)
-                {
-                    // For each combination, create new state
-                    var newState = CloneState(state);
-                    bool canProceed = true;
-
-                    // For each recipe and number of runs
-                    for (int i = 0; i < producingRecipes.Count; i++)
-                    {
-                        var recipe = producingRecipes[i];
-                        int timesToRun = combination[i];
-
-                        if (timesToRun == 0)
-                            continue;
-
-                        // Update recipes used
-                        if (!newState.RecipesUsed.ContainsKey(recipe.CraftingSolverRecipeId))
-                            newState.RecipesUsed[recipe.CraftingSolverRecipeId] = 0;
-                        newState.RecipesUsed[recipe.CraftingSolverRecipeId] += timesToRun;
-
-                        // Update inventory with outputs
-                        foreach (var output in recipe.Outputs)
-                        {
-                            int produced = output.Quantity * timesToRun;
-                            if (!newState.Inventory.ContainsKey(output.ItemId))
-                                newState.Inventory[output.ItemId] = 0;
-                            newState.Inventory[output.ItemId] += produced;
-                        }
-
-                        // Consume ingredients
-                        foreach (var ingredient in recipe.Inputs)
-                        {
-                            int required = ingredient.Quantity * timesToRun;
-                            if (!newState.Inventory.ContainsKey(ingredient.ItemId))
-                                newState.Inventory[ingredient.ItemId] = 0;
-                            newState.Inventory[ingredient.ItemId] -= required; // Negative indicates need
-                        }
-                    }
-
-                    // Check for excessive negative inventory (to prevent infinite loops)
-                    foreach (var kvp in newState.Inventory)
-                    {
-                        if (kvp.Value < -1000)
-                        {
-                            canProceed = false;
-                            break;
-                        }
-                    }
-
-                    if (!canProceed)
-                        continue;
-
+                var newState = ApplyRecipeCombination(state, producingRecipes, combination);
+                if (IsStateValid(newState))
                     queue.Enqueue(newState);
-                }
             }
-        }
-
-        if (bestCraftingSolverState == null)
-        {
-            return null;
-        }
-        else
-        {
-            return bestCraftingSolverState.RecipesUsed;
         }
     }
 
-    private static List<int[]> GenerateCombinations(List<CraftingSolverRecipe> recipes, List<int> maxRunsList, int quantityNeeded, CraftingSolverState craftingSolverState, ItemId itemId)
+    #region Internal
+
+    private static List<int[]> GenerateRecipeCombinations(
+        List<CraftingSolverRecipe> recipes,
+        List<int> maxRunsList,
+        int quantityNeeded,
+        CraftingSolverState state,
+        ItemId itemId)
     {
         var combinations = new List<int[]>();
-        int n = recipes.Count;
-        int[] currentRuns = new int[n];
-        GenerateCombinationsRecursive(recipes, maxRunsList, quantityNeeded, 0, currentRuns, combinations, craftingSolverState, itemId);
+        int recipeCount = recipes.Count;
+        int[] currentRuns = new int[recipeCount];
+
+        void RecursiveGenerate(int index)
+        {
+            if (index == recipeCount)
+            {
+                int totalProduced = state.Inventory.TryGetValue(itemId, out int existing) && existing > 0 ? existing : 0;
+
+                for (int i = 0; i < recipeCount; i++)
+                {
+                    var output = recipes[i].Outputs.FirstOrDefault(o => o.ItemId == itemId);
+                    if (output != null)
+                        totalProduced += currentRuns[i] * output.Quantity;
+                }
+
+                if (totalProduced >= -state.Inventory[itemId])
+                    combinations.Add((int[])currentRuns.Clone());
+                return;
+            }
+
+            for (int run = 0; run <= maxRunsList[index]; run++)
+            {
+                currentRuns[index] = run;
+                RecursiveGenerate(index + 1);
+            }
+        }
+
+        RecursiveGenerate(0);
         return combinations;
     }
 
-    private static void GenerateCombinationsRecursive(List<CraftingSolverRecipe> recipes, List<int> maxRunsList, int quantityNeeded, int index, int[] currentRuns, List<int[]> combinations, CraftingSolverState craftingSolverState, ItemId itemId)
+    private static CraftingSolverState ApplyRecipeCombination(
+        CraftingSolverState state,
+        List<CraftingSolverRecipe> recipes,
+        int[] combination)
     {
-        if (index == recipes.Count)
+        var newState = CloneState(state);
+
+        for (int i = 0; i < recipes.Count; i++)
         {
-            // Calculate total output
-            int totalProduced = craftingSolverState.Inventory.ContainsKey(itemId) && craftingSolverState.Inventory[itemId] > 0 ? craftingSolverState.Inventory[itemId] : 0;
-            for (int i = 0; i < recipes.Count; i++)
+            int runs = combination[i];
+            if (runs == 0) continue;
+
+            var recipe = recipes[i];
+            if (!newState.RecipesUsed.ContainsKey(recipe.CraftingSolverRecipeId))
+                newState.RecipesUsed[recipe.CraftingSolverRecipeId] = 0;
+            newState.RecipesUsed[recipe.CraftingSolverRecipeId] += runs;
+
+            foreach (var output in recipe.Outputs)
             {
-                var recipe = recipes[i];
-                int timesToRun = currentRuns[i];
-                var outputItem = recipe.Outputs.FirstOrDefault(o => o.ItemId == itemId);
-                if (outputItem != null)
-                {
-                    totalProduced += timesToRun * outputItem.Quantity;
-                }
+                int produced = output.Quantity * runs;
+                if (!newState.Inventory.ContainsKey(output.ItemId))
+                    newState.Inventory[output.ItemId] = 0;
+                newState.Inventory[output.ItemId] += produced;
             }
 
-            if (totalProduced >= -craftingSolverState.Inventory[itemId]) // We need to produce at least the needed quantity
+            foreach (var input in recipe.Inputs)
             {
-                combinations.Add((int[])currentRuns.Clone());
+                int required = input.Quantity * runs;
+                if (!newState.Inventory.ContainsKey(input.ItemId))
+                    newState.Inventory[input.ItemId] = 0;
+                newState.Inventory[input.ItemId] -= required; // Negative indicates a need
             }
-            return;
         }
 
-        for (int run = 0; run <= maxRunsList[index]; run++)
-        {
-            currentRuns[index] = run;
-            GenerateCombinationsRecursive(recipes, maxRunsList, quantityNeeded, index + 1, currentRuns, combinations, craftingSolverState, itemId);
-        }
+        return newState;
     }
 
-    private static string GetStateKey(CraftingSolverState craftingSolverState)
+    private static bool IsStateValid(CraftingSolverState state)
     {
-        var inventoryPart = string.Join(",", craftingSolverState.Inventory.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}:{kvp.Value}"));
-        var recipesPart = string.Join(",", craftingSolverState.RecipesUsed.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}:{kvp.Value}"));
-        return $"{inventoryPart}|{recipesPart}|{craftingSolverState.MaterialUsed}";
+        return state.Inventory.Values.All(quantity => quantity >= -1000);
     }
 
-    private static CraftingSolverState CloneState(CraftingSolverState craftingSolverState)
+    private static string GenerateStateKey(CraftingSolverState state)
+    {
+        var inventoryKey = string.Join(",", state.Inventory.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}:{kvp.Value}"));
+        var recipesKey = string.Join(",", state.RecipesUsed.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}:{kvp.Value}"));
+        return $"{inventoryKey}|{recipesKey}|{state.MaterialUsed}";
+    }
+
+    private static CraftingSolverState CloneState(CraftingSolverState state)
     {
         return new CraftingSolverState
         {
-            Inventory = new Dictionary<ItemId, int>(craftingSolverState.Inventory),
-            RecipesUsed = new Dictionary<CraftingSolverRecipeId, int>(craftingSolverState.RecipesUsed),
-            MaterialUsed = craftingSolverState.MaterialUsed
+            Inventory = new Dictionary<ItemId, int>(state.Inventory),
+            RecipesUsed = new Dictionary<CraftingSolverRecipeId, int>(state.RecipesUsed),
+            MaterialUsed = state.MaterialUsed
         };
     }
+
+    #endregion
 }
 
 public class CraftingSolverItem
