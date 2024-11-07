@@ -14,15 +14,19 @@ public class CraftingSolver
         int targetQuantity)
     {
         // Step 1: Build a mapping from items to the recipes that produce them
+        // ステップ1：アイテムからそれを生産するレシピへのマッピングを構築する
         var itemsProducedByRecipe = BuildItemsProducedByRecipe(recipes);
 
         // Step 2: Initialize the initial state for BFS
+        // ステップ2：BFSのための初期状態を初期化する
         var initialState = InitializeState(initialInventory, targetItemName, targetQuantity);
 
         // Step 3: Prepare BFS structures
+        // ステップ3：BFSの構造を準備する
         var (queue, visitedStates, bestState) = InitializeBFS(initialState);
 
         // Step 4: Perform BFS to find the optimal crafting solution
+        // ステップ4：最適なクラフト解を見つけるためにBFSを実行する
         while (queue.Count > 0)
         {
             var currentState = queue.Dequeue();
@@ -49,6 +53,7 @@ public class CraftingSolver
         }
 
         // Step 5: Return the best solution found
+        // ステップ5：見つかった最適な解を返す
         return bestState?.RecipesUsed;
     }
 
