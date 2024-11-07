@@ -296,7 +296,7 @@ D 1";
             }
         }
         
-        private (List<Recipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemId, int targetQuantity, Dictionary<RecipeId, int> expected) ParseInput(
+        private (List<CraftingSolverRecipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemId, int targetQuantity, Dictionary<CraftingSolverRecipeId, int> expected) ParseInput(
             string recipesStr,
             string initialInventoryStr,
             string targetItemStr,
@@ -311,21 +311,21 @@ D 1";
             
             #region Internal
             
-            List<Recipe> ParseRecipes()
+            List<CraftingSolverRecipe> ParseRecipes()
             {
-                var result = new List<Recipe>();
+                var result = new List<CraftingSolverRecipe>();
                 
                 var recipeLines = recipesStr.Split('\n').Where(x => !string.IsNullOrWhiteSpace(x));
                 foreach (var recipeLine in recipeLines)
                 {
-                    var recipeId = new RecipeId(int.Parse(recipeLine.Split(':')[0]));
+                    var recipeId = new CraftingSolverRecipeId(int.Parse(recipeLine.Split(':')[0]));
                     var inputItemsStr = recipeLine.Split(':')[1].Split('←')[1].Trim();
                     var outputItemStr = recipeLine.Split(':')[1].Split('←')[0].Trim();
                     
                     var inputItems = ParseRecipeItems(inputItemsStr);
                     var outputItems = ParseRecipeItems(outputItemStr);
                     
-                    result.Add(new Recipe(recipeId, inputItems, outputItems));
+                    result.Add(new CraftingSolverRecipe(recipeId, inputItems, outputItems));
                 }
                 
                 return result;
@@ -357,9 +357,9 @@ D 1";
                 return (itemId, quantity);
             }
             
-            Dictionary<RecipeId, int> ParseExpected()
+            Dictionary<CraftingSolverRecipeId, int> ParseExpected()
             {
-                var result = new Dictionary<RecipeId, int>();
+                var result = new Dictionary<CraftingSolverRecipeId, int>();
                 
                 var expectedLines = expectedStr.Split('\n').Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                 if (expectedLines.Count == 0)
@@ -369,7 +369,7 @@ D 1";
                 
                 foreach (var expectedLine in expectedLines)
                 {
-                    var recipeId = new RecipeId(int.Parse(expectedLine.Split(':')[0]));
+                    var recipeId = new CraftingSolverRecipeId(int.Parse(expectedLine.Split(':')[0]));
                     var quantity = int.Parse(expectedLine.Split(':')[1]);
                     
                     result.Add(recipeId, quantity);
@@ -378,9 +378,9 @@ D 1";
                 return result;
             }
             
-            List<RecipeItem> ParseRecipeItems(string itemRecipes)
+            List<CraftingSolverItem> ParseRecipeItems(string itemRecipes)
             {
-                var result = new List<RecipeItem>();
+                var result = new List<CraftingSolverItem>();
                 foreach (var item in itemRecipes.Split(','))
                 {
                     var trimItem = item.Trim();
@@ -388,7 +388,7 @@ D 1";
                     var itemId = new ItemId(GetItemId(itemName));
                     var quantity = int.Parse(trimItem.Split(' ')[1]);
                     
-                    result.Add(new RecipeItem(itemId, quantity));
+                    result.Add(new CraftingSolverItem(itemId, quantity));
                 }
                 return result;
             }
