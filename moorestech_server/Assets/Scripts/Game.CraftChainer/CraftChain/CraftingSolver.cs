@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using UnitGenerator;
+using UnityEngine;
 
 public class CraftingSolver
 {
@@ -18,8 +19,6 @@ public class CraftingSolver
                 itemsProducedByRecipe[output.ItemId].Add(recipe);
             }
         }
-        
-        
         
         // BFS Initialization
         var initialState = new State
@@ -219,24 +218,12 @@ public class CraftingSolver
     }
 }
 
-public class InputItem
+public class RecipeItem
 {
     public ItemId ItemId;
     public int Quantity;
     
-    public InputItem(ItemId itemId, int quantity)
-    {
-        ItemId = itemId;
-        Quantity = quantity;
-    }
-}
-
-public class OutputItem
-{
-    public ItemId ItemId;
-    public int Quantity;
-    
-    public OutputItem(ItemId itemId, int quantity)
+    public RecipeItem(ItemId itemId, int quantity)
     {
         ItemId = itemId;
         Quantity = quantity;
@@ -246,10 +233,10 @@ public class OutputItem
 public class Recipe
 {
     public RecipeId RecipeId;
-    public List<InputItem> Inputs;
-    public List<OutputItem> Outputs;
+    public List<RecipeItem> Inputs;
+    public List<RecipeItem> Outputs;
     
-    public Recipe(RecipeId recipeId, List<InputItem> inputs, List<OutputItem> outputs)
+    public Recipe(RecipeId recipeId, List<RecipeItem> inputs, List<RecipeItem> outputs)
     {
         RecipeId = recipeId;
         Inputs = inputs;
@@ -257,7 +244,7 @@ public class Recipe
     }
 }
 
-[UnitOf(typeof(int))]
+[UnitOf(typeof(int), UnitGenerateOptions.Comparable)]
 public partial struct RecipeId { }
 
 public class State

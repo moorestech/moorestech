@@ -1,85 +1,182 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.CraftChainer
 {
-    /// <summary>
-    /// 凡例 Legend
-    /// 
-    /// レシピ設定 Recipe setting
-    /// レシピ番号 アウトプットID 数量 ← インプットID 数量, インプットID 数量
-    /// RecipeNumber OutputID Quantity ← InputID Quantity, InputID Quantity
-    /// 
-    /// 初期インベントリ Initial inventory
-    /// アイテムID 数量
-    /// ItemID Quantity
-    /// 
-    /// ターゲットアイテム（必ず1個） Target item (always 1)
-    /// アイテムID 数量
-    /// ItemID Quantity
-    /// 
-    /// 期待値 Expected value
-    /// レシピ番号 数量
-    /// RecipeNumber Quantity
-    /// 
-    /// </summary>
     public class CraftChainerSolverTest
     {
-        /// <summary>
-        /// レシピ設定 Recipe setting
-        /// 1 A 1 ← B 1, C 2
-        /// 2 B 1 ← C 2
-        /// 
-        /// 初期インベントリ Initial inventory
-        /// B 1
-        /// 
-        /// ターゲットアイテム Target item
-        /// A 1
-        /// 
-        /// 期待値 Expected value
-        /// 1 1
-        /// </summary>
         [Test]
         public void Case01()
         {
-            var itemAId = new ItemId(0);
-            var itemBId = new ItemId(1);
-            var itemCId = new ItemId(2);
+            var recipeSettings = @"
+1:A 1 ← B 1, C 2
+2:B 1 ← C 2";
+            var initialSettings = @"
+B 1";
+            var targetItem = "A 1";
+            var expected = @"";
             
-            var recipe1Id = new RecipeId(0);
-            var recipe2Id = new RecipeId(1);
-            
-            var recipes = new List<Recipe>
-            {
-                new(recipe1Id, new List<InputItem> {new(itemAId,1)} , new List<OutputItem> {new(itemBId,1), new(itemCId,2)}),
-                new(recipe2Id, new List<InputItem> {new(itemBId,1)} , new List<OutputItem> {new(itemCId,2)}),
-            };
-            var initialInventory = new Dictionary<ItemId, int>
-            {
-                {itemBId, 1}
-            };
-            var targetItemId = itemAId;
-            var targetQuantity = 1;
-            
-            var expected = new Dictionary<RecipeId, int>
-            {
-                {recipe1Id, 1}
-            };
-            
-            ExecuteTest(recipes, initialInventory, targetItemId, targetQuantity, expected);
+            ExecuteTest(recipeSettings, initialSettings, targetItem, expected);
+        }
+        
+        [Test]
+        public void Case05()
+        {
+            var recipeSettings = @"
+1:A 1 ← B 3
+2:B 1 ← C 2
+3:B 1 ← D 2
+4:D 1 ← E 1";
+            var initialSettings = @"
+C 4
+D 2";
+            var targetItem = "A 1";
+            var expected = @"
+1:1
+2:2
+3:1";
+            ExecuteTest(recipeSettings, initialSettings, targetItem, expected);
         }
         
         
-        private void ExecuteTest(List<Recipe> itemsProducedByRecipe, Dictionary<ItemId, int> initialInventory, ItemId targetItemName, int targetQuantity, Dictionary<RecipeId, int> expected)
+        private void ExecuteTest(
+            string recipesStr, 
+            string initialInventoryStr, 
+            string targetItemStr, 
+            string expectedStr)
         {
-            var actual = CraftingSolver.Solve(itemsProducedByRecipe, initialInventory, targetItemName, targetQuantity);
+            var (recipes, initialInventory, targetItemId, targetQuantity, expected) = ParseInput(recipesStr, initialInventoryStr, targetItemStr, expectedStr);
+            var actual = CraftingSolver.Solve(recipes, initialInventory, targetItemId, targetQuantity);
+            
+            if (expected == null)
+            {
+                Assert.IsNull(actual);
+                return;
+            }
+            
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(expected.Count, actual.Count);
             
             foreach (var kvp in expected)
             {
                 Assert.IsTrue(actual.ContainsKey(kvp.Key));
                 Assert.AreEqual(kvp.Value, actual[kvp.Key]);
             }
+        }
+        
+        private (List<Recipe> recipes, Dictionary<ItemId, int> initialInventory, ItemId targetItemId, int targetQuantity, Dictionary<RecipeId, int> expected) ParseInput(
+            string recipesStr,
+            string initialInventoryStr,
+            string targetItemStr,
+            string expectedStr)
+        {
+            var recipes = ParseRecipes();
+            var initialInventory = ParseInitialInventory();
+            var (targetItemId, targetQuantity) = ParseTargetItem();
+            var expected = ParseExpected();
+            
+            return (recipes, initialInventory, targetItemId, targetQuantity, expected);
+            
+            #region Internal
+            
+            List<Recipe> ParseRecipes()
+            {
+                var result = new List<Recipe>();
+                
+                var recipeLines = recipesStr.Split('\n').Where(x => !string.IsNullOrWhiteSpace(x));
+                foreach (var recipeLine in recipeLines)
+                {
+                    var recipeId = new RecipeId(int.Parse(recipeLine.Split(':')[0]));
+                    var inputItemsStr = recipeLine.Split(':')[1].Split('←')[1].Trim();
+                    var outputItemStr = recipeLine.Split(':')[1].Split('←')[0].Trim();
+                    
+                    var inputItems = ParseRecipeItems(inputItemsStr);
+                    var outputItems = ParseRecipeItems(outputItemStr);
+                    
+                    result.Add(new Recipe(recipeId, inputItems, outputItems));
+                }
+                
+                return result;
+            }
+            
+            Dictionary<ItemId,int> ParseInitialInventory()
+            {
+                var result = new Dictionary<ItemId, int>();
+                
+                var inventoryLines = initialInventoryStr.Split('\n').Where(x => !string.IsNullOrWhiteSpace(x));
+                foreach (var inventoryLine in inventoryLines)
+                {
+                    var itemName = inventoryLine.Split(' ')[0];
+                    var itemId = new ItemId(GetItemId(itemName));
+                    var quantity = int.Parse(inventoryLine.Split(' ')[1]);
+                    
+                    result.Add(itemId, quantity);
+                }
+                
+                return result;
+            }
+            
+            (ItemId targetItemId, int targetQuantity) ParseTargetItem()
+            {
+                var itemName = targetItemStr.Split(' ')[0];
+                var itemId = new ItemId(GetItemId(itemName));
+                var quantity = int.Parse(targetItemStr.Split(' ')[1]);
+                
+                return (itemId, quantity);
+            }
+            
+            Dictionary<RecipeId,int> ParseExpected()
+            {
+                var result = new Dictionary<RecipeId, int>();
+                
+                var expectedLines = expectedStr.Split('\n').Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                if (expectedLines.Count == 0)
+                {
+                    return null;
+                }
+                
+                foreach (var expectedLine in expectedLines)
+                {
+                    var recipeId = new RecipeId(int.Parse(expectedLine.Split(':')[0]));
+                    var quantity = int.Parse(expectedLine.Split(':')[1]);
+                    
+                    result.Add(recipeId, quantity);
+                }
+                
+                return result;
+            }
+            
+            List<RecipeItem> ParseRecipeItems(string itemRecipes)
+            {
+                var result = new List<RecipeItem>();
+                foreach (var item in itemRecipes.Split(','))
+                {
+                    var trimItem = item.Trim();
+                    var itemName = trimItem.Split(' ')[0];
+                    var itemId = new ItemId(GetItemId(itemName));
+                    var quantity = int.Parse(trimItem.Split(' ')[1]);
+                    
+                    result.Add(new RecipeItem(itemId, quantity));
+                }
+                return result;
+            }
+            
+            int GetItemId(string itemName)
+            {
+                return itemName switch
+                {
+                    "A" => 1,
+                    "B" => 2,
+                    "C" => 3,
+                    "D" => 4,
+                    "E" => 5,
+                    _ => throw new System.Exception($"Unknown item name: {itemName}")
+                };
+            }
+            
+  #endregion
         }
     }
 }
