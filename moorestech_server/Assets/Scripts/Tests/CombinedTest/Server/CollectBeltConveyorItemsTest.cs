@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server
             //エンティティを取得
             var itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
-            const float defaultY = VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
+            const float defaultY = CollectBeltConveyorItems.DefaultBeltConveyorHeight;
             Assert.AreEqual(0.5, itemEntity.Position.x); //0,0に設置してベルトコンベアの中心にアイテムがあるため、Z座標は0.5となる 
             Assert.AreEqual(defaultY, itemEntity.Position.y); //2次元座標から3次元座標に変換されているため、Y座標は0となる
             Assert.AreEqual(0.75, itemEntity.Position.z); //4秒のベルトコンベアで残り1秒の時の座標のため、1の3/4の位置にある
