@@ -149,7 +149,7 @@ namespace Tests.CombinedTest.Server
             
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventory2Items = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.GetComponent<VanillaBeltConveyorComponent>());
+            var inventory2Items = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.GetComponent<VanillaBeltConveyorComponent>());
             
             //InstanceIdが変化していないことを検証
             Assert.AreEqual(ItemInstanceId, inventory2Items[3].ItemInstanceId.AsPrimitive());
@@ -163,9 +163,9 @@ namespace Tests.CombinedTest.Server
             
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
+            var inventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
             
-            inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
+            inventoryItems[0] = new CommonBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
             inventoryItems[1] = null;
             inventoryItems[2] = null;
             inventoryItems[3] = null;

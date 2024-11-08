@@ -24,7 +24,6 @@ namespace Game.Block.Factory.BlockTemplate
         private static BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
-            var blockName = blockMasterElement.Name;
             
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
                 gearBeltParam.Gear.GearConnects,
@@ -38,7 +37,11 @@ namespace Game.Block.Factory.BlockTemplate
                 ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
-            var vanillaBeltConveyorComponent = state == null ? new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName, slopeType) : new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName, slopeType);
+            var itemFactory = new CommonBeltConveyorInventoryItemFactory();
+            var vanillaBeltConveyorComponent = 
+                state == null ? 
+                    new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, slopeType, itemFactory) :
+                    new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector,slopeType, itemFactory);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             

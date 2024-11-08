@@ -29,19 +29,18 @@ namespace Tests.UnitTest.Game.SaveLoad
             var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
+            var inventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
-            var timeOfItemEnterToExit = ((BeltConveyorBlockParam)beltConveyor.BlockMasterElement.BlockParam).TimeOfItemEnterToExit;
             //アイテムを設定
-            inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
+            inventoryItems[0] = new CommonBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
             {
                 RemainingPercent = 0.3f,
             };
-            inventoryItems[2] = new BeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0))
+            inventoryItems[2] = new CommonBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0))
             {
                 RemainingPercent = 0.5f,
             };
-            inventoryItems[3] = new BeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0))
+            inventoryItems[3] = new CommonBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0))
             {
                 RemainingPercent = 1f,
             };
@@ -54,8 +53,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, "", BeltConveyorSlopeType.Straight);
-            var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
+            var inventoryFactory = new CommonBeltConveyorInventoryItemFactory();
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
+            var newInventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
@@ -79,18 +79,18 @@ namespace Tests.UnitTest.Game.SaveLoad
             var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
+            var inventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
             //アイテムを設定
-            inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
+            inventoryItems[0] = new CommonBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
             {
                 RemainingPercent = 0.3f,
             };
-            inventoryItems[2] = new BeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0))
+            inventoryItems[2] = new CommonBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0))
             {
                 RemainingPercent = 0.5f,
             };
-            inventoryItems[3] = new BeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0))
+            inventoryItems[3] = new CommonBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0))
             {
                 RemainingPercent = 1f,
             };
@@ -103,8 +103,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, "", BeltConveyorSlopeType.Straight);
-            var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
+            var inventoryFactory = new CommonBeltConveyorInventoryItemFactory();
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
+            var newInventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);

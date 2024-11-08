@@ -9,9 +9,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaBeltConveyorTemplate : IBlockTemplate
     {
-        public const string Hueru = "gear belt conveyor hueru";
-        public const string Kieru = "gear belt conveyor kieru";
-        
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -26,7 +23,6 @@ namespace Game.Block.Factory.BlockTemplate
         private BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
-            var blockName = blockMasterElement.Name;
             
             var slopeType = beltParam.SlopeType switch
             {
@@ -35,9 +31,10 @@ namespace Game.Block.Factory.BlockTemplate
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
+            var itemFactory = new CommonBeltConveyorInventoryItemFactory();
             var beltComponent = state == null ? 
-                new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName, slopeType) : 
-                new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName, slopeType);
+                new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, slopeType, itemFactory) : 
+                new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, slopeType, itemFactory);
             
             
             var components = new List<IBlockComponent>
