@@ -4,11 +4,11 @@ using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class CommonBeltConveyorInventoryItemFactory : IBeltConveyorItemFactory
+    public class VanillaBeltConveyorInventoryItemFactory : IBeltConveyorItemFactory
     {
         public IBeltConveyorInventoryItem CreateItem(ItemId itemId, ItemInstanceId itemInstanceId)
         {
-            return new CommonBeltConveyorInventoryItem(itemId, itemInstanceId);
+            return new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId);
         }
         
         public IBeltConveyorInventoryItem LoadItem(string jsonString)
@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.BeltConveyor
             var itemId = MasterHolder.ItemMaster.GetItemId(jsonObject.ItemStack.ItemGuid);
             var itemInstanceId = ItemInstanceId.Create();
             
-            return new CommonBeltConveyorInventoryItem(itemId, itemInstanceId)
+            return new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId)
             {
                 RemainingPercent = jsonObject.RemainingPercent
             };

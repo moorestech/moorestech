@@ -5,13 +5,13 @@ using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class CommonBeltConveyorInventoryItem : IBeltConveyorInventoryItem
+    public class VanillaBeltConveyorInventoryItem : IBeltConveyorInventoryItem
     {
         public double RemainingPercent { get; set; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
         
-        public CommonBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId)
+        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;
@@ -30,18 +30,18 @@ namespace Game.Block.Blocks.BeltConveyor
         
         [JsonProperty("remainingTime")] public double RemainingPercent;
         
-        public CommonBeltConveyorInventoryItemJsonObject(CommonBeltConveyorInventoryItem commonBeltConveyorInventoryItem)
+        public CommonBeltConveyorInventoryItemJsonObject(VanillaBeltConveyorInventoryItem vanillaBeltConveyorInventoryItem)
         {
-            if (commonBeltConveyorInventoryItem == null)
+            if (vanillaBeltConveyorInventoryItem == null)
             {
                 ItemStack = null;
                 RemainingPercent = 1;
                 return;
             }
             
-            var item = ServerContext.ItemStackFactory.Create(commonBeltConveyorInventoryItem.ItemId, 1);
+            var item = ServerContext.ItemStackFactory.Create(vanillaBeltConveyorInventoryItem.ItemId, 1);
             ItemStack = new ItemStackSaveJsonObject(item);
-            RemainingPercent = commonBeltConveyorInventoryItem.RemainingPercent;
+            RemainingPercent = vanillaBeltConveyorInventoryItem.RemainingPercent;
         }
     }
 }

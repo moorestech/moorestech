@@ -63,7 +63,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 //挿入可能でない
                 return itemStack;
             
-            _inventoryItems[^1] = new CommonBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
             
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
@@ -90,7 +90,7 @@ namespace Game.Block.Blocks.BeltConveyor
             BlockException.CheckDestroy(this);
             
             //TODO lockすべき？？
-            _inventoryItems[slot] = new CommonBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
         }
         
         public bool IsDestroy { get; private set; }

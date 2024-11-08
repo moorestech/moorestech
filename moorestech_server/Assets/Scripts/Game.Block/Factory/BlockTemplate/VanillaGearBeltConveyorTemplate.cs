@@ -40,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
-            var itemFactory = new CommonBeltConveyorInventoryItemFactory();
+            var itemFactory = new VanillaBeltConveyorInventoryItemFactory();
             var vanillaBeltConveyorComponent = 
                 state == null ? 
                     new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, beltConveyorConnector, slopeType, itemFactory) :

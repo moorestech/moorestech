@@ -165,7 +165,7 @@ namespace Tests.CombinedTest.Server
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
             
-            inventoryItems[0] = new CommonBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
             inventoryItems[1] = null;
             inventoryItems[2] = null;
             inventoryItems[3] = null;
