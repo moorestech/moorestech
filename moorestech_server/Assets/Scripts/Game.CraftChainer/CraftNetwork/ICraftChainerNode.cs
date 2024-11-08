@@ -9,7 +9,7 @@ namespace Game.CraftChainer.CraftNetwork
         
         public List<ICraftChainerNode> ConnectTargets { get; }
         
-        public void InsertItem();
+        public void InsertItem(CraftChainerItem craftChainerItem);
     }
     
     [UnitOf(typeof(int))]
@@ -19,10 +19,8 @@ namespace Game.CraftChainer.CraftNetwork
     {
         CenterConsole,
         Transporter,
-        Process,
         
-        CraftingInputPort,
-        CraftingOutputPort,
+        CraftFactory,
         
         Storage,
     }
