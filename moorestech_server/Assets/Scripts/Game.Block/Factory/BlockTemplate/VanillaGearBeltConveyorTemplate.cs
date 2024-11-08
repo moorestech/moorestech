@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -31,6 +32,8 @@ namespace Game.Block.Factory.BlockTemplate
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
+            var beltConveyorConnector = new VanillaBeltConveyorConnector(inventoryConnector); 
+            
             var slopeType = gearBeltParam.SlopeType switch
             {
                 ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
@@ -40,8 +43,8 @@ namespace Game.Block.Factory.BlockTemplate
             var itemFactory = new CommonBeltConveyorInventoryItemFactory();
             var vanillaBeltConveyorComponent = 
                 state == null ? 
-                    new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, slopeType, itemFactory) :
-                    new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector,slopeType, itemFactory);
+                    new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, beltConveyorConnector, slopeType, itemFactory) :
+                    new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, beltConveyorConnector,slopeType, itemFactory);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             

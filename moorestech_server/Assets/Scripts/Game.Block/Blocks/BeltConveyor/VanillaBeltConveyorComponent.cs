@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.BeltConveyor.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -21,24 +21,24 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly IBeltConveyorInventoryItem[] _inventoryItems;
         
         private readonly IBeltConveyorItemFactory _beltConveyorItemFactory;
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly IBeltConveyorConnector _beltConveyorConnector;
         private readonly int _inventoryItemNum;
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, BeltConveyorSlopeType slopeType, IBeltConveyorItemFactory beltConveyorItemFactory)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType, IBeltConveyorItemFactory beltConveyorItemFactory)
         {
             SlopeType = slopeType;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _blockConnectorComponent = blockConnectorComponent;
             _beltConveyorItemFactory = beltConveyorItemFactory;
+            _beltConveyorConnector = beltConveyorConnector;
             
             _inventoryItems = new IBeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, BeltConveyorSlopeType slopeType, IBeltConveyorItemFactory beltConveyorItemFactory) :
-            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, slopeType, beltConveyorItemFactory)
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType, IBeltConveyorItemFactory beltConveyorItemFactory) :
+            this(inventoryItemNum, timeOfItemEnterToExit, beltConveyorConnector, slopeType, beltConveyorItemFactory)
         {
             //stateから復元
             //データがないときは何もしない
@@ -150,10 +150,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
-                    
-                    var connector = _blockConnectorComponent.ConnectedTargets.First();
-                    var output = connector.Key.InsertItem(insertItem);
+                    var output = _beltConveyorConnector.InsertItem(insertItem);
                     
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;

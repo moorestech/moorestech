@@ -2,6 +2,7 @@ using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -53,8 +54,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
+            var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector); 
+            
             var inventoryFactory = new CommonBeltConveyorInventoryItemFactory();
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
             var newInventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
@@ -103,8 +106,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
+            var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector); 
+            
             var inventoryFactory = new CommonBeltConveyorInventoryItemFactory();
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, blockConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
             var newInventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
