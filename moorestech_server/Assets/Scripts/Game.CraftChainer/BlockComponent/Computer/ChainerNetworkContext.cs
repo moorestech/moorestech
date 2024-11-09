@@ -13,6 +13,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
 {
     public class ChainerNetworkContext
     {
+        private readonly HashSet<ICraftChainerNode> _nodes = new();
         private readonly List<ChainerProviderChestComponent> _providerChests = new();
         
         private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
@@ -21,6 +22,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         public void ReSearchProviderChests(BlockConnectorComponent<IBlockInventory> startConnector)
         {
             _providerChests.Clear();
+            _nodes.Clear();
             
             // 単純に深さ優先探索で探索し、途中にあったチェストをリストに追加
             // Simply search by depth-first search and add the chests found on the way to the list
@@ -33,11 +35,17 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 foreach (var connectedTarget in connector.ConnectedTargets)
                 {
                     var targetBlock = connectedTarget.Value.TargetBlock;
+                    if (!targetBlock.TryGetComponent<ICraftChainerNode>(out var node))
+                    {
+                        continue;
+                    }
+                    
+                    _nodes.Add(node);
                     if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
                     {
                         _providerChests.Add(chest);
                     }
-                    else if (targetBlock.TryGetComponent<BlockConnectorComponent<IBlockInventory>>(out var nextConnector))
+                    if (targetBlock.TryGetComponent<BlockConnectorComponent<IBlockInventory>>(out var nextConnector))
                     {
                         Search(nextConnector);
                     }
