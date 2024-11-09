@@ -5,6 +5,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CraftChainer.BlockComponent.Crafter;
 using Game.CraftChainer.BlockComponent.ProviderChest;
 using Game.CraftChainer.CraftNetwork;
 using UnityEngine;
@@ -13,12 +14,20 @@ namespace Game.CraftChainer.BlockComponent.Computer
 {
     public class ChainerNetworkContext
     {
-        private readonly Dictionary<CraftChainerNodeId, ICraftChainerNode> _nodes = new();
-        
+        public IReadOnlyList<ChainerProviderChestComponent> ProviderChests => _providerChests;
         private readonly List<ChainerProviderChestComponent> _providerChests = new();
+        public IReadOnlyList<ChainerCrafterComponent> CrafterComponents => _crafterComponents;
+        private readonly List<ChainerCrafterComponent> _crafterComponents = new();
+        
+        private readonly Dictionary<CraftChainerNodeId, ICraftChainerNode> _nodes = new();
+        private readonly BlockConnectorComponent<IBlockInventory> _mainComputerConnector; 
         
         private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
         private Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems;
+        public ChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector)
+        {
+            _mainComputerConnector = mainComputerConnector;
+        }
         
         public bool IsExistNode(CraftChainerNodeId nodeId)
         {
@@ -29,14 +38,14 @@ namespace Game.CraftChainer.BlockComponent.Computer
         /// クラフトチェインのネットワークを再検索する
         /// Re-search the network of the craft chain
         /// </summary>
-        public void ReSearchNetwork(BlockConnectorComponent<IBlockInventory> startConnector)
+        public void ReSearchNetwork()
         {
             _providerChests.Clear();
             _nodes.Clear();
             
             // 単純に深さ優先探索で探索し、途中にあったチェストをリストに追加
             // Simply search by depth-first search and add the chests found on the way to the list
-            Search(startConnector);
+            Search(_mainComputerConnector);
             
             #region Internal
             
@@ -54,6 +63,10 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
                     {
                         _providerChests.Add(chest);
+                    }
+                    if (targetBlock.TryGetComponent<ChainerCrafterComponent>(out var crafter))
+                    {
+                        _crafterComponents.Add(crafter);
                     }
                     if (targetBlock.TryGetComponent<BlockConnectorComponent<IBlockInventory>>(out var nextConnector))
                     {

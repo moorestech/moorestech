@@ -1,4 +1,9 @@
+using System;
 using System.Collections.Generic;
+using Core.Master;
+using Game.Block.Component;
+using Game.Block.Interface.Component;
+using Game.CraftChainer.CraftChain;
 using Game.CraftChainer.CraftNetwork;
 using Newtonsoft.Json;
 
@@ -10,16 +15,20 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
-        public ChainerMainComputerComponent()
+        public ChainerMainComputerComponent(BlockConnectorComponent<IBlockInventory> mainComputerConnector)
         {
-            ChainerNetworkContext = new ChainerNetworkContext();
+            ChainerNetworkContext = new ChainerNetworkContext(mainComputerConnector);
         }
         
-        public ChainerMainComputerComponent(Dictionary<string, string> componentStates) : this()
+        public ChainerMainComputerComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> mainComputerConnector) : this(mainComputerConnector)
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerMainComputerComponentJsonObject>(state);
             NodeId = new CraftChainerNodeId(jsonObject.NodeId);
+        }
+        
+        public void StartCreateItem(ItemId itemId, int count)
+        {
         }
         
         

@@ -28,6 +28,13 @@ namespace Game.CraftChainer.CraftNetwork
             {
                 _mainComputers.Add(mainComputer);
             }
+            if (block.ExistsComponent<ICraftChainerNode>())
+            {
+                foreach (var computer in _mainComputers)
+                {
+                    computer.ChainerNetworkContext.ReSearchNetwork();
+                }
+            }
         }
         
         private void OnBlockRemoveEvent(BlockUpdateProperties updateProperties)
@@ -36,6 +43,13 @@ namespace Game.CraftChainer.CraftNetwork
             if (block.TryGetComponent<ChainerMainComputerComponent>(out var mainComputer))
             {
                 _mainComputers.Remove(mainComputer);
+            }
+            if (block.ExistsComponent<ICraftChainerNode>())
+            {
+                foreach (var computer in _mainComputers)
+                {
+                    computer.ChainerNetworkContext.ReSearchNetwork();
+                }
             }
         }
         
