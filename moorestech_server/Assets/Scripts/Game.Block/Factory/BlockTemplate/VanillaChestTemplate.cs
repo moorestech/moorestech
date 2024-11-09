@@ -11,23 +11,22 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var chest = blockMasterElement.BlockParam as ChestBlockParam;
-            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
-            var chestComponent = new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
-            var components = new List<IBlockComponent>
-            {
-                chestComponent,
-                inputConnectorComponent,
-            };
-            
-            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
         public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
+            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        private IBlock GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
             var chest = blockMasterElement.BlockParam as ChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
-            var chestComponent = new VanillaChestComponent(state, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
+            var chestComponent = state == null ?
+                new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent) :
+                new VanillaChestComponent(state, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
+            
             var components = new List<IBlockComponent>
             {
                 chestComponent,
