@@ -7,6 +7,10 @@ using Game.CraftChainer.CraftNetwork;
 
 namespace Game.CraftChainer.BlockComponent
 {
+    /// <summary>
+    /// そのアイテムがどのクラフトノードに挿入されるべきかを判断し、挿入するためのクラス
+    /// Class for determining which craft node the item should be inserted into and inserting it
+    /// </summary>
     public class ChainerTransporterConnector : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;

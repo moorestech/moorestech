@@ -4,7 +4,14 @@ using UnitGenerator;
 
 namespace Game.CraftChainer.CraftNetwork
 {
-    public interface ICraftChainerNode : IBlockComponent
+    /// <summary>
+    /// CraftChainerネットワークを構成するブロックであることを示すためのインターフェース
+    /// IDを永続化する必要があるため、IBlockSaveStateを継承している
+    ///
+    /// An interface to indicate that it is a block that makes up the CraftChainer network.
+    /// Inherits IBlockSaveState because the ID needs to be persisted
+    /// </summary>
+    public interface ICraftChainerNode : IBlockSaveState 
     {
         public CraftChainerNodeId NodeId { get; }
     }
