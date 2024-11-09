@@ -14,12 +14,12 @@ namespace Game.CraftChainer.BlockComponent.Template
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var transporterParam = blockMasterElement.BlockParam as CraftChainerTransporterBlockParam;
             
@@ -34,9 +34,9 @@ namespace Game.CraftChainer.BlockComponent.Template
             var itemCount = transporterParam.TransporterConveyorItemCount;
             var time = transporterParam.TimeOfItemEnterToExit;
             
-            var beltComponent = state == null ?
+            var beltComponent = componentStates == null ?
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                new VanillaBeltConveyorComponent(state, itemCount, time, beltConveyorConnector, slopeType);
+                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
             
             
             var components = new List<IBlockComponent>

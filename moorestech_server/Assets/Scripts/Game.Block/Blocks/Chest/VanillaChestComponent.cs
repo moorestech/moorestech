@@ -31,10 +31,10 @@ namespace Game.Block.Blocks.Chest
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
         }
         
-        public VanillaChestComponent(string saveData, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
+        public VanillaChestComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
             this(blockInstanceId, slotNum, blockConnectorComponent)
         {
-            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(saveData);
+            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
             for (var i = 0; i < itemJsons.Count; i++)
             {
                 var itemStack = itemJsons[i].ToItemStack();
@@ -42,6 +42,7 @@ namespace Game.Block.Blocks.Chest
             }
         }
         
+        public string SaveKey { get; } = typeof(VanillaChestComponent).FullName;
         public string GetSaveState()
         {
             CheckDestroy(this);

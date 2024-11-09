@@ -41,12 +41,10 @@ namespace Game.Block.Blocks.ItemShooter
             _inventoryItems = new ShooterInventoryItem[_itemShooterBlockParam.InventoryItemNum];
         }
         
-        public ItemShooterComponent(string state, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam) :
+        public ItemShooterComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam) :
             this(blockConnectorComponent, itemShooterBlockParam)
         {
-            if (state == string.Empty) return;
-            
-            List<ItemShooterItemJsonObject> items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(state);
+            var items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(componentStates[SaveKey]);
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
@@ -169,6 +167,7 @@ namespace Game.Block.Blocks.ItemShooter
             IsDestroy = true;
         }
         
+        public string SaveKey { get; } = typeof(ItemShooterComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);

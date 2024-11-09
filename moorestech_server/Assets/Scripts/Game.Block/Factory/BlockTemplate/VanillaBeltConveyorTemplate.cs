@@ -15,13 +15,13 @@ namespace Game.Block.Factory.BlockTemplate
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             //TODo UP bletからの入力を受付?
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
             
@@ -36,9 +36,9 @@ namespace Game.Block.Factory.BlockTemplate
             var itemCount = beltParam.BeltConveyorItemCount;
             var time = beltParam.TimeOfItemEnterToExit;
             
-            var beltComponent = state == null ? 
+            var beltComponent = componentStates == null ? 
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
-                new VanillaBeltConveyorComponent(state, itemCount, time, beltConveyorConnector, slopeType);
+                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
             
             
             var components = new List<IBlockComponent>

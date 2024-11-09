@@ -31,6 +31,9 @@ namespace Game.Block.Blocks.Machine
             IsDestroy = true;
         }
         
+        [Obsolete("機械のセーブ周りのリファクタをしたい")] // TODO 機械のセーブ、保存周りのリファクタ
+        public static string SaveKeyStatic => typeof(VanillaMachineSaveComponent).FullName;
+        public string SaveKey { get; } = typeof(VanillaMachineSaveComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);

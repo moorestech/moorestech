@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
@@ -49,14 +50,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータ取得
             var str = belt.GetSaveState();
+            var states = new Dictionary<string, string>() { { belt.SaveKey, str } };
             Debug.Log(str);
             
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector); 
+            var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector);
             
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
+            var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
@@ -100,6 +102,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータ取得
             var str = belt.GetSaveState();
+            var states = new Dictionary<string, string>() { { belt.SaveKey, str } };
             Debug.Log(str);
             
             
@@ -107,7 +110,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
             var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector); 
             
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
+            var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック

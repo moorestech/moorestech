@@ -35,14 +35,10 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType) :
+        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType) :
             this(inventoryItemNum, timeOfItemEnterToExit, beltConveyorConnector, slopeType)
         {
-            //stateから復元
-            //データがないときは何もしない
-            if (state == string.Empty) return;
-            
-            List<string> itemJsons = JsonConvert.DeserializeObject<List<string>>(state);
+            var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
             for (var i = 0; i < itemJsons.Count; i++)
             {
                 if (itemJsons[i] != null)
@@ -97,6 +93,7 @@ namespace Game.Block.Blocks.BeltConveyor
             IsDestroy = true;
         }
         
+        public string SaveKey { get; } = typeof(VanillaBeltConveyorComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Core.Inventory;
 using Core.Master;
@@ -46,12 +47,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブのテキストを取得
             var saveText = powerGenerator.GetSaveState();
+            var states = new Dictionary<string, string>() { { powerGenerator.SaveKey, saveText } };
             Debug.Log(saveText);
             
             
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockGuid;
             //発電機を再作成
-            var loadedPowerGeneratorBlock = blockFactory.Load(blockGuid, new BlockInstanceId(10), saveText, generatorPosInfo);
+            var loadedPowerGeneratorBlock = blockFactory.Load(blockGuid, new BlockInstanceId(10), states, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
             //発電機を再作成した結果を検証
             var loadedFuelItemId = (ItemId)type.GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Interface.Component;
 using Game.CraftChainer.CraftChain;
@@ -16,8 +17,9 @@ namespace Game.CraftChainer.BlockComponent.Crafter
         {
         }
         
-        public ChainerCrafterComponent(string state) : this()
+        public ChainerCrafterComponent(Dictionary<string, string> componentStates) : this()
         {
+            var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<CraftingSolverRecipeJsonObject>(state);
             CraftingSolverRecipe = jsonObject.ToCraftingSolverRecipe();
         }
@@ -34,6 +36,8 @@ namespace Game.CraftChainer.BlockComponent.Crafter
         {
             IsDestroy = true;
         }
+        
+        public string SaveKey { get; } = typeof(ChainerCrafterComponent).FullName;
         public string GetSaveState()
         {
             return JsonConvert.SerializeObject(new CraftingSolverRecipeJsonObject(CraftingSolverRecipe));

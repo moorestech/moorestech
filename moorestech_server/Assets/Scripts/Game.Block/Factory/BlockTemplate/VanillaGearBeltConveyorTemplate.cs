@@ -17,12 +17,12 @@ namespace Game.Block.Factory.BlockTemplate
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private static BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
             
@@ -46,10 +46,9 @@ namespace Game.Block.Factory.BlockTemplate
             // Gear belt conveyors have different speeds depending on the RPM, so the default is 0
             var time = 0;
             
-            var vanillaBeltConveyorComponent = 
-                state == null ? 
+            var vanillaBeltConveyorComponent = componentStates == null ? 
                     new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                    new VanillaBeltConveyorComponent(state, itemCount, time, beltConveyorConnector,slopeType);
+                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             

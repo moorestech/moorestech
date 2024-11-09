@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.Machine;
@@ -22,6 +23,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
         }
         
+        // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
             BlockId blockId,BlockInstanceId blockInstanceId,
             int inputSlotCount,int outputSlotCount,
@@ -40,11 +42,12 @@ namespace Game.Block.Factory.BlockTemplate
         }
         
         public static VanillaMachineProcessorComponent MachineLoadState(
-            string state,
+            Dictionary<string, string> componentStates,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ElectricPower requestPower)
         {
+            var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
             
             var inputItems = jsonObject.InputSlot.Select(item => item.ToItemStack()).ToList();

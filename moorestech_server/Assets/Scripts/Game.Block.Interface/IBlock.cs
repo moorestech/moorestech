@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
@@ -23,7 +24,7 @@ namespace Game.Block.Interface
         
         public BlockState GetBlockState();
         
-        public string GetSaveState();
+        public Dictionary<string,string> GetSaveState();
         
         public void Destroy();
     }

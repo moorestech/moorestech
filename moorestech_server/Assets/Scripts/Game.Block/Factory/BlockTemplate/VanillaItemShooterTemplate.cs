@@ -25,13 +25,13 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
             
             var direction = blockPositionInfo.BlockDirection;
-            var chestComponent = new ItemShooterComponent(state, inputConnectorComponent, itemShooter);
+            var chestComponent = new ItemShooterComponent(componentStates, inputConnectorComponent, itemShooter);
             var components = new List<IBlockComponent>
             {
                 chestComponent,

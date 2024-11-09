@@ -16,16 +16,18 @@ namespace Game.CraftChainer.BlockComponent.Template
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var chest = blockMasterElement.BlockParam as ChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
-            var chestComponent = state == null ? new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent) : new VanillaChestComponent(state, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
+            var chestComponent = componentStates == null ? 
+                new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent) : 
+                new VanillaChestComponent(componentStates, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
             
             var chainerCrafter = new ChainerCrafterComponent();
             

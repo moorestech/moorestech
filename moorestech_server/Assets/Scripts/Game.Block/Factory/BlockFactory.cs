@@ -26,7 +26,7 @@ namespace Game.Block.Factory
             throw new Exception("Block type not found :" + blockElement.BlockType);
         }
         
-        public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, string state, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, string> state, BlockPositionInfo blockPositionInfo)
         {
             var dictionary = _vanillaIBlockTemplates.BlockTypesDictionary;
             
