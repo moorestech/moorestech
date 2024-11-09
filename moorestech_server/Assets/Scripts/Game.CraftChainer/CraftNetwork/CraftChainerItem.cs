@@ -4,7 +4,7 @@ namespace Game.CraftChainer.CraftNetwork
 {
     public class CraftChainerItem
     {
-        public CraftChainerNodeId TargetNodeId { get; } // TODO クラフト中にネットワークが変更されたときのことを考えておく
+        public CraftChainerNodeId TargetNodeId { get; } 
         
         public IItemStack ItemStack { get; }
     }
