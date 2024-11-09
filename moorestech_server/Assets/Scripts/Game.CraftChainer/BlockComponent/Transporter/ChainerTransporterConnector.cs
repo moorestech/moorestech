@@ -24,7 +24,7 @@ namespace Game.CraftChainer.BlockComponent
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var context = CraftChainerManager.Instance.GetChainerNetworkContext();
+            var context = CraftChainerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
             if (context == null)
             {
                 return itemStack;
