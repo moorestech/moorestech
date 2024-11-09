@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using Core.Item.Interface;
 using Core.Master;
 using Game.CraftChainer.CraftNetwork;
 using Newtonsoft.Json;
@@ -12,8 +10,6 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
     {
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
-        
-        public IObservable<IItemStack> OnDistributedItemOnNetwork => _providerChestBlockInventoryInserter.OnDistributedItemOnNetwork;
         private readonly ProviderChestBlockInventoryInserter _providerChestBlockInventoryInserter;
         
         public ChainerProviderChestComponent(ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter) 

@@ -14,6 +14,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
     public class ChainerNetworkContext
     {
         private readonly Dictionary<CraftChainerNodeId, ICraftChainerNode> _nodes = new();
+        
         private readonly List<ChainerProviderChestComponent> _providerChests = new();
         
         private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;

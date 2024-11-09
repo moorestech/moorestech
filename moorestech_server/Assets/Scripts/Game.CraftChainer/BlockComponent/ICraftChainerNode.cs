@@ -34,14 +34,4 @@ namespace Game.CraftChainer.CraftNetwork
             return new CraftChainerNodeId(id);
         } 
     }
-    
-    public enum CraftChainerNodeType
-    {
-        CenterConsole,
-        Transporter,
-        
-        CraftFactory,
-        
-        Storage,
-    }
 }

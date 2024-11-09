@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Game.CraftChainer.CraftNetwork;
-using UnitGenerator;
 
 namespace Game.CraftChainer.CraftChain
 {
@@ -164,7 +162,7 @@ namespace Game.CraftChainer.CraftChain
             {
                 var maxRunsList = producingRecipes.Select(_ => 10).ToList(); // Limit runs to prevent infinite loops
                 
-                var combinations = GenerateRecipeCombinations(producingRecipes, maxRunsList, quantityNeeded, state, itemId);
+                var combinations = GenerateRecipeCombinations(producingRecipes, maxRunsList, state, itemId);
                 
                 foreach (var combination in combinations)
                 {
@@ -180,7 +178,6 @@ namespace Game.CraftChainer.CraftChain
         private static List<int[]> GenerateRecipeCombinations(
             List<CraftingSolverRecipe> recipes,
             List<int> maxRunsList,
-            int quantityNeeded,
             CraftingSolverState state,
             ItemId itemId)
         {
