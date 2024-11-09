@@ -42,7 +42,8 @@ namespace Game.CraftChainer.BlockComponent.Template
             var components = new List<IBlockComponent>
             {
                 beltComponent,
-                connectorComponent
+                connectorComponent,
+                new ChainerTransporterComponent()
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

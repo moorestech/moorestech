@@ -7,11 +7,11 @@ using Newtonsoft.Json;
 
 namespace Game.CraftChainer.BlockComponent.Crafter
 {
-    public class ChainerCrafterComponent : IBlockSaveState
+    public class ChainerCrafterComponent : IBlockSaveState, ICraftChainerNode
     {
-        public CraftingSolverRecipe CraftingSolverRecipe { get; private set; }
+        public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
-        public readonly CraftChainerNodeId CraftChainerNodeId;
+        public CraftingSolverRecipe CraftingSolverRecipe { get; private set; }
         
         public ChainerCrafterComponent()
         {
@@ -20,8 +20,9 @@ namespace Game.CraftChainer.BlockComponent.Crafter
         public ChainerCrafterComponent(Dictionary<string, string> componentStates) : this()
         {
             var state = componentStates[SaveKey];
-            var jsonObject = JsonConvert.DeserializeObject<CraftingSolverRecipeJsonObject>(state);
-            CraftingSolverRecipe = jsonObject.ToCraftingSolverRecipe();
+            var jsonObject = JsonConvert.DeserializeObject<ChainerCrafterComponentJsonObject>(state);
+            CraftingSolverRecipe = jsonObject.Recipe.ToCraftingSolverRecipe();
+            NodeId = new CraftChainerNodeId(jsonObject.NodeId);
         }
         
         public void SetRecipe(List<CraftingSolverItem> inputItems, List<CraftingSolverItem> outputItem)
@@ -40,7 +41,19 @@ namespace Game.CraftChainer.BlockComponent.Crafter
         public string SaveKey { get; } = typeof(ChainerCrafterComponent).FullName;
         public string GetSaveState()
         {
-            return JsonConvert.SerializeObject(new CraftingSolverRecipeJsonObject(CraftingSolverRecipe));
+            return JsonConvert.SerializeObject(new ChainerCrafterComponentJsonObject(this));
+        }
+    }
+    
+    public class ChainerCrafterComponentJsonObject
+    {
+        [JsonProperty("recipe")] public CraftingSolverRecipeJsonObject Recipe { get; set; }
+        [JsonProperty("nodeId")] public int NodeId { get; set; }
+        
+        public ChainerCrafterComponentJsonObject(ChainerCrafterComponent component)
+        {
+            Recipe = new CraftingSolverRecipeJsonObject(component.CraftingSolverRecipe);
+            NodeId = component.NodeId.AsPrimitive();
         }
     }
 }
