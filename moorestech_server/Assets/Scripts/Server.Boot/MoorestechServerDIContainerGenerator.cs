@@ -9,6 +9,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Challenge;
 using Game.Context;
+using Game.CraftChainer;
 using Game.CraftChainer.Util;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -147,6 +148,9 @@ namespace Server.Boot
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
+            
+            // CraftChainerの初期化
+            CraftChainerEntryPoint.Entry();
             
             // アップデート時間をリセット
             GameUpdater.ResetTime();
