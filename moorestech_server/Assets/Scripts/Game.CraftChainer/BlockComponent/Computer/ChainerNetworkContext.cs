@@ -13,13 +13,22 @@ namespace Game.CraftChainer.BlockComponent.Computer
 {
     public class ChainerNetworkContext
     {
-        private readonly HashSet<ICraftChainerNode> _nodes = new();
+        private readonly Dictionary<CraftChainerNodeId, ICraftChainerNode> _nodes = new();
         private readonly List<ChainerProviderChestComponent> _providerChests = new();
         
         private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
         private Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems;
         
-        public void ReSearchProviderChests(BlockConnectorComponent<IBlockInventory> startConnector)
+        public bool IsExistNode(CraftChainerNodeId nodeId)
+        {
+            return _nodes.ContainsKey(nodeId);
+        }
+        
+        /// <summary>
+        /// クラフトチェインのネットワークを再検索する
+        /// Re-search the network of the craft chain
+        /// </summary>
+        public void ReSearchNetwork(BlockConnectorComponent<IBlockInventory> startConnector)
         {
             _providerChests.Clear();
             _nodes.Clear();
@@ -40,7 +49,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                         continue;
                     }
                     
-                    _nodes.Add(node);
+                    _nodes.Add(node.NodeId, node);
                     if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
                     {
                         _providerChests.Add(chest);
