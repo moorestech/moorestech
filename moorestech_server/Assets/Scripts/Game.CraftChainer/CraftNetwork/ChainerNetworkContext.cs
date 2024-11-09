@@ -12,14 +12,38 @@ namespace Game.CraftChainer.CraftNetwork
 {
     public class ChainerNetworkContext
     {
-        private List<ChainerProviderChestComponent> _providerChests;
+        private readonly List<ChainerProviderChestComponent> _providerChests = new();
         
         private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
         private Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems;
         
         public void ReSearchProviderChests(BlockConnectorComponent<IBlockInventory> startConnector)
         {
+            _providerChests.Clear();
             
+            // 単純に深さ優先探索で探索し、途中にあったチェストをリストに追加
+            // Simply search by depth-first search and add the chests found on the way to the list
+            Search(startConnector);
+            
+            #region Internal
+            
+            void Search(BlockConnectorComponent<IBlockInventory> connector)
+            {
+                foreach (var connectedTarget in connector.ConnectedTargets)
+                {
+                    var targetBlock = connectedTarget.Value.TargetBlock;
+                    if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
+                    {
+                        _providerChests.Add(chest);
+                    }
+                    else if (targetBlock.TryGetComponent<BlockConnectorComponent<IBlockInventory>>(out var nextConnector))
+                    {
+                        Search(nextConnector);
+                    }
+                }
+            }
+            
+            #endregion
         }
         
         public CraftChainerNodeId GetTargetNodeId(IItemStack item)
