@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -10,7 +9,8 @@ using Game.Block.Interface.Component;
 namespace Game.Block.Blocks.Service
 {
     /// <summary>
-    ///     順番にアイテムに入れ続けるシステム
+    /// 順番にアイテムに入れ続けるシステム
+    /// A system that keeps putting items in order.
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService : IBlockInventoryInserter
     {
