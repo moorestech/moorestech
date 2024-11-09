@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.Chest;
 using Game.CraftChainer.CraftNetwork;
 using Newtonsoft.Json;
 using UniRx;
@@ -9,14 +11,17 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
     public class ChainerProviderChestComponent : ICraftChainerNode
     {
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
+        public IReadOnlyList<IItemStack> Inventory => _vanillaChestComponent.InventoryItems;
         
         private readonly ProviderChestBlockInventoryInserter _providerChestBlockInventoryInserter;
+        private readonly VanillaChestComponent _vanillaChestComponent;
         
-        public ChainerProviderChestComponent(ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter) 
+        public ChainerProviderChestComponent(ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent)
         {
             _providerChestBlockInventoryInserter = providerChestBlockInventoryInserter;
+            _vanillaChestComponent = vanillaChestComponent;
         }
-        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter) : this(providerChestBlockInventoryInserter)
+        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent) : this(providerChestBlockInventoryInserter, vanillaChestComponent)
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerProviderChestComponentJsonObject>(state);

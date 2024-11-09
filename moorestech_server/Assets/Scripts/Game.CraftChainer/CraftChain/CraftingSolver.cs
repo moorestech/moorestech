@@ -156,7 +156,6 @@ namespace Game.CraftChainer.CraftChain
             Queue<CraftingSolverState> queue)
         {
             var itemId = neededItem.Value.Key;
-            int quantityNeeded = -neededItem.Value.Value;
             
             if (itemsProducedByRecipe.TryGetValue(itemId, out var producingRecipes))
             {

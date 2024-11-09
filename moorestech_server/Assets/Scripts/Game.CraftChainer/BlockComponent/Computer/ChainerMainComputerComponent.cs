@@ -29,6 +29,38 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         public void StartCreateItem(ItemId itemId, int count)
         {
+            var recipes = new List<CraftingSolverRecipe>();
+            foreach (var crafterComponent in ChainerNetworkContext.CrafterComponents)
+            {
+                recipes.Add(crafterComponent.CraftingSolverRecipe);
+            }
+            
+            var initialInventory = new Dictionary<ItemId, int>();
+            foreach (var chest in ChainerNetworkContext.ProviderChests)
+            {
+                foreach (var item in chest.Inventory)
+                {
+                    if (initialInventory.ContainsKey(item.Id))
+                    {
+                        initialInventory[item.Id] += item.Count;
+                    }
+                    else
+                    {
+                        initialInventory[item.Id] = item.Count;
+                    }
+                }
+            }
+            
+            var targetItem = new CraftingSolverItem(itemId, count);
+            
+            var solverResult = CraftingSolver.Solve(recipes, initialInventory, targetItem);
+            
+            // アイテムは作成できなかった
+            // The item could not be created
+            if (solverResult == null)
+            {
+                return;
+            }
         }
         
         
