@@ -23,11 +23,11 @@ namespace Game.CraftChainer.BlockComponent.Template
         
         private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var chest = blockMasterElement.BlockParam as ChestBlockParam;
+            var chest = blockMasterElement.BlockParam as CraftChainerCrafterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
             var chestComponent = componentStates == null ? 
-                new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent) : 
-                new VanillaChestComponent(componentStates, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
+                new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inputConnectorComponent) : 
+                new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inputConnectorComponent);
             
             var chainerCrafter = new ChainerCrafterComponent();
             
