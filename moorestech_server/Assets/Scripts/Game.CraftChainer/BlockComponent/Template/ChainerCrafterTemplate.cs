@@ -32,7 +32,9 @@ namespace Game.CraftChainer.BlockComponent.Template
                 new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inserter) : 
                 new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inserter);
             
-            var chainerCrafter = new ChainerCrafterComponent();
+            var chainerCrafter = componentStates == null ?
+                new ChainerCrafterComponent() :
+                new ChainerCrafterComponent(componentStates);
             
             var components = new List<IBlockComponent>
             {

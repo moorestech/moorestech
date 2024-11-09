@@ -24,7 +24,7 @@ namespace Game.CraftChainer.BlockComponent.Template
         private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var chest = blockMasterElement.BlockParam as CraftChainerMainComputerBlockParam;
-            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
+            var connector = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
             var inserter = new ChainerMainComputerInserter();
             
             var chestComponent = componentStates == null ?
@@ -32,14 +32,14 @@ namespace Game.CraftChainer.BlockComponent.Template
                 new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inserter);
             
             var mainComputerComponent = componentStates == null ?
-                new ChainerMainComputerComponent() :
-                new ChainerMainComputerComponent(componentStates);
+                new ChainerMainComputerComponent(connector) :
+                new ChainerMainComputerComponent(componentStates, connector);
             
             
             var components = new List<IBlockComponent>
             {
                 chestComponent,
-                inputConnectorComponent,
+                connector,
                 mainComputerComponent
             };
             
