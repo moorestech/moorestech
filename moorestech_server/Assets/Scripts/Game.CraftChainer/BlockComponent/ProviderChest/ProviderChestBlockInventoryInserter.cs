@@ -28,6 +28,11 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         
         private int _index = -1;
         
+        public ProviderChestBlockInventoryInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        {
+            _blockConnectorComponent = blockConnectorComponent;
+        }
+        
         public void EnqueueItemDistributedOnNetwork(ItemId itemId, int count)
         {
             if (!_distributionWaitList.TryAdd(itemId, count))
