@@ -17,7 +17,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         public ChainerMainComputerComponent(BlockConnectorComponent<IBlockInventory> mainComputerConnector)
         {
-            ChainerNetworkContext = new ChainerNetworkContext(mainComputerConnector);
+            ChainerNetworkContext = new ChainerNetworkContext(mainComputerConnector, this);
         }
         
         public ChainerMainComputerComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> mainComputerConnector) : this(mainComputerConnector)
@@ -29,29 +29,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         public void StartCreateItem(ItemId itemId, int count)
         {
-            var recipes = new List<CraftingSolverRecipe>();
-            foreach (var crafterComponent in ChainerNetworkContext.CrafterComponents)
-            {
-                recipes.Add(crafterComponent.CraftingSolverRecipe);
-            }
-            
-            var initialInventory = new Dictionary<ItemId, int>();
-            foreach (var chest in ChainerNetworkContext.ProviderChests)
-            {
-                foreach (var item in chest.Inventory)
-                {
-                    if (initialInventory.ContainsKey(item.Id))
-                    {
-                        initialInventory[item.Id] += item.Count;
-                    }
-                    else
-                    {
-                        initialInventory[item.Id] = item.Count;
-                    }
-                }
-            }
-            
-            var targetItem = new CraftingSolverItem(itemId, count);
+            var (recipes, initialInventory, targetItem) = CreateInitialData();
             
             var solverResult = CraftingSolver.Solve(recipes, initialInventory, targetItem);
             
@@ -61,6 +39,41 @@ namespace Game.CraftChainer.BlockComponent.Computer
             {
                 return;
             }
+            
+            ChainerNetworkContext.SetCraftChainRecipeQue(solverResult);
+            
+            #region Internal
+            
+            (List<CraftingSolverRecipe> recipes, Dictionary<ItemId, int> initialInventory, CraftingSolverItem targetItem) CreateInitialData()
+            {
+                var recipeResults = new List<CraftingSolverRecipe>();
+                foreach (var crafterComponent in ChainerNetworkContext.CrafterComponents)
+                {
+                    recipeResults.Add(crafterComponent.CraftingSolverRecipe);
+                }
+                
+                var initialInventoryResults = new Dictionary<ItemId, int>();
+                foreach (var chest in ChainerNetworkContext.ProviderChests)
+                {
+                    foreach (var item in chest.Inventory)
+                    {
+                        if (initialInventoryResults.ContainsKey(item.Id))
+                        {
+                            initialInventoryResults[item.Id] += item.Count;
+                        }
+                        else
+                        {
+                            initialInventoryResults[item.Id] = item.Count;
+                        }
+                    }
+                }
+                
+                var target = new CraftingSolverItem(itemId, count);
+                
+                return (recipeResults, initialInventoryResults, target);
+            }
+            
+  #endregion
         }
         
         
