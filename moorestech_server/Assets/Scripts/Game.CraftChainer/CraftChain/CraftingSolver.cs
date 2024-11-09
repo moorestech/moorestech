@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.CraftChainer.CraftNetwork;
 using UnitGenerator;
 
 namespace Game.CraftChainer.CraftChain
@@ -277,35 +278,6 @@ namespace Game.CraftChainer.CraftChain
         
     #endregion
     }
-    
-    public class CraftingSolverItem
-    {
-        public readonly ItemId ItemId;
-        public readonly int Quantity;
-        
-        public CraftingSolverItem(ItemId itemId, int quantity)
-        {
-            ItemId = itemId;
-            Quantity = quantity;
-        }
-    }
-    
-    public class CraftingSolverRecipe
-    {
-        public readonly CraftingSolverRecipeId CraftingSolverRecipeId;
-        public readonly List<CraftingSolverItem> Inputs;
-        public readonly List<CraftingSolverItem> Outputs;
-        
-        public CraftingSolverRecipe(CraftingSolverRecipeId craftingSolverRecipeId, List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
-        {
-            CraftingSolverRecipeId = craftingSolverRecipeId;
-            Inputs = inputs;
-            Outputs = outputs;
-        }
-    }
-    
-    [UnitOf(typeof(int), UnitGenerateOptions.Comparable)]
-    public partial struct CraftingSolverRecipeId { }
     
     public class CraftingSolverState
     {

@@ -1,3 +1,4 @@
+using System;
 using Core.Item.Interface;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
@@ -15,6 +16,11 @@ namespace Game.CraftChainer.CraftNetwork
         {
             // TODO
             return null;
+        }
+        
+        public CraftChainerNodeId GetTargetNodeId(ItemInstanceId item)
+        {
+            throw new NotImplementedException();
         }
         
     }
