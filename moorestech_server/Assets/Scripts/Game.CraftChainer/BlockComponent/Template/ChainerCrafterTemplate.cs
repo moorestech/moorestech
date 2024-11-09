@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Service;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -25,9 +26,11 @@ namespace Game.CraftChainer.BlockComponent.Template
         {
             var chest = blockMasterElement.BlockParam as CraftChainerCrafterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            
             var chestComponent = componentStates == null ? 
-                new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inputConnectorComponent) : 
-                new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inputConnectorComponent);
+                new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inserter) : 
+                new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inserter);
             
             var chainerCrafter = new ChainerCrafterComponent();
             

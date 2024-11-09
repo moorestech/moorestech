@@ -1,13 +1,13 @@
 using System.Linq;
 using Core.Item.Interface;
-using Game.Block.Blocks.BeltConveyor.Connector;
+using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.CraftChainer.CraftNetwork;
 
 namespace Game.CraftChainer.BlockComponent
 {
-    public class ChainerTransporterConnector : IBeltConveyorConnector
+    public class ChainerTransporterConnector : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
