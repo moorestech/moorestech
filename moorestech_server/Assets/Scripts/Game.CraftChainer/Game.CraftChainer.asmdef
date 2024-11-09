@@ -3,7 +3,10 @@
     "rootNamespace": "",
     "references": [
         "Core.Item.Interface",
-        "Core.Master"
+        "Core.Master",
+        "Game.Block",
+        "Game.Block.Interface",
+        "Game.Context"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -63,7 +63,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 //挿入可能でない
                 return itemStack;
             
-            _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[^1] = _beltConveyorItemFactory.CreateItem(itemStack.Id, itemStack.ItemInstanceId);
             
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
