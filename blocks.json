@@ -30,7 +30,9 @@
               "ElectricMachine","ElectricPole","ElectricGenerator","ElectricMiner",
 
               "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
-              "ItemShooter"]
+              "ItemShooter",
+              "CraftChainerTransporter"
+            ]
           },
 
           "itemGuid": {
@@ -359,6 +361,27 @@
                     
                     "gear": {
                       "$ref": "gear"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerTransporter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+
+                  "properties": {
+                    "transporterConveyorItemCount": {"type": "integer", "default": 1},
+                    "timeOfItemEnterToExit": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
