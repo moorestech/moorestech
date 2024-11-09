@@ -14,10 +14,12 @@ namespace Game.CraftChainer.BlockComponent
     public class ChainerTransporterConnector : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly CraftChainerNodeId _startChainerNodeId;
         
-        public ChainerTransporterConnector(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public ChainerTransporterConnector(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, CraftChainerNodeId startChainerNodeId)
         {
             _blockConnectorComponent = blockConnectorComponent;
+            _startChainerNodeId = startChainerNodeId;
         }
         
         public IItemStack InsertItem(IItemStack itemStack)
@@ -28,7 +30,7 @@ namespace Game.CraftChainer.BlockComponent
                 return itemStack;
             }
             
-            var target = context.GetTransportNextBlock(itemStack.ItemInstanceId, _blockConnectorComponent);
+            var target = context.GetTransportNextBlock(itemStack.ItemInstanceId, _startChainerNodeId, _blockConnectorComponent);
             if (target == null) return itemStack;
             
             return target.InsertItem(itemStack);

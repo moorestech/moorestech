@@ -10,12 +10,11 @@ namespace Game.CraftChainer.CraftNetwork
 {
     public class ChainerNetworkContext
     {
-        
         /// <summary>
         /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
         /// Get the next block to insert from the connector connected to the item ID
         /// </summary>
-        public IBlockInventory GetTransportNextBlock(ItemInstanceId item, CraftChainerNodeId craftChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
+        public IBlockInventory GetTransportNextBlock(ItemInstanceId item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
         {
             var targetNodeId = GetTargetNodeId(item);
             
@@ -38,10 +37,10 @@ namespace Game.CraftChainer.CraftNetwork
                 var stepLog = new Dictionary<CraftChainerNodeId, int>();
                 var isFound = false;
                 
-                searchQueue.Enqueue(craftChainerNodeId);
-                searched.Add(craftChainerNodeId);
-                idToConnector[craftChainerNodeId] = (blockConnector, null);
-                stepLog[craftChainerNodeId] = 0;
+                searchQueue.Enqueue(startChainerNodeId);
+                searched.Add(startChainerNodeId); // Add starting node to searched
+                idToConnector[startChainerNodeId] = (blockConnector, null);
+                stepLog[startChainerNodeId] = 0;
                 
                 // キューがなくなるまでループ
                 // Loop until the queue is empty
@@ -55,7 +54,6 @@ namespace Game.CraftChainer.CraftNetwork
                     }
                     
                     var step = stepLog[searchingId] + 1;
-                    
                     foreach (var connectedTarget in idToConnector[searchingId].connector.ConnectedTargets)
                     {
                         var targetBlock = connectedTarget.Value.TargetBlock;
@@ -71,11 +69,11 @@ namespace Game.CraftChainer.CraftNetwork
                         // Ignore if already searched
                         if (searched.Contains(nodeId)) continue;
                         
+                        searched.Add(nodeId); // Mark as searched before enqueuing
                         reverseSearch[nodeId] = searchingId;
                         idToConnector[nodeId] = (nextConnector, blockInventory);
                         stepLog[nodeId] = step;
                         searchQueue.Enqueue(nodeId);
-                        searched.Add(nodeId);
                     }
                 }
                 
@@ -88,28 +86,27 @@ namespace Game.CraftChainer.CraftNetwork
                 // Follow the path
                 var result = new List<IBlockInventory>();
                 var current = targetNode;
-                while (current != craftChainerNodeId)
+                while (current != startChainerNodeId)
                 {
                     result.Add(idToConnector[current].blockInventory);
                     current = reverseSearch[current];
                 }
                 
                 result.Reverse();
-                
                 return result;
             }
             
             (CraftChainerNodeId nodeId, BlockConnectorComponent<IBlockInventory> connector, IBlockInventory blockInventory)? GetNext(IBlock block)
             {
                 if (!block.TryGetComponent<ICraftChainerNode>(out var node)) return null;
-                if (node.NodeId == craftChainerNodeId) return null;
+                if (node.NodeId == startChainerNodeId) return null;
                 if (!block.TryGetComponent<BlockConnectorComponent<IBlockInventory>>(out var connector)) return null;
                 if (!block.TryGetComponent<IBlockInventory>(out var inventory)) return null;
                 
                 return (node.NodeId, connector, inventory);
             }
             
-  #endregion
+            #endregion
         }
         
         

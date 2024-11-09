@@ -23,6 +23,10 @@ namespace Game.CraftChainer.BlockComponent.Template
         {
             var transporterParam = blockMasterElement.BlockParam as CraftChainerTransporterBlockParam;
             
+            var transporterComponent = componentStates == null ?
+                new ChainerTransporterComponent() :
+                new ChainerTransporterComponent(componentStates);
+            
             var slopeType = transporterParam.SlopeType switch
             {
                 ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
@@ -30,7 +34,7 @@ namespace Game.CraftChainer.BlockComponent.Template
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(transporterParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new ChainerTransporterConnector(connectorComponent);
+            var beltConveyorConnector = new ChainerTransporterConnector(connectorComponent, transporterComponent.NodeId);
             var itemCount = transporterParam.TransporterConveyorItemCount;
             var time = transporterParam.TimeOfItemEnterToExit;
             
@@ -38,9 +42,6 @@ namespace Game.CraftChainer.BlockComponent.Template
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
                 new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
             
-            var transporterComponent = componentStates == null ?
-                new ChainerTransporterComponent() :
-                new ChainerTransporterComponent(componentStates);
             
             var components = new List<IBlockComponent>
             {
