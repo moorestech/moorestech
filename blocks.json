@@ -31,7 +31,7 @@
 
               "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
               "ItemShooter",
-              "CraftChainerTransporter"
+              "CraftChainerTransporter", "CraftChainerCrafter"
             ]
           },
 
@@ -383,6 +383,26 @@
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerCrafter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+                    
                   }
                 }
               }
