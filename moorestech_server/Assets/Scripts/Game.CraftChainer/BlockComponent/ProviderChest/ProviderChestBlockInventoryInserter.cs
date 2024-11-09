@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
@@ -7,6 +6,7 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.CraftChainer.CraftNetwork;
 using UniRx;
 
 namespace Game.CraftChainer.BlockComponent.ProviderChest
@@ -20,10 +20,7 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
     /// </summary>
     public class ProviderChestBlockInventoryInserter : IBlockInventoryInserter
     {
-        public IObservable<IItemStack> OnDistributedItemOnNetwork => _onDistributedItemOnNetwork;
-        private readonly Subject<IItemStack> _onDistributedItemOnNetwork = new();
-        
-        private readonly Dictionary<ItemId,int> _distributionWaitList = new();
+        private readonly CraftChainerNodeId _providerChestNodeId;
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private int _index = -1;
@@ -33,26 +30,9 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             _blockConnectorComponent = blockConnectorComponent;
         }
         
-        public void EnqueueItemDistributedOnNetwork(ItemId itemId, int count)
-        {
-            if (!_distributionWaitList.TryAdd(itemId, count))
-            {
-                _distributionWaitList[itemId] += count;
-            }
-        }
-        
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            // インサートを受けたアイテムが配布リストにあるか確認
-            // Check if the item received for insert is in the distribution list
-            if (!_distributionWaitList.TryGetValue(itemStack.Id, out var count))
-            {
-                // 配布リストにない場合はそのまま返す
-                // If it is not in the distribution list, return it as it is
-                return itemStack;
-            }
-            
-            AddIndex();
+            var context = CraftChainerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
             var inventory = _blockConnectorComponent.ConnectedTargets.Keys.ToArray()[_index];
             
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
@@ -60,22 +40,18 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             var insertItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
             var insertResult = inventory.InsertItem(insertItem);
             
+            var nextInventory = context.GetTransportNextBlock(insertItem, _providerChestNodeId, _blockConnectorComponent);
+            if (nextInventory == null)
+            {
+                // 移動先がないのでそのまま返す
+                // Return as it is because there is no destination
+                return itemStack;
+            }
             
             if (insertResult.Id == ItemMaster.EmptyItemId)
             {
                 // アイテムが挿入できれば、元のアイテムから1個分を減らしたアイテムを返す
                 // If the item can be inserted, return the item with one less item from the original item
-                count--;
-                if (count == 0)
-                {
-                    _distributionWaitList.Remove(itemStack.Id);
-                }
-                else
-                {
-                    _distributionWaitList[itemStack.Id] = count;
-                }
-                
-                _onDistributedItemOnNetwork.OnNext(insertItem);
                 return itemStack.SubItem(1);
             }
             
@@ -84,11 +60,5 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             return itemStack;
         }
         
-        
-        private void AddIndex()
-        {
-            _index++;
-            if (_blockConnectorComponent.ConnectedTargets.Count <= _index) _index = 0;
-        }
     }
 }

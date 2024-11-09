@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.CraftChainer.CraftNetwork;
 using Newtonsoft.Json;
@@ -26,12 +25,6 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerProviderChestComponentJsonObject>(state);
             NodeId = new CraftChainerNodeId(jsonObject.NodeId);
-        }
-        
-        
-        public void EnqueueItemDistributedOnNetwork(ItemId itemId, int count)
-        {
-            _providerChestBlockInventoryInserter.EnqueueItemDistributedOnNetwork(itemId, count);
         }
         
         

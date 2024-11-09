@@ -141,6 +141,10 @@ namespace Game.CraftChainer.BlockComponent.Computer
         public IBlockInventory GetTransportNextBlock(IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
         {
             var targetNodeId = GetTargetNodeId(item);
+            if (targetNodeId == CraftChainerNodeId.Invalid)
+            {
+                return null;
+            }
             
             var result = ExecuteBfs(targetNodeId);
             if (result == null || result.Count == 0)
@@ -182,14 +186,9 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     return newCraftQue.targetNodeId;
                 }
                 
-                // 移動先が特に指定されていない場合はランダムに選択
+                // 移動先が特に指定されていない場合はIncalidを返す
                 // If no destination is specified, select randomly
-                var randomProvider = _providerChests[Random.Range(0, _providerChests.Count)];
-                if (randomProvider == null)
-                {
-                    return CraftChainerNodeId.Invalid;
-                }
-                return randomProvider.NodeId;
+                return CraftChainerNodeId.Invalid;
             }
             
             List<IBlockInventory> ExecuteBfs(CraftChainerNodeId targetNode)
@@ -202,7 +201,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 var isFound = false;
                 
                 searchQueue.Enqueue(startChainerNodeId);
-                searched.Add(startChainerNodeId); // Add starting node to searched
+                searched.Add(startChainerNodeId);
                 idToConnector[startChainerNodeId] = (blockConnector, null);
                 stepLog[startChainerNodeId] = 0;
                 
