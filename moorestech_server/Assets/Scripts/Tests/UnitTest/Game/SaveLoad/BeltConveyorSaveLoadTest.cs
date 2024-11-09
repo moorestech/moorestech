@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
+            var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
             //アイテムを設定
             inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
@@ -56,9 +56,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
             var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector); 
             
-            var inventoryFactory = new VanillaBeltConveyorInventoryItemFactory();
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
-            var newInventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
+            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
@@ -82,7 +81,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
+            var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
             //アイテムを設定
             inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0))
@@ -108,9 +107,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
             var beltConveyorConnector = new VanillaBeltConveyorConnector(blockConnector); 
             
-            var inventoryFactory = new VanillaBeltConveyorInventoryItemFactory();
-            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight, inventoryFactory);
-            var newInventoryItems = (IBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
+            var newBelt = new VanillaBeltConveyorComponent(str, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
+            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);

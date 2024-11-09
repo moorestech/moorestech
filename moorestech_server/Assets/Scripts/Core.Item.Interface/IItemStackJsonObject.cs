@@ -12,8 +12,8 @@ namespace Core.Item.Interface
         [JsonProperty("count")]
         public int Count;
         
-        [JsonIgnore]
-        public Guid ItemGuid => Guid.Parse(ItemGuidStr);
+        [JsonIgnore] public Guid ItemGuid => Guid.Parse(ItemGuidStr);
+        
             
         public ItemStackSaveJsonObject() { }
         

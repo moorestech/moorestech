@@ -18,27 +18,25 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private readonly IBeltConveyorInventoryItem[] _inventoryItems;
+        private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
         
-        private readonly IBeltConveyorItemFactory _beltConveyorItemFactory;
         private readonly IBeltConveyorConnector _beltConveyorConnector;
         private readonly int _inventoryItemNum;
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType, IBeltConveyorItemFactory beltConveyorItemFactory)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType)
         {
             SlopeType = slopeType;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _beltConveyorItemFactory = beltConveyorItemFactory;
             _beltConveyorConnector = beltConveyorConnector;
             
-            _inventoryItems = new IBeltConveyorInventoryItem[inventoryItemNum];
+            _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType, IBeltConveyorItemFactory beltConveyorItemFactory) :
-            this(inventoryItemNum, timeOfItemEnterToExit, beltConveyorConnector, slopeType, beltConveyorItemFactory)
+        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType) :
+            this(inventoryItemNum, timeOfItemEnterToExit, beltConveyorConnector, slopeType)
         {
             //stateから復元
             //データがないときは何もしない
@@ -49,7 +47,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 if (itemJsons[i] != null)
                 {
-                    _inventoryItems[i] = _beltConveyorItemFactory.LoadItem(itemJsons[i]);
+                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i]);
                 }
             }
         }
@@ -63,7 +61,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 //挿入可能でない
                 return itemStack;
             
-            _inventoryItems[^1] = _beltConveyorItemFactory.CreateItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
             
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
