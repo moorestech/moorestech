@@ -6,9 +6,10 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.CraftChainer.BlockComponent.ProviderChest;
+using Game.CraftChainer.CraftNetwork;
 using UnityEngine;
 
-namespace Game.CraftChainer.CraftNetwork
+namespace Game.CraftChainer.BlockComponent.Computer
 {
     public class ChainerNetworkContext
     {

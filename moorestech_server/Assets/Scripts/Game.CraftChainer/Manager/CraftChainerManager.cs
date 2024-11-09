@@ -1,3 +1,5 @@
+using Game.CraftChainer.BlockComponent.Computer;
+
 namespace Game.CraftChainer.CraftNetwork
 {
     public class CraftChainerManager
