@@ -7,20 +7,24 @@ using Game.CraftChainer.CraftNetwork;
 
 namespace Game.CraftChainer.BlockComponent
 {
-    public class ChainerConnector : IBeltConveyorConnector
+    public class ChainerTransporterConnector : IBeltConveyorConnector
     {
-        private readonly ChainerNetworkContext _chainerNetworkContext;
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
-        public ChainerConnector(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ChainerNetworkContext chainerNetworkContext)
+        public ChainerTransporterConnector(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockConnectorComponent = blockConnectorComponent;
-            _chainerNetworkContext = chainerNetworkContext;
         }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var target = _chainerNetworkContext.GetTransportNextBlock(itemStack.ItemInstanceId, _blockConnectorComponent);
+            var context = CraftChainerManager.Instance.GetChainerNetworkContext();
+            if (context == null)
+            {
+                return itemStack;
+            }
+            
+            var target = context.GetTransportNextBlock(itemStack.ItemInstanceId, _blockConnectorComponent);
             if (target == null) return itemStack;
             
             return target.InsertItem(itemStack);

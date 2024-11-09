@@ -40,10 +40,16 @@ namespace Game.Block.Factory.BlockTemplate
                 ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
+            var itemCount = gearBeltParam.BeltConveyorItemCount;
+            
+            // 歯車ベルトコンベアはRPMによって速度が変わるため、デフォルトは0となる
+            // Gear belt conveyors have different speeds depending on the RPM, so the default is 0
+            var time = 0;
+            
             var vanillaBeltConveyorComponent = 
                 state == null ? 
-                    new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, beltConveyorConnector, slopeType) :
-                    new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, beltConveyorConnector,slopeType);
+                    new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
+                    new VanillaBeltConveyorComponent(state, itemCount, time, beltConveyorConnector,slopeType);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             
