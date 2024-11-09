@@ -2,6 +2,7 @@
     "name": "Game.CraftChainer",
     "rootNamespace": "",
     "references": [
+        "UniRx",
         "Core.Item.Interface",
         "Core.Master",
         "Game.Block",
