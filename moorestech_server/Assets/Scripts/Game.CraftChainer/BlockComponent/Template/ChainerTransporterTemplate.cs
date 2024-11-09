@@ -38,12 +38,15 @@ namespace Game.CraftChainer.BlockComponent.Template
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
                 new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
             
+            var transporterComponent = componentStates == null ?
+                new ChainerTransporterComponent() :
+                new ChainerTransporterComponent(componentStates);
             
             var components = new List<IBlockComponent>
             {
                 beltComponent,
                 connectorComponent,
-                new ChainerTransporterComponent()
+                transporterComponent,
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

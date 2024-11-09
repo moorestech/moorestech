@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Game.CraftChainer.BlockComponent.Crafter
 {
-    public class ChainerCrafterComponent : IBlockSaveState, ICraftChainerNode
+    public class ChainerCrafterComponent : ICraftChainerNode
     {
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
