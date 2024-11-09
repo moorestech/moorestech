@@ -59,6 +59,7 @@
               "properties": {
                 "inventoryOptions" :{
                   "type": "array",
+                  "optional": true,
                   
                   "items": {
                     "type": "object",
