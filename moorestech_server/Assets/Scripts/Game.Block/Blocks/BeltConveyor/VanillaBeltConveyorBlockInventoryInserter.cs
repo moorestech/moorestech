@@ -1,15 +1,16 @@
 using System.Linq;
 using Core.Item.Interface;
+using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 
-namespace Game.Block.Blocks.BeltConveyor.Connector
+namespace Game.Block.Blocks.BeltConveyor
 {
-    public class VanillaBeltConveyorConnector : IBeltConveyorConnector
+    public class VanillaBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
-        public VanillaBeltConveyorConnector(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaBeltConveyorBlockInventoryInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockConnectorComponent = blockConnectorComponent;
         }

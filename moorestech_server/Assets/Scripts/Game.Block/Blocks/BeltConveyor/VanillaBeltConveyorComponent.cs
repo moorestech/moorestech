@@ -2,7 +2,7 @@
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor.Connector;
+using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -20,23 +20,23 @@ namespace Game.Block.Blocks.BeltConveyor
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
         
-        private readonly IBeltConveyorConnector _beltConveyorConnector;
+        private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly int _inventoryItemNum;
         
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
         {
             SlopeType = slopeType;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _beltConveyorConnector = beltConveyorConnector;
+            _blockInventoryInserter = blockInventoryInserter;
             
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorConnector beltConveyorConnector, BeltConveyorSlopeType slopeType) :
-            this(inventoryItemNum, timeOfItemEnterToExit, beltConveyorConnector, slopeType)
+        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType) :
+            this(inventoryItemNum, timeOfItemEnterToExit, blockInventoryInserter, slopeType)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
             for (var i = 0; i < itemJsons.Count; i++)
@@ -145,7 +145,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    var output = _beltConveyorConnector.InsertItem(insertItem);
+                    var output = _blockInventoryInserter.InsertItem(insertItem);
                     
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;

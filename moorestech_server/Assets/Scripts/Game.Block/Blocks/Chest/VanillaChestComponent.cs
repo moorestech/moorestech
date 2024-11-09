@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.Connector;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Event;
@@ -20,19 +21,19 @@ namespace Game.Block.Blocks.Chest
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
         
-        private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
+        private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public VanillaChestComponent(BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaChestComponent(BlockInstanceId blockInstanceId, int slotNum, IBlockInventoryInserter blockInventoryInserter)
         {
             BlockInstanceId = blockInstanceId;
             
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
+            _blockInventoryInserter = blockInventoryInserter;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
         }
         
-        public VanillaChestComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, int slotNum, BlockConnectorComponent<IBlockInventory> blockConnectorComponent) :
-            this(blockInstanceId, slotNum, blockConnectorComponent)
+        public VanillaChestComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, int slotNum, IBlockInventoryInserter blockInventoryInserter) :
+            this(blockInstanceId, slotNum, blockInventoryInserter)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
             for (var i = 0; i < itemJsons.Count; i++)
@@ -62,7 +63,7 @@ namespace Game.Block.Blocks.Chest
             
             for (var i = 0; i < _itemDataStoreService.InventoryItems.Count; i++)
             {
-                var setItem = _connectInventoryService.InsertItem(_itemDataStoreService.InventoryItems[i]);
+                var setItem = _blockInventoryInserter.InsertItem(_itemDataStoreService.InventoryItems[i]);
                 _itemDataStoreService.SetItem(i, setItem);
             }
         }

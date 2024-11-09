@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Service;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
@@ -23,9 +24,11 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var chest = blockMasterElement.BlockParam as ChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            
             var chestComponent = componentStates == null ?
-                new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent) :
-                new VanillaChestComponent(componentStates, blockInstanceId, chest.ChestItemSlotCount, inputConnectorComponent);
+                new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inserter) :
+                new VanillaChestComponent(componentStates, blockInstanceId, chest.ChestItemSlotCount, inserter);
             
             var components = new List<IBlockComponent>
             {

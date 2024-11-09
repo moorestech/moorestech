@@ -1,8 +1,8 @@
 using Core.Item.Interface;
 
-namespace Game.Block.Blocks.BeltConveyor.Connector
+namespace Game.Block.Blocks.Connector
 {
-    public interface IBeltConveyorConnector
+    public interface IBlockInventoryInserter
     {
         public IItemStack InsertItem(IItemStack itemStack);
     }
