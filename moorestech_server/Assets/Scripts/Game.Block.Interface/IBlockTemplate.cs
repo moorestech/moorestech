@@ -9,8 +9,4 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo);
         public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo);
     }
-    
-    public class BlockCreateProperties
-    {
-    }
 }
