@@ -30,7 +30,7 @@ namespace Game.CraftChainer.BlockComponent
                 return itemStack;
             }
             
-            var target = context.GetTransportNextBlock(itemStack.ItemInstanceId, _startChainerNodeId, _blockConnectorComponent);
+            var target = context.GetTransportNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
             if (target == null) return itemStack;
             
             return target.InsertItem(itemStack);
