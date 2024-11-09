@@ -1,20 +1,73 @@
-using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CraftChainer.BlockComponent.ProviderChest;
+using UnityEngine;
 
 namespace Game.CraftChainer.CraftNetwork
 {
     public class ChainerNetworkContext
     {
+        private List<ChainerProviderChestComponent> _providerChests;
+        
+        private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
+        private Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems;
+        
+        public void ReSearchProviderChests(BlockConnectorComponent<IBlockInventory> startConnector)
+        {
+            
+        }
+        
+        public CraftChainerNodeId GetTargetNodeId(IItemStack item)
+        {
+            // 移動先が既に指定されている場合はそのまま返す
+            // If the destination is already specified, return it as it is
+            if (_requestedMoveItems.TryGetValue(item.ItemInstanceId, out var nodeId))
+            {
+                return nodeId;
+            }
+            
+            // 現在のアイテムがクラフト対象の材料だったら
+            // If the current item is a crafting target material
+            if (_craftChainRecipeQue.TryGetValue(item.Id, out var craftQue))
+            {
+                var newCraftQue = craftQue;
+                newCraftQue.reminderCount--;
+                if (newCraftQue.reminderCount <= 0)
+                {
+                    _craftChainRecipeQue.Remove(item.Id);
+                }
+                else
+                {
+                    _craftChainRecipeQue[item.Id] = newCraftQue;
+                }
+                
+                // 計算したアイテムの移動先を保持
+                // Keep the destination of the calculated item
+                _requestedMoveItems[item.ItemInstanceId] = newCraftQue.targetNodeId;
+                return newCraftQue.targetNodeId;
+            }
+            
+            // 移動先が特に指定されていない場合はランダムに選択
+            // If no destination is specified, select randomly
+            var randomProvider = _providerChests[Random.Range(0, _providerChests.Count)];
+            if (randomProvider == null)
+            {
+                return CraftChainerNodeId.Invalid;
+            }
+            return randomProvider.NodeId;
+        }
+        
+        
         /// <summary>
         /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
         /// Get the next block to insert from the connector connected to the item ID
         /// </summary>
-        public IBlockInventory GetTransportNextBlock(ItemInstanceId item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
+        public IBlockInventory GetTransportNextBlock(IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
         {
             var targetNodeId = GetTargetNodeId(item);
             
@@ -107,13 +160,6 @@ namespace Game.CraftChainer.CraftNetwork
             }
             
             #endregion
-        }
-        
-        
-        
-        public CraftChainerNodeId GetTargetNodeId(ItemInstanceId item)
-        {
-            throw new NotImplementedException();
         }
         
     }

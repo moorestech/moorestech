@@ -19,15 +19,18 @@ namespace Game.CraftChainer.CraftNetwork
     [UnitOf(typeof(int))]
     public partial struct CraftChainerNodeId
     {
+        public static CraftChainerNodeId Invalid => new(-1); 
+            
         private static readonly Random _random = new();
         
         public static CraftChainerNodeId Create()
         {
             var id = 0; // 0番はデフォルトターゲットとして扱うため予約
-            while (id == 0)
+            while (id == Invalid.value)
             {
                 id = _random.Next(int.MinValue, int.MaxValue);
             }
+            
             return new CraftChainerNodeId(id);
         } 
     }
