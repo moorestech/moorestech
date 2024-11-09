@@ -45,8 +45,8 @@ namespace Tests.CombinedTest.Core
             var dummyInventory = new DummyBlockInventory();
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
-            var minerConnectors = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)miner.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            minerConnectors.Add(dummyInventory, (null, null));
+            var minerConnectors = (Dictionary<IBlockInventory, ConnectedInfo>)miner.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            minerConnectors.Add(dummyInventory, new ConnectedInfo());
             
             //電力の設定
             var segment = new EnergySegment();
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(2, outputSlot.Count);
             
             //またコネクターをつなげる
-            minerConnectors.Add(dummyInventory, (null, null));
+            minerConnectors.Add(dummyInventory, new ConnectedInfo());
             
             //コネクターにアイテムを入れるためのアップデート
             GameUpdater.UpdateWithWait();

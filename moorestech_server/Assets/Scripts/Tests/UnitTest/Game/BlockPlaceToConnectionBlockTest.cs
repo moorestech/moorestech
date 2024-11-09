@@ -100,7 +100,7 @@ namespace Tests.UnitTest.Game
             foreach (var (position, direction) in beltConveyorTransforms) world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, position, direction, out _);
             
             //繋がっているコネクターを取得
-            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)vanillaMachine.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)vanillaMachine.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             
             Assert.AreEqual(4, connectInventory.Count);
             
@@ -166,13 +166,13 @@ namespace Tests.UnitTest.Game
             world.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 1), BlockDirection.North, out var chest);
             
             //機械のコネクターを取得
-            var machineConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)machine.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var machineConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)machine.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
             
             //チェストのコネクターを取得
-            var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);
@@ -202,7 +202,7 @@ namespace Tests.UnitTest.Game
             world.TryAddBlock(ForUnitTestModBlockId.MultiBlockGeneratorId, new Vector3Int(0, 0), BlockDirection.North, out var multiBlock);
             
             // マルチブロックのコネクターを取得
-            var connector = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)multiBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connector = (Dictionary<IBlockInventory, ConnectedInfo>)multiBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             
             // ベルトコンベアが正しく接続されているかをチェック
             Assert.AreEqual(2, connector.Count);

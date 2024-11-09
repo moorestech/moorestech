@@ -41,8 +41,8 @@ namespace Tests.CombinedTest.Core
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, out var gearBeltConveyor);
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var connectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            connectInventory.Add(dummy, (null, null));
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            connectInventory.Add(dummy, new ConnectedInfo());
             
             // generatorブロックを作成
             var generatorPosition = new Vector3Int(1, 0, 0);
