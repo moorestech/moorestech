@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState
             _deleteBarObject.gameObject.SetActive(true);
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.GameScreen;
             

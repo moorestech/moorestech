@@ -13,7 +13,7 @@ namespace Client.Game.InGame.UI.UIState
             pauseMenu.gameObject.SetActive(false);
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.CloseUI.GetKeyDown) return UIStateEnum.GameScreen;
             

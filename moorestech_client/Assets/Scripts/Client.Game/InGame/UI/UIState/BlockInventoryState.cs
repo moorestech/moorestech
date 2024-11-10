@@ -32,7 +32,7 @@ namespace Client.Game.InGame.UI.UIState
             blockInventoryView.CloseBlockInventory();
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
             

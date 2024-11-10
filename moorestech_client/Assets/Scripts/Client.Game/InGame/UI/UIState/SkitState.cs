@@ -15,7 +15,7 @@ namespace Client.Game.InGame.UI.UIState
         {
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Current;
             return UIStateEnum.GameScreen;

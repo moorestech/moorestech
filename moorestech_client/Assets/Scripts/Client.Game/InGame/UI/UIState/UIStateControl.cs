@@ -18,7 +18,7 @@ namespace Client.Game.InGame.UI.UIState
         private void Update()
         {
             //UIステートが変更されたら
-            var state = _uiStateDictionary.GetState(CurrentState).GetNext();
+            var state = _uiStateDictionary.GetState(CurrentState).GetNextUpdate();
             if (state == UIStateEnum.Current) return;
             
             var lastState = CurrentState;

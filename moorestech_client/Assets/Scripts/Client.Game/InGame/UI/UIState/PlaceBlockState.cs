@@ -30,7 +30,7 @@ namespace Client.Game.InGame.UI.UIState
             _screenClickableCameraController.StartTween();
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (BlockClickDetect.IsClickOpenableBlock(_blockPlacePreview)) return UIStateEnum.BlockInventory;

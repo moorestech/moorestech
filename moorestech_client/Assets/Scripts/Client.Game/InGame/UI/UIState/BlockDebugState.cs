@@ -27,7 +27,7 @@ namespace Client.Game.InGame.UI.UIState
             _screenClickableCameraController.StartTween();
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;

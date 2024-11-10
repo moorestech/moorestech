@@ -37,7 +37,7 @@ namespace Client.Game.InGame.UI.UIState
             _localPlayerInventoryController.SetGrabItem(handshakeResponse.Inventory.GrabItem);
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
             

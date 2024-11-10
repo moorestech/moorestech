@@ -20,7 +20,7 @@ namespace Client.Game.InGame.UI.UIState
             _inGameCameraController = inGameCameraController;
         }
         
-        public UIStateEnum GetNext()
+        public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;

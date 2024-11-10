@@ -3,7 +3,7 @@
     public interface IUIState
     {
         public void OnEnter(UIStateEnum lastStateEnum);
-        public UIStateEnum GetNext();
+        public UIStateEnum GetNextUpdate();
         public void OnExit();
     }
 }
