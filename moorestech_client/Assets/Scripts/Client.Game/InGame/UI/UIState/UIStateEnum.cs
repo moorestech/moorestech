@@ -11,5 +11,6 @@
         DeleteBar,
         Story,
         PlaceBlock,
+        BlockDebug,
     }
 }
