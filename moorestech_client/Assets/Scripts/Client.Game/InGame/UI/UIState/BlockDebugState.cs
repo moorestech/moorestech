@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using Client.Game.GameDebug;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.Skit;
@@ -29,12 +30,15 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (BlockClickDetect.IsClickOpenableBlock(_blockPlacePreview)) return UIStateEnum.BlockInventory;
-            if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
-            //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.GameScreen;
+            if (DebugInfoStore.EnableBlockDebugMode) return UIStateEnum.GameScreen;
             
+            _screenClickableCameraController.GetNextUpdate();
+            
+            if (BlockClickDetect.TryGetCursorOnBlock(out var block))
+            {
+                DebugInfoStore.InvokeClickBlock(block);
+            }
             
             return UIStateEnum.Current;
         }
