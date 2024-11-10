@@ -9,6 +9,7 @@ namespace Game.Block.Interface
     public interface IBlockComponentManager
     {
         public T GetComponent<T>() where T : IBlockComponent;
+        public List<T> GetComponents<T>() where T : IBlockComponent;
         
         public bool ExistsComponent<T>() where T : IBlockComponent;
         
