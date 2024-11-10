@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
@@ -45,10 +46,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータ取得
             var str = shooter.GetSaveState();
+            var states = new Dictionary<string, string>() { { shooter.SaveKey, str } };
             Debug.Log(str);
             
             //セーブデータをロード
-            var newShooter = blockFactory.Load(itemShooter.BlockMasterElement.BlockGuid, new BlockInstanceId(0), str, posInfo).GetComponent<ItemShooterComponent>();
+            var newShooter = blockFactory.Load(itemShooter.BlockMasterElement.BlockGuid, new BlockInstanceId(0), states, posInfo).GetComponent<ItemShooterComponent>();
             var newInventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(newShooter);
             
             //アイテムが一致するかチェック

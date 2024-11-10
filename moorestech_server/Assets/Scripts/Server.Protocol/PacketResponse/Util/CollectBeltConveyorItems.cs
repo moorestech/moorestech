@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using Core.Master;
-using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -10,7 +7,6 @@ using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
 using UnityEngine;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 
 namespace Server.Protocol.PacketResponse.Util
@@ -20,6 +16,8 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
+        public const float DefaultBeltConveyorHeight = 0.3f;
+        
         public static List<IEntity> CollectItem(IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
@@ -27,7 +25,6 @@ namespace Server.Protocol.PacketResponse.Util
             
             return result;
         }
-        
         
         public static List<IEntity> CollectItemFromWorld(IEntityFactory entityFactory)
         {
@@ -84,7 +81,7 @@ namespace Server.Protocol.PacketResponse.Util
                 }
                 
                 //この0.3という値は仮
-                var y = pos.y + VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
+                var y = pos.y + DefaultBeltConveyorHeight;
                 
                 if (beltConveyor.SlopeType == BeltConveyorSlopeType.Up)
                 {

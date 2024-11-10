@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.Connector;
 using Game.Block.Component;
-using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -17,45 +16,35 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor, IUpdatableBlockComponent
     {
-        public const float DefaultBeltConveyorHeight = 0.3f;
-        
-        public int InventoryItemNum { get; }
-        public bool IsDestroy { get; private set; }
-        
         public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
         
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        private readonly string _blockName;
+        private readonly IBlockInventoryInserter _blockInventoryInserter;
+        private readonly int _inventoryItemNum;
+        
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName, BeltConveyorSlopeType slopeType)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
         {
-            _blockName = blockName;
             SlopeType = slopeType;
-            InventoryItemNum = inventoryItemNum;
+            _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _blockConnectorComponent = blockConnectorComponent;
+            _blockInventoryInserter = blockInventoryInserter;
             
-            _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
+            _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
         
-        public VanillaBeltConveyorComponent(string state, int inventoryItemNum, float timeOfItemEnterToExit, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, string blockName, BeltConveyorSlopeType slopeType) :
-            this(inventoryItemNum, timeOfItemEnterToExit, blockConnectorComponent, blockName, slopeType)
+        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType) :
+            this(inventoryItemNum, timeOfItemEnterToExit, blockInventoryInserter, slopeType)
         {
-            //stateから復元
-            //データがないときは何もしない
-            if (state == string.Empty) return;
-            
-            List<BeltConveyorItemJsonObject> items = JsonConvert.DeserializeObject<List<BeltConveyorItemJsonObject>>(state);
-            for (var i = 0; i < items.Count; i++)
+            var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
+            for (var i = 0; i < itemJsons.Count; i++)
             {
-                if (items[i].ItemStack == null) continue;
-                
-                var itemStack = items[i].ItemStack.ToItemStack();
-                _inventoryItems[i] = new BeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
-                _inventoryItems[i].RemainingPercent = items[i].RemainingPercent;
+                if (itemJsons[i] != null)
+                {
+                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i]);
+                }
             }
         }
         
@@ -68,7 +57,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 //挿入可能でない
                 return itemStack;
             
-            _inventoryItems[^1] = new BeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
             
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
@@ -95,22 +84,25 @@ namespace Game.Block.Blocks.BeltConveyor
             BlockException.CheckDestroy(this);
             
             //TODO lockすべき？？
-            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
         }
         
+        public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             IsDestroy = true;
         }
         
+        public string SaveKey { get; } = typeof(VanillaBeltConveyorComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
             
-            if (_inventoryItems.Length == 0) return string.Empty;
-            
-            var saveItems = new List<BeltConveyorItemJsonObject>();
-            foreach (var t in _inventoryItems) saveItems.Add(new BeltConveyorItemJsonObject(t));
+            var saveItems = new List<string>();
+            foreach (var t in _inventoryItems)
+            {
+                saveItems.Add(t?.GetSaveJsonString());
+            }
             
             return JsonConvert.SerializeObject(saveItems);
         }
@@ -127,14 +119,13 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
             
-            if (_blockName == VanillaBeltConveyorTemplate.Hueru && _inventoryItems[0] == null) _inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(4), ItemInstanceId.Create());
             for (var i = 0; i < count; i++)
             {
                 var item = _inventoryItems[i];
                 if (item == null) continue;
                 
                 //次のインデックスに入れる時間かどうかをチェックする
-                var nextIndexStartTime = i * (1f / InventoryItemNum);
+                var nextIndexStartTime = i * (1f / _inventoryItemNum);
                 var isNextInsertable = item.RemainingPercent <= nextIndexStartTime;
                 
                 //次に空きがあれば次に移動する
@@ -152,14 +143,9 @@ namespace Game.Block.Blocks.BeltConveyor
                 //最後のアイテムの場合は接続先に渡す
                 if (i == 0 && item.RemainingPercent <= 0)
                 {
-                    if (_blockName == VanillaBeltConveyorTemplate.Kieru) _inventoryItems[i] = null;
-                    
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
-                    
-                    var connector = _blockConnectorComponent.ConnectedTargets.First();
-                    var output = connector.Key.InsertItem(insertItem);
+                    var output = _blockInventoryInserter.InsertItem(insertItem);
                     
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
@@ -175,33 +161,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetTimeOfItemEnterToExit(double time)
         {
             _timeOfItemEnterToExit = time;
-        }
-        
-        public BeltConveyorInventoryItem GetBeltConveyorItem(int index)
-        {
-            BlockException.CheckDestroy(this);
-            return _inventoryItems[index];
-        }
-    }
-    
-    public class BeltConveyorItemJsonObject
-    {
-        [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStack;
-        
-        [JsonProperty("remainingTime")] public double RemainingPercent;
-        
-        public BeltConveyorItemJsonObject(BeltConveyorInventoryItem beltConveyorInventoryItem)
-        {
-            if (beltConveyorInventoryItem == null)
-            {
-                ItemStack = null;
-                RemainingPercent = 1;
-                return;
-            }
-            
-            var item = ServerContext.ItemStackFactory.Create(beltConveyorInventoryItem.ItemId, 1);
-            ItemStack = new ItemStackSaveJsonObject(item);
-            RemainingPercent = beltConveyorInventoryItem.RemainingPercent;
         }
     }
 }

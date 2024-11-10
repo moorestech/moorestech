@@ -16,15 +16,14 @@ namespace Game.Block.Factory.BlockTemplate
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private static BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
-            var blockName = blockMasterElement.Name;
             
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
                 gearBeltParam.Gear.GearConnects,
@@ -32,13 +31,23 @@ namespace Game.Block.Factory.BlockTemplate
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(inventoryConnector); 
+            
             var slopeType = gearBeltParam.SlopeType switch
             {
                 ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
                 ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
-            var vanillaBeltConveyorComponent = state == null ? new VanillaBeltConveyorComponent(gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName, slopeType) : new VanillaBeltConveyorComponent(state, gearBeltParam.BeltConveyorItemCount, 0, inventoryConnector, blockName, slopeType);
+            var itemCount = gearBeltParam.BeltConveyorItemCount;
+            
+            // 歯車ベルトコンベアはRPMによって速度が変わるため、デフォルトは0となる
+            // Gear belt conveyors have different speeds depending on the RPM, so the default is 0
+            var time = 0;
+            
+            var vanillaBeltConveyorComponent = componentStates == null ? 
+                    new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
+                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             

@@ -11,7 +11,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaShaftTemplate : IBlockTemplate
     {
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }

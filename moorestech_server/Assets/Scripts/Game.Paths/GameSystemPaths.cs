@@ -27,8 +27,14 @@ namespace Game.Paths
         
         public static string GetExtractedModDirectory(string folderName)
         {
+            return Path.Combine(ExtractedModDirectory, folderName);
+        }
+        
+        public static string CreateExtractedModDirectory(string folderName)
+        {
             return DirectoryCreator(ExtractedModDirectory, folderName);
         }
+
         
         public static string GetSaveFilePath(string fileName)
         {

@@ -63,9 +63,9 @@ namespace Tests.CombinedTest.Core
             var dummyInventory = new DummyBlockInventory();
 
             // Connect the dummy inventory to the miner's output.
-            var minerConnectors = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)gearMiner
+            var minerConnectors = (Dictionary<IBlockInventory, ConnectedInfo>)gearMiner
                 .GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            minerConnectors.Add(dummyInventory, (null, null));
+            minerConnectors.Add(dummyInventory, new ConnectedInfo());
 
             // Place a gear generator adjacent to the gear miner to supply RPM and torque.
             var generatorPosition = position + new Vector3Int(0, 0, -1);
@@ -102,7 +102,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(2, outputSlot.Count, "The stored item count should be 2.");
 
             // Reconnect the dummy inventory.
-            minerConnectors.Add(dummyInventory, (null, null));
+            minerConnectors.Add(dummyInventory, new ConnectedInfo());
 
             // Update the game state to allow the miner to transfer items to the dummy inventory.
             GameUpdater.UpdateWithWait();

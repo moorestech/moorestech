@@ -44,9 +44,9 @@ namespace Game.Block.Blocks.PowerGenerator
             _blockComponentManager.AddComponent(data.InventoryInputConnectorComponent);
         }
         
-        public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data, string state) : this(data)
+        public VanillaElectricGeneratorComponent(Dictionary<string, string> componentStates, VanillaPowerGeneratorProperties data) : this(data)
         {
-            var saveData = JsonConvert.DeserializeObject<VanillaElectricGeneratorSaveJsonObject>(state);
+            var saveData = JsonConvert.DeserializeObject<VanillaElectricGeneratorSaveJsonObject>(componentStates[SaveKey]);
             
             var itemId = MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid);
             _currentFuelItemId = itemId;
@@ -86,6 +86,7 @@ namespace Game.Block.Blocks.PowerGenerator
             return _itemDataStoreService.GetSlotSize();
         }
         
+        public string SaveKey { get; } = typeof(VanillaElectricGeneratorComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);

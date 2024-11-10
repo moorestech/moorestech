@@ -9,24 +9,20 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaBeltConveyorTemplate : IBlockTemplate
     {
-        public const string Hueru = "gear belt conveyor hueru";
-        public const string Kieru = "gear belt conveyor kieru";
-        
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             //TODo UP bletからの入力を受付?
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private BlockSystem GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
-            var blockName = blockMasterElement.Name;
             
             var slopeType = beltParam.SlopeType switch
             {
@@ -35,9 +31,13 @@ namespace Game.Block.Factory.BlockTemplate
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
-            var beltComponent = state == null ? 
-                new VanillaBeltConveyorComponent(beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName, slopeType) : 
-                new VanillaBeltConveyorComponent(state, beltParam.BeltConveyorItemCount, beltParam.TimeOfItemEnterToExit, connectorComponent, blockName, slopeType);
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(connectorComponent);
+            var itemCount = beltParam.BeltConveyorItemCount;
+            var time = beltParam.TimeOfItemEnterToExit;
+            
+            var beltComponent = componentStates == null ? 
+                new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
+                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
             
             
             var components = new List<IBlockComponent>

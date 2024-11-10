@@ -36,11 +36,11 @@ namespace Game.World.DataStore
         //イベント
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         
-        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block)
+        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block)
         {
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockGuid).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
-            block = _blockFactory.Load(blockGuid, blockInstanceId, state, blockPositionInfo);
+            block = _blockFactory.Load(blockGuid, blockInstanceId, componentStates, blockPositionInfo);
             return TryAddBlock(block);
         }
         public bool RemoveBlock(Vector3Int pos)
@@ -167,7 +167,7 @@ namespace Game.World.DataStore
                 var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
                 
                 var blockData = new BlockPositionInfo(pos, direction, size);
-                var block = blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.EntityId), blockSave.State, blockData);
+                var block = blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.EntityId), blockSave.ComponentStates, blockData);
                 
                 TryAddBlock(block);
             }

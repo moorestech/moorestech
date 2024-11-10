@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server
             //エンティティを取得
             var itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
-            const float defaultY = VanillaBeltConveyorComponent.DefaultBeltConveyorHeight;
+            const float defaultY = CollectBeltConveyorItems.DefaultBeltConveyorHeight;
             Assert.AreEqual(0.5, itemEntity.Position.x); //0,0に設置してベルトコンベアの中心にアイテムがあるため、Z座標は0.5となる 
             Assert.AreEqual(defaultY, itemEntity.Position.y); //2次元座標から3次元座標に変換されているため、Y座標は0となる
             Assert.AreEqual(0.75, itemEntity.Position.z); //4秒のベルトコンベアで残り1秒の時の座標のため、1の3/4の位置にある
@@ -149,7 +149,7 @@ namespace Tests.CombinedTest.Server
             
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventory2Items = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.GetComponent<VanillaBeltConveyorComponent>());
+            var inventory2Items = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt2.GetComponent<VanillaBeltConveyorComponent>());
             
             //InstanceIdが変化していないことを検証
             Assert.AreEqual(ItemInstanceId, inventory2Items[3].ItemInstanceId.AsPrimitive());
@@ -163,9 +163,9 @@ namespace Tests.CombinedTest.Server
             
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
+            var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
             
-            inventoryItems[0] = new BeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId));
             inventoryItems[1] = null;
             inventoryItems[2] = null;
             inventoryItems[3] = null;

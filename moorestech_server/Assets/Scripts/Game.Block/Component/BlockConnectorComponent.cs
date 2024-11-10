@@ -14,8 +14,8 @@ namespace Game.Block.Component
     [DisallowMultiple]
     public class BlockConnectorComponent<TTarget> : IBlockConnectorComponent<TTarget> where TTarget : IBlockComponent
     {
-        public IReadOnlyDictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> ConnectedTargets => _connectedTargets;
-        private readonly Dictionary<TTarget, (IConnectOption selfOption, IConnectOption targetOption)> _connectedTargets = new();
+        public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets => _connectedTargets;
+        private readonly Dictionary<TTarget, ConnectedInfo> _connectedTargets = new();
         
         private readonly List<IDisposable> _blockUpdateEvents = new();
         
@@ -136,7 +136,12 @@ namespace Game.Block.Component
             if (!isConnect) return;
             
             //接続元ブロックと接続先ブロックを接続
-            if (!_connectedTargets.ContainsKey(targetComponent)) _connectedTargets.Add(targetComponent, (selfOption, targetOption));
+            if (!_connectedTargets.ContainsKey(targetComponent))
+            {
+                var block = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
+                var connectedInfo = new ConnectedInfo(selfOption, targetOption, block);
+                _connectedTargets.Add(targetComponent, connectedInfo);
+            }
         }
         
         private void OnRemoveBlock(BlockUpdateProperties updateProperties)

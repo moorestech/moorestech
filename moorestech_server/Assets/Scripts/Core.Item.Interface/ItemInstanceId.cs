@@ -7,7 +7,7 @@ namespace Core.Item.Interface
     public partial struct ItemInstanceId
     {
         //TODO randomを全て一つのシードから生成するようにする
-        private static readonly Random Random = new(1);
+        private static readonly Random Random = new();
         
         public static ItemInstanceId Create()
         {

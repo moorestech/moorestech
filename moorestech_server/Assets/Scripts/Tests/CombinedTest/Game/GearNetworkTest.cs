@@ -3,6 +3,7 @@ using System.Linq;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
@@ -397,8 +398,11 @@ namespace Tests.CombinedTest.Game
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear1Connector.ConnectedTargets).Add(gear2Transform, (new GearConnectOption(true), new GearConnectOption(true)));
-            ((Dictionary<IGearEnergyTransformer, (IConnectOption selfOption, IConnectOption targetOption)>)gear2Connector.ConnectedTargets).Add(gear1Transform, (new GearConnectOption(true), new GearConnectOption(true)));
+            var gear1Info = new ConnectedInfo(new GearConnectOption(true), new GearConnectOption(true), gear1);
+            var gear2Info = new ConnectedInfo(new GearConnectOption(true), new GearConnectOption(true), gear2);
+            
+            ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear1Connector.ConnectedTargets).Add(gear2Transform, gear2Info);
+            ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear2Connector.ConnectedTargets).Add(gear1Transform, gear1Info);
         }
     }
 }

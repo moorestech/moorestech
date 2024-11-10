@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
@@ -30,9 +31,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             chest.SetItem(4, new ItemId(3), 3);
             
             var save = chest.GetSaveState();
+            var states = new Dictionary<string, string>() { { chest.SaveKey, save } };
             Debug.Log(save);
             
-            var chestBlock2 = blockFactory.Load(blockGuid, new BlockInstanceId(1), save, chestPosInfo);
+            var chestBlock2 = blockFactory.Load(blockGuid, new BlockInstanceId(1), states, chestPosInfo);
             var chest2 = chestBlock2.GetComponent<VanillaChestComponent>();
             
             Assert.AreEqual(chest.GetItem(0), chest2.GetItem(0));

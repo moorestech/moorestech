@@ -41,8 +41,8 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item);
             
-            var beltConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            beltConnectInventory.Add(chestComponent, (null, null));
+            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            beltConnectInventory.Add(chestComponent, new ConnectedInfo());
             
             
             while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateWithWait();
@@ -65,8 +65,8 @@ namespace Tests.CombinedTest.Core
             
             chestComponent.SetItem(0, new ItemId(1), 1);
             
-            var chestConnectInventory = (Dictionary<IBlockInventory, (IConnectOption, IConnectOption)>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            chestConnectInventory.Add(beltConveyorComponent, (null, null));
+            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
             GameUpdater.UpdateWithWait();
             
             

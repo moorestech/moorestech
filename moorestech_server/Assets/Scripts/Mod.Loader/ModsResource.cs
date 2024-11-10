@@ -114,7 +114,7 @@ namespace Mod.Loader
             if (Directory.Exists(path)) return path;
             
             //解凍を実行
-            ZipFile.ExtractToDirectory(zipPath, path);
+            ZipFile.ExtractToDirectory(zipPath, path, true);
             return path;
         }
     }

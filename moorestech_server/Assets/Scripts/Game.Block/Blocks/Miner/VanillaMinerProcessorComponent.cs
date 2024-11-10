@@ -79,10 +79,10 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(string saveData, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
             : this(blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
-            var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(saveData);
+            var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
             for (var i = 0; i < saveJsonObject.Items.Count; i++)
             {
                 var itemStack = saveJsonObject.Items[i].ToItemStack();
@@ -99,6 +99,7 @@ namespace Game.Block.Blocks.Miner
             _currentPower = power;
         }
         
+        public string SaveKey { get; } = typeof(VanillaMinerProcessorComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);

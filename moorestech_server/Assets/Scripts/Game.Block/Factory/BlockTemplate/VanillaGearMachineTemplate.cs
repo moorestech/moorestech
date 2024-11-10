@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks;
@@ -28,12 +29,12 @@ namespace Game.Block.Factory.BlockTemplate
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
@@ -52,9 +53,9 @@ namespace Game.Block.Factory.BlockTemplate
             
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
-            var processor = state == null ? 
+            var processor = componentStates == null ? 
                 new VanillaMachineProcessorComponent(input, output, null, requirePower) :
-                BlockTemplateUtil.MachineLoadState(state, input, output, requirePower);
+                BlockTemplateUtil.MachineLoadState(componentStates, input, output, requirePower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);

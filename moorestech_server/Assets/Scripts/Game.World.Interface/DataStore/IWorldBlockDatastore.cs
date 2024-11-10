@@ -15,7 +15,7 @@ namespace Game.World.Interface.DataStore
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block);
-        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, string state, Vector3Int position, BlockDirection direction, out IBlock block);
+        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block);
         public bool RemoveBlock(Vector3Int pos);
         public IBlock GetBlock(Vector3Int pos);
         public IBlock GetBlock(BlockInstanceId blockInstanceId);

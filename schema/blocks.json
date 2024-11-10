@@ -30,7 +30,9 @@
               "ElectricMachine","ElectricPole","ElectricGenerator","ElectricMiner",
 
               "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
-              "ItemShooter"]
+              "ItemShooter",
+              "CraftChainerTransporter", "CraftChainerCrafter", "CraftChainerProviderChest", "CraftChainerMainComputer"
+            ]
           },
 
           "itemGuid": {
@@ -360,6 +362,87 @@
                     "gear": {
                       "$ref": "gear"
                     }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerTransporter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+
+                  "properties": {
+                    "transporterConveyorItemCount": {"type": "integer", "default": 1},
+                    "timeOfItemEnterToExit": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerCrafter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+                    
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerProviderChest"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerMainComputer"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+
                   }
                 }
               }

@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Gear;
-using Game.Block.Blocks.Machine;
-using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;
 using Game.Block.Event;
@@ -28,12 +25,12 @@ namespace Game.Block.Factory.BlockTemplate
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        public IBlock Load(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(state, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock GetBlock(string state, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var minerParam = blockMasterElement.BlockParam as GearMinerBlockParam;
             var miningSettings = minerParam.MineSettings;
@@ -45,9 +42,9 @@ namespace Game.Block.Factory.BlockTemplate
             var requestPower = new ElectricPower(minerParam.RequireTorque * minerParam.RequiredRpm);
             var outputSlot = minerParam.OutputItemSlotCount;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var minerProcessorComponent = state == null ? 
+            var minerProcessorComponent = componentStates == null ? 
                 new VanillaMinerProcessorComponent(blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) : 
-                new VanillaMinerProcessorComponent(state, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
+                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
                 
             var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer, minerParam);
             

@@ -57,6 +57,46 @@
               "type": "object",
               "optional": true,
               "properties": {
+                "inventoryOptions" :{
+                  "type": "array",
+                  "optional": true,
+                  
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      
+                      "inventoryConnectOptionType": {
+                        "type": "string",
+                        "enum": ["CraftChainerCrafter"]
+                      },
+                      
+                      "inventoryConnectOptionParam": {
+                        "oneOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "inventoryConnectOptionType": { "const": "CraftChainerCrafter" }
+                              }
+                            },
+                            "then": {
+                              "type": "object",
+                              "properties": {
+
+                                "connectType": {
+                                  "type": "string",
+                                  "enum": ["Network", "Factory"]
+                                }
+                              }
+                            }
+                            
+                          }
+                        ]
+                      }
+                      
+                    }
+                  }
+                  
+                }
               }
             }
           },

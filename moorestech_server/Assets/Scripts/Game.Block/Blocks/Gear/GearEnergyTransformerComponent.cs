@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.Gear
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.selfOption, (GearConnectOption)target.Value.targetOption));
+                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfOption, (GearConnectOption)target.Value.TargetOption));
             }
             return result;
         }
