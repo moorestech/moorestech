@@ -10,7 +10,41 @@ public static class JsonSchemaParser
     public static Schema ParseSchema(JsonObject root, SchemaTable schemaTable)
     {
         var id = (root["$id"] as JsonString)!.Literal;
-        return new Schema(id, Parse(root, null, schemaTable));
+        var defineInterfaces = ParseDefineInterfaces(root, schemaTable);
+        return new Schema(id, Parse(root, null, schemaTable), defineInterfaces);
+    }
+
+    private static DefineInterface[] ParseDefineInterfaces(JsonObject root, SchemaTable schemaTable)
+    {
+        if (!root.Nodes.ContainsKey("defineInterface")) return [];
+
+        List<DefineInterface> interfaces = new();
+        var defineJsons = root["defineInterface"] as JsonArray;
+
+        foreach (var defineJsonNode in defineJsons!.Nodes)
+        {
+            var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
+
+            interfaces.Add(ParseDefineInterface(defineJson, schemaTable));
+        }
+
+        return interfaces.ToArray();
+    }
+
+    private static DefineInterface ParseDefineInterface(JsonObject node, SchemaTable schemaTable)
+    {
+        var interfaceName = (node["interfaceName"] as JsonString)?.Literal ?? throw new InvalidOperationException();
+
+        var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
+
+        var propertiesNode = node.Nodes["properties"] as JsonObject;
+        foreach (var propertyNode in propertiesNode.Nodes)
+        {
+            var schemaId = Parse(propertyNode.Value as JsonObject, null, schemaTable);
+            properties[propertyNode.Key] = schemaTable.Table[schemaId] as IDefineInterfacePropertySchema;
+        }
+
+        return new DefineInterface(interfaceName, properties);
     }
 
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)

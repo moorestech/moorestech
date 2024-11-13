@@ -30,9 +30,14 @@ public interface ISchema
     SchemaId? Parent { get; }
 }
 
-public record Schema(string SchemaId, SchemaId InnerSchema)
+public interface IDefineInterfacePropertySchema
+{
+}
+
+public record Schema(string SchemaId, SchemaId InnerSchema, DefineInterface[] Interfaces)
 {
     public SchemaId InnerSchema = InnerSchema;
+    public DefineInterface[] Interfaces = Interfaces;
     public string SchemaId = SchemaId;
 }
 
@@ -79,7 +84,7 @@ public record IfThenSchema(JsonObject If, SchemaId Then)
     public SchemaId Then = Then;
 }
 
-public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable, string[]? Enums) : ISchema
+public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable, string[]? Enums) : ISchema, IDefineInterfacePropertySchema
 {
     public string[]? Enums = Enums;
     public JsonString? Format = Format;
@@ -88,28 +93,28 @@ public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? F
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record NumberSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema
+public record NumberSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema, IDefineInterfacePropertySchema
 {
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record IntegerSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema
+public record IntegerSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema, IDefineInterfacePropertySchema
 {
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record BooleanSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema
+public record BooleanSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : ISchema, IDefineInterfacePropertySchema
 {
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, bool IsNullable) : ISchema
+public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, bool IsNullable) : ISchema, IDefineInterfacePropertySchema
 {
     public string Ref = Ref;
     public string? PropertyName { get; } = PropertyName;

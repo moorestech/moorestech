@@ -1,0 +1,54 @@
+{
+  "$id": "interfaceImplementation",
+  "type": "object",
+  "defineInterface": [
+    {
+      "interfaceName": "IBeltConveyorParam",
+      "properties": {
+        "beltConveyorItemCount": {
+          "type": "integer",
+          "default": 1
+        },
+        "timeOfItemEnterToExit": {
+          "type": "number",
+          "default": 1
+        },
+        "slopeType": {
+          "type": "string",
+          "enum": [
+            "Straight",
+            "Up",
+            "Down"
+          ]
+        },
+        "inventoryConnectors": {
+          "$ref": "inventoryConnects"
+        }
+      }
+    }
+  ],
+  "implementationInterface": [
+    "IBeltConveyorParam"
+  ],
+  "properties": {
+    "beltConveyorItemCount": {
+      "type": "integer",
+      "default": 1
+    },
+    "timeOfItemEnterToExit": {
+      "type": "number",
+      "default": 1
+    },
+    "slopeType": {
+      "type": "string",
+      "enum": [
+        "Straight",
+        "Up",
+        "Down"
+      ]
+    },
+    "inventoryConnectors": {
+      "$ref": "inventoryConnects"
+    }
+  }
+}
