@@ -38,7 +38,7 @@ public record Type
                 _ => new StringType()
             },
             ObjectSchema => new CustomType(nameTable.TypeNames[typeId]),
-            OneOfSchema => new CustomType(nameTable.TypeNames[typeId]),
+            SwitchSchema => new CustomType(nameTable.TypeNames[typeId]),
             RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)]),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };

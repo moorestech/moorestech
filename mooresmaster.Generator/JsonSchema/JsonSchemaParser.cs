@@ -105,7 +105,7 @@ public static class JsonSchemaParser
             ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson, schemaId, table)));
         }
 
-        table.Add(schemaId, new OneOfSchema(json.PropertyName, parent, ifThenList.ToArray(), IsNullable(json)));
+        table.Add(schemaId, new SwitchSchema(json.PropertyName, parent, ifThenList.ToArray(), IsNullable(json)));
         return schemaId;
     }
 
