@@ -184,6 +184,36 @@
       "name": "GearMiner",
       "imagePath": "Test1",
       "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "CraftChainerTransporter",
+      "blockParam": {
+        "timeOfItemEnterToExit": 1,
+        "transporterConveyorItemCount": 1
+      },
+      "maxStack": 100,
+      "name": "CraftChainerTransporter",
+      "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerCrafter",
+      "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerProviderChest",
+      "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerMainComputer",
+      "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5"
     }
   ]
 }
