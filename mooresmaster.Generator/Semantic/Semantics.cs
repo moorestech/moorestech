@@ -8,10 +8,11 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public readonly List<(SwitchId interfaceId, ClassId typeId)> InheritList = new(); // (InterfaceId, TypeId)
+    public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
     public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
     public readonly Dictionary<ISchema, ClassId> SchemaTypeSemanticsTable = new();
+    public readonly List<(SwitchId switchId, ClassId typeId)> SwitchInheritList = new(); // (SwitchId, TypeId)
     public readonly Dictionary<SwitchId, SwitchSemantics> SwitchSemanticsTable = new();
     public readonly Dictionary<ClassId, TypeSemantics> TypeSemanticsTable = new();
 
@@ -19,6 +20,13 @@ public class Semantics
     {
         var id = SwitchId.New();
         SwitchSemanticsTable.Add(id, switchSemantics);
+        return id;
+    }
+
+    public InterfaceId AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
+    {
+        var id = InterfaceId.New();
+        InterfaceSemanticsTable.Add(id, interfaceSemantics);
         return id;
     }
 
@@ -46,7 +54,8 @@ public class Semantics
 
     public Semantics Merge(Semantics other)
     {
-        foreach (var inherit in other.InheritList) InheritList.Add(inherit);
+        foreach (var inherit in other.SwitchInheritList) SwitchInheritList.Add(inherit);
+        foreach (var interfaceSemantics in other.InterfaceSemanticsTable) InterfaceSemanticsTable.Add(interfaceSemantics.Key, interfaceSemantics.Value);
         foreach (var interfaceSemantics in other.SwitchSemanticsTable) SwitchSemanticsTable.Add(interfaceSemantics.Key, interfaceSemantics.Value);
         foreach (var rootSemantics in other.RootSemanticsTable) RootSemanticsTable.Add(rootSemantics.Key, rootSemantics.Value);
         foreach (var typeSemantics in other.TypeSemanticsTable) TypeSemanticsTable.Add(typeSemantics.Key, typeSemantics.Value);
@@ -97,6 +106,12 @@ public record SwitchSemantics(SwitchSchema Schema, (JsonObject, ClassId)[] Types
     public (JsonObject, ClassId)[] Types = Types;
 }
 
+public record InterfaceSemantics(SchemaId SchemaId, DefineInterface Interface)
+{
+    public DefineInterface Interface = Interface;
+    public SchemaId SchemaId = SchemaId;
+}
+
 [UnitOf(typeof(Guid))]
 public readonly partial struct RootId;
 
@@ -110,3 +125,6 @@ public readonly partial struct ClassId : ITypeId;
 
 [UnitOf(typeof(Guid))]
 public readonly partial struct SwitchId : ITypeId;
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct InterfaceId : ITypeId;
