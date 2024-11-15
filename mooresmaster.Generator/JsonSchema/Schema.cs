@@ -70,7 +70,7 @@ public static class ArraySchemaExtension
     }
 }
 
-public record OneOfSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray, bool IsNullable) : ISchema
+public record SwitchSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray, bool IsNullable) : ISchema
 {
     public IfThenSchema[] IfThenArray = IfThenArray;
     public string? PropertyName { get; } = PropertyName;

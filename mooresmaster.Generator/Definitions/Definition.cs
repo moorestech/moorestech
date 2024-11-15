@@ -13,7 +13,6 @@ public record Definition
 public record InterfaceDefinition(string FileName, TypeName TypeName)
 {
     public string FileName = FileName;
-
     public TypeName TypeName = TypeName;
 }
 

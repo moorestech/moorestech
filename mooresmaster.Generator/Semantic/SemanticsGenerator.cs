@@ -46,7 +46,7 @@ public static class SemanticsGenerator
                 var (innerSemantics, _) = Generate(objectSchema, table);
                 innerSemantics.AddTo(semantics);
                 break;
-            case OneOfSchema oneOfSchema:
+            case SwitchSchema oneOfSchema:
                 var (oneOfInnerSemantics, _) = Generate(oneOfSchema, table);
                 oneOfInnerSemantics.AddTo(semantics);
                 break;
@@ -63,13 +63,13 @@ public static class SemanticsGenerator
         return semantics;
     }
 
-    private static (Semantics, InterfaceId) Generate(OneOfSchema oneOfSchema, SchemaTable table)
+    private static (Semantics, SwitchId) Generate(SwitchSchema switchSchema, SchemaTable table)
     {
         var semantics = new Semantics();
 
-        var interfaceId = InterfaceId.New();
+        var interfaceId = SwitchId.New();
         List<(JsonObject, ClassId)> thenList = new();
-        foreach (var ifThen in oneOfSchema.IfThenArray)
+        foreach (var ifThen in switchSchema.IfThenArray)
         {
             Generate(table.Table[ifThen.Then], table).AddTo(semantics);
 
@@ -78,7 +78,7 @@ public static class SemanticsGenerator
             thenList.Add((ifThen.If, then));
         }
 
-        semantics.InterfaceSemanticsTable.Add(interfaceId, new InterfaceSemantics(oneOfSchema, thenList.ToArray()));
+        semantics.SwitchSemanticsTable.Add(interfaceId, new SwitchSemantics(switchSchema, thenList.ToArray()));
 
         return (semantics, interfaceId);
     }
@@ -106,7 +106,7 @@ public static class SemanticsGenerator
                         )
                     ));
                     break;
-                case OneOfSchema oneOfSchema:
+                case SwitchSchema oneOfSchema:
                     var (oneOfInnerSemantics, oneOfInnerTypeId) = Generate(oneOfSchema, table);
                     oneOfInnerSemantics.AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(

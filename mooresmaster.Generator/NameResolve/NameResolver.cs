@@ -35,7 +35,7 @@ public static class NameResolver
             {
                 ObjectSchema => typeSemantics.Schema.PropertyName!,
                 ArraySchema arraySchema => arraySchema.GetPropertyName(),
-                OneOfSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
+                SwitchSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
                 _ => null
             };
 
@@ -51,8 +51,8 @@ public static class NameResolver
             typeNames[typeId] = root.Root.SchemaId.ToCamelCase();
         }
 
-        // interfaceの名前を登録
-        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        // switchの名前を登録
+        foreach (var kvp in semantics.SwitchSemanticsTable)
         {
             var id = kvp.Key;
             var interfaceSemantics = kvp.Value!;
@@ -72,7 +72,7 @@ public static class NameResolver
             var schema = typeId switch
             {
                 ClassId classId => semantics.TypeSemanticsTable[classId].Schema,
-                InterfaceId interfaceId => semantics.InterfaceSemanticsTable[interfaceId].Schema,
+                SwitchId interfaceId => semantics.SwitchSemanticsTable[interfaceId].Schema,
                 _ => throw new ArgumentOutOfRangeException(nameof(typeId))
             };
 
@@ -98,7 +98,7 @@ public static class NameResolver
                         parentNames.Add(objectSchema.PropertyName);
                         currentSchema = objectSchema.Parent;
                         break;
-                    case OneOfSchema oneOfSchema:
+                    case SwitchSchema oneOfSchema:
                         parentNames.Add(oneOfSchema.PropertyName);
                         currentSchema = oneOfSchema.Parent;
                         break;
@@ -138,10 +138,10 @@ public static class NameResolver
         );
     }
 
-    private static string GetIfThenName(OneOfSchema oneOfSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
+    private static string GetIfThenName(SwitchSchema switchSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
     {
-        var ifThenSchema = oneOfSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
-        
+        var ifThenSchema = switchSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
+
         var jsonObjectStack = new Stack<JsonObject>();
         jsonObjectStack.Push(ifThenSchema.If);
 
@@ -157,7 +157,7 @@ public static class NameResolver
                         break;
                     case JsonString jsonString:
                         // BeltConveyorBlockParam のような命名にする
-                        return $"{jsonString.Literal}{oneOfSchema.PropertyName?.ToCamelCase()}";
+                        return $"{jsonString.Literal}{switchSchema.PropertyName?.ToCamelCase()}";
                     case JsonArray:
                     case JsonBoolean:
                         break;

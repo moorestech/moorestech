@@ -13,14 +13,12 @@ public static class DefinitionGenerator
     {
         var definitions = new Definition();
 
-        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
-            definitions.InterfaceDefinitions.Add(
-                new InterfaceDefinition(
-                    $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
-                    nameTable.TypeNames[interfaceSemantics.Key]
-                )
+        foreach (var interfaceSemantics in semantics.SwitchSemanticsTable)
+            definitions.InterfaceDefinitions.Add(new InterfaceDefinition(
+                $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
+                nameTable.TypeNames[interfaceSemantics.Key])
             );
-        var inheritTable = new Dictionary<ITypeId, List<InterfaceId>>();
+        var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
         foreach (var inherit in semantics.InheritList)
         {
             if (!inheritTable.TryGetValue(inherit.typeId, out var interfaceList))
@@ -102,7 +100,7 @@ public static class DefinitionGenerator
                 }
 
                 break;
-            case OneOfSchema:
+            case SwitchSchema:
                 propertyTable["value"] = new PropertyDefinition(new CustomType(nameTable.TypeNames[classId]), null, typeSemantics.Schema.IsNullable, null);
                 break;
             case RefSchema refSchema:
