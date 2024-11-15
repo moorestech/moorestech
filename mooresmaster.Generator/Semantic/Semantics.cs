@@ -106,10 +106,10 @@ public record SwitchSemantics(SwitchSchema Schema, (JsonObject, ClassId)[] Types
     public (JsonObject, ClassId)[] Types = Types;
 }
 
-public record InterfaceSemantics(SchemaId SchemaId, DefineInterface Interface)
+public record InterfaceSemantics(Schema Schema, DefineInterface Interface)
 {
     public DefineInterface Interface = Interface;
-    public SchemaId SchemaId = SchemaId;
+    public Schema Schema = Schema;
 }
 
 [UnitOf(typeof(Guid))]

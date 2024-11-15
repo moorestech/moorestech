@@ -61,19 +61,35 @@ public static class NameResolver
             typeNames[id] = $"I{interfaceName}";
         }
 
+        // interfaceの名前を登録
+        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        {
+            var id = kvp.Key;
+            var interfaceSemantics = kvp.Value;
+
+            var interfaceName = interfaceSemantics.Interface.InterfaceName.ToCamelCase();
+            typeNames[id] = interfaceName;
+        }
+
         // namespaceを登録
         var nameSpaces = new Dictionary<ITypeId, string>();
         var schemaToRoot = semantics.RootSemanticsTable.ToDictionary(r => semantics.TypeSemanticsTable[r.Value.ClassId].Schema, r => r.Value);
 
         foreach (var typeId in typeNames.Keys)
         {
+            if (typeId is InterfaceId interfaceId)
+            {
+                nameSpaces[typeId] = $"{semantics.InterfaceSemanticsTable[interfaceId].Schema.SchemaId.ToCamelCase()}Module";
+                continue;
+            }
+
             // child → parent
             var parentNames = new List<string>();
             var schema = typeId switch
             {
                 ClassId classId => semantics.TypeSemanticsTable[classId].Schema,
-                SwitchId interfaceId => semantics.SwitchSemanticsTable[interfaceId].Schema,
-                _ => throw new ArgumentOutOfRangeException(nameof(typeId))
+                SwitchId switchId => semantics.SwitchSemanticsTable[switchId].Schema,
+                _ => throw new ArgumentOutOfRangeException(typeId.GetType().Name)
             };
 
             var parentSchema = schema.Parent;

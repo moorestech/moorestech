@@ -33,7 +33,7 @@ public static class SemanticsGenerator
 
             foreach (var defineInterface in schema.Interfaces)
                 semantics.AddInterfaceSemantics(new InterfaceSemantics(
-                    schema.InnerSchema,
+                    schema,
                     defineInterface
                 ));
         }
