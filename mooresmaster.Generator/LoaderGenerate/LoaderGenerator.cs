@@ -23,7 +23,7 @@ public static class LoaderGenerator
     {
         var inheritTable = new Dictionary<SwitchId, List<ClassId>>();
 
-        foreach (var (interfaceId, classId) in semantics.InheritList)
+        foreach (var (interfaceId, classId) in semantics.SwitchInheritList)
             if (inheritTable.ContainsKey(interfaceId))
                 inheritTable[interfaceId].Add(classId);
             else

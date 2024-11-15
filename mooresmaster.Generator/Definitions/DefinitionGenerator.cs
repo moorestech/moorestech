@@ -19,7 +19,7 @@ public static class DefinitionGenerator
                 nameTable.TypeNames[interfaceSemantics.Key])
             );
         var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
-        foreach (var inherit in semantics.InheritList)
+        foreach (var inherit in semantics.SwitchInheritList)
         {
             if (!inheritTable.TryGetValue(inherit.typeId, out var interfaceList))
             {
@@ -27,7 +27,7 @@ public static class DefinitionGenerator
                 interfaceList = inheritTable[inherit.typeId];
             }
 
-            interfaceList.Add(inherit.interfaceId);
+            interfaceList.Add(inherit.switchId);
         }
 
         var schemaToRootTable = semantics.RootSemanticsTable.ToDictionary(kvp => schemaTable.Table[kvp.Value.Root.InnerSchema], kvp => kvp.Value.Root);

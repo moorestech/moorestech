@@ -13,6 +13,7 @@ public static class SemanticsGenerator
         var semantics = new Semantics();
 
         foreach (var schema in schemaArray)
+        {
             // ファイルに分けられているルートの要素はclassになる
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
             if (table.Table[schema.InnerSchema] is ObjectSchema objectSchema)
@@ -29,6 +30,13 @@ public static class SemanticsGenerator
 
                 Generate(table.Table[schema.InnerSchema], table).AddTo(semantics);
             }
+
+            foreach (var defineInterface in schema.Interfaces)
+                semantics.AddInterfaceSemantics(new InterfaceSemantics(
+                    schema.InnerSchema,
+                    defineInterface
+                ));
+        }
 
         return semantics;
     }
@@ -74,7 +82,7 @@ public static class SemanticsGenerator
             Generate(table.Table[ifThen.Then], table).AddTo(semantics);
 
             var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
-            semantics.InheritList.Add((interfaceId, then));
+            semantics.SwitchInheritList.Add((interfaceId, then));
             thenList.Add((ifThen.If, then));
         }
 
