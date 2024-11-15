@@ -11,12 +11,19 @@ public static class DefinitionGenerator
 {
     public static Definition Generate(Semantics semantics, NameTable nameTable, SchemaTable schemaTable)
     {
-        var definitions = new Definition();
+        var definition = new Definition();
 
-        foreach (var interfaceSemantics in semantics.SwitchSemanticsTable)
-            definitions.InterfaceDefinitions.Add(new InterfaceDefinition(
-                $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
-                nameTable.TypeNames[interfaceSemantics.Key])
+        foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
+            definition.InterfaceDefinitions.Add(new InterfaceDefinition(
+                    $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
+                    nameTable.TypeNames[interfaceSemantics.Key]
+                )
+            );
+
+        foreach (var switchSemantics in semantics.SwitchSemanticsTable)
+            definition.InterfaceDefinitions.Add(new InterfaceDefinition(
+                $"mooresmaster.{nameTable.TypeNames[switchSemantics.Key].Name}.g.cs",
+                nameTable.TypeNames[switchSemantics.Key])
             );
         var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
         foreach (var inherit in semantics.SwitchInheritList)
@@ -58,10 +65,10 @@ public static class DefinitionGenerator
                 fileName = $"mooresmaster.{firstInterface.Name}.g.cs";
             }
 
-            definitions.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable));
+            definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable));
         }
 
-        return definitions;
+        return definition;
     }
 
     private static Dictionary<string, PropertyDefinition> GetProperties(NameTable nameTable, ClassId classId, Semantics semantics, SchemaTable table)
