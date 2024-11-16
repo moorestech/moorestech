@@ -29,12 +29,10 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         public IItemStack InsertItem(IItemStack itemStack)
         {
             var context = CraftChainerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
-            var inventory = context.GetTransportNextBlock(itemStack, _providerChestNodeId, _blockConnectorComponent);
             
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
             // Insert items one by one and return them, so create an item for one item
             var insertItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
-            var insertResult = inventory.InsertItem(insertItem);
             
             var nextInventory = context.GetTransportNextBlock(insertItem, _providerChestNodeId, _blockConnectorComponent);
             if (nextInventory == null)
@@ -43,6 +41,10 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
                 // Return as it is because there is no destination
                 return itemStack;
             }
+            
+            // 次のインベントリにアイテムを挿入
+            // Insert items into the next inventory
+            var insertResult = nextInventory.InsertItem(insertItem);
             
             if (insertResult.Id == ItemMaster.EmptyItemId)
             {
