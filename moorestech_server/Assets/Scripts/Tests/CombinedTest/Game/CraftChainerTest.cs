@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(success);
             
             // 20秒たってもクラフトされない場合は失敗
-            // Fail if not crafted after 20 seconds
+            // Fail if not crafted after 10 seconds
             var now = DateTime.Now;
             
             while (true)
@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Game
                     break;
                 }
                 
-                if (DateTime.Now - now > TimeSpan.FromSeconds(20))
+                if (DateTime.Now - now > TimeSpan.FromSeconds(10))
                 {
                     Assert.Fail("Failed to create item");
                 }
@@ -87,6 +87,15 @@ namespace Tests.CombinedTest.Game
             AddBlock(CraftChainerTransporter, 1, 1, BlockDirection.East);
             AddBlock(CraftChainerTransporter, 2, 1, BlockDirection.East);
             AddBlock(CraftChainerTransporter, 3, 1, BlockDirection.East);
+            AddBlock(CraftChainerTransporter, 3, 0, BlockDirection.South);
+            AddBlock(CraftChainerTransporter, 3, -1, BlockDirection.West);
+            AddBlock(CraftChainerTransporter, 2, -1, BlockDirection.West);
+            AddBlock(CraftChainerTransporter, 1, -1, BlockDirection.West);
+            AddBlock(CraftChainerTransporter, 0, -1, BlockDirection.West);
+            AddBlock(CraftChainerTransporter, -1, -1, BlockDirection.North);
+            AddBlock(CraftChainerTransporter, -1, 0, BlockDirection.North);
+            AddBlock(CraftChainerTransporter, -1, 1, BlockDirection.North);
+            AddBlock(CraftChainerTransporter, -1, 2, BlockDirection.East);
             var providerChest = AddBlock(CraftChainerProviderChest, 0, 2, BlockDirection.North);
             var crafter1 = AddBlock(CraftChainerCrafter, 2, 2, BlockDirection.North);
             var crafter2 = AddBlock(CraftChainerCrafter, 3, 2, BlockDirection.North);
