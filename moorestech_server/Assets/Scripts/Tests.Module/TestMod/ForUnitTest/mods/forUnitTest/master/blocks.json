@@ -2487,7 +2487,7 @@
         }
       },
       "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006",
-      "blockGuid": "54dd06fa-019e-4693-bed3-6ae050b0fb1e",
+      "blockGuid": "00000000-0000-0000-0000-00000000001d",
       "name": "CraftChainerTransporter"
     },
     {
@@ -2570,7 +2570,7 @@
         }
       },
       "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
-      "blockGuid": "7ba208d1-36ad-4d01-9f96-cffd6ed6531b"
+      "blockGuid": "00000000-0000-0000-0000-00000000001e"
     },
     {
       "blockSize": [
@@ -2652,7 +2652,7 @@
         }
       },
       "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "blockGuid": "cd3e4bf2-5474-48b4-8c61-93f508c4f3f1"
+      "blockGuid": "00000000-0000-0000-0000-00000000001f"
     },
     {
       "blockSize": [
@@ -2734,7 +2734,7 @@
         }
       },
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "blockGuid": "84152eb0-f3d7-4b2d-9a42-f8a832523695"
+      "blockGuid": "00000000-0000-0000-0000-000000000020"
     },
     {
       "maxStack": 100,
@@ -2807,7 +2807,7 @@
       },
       "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
       "name": "CraftChainerBeltConveyor",
-      "blockGuid": "e349c583-15b7-4045-8a4f-64f5ec52a944"
+      "blockGuid": "00000000-0000-0000-0000-000000000021"
     },
     {
       "blockSize": [
@@ -2892,7 +2892,7 @@
           ]
         }
       },
-      "blockGuid": "0e93b74e-9539-4e26-a3db-ba8d3d3b6a4a"
+      "blockGuid": "00000000-0000-0000-0000-000000000022"
     }
   ]
 }
