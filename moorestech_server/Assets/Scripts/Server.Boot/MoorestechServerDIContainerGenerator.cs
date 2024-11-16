@@ -10,6 +10,7 @@ using Game.Block.Interface.Event;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftChainer;
+using Game.CraftChainer.CraftNetwork;
 using Game.CraftChainer.Util;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -142,6 +143,7 @@ namespace Server.Boot
             serviceProvider.GetService<CompletedChallengeEventPacket>();
             
             serviceProvider.GetService<GearNetworkDatastore>();
+            serviceProvider.GetService<CraftChainerManager>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();

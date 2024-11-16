@@ -132,6 +132,11 @@ namespace Tests.CombinedTest.Game
             };
             container.SetCrafter2Recipe(inputItem2, outputItem2);
             
+            // assert chain network
+            var computerComputer = mainComputer.ComponentManager.GetComponent<ChainerMainComputerComponent>();
+            Assert.AreEqual(computerComputer.ChainerNetworkContext.CrafterComponents.Count, 2);
+            Assert.AreEqual(computerComputer.ChainerNetworkContext.ProviderChests.Count, 1);
+            
             
             return container;
         }
