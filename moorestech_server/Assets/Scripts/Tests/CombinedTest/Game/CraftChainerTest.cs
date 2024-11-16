@@ -65,7 +65,17 @@ namespace Tests.CombinedTest.Game
             
             while (true)
             {
-                GameUpdater.UpdateWithWait();
+                try
+                {
+                    GameUpdater.UpdateWithWait();
+                }
+                catch (Exception e)
+                {
+                    ExportItemLog();
+                    Debug.LogException(e);
+                    throw;
+                }
+                
                 if (network.OnMainComputerItemExist(ItemAId, 1))
                 {
                     Assert.Pass();

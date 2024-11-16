@@ -30,8 +30,8 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         // 現在クラフト中のアイテム情報
         // Information about the item currently being crafted
+        private readonly Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems = new();
         private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
-        private Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems;
         public ChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector, ICraftChainerNode mainComputerNode)
         {
             _mainComputerConnector = mainComputerConnector;
