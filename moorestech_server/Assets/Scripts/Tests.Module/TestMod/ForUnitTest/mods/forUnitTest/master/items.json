@@ -214,6 +214,21 @@
       "maxStack": 100,
       "name": "CraftChainerMainComputer",
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "CraftChainerBeltConveyor",
+      "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerMachine",
+      "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856"
     }
   ]
 }

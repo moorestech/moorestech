@@ -2432,7 +2432,6 @@
         "timeOfItemEnterToExit": 0.5,
         "transporterConveyorItemCount": 5,
         "slopeType": "Straight",
-
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -2736,6 +2735,164 @@
       },
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
       "blockGuid": "84152eb0-f3d7-4b2d-9a42-f8a832523695"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "requiredPower": 5,
+        "outputItemSlotCount": 1,
+        "inputItemSlotCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
+      "name": "CraftChainerBeltConveyor",
+      "blockGuid": "e349c583-15b7-4045-8a4f-64f5ec52a944"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856",
+      "name": "CraftChainerMachine",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "chestItemSlotCount": 5,
+        "requiredPower": 0,
+        "outputItemSlotCount": 3,
+        "inputItemSlotCount": 3,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "blockGuid": "0e93b74e-9539-4e26-a3db-ba8d3d3b6a4a"
     }
   ]
 }
