@@ -10,8 +10,8 @@ namespace Game.CraftChainer
         {
             var blockFactory = ServerContext.BlockFactory;    
             
-            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerTransporter, new ChainerCrafterTemplate());
-            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerCrafter, new ChainerTransporterTemplate());
+            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerCrafter, new ChainerCrafterTemplate());
+            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerTransporter, new ChainerTransporterTemplate());
             blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerProviderChest, new ChainerProviderChestTemplate());
             blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerMainComputer, new ChainerMainComputerTemplate());
         }
