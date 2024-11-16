@@ -5,6 +5,7 @@ using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.CraftChainer.BlockComponent.ProviderChest;
+using Game.CraftChainer.CraftNetwork;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.CraftChainer.BlockComponent.Template
@@ -26,15 +27,16 @@ namespace Game.CraftChainer.BlockComponent.Template
             var chest = blockMasterElement.BlockParam as CraftChainerProviderChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
             
-            var inserter = new ProviderChestBlockInventoryInserter(inputConnectorComponent);
+            var nodeId = CraftChainerNodeId.Create();
+            var inserter = new ProviderChestBlockInventoryInserter(nodeId, inputConnectorComponent);
             
             var chestComponent = componentStates == null ? 
                 new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inserter) : 
                 new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inserter);
             
             var chainerProviderChestComponent = componentStates == null ?
-                new ChainerProviderChestComponent(inserter, chestComponent) :
-                new ChainerProviderChestComponent(componentStates, inserter, chestComponent);
+                new ChainerProviderChestComponent(nodeId, inserter, chestComponent) :
+                new ChainerProviderChestComponent(componentStates, nodeId, inserter, chestComponent);
             
             var components = new List<IBlockComponent>
             {

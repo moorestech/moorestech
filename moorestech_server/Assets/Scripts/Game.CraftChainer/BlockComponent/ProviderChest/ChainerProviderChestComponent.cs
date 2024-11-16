@@ -9,18 +9,20 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
 {
     public class ChainerProviderChestComponent : ICraftChainerNode
     {
-        public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
+        public CraftChainerNodeId NodeId { get; }
         public IReadOnlyList<IItemStack> Inventory => _vanillaChestComponent.InventoryItems;
         
         private readonly ProviderChestBlockInventoryInserter _providerChestBlockInventoryInserter;
         private readonly VanillaChestComponent _vanillaChestComponent;
         
-        public ChainerProviderChestComponent(ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent)
+        public ChainerProviderChestComponent(CraftChainerNodeId nodeId, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent)
         {
+            NodeId = nodeId;
             _providerChestBlockInventoryInserter = providerChestBlockInventoryInserter;
             _vanillaChestComponent = vanillaChestComponent;
         }
-        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent) : this(providerChestBlockInventoryInserter, vanillaChestComponent)
+        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, CraftChainerNodeId nodeId, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent) : 
+            this(nodeId, providerChestBlockInventoryInserter, vanillaChestComponent)
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerProviderChestComponentJsonObject>(state);

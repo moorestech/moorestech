@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -7,7 +5,6 @@ using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.CraftChainer.CraftNetwork;
-using UniRx;
 
 namespace Game.CraftChainer.BlockComponent.ProviderChest
 {
@@ -23,17 +20,16 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         private readonly CraftChainerNodeId _providerChestNodeId;
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
-        private int _index = -1;
-        
-        public ProviderChestBlockInventoryInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public ProviderChestBlockInventoryInserter(CraftChainerNodeId providerChestNodeId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
+            _providerChestNodeId = providerChestNodeId;
             _blockConnectorComponent = blockConnectorComponent;
         }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
             var context = CraftChainerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
-            var inventory = _blockConnectorComponent.ConnectedTargets.Keys.ToArray()[_index];
+            var inventory = context.GetTransportNextBlock(itemStack, _providerChestNodeId, _blockConnectorComponent);
             
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
             // Insert items one by one and return them, so create an item for one item
@@ -59,6 +55,5 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             // Return as it is because the insertion failed.
             return itemStack;
         }
-        
     }
 }
