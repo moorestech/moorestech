@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.CraftChainer.BlockComponent.Computer;
 using Game.CraftChainer.BlockComponent.Crafter;
@@ -71,7 +72,34 @@ namespace Tests.CombinedTest.Game
                 
                 if (DateTime.Now - now > TimeSpan.FromSeconds(10))
                 {
+                    ExportItemLog();
                     Assert.Fail("Failed to create item");
+                }
+            }
+        }
+        
+        private void ExportItemLog()
+        {
+            foreach (var blocks in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
+            {
+                if (!blocks.Block.ComponentManager.TryGetComponent<IBlockInventory>(out var blockComponent))
+                {
+                    continue;
+                }
+                
+                var slotSize = blockComponent.GetSlotSize();
+                for (int i = 0; i < slotSize; i++)
+                {
+                    var item = blockComponent.GetItem(i);
+                    if (item.Id == ItemMaster.EmptyItemId)
+                    {
+                        continue;
+                    }
+                    
+                    var pos = blocks.BlockPositionInfo.OriginalPos;
+                    var type = blocks.Block.BlockMasterElement.BlockType;
+                    var itemName = MasterHolder.ItemMaster.GetItemMaster(item.Id).Name;
+                    Debug.Log($"Pos: {pos}, Type: {type} Slot: {i}, ItemName: {itemName}, Count: {item.Count}");
                 }
             }
         }
