@@ -2429,7 +2429,7 @@
       ],
       "blockType": "CraftChainerTransporter",
       "blockParam": {
-        "timeOfItemEnterToExit": 0.5,
+        "timeOfItemEnterToExit": 0.1,
         "transporterConveyorItemCount": 5,
         "slopeType": "Straight",
         "inventoryConnectors": {
@@ -2758,8 +2758,8 @@
         "requiredPower": 5,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
-        "timeOfItemEnterToExit": 1,
-        "beltConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 0.1,
+        "beltConveyorItemCount": 5,
         "slopeType": "Straight",
         "inventoryConnectors": {
           "inputConnects": [

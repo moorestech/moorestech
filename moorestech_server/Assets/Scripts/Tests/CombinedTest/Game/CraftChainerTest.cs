@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -17,15 +18,61 @@ namespace Tests.CombinedTest.Game
 {
     public class CraftChainerTest
     {
+        public ItemId ItemAId;
+        public ItemId ItemBId;
+        public ItemId ItemCId;
+        
+        [SetUp]
+        public void SetupCraftChainerTest()
+        {
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            Guid itemAGuid = new("189672cb-6811-4080-bde1-1f9ff0ec63ff");
+            Guid itemBGuid = new("547791fe-bfd8-4748-aafa-c7449391eca5");
+            Guid itemCGuid = new("c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627");
+            ItemAId = MasterHolder.ItemMaster.GetItemId(itemAGuid);
+            ItemBId = MasterHolder.ItemMaster.GetItemId(itemBGuid);
+            ItemCId = MasterHolder.ItemMaster.GetItemId(itemCGuid);
+        }
+        
         [Test]
         public void SimpleChainerTest()
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
+            // ネットワークの作成
+            // Create a network
             var network = CreateNetwork();
             
-            network.SetCrafter1Recipe();
+            // 供給チェストにアイテム設定
+            // Set items in the provider chest
+            var chestItems = new List<IItemStack>()
+            {
+                ServerContext.ItemStackFactory.Create(ItemCId, 5),
+            };
+            network.SetProviderChestItem(chestItems);
             
+            // メインコンピュータにアイテム作成リクエスト
+            // Item creation request to the main computer
+            network.SetRequestMainComputer(ItemAId, 1);
+            
+            // 20秒たってもクラフトされない場合は失敗
+            // Fail if not crafted after 20 seconds
+            var now = DateTime.Now;
+            
+            while (true)
+            {
+                if (network.OnMainComputerItemExist(ItemAId, 1))
+                {
+                    Assert.Pass();
+                    break;
+                }
+                
+                if (DateTime.Now - now > TimeSpan.FromSeconds(20))
+                {
+                    Assert.Fail("Failed to create item");
+                }
+            }
         }
         
         private CraftChainerTestNetworkContainer CreateNetwork()
@@ -33,6 +80,7 @@ namespace Tests.CombinedTest.Game
             //TODO イメージ図
 
             // クラフトチェイナーの部分
+            // Parts of the craft chainer
             var mainComputer = AddBlock(CraftChainerMainComputer, 0, 0, BlockDirection.North);
             AddBlock(CraftChainerTransporter, 1, 0, BlockDirection.East);
             AddBlock(CraftChainerTransporter, 0, 1, BlockDirection.South);
@@ -43,7 +91,8 @@ namespace Tests.CombinedTest.Game
             var crafter1 = AddBlock(CraftChainerCrafter, 2, 2, BlockDirection.North);
             var crafter2 = AddBlock(CraftChainerCrafter, 3, 2, BlockDirection.North);
             
-            // クラフトチェイナーの部分
+            // 工場の部分
+            // Parts of the factory
             AddBlock(CraftChainerBeltConveyor, 2, 3, BlockDirection.North);
             AddBlock(CraftChainerBeltConveyor, 3, 3, BlockDirection.North);
             AddBlock(CraftChainerMachine, 2, 4, BlockDirection.North);
@@ -57,7 +106,33 @@ namespace Tests.CombinedTest.Game
             AddBlock(CraftChainerBeltConveyor, 0, 4, BlockDirection.South);
             AddBlock(CraftChainerBeltConveyor, 0, 3, BlockDirection.South);
             
-            return new CraftChainerTestNetworkContainer(mainComputer, crafter1, crafter2, providerChest);
+            var container = new CraftChainerTestNetworkContainer(mainComputer, crafter1, crafter2, providerChest);
+            
+            // レシピの設定
+            // Recipe setting
+            var inputItem1 = new List<CraftingSolverItem>
+            {
+                new(ItemCId, 2),
+            };
+            var outputItem1 = new List<CraftingSolverItem>
+            {
+                new(ItemBId, 1),
+            };
+            container.SetCrafter1Recipe(inputItem1, outputItem1);
+            
+            var inputItem2 = new List<CraftingSolverItem>
+            {
+                new(ItemBId, 2),
+                new(ItemCId, 1),
+            };
+            var outputItem2 = new List<CraftingSolverItem>
+            {
+                new(ItemAId, 1),
+            };
+            container.SetCrafter2Recipe(inputItem2, outputItem2);
+            
+            
+            return container;
         }
         
         private IBlock AddBlock(BlockId blockId, int x, int z, BlockDirection direction)
@@ -107,6 +182,22 @@ namespace Tests.CombinedTest.Game
             {
                 var mainComputerComponent = MainComputer.ComponentManager.GetComponent<ChainerMainComputerComponent>();
                 mainComputerComponent.StartCreateItem(item, count);
+            }
+            
+            public bool OnMainComputerItemExist(ItemId targetItem, int count)
+            {
+                var chest = MainComputer.ComponentManager.GetComponent<VanillaChestComponent>();
+                
+                var existCount = 0;
+                foreach (var item in chest.InventoryItems)
+                {
+                    if (item.Id == targetItem)
+                    {
+                        existCount += item.Count;
+                    }
+                }
+                
+                return existCount >= count;
             }
         }
     }

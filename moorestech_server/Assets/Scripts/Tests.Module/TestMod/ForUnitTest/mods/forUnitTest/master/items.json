@@ -229,6 +229,21 @@
       "maxStack": 100,
       "name": "CraftChainerMachine",
       "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856"
+    },
+    {
+      "maxStack": 100,
+      "name": "Chainer - A",
+      "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff"
+    },
+    {
+      "maxStack": 100,
+      "name": "Chainer - B",
+      "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5"
+    },
+    {
+      "maxStack": 100,
+      "name": "Chainer - C",
+      "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
     }
   ]
 }
