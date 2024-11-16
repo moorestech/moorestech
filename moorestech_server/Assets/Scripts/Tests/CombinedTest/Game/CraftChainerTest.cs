@@ -1,6 +1,12 @@
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Context;
+using Game.CraftChainer.BlockComponent.Computer;
+using Game.CraftChainer.BlockComponent.Crafter;
+using Game.CraftChainer.CraftChain;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -16,7 +22,9 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
+            var network = CreateNetwork();
             
+            network.SetCrafter1Recipe();
             
         }
         
@@ -72,6 +80,33 @@ namespace Tests.CombinedTest.Game
                 Crafter1 = crafter1;
                 Crafter2 = crafter2;
                 ProviderChest = providerChest;
+            }
+            
+            public void SetCrafter1Recipe(List<CraftingSolverItem> inputItems, List<CraftingSolverItem> outputItem)
+            {
+                SetCrafterRecipe(Crafter1, inputItems, outputItem);
+            }
+            public void SetCrafter2Recipe(List<CraftingSolverItem> inputItems, List<CraftingSolverItem> outputItem)
+            {
+                SetCrafterRecipe(Crafter2, inputItems, outputItem);
+            }
+            
+            private void SetCrafterRecipe(IBlock crafter, List<CraftingSolverItem> inputItems, List<CraftingSolverItem> outputItem)
+            {
+                var crafterComponent = crafter.ComponentManager.GetComponent<ChainerCrafterComponent>();
+                crafterComponent.SetRecipe(inputItems, outputItem);
+            }
+            
+            public void SetProviderChestItem(List<IItemStack> items)
+            {
+                var chestComponent = ProviderChest.ComponentManager.GetComponent<VanillaChestComponent>();
+                chestComponent.InsertItem(items);
+            }
+            
+            public void SetRequestMainComputer(ItemId item, int count)
+            {
+                var mainComputerComponent = MainComputer.ComponentManager.GetComponent<ChainerMainComputerComponent>();
+                mainComputerComponent.StartCreateItem(item, count);
             }
         }
     }
