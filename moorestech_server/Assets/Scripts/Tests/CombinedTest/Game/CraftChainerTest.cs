@@ -82,7 +82,6 @@ namespace Tests.CombinedTest.Game
 
             // クラフトチェイナーの部分
             // Parts of the craft chainer
-            var mainComputer = AddBlock(CraftChainerMainComputer, 0, 0, BlockDirection.North);
             AddBlock(CraftChainerTransporter, 1, 0, BlockDirection.East);
             AddBlock(CraftChainerTransporter, 0, 1, BlockDirection.South);
             AddBlock(CraftChainerTransporter, 1, 1, BlockDirection.East);
@@ -91,6 +90,7 @@ namespace Tests.CombinedTest.Game
             var providerChest = AddBlock(CraftChainerProviderChest, 0, 2, BlockDirection.North);
             var crafter1 = AddBlock(CraftChainerCrafter, 2, 2, BlockDirection.North);
             var crafter2 = AddBlock(CraftChainerCrafter, 3, 2, BlockDirection.North);
+            var mainComputer = AddBlock(CraftChainerMainComputer, 0, 0, BlockDirection.North);
             
             // 工場の部分
             // Parts of the factory

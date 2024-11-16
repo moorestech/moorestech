@@ -143,7 +143,6 @@ namespace Server.Boot
             serviceProvider.GetService<CompletedChallengeEventPacket>();
             
             serviceProvider.GetService<GearNetworkDatastore>();
-            serviceProvider.GetService<CraftChainerManager>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();

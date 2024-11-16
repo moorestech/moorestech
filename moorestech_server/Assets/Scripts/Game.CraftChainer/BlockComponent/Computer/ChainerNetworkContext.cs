@@ -113,8 +113,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     {
                         continue;
                     }
+                    if (!_nodes.TryAdd(node.NodeId, node))
+                    {
+                        continue;
+                    }
                     
-                    _nodes.Add(node.NodeId, node);
                     if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
                     {
                         _providerChests.Add(chest);
