@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -64,6 +65,7 @@ namespace Tests.CombinedTest.Game
             
             while (true)
             {
+                GameUpdater.UpdateWithWait();
                 if (network.OnMainComputerItemExist(ItemAId, 1))
                 {
                     Assert.Pass();
@@ -99,7 +101,7 @@ namespace Tests.CombinedTest.Game
                     var pos = blocks.BlockPositionInfo.OriginalPos;
                     var type = blocks.Block.BlockMasterElement.BlockType;
                     var itemName = MasterHolder.ItemMaster.GetItemMaster(item.Id).Name;
-                    Debug.Log($"Pos: {pos}, Type: {type} Slot: {i}, ItemName: {itemName}, Count: {item.Count}");
+                    Debug.Log($"{pos} Type: {type} Slot: {i}, ItemName: \"{itemName}\" Count: {item.Count}");
                 }
             }
         }
