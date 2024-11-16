@@ -54,7 +54,8 @@ namespace Tests.CombinedTest.Game
             
             // メインコンピュータにアイテム作成リクエスト
             // Item creation request to the main computer
-            network.SetRequestMainComputer(ItemAId, 1);
+            var success = network.SetRequestMainComputer(ItemAId, 1);
+            Assert.IsTrue(success);
             
             // 20秒たってもクラフトされない場合は失敗
             // Fail if not crafted after 20 seconds
@@ -178,10 +179,10 @@ namespace Tests.CombinedTest.Game
                 chestComponent.InsertItem(items);
             }
             
-            public void SetRequestMainComputer(ItemId item, int count)
+            public bool SetRequestMainComputer(ItemId item, int count)
             {
                 var mainComputerComponent = MainComputer.ComponentManager.GetComponent<ChainerMainComputerComponent>();
-                mainComputerComponent.StartCreateItem(item, count);
+                return mainComputerComponent.StartCreateItem(item, count);
             }
             
             public bool OnMainComputerItemExist(ItemId targetItem, int count)
