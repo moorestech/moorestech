@@ -7,6 +7,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.CraftChainer.BlockComponent;
 using Game.CraftChainer.BlockComponent.Computer;
 using Game.CraftChainer.BlockComponent.Crafter;
 using Game.CraftChainer.CraftChain;
@@ -85,6 +86,7 @@ namespace Tests.CombinedTest.Game
                 if (DateTime.Now - now > TimeSpan.FromSeconds(10))
                 {
                     ExportItemLog();
+                    var block = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(2, 0, 1));
                     Assert.Fail("Failed to create item");
                 }
             }
@@ -126,7 +128,8 @@ namespace Tests.CombinedTest.Game
             AddBlock(CraftChainerTransporter, 0, 1, BlockDirection.South);
             AddBlock(CraftChainerTransporter, 1, 1, BlockDirection.East);
             AddBlock(CraftChainerTransporter, 2, 1, BlockDirection.East);
-            AddBlock(CraftChainerTransporter, 3, 1, BlockDirection.East);
+            var component = AddBlock(CraftChainerTransporter, 3, 1, BlockDirection.East).ComponentManager.GetComponent<ChainerTransporterComponent>();
+            ChainerTransporterInserter.Transporter_Test_NodeId = component.NodeId;
             AddBlock(CraftChainerTransporter, 3, 0, BlockDirection.South);
             AddBlock(CraftChainerTransporter, 3, -1, BlockDirection.West);
             AddBlock(CraftChainerTransporter, 2, -1, BlockDirection.West);

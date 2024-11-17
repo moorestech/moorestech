@@ -155,7 +155,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return null;
             }
             
-            return result[0];
+            return result[1];
             
             #region Internal
             

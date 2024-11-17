@@ -4,6 +4,7 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.CraftChainer.CraftNetwork;
+using UnityEngine;
 
 namespace Game.CraftChainer.BlockComponent
 {
@@ -13,6 +14,8 @@ namespace Game.CraftChainer.BlockComponent
     /// </summary>
     public class ChainerTransporterInserter : IBlockInventoryInserter
     {
+        public static CraftChainerNodeId Transporter_Test_NodeId;
+        
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly CraftChainerNodeId _startChainerNodeId;
         
@@ -24,6 +27,11 @@ namespace Game.CraftChainer.BlockComponent
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
+            if (Transporter_Test_NodeId == _startChainerNodeId)
+            {
+                Debug.Log(itemStack);
+            }
+            
             var context = CraftChainerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
             if (context == null)
             {
