@@ -34,7 +34,7 @@ namespace Game.CraftChainer.BlockComponent.Template
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(transporterParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new ChainerTransporterConnector(connectorComponent, transporterComponent.NodeId);
+            var beltConveyorConnector = new ChainerTransporterInserter(connectorComponent, transporterComponent.NodeId);
             var itemCount = transporterParam.TransporterConveyorItemCount;
             var time = transporterParam.TimeOfItemEnterToExit;
             
