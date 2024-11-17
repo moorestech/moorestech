@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -17,24 +18,23 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
-        private readonly IBlockFactory _blockFactory;
+        //メインのデータストア
+        public IReadOnlyDictionary<BlockInstanceId, WorldBlockData> BlockMasterDictionary => _blockMasterDictionary;
         private readonly Dictionary<BlockInstanceId, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
+        //イベント
+        public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
+        private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
+        
+        private readonly Dictionary<IBlockComponent, IBlock> _blockComponentDictionary = new(); //コンポーネントとブロックの紐づけ
         
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, BlockInstanceId> _coordinateDictionary = new();
-        
-        private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
+        private readonly IBlockFactory _blockFactory;
         
         public WorldBlockDatastore(IBlockFactory blockFactory)
         {
             _blockFactory = blockFactory;
         }
-        
-        //メインのデータストア
-        public IReadOnlyDictionary<BlockInstanceId, WorldBlockData> BlockMasterDictionary => _blockMasterDictionary;
-        
-        //イベント
-        public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         
         public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block)
         {
@@ -63,6 +63,11 @@ namespace Game.World.DataStore
         public IBlock GetBlock(Vector3Int pos)
         {
             return GetBlockData(pos)?.Block;
+        }
+        
+        public IBlock GetBlock(IBlockComponent component)
+        {
+            return _blockComponentDictionary.GetValueOrDefault(component);
         }
         
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
@@ -114,6 +119,11 @@ namespace Game.World.DataStore
                 ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
                 
                 block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
+                
+                foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
+                {
+                    _blockComponentDictionary.Add(component, block);
+                }
                 
                 return true;
             }

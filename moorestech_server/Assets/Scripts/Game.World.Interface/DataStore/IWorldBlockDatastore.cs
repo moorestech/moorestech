@@ -17,11 +17,15 @@ namespace Game.World.Interface.DataStore
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block);
         public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block);
         public bool RemoveBlock(Vector3Int pos);
+        
         public IBlock GetBlock(Vector3Int pos);
         public IBlock GetBlock(BlockInstanceId blockInstanceId);
+        public IBlock GetBlock(IBlockComponent component);
+        
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);
         public Vector3Int GetBlockPosition(BlockInstanceId blockInstanceId);
         public BlockDirection GetBlockDirection(Vector3Int pos);
+        
         public List<BlockJsonObject> GetSaveJsonObject();
         public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList);
     }

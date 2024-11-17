@@ -136,6 +136,8 @@ namespace Game.CraftChainer.BlockComponent.Computer
             #endregion
         }
         
+        // DEBUG 消す
+        public static List<(CraftChainerNodeId, IBlockInventory)> Result;
         
         /// <summary>
         /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
@@ -155,7 +157,8 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return null;
             }
             
-            return result[1];
+            Result = result;
+            return result[0].Item2;
             
             #region Internal
             
@@ -194,7 +197,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return CraftChainerNodeId.Invalid;
             }
             
-            List<IBlockInventory> ExecuteBfs(CraftChainerNodeId targetNode)
+            List<(CraftChainerNodeId,IBlockInventory)> ExecuteBfs(CraftChainerNodeId targetNode)
             {
                 var idToConnector = new Dictionary<CraftChainerNodeId, (BlockConnectorComponent<IBlockInventory> connector, IBlockInventory blockInventory)>();
                 var searchQueue = new Queue<CraftChainerNodeId>();
@@ -250,11 +253,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 
                 // 経路をたどっていく
                 // Follow the path
-                var result = new List<IBlockInventory>();
+                var result = new List<(CraftChainerNodeId,IBlockInventory)>();
                 var current = targetNode;
                 while (current != startChainerNodeId)
                 {
-                    result.Add(idToConnector[current].blockInventory);
+                    result.Add((current,idToConnector[current].blockInventory));
                     current = reverseSearch[current];
                 }
                 

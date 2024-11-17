@@ -26,7 +26,7 @@ namespace Game.CraftChainer.BlockComponent.Template
         {
             var param = blockMasterElement.BlockParam as CraftChainerCrafterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            var inserter = new ChainerCrafterInserter(inputConnectorComponent);
             
             var chestComponent = componentStates == null ? 
                 new VanillaChestComponent(blockInstanceId, param.ItemSlotCount, inserter) : 

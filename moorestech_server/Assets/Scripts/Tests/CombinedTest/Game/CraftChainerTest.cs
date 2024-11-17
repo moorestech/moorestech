@@ -63,6 +63,7 @@ namespace Tests.CombinedTest.Game
             // 20秒たってもクラフトされない場合は失敗
             // Fail if not crafted after 10 seconds
             var now = DateTime.Now;
+            TestDebug.TestStartTime = now;
             
             while (true)
             {
@@ -113,14 +114,16 @@ namespace Tests.CombinedTest.Game
                     var pos = blocks.BlockPositionInfo.OriginalPos;
                     var type = blocks.Block.BlockMasterElement.BlockType;
                     var itemName = MasterHolder.ItemMaster.GetItemMaster(item.Id).Name;
-                    Debug.Log($"{pos} Type: {type} Slot: {i}, ItemName: \"{itemName}\" Count: {item.Count}");
+                    Debug.Log($"Type:{type} {pos} Slot:{i}, ItemName: \"{itemName}\" Count: {item.Count}");
                 }
             }
         }
         
         private CraftChainerTestNetworkContainer CreateNetwork()
         {
-            //TODO イメージ図
+            //イメージ図
+            // Image diagram
+            // https://miro.com/app/board/uXjVOPclBmk=/?moveToWidget=3458764607209547942&cot=10
 
             // クラフトチェイナーの部分
             // Parts of the craft chainer
@@ -128,9 +131,11 @@ namespace Tests.CombinedTest.Game
             AddBlock(CraftChainerTransporter, 0, 1, BlockDirection.South);
             AddBlock(CraftChainerTransporter, 1, 1, BlockDirection.East);
             AddBlock(CraftChainerTransporter, 2, 1, BlockDirection.East);
-            var component = AddBlock(CraftChainerTransporter, 3, 1, BlockDirection.East).ComponentManager.GetComponent<ChainerTransporterComponent>();
-            ChainerTransporterInserter.Transporter_Test_NodeId = component.NodeId;
-            AddBlock(CraftChainerTransporter, 3, 0, BlockDirection.South);
+            AddBlock(CraftChainerTransporter, 3, 1, BlockDirection.East);
+            AddBlock(CraftChainerTransporter, 3, 1, BlockDirection.East);
+            AddBlock(CraftChainerTransporter, 4, 1, BlockDirection.East);
+            AddBlock(CraftChainerTransporter, 4, 0, BlockDirection.South);
+            AddBlock(CraftChainerTransporter, 4, -1, BlockDirection.West);
             AddBlock(CraftChainerTransporter, 3, -1, BlockDirection.West);
             AddBlock(CraftChainerTransporter, 2, -1, BlockDirection.West);
             AddBlock(CraftChainerTransporter, 1, -1, BlockDirection.West);
@@ -141,20 +146,21 @@ namespace Tests.CombinedTest.Game
             AddBlock(CraftChainerTransporter, -1, 2, BlockDirection.East);
             var providerChest = AddBlock(CraftChainerProviderChest, 0, 2, BlockDirection.North);
             var crafter1 = AddBlock(CraftChainerCrafter, 2, 2, BlockDirection.North);
-            var crafter2 = AddBlock(CraftChainerCrafter, 3, 2, BlockDirection.North);
+            var crafter2 = AddBlock(CraftChainerCrafter, 4, 2, BlockDirection.North);
             var mainComputer = AddBlock(CraftChainerMainComputer, 0, 0, BlockDirection.North);
             
             // 工場の部分
             // Parts of the factory
             AddBlock(CraftChainerBeltConveyor, 2, 3, BlockDirection.North);
-            AddBlock(CraftChainerBeltConveyor, 3, 3, BlockDirection.North);
+            AddBlock(CraftChainerBeltConveyor, 4, 3, BlockDirection.North);
             AddBlock(CraftChainerMachine, 2, 4, BlockDirection.North);
-            AddBlock(CraftChainerMachine, 3, 4, BlockDirection.North);
+            AddBlock(CraftChainerMachine, 4, 4, BlockDirection.North);
             
             AddBlock(CraftChainerBeltConveyor, 0, 5, BlockDirection.South);
             AddBlock(CraftChainerBeltConveyor, 1, 5, BlockDirection.West);
             AddBlock(CraftChainerBeltConveyor, 2, 5, BlockDirection.West);
             AddBlock(CraftChainerBeltConveyor, 3, 5, BlockDirection.West);
+            AddBlock(CraftChainerBeltConveyor, 4, 5, BlockDirection.West);
             
             AddBlock(CraftChainerBeltConveyor, 0, 4, BlockDirection.South);
             AddBlock(CraftChainerBeltConveyor, 0, 3, BlockDirection.South);
