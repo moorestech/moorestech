@@ -210,8 +210,8 @@ namespace Tests.CombinedTest.Game
             AddBlock(CraftChainerTransporter, -1, 1, BlockDirection.North);
             AddBlock(CraftChainerTransporter, -1, 2, BlockDirection.East);
             var providerChest = AddBlock(CraftChainerProviderChest, 0, 2, BlockDirection.North);
-            var crafter1 = AddBlock(CraftChainerCrafter, 2, 2, BlockDirection.North);
-            var crafter2 = AddBlock(CraftChainerCrafter, 4, 2, BlockDirection.North);
+            var crafter1 = AddBlock(CraftChainerCrafter, 2, 2, BlockDirection.North); // C -> B
+            var crafter2 = AddBlock(CraftChainerCrafter, 4, 2, BlockDirection.North); // B + C -> A
             var mainComputer = AddBlock(CraftChainerMainComputer, 0, 0, BlockDirection.North);
             
             // 工場の部分
@@ -227,8 +227,8 @@ namespace Tests.CombinedTest.Game
             
             AddBlock(CraftChainerBeltConveyor, 0, 4, BlockDirection.South);
             AddBlock(CraftChainerBeltConveyor, 0, 3, BlockDirection.South);
-            AddBlock(CraftChainerMachine, 2, 4, BlockDirection.North);
-            AddBlock(CraftChainerMachine, 4, 4, BlockDirection.North);
+            AddBlock(CraftChainerMachine1, 2, 4, BlockDirection.North); // C -> B
+            AddBlock(CraftChainerMachine2, 4, 4, BlockDirection.North); // B + C -> A
             
             var container = new CraftChainerTestNetworkContainer(mainComputer, crafter1, crafter2, providerChest);
             

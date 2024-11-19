@@ -227,7 +227,7 @@
     },
     {
       "maxStack": 100,
-      "name": "CraftChainerMachine",
+      "name": "CraftChainerMachine1",
       "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856"
     },
     {
@@ -244,6 +244,16 @@
       "maxStack": 100,
       "name": "Chainer - C",
       "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "summary": "New Challenge summary",
+      "title": "New Challenge",
+      "time": 1,
+      "maxStack": 100,
+      "name": "CraftChainerMachine2",
+      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648"
     }
   ]
 }
