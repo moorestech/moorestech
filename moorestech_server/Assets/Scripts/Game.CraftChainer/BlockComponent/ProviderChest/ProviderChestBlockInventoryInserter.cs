@@ -37,39 +37,12 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             // Insert items one by one and return them, so create an item for one item
             var oneItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
             
-            var nextInventory = context.GetTransportNextBlock(false, oneItem, _providerChestNodeId, _blockConnectorComponent);
-            if (nextInventory == null)
-            {
-                // 移動先がないのでそのまま返す
-                // Return as it is because there is no destination
-                return itemStack;
-            }
-            if (!nextInventory.InsertionCheck(new List<IItemStack> { oneItem }))
-            {
-                // 挿入できないのでそのまま返す
-                // Return as it is because it cannot be inserted
-                return itemStack;
-            }
+            var insertResult = context.InsertNodeNetworkNextBlock(oneItem, _providerChestNodeId, _blockConnectorComponent);
             
-            nextInventory = context.GetTransportNextBlock(true, oneItem, _providerChestNodeId, _blockConnectorComponent);
-            
-            
-            // 次のインベントリにアイテムを挿入
-            // Insert items into the next inventory
-            var insertResult = nextInventory.InsertItem(oneItem);
-            
-            //DEBUG 消す Debug.Log(oneItem + "->" + insertResult);
-            
-            if (insertResult.Id == ItemMaster.EmptyItemId)
-            {
-                // アイテムが挿入できれば、元のアイテムから1個分を減らしたアイテムを返す
-                // If the item can be inserted, return the item with one less item from the original item
-                return itemStack.SubItem(1);
-            }
-            
-            // 挿入失敗なのでそのまま返す。
-            // Return as it is because the insertion failed.
-            return itemStack;
+            // アイテムが消失しないように、1個ひいたアイテムと、挿入結果のアイテムを合成して返す
+            // To prevent the item from disappearing, return a composite of the item with one item subtracted and the inserted item
+            var subOneItem = itemStack.SubItem(1);
+            return insertResult.AddItem(subOneItem).ProcessResultItemStack;
         }
     }
 }
