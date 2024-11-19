@@ -179,6 +179,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
         /// modifyCraftCacheのフラグすごい良くない感じはしているのだが、メソッドを分けるよりかはこれが一番コンテキストが浅いので、一旦これで、、
         /// TODO もしかしたらこの中でinsertを行って、その結果だけ返すほうがいい説あるかもしれない？要検討
+        /// ↑というかそうすべきでは
         /// Get the next block to insert from the connector connected to the item ID
         /// </summary>
         public IBlockInventory GetTransportNextBlock(bool modifyCraftCacheData, IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
@@ -225,6 +226,8 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     // Modify the data
                     if (modifyCraftCacheData)
                     {
+                        ExportCraftChainRecipeQueLog();
+                        
                         var reminder = nodeReminder.Value;
                         reminder--;
                         if (reminder <= 0)
@@ -236,13 +239,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                             craftQue[keyNodeId] = reminder;
                         }
                         
-                        
                         // 計算したアイテムの移動先を保持
                         // Keep the destination of the calculated item
                         _requestedMoveItems[item.ItemInstanceId] = keyNodeId;
                     }
                     
-                    ExportCraftChainRecipeQueLog();
                     return keyNodeId;
                 }
                 

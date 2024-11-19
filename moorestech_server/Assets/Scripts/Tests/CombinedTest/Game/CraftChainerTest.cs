@@ -41,6 +41,25 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void SimpleChainerTest()
         {
+            var chestItems = new List<(ItemId id,int count)>
+            {
+                (ItemCId, 5),
+            };
+            ExecuteChainerTest(chestItems, ItemAId, 1);
+        }
+        
+        [Test]
+        public void DoubleItemChainerTest()
+        {
+            var chestItems = new List<(ItemId id,int count)>
+            {
+                (ItemCId, 10),
+            };
+            ExecuteChainerTest(chestItems, ItemAId, 2);
+        }
+        
+        public void ExecuteChainerTest(List<(ItemId id,int count)> materials, ItemId targetId, int targetCount)
+        {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             // ネットワークの作成
@@ -49,15 +68,17 @@ namespace Tests.CombinedTest.Game
             
             // 供給チェストにアイテム設定
             // Set items in the provider chest
-            var chestItems = new List<IItemStack>()
+            var materialItemStacks = new List<IItemStack>();
+            foreach (var (id, count) in materials)
             {
-                ServerContext.ItemStackFactory.Create(ItemCId, 5),
-            };
-            network.SetProviderChestItem(chestItems);
+                var item = ServerContext.ItemStackFactory.Create(id, count);
+                materialItemStacks.Add(item);
+            }
+            network.SetProviderChestItem(materialItemStacks);
             
             // メインコンピュータにアイテム作成リクエスト
             // Item creation request to the main computer
-            var success = network.SetRequestMainComputer(ItemAId, 1);
+            var success = network.SetRequestMainComputer(targetId, targetCount);
             Assert.IsTrue(success);
             
             // 10秒たってもクラフトされない場合は失敗
@@ -78,7 +99,7 @@ namespace Tests.CombinedTest.Game
                     throw;
                 }
                 
-                if (network.OnMainComputerItemExist(ItemAId, 1))
+                if (network.OnMainComputerItemExist(targetId, targetCount))
                 {
                     Debug.Log("Success Time:" + (DateTime.Now - now).TotalSeconds);
                     Assert.Pass();
