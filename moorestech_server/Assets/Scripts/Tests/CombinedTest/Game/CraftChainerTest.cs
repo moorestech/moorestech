@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Game
             var success = network.SetRequestMainComputer(ItemAId, 1);
             Assert.IsTrue(success);
             
-            // 20秒たってもクラフトされない場合は失敗
+            // 10秒たってもクラフトされない場合は失敗
             // Fail if not crafted after 10 seconds
             var now = DateTime.Now;
             TestDebug.TestStartTime = now;
@@ -80,6 +80,7 @@ namespace Tests.CombinedTest.Game
                 
                 if (network.OnMainComputerItemExist(ItemAId, 1))
                 {
+                    Debug.Log("Success Time:" + (DateTime.Now - now).TotalSeconds);
                     Assert.Pass();
                     break;
                 }
