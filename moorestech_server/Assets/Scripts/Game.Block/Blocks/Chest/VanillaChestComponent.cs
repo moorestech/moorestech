@@ -4,8 +4,6 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
-using Game.Block.Blocks.Service;
-using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -13,7 +11,6 @@ using Game.Block.Interface.Event;
 using Game.Context;
 using Game.CraftChainer.BlockComponent;
 using Newtonsoft.Json;
-using UnityEngine;
 using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.Chest
@@ -87,7 +84,7 @@ namespace Game.Block.Blocks.Chest
             var seconds = time.TotalSeconds;
             var pos = ServerContext.WorldBlockDatastore.GetBlock(this).BlockPositionInfo.OriginalPos;
             // DEBUG 消す
-            Debug.Log($"chest {itemStack} pos {pos} sec:{seconds:F2}");
+            //Debug.Log($"chest {itemStack} pos {pos} sec:{seconds:F2}");
 
             return _itemDataStoreService.InsertItem(itemStack); }
         public int GetSlotSize() { CheckDestroy(this); return _itemDataStoreService.GetSlotSize(); }

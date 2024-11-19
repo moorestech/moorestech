@@ -59,7 +59,7 @@ namespace Game.CraftChainer.BlockComponent
             var toPos = toBlock.BlockPositionInfo.OriginalPos;
             var toName = toBlock.BlockMasterElement.Name;
             
-            Debug.Log($"insert {itemStack}  {fromName} {fromPos} -> {toName} {toPos} Current: {_startChainerNodeId} route: {route} sec:{seconds:F2}");
+            //Debug.Log($"insert {itemStack}  {fromName} {fromPos} -> {toName} {toPos} Current: {_startChainerNodeId} route: {route} sec:{seconds:F2}");
             
             return target.InsertItem(itemStack);
         }

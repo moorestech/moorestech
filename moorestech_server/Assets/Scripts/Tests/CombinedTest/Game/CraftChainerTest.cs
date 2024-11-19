@@ -153,8 +153,6 @@ namespace Tests.CombinedTest.Game
             // Parts of the factory
             AddBlock(CraftChainerBeltConveyor, 2, 3, BlockDirection.North);
             AddBlock(CraftChainerBeltConveyor, 4, 3, BlockDirection.North);
-            AddBlock(CraftChainerMachine, 2, 4, BlockDirection.North);
-            AddBlock(CraftChainerMachine, 4, 4, BlockDirection.North);
             
             AddBlock(CraftChainerBeltConveyor, 0, 5, BlockDirection.South);
             AddBlock(CraftChainerBeltConveyor, 1, 5, BlockDirection.West);
@@ -164,6 +162,8 @@ namespace Tests.CombinedTest.Game
             
             AddBlock(CraftChainerBeltConveyor, 0, 4, BlockDirection.South);
             AddBlock(CraftChainerBeltConveyor, 0, 3, BlockDirection.South);
+            AddBlock(CraftChainerMachine, 2, 4, BlockDirection.North);
+            AddBlock(CraftChainerMachine, 4, 4, BlockDirection.North);
             
             var container = new CraftChainerTestNetworkContainer(mainComputer, crafter1, crafter2, providerChest);
             

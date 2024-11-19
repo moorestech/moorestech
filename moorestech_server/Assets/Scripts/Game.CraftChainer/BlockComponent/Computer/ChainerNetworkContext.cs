@@ -31,7 +31,10 @@ namespace Game.CraftChainer.BlockComponent.Computer
         // 現在クラフト中のアイテム情報
         // Information about the item currently being crafted
         private readonly Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems = new();
-        private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
+        // アイテムごとにどのノードに何個アイテムを入れなければならないか
+        // How many items of each item type must be placed in each node?
+        private Dictionary<ItemId,Dictionary<CraftChainerNodeId,int>> _craftChainRecipeQue;
+        
         public ChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector, ICraftChainerNode mainComputerNode)
         {
             _mainComputerConnector = mainComputerConnector;
@@ -48,6 +51,13 @@ namespace Game.CraftChainer.BlockComponent.Computer
             var craftRecipeIdMap = GetCraftRecipeIdMap();
             
             _craftChainRecipeQue = CreateRecipeQue(solvedResults, craftRecipeIdMap);
+            foreach (var ques in _craftChainRecipeQue)
+            {
+                foreach (var que in ques.Value)
+                {
+                    Debug.Log($"Set Id {ques.Key} Count {que.Value} TargetId {que.Key}");
+                }
+            }
             
             #region Internal
             
@@ -61,22 +71,29 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return map;
             }
             
-            Dictionary<ItemId, (CraftChainerNodeId targetNodeId, int reminderCount)> CreateRecipeQue(Dictionary<CraftingSolverRecipeId, int> solved, Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent> recipes)
+            Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>> CreateRecipeQue(Dictionary<CraftingSolverRecipeId, int> solved, Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent> recipes)
             {
-                var result = new Dictionary<ItemId, (CraftChainerNodeId targetNodeId, int reminderCount)>();
+                var result = new Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>>();
                 foreach (var solvedResult in solved)
                 {
                     var crafter = recipes[solvedResult.Key];
                     var recipe = crafter.CraftingSolverRecipe;
                     foreach (var inputItems in recipe.Inputs)
                     {
+                        var quantity = inputItems.Quantity * solvedResult.Value;
                         if (result.TryGetValue(inputItems.ItemId, out var que))
                         {
-                            que.reminderCount += inputItems.Quantity;
+                            if (!que.TryAdd(crafter.NodeId,quantity))
+                            {
+                                que[crafter.NodeId] += quantity;
+                            }
                         }
                         else
                         {
-                            result[inputItems.ItemId] = (crafter.NodeId, inputItems.Quantity);
+                            result[inputItems.ItemId] = new Dictionary<CraftChainerNodeId, int>()
+                            {
+                                { crafter.NodeId, quantity }
+                            };
                         }
                     }
                 }
@@ -137,6 +154,22 @@ namespace Game.CraftChainer.BlockComponent.Computer
         }
         
         // DEBUG 消す
+        private void ExportCraftChainRecipeQueLog()
+        {
+            var str = "";
+            
+            foreach (var ques in _craftChainRecipeQue)
+            {
+                foreach (var que in ques.Value)
+                {
+                    str += $",　Id {ques.Key} Count {que.Value} TargetId {que.Key}";
+                }
+            }
+            
+            Debug.Log(str);
+        }
+        
+        // DEBUG 消す
         public static List<(CraftChainerNodeId, IBlockInventory)> Result;
         
         /// <summary>
@@ -173,23 +206,32 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 
                 // 現在のアイテムがクラフト対象の材料だったら
                 // If the current item is a crafting target material
-                if (_craftChainRecipeQue.TryGetValue(item.Id, out var craftQue))
+                if (!_craftChainRecipeQue.TryGetValue(item.Id, out var craftQue))
                 {
-                    var newCraftQue = craftQue;
-                    newCraftQue.reminderCount--;
-                    if (newCraftQue.reminderCount <= 0)
+                    return CraftChainerNodeId.Invalid;
+                }
+                
+                
+                foreach (var nodeReminder in craftQue)
+                {
+                    var keyNodeId = nodeReminder.Key;
+                    var reminder = nodeReminder.Value;
+                    reminder--;
+                    if (reminder <= 0)
                     {
-                        _craftChainRecipeQue.Remove(item.Id);
+                        craftQue.Remove(keyNodeId);
                     }
                     else
                     {
-                        _craftChainRecipeQue[item.Id] = newCraftQue;
+                        craftQue[keyNodeId] = reminder;
                     }
+                    
                     
                     // 計算したアイテムの移動先を保持
                     // Keep the destination of the calculated item
-                    _requestedMoveItems[item.ItemInstanceId] = newCraftQue.targetNodeId;
-                    return newCraftQue.targetNodeId;
+                    _requestedMoveItems[item.ItemInstanceId] = keyNodeId;
+                    ExportCraftChainRecipeQueLog();
+                    return keyNodeId;
                 }
                 
                 // 移動先が特に指定されていない場合はIncalidを返す
@@ -278,5 +320,15 @@ namespace Game.CraftChainer.BlockComponent.Computer
             #endregion
         }
         
+        class RecipeQueInfo
+        {
+            public CraftChainerNodeId TargetNodeId { get; }
+            public int ReminderCount { get; set; }
+            
+            public RecipeQueInfo(CraftChainerNodeId targetNodeId)
+            {
+                TargetNodeId = targetNodeId;
+            }
+        }
     }
 }

@@ -5,6 +5,8 @@ using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.CraftChainer.CraftNetwork;
+using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 
 namespace Game.CraftChainer.BlockComponent.ProviderChest
 {
@@ -32,9 +34,9 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
             // Insert items one by one and return them, so create an item for one item
-            var insertItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
+            var oneItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
             
-            var nextInventory = context.GetTransportNextBlock(insertItem, _providerChestNodeId, _blockConnectorComponent);
+            var nextInventory = context.GetTransportNextBlock(oneItem, _providerChestNodeId, _blockConnectorComponent);
             if (nextInventory == null)
             {
                 // 移動先がないのでそのまま返す
@@ -44,7 +46,9 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             
             // 次のインベントリにアイテムを挿入
             // Insert items into the next inventory
-            var insertResult = nextInventory.InsertItem(insertItem);
+            var insertResult = nextInventory.InsertItem(oneItem);
+            
+            //Debug.Log(oneItem + "->" + insertResult);
             
             if (insertResult.Id == ItemMaster.EmptyItemId)
             {
