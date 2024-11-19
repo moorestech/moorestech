@@ -47,7 +47,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return false;
             }
             
-            ChainerNetworkContext.SetCraftChainRecipeQue(solverResult);
+            ChainerNetworkContext.SetCraftChainRecipeQue(solverResult, targetItem);
             return true;
             
             #region Internal

@@ -46,11 +46,14 @@ namespace Game.CraftChainer.BlockComponent.Computer
             return _nodes.ContainsKey(nodeId);
         }
         
-        public void SetCraftChainRecipeQue(Dictionary<CraftingSolverRecipeId, int> solvedResults)
+        public void SetCraftChainRecipeQue(Dictionary<CraftingSolverRecipeId, int> solvedResults, CraftingSolverItem targetItem)
         {
             var craftRecipeIdMap = GetCraftRecipeIdMap();
             
             _craftChainRecipeQue = CreateRecipeQue(solvedResults, craftRecipeIdMap);
+            // ターゲットのアイテムをコンピューターに移動するようにリクエストを追加しておく
+            _craftChainRecipeQue.Add(targetItem.ItemId, new Dictionary<CraftChainerNodeId, int> {{_mainComputerNode.NodeId, targetItem.Quantity}});
+            
             foreach (var ques in _craftChainRecipeQue)
             {
                 foreach (var que in ques.Value)
