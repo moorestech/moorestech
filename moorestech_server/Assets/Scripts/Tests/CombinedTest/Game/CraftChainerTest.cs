@@ -126,7 +126,6 @@ namespace Tests.CombinedTest.Game
             // 10秒たってもクラフトされない場合は失敗
             // Fail if not crafted after 10 seconds
             var now = DateTime.Now;
-            TestDebug.TestStartTime = now;
             
             while (true)
             {

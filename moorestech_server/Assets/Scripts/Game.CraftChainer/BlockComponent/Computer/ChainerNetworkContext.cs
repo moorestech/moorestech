@@ -156,33 +156,6 @@ namespace Game.CraftChainer.BlockComponent.Computer
             #endregion
         }
         
-        // DEBUG 消す
-        private void ExportCraftChainRecipeQueLog()
-        {
-            var str = "";
-            
-            foreach (var ques in _craftChainRecipeQue)
-            {
-                foreach (var que in ques.Value)
-                {
-                    var crafter = _crafterComponents.Find(c => c.NodeId == que.Key);
-                    if (crafter != null)
-                    {
-                        var outputId = crafter.CraftingSolverRecipe.Outputs[0].ItemId;
-                        var outItemName = MasterHolder.ItemMaster.GetItemMaster(outputId).Name;
-                        var itemName = MasterHolder.ItemMaster.GetItemMaster(ques.Key).Name;
-                        
-                        str += $"Id {itemName} Count {que.Value} Output {outItemName},  ";
-                    }
-                }
-            }
-            
-            Debug.Log(str);
-        }
-        
-        // DEBUG 消す
-        public static List<(CraftChainerNodeId, IBlockInventory)> Result;
-        
         /// <summary>
         /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
         /// modifyCraftCacheのフラグすごい良くない感じはしているのだが、メソッドを分けるよりかはこれが一番コンテキストが浅いので、一旦これで、、
@@ -204,7 +177,6 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return null;
             }
             
-            Result = result;
             return result[0].Item2;
             
             #region Internal
@@ -234,7 +206,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     // Modify the data
                     if (modifyCraftCacheData)
                     {
-                        ExportCraftChainRecipeQueLog();
+                        DebugExportCraftChainRecipeQueLog();
                         
                         var reminder = nodeReminder.Value;
                         reminder--;
@@ -338,6 +310,31 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return (node.NodeId, connector, inventory);
             }
             
+            void DebugExportCraftChainRecipeQueLog()
+            {
+                // 使う場合はこのreturnを取る
+                // If you want to use it, remove this return
+                return;
+                var str = "";
+                
+                foreach (var ques in _craftChainRecipeQue)
+                {
+                    foreach (var que in ques.Value)
+                    {
+                        var crafter = _crafterComponents.Find(c => c.NodeId == que.Key);
+                        if (crafter != null)
+                        {
+                            var outputId = crafter.CraftingSolverRecipe.Outputs[0].ItemId;
+                            var outItemName = MasterHolder.ItemMaster.GetItemMaster(outputId).Name;
+                            var itemName = MasterHolder.ItemMaster.GetItemMaster(ques.Key).Name;
+                            
+                            str += $"Id {itemName} Count {que.Value} Output {outItemName},  ";
+                        }
+                    }
+                }
+                
+                Debug.Log(str);
+            }
             #endregion
         }
         

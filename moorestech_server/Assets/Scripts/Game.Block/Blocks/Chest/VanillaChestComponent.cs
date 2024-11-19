@@ -9,7 +9,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
-using Game.CraftChainer.BlockComponent;
 using Newtonsoft.Json;
 using static Game.Block.Interface.BlockException;
 
@@ -76,17 +75,7 @@ namespace Game.Block.Blocks.Chest
         }
         
         public void SetItem(int slot, IItemStack itemStack) { CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemStack); }
-        public IItemStack InsertItem(IItemStack itemStack) { CheckDestroy(this);
-            
-            var start = TestDebug.TestStartTime;
-            var end = System.DateTime.Now;
-            var time = end - start;
-            var seconds = time.TotalSeconds;
-            var pos = ServerContext.WorldBlockDatastore.GetBlock(this).BlockPositionInfo.OriginalPos;
-            // DEBUG 消す
-            //Debug.Log($"chest {itemStack} pos {pos} sec:{seconds:F2}");
-
-            return _itemDataStoreService.InsertItem(itemStack); }
+        public IItemStack InsertItem(IItemStack itemStack) { CheckDestroy(this); return _itemDataStoreService.InsertItem(itemStack); }
         public int GetSlotSize() { CheckDestroy(this); return _itemDataStoreService.GetSlotSize(); }
         public ReadOnlyCollection<IItemStack> CreateCopiedItems() { CheckDestroy(this); return _itemDataStoreService.CreateCopiedItems(); }
         public IItemStack GetItem(int slot) { CheckDestroy(this); return _itemDataStoreService.GetItem(slot); }

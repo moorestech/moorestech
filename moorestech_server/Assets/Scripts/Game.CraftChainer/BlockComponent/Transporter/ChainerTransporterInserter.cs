@@ -16,9 +16,6 @@ namespace Game.CraftChainer.BlockComponent
     /// </summary>
     public class ChainerTransporterInserter : IBlockInventoryInserter
     {
-        // DEBUG 消す
-        public static CraftChainerNodeId Transporter_Test_NodeId;
-        
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly CraftChainerNodeId _startChainerNodeId;
         
@@ -39,28 +36,6 @@ namespace Game.CraftChainer.BlockComponent
             
             var target = context.GetTransportNextBlock(true, itemStack, _startChainerNodeId, _blockConnectorComponent);
             if (target == null) return itemStack;
-            
-            
-            // DEBUG 消す
-            var route = string.Empty;
-            foreach (var result in ChainerNetworkContext.Result)
-            {
-                route += $"{result.Item1} -> ";
-            }
-            var start = TestDebug.TestStartTime;
-            var end = System.DateTime.Now;
-            var time = end - start;
-            var seconds = time.TotalSeconds;
-            
-            var fromBlock = ServerContext.WorldBlockDatastore.GetBlock(_blockConnectorComponent);
-            var fromPos = fromBlock.BlockPositionInfo.OriginalPos;
-            var fromName = fromBlock.BlockMasterElement.Name;
-            
-            var toBlock = ServerContext.WorldBlockDatastore.GetBlock(target);
-            var toPos = toBlock.BlockPositionInfo.OriginalPos;
-            var toName = toBlock.BlockMasterElement.Name;
-            
-            //Debug.Log($"insert {itemStack}  {fromName} {fromPos} -> {toName} {toPos} Current: {_startChainerNodeId} route: {route} sec:{seconds:F2}");
             
             return target.InsertItem(itemStack);
         }
