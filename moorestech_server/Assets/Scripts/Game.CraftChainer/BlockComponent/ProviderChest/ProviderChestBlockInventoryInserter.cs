@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -7,7 +6,8 @@ using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.CraftChainer.CraftNetwork;
-using UniRx;
+using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 
 namespace Game.CraftChainer.BlockComponent.ProviderChest
 {
@@ -23,42 +23,26 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         private readonly CraftChainerNodeId _providerChestNodeId;
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
-        private int _index = -1;
-        
-        public ProviderChestBlockInventoryInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public ProviderChestBlockInventoryInserter(CraftChainerNodeId providerChestNodeId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
+            _providerChestNodeId = providerChestNodeId;
             _blockConnectorComponent = blockConnectorComponent;
         }
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
             var context = CraftChainerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
-            var inventory = _blockConnectorComponent.ConnectedTargets.Keys.ToArray()[_index];
             
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
             // Insert items one by one and return them, so create an item for one item
-            var insertItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
-            var insertResult = inventory.InsertItem(insertItem);
+            var oneItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
             
-            var nextInventory = context.GetTransportNextBlock(insertItem, _providerChestNodeId, _blockConnectorComponent);
-            if (nextInventory == null)
-            {
-                // 移動先がないのでそのまま返す
-                // Return as it is because there is no destination
-                return itemStack;
-            }
+            var insertResult = context.InsertNodeNetworkNextBlock(oneItem, _providerChestNodeId, _blockConnectorComponent);
             
-            if (insertResult.Id == ItemMaster.EmptyItemId)
-            {
-                // アイテムが挿入できれば、元のアイテムから1個分を減らしたアイテムを返す
-                // If the item can be inserted, return the item with one less item from the original item
-                return itemStack.SubItem(1);
-            }
-            
-            // 挿入失敗なのでそのまま返す。
-            // Return as it is because the insertion failed.
-            return itemStack;
+            // アイテムが消失しないように、1個ひいたアイテムと、挿入結果のアイテムを合成して返す
+            // To prevent the item from disappearing, return a composite of the item with one item subtracted and the inserted item
+            var subOneItem = itemStack.SubItem(1);
+            return insertResult.AddItem(subOneItem).ProcessResultItemStack;
         }
-        
     }
 }

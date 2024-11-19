@@ -1,4 +1,3 @@
-using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Blocks.Connector;
 using Game.Block.Component;
@@ -11,12 +10,12 @@ namespace Game.CraftChainer.BlockComponent
     /// そのアイテムがどのクラフトノードに挿入されるべきかを判断し、挿入するためのクラス
     /// Class for determining which craft node the item should be inserted into and inserting it
     /// </summary>
-    public class ChainerTransporterConnector : IBlockInventoryInserter
+    public class ChainerTransporterInserter : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly CraftChainerNodeId _startChainerNodeId;
         
-        public ChainerTransporterConnector(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, CraftChainerNodeId startChainerNodeId)
+        public ChainerTransporterInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, CraftChainerNodeId startChainerNodeId)
         {
             _blockConnectorComponent = blockConnectorComponent;
             _startChainerNodeId = startChainerNodeId;
@@ -30,10 +29,9 @@ namespace Game.CraftChainer.BlockComponent
                 return itemStack;
             }
             
-            var target = context.GetTransportNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
-            if (target == null) return itemStack;
-            
-            return target.InsertItem(itemStack);
+            // transporterの場合は既に1個になっているアイテムを挿入する想定
+            // In the case of a transporter, it is assumed that the item has already been reduced to one
+            return context.InsertNodeNetworkNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
         }
     }
 }

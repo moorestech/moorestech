@@ -26,7 +26,15 @@ namespace Game.CraftChainer.BlockComponent.Computer
             NodeId = new CraftChainerNodeId(jsonObject.NodeId);
         }
         
-        public void StartCreateItem(ItemId itemId, int count)
+        /// <summary>
+        /// アイテムのクラフトをリクエストする
+        /// Request to create an item
+        /// </summary>
+        /// <returns>
+        /// クラフトリクエストが成功したかどうか
+        /// Whether the craft request was successful
+        /// </returns>
+        public bool StartCreateItem(ItemId itemId, int count)
         {
             var (recipes, initialInventory, targetItem) = CreateInitialData();
             
@@ -36,10 +44,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
             // The item could not be created
             if (solverResult == null)
             {
-                return;
+                return false;
             }
             
-            ChainerNetworkContext.SetCraftChainRecipeQue(solverResult);
+            ChainerNetworkContext.SetCraftChainRecipeQue(solverResult, targetItem);
+            return true;
             
             #region Internal
             

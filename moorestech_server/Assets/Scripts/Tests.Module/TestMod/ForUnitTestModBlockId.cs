@@ -35,5 +35,13 @@ namespace Tests.Module.TestMod
         public static readonly BlockId MachineRecipeTest3 = (BlockId)27;
         
         public static readonly BlockId GearMiner = (BlockId)28;
+        
+        public static readonly BlockId CraftChainerTransporter = (BlockId)29;
+        public static readonly BlockId CraftChainerCrafter = (BlockId)30;
+        public static readonly BlockId CraftChainerProviderChest = (BlockId)31;
+        public static readonly BlockId CraftChainerMainComputer = (BlockId)32;
+        public static readonly BlockId CraftChainerBeltConveyor = (BlockId)33;
+        public static readonly BlockId CraftChainerMachine1 = (BlockId)34;
+        public static readonly BlockId CraftChainerMachine2 = (BlockId)35;
     }
 }

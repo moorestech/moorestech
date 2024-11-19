@@ -1,4 +1,5 @@
-﻿using Core.Item.Interface;
+﻿using System.Collections.Generic;
+using Core.Item.Interface;
 using Game.Block.Interface.ComponentAttribute;
 
 namespace Game.Block.Interface.Component
@@ -11,6 +12,8 @@ namespace Game.Block.Interface.Component
     public interface IBlockInventory : IBlockComponent
     {
         public IItemStack InsertItem(IItemStack itemStack);
+        public bool InsertionCheck(List<IItemStack> itemStacks);
+        
         public IItemStack GetItem(int slot);
         void SetItem(int slot, IItemStack itemStack);
         public int GetSlotSize();

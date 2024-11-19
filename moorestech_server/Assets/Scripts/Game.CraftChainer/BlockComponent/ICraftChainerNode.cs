@@ -1,6 +1,7 @@
-using System;
 using Game.Block.Interface.Component;
 using UnitGenerator;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Game.CraftChainer.CraftNetwork
 {
@@ -25,7 +26,7 @@ namespace Game.CraftChainer.CraftNetwork
         
         public static CraftChainerNodeId Create()
         {
-            var id = 0; // 0番はデフォルトターゲットとして扱うため予約
+            var id = _random.Next(int.MinValue, int.MaxValue);
             while (id == Invalid.value)
             {
                 id = _random.Next(int.MinValue, int.MaxValue);

@@ -30,8 +30,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         // 現在クラフト中のアイテム情報
         // Information about the item currently being crafted
-        private Dictionary<ItemId,(CraftChainerNodeId targetNodeId, int reminderCount)> _craftChainRecipeQue;
-        private Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems;
+        private readonly Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems = new();
+        // アイテムごとにどのノードに何個アイテムを入れなければならないか
+        // How many items of each item type must be placed in each node?
+        private Dictionary<ItemId,Dictionary<CraftChainerNodeId,int>> _craftChainRecipeQue;
+        
         public ChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector, ICraftChainerNode mainComputerNode)
         {
             _mainComputerConnector = mainComputerConnector;
@@ -43,11 +46,13 @@ namespace Game.CraftChainer.BlockComponent.Computer
             return _nodes.ContainsKey(nodeId);
         }
         
-        public void SetCraftChainRecipeQue(Dictionary<CraftingSolverRecipeId, int> solvedResults)
+        public void SetCraftChainRecipeQue(Dictionary<CraftingSolverRecipeId, int> solvedResults, CraftingSolverItem targetItem)
         {
             var craftRecipeIdMap = GetCraftRecipeIdMap();
             
             _craftChainRecipeQue = CreateRecipeQue(solvedResults, craftRecipeIdMap);
+            // ターゲットのアイテムをコンピューターに移動するようにリクエストを追加しておく
+            _craftChainRecipeQue.Add(targetItem.ItemId, new Dictionary<CraftChainerNodeId, int> {{_mainComputerNode.NodeId, targetItem.Quantity}});
             
             #region Internal
             
@@ -61,22 +66,29 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return map;
             }
             
-            Dictionary<ItemId, (CraftChainerNodeId targetNodeId, int reminderCount)> CreateRecipeQue(Dictionary<CraftingSolverRecipeId, int> solved, Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent> recipes)
+            Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>> CreateRecipeQue(Dictionary<CraftingSolverRecipeId, int> solved, Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent> recipes)
             {
-                var result = new Dictionary<ItemId, (CraftChainerNodeId targetNodeId, int reminderCount)>();
+                var result = new Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>>();
                 foreach (var solvedResult in solved)
                 {
                     var crafter = recipes[solvedResult.Key];
                     var recipe = crafter.CraftingSolverRecipe;
                     foreach (var inputItems in recipe.Inputs)
                     {
+                        var quantity = inputItems.Quantity * solvedResult.Value;
                         if (result.TryGetValue(inputItems.ItemId, out var que))
                         {
-                            que.reminderCount += inputItems.Quantity;
+                            if (!que.TryAdd(crafter.NodeId,quantity))
+                            {
+                                que[crafter.NodeId] += quantity;
+                            }
                         }
                         else
                         {
-                            result[inputItems.ItemId] = (crafter.NodeId, inputItems.Quantity);
+                            result[inputItems.ItemId] = new Dictionary<CraftChainerNodeId, int>()
+                            {
+                                { crafter.NodeId, quantity }
+                            };
                         }
                     }
                 }
@@ -113,8 +125,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     {
                         continue;
                     }
+                    if (!_nodes.TryAdd(node.NodeId, node))
+                    {
+                        continue;
+                    }
                     
-                    _nodes.Add(node.NodeId, node);
                     if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
                     {
                         _providerChests.Add(chest);
@@ -133,26 +148,41 @@ namespace Game.CraftChainer.BlockComponent.Computer
             #endregion
         }
         
-        
         /// <summary>
-        /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
-        /// Get the next block to insert from the connector connected to the item ID
+        /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得し、インサート出来る場合はインサートする
+        /// Get the next block to insert from the item ID and connected connector, and insert it if possible
         /// </summary>
-        public IBlockInventory GetTransportNextBlock(IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
+        public IItemStack InsertNodeNetworkNextBlock(IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
         {
+            if (item.Id == ItemMaster.EmptyItemId) return item;
+            
+            // ターゲットとなるノードがあるか
             var targetNodeId = GetTargetNodeId(item);
             if (targetNodeId == CraftChainerNodeId.Invalid)
             {
-                return null;
+                return item;
             }
             
+            // たどり着けるか
             var result = ExecuteBfs(targetNodeId);
             if (result == null || result.Count == 0)
             {
-                return null;
+                return item;
             }
             
-            return result[0];
+            // 次のインベントリにアイテムを入れられるか
+            var nextInventory = result[0].Item2;
+            if (!nextInventory.InsertionCheck(new List<IItemStack> {item}))
+            {
+                return item;
+            }
+            
+            // アイテムを入れられるのでキューの情報を更新する
+            DebugExportCraftChainRecipeQueLog();
+            UpdateCraftQue();
+            
+            // 次のインベントリにアイテムを入れる
+            return nextInventory.InsertItem(item);
             
             #region Internal
             
@@ -165,33 +195,26 @@ namespace Game.CraftChainer.BlockComponent.Computer
                     return nodeId;
                 }
                 
-                // 現在のアイテムがクラフト対象の材料だったら
-                // If the current item is a crafting target material
-                if (_craftChainRecipeQue.TryGetValue(item.Id, out var craftQue))
+                // 現在のアイテムがクラフト対象の材料かどうかをチェック
+                // Check if the current item is a crafting target material
+                if (!_craftChainRecipeQue.TryGetValue(item.Id, out var craftQue))
                 {
-                    var newCraftQue = craftQue;
-                    newCraftQue.reminderCount--;
-                    if (newCraftQue.reminderCount <= 0)
-                    {
-                        _craftChainRecipeQue.Remove(item.Id);
-                    }
-                    else
-                    {
-                        _craftChainRecipeQue[item.Id] = newCraftQue;
-                    }
-                    
-                    // 計算したアイテムの移動先を保持
-                    // Keep the destination of the calculated item
-                    _requestedMoveItems[item.ItemInstanceId] = newCraftQue.targetNodeId;
-                    return newCraftQue.targetNodeId;
+                    return CraftChainerNodeId.Invalid;
                 }
                 
-                // 移動先が特に指定されていない場合はIncalidを返す
-                // If no destination is specified, select randomly
+                // クラフト対象の材料なのでそのうちの一つを取得
+                // It is a crafting target material, so get one of them
+                foreach (var nodeReminder in craftQue)
+                {
+                    return nodeReminder.Key;
+                }
+                
+                // 移動先が特に指定されていない場合はInvalidを返す
+                // If no destination is specified, return Invalid
                 return CraftChainerNodeId.Invalid;
             }
             
-            List<IBlockInventory> ExecuteBfs(CraftChainerNodeId targetNode)
+            List<(CraftChainerNodeId,IBlockInventory)> ExecuteBfs(CraftChainerNodeId targetNode)
             {
                 var idToConnector = new Dictionary<CraftChainerNodeId, (BlockConnectorComponent<IBlockInventory> connector, IBlockInventory blockInventory)>();
                 var searchQueue = new Queue<CraftChainerNodeId>();
@@ -247,11 +270,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 
                 // 経路をたどっていく
                 // Follow the path
-                var result = new List<IBlockInventory>();
+                var result = new List<(CraftChainerNodeId,IBlockInventory)>();
                 var current = targetNode;
                 while (current != startChainerNodeId)
                 {
-                    result.Add(idToConnector[current].blockInventory);
+                    result.Add((current,idToConnector[current].blockInventory));
                     current = reverseSearch[current];
                 }
                 
@@ -269,8 +292,61 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return (node.NodeId, connector, inventory);
             }
             
+            void UpdateCraftQue()
+            {
+                // 新しく挿入されたアイテムのみ更新を行うので、既に移動先が指定されているアイテムは無視
+                // Only newly inserted items are updated, so items that already have a destination specified are ignored
+                if (_requestedMoveItems.ContainsKey(item.ItemInstanceId))
+                {
+                    return;
+                }
+                
+                // クラフトキューの情報をアップデート
+                // Update the craft queue information
+                var craftQue = _craftChainRecipeQue[item.Id];
+                var reminder = craftQue[targetNodeId];
+                reminder--;
+                if (reminder <= 0)
+                {
+                    craftQue.Remove(targetNodeId);
+                }
+                else
+                {
+                    craftQue[targetNodeId] = reminder;
+                }
+                
+                // 計算したアイテムの移動先を保持
+                // Keep the destination of the calculated item
+                _requestedMoveItems[item.ItemInstanceId] = targetNodeId;
+            }
+            
+            void DebugExportCraftChainRecipeQueLog()
+            {
+                // 使う場合はこのreturnを取る
+                // If you want to use it, remove this return
+                return;
+                
+                var str = "";
+                
+                foreach (var ques in _craftChainRecipeQue)
+                {
+                    foreach (var que in ques.Value)
+                    {
+                        var crafter = _crafterComponents.Find(c => c.NodeId == que.Key);
+                        if (crafter != null)
+                        {
+                            var outputId = crafter.CraftingSolverRecipe.Outputs[0].ItemId;
+                            var outItemName = MasterHolder.ItemMaster.GetItemMaster(outputId).Name;
+                            var itemName = MasterHolder.ItemMaster.GetItemMaster(ques.Key).Name;
+                            
+                            str += $"Id {itemName} Count {que.Value} Output {outItemName},  ";
+                        }
+                    }
+                }
+                
+                Debug.Log(str);
+            }
             #endregion
         }
-        
     }
 }
