@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Game
         }
         
         [Test]
-        public void SimpleChainerTest()
+        public void CreateItemA1ChainerTest()
         {
             var chestItems = new List<(ItemId id,int count)>
             {
@@ -49,13 +49,33 @@ namespace Tests.CombinedTest.Game
         }
         
         [Test]
-        public void DoubleItemChainerTest()
+        public void CreateItemA2ChainerTest()
         {
             var chestItems = new List<(ItemId id,int count)>
             {
                 (ItemCId, 10),
             };
             ExecuteChainerCraftTest(chestItems, ItemAId, 2, true);
+        }
+        
+        [Test]
+        public void CreateItemA3ChainerTest()
+        {
+            var chestItems = new List<(ItemId id,int count)>
+            {
+                (ItemCId, 15),
+            };
+            ExecuteChainerCraftTest(chestItems, ItemAId, 3, true);
+        }
+        
+        [Test]
+        public void CreateItemBTest()
+        {
+            var chestItems = new List<(ItemId id,int count)>
+            {
+                (ItemCId, 2),
+            };
+            ExecuteChainerCraftTest(chestItems, ItemBId, 1, true);
         }
         
         [Test]
