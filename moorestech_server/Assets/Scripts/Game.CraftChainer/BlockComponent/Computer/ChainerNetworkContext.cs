@@ -165,7 +165,15 @@ namespace Game.CraftChainer.BlockComponent.Computer
             {
                 foreach (var que in ques.Value)
                 {
-                    str += $",　Id {ques.Key} Count {que.Value} TargetId {que.Key}";
+                    var crafter = _crafterComponents.Find(c => c.NodeId == que.Key);
+                    if (crafter != null)
+                    {
+                        var outputId = crafter.CraftingSolverRecipe.Outputs[0].ItemId;
+                        var outItemName = MasterHolder.ItemMaster.GetItemMaster(outputId).Name;
+                        var itemName = MasterHolder.ItemMaster.GetItemMaster(ques.Key).Name;
+                        
+                        str += $"Id {itemName} Count {que.Value} Output {outItemName},  ";
+                    }
                 }
             }
             
