@@ -174,9 +174,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
         
         /// <summary>
         /// アイテムのIDとつながっているコネクターから、次にインサートすべきブロックを取得する
+        /// modifyCraftCacheのフラグすごい良くない感じはしているのだが、メソッドを分けるよりかはこれが一番コンテキストが浅いので、一旦これで、、
+        /// TODO もしかしたらこの中でinsertを行って、その結果だけ返すほうがいい説あるかもしれない？要検討
         /// Get the next block to insert from the connector connected to the item ID
         /// </summary>
-        public IBlockInventory GetTransportNextBlock(IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
+        public IBlockInventory GetTransportNextBlock(bool modifyCraftCacheData, IItemStack item, CraftChainerNodeId startChainerNodeId, BlockConnectorComponent<IBlockInventory> blockConnector)
         {
             var targetNodeId = GetTargetNodeId(item);
             if (targetNodeId == CraftChainerNodeId.Invalid)
@@ -215,21 +217,28 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 foreach (var nodeReminder in craftQue)
                 {
                     var keyNodeId = nodeReminder.Key;
-                    var reminder = nodeReminder.Value;
-                    reminder--;
-                    if (reminder <= 0)
+                    
+                    // データを変更する
+                    // Modify the data
+                    if (modifyCraftCacheData)
                     {
-                        craftQue.Remove(keyNodeId);
-                    }
-                    else
-                    {
-                        craftQue[keyNodeId] = reminder;
+                        var reminder = nodeReminder.Value;
+                        reminder--;
+                        if (reminder <= 0)
+                        {
+                            craftQue.Remove(keyNodeId);
+                        }
+                        else
+                        {
+                            craftQue[keyNodeId] = reminder;
+                        }
+                        
+                        
+                        // 計算したアイテムの移動先を保持
+                        // Keep the destination of the calculated item
+                        _requestedMoveItems[item.ItemInstanceId] = keyNodeId;
                     }
                     
-                    
-                    // 計算したアイテムの移動先を保持
-                    // Keep the destination of the calculated item
-                    _requestedMoveItems[item.ItemInstanceId] = keyNodeId;
                     ExportCraftChainRecipeQueLog();
                     return keyNodeId;
                 }

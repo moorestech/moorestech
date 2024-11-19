@@ -51,6 +51,10 @@ namespace Tests.Module
             
             return itemStack;
         }
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            return true;
+        }
         
         public IItemStack GetItem(int slot)
         {

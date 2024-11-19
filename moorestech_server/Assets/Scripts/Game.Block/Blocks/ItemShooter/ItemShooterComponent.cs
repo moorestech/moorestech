@@ -141,6 +141,25 @@ namespace Game.Block.Blocks.ItemShooter
             return itemStack;
         }
         
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            BlockException.CheckDestroy(this);
+            
+            // 空きスロットがあるかどうか
+            var nullCount = 0;
+            foreach (var inventoryItem in _inventoryItems)
+            {
+                if (inventoryItem == null) nullCount++;
+            }
+            // 挿入可能スロットがない
+            if (nullCount == 0) return false;
+            
+            // 挿入スロットが1個かどうか
+            if (itemStacks.Count == 1 && itemStacks[0].Count == 1) return true;
+            
+            return false;
+        }
+        
         public IItemStack GetItem(int slot)
         {
             var itemStackFactory = ServerContext.ItemStackFactory;

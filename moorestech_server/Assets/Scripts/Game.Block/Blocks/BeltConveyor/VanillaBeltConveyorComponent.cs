@@ -62,6 +62,18 @@ namespace Game.Block.Blocks.BeltConveyor
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
         }
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            BlockException.CheckDestroy(this);
+            
+            // 空きスロットがない
+            if (_inventoryItems[^1] != null) return false;
+            
+            // 挿入スロットが1個かどうか
+            if (itemStacks.Count == 1 && itemStacks[0].Count == 1) return true;
+            
+            return false;
+        }
         
         public int GetSlotSize()
         {

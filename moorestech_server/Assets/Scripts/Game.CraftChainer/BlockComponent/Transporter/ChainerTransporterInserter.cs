@@ -16,6 +16,7 @@ namespace Game.CraftChainer.BlockComponent
     /// </summary>
     public class ChainerTransporterInserter : IBlockInventoryInserter
     {
+        // DEBUG 消す
         public static CraftChainerNodeId Transporter_Test_NodeId;
         
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
@@ -36,7 +37,7 @@ namespace Game.CraftChainer.BlockComponent
                 return itemStack;
             }
             
-            var target = context.GetTransportNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
+            var target = context.GetTransportNextBlock(true, itemStack, _startChainerNodeId, _blockConnectorComponent);
             if (target == null) return itemStack;
             
             

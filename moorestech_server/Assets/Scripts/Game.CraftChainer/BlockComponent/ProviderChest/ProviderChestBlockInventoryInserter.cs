@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -36,19 +37,28 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             // Insert items one by one and return them, so create an item for one item
             var oneItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
             
-            var nextInventory = context.GetTransportNextBlock(oneItem, _providerChestNodeId, _blockConnectorComponent);
+            var nextInventory = context.GetTransportNextBlock(false, oneItem, _providerChestNodeId, _blockConnectorComponent);
             if (nextInventory == null)
             {
                 // 移動先がないのでそのまま返す
                 // Return as it is because there is no destination
                 return itemStack;
             }
+            if (!nextInventory.InsertionCheck(new List<IItemStack> { oneItem }))
+            {
+                // 挿入できないのでそのまま返す
+                // Return as it is because it cannot be inserted
+                return itemStack;
+            }
+            
+            nextInventory = context.GetTransportNextBlock(true, oneItem, _providerChestNodeId, _blockConnectorComponent);
+            
             
             // 次のインベントリにアイテムを挿入
             // Insert items into the next inventory
             var insertResult = nextInventory.InsertItem(oneItem);
             
-            //Debug.Log(oneItem + "->" + insertResult);
+            //DEBUG 消す Debug.Log(oneItem + "->" + insertResult);
             
             if (insertResult.Id == ItemMaster.EmptyItemId)
             {
