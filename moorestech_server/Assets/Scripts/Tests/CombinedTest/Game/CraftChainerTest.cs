@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Game
             {
                 (ItemCId, 5),
             };
-            ExecuteChainerTest(chestItems, ItemAId, 1);
+            ExecuteChainerCraftTest(chestItems, ItemAId, 1, true);
         }
         
         [Test]
@@ -55,10 +55,26 @@ namespace Tests.CombinedTest.Game
             {
                 (ItemCId, 10),
             };
-            ExecuteChainerTest(chestItems, ItemAId, 2);
+            ExecuteChainerCraftTest(chestItems, ItemAId, 2, true);
         }
         
-        public void ExecuteChainerTest(List<(ItemId id,int count)> materials, ItemId targetId, int targetCount)
+        [Test]
+        public void NoneItemFailCraftTest()
+        {
+            ExecuteChainerCraftTest(new List<(ItemId id,int count)>(), ItemAId, 1, false);
+        }
+        
+        [Test]
+        public void OneItemIsNotEnoughFailCraftTest()
+        {
+            var chestItems = new List<(ItemId id,int count)>
+            {
+                (ItemCId, 4),
+            };
+            ExecuteChainerCraftTest(chestItems, ItemAId, 1, false);
+        }
+        
+        public void ExecuteChainerCraftTest(List<(ItemId id,int count)> materials, ItemId targetId, int targetCount, bool isSuccess)
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
@@ -79,7 +95,13 @@ namespace Tests.CombinedTest.Game
             // メインコンピュータにアイテム作成リクエスト
             // Item creation request to the main computer
             var success = network.SetRequestMainComputer(targetId, targetCount);
-            Assert.IsTrue(success);
+            Assert.AreEqual(isSuccess, success);
+            
+            // 失敗が正しい場合はテストを終了
+            if (!isSuccess)
+            {
+                return;
+            }
             
             // 10秒たってもクラフトされない場合は失敗
             // Fail if not crafted after 10 seconds
@@ -114,6 +136,7 @@ namespace Tests.CombinedTest.Game
                 }
             }
         }
+        
         
         private void ExportItemLog()
         {
