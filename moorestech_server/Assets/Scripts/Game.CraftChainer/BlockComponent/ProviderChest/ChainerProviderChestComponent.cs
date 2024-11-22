@@ -12,17 +12,15 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         public CraftChainerNodeId NodeId { get; }
         public IReadOnlyList<IItemStack> Inventory => _vanillaChestComponent.InventoryItems;
         
-        private readonly ProviderChestBlockInventoryInserter _providerChestBlockInventoryInserter;
         private readonly VanillaChestComponent _vanillaChestComponent;
         
-        public ChainerProviderChestComponent(CraftChainerNodeId nodeId, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent)
+        public ChainerProviderChestComponent(CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent)
         {
             NodeId = nodeId;
-            _providerChestBlockInventoryInserter = providerChestBlockInventoryInserter;
             _vanillaChestComponent = vanillaChestComponent;
         }
-        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, CraftChainerNodeId nodeId, ProviderChestBlockInventoryInserter providerChestBlockInventoryInserter, VanillaChestComponent vanillaChestComponent) : 
-            this(nodeId, providerChestBlockInventoryInserter, vanillaChestComponent)
+        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent) : 
+            this(nodeId, vanillaChestComponent)
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerProviderChestComponentJsonObject>(state);
@@ -47,6 +45,7 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
     {
         [JsonProperty("nodeId")] public int NodeId { get; set; }
         
+        public ChainerProviderChestComponentJsonObject(){}
         public ChainerProviderChestComponentJsonObject(ChainerProviderChestComponent component)
         {
             NodeId = component.NodeId.AsPrimitive();

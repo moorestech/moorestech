@@ -16,11 +16,13 @@ namespace Game.CraftChainer.CraftChain
         }
     }
     
+    [JsonObject]
     public class CraftingSolverItemJsonObject
     {
         [JsonProperty("itemGuid")] public string ItemGuid;
         [JsonProperty("quantity")] public int Quantity;
         
+        public CraftingSolverItemJsonObject() { }
         public CraftingSolverItemJsonObject(CraftingSolverItem craftingSolverItem)
         {
             ItemGuid = MasterHolder.ItemMaster.GetItemMaster(craftingSolverItem.ItemId).ItemGuid.ToString();

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using Game.Block.Interface.Component;
 using Game.CraftChainer.CraftChain;
 using Game.CraftChainer.CraftNetwork;
 using Newtonsoft.Json;
@@ -45,11 +43,13 @@ namespace Game.CraftChainer.BlockComponent.Crafter
         }
     }
     
+    [JsonObject]
     public class ChainerCrafterComponentJsonObject
     {
         [JsonProperty("recipe")] public CraftingSolverRecipeJsonObject Recipe { get; set; }
         [JsonProperty("nodeId")] public int NodeId { get; set; }
         
+        public ChainerCrafterComponentJsonObject(){}
         public ChainerCrafterComponentJsonObject(ChainerCrafterComponent component)
         {
             Recipe = new CraftingSolverRecipeJsonObject(component.CraftingSolverRecipe);

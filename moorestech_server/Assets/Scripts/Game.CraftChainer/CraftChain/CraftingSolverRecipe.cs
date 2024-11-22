@@ -31,12 +31,15 @@ namespace Game.CraftChainer.CraftChain
         }
     }
     
+    [JsonObject]
     public class CraftingSolverRecipeJsonObject
     {
         [JsonProperty("recipeId")] public int RecipeId;
         [JsonProperty("inputs")] public List<CraftingSolverItemJsonObject> Inputs;
         [JsonProperty("outputs")] public List<CraftingSolverItemJsonObject> Outputs;
         
+        public CraftingSolverRecipeJsonObject() { }
+
         public CraftingSolverRecipeJsonObject(CraftingSolverRecipe craftingSolverRecipe)
         {
             RecipeId = craftingSolverRecipe.CraftingSolverRecipeId.AsPrimitive();
