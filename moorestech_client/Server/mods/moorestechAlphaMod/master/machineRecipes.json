@@ -149,6 +149,51 @@
         }
       ],
       "machineRecipeGuid": "c9103ef7-cb64-4216-8dd3-23f9e56991d5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "time": 1,
+      "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a",
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5"
+        }
+      ],
+      "machineRecipeGuid": "9035d818-9d4d-42cd-a2df-5b97756d9f7c"
+    },
+    {
+      "time": 1,
+      "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691",
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff"
+        }
+      ],
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5"
+        },
+        {
+          "count": 1,
+          "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
+        }
+      ],
+      "machineRecipeGuid": "80a5231b-d51f-454d-bd0a-18646d46403e"
     }
   ]
 }

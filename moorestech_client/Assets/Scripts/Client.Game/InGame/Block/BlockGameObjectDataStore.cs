@@ -36,7 +36,10 @@ namespace Client.Game.InGame.Block
             if (_blockObjectsDictionary.ContainsKey(blockPosition))
             {
                 //IDが同じ時は再設置の必要がないため処理を終了
-                if (_blockObjectsDictionary[blockPosition].BlockId == blockId) return;
+                if (_blockObjectsDictionary[blockPosition].BlockId == blockId)
+                {
+                    return;
+                }
                 
                 //IDが違うため削除
                 Destroy(_blockObjectsDictionary[blockPosition].gameObject);

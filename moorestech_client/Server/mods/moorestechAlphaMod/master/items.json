@@ -234,6 +234,56 @@
       "maxStack": 100,
       "name": "原始的なチェスト",
       "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerTransporter",
+      "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerCrafter",
+      "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerProviderChest",
+      "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerMainComputer",
+      "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerBeltConveyor",
+      "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerMachine1",
+      "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerMachine2",
+      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648"
+    },
+    {
+      "maxStack": 100,
+      "name": "Chainer - A",
+      "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff"
+    },
+    {
+      "maxStack": 100,
+      "name": "Chainer - B",
+      "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5"
+    },
+    {
+      "maxStack": 100,
+      "name": "Chainer - C",
+      "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
     }
   ]
 }

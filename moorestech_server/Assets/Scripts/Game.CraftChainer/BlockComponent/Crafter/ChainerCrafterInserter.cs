@@ -31,6 +31,10 @@ namespace Game.CraftChainer.BlockComponent.Crafter
                 
                 notChainerConnector.Add(connector.Key);
             }
+            if (notChainerConnector.Count == 0)
+            {
+                return itemStack;
+            }
             
             _index++;
             if (notChainerConnector.Count <= _index)

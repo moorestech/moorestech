@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Block
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private bool _isShaderAnimating;
-        private List<VisualEffect> _visualEffects;
+        private List<VisualEffect> _visualEffects = new();
         
         
         public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
