@@ -101,6 +101,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
     {
         [JsonProperty("nodeId")] public int NodeId { get; set; }
         
+        public ChainerMainComputerComponentJsonObject(){}
         public ChainerMainComputerComponentJsonObject(ChainerMainComputerComponent component)
         {
             NodeId = component.NodeId.AsPrimitive();
