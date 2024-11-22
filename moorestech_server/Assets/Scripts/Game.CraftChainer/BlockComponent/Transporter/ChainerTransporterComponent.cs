@@ -35,6 +35,7 @@ namespace Game.CraftChainer.BlockComponent
     {
         [JsonProperty("nodeId")] public int NodeId { get; set; }
         
+        public ChainerTransporterComponentJsonObject(){}
         public ChainerTransporterComponentJsonObject(ChainerTransporterComponent component)
         {
             NodeId = component.NodeId.AsPrimitive();
