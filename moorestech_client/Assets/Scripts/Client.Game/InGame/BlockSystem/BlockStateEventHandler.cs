@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BlockSystem
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _initialHandshakeResponse = initialHandshakeResponse;
             
-            ClientContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag,
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag,
                 payload =>
                 {
                     var data = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payload);

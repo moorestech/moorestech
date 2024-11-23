@@ -8,6 +8,9 @@ using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Input;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Context;
+using MessagePack;
+using Server.Event.EventReceive;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
@@ -70,6 +73,9 @@ namespace Client.Game.InGame.UI.UIState
             //UIのオブジェクトをオンにする
             _playerInventoryViewController.SetActive(true);
             _playerInventoryViewController.SetSubInventory(_blockInventoryView);
+            
+            
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
         }
         
         public void OnExit()
@@ -81,6 +87,13 @@ namespace Client.Game.InGame.UI.UIState
             
             _blockInventoryView.CloseBlockInventory();
             _playerInventoryViewController.SetActive(false);
+        }
+        
+        private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
+        {
+            var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
+            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            _blockInventoryView.UpdateInventorySlot(packet.Slot, item);
         }
         
         private async UniTask UpdateBlockInventory(Vector3Int pos, CancellationToken ct)
