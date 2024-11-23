@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c113ff064b10c427fb3a071e46ace37d, type: 3}
+  m_Name: LayoutRuleData
+  m_EditorClassIdentifier: 
+  _layoutRule:
+    _settings:
+      _excludeUnversioned:
+        _value: 0
+      _versionExpression:
+        _value: 
+    _addressRules:
+      _internalList:
+      - _id: 591e476e-3219-4f99-abcc-e631493bf5e9
+        _addressableGroup: {fileID: 11400000, guid: 6e6880458817bfc42b5e1fb481856a1b, type: 2}
+        _control:
+          _value: 0
+        _assetGroups:
+          _internalList:
+          - _id: 5767e34d-b790-41c1-9a65-2fc67bb45d63
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList: []
+        _addressProviderInternal:
+          rid: 6183160228663263232
+      - _id: 678abf60-1255-49c1-87e3-af5f818f6654
+        _addressableGroup: {fileID: 11400000, guid: 0d2e3e946188cda45abfe5ab40a0cfeb, type: 2}
+        _control:
+          _value: 0
+        _assetGroups:
+          _internalList:
+          - _id: bafca5f6-3573-415e-932c-0b97caabd667
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList: []
+        _addressProviderInternal:
+          rid: 6183160228663263233
+      - _id: 2f717927-62eb-43e4-b222-da38235553bf
+        _addressableGroup: {fileID: 11400000, guid: 9703224818d884894a875919eba84532, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: 64e9f585-a3ce-4e57-bc48-671228f8facd
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList: []
+        _addressProviderInternal:
+          rid: 6183160228663263234
+    _labelRules:
+      _internalList: []
+    _versionRules:
+      _internalList: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 6183160228663263232
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 0
+        _pattern: 
+        _replacement: 
+    - rid: 6183160228663263233
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 0
+        _pattern: 
+        _replacement: 
+    - rid: 6183160228663263234
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 0
+        _pattern: 
+        _replacement: 
