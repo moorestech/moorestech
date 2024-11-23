@@ -56,9 +56,10 @@ MonoBehaviour:
             _name:
               _value: Default Asset Group
             _filters:
-              _internalList: []
+              _internalList:
+              - rid: 6374864489364062208
         _addressProviderInternal:
-          rid: 6183160228663263234
+          rid: 6374864489364062212
     _labelRules:
       _internalList: []
     _versionRules:
@@ -80,10 +81,19 @@ MonoBehaviour:
         _replaceWithRegex: 0
         _pattern: 
         _replacement: 
-    - rid: 6183160228663263234
+    - rid: 6374864489364062208
+      type: {class: ObjectBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 671caedd-626d-4aa6-af93-3213065a80b7
+        _folderTargetingMode: 0
+        _object:
+          _isListMode: 0
+          _values:
+          - {fileID: 102900000, guid: 203cba09f3eee4be6be8d023b84262b7, type: 3}
+    - rid: 6374864489364062212
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
         _source: 2
-        _replaceWithRegex: 0
-        _pattern: 
-        _replacement: 
+        _replaceWithRegex: 1
+        _pattern: ^Assets/AdressableResources/(.+?)\.[^/]+$
+        _replacement: Vanilla/$1
