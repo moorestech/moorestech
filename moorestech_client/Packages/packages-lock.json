@@ -386,6 +386,13 @@
       "dependencies": {},
       "hash": "59108ae666060cec1415607ca5a9ae56c23aa8c2"
     },
+    "jp.co.cyberagent.smartaddresser": {
+      "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "96394ae6598399574b7eb261ce2c454e95301ce2"
+    },
     "jp.hadashikick.vcontainer": {
       "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.10.0",
       "depth": 0,

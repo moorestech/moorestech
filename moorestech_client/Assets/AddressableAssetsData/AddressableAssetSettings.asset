@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 00ca334169f2ed44480534a893fe0840
   m_currentHash:
     serializedVersion: 2
-    Hash: aa280463e5625b7ec1fbb4724f1d8688
+    Hash: 00000000000000000000000000000000
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_BundleLocalCatalog: 0
@@ -46,6 +46,7 @@ MonoBehaviour:
   m_GroupAssets:
   - {fileID: 11400000, guid: 6e6880458817bfc42b5e1fb481856a1b, type: 2}
   - {fileID: 11400000, guid: 0d2e3e946188cda45abfe5ab40a0cfeb, type: 2}
+  - {fileID: 11400000, guid: 9703224818d884894a875919eba84532, type: 2}
   m_BuildSettings:
     m_CompileScriptsInVirtualMode: 0
     m_CleanupStreamingAssetsAfterBuilds: 1
@@ -104,6 +105,7 @@ MonoBehaviour:
   m_HostingServicesManager:
     m_HostingServiceInfos: []
     m_Settings: {fileID: 11400000}
-    m_NextInstanceId: 0
-    m_RegisteredServiceTypeRefs: []
+    m_NextInstanceId: 1
+    m_RegisteredServiceTypeRefs:
+    - UnityEditor.AddressableAssets.HostingServices.HttpHostingService, Unity.Addressables.Editor
     m_PingTimeoutInMilliseconds: 5000
