@@ -7,10 +7,10 @@ namespace Client.Game.InGame.UI.Inventory
 {
     public interface ISubInventory
     {
-        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
         public List<IItemStack> SubInventory { get; }
         public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
+        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
     }
     
     public class EmptySubInventory : ISubInventory

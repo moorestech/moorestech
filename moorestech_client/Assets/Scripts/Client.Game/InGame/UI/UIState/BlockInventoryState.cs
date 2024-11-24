@@ -95,7 +95,7 @@ namespace Client.Game.InGame.UI.UIState
             async UniTask UpdateBlockInventory(Vector3Int pos, CancellationToken ct)
             {
                 var response = await ClientContext.VanillaApi.Response.GetBlockInventory(pos, ct);
-                _blockInventory?.SetItemList(response);
+                _blockInventory?.UpdateItemList(response);
             }
             
             void SetUIObject()
@@ -106,7 +106,7 @@ namespace Client.Game.InGame.UI.UIState
                 
                 // UIのオブジェクトをオンにする
                 // Turn on the UI object
-                _blockInventory.OpenBlockInventoryType(blockGameObject);
+                _blockInventory.Initialize(blockGameObject);
                 _playerInventoryViewController.SetActive(true);
                 _playerInventoryViewController.SetSubInventory(_blockInventory);
             }
@@ -122,7 +122,6 @@ namespace Client.Game.InGame.UI.UIState
             
             // ブロックインベントリを閉じる
             // Close the block inventory
-            _blockInventory.CloseBlockInventory();
             _playerInventoryViewController.SetActive(false);
             GameObject.Destroy(_blockInventory.gameObject);
             _blockInventory = null;
