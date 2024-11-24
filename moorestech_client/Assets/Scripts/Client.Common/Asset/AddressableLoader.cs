@@ -7,6 +7,11 @@ namespace Client.Common.Asset
     {
         public static async UniTask<T> LoadAsync<T>(string address)
         {
+            if (string.IsNullOrEmpty(address))
+            {
+                return default;
+            }
+            
             var handle = Addressables.LoadAssetAsync<T>(address);
             await handle.Task;
             
@@ -15,6 +20,11 @@ namespace Client.Common.Asset
         
         public static T Load<T>(string address)
         {
+            if (string.IsNullOrEmpty(address))
+            {
+                return default;
+            }
+            
             var handle = Addressables.LoadAssetAsync<T>(address);
             handle.WaitForCompletion();
             
@@ -23,6 +33,12 @@ namespace Client.Common.Asset
         
         public static bool TryLoad<T>(string address, out T result)
         {
+            if (string.IsNullOrEmpty(address))
+            {
+                result = default;
+                return false;
+            }
+            
             var handle = Addressables.LoadAssetAsync<T>(address);
             if (!handle.IsDone)
             {
