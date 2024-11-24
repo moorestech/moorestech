@@ -95,5 +95,5 @@ MonoBehaviour:
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/AdressableResources/(.+?)\.[^/]+$
+        _pattern: ^Assets/AddressableResources/(.+?)\.[^/]+$
         _replacement: Vanilla/$1

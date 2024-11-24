@@ -17,13 +17,8 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 8eba990dbb1084395a12b2a54be4f5af
   m_SerializeEntries:
-  - m_GUID: 841c330932603ba43a8f6d67d88c889d
-    m_Address: Assets/AddressableResources/UI/Block/ChestInventory.prefab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d9627670ed90c734d8b717b686496e58
-    m_Address: Assets/AddressableResources/UI/Block/BlockInventory.prefab
+    m_Address: Vanilla/UI/Block/BlockInventoryBase
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -12265,7 +12265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1452894970277382369, guid: d9627670ed90c734d8b717b686496e58, type: 3}
       propertyPath: m_Name
-      value: BlockInventory
+      value: BlockInventoryBase
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
