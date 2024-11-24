@@ -21,12 +21,17 @@ namespace Client.Game.InGame.Block
         
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
-            return _blockObjectsDictionary.TryGetValue(position, out var value) ? value : null;
+            return _blockObjectsDictionary.GetValueOrDefault(position);
         }
         
         public bool ContainsBlockGameObject(Vector3Int position)
         {
             return _blockObjectsDictionary.ContainsKey(position);
+        }
+        
+        public bool TryGetBlockGameObject(Vector3Int position, out BlockGameObject blockGameObject)
+        {
+            return _blockObjectsDictionary.TryGetValue(position, out blockGameObject);
         }
         
         
