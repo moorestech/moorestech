@@ -49,6 +49,10 @@
             "default": [1,1,1]
           },
 
+          "blockUIAddressablesPath": {
+            "type": "string"
+          },
+
           "blockParam": {
             "oneOf": [
               {
