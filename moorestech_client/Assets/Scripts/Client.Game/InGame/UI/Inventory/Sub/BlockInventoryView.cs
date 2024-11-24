@@ -20,13 +20,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
-        #region Chest
-        
-        [SerializeField] private RectTransform chestItemParent;
-        [SerializeField] private RectTransform chestSlotsParent;
-        
-        #endregion
-        
         #region Miner
         
         [SerializeField] private RectTransform minerItemParent;
@@ -79,7 +72,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             switch (type)
             {
                 case BlockInventoryType.Chest:
-                    Chest();
                     break;
                 case BlockInventoryType.Miner:
                     Miner();
@@ -99,25 +91,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 foreach (var slotObject in _blockItemSlotObjects) Destroy(slotObject.gameObject);
                 _blockItemSlotObjects.Clear();
                 
-                chestItemParent.gameObject.SetActive(false);
                 minerItemParent.gameObject.SetActive(false);
                 machineUIParent.SetActive(false);
-            }
-            
-            void Chest()
-            {
-                chestItemParent.gameObject.SetActive(true);
-                
-                var itemList = new List<IItemStack>();
-                var chestParam = (ChestBlockParam)param;
-                for (var i = 0; i < chestParam.ChestItemSlotCount; i++)
-                {
-                    var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
-                    _blockItemSlotObjects.Add(slotObject);
-                    itemList.Add(itemStackFactory.CreatEmpty());
-                }
-                
-                SetItemList(itemList);
             }
             
             void Miner()
@@ -234,7 +209,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private void CommonMachineUpdate()
         {
             // ここが重かったら検討
-            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_currentBlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor); 
+            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_currentBlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
             if (commonProcessor == null) return;
             var progressArrow = _currentBlockInventoryType == BlockInventoryType.Miner ? minerProgressArrow : machineProgressArrow;
             progressArrow.SetProgress(commonProcessor.CurrentMachineState?.ProcessingRate ?? 0.0f);
