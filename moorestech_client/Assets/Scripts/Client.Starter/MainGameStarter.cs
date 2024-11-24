@@ -97,7 +97,7 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
         
-        public void StartGame(InitialHandshakeResponse initialHandshakeResponse)
+        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
             
@@ -186,6 +186,8 @@ namespace Client.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
+            
+            return _resolver;
         }
     }
 }
