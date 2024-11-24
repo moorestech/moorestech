@@ -73,7 +73,7 @@ namespace Client.Game.InGame.UI.UIState
                 var path = blockMaster.BlockUIAddressablesPath;
                 if (AddressableLoader.TryLoad<BlockInventoryBase>(path, out var blockInventoryPrefab))
                 {
-                    _blockInventory = ClientContext.DIContainer.Instantiate(blockInventoryPrefab, _playerInventoryViewController.transform);
+                    _blockInventory = ClientContext.DIContainer.Instantiate(blockInventoryPrefab, _playerInventoryViewController.SubInventoryParent);
                     return true;
                 }
                 
