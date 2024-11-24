@@ -50,7 +50,8 @@
           },
 
           "blockUIAddressablesPath": {
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
 
           "blockParam": {
