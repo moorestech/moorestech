@@ -1230,7 +1230,8 @@
       },
       "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de",
       "name": "原始的なチェスト",
-      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed"
+      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory"
     }
   ]
 }

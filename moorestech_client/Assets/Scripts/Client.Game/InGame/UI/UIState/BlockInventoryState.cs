@@ -3,6 +3,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -19,8 +20,8 @@ namespace Client.Game.InGame.UI.UIState
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
         
+        private CancellationTokenSource _loadBlockInventoryCts;
         private BlockInventoryBase _blockInventory;
-        
         private Vector3Int _openBlockPos;
         
         public BlockInventoryState(BlockGameObjectDataStore blockGameObjectDataStore, PlayerInventoryViewController playerInventoryViewController)
@@ -41,18 +42,17 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             BlockGameObject blockGameObject = null;
-            if (!IsBlockOpenable())
+            if (!IsExistBlock())
             {
                 return;
             }
             
-            RequestToServer();
-            
-            SetUIObject();
+            _loadBlockInventoryCts = new CancellationTokenSource();
+            LoadBlockInventory().Forget();
             
             #region Internal
             
-            bool IsBlockOpenable()
+            bool IsExistBlock()
             {
                 if (!BlockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos))
                 {
@@ -68,47 +68,60 @@ namespace Client.Game.InGame.UI.UIState
                     return false;
                 }
                 
+                var blockMaster = blockGameObject.BlockMasterElement;
+                var inventoryPath = blockMaster.BlockUIAddressablesPath;
+                if (string.IsNullOrEmpty(inventoryPath))
+                {
+                    // TODO ログ基盤に入れる
+                    Debug.LogError($"開いたブロックのインベントリのパスがありませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name}");
+
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            async UniTask LoadBlockInventory()
+            {
                 //ブロックインベントリのビューを設定する
                 var blockMaster = blockGameObject.BlockMasterElement;
                 var path = blockMaster.BlockUIAddressablesPath;
-                if (AddressableLoader.TryLoad<BlockInventoryBase>(path, out var blockInventoryPrefab))
+                using var blockInventoryPrefab = await AddressableLoader.LoadAsync<GameObject>(path);
+                if (blockInventoryPrefab == null)
                 {
-                    _blockInventory = ClientContext.DIContainer.Instantiate(blockInventoryPrefab, _playerInventoryViewController.SubInventoryParent);
-                    return true;
+                    // TODO ログ基盤に入れる
+                    Debug.LogError($"ブロックインベントリのビューが取得できませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
+                    return;
+                }
+                if (!blockInventoryPrefab.Asset.TryGetComponent(out BlockInventoryBase blockInventoryComponentPrefab))
+                {
+                    // TODO ログ基盤に入れる
+                    Debug.LogError($"ブロックインベントリのビューにコンポーネントがついていませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
+                    return;
                 }
                 
-                // TODO ログ基盤に入れる
-                Debug.LogError($"ブロックインベントリのビューが取得できませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
-                return false;
-            }
-            
-            void RequestToServer()
-            {
-                // 開いているブロックの設定
-                // Open block settings
-                ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
-                // ブロックのインベントリを取得し、適用する
-                // Get the block inventory and apply it
-                UpdateBlockInventory(_openBlockPos, default).Forget();
-            }
-            
-            async UniTask UpdateBlockInventory(Vector3Int pos, CancellationToken ct)
-            {
-                var response = await ClientContext.VanillaApi.Response.GetBlockInventory(pos, ct);
-                _blockInventory?.UpdateItemList(response);
-            }
-            
-            void SetUIObject()
-            {
+                // check cts
+                if (_loadBlockInventoryCts.IsCancellationRequested) return;
+                
                 // カーソルを表示する
                 // Show cursor
                 InputManager.MouseCursorVisible(true);
                 
-                // UIのオブジェクトをオンにする
-                // Turn on the UI object
+                // UIのオブジェクトを生成し、オンにする
+                // Generate and turn on the UI object
+                _blockInventory = ClientContext.DIContainer.Instantiate(blockInventoryComponentPrefab, _playerInventoryViewController.SubInventoryParent);
                 _blockInventory.Initialize(blockGameObject);
                 _playerInventoryViewController.SetActive(true);
                 _playerInventoryViewController.SetSubInventory(_blockInventory);
+                
+                // check cts
+                if (_loadBlockInventoryCts.IsCancellationRequested) return;
+                
+                // ブロックインベントリのデータを取得する
+                // Get block inventory data
+                ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
+                var response = await ClientContext.VanillaApi.Response.GetBlockInventory(_openBlockPos, _loadBlockInventoryCts.Token);
+                _blockInventory?.UpdateItemList(response);
             }
             
             #endregion
@@ -116,14 +129,23 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnExit()
         {
+            _loadBlockInventoryCts?.Cancel();
+            
             // ブロックを閉じる設定
             // Close block settings
             ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
             
+            // サブインベントリを空にする
+            // Set the sub inventory to empty
+            _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
+            
             // ブロックインベントリを閉じる
             // Close the block inventory
             _playerInventoryViewController.SetActive(false);
-            GameObject.Destroy(_blockInventory.gameObject);
+            if (_blockInventory != null)
+            {
+                Object.Destroy(_blockInventory.gameObject);
+            }
             _blockInventory = null;
         }
         

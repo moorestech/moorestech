@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 
@@ -5,49 +7,38 @@ namespace Client.Common.Asset
 {
     public class AddressableLoader
     {
-        public static async UniTask<T> LoadAsync<T>(string address)
+        public static async UniTask<LoadedAsset<T>> LoadAsync<T>(string address) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(address))
             {
-                return default;
+                return null;
             }
             
             var handle = Addressables.LoadAssetAsync<T>(address);
             await handle.Task;
             
-            return handle.Result;
+            return new LoadedAsset<T>(handle.Result);
         }
         
-        public static T Load<T>(string address)
+        public bool AssetExists(string address)
         {
-            if (string.IsNullOrEmpty(address))
-            {
-                return default;
-            }
-            
-            var handle = Addressables.LoadAssetAsync<T>(address);
-            handle.WaitForCompletion();
-            
-            return handle.Result;
+            var locations = Addressables.LoadResourceLocationsAsync(address).WaitForCompletion();
+            return locations.Any();
+        }
+    }
+    
+    public class LoadedAsset<T> : IDisposable where T : UnityEngine.Object
+    {
+        public T Asset { get; }
+        
+        public LoadedAsset(T asset)
+        {
+            Asset = asset;
         }
         
-        public static bool TryLoad<T>(string address, out T result)
+        public void Dispose()
         {
-            if (string.IsNullOrEmpty(address))
-            {
-                result = default;
-                return false;
-            }
-            
-            var handle = Addressables.LoadAssetAsync<T>(address);
-            if (!handle.IsDone)
-            {
-                result = default;
-                return false;
-            }
-            
-            result = handle.Result;
-            return true;
+            Addressables.Release(Asset);
         }
     }
 }
