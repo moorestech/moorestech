@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public abstract class BlockInventoryBase : MonoBehaviour, ISubInventory
+    public abstract class BlockInventoryBase : MonoBehaviour, IBlockInventory
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public int Count => _blockItemSlotObjects.Count;
@@ -16,7 +16,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; protected set; }
         
         public abstract void Initialize(BlockGameObject blockGameObject);
-        
         
         public void UpdateItemList(List<IItemStack> response)
         {
@@ -32,6 +31,10 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
             SubInventory[slot] = item;
+        }
+        public void DestroyUI()
+        {
+            Destroy(gameObject);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.UIState
         private readonly PlayerInventoryViewController _playerInventoryViewController;
         
         private CancellationTokenSource _loadBlockInventoryCts;
-        private BlockInventoryBase _blockInventory;
+        private IBlockInventory _blockInventory;
         private Vector3Int _openBlockPos;
         
         public BlockInventoryState(BlockGameObjectDataStore blockGameObjectDataStore, PlayerInventoryViewController playerInventoryViewController)
@@ -39,6 +39,7 @@ namespace Client.Game.InGame.UI.UIState
             return UIStateEnum.Current;
         }
         
+        // ReSharper disable Unity.PerformanceAnalysis
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             BlockGameObject blockGameObject = null;
@@ -86,14 +87,14 @@ namespace Client.Game.InGame.UI.UIState
                 //ブロックインベントリのビューを設定する
                 var blockMaster = blockGameObject.BlockMasterElement;
                 var path = blockMaster.BlockUIAddressablesPath;
-                using var blockInventoryPrefab = await AddressableLoader.LoadAsync<GameObject>(path);
-                if (blockInventoryPrefab == null)
+                using var loadedInventory = await AddressableLoader.LoadAsync<GameObject>(path);
+                if (loadedInventory == null)
                 {
                     // TODO ログ基盤に入れる
                     Debug.LogError($"ブロックインベントリのビューが取得できませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
                     return;
                 }
-                if (!blockInventoryPrefab.Asset.TryGetComponent(out BlockInventoryBase blockInventoryComponentPrefab))
+                if (!loadedInventory.Asset.TryGetComponent(out IBlockInventory _))
                 {
                     // TODO ログ基盤に入れる
                     Debug.LogError($"ブロックインベントリのビューにコンポーネントがついていませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
@@ -109,7 +110,7 @@ namespace Client.Game.InGame.UI.UIState
                 
                 // UIのオブジェクトを生成し、オンにする
                 // Generate and turn on the UI object
-                _blockInventory = ClientContext.DIContainer.Instantiate(blockInventoryComponentPrefab, _playerInventoryViewController.SubInventoryParent);
+                _blockInventory = ClientContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent).GetComponent<IBlockInventory>();
                 _blockInventory.Initialize(blockGameObject);
                 _playerInventoryViewController.SetActive(true);
                 _playerInventoryViewController.SetSubInventory(_blockInventory);
@@ -142,10 +143,7 @@ namespace Client.Game.InGame.UI.UIState
             // ブロックインベントリを閉じる
             // Close the block inventory
             _playerInventoryViewController.SetActive(false);
-            if (_blockInventory != null)
-            {
-                Object.Destroy(_blockInventory.gameObject);
-            }
+            _blockInventory?.DestroyUI();
             _blockInventory = null;
         }
         
