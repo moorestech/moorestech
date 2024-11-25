@@ -58,7 +58,6 @@ namespace Client.Starter
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
-        [SerializeField] private BlockInventoryView blockInventoryView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -97,7 +96,7 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
         
-        public void StartGame(InitialHandshakeResponse initialHandshakeResponse)
+        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
             
@@ -156,7 +155,6 @@ namespace Client.Starter
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(playerInventoryViewController);
-            builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(challengeManager);
             builder.RegisterComponent(craftInventoryView);
             builder.RegisterComponent(machineRecipeView);
@@ -186,6 +184,8 @@ namespace Client.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
+            
+            return _resolver;
         }
     }
 }

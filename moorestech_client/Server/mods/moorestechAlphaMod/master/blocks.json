@@ -19,7 +19,8 @@
         }
       },
       "name": "原始的な溶鉱炉",
-      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a"
+      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "maxStack": 100,
@@ -212,7 +213,8 @@
         }
       },
       "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
-      "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257"
+      "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "blockSize": [
@@ -237,7 +239,8 @@
         }
       },
       "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311",
-      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf"
+      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "blockSize": [
@@ -1029,7 +1032,8 @@
           ]
         }
       },
-      "name": "ブロンズ採掘機Mk2"
+      "name": "ブロンズ採掘機Mk2",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory"
     },
     {
       "blockSize": [
@@ -1098,7 +1102,8 @@
           ]
         }
       },
-      "name": "ブロンズ採掘機"
+      "name": "ブロンズ採掘機",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory"
     },
     {
       "maxStack": 100,

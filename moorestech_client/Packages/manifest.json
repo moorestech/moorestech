@@ -34,6 +34,7 @@
     "com.yasirkula.ingamedebugconsole": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
     "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git",
     "com.yujiap.project-window-history": "https://github.com/Yusuke57/ProjectWindowHistory.git",
+    "jp.co.cyberagent.smartaddresser": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",
     "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.10.0",
     "tech.moores.server": "file:../../moorestech_server/Assets/Scripts",
     "com.unity.modules.ai": "1.0.0",

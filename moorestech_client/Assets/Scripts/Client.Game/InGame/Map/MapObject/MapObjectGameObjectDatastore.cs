@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Map.MapObject
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
             //イベント登録
-            ClientContext.VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
             
             // mapObjectの破壊状況の初期設定
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);

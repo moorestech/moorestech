@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Vanilla Asset Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Vanilla Asset Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 8eba990dbb1084395a12b2a54be4f5af
+  m_SerializeEntries:
+  - m_GUID: d9627670ed90c734d8b717b686496e58
+    m_Address: Vanilla/UI/Block/BlockInventoryBase
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5c41742aeff527340b758e7573cfcd16
+    m_Address: Vanilla/UI/Block/ChestBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9eeb8bbe6d88443e9b523c4b3ed49807
+    m_Address: Vanilla/UI/Block/GeneratorBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 66eda3b52bab641adbe9cf4aeeec9e24
+    m_Address: Vanilla/UI/Block/MachineBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 04086b712784245edabb8cc70b56f27a
+    m_Address: Vanilla/UI/Block/MinerBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 76050ed323fde4737a214c9191c83137, type: 2}
+    - {fileID: 11400000, guid: 2abf1fae97e1a490593c9c313612c39c, type: 2}
