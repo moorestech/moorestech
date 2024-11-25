@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Client.Common.Asset
 {
@@ -17,13 +18,7 @@ namespace Client.Common.Asset
             var handle = Addressables.LoadAssetAsync<T>(address);
             await handle.Task;
             
-            return new LoadedAsset<T>(handle.Result);
-        }
-        
-        public bool AssetExists(string address)
-        {
-            var locations = Addressables.LoadResourceLocationsAsync(address).WaitForCompletion();
-            return locations.Any();
+            return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
         }
     }
     
