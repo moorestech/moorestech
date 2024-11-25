@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public class ChestBlockInventory : BlockInventoryBase
+    public class ChestCommonBlockInventory : CommonBlockInventoryBase
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public abstract class BlockInventoryBase : MonoBehaviour, IBlockInventory
+    public abstract class CommonBlockInventoryBase : MonoBehaviour, IBlockInventory
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public int Count => _blockItemSlotObjects.Count;
