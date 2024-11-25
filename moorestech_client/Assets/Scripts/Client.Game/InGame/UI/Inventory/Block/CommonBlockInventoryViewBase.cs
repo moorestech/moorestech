@@ -13,7 +13,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
     /// This is the class of the basic block with inventory. If you have a block that has a normal inventory, you can implement it by inheriting from this class.
     /// If you need to write dedicated processing to prevent class bloat, create a new class that implements <see cref="IBlockInventoryView"/>.
     /// </summary>
-    public abstract class CommonIIBlockInventoryViewBase : MonoBehaviour, IBlockInventoryView
+    public abstract class CommonBlockInventoryViewBase : MonoBehaviour, IBlockInventoryView
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public int Count => _blockItemSlotObjects.Count;
