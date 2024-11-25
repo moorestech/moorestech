@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.UIState
         private readonly PlayerInventoryViewController _playerInventoryViewController;
         
         private CancellationTokenSource _loadBlockInventoryCts;
-        private IBlockInventoryVIew _iBlockInventoryVIew;
+        private IBlockInventoryView _iIBlockInventoryView;
         private Vector3Int _openBlockPos;
         
         public BlockInventoryState(BlockGameObjectDataStore blockGameObjectDataStore, PlayerInventoryViewController playerInventoryViewController)
@@ -94,7 +94,7 @@ namespace Client.Game.InGame.UI.UIState
                     Debug.LogError($"ブロックインベントリのビューが取得できませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
                     return;
                 }
-                if (!loadedInventory.Asset.TryGetComponent(out IBlockInventoryVIew _))
+                if (!loadedInventory.Asset.TryGetComponent(out IBlockInventoryView _))
                 {
                     // TODO ログ基盤に入れる
                     Debug.LogError($"ブロックインベントリのビューにコンポーネントがついていませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name} Path:{path}");
@@ -110,10 +110,10 @@ namespace Client.Game.InGame.UI.UIState
                 
                 // UIのオブジェクトを生成し、オンにする
                 // Generate and turn on the UI object
-                _iBlockInventoryVIew = ClientContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent).GetComponent<IBlockInventoryVIew>();
-                _iBlockInventoryVIew.Initialize(blockGameObject);
+                _iIBlockInventoryView = ClientContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent).GetComponent<IBlockInventoryView>();
+                _iIBlockInventoryView.Initialize(blockGameObject);
                 _playerInventoryViewController.SetActive(true);
-                _playerInventoryViewController.SetSubInventory(_iBlockInventoryVIew);
+                _playerInventoryViewController.SetSubInventory(_iIBlockInventoryView);
                 
                 // check cts
                 if (_loadBlockInventoryCts.IsCancellationRequested) return;
@@ -122,7 +122,7 @@ namespace Client.Game.InGame.UI.UIState
                 // Get block inventory data
                 ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
                 var response = await ClientContext.VanillaApi.Response.GetBlockInventory(_openBlockPos, _loadBlockInventoryCts.Token);
-                _iBlockInventoryVIew?.UpdateItemList(response);
+                _iIBlockInventoryView?.UpdateItemList(response);
             }
             
             #endregion
@@ -143,17 +143,17 @@ namespace Client.Game.InGame.UI.UIState
             // ブロックインベントリを閉じる
             // Close the block inventory
             _playerInventoryViewController.SetActive(false);
-            _iBlockInventoryVIew?.DestroyUI();
-            _iBlockInventoryVIew = null;
+            _iIBlockInventoryView?.DestroyUI();
+            _iIBlockInventoryView = null;
         }
         
         private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
         {
-            if (_iBlockInventoryVIew == null) return;
+            if (_iIBlockInventoryView == null) return;
             
             var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
             var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
-            _iBlockInventoryVIew.UpdateInventorySlot(packet.Slot, item);
+            _iIBlockInventoryView.UpdateInventorySlot(packet.Slot, item);
         }
     }
 }

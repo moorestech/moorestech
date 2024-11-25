@@ -4,7 +4,7 @@ using Core.Item.Interface;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public interface IBlockInventoryVIew : ISubInventory
+    public interface IBlockInventoryView : ISubInventory
     {
         public void Initialize(BlockGameObject blockGameObject);
         public void UpdateItemList(List<IItemStack> response);

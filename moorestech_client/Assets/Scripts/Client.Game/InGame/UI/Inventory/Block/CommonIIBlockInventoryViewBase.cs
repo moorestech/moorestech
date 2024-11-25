@@ -9,11 +9,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     /// <summary>
     /// インベントリを持つ基本的なブロックのクラスです。通常のインベントリを持つようなブロックであればこれを継承して実装してください。
-    /// クラスの肥大化防止の為、専用処理を書かないといけなくなったときは<see cref="IBlockInventoryVIew"/>を実装した新たなクラスを作成してください。
+    /// クラスの肥大化防止の為、専用処理を書かないといけなくなったときは<see cref="IBlockInventoryView"/>を実装した新たなクラスを作成してください。
     /// This is the class of the basic block with inventory. If you have a block that has a normal inventory, you can implement it by inheriting from this class.
-    /// If you need to write dedicated processing to prevent class bloat, create a new class that implements <see cref="IBlockInventoryVIew"/>.
+    /// If you need to write dedicated processing to prevent class bloat, create a new class that implements <see cref="IBlockInventoryView"/>.
     /// </summary>
-    public abstract class CommonIBlockInventoryVIewBase : MonoBehaviour, IBlockInventoryVIew
+    public abstract class CommonIIBlockInventoryViewBase : MonoBehaviour, IBlockInventoryView
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public int Count => _blockItemSlotObjects.Count;
