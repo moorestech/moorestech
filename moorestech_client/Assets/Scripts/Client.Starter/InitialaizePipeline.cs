@@ -62,21 +62,24 @@ namespace Client.Starter
             await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets(), LoadItemAssets(), MainGameSceneLoad());
             
             //staticアクセスできるコンテキストの作成
-            new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
+            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
             sceneLoadTask.allowSceneActivation = true;
+            
+            
+            #region Internal
             
             //初期データを渡す処理
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
                 var starter = FindObjectOfType<MainGameStarter>();
-                starter.StartGame(handshakeResponse);
+                var resolver = starter.StartGame(handshakeResponse);
+                var diContainer = new DIContainer(resolver);
+                clientContext.SetDIContainer(diContainer);
             }
-            
-            #region Internal
             
             async UniTask CreateAndStartVanillaApi()
             {

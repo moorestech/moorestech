@@ -30,8 +30,8 @@ namespace Client.Game.InGame.World
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
-            ClientContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
-            ClientContext.VanillaApi.Event.RegisterEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
         }
         
         public void Initialize()

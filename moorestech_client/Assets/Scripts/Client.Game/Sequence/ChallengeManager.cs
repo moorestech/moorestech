@@ -38,7 +38,7 @@ namespace Client.Game.Sequence
                 var currentChallenge = initialHandshakeResponse.Challenge.CurrentChallenges.First();
                 if (currentChallenge != null) currentChallengeSummary.text = currentChallenge.Summary;
                 
-                ClientContext.VanillaApi.Event.RegisterEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
+                ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
                 
                 // チュートリアルの適用
                 // Apply tutorial

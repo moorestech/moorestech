@@ -5,13 +5,14 @@ using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Network.API
 {
     public class VanillaApiEvent
     {
-        private readonly Dictionary<string, Action<byte[]>> _eventResponseInfos = new();
+        private readonly Dictionary<string, Subject<byte[]>> _eventResponseSubjects = new();
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
         
@@ -49,21 +50,25 @@ namespace Client.Network.API
                 var response = await _packetExchangeManager.GetPacketResponse<ResponseEventProtocolMessagePack>(request, ct);
                 
                 foreach (var eventMessagePack in response.Events)
-                    if (_eventResponseInfos.TryGetValue(eventMessagePack.Tag, out var action))
-                        action(eventMessagePack.Payload);
+                {
+                    if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subjects)) continue;
+                    
+                    subjects.OnNext(eventMessagePack.Payload);
+                }
             }
             
             #endregion
         }
         
-        public void RegisterEventResponse(string tag, Action<byte[]> responseAction)
+        public IDisposable SubscribeEventResponse(string tag, Action<byte[]> responseAction)
         {
-            _eventResponseInfos.Add(tag, responseAction);
-        }
-        
-        public void UnRegisterEventResponse(string tag)
-        {
-            _eventResponseInfos.Remove(tag);
+            if (!_eventResponseSubjects.TryGetValue(tag, out var subject))
+            {
+                subject = new Subject<byte[]>();
+                _eventResponseSubjects.Add(tag, subject);
+            }
+            
+            return subject.Subscribe(responseAction);
         }
     }
 }

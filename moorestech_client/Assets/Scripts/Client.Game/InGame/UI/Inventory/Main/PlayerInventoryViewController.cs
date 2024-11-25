@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClassLibrary;
-using Client.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Input;
-using Core.Const;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -26,6 +24,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;
+        
+        public Transform SubInventoryParent => subInventoryParent.transform;
+        [SerializeField] private Transform subInventoryParent;
         
         //現在スプリットドラッグしているスロットのリスト
         private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
