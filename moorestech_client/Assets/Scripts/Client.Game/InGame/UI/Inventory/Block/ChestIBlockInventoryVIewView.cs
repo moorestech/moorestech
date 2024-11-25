@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public class ChestBlockInventory : CommonBlockInventoryBase
+    public class ChestIBlockInventoryVIewView : CommonIBlockInventoryVIewBase
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
@@ -17,6 +17,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
+            base.Initialize(blockGameObject);
+            
             // Set ItemMoveInventoryInfo
             var pos = blockGameObject.BlockPosInfo.OriginalPos;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, pos);
