@@ -26,6 +26,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
+            _blockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
             var param = blockGameObject.BlockMasterElement.BlockParam;

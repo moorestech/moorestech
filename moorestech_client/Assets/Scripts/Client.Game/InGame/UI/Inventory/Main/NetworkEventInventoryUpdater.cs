@@ -1,5 +1,4 @@
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Sub;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -9,13 +8,11 @@ namespace Client.Game.InGame.UI.Inventory.Main
 {
     public class NetworkEventInventoryUpdater : IInitializable
     {
-        private readonly BlockInventoryView _blockInventoryView;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         
-        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController, BlockInventoryView blockInventoryView)
+        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController)
         {
             _localPlayerInventoryController = localPlayerInventoryController;
-            _blockInventoryView = blockInventoryView;
         }
         
         public void Initialize()
