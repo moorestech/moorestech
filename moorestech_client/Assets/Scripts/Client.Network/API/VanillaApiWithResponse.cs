@@ -67,7 +67,7 @@ namespace Client.Network.API
             
             async UniTask GetBlockStates()
             {
-                blockStates = await GetCurrentBlockState(ct);
+                blockStates = await GetAllBlockState(ct);
             }
             
             #endregion
@@ -152,12 +152,20 @@ namespace Client.Network.API
             return new ChallengeResponse(current, completed);
         }
         
-        public async UniTask<List<BlockStateMessagePack>> GetCurrentBlockState(CancellationToken ct)
+        public async UniTask<List<BlockStateMessagePack>> GetAllBlockState(CancellationToken ct)
         {
-            var request = new RequestBlockStateProtocolMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateProtocolMessagePack>(request, ct);
+            var request = new RequestAllBlockStateProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseAllBlockStateProtocolMessagePack>(request, ct);
             
             return response.StateList;
+        }
+        
+        public async UniTask<BlockStateMessagePack> GetBlockState(Vector3Int blockPos, CancellationToken ct)
+        {
+            var request = new RequestBlockStateMessagePack(blockPos);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateMessagePack>(request, ct);
+            
+            return response.State;
         }
     }
 }

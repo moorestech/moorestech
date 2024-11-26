@@ -4,6 +4,8 @@ using Game.Context;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -17,41 +19,48 @@ namespace Server.Protocol.PacketResponse
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            var stateList = new List<BlockStateMessagePack>();
-            foreach (var block in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
+            var data = MessagePackSerializer.Deserialize<RequestBlockStateProtocolMessagePack>(payload.ToArray());
+            
+            var block = ServerContext.WorldBlockDatastore.GetBlock(data.Position.Vector3Int);
+            if (block == null)
             {
-                var pos = block.BlockPositionInfo.OriginalPos;
-                var state = block.Block.GetBlockState();
-                if (state != null) stateList.Add(new BlockStateMessagePack(state, pos));
+                return new ResponseBlockStateProtocolMessagePack(null);
             }
             
-            return new ResponseBlockStateProtocolMessagePack(stateList);
+            var blockState = block.GetBlockState();
+            
+            return new ResponseBlockStateProtocolMessagePack(new BlockStateMessagePack(blockState, data.Position.Vector3Int));
         }
     }
+    
     
     [MessagePackObject]
     public class RequestBlockStateProtocolMessagePack : ProtocolMessagePackBase
     {
-        public RequestBlockStateProtocolMessagePack()
+        [Key(2)] public Vector3IntMessagePack Position { get; set; }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public RequestBlockStateProtocolMessagePack() { }
+        
+        public RequestBlockStateProtocolMessagePack(Vector3Int pos)
         {
-            Tag = BlockStateProtocol.Tag;
+            Tag = AllBlockStateProtocol.Tag;
+            Position = new Vector3IntMessagePack(pos);
         }
     }
     
     [MessagePackObject]
     public class ResponseBlockStateProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Key(2)] public List<BlockStateMessagePack> StateList { get; set; }
+        [Key(2)] public BlockStateMessagePack State { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseBlockStateProtocolMessagePack()
-        {
-        }
+        public ResponseBlockStateProtocolMessagePack() { }
         
-        public ResponseBlockStateProtocolMessagePack(List<BlockStateMessagePack> stateList)
+        public ResponseBlockStateProtocolMessagePack(BlockStateMessagePack state)
         {
-            Tag = BlockStateProtocol.Tag;
-            StateList = stateList;
+            Tag = AllBlockStateProtocol.Tag;
+            State = state;
         }
     }
 }

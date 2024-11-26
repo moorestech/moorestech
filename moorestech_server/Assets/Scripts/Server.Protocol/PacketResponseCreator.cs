@@ -32,6 +32,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.Tag, new MapObjectAcquisitionProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.Tag, new GetChallengeInfoProtocol(serviceProvider));
+            _packetResponseDictionary.Add(AllBlockStateProtocol.Tag, new AllBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockStateProtocol.Tag, new BlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.Tag, new DebugBlockInfoRequestProtocol(serviceProvider));
         }
