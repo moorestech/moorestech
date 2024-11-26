@@ -21,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem
             ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag,
                 payload =>
                 {
-                    var data = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payload);
+                    var data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
                     ChangeState(data);
                 });
         }
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem
             foreach (var state in _initialHandshakeResponse.BlockStates) ChangeState(state);
         }
         
-        private void ChangeState(ChangeBlockStateMessagePack state)
+        private void ChangeState(BlockStateMessagePack state)
         {
             var pos = state.Position;
             if (!_blockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))

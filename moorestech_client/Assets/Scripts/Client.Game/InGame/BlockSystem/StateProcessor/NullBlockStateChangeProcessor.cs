@@ -7,7 +7,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public class NullBlockStateChangeProcessor : IBlockStateChangeProcessor
     {
-        public void OnChangeState(ChangeBlockStateMessagePack blockState)
+        public void OnChangeState(BlockStateMessagePack blockState)
         {
         }
     }

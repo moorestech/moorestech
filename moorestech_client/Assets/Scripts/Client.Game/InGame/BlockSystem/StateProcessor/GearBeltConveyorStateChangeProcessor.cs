@@ -15,7 +15,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         private Vector2 _offset;
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
         
-        public void OnChangeState(ChangeBlockStateMessagePack blockState)
+        public void OnChangeState(BlockStateMessagePack blockState)
         {
             CurrentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }
