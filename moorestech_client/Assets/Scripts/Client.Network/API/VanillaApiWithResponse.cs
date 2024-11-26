@@ -36,7 +36,7 @@ namespace Client.Network.API
             WorldDataResponse worldData = null;
             PlayerInventoryResponse inventory = null;
             ChallengeResponse challenge = null;
-            List<ChangeBlockStateMessagePack> blockStates = null;
+            List<BlockStateMessagePack> blockStates = null;
             
             //必要なデータを取得する
             await UniTask.WhenAll(GetMapObjects(), GetWorld(), GetInventory(), GetChallenge(), GetBlockStates());
@@ -152,7 +152,7 @@ namespace Client.Network.API
             return new ChallengeResponse(current, completed);
         }
         
-        public async UniTask<List<ChangeBlockStateMessagePack>> GetCurrentBlockState(CancellationToken ct)
+        public async UniTask<List<BlockStateMessagePack>> GetCurrentBlockState(CancellationToken ct)
         {
             var request = new RequestBlockStateProtocolMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateProtocolMessagePack>(request, ct);

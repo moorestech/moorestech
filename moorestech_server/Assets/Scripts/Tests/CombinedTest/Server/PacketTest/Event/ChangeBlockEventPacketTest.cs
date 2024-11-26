@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var payLoad = eventMessagePack.Events[0].Payload;
             
-            var changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateMessagePack>(payLoad);
+            var changeStateData = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payLoad);
             var stateDetail = changeStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
             
             Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, stateDetail.PreviousStateType);

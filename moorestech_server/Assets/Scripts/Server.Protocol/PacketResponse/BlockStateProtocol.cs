@@ -17,12 +17,12 @@ namespace Server.Protocol.PacketResponse
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            var stateList = new List<ChangeBlockStateMessagePack>();
+            var stateList = new List<BlockStateMessagePack>();
             foreach (var block in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
             {
                 var pos = block.BlockPositionInfo.OriginalPos;
                 var state = block.Block.GetBlockState();
-                if (state != null) stateList.Add(new ChangeBlockStateMessagePack(state, pos));
+                if (state != null) stateList.Add(new BlockStateMessagePack(state, pos));
             }
             
             return new ResponseBlockStateProtocolMessagePack(stateList);
@@ -41,17 +41,17 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class ResponseBlockStateProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)] public List<BlockStateMessagePack> StateList { get; set; }
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseBlockStateProtocolMessagePack()
         {
         }
         
-        public ResponseBlockStateProtocolMessagePack(List<ChangeBlockStateMessagePack> stateList)
+        public ResponseBlockStateProtocolMessagePack(List<BlockStateMessagePack> stateList)
         {
             Tag = BlockStateProtocol.Tag;
             StateList = stateList;
         }
-        
-        [Key(2)] public List<ChangeBlockStateMessagePack> StateList { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace Server.Event.EventReceive
         
         private void ChangeState((BlockState state, WorldBlockData blockData) state)
         {
-            var messagePack = new ChangeBlockStateMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
+            var messagePack = new BlockStateMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
@@ -32,8 +32,11 @@ namespace Server.Event.EventReceive
     }
     
     [MessagePackObject]
-    public class ChangeBlockStateMessagePack
+    public class BlockStateMessagePack
     {
+        /// <summary>
+        /// key Component key, value Component state
+        /// </summary>
         [Key(0)] public Dictionary<string,byte[]> CurrentStateDetail { get; set; }
         
         [Key(1)] public Vector3IntMessagePack Position { get; set; } // TODO ここをinstanceIdに変更する？
@@ -44,11 +47,11 @@ namespace Server.Event.EventReceive
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ChangeBlockStateMessagePack()
+        public BlockStateMessagePack()
         {
         }
         
-        public ChangeBlockStateMessagePack(BlockState state, Vector3Int pos)
+        public BlockStateMessagePack(BlockState state, Vector3Int pos)
         {
             CurrentStateDetail = state.CurrentStateDetails;
             Position = new Vector3IntMessagePack(pos);
