@@ -17,11 +17,6 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 8eba990dbb1084395a12b2a54be4f5af
   m_SerializeEntries:
-  - m_GUID: d9627670ed90c734d8b717b686496e58
-    m_Address: Vanilla/UI/Block/BlockInventoryBase
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5c41742aeff527340b758e7573cfcd16
     m_Address: Vanilla/UI/Block/ChestBlockInventory
     m_ReadOnly: 0
