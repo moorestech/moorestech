@@ -19,10 +19,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             base.Initialize(blockGameObject);
             
-            // Set ItemMoveInventoryInfo
-            var pos = blockGameObject.BlockPosInfo.OriginalPos;
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, pos);
-            
             // アイテムリストを初期化
             // Initialize item list
             var itemList = new List<IItemStack>();
