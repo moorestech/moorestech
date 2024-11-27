@@ -1,8 +1,5 @@
 using Client.Network.API;
 using Client.Network.Settings;
-using UnityEngine;
-using VContainer;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.Context
 {
