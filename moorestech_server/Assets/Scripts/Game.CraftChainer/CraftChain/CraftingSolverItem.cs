@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using MessagePack;
 using Newtonsoft.Json;
 
 namespace Game.CraftChainer.CraftChain
@@ -16,11 +17,11 @@ namespace Game.CraftChainer.CraftChain
         }
     }
     
-    [JsonObject]
+    [JsonObject, MessagePackObject]
     public class CraftingSolverItemJsonObject
     {
-        [JsonProperty("itemGuid")] public string ItemGuid;
-        [JsonProperty("quantity")] public int Quantity;
+        [JsonProperty("itemGuid"), Key(0)] public string ItemGuid;
+        [JsonProperty("quantity"), Key(1)] public int Quantity;
         
         public CraftingSolverItemJsonObject() { }
         public CraftingSolverItemJsonObject(CraftingSolverItem craftingSolverItem)

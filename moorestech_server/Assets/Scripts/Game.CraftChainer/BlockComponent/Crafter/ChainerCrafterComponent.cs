@@ -1,24 +1,24 @@
 using System.Collections.Generic;
+using Game.Block.Interface.Component;
 using Game.CraftChainer.CraftChain;
 using Game.CraftChainer.CraftNetwork;
+using MessagePack;
 using Newtonsoft.Json;
 
 namespace Game.CraftChainer.BlockComponent.Crafter
 {
-    public class ChainerCrafterComponent : ICraftChainerNode
+    public class ChainerCrafterComponent : ICraftChainerNode, IBlockStateDetail
     {
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
         public CraftingSolverRecipe CraftingSolverRecipe { get; private set; }
         
-        public ChainerCrafterComponent()
-        {
-        }
+        public ChainerCrafterComponent() { }
         
         public ChainerCrafterComponent(Dictionary<string, string> componentStates) : this()
         {
             var state = componentStates[SaveKey];
-            var jsonObject = JsonConvert.DeserializeObject<ChainerCrafterComponentJsonObject>(state);
+            var jsonObject = JsonConvert.DeserializeObject<ChainerCrafterComponentSerializeObject>(state);
             CraftingSolverRecipe = jsonObject.Recipe.ToCraftingSolverRecipe();
             NodeId = new CraftChainerNodeId(jsonObject.NodeId);
         }
@@ -36,23 +36,31 @@ namespace Game.CraftChainer.BlockComponent.Crafter
             IsDestroy = true;
         }
         
+        public BlockStateDetail GetBlockStateDetail()
+        {
+            var bytes = MessagePackSerializer.Serialize(new ChainerCrafterComponentSerializeObject(this));
+            return new BlockStateDetail(ChainerCrafterComponentSerializeObject.StateDetailKey, bytes);
+        }
+        
         public string SaveKey { get; } = typeof(ChainerCrafterComponent).FullName;
         public string GetSaveState()
         {
-            return JsonConvert.SerializeObject(new ChainerCrafterComponentJsonObject(this));
+            return JsonConvert.SerializeObject(new ChainerCrafterComponentSerializeObject(this));
         }
     }
     
-    [JsonObject]
-    public class ChainerCrafterComponentJsonObject
+    [JsonObject, MessagePackObject]
+    public class ChainerCrafterComponentSerializeObject
     {
-        [JsonProperty("recipe")] public CraftingSolverRecipeJsonObject Recipe { get; set; }
-        [JsonProperty("nodeId")] public int NodeId { get; set; }
+        public const string StateDetailKey = "ChainerCrafterComponent";
         
-        public ChainerCrafterComponentJsonObject(){}
-        public ChainerCrafterComponentJsonObject(ChainerCrafterComponent component)
+        [JsonProperty("recipe"), Key(0)] public CraftingSolverRecipeSerializeObject Recipe { get; set; }
+        [JsonProperty("nodeId"), Key(1)] public int NodeId { get; set; }
+        
+        public ChainerCrafterComponentSerializeObject(){}
+        public ChainerCrafterComponentSerializeObject(ChainerCrafterComponent component)
         {
-            Recipe = new CraftingSolverRecipeJsonObject(component.CraftingSolverRecipe);
+            Recipe = new CraftingSolverRecipeSerializeObject(component.CraftingSolverRecipe);
             NodeId = component.NodeId.AsPrimitive();
         }
     }

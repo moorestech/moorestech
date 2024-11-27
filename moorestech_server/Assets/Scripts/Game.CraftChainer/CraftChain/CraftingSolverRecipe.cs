@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MessagePack;
 using Newtonsoft.Json;
 using UnitGenerator;
 
@@ -31,16 +32,16 @@ namespace Game.CraftChainer.CraftChain
         }
     }
     
-    [JsonObject]
-    public class CraftingSolverRecipeJsonObject
+    [JsonObject, MessagePackObject]
+    public class CraftingSolverRecipeSerializeObject
     {
-        [JsonProperty("recipeId")] public int RecipeId;
-        [JsonProperty("inputs")] public List<CraftingSolverItemJsonObject> Inputs;
-        [JsonProperty("outputs")] public List<CraftingSolverItemJsonObject> Outputs;
+        [JsonProperty("recipeId"), Key(0)] public int RecipeId;
+        [JsonProperty("inputs"), Key(1)] public List<CraftingSolverItemJsonObject> Inputs;
+        [JsonProperty("outputs"), Key(2)] public List<CraftingSolverItemJsonObject> Outputs;
         
-        public CraftingSolverRecipeJsonObject() { }
+        public CraftingSolverRecipeSerializeObject() { }
 
-        public CraftingSolverRecipeJsonObject(CraftingSolverRecipe craftingSolverRecipe)
+        public CraftingSolverRecipeSerializeObject(CraftingSolverRecipe craftingSolverRecipe)
         {
             RecipeId = craftingSolverRecipe.CraftingSolverRecipeId.AsPrimitive();
             Inputs = new List<CraftingSolverItemJsonObject>();
