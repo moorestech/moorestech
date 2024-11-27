@@ -17,14 +17,14 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         [SerializeField] private TMP_InputField countInputField;
         
         [SerializeField] private Button okButton;
+        [SerializeField] private Button clearButton;
         
         private readonly List<ItemSlotObject> _itemSlotObjects = new();
         
         private ItemId _selectedItemId;
         
-        public async UniTask<(ItemId,int)> Initialize(ItemId currentItemId, int currentCount)
+        public void Initialize()
         {
-            _selectedItemId = currentItemId;
             // アイテムリストを初期化
             // Initialize item list
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
@@ -34,20 +34,33 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
                 slotObject.OnLeftClickUp.Subscribe(ClickItem);
                 slotObject.SetItem(itemView, 0);
                 _itemSlotObjects.Add(slotObject);
-                
-                if (itemId == currentItemId)
+            }
+        }
+        
+        public async UniTask<(ItemId,int)> GetSelectItem(ItemId currentItemId, int currentCount)
+        {
+            _selectedItemId = currentItemId;
+            
+            foreach (var slotObject in _itemSlotObjects)
+            {
+                slotObject.SetHotBarSelect(false);
+                if (slotObject.ItemViewData.ItemId == currentItemId)
                 {
                     slotObject.SetHotBarSelect(true);
                 }
             }
             
-            if (currentItemId == ItemMaster.EmptyItemId)
-            {
-                okButton.interactable = false;
-            }
+            okButton.interactable = currentItemId != ItemMaster.EmptyItemId;
             countInputField.text = currentCount.ToString();
             
-            await okButton.OnClickAsync();
+            var ok = okButton.OnClickAsync();
+            var clear = clearButton.OnClickAsync();
+            await UniTask.WhenAny(ok, clear);
+            
+            if (clear.Status == UniTaskStatus.Succeeded)
+            {
+                return (ItemMaster.EmptyItemId, 0);
+            }
             
             return (_selectedItemId, int.Parse(countInputField.text));
         }

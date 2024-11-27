@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Block.ChainerCrafter;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Network.API;
 using Core.Item.Interface;
@@ -22,6 +23,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private List<ItemSlotObject> recipeInputItemSlotObjects;
         [SerializeField] private List<ItemSlotObject> recipeOutputItemSlotObjects;
         
+        [SerializeField] private ChainerCrafterItemSelectModal itemSelectModal;
+        
         private BlockGameObject _blockGameObject;
         private CancellationToken _gameObjectCancellationToken;
         
@@ -40,6 +43,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // レシピの情報を取得
             // Get recipe information
             InitializeRecipeSlots().Forget();
+            
+            itemSelectModal.Initialize();
             
             #region Internal
             
