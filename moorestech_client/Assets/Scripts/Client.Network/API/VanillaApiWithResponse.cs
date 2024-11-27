@@ -162,8 +162,8 @@ namespace Client.Network.API
         
         public async UniTask<BlockStateMessagePack> GetBlockState(Vector3Int blockPos, CancellationToken ct)
         {
-            var request = new RequestBlockStateMessagePack(blockPos);
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateMessagePack>(request, ct);
+            var request = new RequestBlockStateProtocolMessagePack(blockPos);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateProtocolMessagePack>(request, ct);
             
             return response.State;
         }
