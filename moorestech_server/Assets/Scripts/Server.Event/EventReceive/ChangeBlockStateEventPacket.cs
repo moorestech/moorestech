@@ -43,7 +43,11 @@ namespace Server.Event.EventReceive
         
         public TBlockState GetStateDetail<TBlockState>(string stateKey)
         {
-            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateDetail[stateKey]);
+            if (!CurrentStateDetail.TryGetValue(stateKey, out var bytes))
+            {
+                return default;
+            }
+            return MessagePackSerializer.Deserialize<TBlockState>(bytes);
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
