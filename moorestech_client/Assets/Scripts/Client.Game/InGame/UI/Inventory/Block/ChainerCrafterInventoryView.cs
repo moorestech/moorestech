@@ -88,7 +88,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     var item = items[i];
                     var slotObject = itemSlots[i];
                     var itemView = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
-                    slotObject.SetItem(itemView, item.Quantity);
+                    slotObject.SetItem(itemView, item.Count);
                 }
             }
             

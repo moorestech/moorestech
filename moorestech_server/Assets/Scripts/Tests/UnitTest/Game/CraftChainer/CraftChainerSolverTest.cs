@@ -11,15 +11,15 @@ namespace Tests.UnitTest.Game.CraftChainer
     /// 
     /// recipesStr
     /// レシピ番号:アウトプットアイテム名 数量, アウトプットアイテム名 数量 ← インプットアイテム名 数量, インプットアイテム名 数量
-    /// RecipeId:OutputItemName Quantity, OutputItemName Quantity ← InputItemName Quantity, InputItemName Quantity
+    /// RecipeId:OutputItemName Count, OutputItemName Count ← InputItemName Count, InputItemName Count
     ///
     /// initialInventoryStr
     /// アイテム名 数量
-    /// ItemName Quantity
+    /// ItemName Count
     ///
     /// targetItemStr
     /// アイテム名 数量
-    /// ItemName Quantity
+    /// ItemName Count
     ///
     /// expectedStr
     /// レシピ番号:使用レシピ回数

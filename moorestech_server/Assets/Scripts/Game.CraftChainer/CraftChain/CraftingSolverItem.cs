@@ -8,12 +8,12 @@ namespace Game.CraftChainer.CraftChain
     public class CraftingSolverItem
     {
         public readonly ItemId ItemId;
-        public readonly int Quantity;
+        public readonly int Count;
         
-        public CraftingSolverItem(ItemId itemId, int quantity)
+        public CraftingSolverItem(ItemId itemId, int count)
         {
             ItemId = itemId;
-            Quantity = quantity;
+            Count = count;
         }
     }
     
@@ -21,20 +21,20 @@ namespace Game.CraftChainer.CraftChain
     public class CraftingSolverItemJsonObject
     {
         [JsonProperty("itemGuid"), Key(0)] public string ItemGuid;
-        [JsonProperty("quantity"), Key(1)] public int Quantity;
+        [JsonProperty("count"), Key(1)] public int Count;
         
         public CraftingSolverItemJsonObject() { }
         public CraftingSolverItemJsonObject(CraftingSolverItem craftingSolverItem)
         {
             ItemGuid = MasterHolder.ItemMaster.GetItemMaster(craftingSolverItem.ItemId).ItemGuid.ToString();
-            Quantity = craftingSolverItem.Quantity;
+            Count = craftingSolverItem.Count;
         }
         
         public CraftingSolverItem ToCraftingSolverItem()
         {
             var guid = new Guid(ItemGuid);
             var itemId = MasterHolder.ItemMaster.GetItemId(guid);
-            return new CraftingSolverItem(itemId, Quantity);
+            return new CraftingSolverItem(itemId, Count);
         }
     }
 }

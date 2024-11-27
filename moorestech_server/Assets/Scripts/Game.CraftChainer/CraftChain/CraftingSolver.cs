@@ -18,7 +18,7 @@ namespace Game.CraftChainer.CraftChain
             
             // Step 2: Initialize the initial state for BFS
             // ステップ2：BFSのための初期状態を初期化する
-            var initialState = InitializeState(initialInventory, targetItem.ItemId, targetItem.Quantity);
+            var initialState = InitializeState(initialInventory, targetItem.ItemId, targetItem.Count);
             
             // Step 3: Prepare BFS structures
             // ステップ3：BFSの構造を準備する
@@ -194,7 +194,7 @@ namespace Game.CraftChainer.CraftChain
                     {
                         var output = recipes[i].Outputs.FirstOrDefault(o => o.ItemId == itemId);
                         if (output != null)
-                            totalProduced += currentRuns[i] * output.Quantity;
+                            totalProduced += currentRuns[i] * output.Count;
                     }
                     
                     if (totalProduced >= -state.Inventory[itemId])
@@ -232,7 +232,7 @@ namespace Game.CraftChainer.CraftChain
                 
                 foreach (var output in recipe.Outputs)
                 {
-                    int produced = output.Quantity * runs;
+                    int produced = output.Count * runs;
                     if (!newState.Inventory.ContainsKey(output.ItemId))
                         newState.Inventory[output.ItemId] = 0;
                     newState.Inventory[output.ItemId] += produced;
@@ -240,7 +240,7 @@ namespace Game.CraftChainer.CraftChain
                 
                 foreach (var input in recipe.Inputs)
                 {
-                    int required = input.Quantity * runs;
+                    int required = input.Count * runs;
                     if (!newState.Inventory.ContainsKey(input.ItemId))
                         newState.Inventory[input.ItemId] = 0;
                     newState.Inventory[input.ItemId] -= required; // Negative indicates a need

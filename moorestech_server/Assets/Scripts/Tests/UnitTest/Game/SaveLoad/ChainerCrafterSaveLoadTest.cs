@@ -63,13 +63,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (int i = 0; i < originalCrafter.CraftingSolverRecipe.Inputs.Count; i++)
             {
                 Assert.AreEqual(originalCrafter.CraftingSolverRecipe.Inputs[i].ItemId, loadedCrafterComponent.CraftingSolverRecipe.Inputs[i].ItemId);
-                Assert.AreEqual(originalCrafter.CraftingSolverRecipe.Inputs[i].Quantity, loadedCrafterComponent.CraftingSolverRecipe.Inputs[i].Quantity);
+                Assert.AreEqual(originalCrafter.CraftingSolverRecipe.Inputs[i].Count, loadedCrafterComponent.CraftingSolverRecipe.Inputs[i].Count);
             }
 
             for (int i = 0; i < originalCrafter.CraftingSolverRecipe.Outputs.Count; i++)
             {
                 Assert.AreEqual(originalCrafter.CraftingSolverRecipe.Outputs[i].ItemId, loadedCrafterComponent.CraftingSolverRecipe.Outputs[i].ItemId);
-                Assert.AreEqual(originalCrafter.CraftingSolverRecipe.Outputs[i].Quantity, loadedCrafterComponent.CraftingSolverRecipe.Outputs[i].Quantity);
+                Assert.AreEqual(originalCrafter.CraftingSolverRecipe.Outputs[i].Count, loadedCrafterComponent.CraftingSolverRecipe.Outputs[i].Count);
             }
         }
     }
