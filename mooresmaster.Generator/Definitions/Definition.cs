@@ -10,10 +10,10 @@ public record Definition
     public readonly List<TypeDefinition> TypeDefinitions = new();
 }
 
-public record InterfaceDefinition(string FileName, TypeName TypeName, Dictionary<string, PropertyDefinition> PropertyTable)
+public record InterfaceDefinition(string FileName, TypeName TypeName, Dictionary<string, InterfacePropertyDefinition> PropertyTable)
 {
     public string FileName = FileName;
-    public Dictionary<string, PropertyDefinition> PropertyTable = PropertyTable;
+    public Dictionary<string, InterfacePropertyDefinition> PropertyTable = PropertyTable;
     public TypeName TypeName = TypeName;
 }
 
@@ -27,3 +27,5 @@ public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] Inhe
 }
 
 public record struct PropertyDefinition(Type Type, PropertyId? PropertyId, bool IsNullable, string[]? Enums);
+
+public record struct InterfacePropertyDefinition(Type Type);
