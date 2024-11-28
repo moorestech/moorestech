@@ -112,7 +112,7 @@ public static class JsonSchemaParser
     private static SchemaId ParseRef(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var refJson = json["$ref"] as JsonString;
-        return table.Add(new RefSchema(refJson.PropertyName, parent, refJson.Literal, IsNullable((JsonObject)json.Parent)));
+        return table.Add(new RefSchema(json.PropertyName, parent, refJson.Literal, IsNullable((JsonObject)json.Parent)));
     }
 
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, SchemaTable table)
