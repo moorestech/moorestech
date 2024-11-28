@@ -10,9 +10,10 @@ public record Definition
     public readonly List<TypeDefinition> TypeDefinitions = new();
 }
 
-public record InterfaceDefinition(string FileName, TypeName TypeName)
+public record InterfaceDefinition(string FileName, TypeName TypeName, Dictionary<string, PropertyDefinition> PropertyTable)
 {
     public string FileName = FileName;
+    public Dictionary<string, PropertyDefinition> PropertyTable = PropertyTable;
     public TypeName TypeName = TypeName;
 }
 
