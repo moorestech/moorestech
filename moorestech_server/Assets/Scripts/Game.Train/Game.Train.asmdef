@@ -1,0 +1,25 @@
+{
+    "name": "Game.Train",
+    "rootNamespace": "",
+    "references": [
+      "UniRx",
+      "Core.Item.Interface",
+      "Core.Master",
+      "Game.Block",
+      "Game.Block.Interface",
+      "Game.Context",
+      "Core.Inventory",
+      "Game.World.Interface",
+      "Core.Update",
+      "MessagePack.Annotations"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
