@@ -8,6 +8,7 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
+    public readonly Dictionary<InterfacePropertyId, (InterfaceId interfaceId, IDefineInterfacePropertySchema propertySchema)> InterfacePropertySemanticsTable = new();
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
     public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
@@ -52,6 +53,13 @@ public class Semantics
         return id;
     }
 
+    public InterfacePropertyId AddInterfacePropertySemantics((InterfaceId interfaceId, IDefineInterfacePropertySchema propertySchema) interfacePropertySemantics)
+    {
+        var id = InterfacePropertyId.New();
+        InterfacePropertySemanticsTable.Add(id, interfacePropertySemantics);
+        return id;
+    }
+
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.SwitchInheritList) SwitchInheritList.Add(inherit);
@@ -61,6 +69,7 @@ public class Semantics
         foreach (var typeSemantics in other.TypeSemanticsTable) TypeSemanticsTable.Add(typeSemantics.Key, typeSemantics.Value);
         foreach (var kvp in other.SchemaTypeSemanticsTable) SchemaTypeSemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.PropertySemanticsTable) PropertySemanticsTable.Add(kvp.Key, kvp.Value);
+        foreach (var kvp in other.InterfacePropertySemanticsTable) InterfacePropertySemanticsTable.Add(kvp.Key, kvp.Value);
 
         return this;
     }
@@ -128,3 +137,6 @@ public readonly partial struct SwitchId : ITypeId;
 
 [UnitOf(typeof(Guid))]
 public readonly partial struct InterfaceId : ITypeId;
+
+[UnitOf(typeof(Guid))]
+public readonly partial struct InterfacePropertyId : ITypeId;

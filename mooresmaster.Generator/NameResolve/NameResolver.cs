@@ -9,11 +9,11 @@ namespace mooresmaster.Generator.NameResolve;
 
 public record struct TypeName(string Name, string ModuleName);
 
-public class NameTable(Dictionary<ITypeId, TypeName> typeNames, Dictionary<PropertyId, string> propertyNames)
+public class NameTable(Dictionary<ITypeId, TypeName> typeNames, Dictionary<InterfacePropertyId, string> interfacePropertyNames, Dictionary<PropertyId, string> propertyNames)
 {
+    public readonly Dictionary<InterfacePropertyId, string> InterfacePropertyNames = interfacePropertyNames;
     public readonly Dictionary<PropertyId, string> PropertyNames = propertyNames;
 
-//    public readonly Dictionary<string, Guid> Ids = names.ToDictionary(x => x.Value, x => x.Key);
     public readonly Dictionary<ITypeId, TypeName> TypeNames = typeNames;
 }
 
@@ -23,6 +23,7 @@ public static class NameResolver
     {
         var typeNames = new Dictionary<ITypeId, string>();
         var propertyNames = new Dictionary<PropertyId, string>();
+        var interfacePropertyNames = new Dictionary<InterfacePropertyId, string>();
 
         // root以外の全てのtypeの名前を登録
         foreach (var kvp in semantics.TypeSemanticsTable)
@@ -138,6 +139,15 @@ public static class NameResolver
             propertyNames[kvp.Key] = name;
         }
 
+        // interfacePropertyの名前を登録
+        foreach (var kvp in semantics.InterfacePropertySemanticsTable)
+        {
+            var interfacePropertyId = kvp.Key;
+            var (_, schema) = kvp.Value;
+            var name = schema.PropertyName!.ToCamelCase();
+            interfacePropertyNames[interfacePropertyId] = name;
+        }
+
         return new NameTable(
             typeNames
                 .Select(name =>
@@ -150,6 +160,7 @@ public static class NameResolver
                     kvp => kvp.Key,
                     kvp => kvp.Value
                 ),
+            interfacePropertyNames,
             propertyNames
         );
     }
