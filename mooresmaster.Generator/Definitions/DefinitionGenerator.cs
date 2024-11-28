@@ -30,10 +30,20 @@ public static class DefinitionGenerator
                 );
             }
 
+            // Implementationを取得
+            var implementations = new List<TypeName>();
+            if (semantics.InterfaceImplementationTable.TryGetValue(interfaceSemantics.Key, out var implementationsList))
+                foreach (var implementationInterfaceId in implementationsList)
+                {
+                    var implementationInterface = nameTable.TypeNames[implementationInterfaceId];
+                    implementations.Add(implementationInterface);
+                }
+
             definition.InterfaceDefinitions.Add(new InterfaceDefinition(
                     $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
                     nameTable.TypeNames[interfaceSemantics.Key],
-                    propertyTable
+                    propertyTable,
+                    implementations
                 )
             );
         }
@@ -42,7 +52,8 @@ public static class DefinitionGenerator
             definition.InterfaceDefinitions.Add(new InterfaceDefinition(
                     $"mooresmaster.{nameTable.TypeNames[switchSemantics.Key].Name}.g.cs",
                     nameTable.TypeNames[switchSemantics.Key],
-                    new Dictionary<string, InterfacePropertyDefinition>()
+                    [],
+                    []
                 )
             );
         var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
