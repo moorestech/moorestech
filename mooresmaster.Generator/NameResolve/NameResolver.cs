@@ -143,7 +143,7 @@ public static class NameResolver
         foreach (var kvp in semantics.InterfacePropertySemanticsTable)
         {
             var interfacePropertyId = kvp.Key;
-            var (_, schema) = kvp.Value;
+            var schema = kvp.Value.PropertySchema;
             var name = schema.PropertyName!.ToCamelCase();
             interfacePropertyNames[interfacePropertyId] = name;
         }
