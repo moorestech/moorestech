@@ -18,9 +18,10 @@ public record InterfaceDefinition(string FileName, TypeName TypeName, Dictionary
     public TypeName TypeName = TypeName;
 }
 
-public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] InheritList, Dictionary<string, PropertyDefinition> PropertyTable)
+public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] InheritList, Dictionary<string, PropertyDefinition> PropertyTable, List<TypeName> ImplementationList)
 {
     public string FileName = FileName;
+    public List<TypeName> ImplementationList = ImplementationList;
 
     public TypeName[] InheritList = InheritList;
     public Dictionary<string, PropertyDefinition> PropertyTable = PropertyTable;

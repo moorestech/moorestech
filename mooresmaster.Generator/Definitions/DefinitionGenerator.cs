@@ -96,7 +96,16 @@ public static class DefinitionGenerator
                 fileName = $"mooresmaster.{firstInterface.Name}.g.cs";
             }
 
-            definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable));
+            // implementation
+            var implementations = new List<TypeName>();
+            if (semantics.ClassInterfaceImplementationTable.TryGetValue(kvp.Key, out var interfaceIds))
+                foreach (var interfaceId in interfaceIds)
+                {
+                    var interfaceName = nameTable.TypeNames[interfaceId];
+                    implementations.Add(interfaceName);
+                }
+
+            definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable, implementations));
         }
 
         return definition;
