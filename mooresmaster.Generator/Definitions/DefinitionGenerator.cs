@@ -32,7 +32,7 @@ public static class DefinitionGenerator
 
             // Implementationを取得
             var implementations = new List<TypeName>();
-            if (semantics.InterfaceImplementationTable.TryGetValue(interfaceSemantics.Key, out var implementationsList))
+            if (semantics.InterfaceInterfaceImplementationTable.TryGetValue(interfaceSemantics.Key, out var implementationsList))
                 foreach (var implementationInterfaceId in implementationsList)
                 {
                     var implementationInterface = nameTable.TypeNames[implementationInterfaceId];

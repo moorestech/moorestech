@@ -8,7 +8,7 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public readonly Dictionary<InterfaceId, List<InterfaceId>> InterfaceImplementationTable = new();
+    public readonly Dictionary<ClassId, List<InterfaceId>> ClassInterfaceImplementationTable = new();
     public readonly Dictionary<InterfacePropertySemantics, InterfacePropertyId> InterfacePropertyIdTable = new();
     public readonly Dictionary<InterfacePropertyId, InterfacePropertySemantics> InterfacePropertySemanticsTable = new();
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
@@ -65,10 +65,10 @@ public class Semantics
 
     public void AddInterfaceImplementation(InterfaceId target, InterfaceId other)
     {
-        if (!InterfaceImplementationTable.TryGetValue(target, out var list))
+        if (!InterfaceInterfaceImplementationTable.TryGetValue(target, out var list))
         {
             list = new List<InterfaceId>();
-            InterfaceImplementationTable[target] = list;
+            InterfaceInterfaceImplementationTable[target] = list;
         }
 
         list.Add(other);
@@ -85,7 +85,7 @@ public class Semantics
         foreach (var kvp in other.PropertySemanticsTable) PropertySemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfacePropertySemanticsTable) InterfacePropertySemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfacePropertyIdTable) InterfacePropertyIdTable.Add(kvp.Key, kvp.Value);
-        foreach (var kvp in other.InterfaceImplementationTable) InterfaceImplementationTable.Add(kvp.Key, kvp.Value);
+        foreach (var kvp in other.InterfaceInterfaceImplementationTable) InterfaceInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
 
         return this;
     }
