@@ -8,7 +8,8 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
-    public readonly Dictionary<InterfacePropertyId, (InterfaceId interfaceId, IDefineInterfacePropertySchema propertySchema)> InterfacePropertySemanticsTable = new();
+    public readonly Dictionary<InterfacePropertySemantics, InterfacePropertyId> InterfacePropertyIdTable = new();
+    public readonly Dictionary<InterfacePropertyId, InterfacePropertySemantics> InterfacePropertySemanticsTable = new();
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
     public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
@@ -53,10 +54,11 @@ public class Semantics
         return id;
     }
 
-    public InterfacePropertyId AddInterfacePropertySemantics((InterfaceId interfaceId, IDefineInterfacePropertySchema propertySchema) interfacePropertySemantics)
+    public InterfacePropertyId AddInterfacePropertySemantics(InterfacePropertySemantics interfacePropertySemantics)
     {
         var id = InterfacePropertyId.New();
         InterfacePropertySemanticsTable.Add(id, interfacePropertySemantics);
+        InterfacePropertyIdTable.Add(interfacePropertySemantics, id);
         return id;
     }
 
@@ -70,6 +72,7 @@ public class Semantics
         foreach (var kvp in other.SchemaTypeSemanticsTable) SchemaTypeSemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.PropertySemanticsTable) PropertySemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfacePropertySemanticsTable) InterfacePropertySemanticsTable.Add(kvp.Key, kvp.Value);
+        foreach (var kvp in other.InterfacePropertyIdTable) InterfacePropertyIdTable.Add(kvp.Key, kvp.Value);
 
         return this;
     }
@@ -119,6 +122,12 @@ public record InterfaceSemantics(Schema Schema, DefineInterface Interface)
 {
     public DefineInterface Interface = Interface;
     public Schema Schema = Schema;
+}
+
+public record InterfacePropertySemantics(IDefineInterfacePropertySchema PropertySchema, InterfaceId InterfaceId)
+{
+    public InterfaceId InterfaceId = InterfaceId;
+    public IDefineInterfacePropertySchema PropertySchema = PropertySchema;
 }
 
 [UnitOf(typeof(Guid))]
