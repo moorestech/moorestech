@@ -146,12 +146,19 @@ public static class CodeGenerator
         return $$$"""
                   namespace Mooresmaster.Model.{{{interfaceDef.TypeName.ModuleName}}}
                   {
-                      public interface {{{interfaceDef.TypeName.Name}}}
+                      public interface {{{interfaceDef.TypeName.Name}}}{{{GenerateInterfaceImplementationCode(interfaceDef.ImplementationList)}}}
                       {
                           {{{GenerateInterfacePropertiesCode(interfaceDef).Indent(level: 2)}}}
                       }
                   }
                   """;
+    }
+
+    private static string GenerateInterfaceImplementationCode(List<TypeName> implementation)
+    {
+        if (implementation.Count == 0) return "";
+
+        return $" : {string.Join(", ", implementation.Select(i => i.GetModelName()))}";
     }
 
     private static string GenerateInterfacePropertiesCode(InterfaceDefinition interfaceDefinition)
