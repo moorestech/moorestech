@@ -32,11 +32,28 @@
         {
             "interfaceName": "IBeltConveyorParam2",
             "properties": {
+                "TestProp": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "TestProp2": {
+                    "$ref": "inventoryConnects"
+                }
+            }
+        },
+        {
+            "interfaceName": "IBeltConveyorParam3",
+            "properties": {
+                "TestProp3": {
+                    "type": "number",
+                    "default": 1
+                }
             }
         }
     ],
     "implementationInterface": [
-        "IBeltConveyorParam"
+        "IBeltConveyorParam",
+        "IBeltConveyorParam3"
     ],
     "properties": {
         "beltConveyorItemCount": {
@@ -57,6 +74,17 @@
         },
         "inventoryConnectors": {
             "$ref": "inventoryConnects"
+        },
+        "TestProp": {
+            "type": "integer",
+            "default": 1
+        },
+        "TestProp2": {
+            "$ref": "inventoryConnects"
+        },
+        "TestProp3": {
+            "type": "number",
+            "default": 1
         }
     }
 }
