@@ -30,7 +30,7 @@ public interface ISchema
     SchemaId? Parent { get; }
 }
 
-public interface IDefineInterfacePropertySchema
+public interface IDefineInterfacePropertySchema : ISchema
 {
 }
 

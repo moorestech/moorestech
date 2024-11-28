@@ -41,6 +41,7 @@ public static class SemanticsGenerator
     private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table)
     {
         var semantics = new Semantics();
+
         semantics.AddInterfaceSemantics(new InterfaceSemantics(
             schema,
             defineInterface
