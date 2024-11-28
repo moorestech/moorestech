@@ -63,7 +63,7 @@ public static class CodeGenerator
         return $$$"""
                   namespace Mooresmaster.Model.{{{typeDef.TypeName.ModuleName}}}
                   {
-                      public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}}
+                      public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}} {{{GenerateInterfaceImplementationCode(typeDef.ImplementationList)}}}
                       {
                           {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
                           
@@ -81,7 +81,7 @@ public static class CodeGenerator
             "\n",
             typeDef
                 .PropertyTable
-                .Select(kvp => $"public readonly {GenerateTypeCode(kvp.Value.Type)} {kvp.Key};")
+                .Select(kvp => $"public {GenerateTypeCode(kvp.Value.Type)} {kvp.Key} {{ get; }}")
         );
     }
 

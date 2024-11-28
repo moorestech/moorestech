@@ -32,13 +32,6 @@
         {
             "interfaceName": "IBeltConveyorParam2",
             "properties": {
-                "TestProp": {
-                    "type": "integer",
-                    "default": 1
-                },
-                "inventoryConnectors": {
-                    "$ref": "inventoryConnects"
-                }
             }
         }
     ],
