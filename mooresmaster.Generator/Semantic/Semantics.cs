@@ -9,6 +9,7 @@ namespace mooresmaster.Generator.Semantic;
 public class Semantics
 {
     public readonly Dictionary<ClassId, List<InterfaceId>> ClassInterfaceImplementationTable = new();
+    public readonly Dictionary<InterfaceId, List<InterfaceId>> InterfaceInterfaceImplementationTable = new();
     public readonly Dictionary<InterfacePropertySemantics, InterfacePropertyId> InterfacePropertyIdTable = new();
     public readonly Dictionary<InterfacePropertyId, InterfacePropertySemantics> InterfacePropertySemanticsTable = new();
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
@@ -63,12 +64,23 @@ public class Semantics
         return id;
     }
 
-    public void AddInterfaceImplementation(InterfaceId target, InterfaceId other)
+    public void AddInterfaceInterfaceImplementation(InterfaceId target, InterfaceId other)
     {
         if (!InterfaceInterfaceImplementationTable.TryGetValue(target, out var list))
         {
             list = new List<InterfaceId>();
             InterfaceInterfaceImplementationTable[target] = list;
+        }
+
+        list.Add(other);
+    }
+
+    public void AddClassInterfaceImplementation(ClassId target, InterfaceId other)
+    {
+        if (!ClassInterfaceImplementationTable.TryGetValue(target, out var list))
+        {
+            list = new List<InterfaceId>();
+            ClassInterfaceImplementationTable[target] = list;
         }
 
         list.Add(other);
@@ -86,6 +98,7 @@ public class Semantics
         foreach (var kvp in other.InterfacePropertySemanticsTable) InterfacePropertySemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfacePropertyIdTable) InterfacePropertyIdTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfaceInterfaceImplementationTable) InterfaceInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
+        foreach (var kvp in other.ClassInterfaceImplementationTable) ClassInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
 
         return this;
     }
