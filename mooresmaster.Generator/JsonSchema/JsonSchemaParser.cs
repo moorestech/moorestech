@@ -75,7 +75,13 @@ public static class JsonSchemaParser
 
     private static SchemaId ParseObject(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json)));
+        var interfaceImplementations = new List<string>();
+        if (json.Nodes.TryGetValue("implementationInterface", out var node) && node is JsonArray array)
+            foreach (var implementation in array.Nodes)
+                if (implementation is JsonString name)
+                    interfaceImplementations.Add(name.Literal);
+
+        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
 
         var propertiesJson = (json["properties"] as JsonObject)!;
         var requiredJson = json["required"] as JsonArray;
@@ -85,7 +91,7 @@ public static class JsonSchemaParser
             .Select(kvp => (kvp.Key, Parse((kvp.Value as JsonObject)!, objectSchemaId, table)))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Item2);
 
-        table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required, IsNullable(json)));
+        table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray()));
 
         return objectSchemaId;
     }
