@@ -8,13 +8,14 @@ namespace mooresmaster.Generator.Semantic;
 
 public class Semantics
 {
+    public readonly Dictionary<InterfaceId, List<InterfaceId>> InterfaceImplementationTable = new();
     public readonly Dictionary<InterfacePropertySemantics, InterfacePropertyId> InterfacePropertyIdTable = new();
     public readonly Dictionary<InterfacePropertyId, InterfacePropertySemantics> InterfacePropertySemanticsTable = new();
     public readonly Dictionary<InterfaceId, InterfaceSemantics> InterfaceSemanticsTable = new();
     public readonly Dictionary<PropertyId, PropertySemantics> PropertySemanticsTable = new();
     public readonly Dictionary<RootId, RootSemantics> RootSemanticsTable = new();
     public readonly Dictionary<ISchema, ClassId> SchemaTypeSemanticsTable = new();
-    public readonly List<(SwitchId switchId, ClassId typeId)> SwitchInheritList = new(); // (SwitchId, TypeId)
+    public readonly List<(SwitchId switchId, ClassId typeId)> SwitchInheritList = new();
     public readonly Dictionary<SwitchId, SwitchSemantics> SwitchSemanticsTable = new();
     public readonly Dictionary<ClassId, TypeSemantics> TypeSemanticsTable = new();
 
@@ -62,6 +63,17 @@ public class Semantics
         return id;
     }
 
+    public void AddInterfaceImplementation(InterfaceId target, InterfaceId other)
+    {
+        if (!InterfaceImplementationTable.TryGetValue(target, out var list))
+        {
+            list = new List<InterfaceId>();
+            InterfaceImplementationTable[target] = list;
+        }
+
+        list.Add(other);
+    }
+
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.SwitchInheritList) SwitchInheritList.Add(inherit);
@@ -73,6 +85,7 @@ public class Semantics
         foreach (var kvp in other.PropertySemanticsTable) PropertySemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfacePropertySemanticsTable) InterfacePropertySemanticsTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfacePropertyIdTable) InterfacePropertyIdTable.Add(kvp.Key, kvp.Value);
+        foreach (var kvp in other.InterfaceImplementationTable) InterfaceImplementationTable.Add(kvp.Key, kvp.Value);
 
         return this;
     }

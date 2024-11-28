@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
@@ -35,7 +36,25 @@ public static class SemanticsGenerator
                 GenerateInterfaceSemantics(defineInterface, schema, table).AddTo(semantics);
         }
 
+        ResolveInterfaceImplementations(semantics);
+
         return semantics;
+    }
+
+    private static void ResolveInterfaceImplementations(Semantics semantics)
+    {
+        var interfaceTable = semantics.InterfaceSemanticsTable.ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
+
+        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        {
+            var target = kvp.Key;
+
+            foreach (var interfaceId in kvp.Value.Interface.ImplementationInterfaces)
+            {
+                var other = interfaceTable[interfaceId];
+                semantics.AddInterfaceImplementation(target, other);
+            }
+        }
     }
 
     private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table)
