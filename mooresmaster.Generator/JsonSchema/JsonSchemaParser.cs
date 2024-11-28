@@ -44,7 +44,16 @@ public static class JsonSchemaParser
             properties[propertyNode.Key] = schemaTable.Table[schemaId] as IDefineInterfacePropertySchema;
         }
 
-        return new DefineInterface(interfaceName, properties);
+        // interfaceの継承情報を取得
+        var implementationInterfaces = new List<string>();
+        if (node.Nodes.TryGetValue("implementationInterface", out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
+            foreach (var implementationInterfaceNode in nodesArray.Nodes)
+            {
+                var name = (JsonString)implementationInterfaceNode;
+                implementationInterfaces.Add(name.Literal);
+            }
+
+        return new DefineInterface(interfaceName, properties, implementationInterfaces.ToArray());
     }
 
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
