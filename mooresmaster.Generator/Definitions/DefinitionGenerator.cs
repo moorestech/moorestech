@@ -14,16 +14,30 @@ public static class DefinitionGenerator
         var definition = new Definition();
 
         foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
+        {
+            var propertyTable = new Dictionary<string, PropertyDefinition>();
+
+            foreach (var property in interfaceSemantics.Value.Interface.Properties)
+            {
+                var propertyName = property.Key;
+                var propertySchema = property.Value;
+
+            }
+
             definition.InterfaceDefinitions.Add(new InterfaceDefinition(
                     $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
-                    nameTable.TypeNames[interfaceSemantics.Key]
+                    nameTable.TypeNames[interfaceSemantics.Key],
+                    propertyTable
                 )
             );
+        }
 
         foreach (var switchSemantics in semantics.SwitchSemanticsTable)
             definition.InterfaceDefinitions.Add(new InterfaceDefinition(
-                $"mooresmaster.{nameTable.TypeNames[switchSemantics.Key].Name}.g.cs",
-                nameTable.TypeNames[switchSemantics.Key])
+                    $"mooresmaster.{nameTable.TypeNames[switchSemantics.Key].Name}.g.cs",
+                    nameTable.TypeNames[switchSemantics.Key],
+                    new Dictionary<string, PropertyDefinition>()
+                )
             );
         var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
         foreach (var inherit in semantics.SwitchInheritList)

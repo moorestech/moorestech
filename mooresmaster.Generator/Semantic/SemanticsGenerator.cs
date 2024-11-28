@@ -32,11 +32,19 @@ public static class SemanticsGenerator
             }
 
             foreach (var defineInterface in schema.Interfaces)
-                semantics.AddInterfaceSemantics(new InterfaceSemantics(
-                    schema,
-                    defineInterface
-                ));
+                GenerateInterfaceSemantics(defineInterface, schema, table).AddTo(semantics);
         }
+
+        return semantics;
+    }
+
+    private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table)
+    {
+        var semantics = new Semantics();
+        semantics.AddInterfaceSemantics(new InterfaceSemantics(
+            schema,
+            defineInterface
+        ));
 
         return semantics;
     }
