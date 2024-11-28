@@ -42,10 +42,17 @@ public static class SemanticsGenerator
     {
         var semantics = new Semantics();
 
-        semantics.AddInterfaceSemantics(new InterfaceSemantics(
+        var interfaceId = semantics.AddInterfaceSemantics(new InterfaceSemantics(
             schema,
             defineInterface
         ));
+
+        foreach (var property in defineInterface.Properties)
+        {
+            var propertySchema = property.Value;
+
+            semantics.AddInterfacePropertySemantics((interfaceId, propertySchema));
+        }
 
         return semantics;
     }
