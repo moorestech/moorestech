@@ -146,9 +146,27 @@ public static class CodeGenerator
         return $$$"""
                   namespace Mooresmaster.Model.{{{interfaceDef.TypeName.ModuleName}}}
                   {
-                      public interface {{{interfaceDef.TypeName.Name}}} { }
+                      public interface {{{interfaceDef.TypeName.Name}}}
+                      {
+                          {{{GenerateInterfacePropertiesCode(interfaceDef).Indent(level: 2)}}}
+                      }
                   }
                   """;
+    }
+
+    private static string GenerateInterfacePropertiesCode(InterfaceDefinition interfaceDefinition)
+    {
+        var codes = new List<string>();
+
+        foreach (var kvp in interfaceDefinition.PropertyTable)
+        {
+            var name = kvp.Key;
+            var interfacePropertyDefinition = kvp.Value;
+
+            codes.Add($"public {GenerateTypeCode(interfacePropertyDefinition.Type)} {name} {{ get; }}");
+        }
+
+        return string.Join("\n", codes);
     }
 
     private static string GenerateInheritCode(TypeDefinition type)
