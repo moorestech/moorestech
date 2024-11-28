@@ -36,12 +36,12 @@ public static class SemanticsGenerator
                 GenerateInterfaceSemantics(defineInterface, schema, table).AddTo(semantics);
         }
 
-        ResolveInterfaceImplementations(semantics);
+        ResolveInterfaceInterfaceImplementations(semantics);
 
         return semantics;
     }
 
-    private static void ResolveInterfaceImplementations(Semantics semantics)
+    private static void ResolveInterfaceInterfaceImplementations(Semantics semantics)
     {
         var interfaceTable = semantics.InterfaceSemanticsTable.ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
 
