@@ -37,6 +37,7 @@ public static class SemanticsGenerator
         }
 
         ResolveInterfaceInterfaceImplementations(semantics);
+        ResolveClassInterfaceImplementations(semantics);
 
         return semantics;
     }
@@ -52,7 +53,25 @@ public static class SemanticsGenerator
             foreach (var interfaceId in kvp.Value.Interface.ImplementationInterfaces)
             {
                 var other = interfaceTable[interfaceId];
-                semantics.AddInterfaceImplementation(target, other);
+                semantics.AddInterfaceInterfaceImplementation(target, other);
+            }
+        }
+    }
+
+    private static void ResolveClassInterfaceImplementations(Semantics semantics)
+    {
+        var interfaceTable = semantics.InterfaceSemanticsTable.ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
+
+        foreach (var kvp in semantics.TypeSemanticsTable)
+        {
+            if (kvp.Value.Schema is not ObjectSchema objectSchema) continue;
+
+            var target = kvp.Key;
+
+            foreach (var interfaceName in objectSchema.InterfaceImplementations)
+            {
+                var interfaceId = interfaceTable[interfaceName];
+                semantics.AddClassInterfaceImplementation(target, interfaceId);
             }
         }
     }
