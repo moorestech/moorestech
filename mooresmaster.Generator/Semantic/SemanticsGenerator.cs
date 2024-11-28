@@ -51,7 +51,7 @@ public static class SemanticsGenerator
         {
             var propertySchema = property.Value;
 
-            semantics.AddInterfacePropertySemantics((interfaceId, propertySchema));
+            semantics.AddInterfacePropertySemantics(new InterfacePropertySemantics(propertySchema, interfaceId));
         }
 
         return semantics;
