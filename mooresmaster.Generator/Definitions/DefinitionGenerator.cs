@@ -15,13 +15,19 @@ public static class DefinitionGenerator
 
         foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
         {
-            var propertyTable = new Dictionary<string, PropertyDefinition>();
-
-            foreach (var property in interfaceSemantics.Value.Interface.Properties)
+            // プロパティを生成
+            var propertyTable = new Dictionary<string, InterfacePropertyDefinition>();
+            foreach (var propertyId in interfaceSemantics.Value.Properties)
             {
-                var propertyName = property.Key;
-                var propertySchema = property.Value;
+                var interfaceProperty = semantics.InterfacePropertySemanticsTable[propertyId];
+                var typeId = propertyId;
+                var name = nameTable.InterfacePropertyNames[propertyId];
 
+                var type = Type.GetType(nameTable, typeId, interfaceProperty.PropertySchema, semantics, schemaTable);
+
+                propertyTable[name] = new InterfacePropertyDefinition(
+                    type
+                );
             }
 
             definition.InterfaceDefinitions.Add(new InterfaceDefinition(
@@ -36,7 +42,7 @@ public static class DefinitionGenerator
             definition.InterfaceDefinitions.Add(new InterfaceDefinition(
                     $"mooresmaster.{nameTable.TypeNames[switchSemantics.Key].Name}.g.cs",
                     nameTable.TypeNames[switchSemantics.Key],
-                    new Dictionary<string, PropertyDefinition>()
+                    new Dictionary<string, InterfacePropertyDefinition>()
                 )
             );
         var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
