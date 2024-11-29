@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Block.ChainerCrafter;
 using Client.Game.InGame.UI.Inventory.Element;
-using Client.Network.API;
 using Core.Item.Interface;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.CraftChainer.BlockComponent.Crafter;
@@ -71,8 +71,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             _currentRecipe = await GetRecipe();
             if (_currentRecipe == null) return;
             
-            SetItemSlot(recipeInputItemSlotObjects, _currentRecipe.Inputs);
-            SetItemSlot(recipeOutputItemSlotObjects, _currentRecipe.Outputs);
+            SetRecipeUI(_currentRecipe);
             
             SetupRecipeSlotEvent();
             
@@ -88,17 +87,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 if (chainerState == null) return null;
                 
                 return chainerState.Recipe.ToCraftingSolverRecipe();
-            }
-            
-            void SetItemSlot(List<ItemSlotObject> itemSlots, List<CraftingSolverItem> items)
-            {
-                for (var i = 0; i < itemSlots.Count; i++)
-                {
-                    var item = items[i];
-                    var slotObject = itemSlots[i];
-                    var itemView = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
-                    slotObject.SetItem(itemView, item.Count);
-                }
             }
             
             void SetupRecipeSlotEvent()
@@ -122,14 +110,94 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         private async UniTask ClickRecipeInputItem(ItemSlotObject itemSlotObject, int index, bool isInput)
         {
-            var currentId = itemSlotObject.ItemViewData.ItemId;
-            var currentCount = itemSlotObject.Count;
-            var (resultId, resultCount) = await itemSelectModal.GetSelectItem(currentId, currentCount);
+            // アイテムを選択
+            // Select item
+            var (resultId, resultCount) = await SelectItem();
             
-            itemSlotObject.SetItem(ClientContext.ItemImageContainer.GetItemView(resultId), resultCount);
+            // レシピ情報を更新
+            // Update recipe information
+            UpdateRecipe();
             
-            var recipeItems = isInput ? _currentRecipe.Inputs : _currentRecipe.Outputs;
-            recipeItems[index] = new CraftingSolverItem(resultId, resultCount);
+            // UIを更新
+            // Update UI
+            SetRecipeUI(_currentRecipe);
+            
+            // レシピ情報を送信
+            // Send recipe information
+            SendRecipeInfo();
+            
+            #region Internal
+            
+            async UniTask<(ItemId,int)> SelectItem()
+            {
+                // モーダルを開いてアイテムを選択
+                var currentId = itemSlotObject.ItemViewData.ItemId;
+                var currentCount = itemSlotObject.Count;
+                
+                var (id, count) = await itemSelectModal.GetSelectItem(currentId, currentCount);
+                
+                return (id, count);
+            }
+            
+            void UpdateRecipe()
+            {
+                var recipeItems = isInput ? _currentRecipe.Inputs : _currentRecipe.Outputs;
+                
+                if (index < recipeItems.Count)
+                {
+                    recipeItems[index] = new CraftingSolverItem(resultId, resultCount);
+                }
+                else
+                {
+                    for (var i = recipeItems.Count; i < index; i++)
+                    {
+                        recipeItems.Add(new CraftingSolverItem(ItemMaster.EmptyItemId, 0));
+                    }
+                    
+                    recipeItems.Add(new CraftingSolverItem(resultId, resultCount));
+                }
+            }
+            
+            void SendRecipeInfo()
+            {
+                // 送る用に適切な形に変換
+                var input = _currentRecipe.Inputs.Where(i => i.ItemId != ItemMaster.EmptyItemId).ToList();
+                var output = _currentRecipe.Outputs.Where(i => i.ItemId != ItemMaster.EmptyItemId).ToList();
+                
+                var recipe = new CraftingSolverRecipe(CraftingSolverRecipeId.Create(), input, output);
+                
+            }
+            
+  #endregion
+            
+        }
+        
+        
+        private void SetRecipeUI(CraftingSolverRecipe recipe)
+        {
+            SetItemSlot(recipeInputItemSlotObjects, recipe.Inputs);
+            SetItemSlot(recipeOutputItemSlotObjects, recipe.Outputs);
+            
+            #region Internal
+            
+            void SetItemSlot(List<ItemSlotObject> itemSlots, List<CraftingSolverItem> items)
+            {
+                for (var i = 0; i < itemSlots.Count; i++)
+                {
+                    if (i >= items.Count)
+                    {
+                        itemSlots[i].SetItem(null, 0);
+                        continue;
+                    }
+                    
+                    var item = items[i];
+                    var slotObject = itemSlots[i];
+                    var itemView = ClientContext.ItemImageContainer.GetItemView(item.ItemId);
+                    slotObject.SetItem(itemView, item.Count);
+                }
+            }
+            
+  #endregion
         }
     }
 }
