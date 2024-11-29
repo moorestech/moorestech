@@ -85,6 +85,34 @@
         "TestProp3": {
             "type": "number",
             "default": 1
+        },
+        "TestProp4": {
+            "type": "string"
+        },
+        "OneOfTest": {
+            "oneOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "TestProp4": {
+                                "const": "Test1"
+                            }
+                        }
+                    },
+                    "then": {
+                        "type": "object",
+                        "implementationInterface": [
+                            "IBeltConveyorParam3"
+                        ],
+                        "properties": {
+                            "TestProp3": {
+                                "type": "number",
+                                "default": 1
+                            }
+                        }
+                    }
+                }
+            ]
         }
     }
 }

@@ -63,7 +63,7 @@ public static class CodeGenerator
         return $$$"""
                   namespace Mooresmaster.Model.{{{typeDef.TypeName.ModuleName}}}
                   {
-                      public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}} {{{GenerateInterfaceImplementationCode(typeDef.ImplementationList)}}}
+                      public class {{{typeDef.TypeName.Name}}} {{{GenerateInterfaceImplementationCode(typeDef.InheritList)}}}
                       {
                           {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
                           
@@ -154,11 +154,12 @@ public static class CodeGenerator
                   """;
     }
 
-    private static string GenerateInterfaceImplementationCode(List<TypeName> implementation)
+    private static string GenerateInterfaceImplementationCode(IEnumerable<TypeName> implementations)
     {
-        if (implementation.Count == 0) return "";
+        var implementationsArray = implementations as TypeName[] ?? implementations.ToArray();
+        if (!implementationsArray.Any()) return "";
 
-        return $" : {string.Join(", ", implementation.Select(i => i.GetModelName()))}";
+        return $" : {string.Join(", ", implementationsArray.Select(i => i.GetModelName()))}";
     }
 
     private static string GenerateInterfacePropertiesCode(InterfaceDefinition interfaceDefinition)
@@ -174,11 +175,6 @@ public static class CodeGenerator
         }
 
         return string.Join("\n", codes);
-    }
-
-    private static string GenerateInheritCode(TypeDefinition type)
-    {
-        return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList.Select(t => t.GetModelName()))}" : "";
     }
 
     private static string Indent(this string code, bool firstLine = false, int level = 1)

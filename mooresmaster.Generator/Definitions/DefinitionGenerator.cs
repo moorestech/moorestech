@@ -105,7 +105,8 @@ public static class DefinitionGenerator
                     implementations.Add(interfaceName);
                 }
 
-            definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable, implementations));
+
+            definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList.Concat(implementations).ToArray(), propertyTable));
         }
 
         return definition;
