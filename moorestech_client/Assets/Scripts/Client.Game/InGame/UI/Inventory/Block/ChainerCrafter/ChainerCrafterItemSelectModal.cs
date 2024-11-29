@@ -17,6 +17,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         [SerializeField] private TMP_InputField countInputField;
         
         [SerializeField] private Button okButton;
+        [SerializeField] private Button cancelButton;
         [SerializeField] private Button clearButton;
         
         private readonly List<ItemSlotObject> _itemSlotObjects = new();
@@ -25,6 +26,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         
         public void Initialize()
         {
+            gameObject.SetActive(false);
             // アイテムリストを初期化
             // Initialize item list
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
@@ -40,29 +42,52 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         public async UniTask<(ItemId,int)> GetSelectItem(ItemId currentItemId, int currentCount)
         {
             _selectedItemId = currentItemId;
+            SetupUI();
             
-            foreach (var slotObject in _itemSlotObjects)
+            var result = await WaitPushButton();
+            
+            gameObject.SetActive(false);
+            return result;
+            
+            #region Internal
+            
+            void SetupUI()
             {
-                slotObject.SetHotBarSelect(false);
-                if (slotObject.ItemViewData.ItemId == currentItemId)
+                gameObject.SetActive(true);
+                
+                foreach (var slotObject in _itemSlotObjects)
                 {
-                    slotObject.SetHotBarSelect(true);
+                    slotObject.SetHotBarSelect(false);
+                    if (slotObject.ItemViewData.ItemId == currentItemId)
+                    {
+                        slotObject.SetHotBarSelect(true);
+                    }
                 }
+                
+                okButton.interactable = currentItemId != ItemMaster.EmptyItemId;
+                countInputField.text = currentCount.ToString();
             }
             
-            okButton.interactable = currentItemId != ItemMaster.EmptyItemId;
-            countInputField.text = currentCount.ToString();
-            
-            var ok = okButton.OnClickAsync();
-            var clear = clearButton.OnClickAsync();
-            await UniTask.WhenAny(ok, clear);
-            
-            if (clear.Status == UniTaskStatus.Succeeded)
+            async UniTask<(ItemId, int)> WaitPushButton()
             {
-                return (ItemMaster.EmptyItemId, 0);
+                var ok = okButton.OnClickAsync();
+                var cancel = cancelButton.OnClickAsync();
+                var clear = clearButton.OnClickAsync();
+                await UniTask.WhenAny(ok, cancel, clear);
+                
+                if (cancel.Status == UniTaskStatus.Succeeded)
+                {
+                    return (currentItemId, currentCount);
+                }
+                if (clear.Status == UniTaskStatus.Succeeded)
+                {
+                    return (ItemMaster.EmptyItemId, 0);
+                }
+                
+                return (_selectedItemId, int.Parse(countInputField.text));
             }
             
-            return (_selectedItemId, int.Parse(countInputField.text));
+  #endregion
         }
         
         private void ClickItem(ItemSlotObject itemSlotObject)

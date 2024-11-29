@@ -131,7 +131,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             async UniTask<(ItemId,int)> SelectItem()
             {
                 // モーダルを開いてアイテムを選択
-                var currentId = itemSlotObject.ItemViewData.ItemId;
+                var currentId = itemSlotObject.ItemViewData?.ItemId ?? ItemMaster.EmptyItemId;
                 var currentCount = itemSlotObject.Count;
                 
                 var (id, count) = await itemSelectModal.GetSelectItem(currentId, currentCount);

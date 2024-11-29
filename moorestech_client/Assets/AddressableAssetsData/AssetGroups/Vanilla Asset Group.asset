@@ -38,7 +38,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 031794dff1b4e4024a61e9c8c4e64e15
-    m_Address: Vanilla/UI/Block/ChainerCrafterInventory
+    m_Address: Vanilla/UI/Block/CraftChainerCrafterInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
