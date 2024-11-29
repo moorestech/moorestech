@@ -9,7 +9,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class GetChallengeInfoProtocol : IPacketResponse
     {
-        public const string Tag = "va:getChallengeInfo";
+        public const string ProtocolTag = "va:getChallengeInfo";
         
         private readonly ChallengeDatastore _challengeDatastore;
         
@@ -27,46 +27,41 @@ namespace Server.Protocol.PacketResponse
             
             return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
         }
-    }
-    
-    [MessagePackObject]
-    public class RequestChallengeMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestChallengeMessagePack()
+        
+        
+        [MessagePackObject]
+        public class RequestChallengeMessagePack : ProtocolMessagePackBase
         {
+            [Key(2)] public int PlayerId { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestChallengeMessagePack() { }
+            public RequestChallengeMessagePack(int playerId)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+            }
         }
         
-        public RequestChallengeMessagePack(int playerId)
+        [MessagePackObject]
+        public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
         {
-            Tag = GetChallengeInfoProtocol.Tag;
-            PlayerId = playerId;
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-    }
-    
-    [MessagePackObject]
-    public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public int PlayerId { get; set; }
-        [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
-        [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
-        
-        [IgnoreMember] public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
-        [IgnoreMember] public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseChallengeInfoMessagePack()
-        {
-        }
-        
-        public ResponseChallengeInfoMessagePack(int playerId, List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
-        {
-            Tag = GetChallengeInfoProtocol.Tag;
-            PlayerId = playerId;
-            CurrentChallengeGuidsStr = currentChallengeIds.Select(x => x.ToString()).ToList();
-            CompletedChallengeGuidsStr = completedChallengeIds.Select(x => x.ToString()).ToList();
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
+            [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
+            
+            [IgnoreMember] public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseChallengeInfoMessagePack() { }
+            public ResponseChallengeInfoMessagePack(int playerId, List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                CurrentChallengeGuidsStr = currentChallengeIds.Select(x => x.ToString()).ToList();
+                CompletedChallengeGuidsStr = completedChallengeIds.Select(x => x.ToString()).ToList();
+            }
         }
     }
 }

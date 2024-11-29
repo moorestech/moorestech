@@ -7,7 +7,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
     /// メインコンピューターはアイテムを外に出さないので、そのためのクラス
     /// The main computer does not take items out, so this class is for that
     /// </summary>
-    public class ChainerMainComputerInserter : IBlockInventoryInserter
+    public class CraftChainerMainComputerInserter : IBlockInventoryInserter
     {
         public IItemStack InsertItem(IItemStack itemStack)
         {

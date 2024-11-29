@@ -30,7 +30,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var param = blockGameObject.BlockMasterElement.BlockParam;
             var outputCount = param switch
             {
-                ElectricMinerBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO ブロックインベントリの整理箇所
+                ElectricMinerBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO master interfaceブロックインベントリの整理箇所
                 GearMinerBlockParam blockParam => blockParam.OutputItemSlotCount,
                 _ => 0
             };

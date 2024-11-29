@@ -186,16 +186,6 @@
       "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockType": "CraftChainerTransporter",
-      "blockParam": {
-        "timeOfItemEnterToExit": 1,
-        "transporterConveyorItemCount": 1
-      },
       "maxStack": 100,
       "name": "CraftChainerTransporter",
       "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006"
@@ -216,11 +206,6 @@
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "maxStack": 100,
       "name": "CraftChainerBeltConveyor",
       "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0"
@@ -229,6 +214,11 @@
       "maxStack": 100,
       "name": "CraftChainerMachine1",
       "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856"
+    },
+    {
+      "maxStack": 100,
+      "name": "CraftChainerMachine2",
+      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648"
     },
     {
       "maxStack": 100,
@@ -244,16 +234,6 @@
       "maxStack": 100,
       "name": "Chainer - C",
       "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
-    },
-    {
-      "craftTime": 3,
-      "craftResultCount": 1,
-      "summary": "New Challenge summary",
-      "title": "New Challenge",
-      "time": 1,
-      "maxStack": 100,
-      "name": "CraftChainerMachine2",
-      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648"
     }
   ]
 }

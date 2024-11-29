@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
     public class PlayerInventoryResponseProtocol : IPacketResponse
     {
-        public const string Tag = "va:playerInvRequest";
+        public const string ProtocolTag = "va:playerInvRequest";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
-        public PlayerInventoryResponseProtocol(IPlayerInventoryDataStore playerInventoryDataStore)
+        public PlayerInventoryResponseProtocol(ServiceProvider serviceProvider)
         {
-            _playerInventoryDataStore = playerInventoryDataStore;
+            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -40,48 +41,40 @@ namespace Server.Protocol.PacketResponse
             
             return new PlayerInventoryResponseProtocolMessagePack(data.PlayerId, mainItems.ToArray(), grabItem);
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestPlayerInventoryProtocolMessagePack()
+        
+        [MessagePackObject]
+        public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
         {
+            [Key(2)] public int PlayerId { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestPlayerInventoryProtocolMessagePack() { }
+            
+            public RequestPlayerInventoryProtocolMessagePack(int playerId)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+            }
         }
         
-        public RequestPlayerInventoryProtocolMessagePack(int playerId)
+        [MessagePackObject]
+        public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = PlayerInventoryResponseProtocol.Tag;
-            PlayerId = playerId;
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public ItemMessagePack[] Main { get; set; }
+            [Key(4)] public ItemMessagePack Grab { get; set; }
+            
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public PlayerInventoryResponseProtocolMessagePack() { }
+            
+            public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                Main = main;
+                Grab = grab;
+            }
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-    }
-    
-    
-    [MessagePackObject]
-    public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public PlayerInventoryResponseProtocolMessagePack()
-        {
-        }
-        
-        
-        public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab)
-        {
-            Tag = PlayerInventoryResponseProtocol.Tag;
-            PlayerId = playerId;
-            Main = main;
-            Grab = grab;
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public ItemMessagePack[] Main { get; set; }
-        
-        [Key(4)] public ItemMessagePack Grab { get; set; }
     }
 }

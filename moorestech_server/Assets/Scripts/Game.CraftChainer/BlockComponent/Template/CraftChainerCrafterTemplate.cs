@@ -10,7 +10,7 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Game.CraftChainer.BlockComponent.Template
 {
-    public class ChainerCrafterTemplate : IBlockTemplate
+    public class CraftChainerCrafterTemplate : IBlockTemplate
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
@@ -26,15 +26,15 @@ namespace Game.CraftChainer.BlockComponent.Template
         {
             var param = blockMasterElement.BlockParam as CraftChainerCrafterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var inserter = new ChainerCrafterInserter(inputConnectorComponent);
+            var inserter = new CraftChainerCrafterInserter(inputConnectorComponent);
             
             var chestComponent = componentStates == null ? 
                 new VanillaChestComponent(blockInstanceId, param.ItemSlotCount, inserter) : 
                 new VanillaChestComponent(componentStates, blockInstanceId, param.ItemSlotCount, inserter);
             
             var chainerCrafter = componentStates == null ?
-                new ChainerCrafterComponent() :
-                new ChainerCrafterComponent(componentStates);
+                new CraftCraftChainerCrafterComponent() :
+                new CraftCraftChainerCrafterComponent(componentStates);
             
             var components = new List<IBlockComponent>
             {

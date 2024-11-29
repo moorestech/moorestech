@@ -8,9 +8,9 @@ using Game.Context;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.BlockInventoryRequestProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {

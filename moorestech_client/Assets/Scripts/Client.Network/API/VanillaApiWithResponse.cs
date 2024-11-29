@@ -29,14 +29,14 @@ namespace Client.Network.API
         public async UniTask<InitialHandshakeResponse> InitialHandShake(int playerId, CancellationToken ct)
         {
             //最初のハンドシェイクを行う
-            var request = new RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseInitialHandshakeMessagePack>(request, ct);
+            var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
+            var response = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
             
-            List<MapObjectsInfoMessagePack> mapObjects = null;
+            List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> mapObjects = null;
             WorldDataResponse worldData = null;
             PlayerInventoryResponse inventory = null;
             ChallengeResponse challenge = null;
-            List<ChangeBlockStateMessagePack> blockStates = null;
+            List<BlockStateMessagePack> blockStates = null;
             
             //必要なデータを取得する
             await UniTask.WhenAll(GetMapObjects(), GetWorld(), GetInventory(), GetChallenge(), GetBlockStates());
@@ -67,24 +67,24 @@ namespace Client.Network.API
             
             async UniTask GetBlockStates()
             {
-                blockStates = await GetCurrentBlockState(ct);
+                blockStates = await GetAllBlockState(ct);
             }
             
             #endregion
         }
         
-        public async UniTask<List<MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
+        public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
         {
-            var request = new RequestMapObjectInfosMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseMapObjectInfosMessagePack>(request, ct);
+            var request = new GetMapObjectInfoProtocol.RequestMapObjectInfosMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetMapObjectInfoProtocol.ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
         }
         
         public async UniTask<List<IItemStack>> GetBlockInventory(Vector3Int blockPos, CancellationToken ct)
         {
-            var request = new RequestBlockInventoryRequestProtocolMessagePack(blockPos);
+            var request = new BlockInventoryRequestProtocol.RequestBlockInventoryRequestProtocolMessagePack(blockPos);
             
-            var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryResponseProtocolMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryRequestProtocol.BlockInventoryResponseProtocolMessagePack>(request, ct);
             
             var items = new List<IItemStack>(response.Items.Length);
             for (var i = 0; i < response.Items.Length; i++)
@@ -104,9 +104,9 @@ namespace Client.Network.API
         
         public async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
         {
-            var request = new RequestPlayerInventoryProtocolMessagePack(playerId);
+            var request = new PlayerInventoryResponseProtocol.RequestPlayerInventoryProtocolMessagePack(playerId);
             
-            var response = await _packetExchangeManager.GetPacketResponse<PlayerInventoryResponseProtocolMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
             
             var mainItems = new List<IItemStack>(response.Main.Length);
             foreach (var item in response.Main)
@@ -123,14 +123,14 @@ namespace Client.Network.API
         
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
-            var request = new RequestWorldDataMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseWorldDataMessagePack>(request, ct);
+            var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
             
             return ParseWorldResponse(response);
             
             #region Internal
             
-            WorldDataResponse ParseWorldResponse(ResponseWorldDataMessagePack worldData)
+            WorldDataResponse ParseWorldResponse(RequestWorldDataProtocol.ResponseWorldDataMessagePack worldData)
             {
                 var blocks = worldData.Blocks.Select(b => new BlockInfo(b));
                 var entities = worldData.Entities.Select(e => new EntityResponse(e));
@@ -143,8 +143,8 @@ namespace Client.Network.API
         
         public async UniTask<ChallengeResponse> GetChallengeResponse(int playerId, CancellationToken ct)
         {
-            var request = new RequestChallengeMessagePack(playerId);
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseChallengeInfoMessagePack>(request, ct);
+            var request = new GetChallengeInfoProtocol.RequestChallengeMessagePack(playerId);
+            var response = await _packetExchangeManager.GetPacketResponse<GetChallengeInfoProtocol.ResponseChallengeInfoMessagePack>(request, ct);
             
             var current = response.CurrentChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             var completed = response.CompletedChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
@@ -152,12 +152,20 @@ namespace Client.Network.API
             return new ChallengeResponse(current, completed);
         }
         
-        public async UniTask<List<ChangeBlockStateMessagePack>> GetCurrentBlockState(CancellationToken ct)
+        public async UniTask<List<BlockStateMessagePack>> GetAllBlockState(CancellationToken ct)
         {
-            var request = new RequestBlockStateProtocolMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<ResponseBlockStateProtocolMessagePack>(request, ct);
+            var request = new AllBlockStateProtocol.RequestAllBlockStateProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<AllBlockStateProtocol.ResponseAllBlockStateProtocolMessagePack>(request, ct);
             
             return response.StateList;
+        }
+        
+        public async UniTask<BlockStateMessagePack> GetBlockState(Vector3Int blockPos, CancellationToken ct)
+        {
+            var request = new BlockStateProtocol.RequestBlockStateProtocolMessagePack(blockPos);
+            var response = await _packetExchangeManager.GetPacketResponse<BlockStateProtocol.ResponseBlockStateProtocolMessagePack>(request, ct);
+            
+            return response.State;
         }
     }
 }

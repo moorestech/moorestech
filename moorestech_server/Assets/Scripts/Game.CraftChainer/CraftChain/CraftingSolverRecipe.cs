@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MessagePack;
 using Newtonsoft.Json;
 using UnitGenerator;
 
@@ -17,11 +18,20 @@ namespace Game.CraftChainer.CraftChain
             Inputs = inputs;
             Outputs = outputs;
         }
+        
+        public CraftingSolverRecipe()
+        {
+            CraftingSolverRecipeId = CraftingSolverRecipeId.InvalidId;
+            Inputs = new List<CraftingSolverItem>();
+            Outputs = new List<CraftingSolverItem>();
+        }
     }
     
     [UnitOf(typeof(int), UnitGenerateOptions.Comparable)]
     public partial struct CraftingSolverRecipeId
     {
+        public static readonly CraftingSolverRecipeId InvalidId = new(0);
+        
         private static readonly Random Random = new();
         public static CraftingSolverRecipeId Create()
         {
@@ -31,24 +41,27 @@ namespace Game.CraftChainer.CraftChain
         }
     }
     
-    public class CraftingSolverRecipeJsonObject
+    [JsonObject, MessagePackObject]
+    public class CraftingSolverRecipeJsonObjectMessagePack
     {
-        [JsonProperty("recipeId")] public int RecipeId;
-        [JsonProperty("inputs")] public List<CraftingSolverItemJsonObject> Inputs;
-        [JsonProperty("outputs")] public List<CraftingSolverItemJsonObject> Outputs;
+        [JsonProperty("recipeId"), Key(0)] public int RecipeId;
+        [JsonProperty("inputs"), Key(1)] public List<CraftingSolverItemJsonObjectMessagePack> Inputs;
+        [JsonProperty("outputs"), Key(2)] public List<CraftingSolverItemJsonObjectMessagePack> Outputs;
         
-        public CraftingSolverRecipeJsonObject(CraftingSolverRecipe craftingSolverRecipe)
+        public CraftingSolverRecipeJsonObjectMessagePack() { }
+
+        public CraftingSolverRecipeJsonObjectMessagePack(CraftingSolverRecipe craftingSolverRecipe)
         {
             RecipeId = craftingSolverRecipe.CraftingSolverRecipeId.AsPrimitive();
-            Inputs = new List<CraftingSolverItemJsonObject>();
+            Inputs = new List<CraftingSolverItemJsonObjectMessagePack>();
             foreach (var input in craftingSolverRecipe.Inputs)
             {
-                Inputs.Add(new CraftingSolverItemJsonObject(input));
+                Inputs.Add(new CraftingSolverItemJsonObjectMessagePack(input));
             }
-            Outputs = new List<CraftingSolverItemJsonObject>();
+            Outputs = new List<CraftingSolverItemJsonObjectMessagePack>();
             foreach (var output in craftingSolverRecipe.Outputs)
             {
-                Outputs.Add(new CraftingSolverItemJsonObject(output));
+                Outputs.Add(new CraftingSolverItemJsonObjectMessagePack(output));
             }
         }
         

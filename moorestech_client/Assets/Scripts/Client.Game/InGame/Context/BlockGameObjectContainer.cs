@@ -69,7 +69,10 @@ namespace Client.Game.InGame.Context
                 var block = Object.Instantiate(blockObjectInfo.BlockObject, position, rotation, parent);
                 
                 //コンポーネントの設定
-                var blockObj = block.AddComponent<BlockGameObject>();
+                if (!block.TryGetComponent(out BlockGameObject blockObj))
+                {
+                    blockObj = block.AddComponent<BlockGameObject>();
+                }
                 //子要素のコンポーネントの設定
                 foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
                 {
@@ -88,7 +91,7 @@ namespace Client.Game.InGame.Context
                 var posInfo = new BlockPositionInfo(blockPosition, direction, blockMasterElement.BlockSize);
                 blockObj.Initialize(blockMasterElement, posInfo);
                 
-                return block.GetComponent<BlockGameObject>();
+                return blockObj;
             }
             
             

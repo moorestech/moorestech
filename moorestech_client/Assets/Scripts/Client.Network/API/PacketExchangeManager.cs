@@ -87,7 +87,16 @@ namespace Client.Network.API
                     return null;
                 }
                 
-                return MessagePackSerializer.Deserialize<TResponse>(receiveData.ToArray());
+                try
+                {
+                    return MessagePackSerializer.Deserialize<TResponse>(receiveData.ToArray());
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"デシリアライズに失敗しました。Tag:{request.Tag}\n{e.Message}\n{e.StackTrace}");
+                    Console.WriteLine(e);
+                    return null;
+                }
             }
             
             #endregion

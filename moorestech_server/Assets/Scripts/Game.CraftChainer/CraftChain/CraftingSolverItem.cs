@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using MessagePack;
 using Newtonsoft.Json;
 
 namespace Game.CraftChainer.CraftChain
@@ -7,31 +8,33 @@ namespace Game.CraftChainer.CraftChain
     public class CraftingSolverItem
     {
         public readonly ItemId ItemId;
-        public readonly int Quantity;
+        public readonly int Count;
         
-        public CraftingSolverItem(ItemId itemId, int quantity)
+        public CraftingSolverItem(ItemId itemId, int count)
         {
             ItemId = itemId;
-            Quantity = quantity;
+            Count = count;
         }
     }
     
-    public class CraftingSolverItemJsonObject
+    [JsonObject, MessagePackObject]
+    public class CraftingSolverItemJsonObjectMessagePack
     {
-        [JsonProperty("itemGuid")] public string ItemGuid;
-        [JsonProperty("quantity")] public int Quantity;
+        [JsonProperty("itemGuid"), Key(0)] public string ItemGuid;
+        [JsonProperty("count"), Key(1)] public int Count;
         
-        public CraftingSolverItemJsonObject(CraftingSolverItem craftingSolverItem)
+        public CraftingSolverItemJsonObjectMessagePack() { }
+        public CraftingSolverItemJsonObjectMessagePack(CraftingSolverItem craftingSolverItem)
         {
             ItemGuid = MasterHolder.ItemMaster.GetItemMaster(craftingSolverItem.ItemId).ItemGuid.ToString();
-            Quantity = craftingSolverItem.Quantity;
+            Count = craftingSolverItem.Count;
         }
         
         public CraftingSolverItem ToCraftingSolverItem()
         {
             var guid = new Guid(ItemGuid);
             var itemId = MasterHolder.ItemMaster.GetItemId(guid);
-            return new CraftingSolverItem(itemId, Quantity);
+            return new CraftingSolverItem(itemId, Count);
         }
     }
 }

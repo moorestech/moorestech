@@ -13,7 +13,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         public GearStateDetail CurrentGearState { get; private set; }
         
-        public void OnChangeState(ChangeBlockStateMessagePack blockState)
+        public void OnChangeState(BlockStateMessagePack blockState)
         {
             CurrentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }

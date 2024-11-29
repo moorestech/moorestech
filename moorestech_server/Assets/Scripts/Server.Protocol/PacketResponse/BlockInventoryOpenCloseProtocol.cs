@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class BlockInventoryOpenCloseProtocol : IPacketResponse
     {
-        public const string Tag = "va:blockInvOpen";
+        public const string ProtocolTag = "va:blockInvOpen";
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenState;
         
         public BlockInventoryOpenCloseProtocol(ServiceProvider serviceProvider)
@@ -30,36 +30,33 @@ namespace Server.Protocol.PacketResponse
             
             return null;
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public BlockInventoryOpenCloseProtocolMessagePack()
+        
+        
+        [MessagePackObject]
+        public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
         {
+            [Key(2)] public int PlayerId { get; set; }
+            
+            [Key(3)] public Vector3IntMessagePack Pos { get; set; }
+            
+            [Key(4)] public bool IsOpen { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public BlockInventoryOpenCloseProtocolMessagePack() { }
+            /// <summary>
+            ///     TODO このプロトコル消していいのでは（どうせステートの変化を送るなら、それと一緒にインベントリの情報を送った方が設計的に楽なのでは？
+            /// </summary>
+            /// <param name="playerId"></param>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
+            /// <param name="isOpen"></param>
+            public BlockInventoryOpenCloseProtocolMessagePack(int playerId, Vector3Int pos, bool isOpen)
+            {
+                Tag = ProtocolTag;
+                Pos = new Vector3IntMessagePack(pos);
+                PlayerId = playerId;
+                IsOpen = isOpen;
+            }
         }
-        
-        /// <summary>
-        ///     TODO このプロトコル消していいのでは（どうせステートの変化を送るなら、それと一緒にインベントリの情報を送った方が設計的に楽なのでは？
-        /// </summary>
-        /// <param name="playerId"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="isOpen"></param>
-        public BlockInventoryOpenCloseProtocolMessagePack(int playerId, Vector3Int pos, bool isOpen)
-        {
-            Tag = BlockInventoryOpenCloseProtocol.Tag;
-            Pos = new Vector3IntMessagePack(pos);
-            PlayerId = playerId;
-            IsOpen = isOpen;
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public Vector3IntMessagePack Pos { get; set; }
-        
-        [Key(4)] public bool IsOpen { get; set; }
     }
 }

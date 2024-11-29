@@ -35,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         }
         
         
-        public void OnChangeState(ChangeBlockStateMessagePack blockState)
+        public void OnChangeState(BlockStateMessagePack blockState)
         {
             CurrentMachineState = blockState.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
             var currentState = CurrentMachineState.CurrentStateType;

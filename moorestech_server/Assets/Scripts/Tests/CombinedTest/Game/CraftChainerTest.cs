@@ -255,9 +255,9 @@ namespace Tests.CombinedTest.Game
             container.SetCrafter2Recipe(inputItem2, outputItem2);
             
             // assert chain network
-            var computerComputer = mainComputer.ComponentManager.GetComponent<ChainerMainComputerComponent>();
-            Assert.AreEqual(computerComputer.ChainerNetworkContext.CrafterComponents.Count, 2);
-            Assert.AreEqual(computerComputer.ChainerNetworkContext.ProviderChests.Count, 1);
+            var computerComputer = mainComputer.ComponentManager.GetComponent<CraftChainerMainComputerComponent>();
+            Assert.AreEqual(computerComputer.CraftChainerNetworkContext.CrafterComponents.Count, 2);
+            Assert.AreEqual(computerComputer.CraftChainerNetworkContext.ProviderChests.Count, 1);
             
             
             return container;
@@ -296,7 +296,7 @@ namespace Tests.CombinedTest.Game
             
             private void SetCrafterRecipe(IBlock crafter, List<CraftingSolverItem> inputItems, List<CraftingSolverItem> outputItem)
             {
-                var crafterComponent = crafter.ComponentManager.GetComponent<ChainerCrafterComponent>();
+                var crafterComponent = crafter.ComponentManager.GetComponent<CraftCraftChainerCrafterComponent>();
                 crafterComponent.SetRecipe(inputItems, outputItem);
             }
             
@@ -308,7 +308,7 @@ namespace Tests.CombinedTest.Game
             
             public bool SetRequestMainComputer(ItemId item, int count)
             {
-                var mainComputerComponent = MainComputer.ComponentManager.GetComponent<ChainerMainComputerComponent>();
+                var mainComputerComponent = MainComputer.ComponentManager.GetComponent<CraftChainerMainComputerComponent>();
                 return mainComputerComponent.StartCreateItem(item, count);
             }
             

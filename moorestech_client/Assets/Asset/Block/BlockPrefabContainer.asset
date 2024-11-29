@@ -45,3 +45,19 @@ MonoBehaviour:
     blockPrefab: {fileID: 8017889718239260649, guid: c35136d02ef7ece45addc80eae509ea1, type: 3}
   - blockGuid: f8d85e81-e75e-498d-a9c0-f7f33e2fc115
     blockPrefab: {fileID: 8819789125630594113, guid: d793aaf0184d71c448ea70d6f7a7fab9, type: 3}
+  - blockGuid: 6dc01756-f220-4cbf-9730-1d967388aeb0
+    blockPrefab: {fileID: 4316093558922145048, guid: 4936fc7b570875c42905898d5f044465, type: 3}
+  - blockGuid: f37f87a5-1b5f-4261-9fd6-6bd03c98f2a9
+    blockPrefab: {fileID: 4316093558922145048, guid: 4936fc7b570875c42905898d5f044465, type: 3}
+  - blockGuid: 367a5e2d-8ebb-4835-af31-15d0f317f7cf
+    blockPrefab: {fileID: 2335495404812024455, guid: 5ce3b59d11b0043458c6baa21b4033e7, type: 3}
+  - blockGuid: a68875a7-6af2-4d6f-931e-54d443e8d10a68875a7-6af2-4d6f-931e-54d443e8d10d
+    blockPrefab: {fileID: 8742645892537267396, guid: b112ff9fe273445dea888761fe3e6b15, type: 3}
+  - blockGuid: 5cef8365-31fb-4db6-844e-b2a346d42e7f
+    blockPrefab: {fileID: 8742645892537267396, guid: 04a0e8da3bd0f4c9d874fdba9cd907f0, type: 3}
+  - blockGuid: ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a
+    blockPrefab: {fileID: 3471014383681352655, guid: 2fda64207decf264c9a9430c59cfe575, type: 3}
+  - blockGuid: 87aa9a75-906a-47db-92a5-876afe8a1691
+    blockPrefab: {fileID: 4647624054282839500, guid: 64343c606fc9fff41992f7bb60916462, type: 3}
+  - blockGuid: a68875a7-6af2-4d6f-931e-54d443e8d10d
+    blockPrefab: {fileID: 8742645892537267396, guid: b112ff9fe273445dea888761fe3e6b15, type: 3}

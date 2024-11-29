@@ -12,6 +12,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         ///     ブロックのステートに基づいてアニメーションを再生する
         ///     タイプに応じてアニメーションを再生する
         /// </summary>
-        public void OnChangeState(ChangeBlockStateMessagePack blockState);
+        public void OnChangeState(BlockStateMessagePack blockState);
     }
 }

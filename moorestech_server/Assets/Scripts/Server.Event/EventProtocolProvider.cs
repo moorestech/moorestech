@@ -78,6 +78,6 @@ namespace Server.Event
         
         [Key(1)] public byte[] Payload { get; set; }
         
-        [Key(2)] public Dictionary<string,ChangeBlockStateMessagePack> MessagePacks { get; set; }
+        [Key(2)] public Dictionary<string,BlockStateMessagePack> MessagePacks { get; set; }
     }
 }

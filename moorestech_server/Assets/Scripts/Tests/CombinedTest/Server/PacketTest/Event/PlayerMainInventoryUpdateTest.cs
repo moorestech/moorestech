@@ -8,9 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
-using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Tests.Module.TestMod;
+using static Server.Protocol.PacketResponse.EventProtocol;
+using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {

@@ -5,9 +5,10 @@ using Game.Block.Interface;
 using Game.Challenge;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
-using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
+using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
 
 namespace Client.Network.API
 {
@@ -18,9 +19,9 @@ namespace Client.Network.API
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
         public PlayerInventoryResponse Inventory { get; }
         public ChallengeResponse Challenge { get; }
-        public List<ChangeBlockStateMessagePack> BlockStates { get; }
+        public List<BlockStateMessagePack> BlockStates { get; }
         
-        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, WorldDataResponse worldData, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge, List<ChangeBlockStateMessagePack> blockStates)
+        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, WorldDataResponse worldData, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge, List<BlockStateMessagePack> blockStates)
         {
             PlayerPos = response.PlayerPos;
             WorldData = worldData;

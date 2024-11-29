@@ -5,7 +5,7 @@ using Core.Master;
 
 namespace Game.CraftChainer.CraftChain
 {
-    public class CraftingSolver
+    public static class CraftChainerCraftingSolver
     {
         public static Dictionary<CraftingSolverRecipeId, int> Solve(
             List<CraftingSolverRecipe> recipes,
@@ -18,7 +18,7 @@ namespace Game.CraftChainer.CraftChain
             
             // Step 2: Initialize the initial state for BFS
             // ステップ2：BFSのための初期状態を初期化する
-            var initialState = InitializeState(initialInventory, targetItem.ItemId, targetItem.Quantity);
+            var initialState = InitializeState(initialInventory, targetItem.ItemId, targetItem.Count);
             
             // Step 3: Prepare BFS structures
             // ステップ3：BFSの構造を準備する
@@ -28,28 +28,43 @@ namespace Game.CraftChainer.CraftChain
             // ステップ4：最適なクラフト解を見つけるためにBFSを実行する
             while (queue.Count > 0)
             {
+                // Dequeue the next state from the queue to explore
+                // 探索するためにキューから次の状態を取り出す
                 var currentState = queue.Dequeue();
                 
+                // If the current state has already been visited, skip processing it
+                // 現在の状態がすでに訪問済みであれば、処理をスキップする
                 if (IsStateVisited(currentState, visitedStates))
                     continue;
                 
+                // Mark the current state as visited to avoid revisiting it
+                // 再度訪問しないよう、現在の状態を訪問済みとしてマークする
                 MarkStateAsVisited(currentState, visitedStates);
                 
+                // If the goal state is reached, update the best solution and continue
+                // 目標状態に到達した場合、最適な解を更新して次の反復へ進む
                 if (IsGoalState(currentState))
                 {
                     bestState = UpdateBestState(currentState, bestState);
                     continue;
                 }
                 
+                // Find an item that is still needed; if none are found, continue
+                // まだ必要とされているアイテムを探す。見つからなければ次へ進む
                 var neededItem = FindNeededItem(currentState);
                 if (neededItem == null)
                     continue;
                 
+                // Try to fulfill the needed item from existing inventory; if successful, continue
+                // 既存の在庫から必要なアイテムを満たせるか試みる。成功したら次へ進む
                 if (TryFulfillNeedFromInventory(currentState, neededItem, queue))
                     continue;
                 
+                // Expand the current state by applying recipes to produce the needed item
+                // 必要なアイテムを生産するレシピを適用して、現在の状態を展開する
                 ExpandState(currentState, neededItem, itemsProducedByRecipe, queue);
             }
+
             
             // Step 5: Return the best solution found
             // ステップ5：見つかった最適な解を返す
@@ -194,7 +209,7 @@ namespace Game.CraftChainer.CraftChain
                     {
                         var output = recipes[i].Outputs.FirstOrDefault(o => o.ItemId == itemId);
                         if (output != null)
-                            totalProduced += currentRuns[i] * output.Quantity;
+                            totalProduced += currentRuns[i] * output.Count;
                     }
                     
                     if (totalProduced >= -state.Inventory[itemId])
@@ -232,7 +247,7 @@ namespace Game.CraftChainer.CraftChain
                 
                 foreach (var output in recipe.Outputs)
                 {
-                    int produced = output.Quantity * runs;
+                    int produced = output.Count * runs;
                     if (!newState.Inventory.ContainsKey(output.ItemId))
                         newState.Inventory[output.ItemId] = 0;
                     newState.Inventory[output.ItemId] += produced;
@@ -240,7 +255,7 @@ namespace Game.CraftChainer.CraftChain
                 
                 foreach (var input in recipe.Inputs)
                 {
-                    int required = input.Quantity * runs;
+                    int required = input.Count * runs;
                     if (!newState.Inventory.ContainsKey(input.ItemId))
                         newState.Inventory[input.ItemId] = 0;
                     newState.Inventory[input.ItemId] -= required; // Negative indicates a need

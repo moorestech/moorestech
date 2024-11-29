@@ -14,7 +14,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class RemoveBlockProtocol : IPacketResponse
     {
-        public const string Tag = "va:removeBlock";
+        public const string ProtocolTag = "va:removeBlock";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
@@ -72,27 +72,22 @@ namespace Server.Protocol.PacketResponse
             
             return null;
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
-    {
-        public RemoveBlockProtocolMessagePack(int playerId, Vector3Int pos)
+        
+        
+        [MessagePackObject]
+        public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = RemoveBlockProtocol.Tag;
-            PlayerId = playerId;
-            Pos = new Vector3IntMessagePack(pos);
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public Vector3IntMessagePack Pos { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RemoveBlockProtocolMessagePack() { }
+            public RemoveBlockProtocolMessagePack(int playerId, Vector3Int pos)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                Pos = new Vector3IntMessagePack(pos);
+            }
         }
-        
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RemoveBlockProtocolMessagePack()
-        {
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public Vector3IntMessagePack Pos { get; set; }
     }
 }

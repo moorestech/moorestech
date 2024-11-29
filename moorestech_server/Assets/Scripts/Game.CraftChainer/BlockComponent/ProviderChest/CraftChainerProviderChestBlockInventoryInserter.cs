@@ -1,13 +1,9 @@
-using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Master;
 using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.CraftChainer.CraftNetwork;
-using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Game.CraftChainer.BlockComponent.ProviderChest
 {
@@ -18,12 +14,12 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
     /// Receive a request to supply an item to the CraftChainer network, and InsertItem will supply the matching item to the CraftChainer network.
     /// The InsertItem method is hit every frame from the chest, etc., so it does not explicitly call Insert.
     /// </summary>
-    public class ProviderChestBlockInventoryInserter : IBlockInventoryInserter
+    public class CraftChainerProviderChestBlockInventoryInserter : IBlockInventoryInserter
     {
         private readonly CraftChainerNodeId _providerChestNodeId;
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
-        public ProviderChestBlockInventoryInserter(CraftChainerNodeId providerChestNodeId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public CraftChainerProviderChestBlockInventoryInserter(CraftChainerNodeId providerChestNodeId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _providerChestNodeId = providerChestNodeId;
             _blockConnectorComponent = blockConnectorComponent;
@@ -31,7 +27,11 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var context = CraftChainerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
+            var context = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
+            if (context == null)
+            {
+                return itemStack;
+            }
             
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
             // Insert items one by one and return them, so create an item for one item

@@ -11,15 +11,15 @@ namespace Tests.UnitTest.Game.CraftChainer
     /// 
     /// recipesStr
     /// レシピ番号:アウトプットアイテム名 数量, アウトプットアイテム名 数量 ← インプットアイテム名 数量, インプットアイテム名 数量
-    /// RecipeId:OutputItemName Quantity, OutputItemName Quantity ← InputItemName Quantity, InputItemName Quantity
+    /// RecipeId:OutputItemName Count, OutputItemName Count ← InputItemName Count, InputItemName Count
     ///
     /// initialInventoryStr
     /// アイテム名 数量
-    /// ItemName Quantity
+    /// ItemName Count
     ///
     /// targetItemStr
     /// アイテム名 数量
-    /// ItemName Quantity
+    /// ItemName Count
     ///
     /// expectedStr
     /// レシピ番号:使用レシピ回数
@@ -279,7 +279,7 @@ D 1";
             string expectedStr)
         {
             var (recipes, initialInventory, targetItem, expected) = ParseInput(recipesStr, initialInventoryStr, targetItemStr, expectedStr);
-            var actual = CraftingSolver.Solve(recipes, initialInventory, targetItem);
+            var actual = CraftChainerCraftingSolver.Solve(recipes, initialInventory, targetItem);
             
             if (expected == null)
             {

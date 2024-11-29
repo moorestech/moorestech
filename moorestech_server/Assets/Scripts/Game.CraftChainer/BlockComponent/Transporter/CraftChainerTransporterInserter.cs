@@ -10,12 +10,12 @@ namespace Game.CraftChainer.BlockComponent
     /// そのアイテムがどのクラフトノードに挿入されるべきかを判断し、挿入するためのクラス
     /// Class for determining which craft node the item should be inserted into and inserting it
     /// </summary>
-    public class ChainerTransporterInserter : IBlockInventoryInserter
+    public class CraftChainerTransporterInserter : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly CraftChainerNodeId _startChainerNodeId;
         
-        public ChainerTransporterInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, CraftChainerNodeId startChainerNodeId)
+        public CraftChainerTransporterInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, CraftChainerNodeId startChainerNodeId)
         {
             _blockConnectorComponent = blockConnectorComponent;
             _startChainerNodeId = startChainerNodeId;
@@ -23,7 +23,7 @@ namespace Game.CraftChainer.BlockComponent
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var context = CraftChainerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
+            var context = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
             if (context == null)
             {
                 return itemStack;

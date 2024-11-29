@@ -8,18 +8,18 @@ using Newtonsoft.Json;
 
 namespace Game.CraftChainer.BlockComponent.Computer
 {
-    public class ChainerMainComputerComponent : ICraftChainerNode
+    public class CraftChainerMainComputerComponent : ICraftChainerNode
     {
-        public readonly ChainerNetworkContext ChainerNetworkContext;
+        public readonly CraftChainerNetworkContext CraftChainerNetworkContext;
         
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
-        public ChainerMainComputerComponent(BlockConnectorComponent<IBlockInventory> mainComputerConnector)
+        public CraftChainerMainComputerComponent(BlockConnectorComponent<IBlockInventory> mainComputerConnector)
         {
-            ChainerNetworkContext = new ChainerNetworkContext(mainComputerConnector, this);
+            CraftChainerNetworkContext = new CraftChainerNetworkContext(mainComputerConnector, this);
         }
         
-        public ChainerMainComputerComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> mainComputerConnector) : this(mainComputerConnector)
+        public CraftChainerMainComputerComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> mainComputerConnector) : this(mainComputerConnector)
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerMainComputerComponentJsonObject>(state);
@@ -38,7 +38,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         {
             var (recipes, initialInventory, targetItem) = CreateInitialData();
             
-            var solverResult = CraftingSolver.Solve(recipes, initialInventory, targetItem);
+            var solverResult = CraftChainerCraftingSolver.Solve(recipes, initialInventory, targetItem);
             
             // アイテムは作成できなかった
             // The item could not be created
@@ -47,7 +47,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return false;
             }
             
-            ChainerNetworkContext.SetCraftChainRecipeQue(solverResult, targetItem);
+            CraftChainerNetworkContext.SetCraftChainRecipeQue(solverResult, targetItem);
             return true;
             
             #region Internal
@@ -55,13 +55,13 @@ namespace Game.CraftChainer.BlockComponent.Computer
             (List<CraftingSolverRecipe> recipes, Dictionary<ItemId, int> initialInventory, CraftingSolverItem targetItem) CreateInitialData()
             {
                 var recipeResults = new List<CraftingSolverRecipe>();
-                foreach (var crafterComponent in ChainerNetworkContext.CrafterComponents)
+                foreach (var crafterComponent in CraftChainerNetworkContext.CrafterComponents)
                 {
                     recipeResults.Add(crafterComponent.CraftingSolverRecipe);
                 }
                 
                 var initialInventoryResults = new Dictionary<ItemId, int>();
-                foreach (var chest in ChainerNetworkContext.ProviderChests)
+                foreach (var chest in CraftChainerNetworkContext.ProviderChests)
                 {
                     foreach (var item in chest.Inventory)
                     {
@@ -90,7 +90,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         {
             IsDestroy = true;
         }
-        public string SaveKey { get; } = typeof(ChainerMainComputerComponent).FullName;
+        public string SaveKey { get; } = typeof(CraftChainerMainComputerComponent).FullName;
         public string GetSaveState()
         {
             return JsonConvert.SerializeObject(new ChainerMainComputerComponentJsonObject(this));
@@ -101,7 +101,8 @@ namespace Game.CraftChainer.BlockComponent.Computer
     {
         [JsonProperty("nodeId")] public int NodeId { get; set; }
         
-        public ChainerMainComputerComponentJsonObject(ChainerMainComputerComponent component)
+        public ChainerMainComputerComponentJsonObject(){}
+        public ChainerMainComputerComponentJsonObject(CraftChainerMainComputerComponent component)
         {
             NodeId = component.NodeId.AsPrimitive();
         }

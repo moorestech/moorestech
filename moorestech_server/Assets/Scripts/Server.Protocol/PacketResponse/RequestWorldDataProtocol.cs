@@ -13,7 +13,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class RequestWorldDataProtocol : IPacketResponse
     {
-        public const string Tag = "va:getWorldData";
+        public const string ProtocolTag = "va:getWorldData";
         private readonly IEntityFactory _entityFactory;
         
         public RequestWorldDataProtocol(ServiceProvider serviceProvider)
@@ -41,34 +41,31 @@ namespace Server.Protocol.PacketResponse
             
             return new ResponseWorldDataMessagePack(blockResult.ToArray(), entities.ToArray());
         }
-    }
-    
-    [MessagePackObject]
-    public class RequestWorldDataMessagePack : ProtocolMessagePackBase
-    {
-        public RequestWorldDataMessagePack()
-        {
-            Tag = RequestWorldDataProtocol.Tag;
-        }
-    }
-    
-    [MessagePackObject]
-    public class ResponseWorldDataMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public BlockDataMessagePack[] Blocks { get; set; }
         
-        [Key(3)] public EntityMessagePack[] Entities { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseWorldDataMessagePack()
+        [MessagePackObject]
+        public class RequestWorldDataMessagePack : ProtocolMessagePackBase
         {
+            public RequestWorldDataMessagePack()
+            {
+                Tag = ProtocolTag;
+            }
         }
         
-        public ResponseWorldDataMessagePack(BlockDataMessagePack[] Block, EntityMessagePack[] entities)
+        [MessagePackObject]
+        public class ResponseWorldDataMessagePack : ProtocolMessagePackBase
         {
-            Tag = RequestWorldDataProtocol.Tag;
-            Blocks = Block;
-            Entities = entities;
+            [Key(2)] public BlockDataMessagePack[] Blocks { get; set; }
+            [Key(3)] public EntityMessagePack[] Entities { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseWorldDataMessagePack() { }
+            public ResponseWorldDataMessagePack(BlockDataMessagePack[] Block, EntityMessagePack[] entities)
+            {
+                Tag = ProtocolTag;
+                Blocks = Block;
+                Entities = entities;
+            }
         }
     }
 }

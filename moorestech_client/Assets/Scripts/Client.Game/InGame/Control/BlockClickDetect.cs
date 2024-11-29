@@ -52,7 +52,8 @@ namespace Client.Game.InGame.Control
                     BlockTypeConst.ElectricGenerator or
                     BlockTypeConst.ElectricMiner or
                     BlockTypeConst.GearMachine or
-                    BlockTypeConst.GearMiner;
+                    BlockTypeConst.GearMiner or 
+                    BlockTypeConst.CraftChainerCrafter;
                 return openable;
             }
             

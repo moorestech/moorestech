@@ -8,6 +8,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -55,7 +56,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private List<byte> GetPlayerPositionPacket(int playerId, Vector2Int pos)
         {
             return MessagePackSerializer.Serialize(
-                new PlayerCoordinateSendProtocolMessagePack(playerId, pos)).ToList();
+                new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos)).ToList();
         }
     }
 }

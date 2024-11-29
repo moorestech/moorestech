@@ -9,7 +9,9 @@
         "Game.Block.Interface",
         "Game.Context",
         "Core.Inventory",
-        "Game.World.Interface"
+        "Game.World.Interface",
+        "MessagePack",
+        "MessagePack.Annotations"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

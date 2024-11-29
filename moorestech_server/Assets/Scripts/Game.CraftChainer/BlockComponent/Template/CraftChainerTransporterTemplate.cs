@@ -8,7 +8,7 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Game.CraftChainer.BlockComponent.Template
 {
-    public class ChainerTransporterTemplate : IBlockTemplate
+    public class CraftChainerTransporterTemplate : IBlockTemplate
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
@@ -24,8 +24,8 @@ namespace Game.CraftChainer.BlockComponent.Template
             var transporterParam = blockMasterElement.BlockParam as CraftChainerTransporterBlockParam;
             
             var transporterComponent = componentStates == null ?
-                new ChainerTransporterComponent() :
-                new ChainerTransporterComponent(componentStates);
+                new CraftChainerTransporterComponent() :
+                new CraftChainerTransporterComponent(componentStates);
             
             var slopeType = transporterParam.SlopeType switch
             {
@@ -34,7 +34,7 @@ namespace Game.CraftChainer.BlockComponent.Template
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(transporterParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new ChainerTransporterInserter(connectorComponent, transporterComponent.NodeId);
+            var beltConveyorConnector = new CraftChainerTransporterInserter(connectorComponent, transporterComponent.NodeId);
             var itemCount = transporterParam.TransporterConveyorItemCount;
             var time = transporterParam.TimeOfItemEnterToExit;
             
