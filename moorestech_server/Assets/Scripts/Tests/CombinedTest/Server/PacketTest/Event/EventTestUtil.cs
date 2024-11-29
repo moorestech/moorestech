@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
 using Server.Protocol.PacketResponse;
+using static Server.Protocol.PacketResponse.EventProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {

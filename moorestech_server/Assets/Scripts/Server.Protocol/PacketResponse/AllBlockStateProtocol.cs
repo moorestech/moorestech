@@ -9,7 +9,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class AllBlockStateProtocol : IPacketResponse
     {
-        public const string Tag = "va:allBockState";
+        public const string ProtocolTag = "va:allBockState";
         
         public AllBlockStateProtocol(ServiceProvider serviceProvider)
         {
@@ -27,31 +27,29 @@ namespace Server.Protocol.PacketResponse
             
             return new ResponseAllBlockStateProtocolMessagePack(stateList);
         }
-    }
-    
-    [MessagePackObject]
-    public class RequestAllBlockStateProtocolMessagePack : ProtocolMessagePackBase
-    {
-        public RequestAllBlockStateProtocolMessagePack()
-        {
-            Tag = AllBlockStateProtocol.Tag;
-        }
-    }
-    
-    [MessagePackObject]
-    public class ResponseAllBlockStateProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public List<BlockStateMessagePack> StateList { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseAllBlockStateProtocolMessagePack()
+        [MessagePackObject]
+        public class RequestAllBlockStateProtocolMessagePack : ProtocolMessagePackBase
         {
+            public RequestAllBlockStateProtocolMessagePack()
+            {
+                Tag = ProtocolTag;
+            }
         }
         
-        public ResponseAllBlockStateProtocolMessagePack(List<BlockStateMessagePack> stateList)
+        [MessagePackObject]
+        public class ResponseAllBlockStateProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = AllBlockStateProtocol.Tag;
-            StateList = stateList;
+            [Key(2)] public List<BlockStateMessagePack> StateList { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseAllBlockStateProtocolMessagePack() { }
+            
+            public ResponseAllBlockStateProtocolMessagePack(List<BlockStateMessagePack> stateList)
+            {
+                Tag = ProtocolTag;
+                StateList = stateList;
+            }
         }
     }
 }

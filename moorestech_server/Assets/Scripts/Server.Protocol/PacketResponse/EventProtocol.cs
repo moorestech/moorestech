@@ -7,7 +7,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class EventProtocol : IPacketResponse
     {
-        public const string Tag = "va:event";
+        public const string ProtocolTag = "va:event";
         
         private readonly EventProtocolProvider _eventProtocolProvider;
         
@@ -25,38 +25,37 @@ namespace Server.Protocol.PacketResponse
             
             return new ResponseEventProtocolMessagePack(events);
         }
-    }
-    
-    [MessagePackObject]
-    public class EventProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public EventProtocolMessagePack()
+        
+        
+        
+        [MessagePackObject]
+        public class EventProtocolMessagePack : ProtocolMessagePackBase
         {
+            [Key(2)] public int PlayerId { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public EventProtocolMessagePack() { }
+            
+            public EventProtocolMessagePack(int playerId)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+            }
         }
         
-        public EventProtocolMessagePack(int playerId)
+        [MessagePackObject]
+        public class ResponseEventProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = EventProtocol.Tag;
-            PlayerId = playerId;
+            [Key(2)] public List<EventMessagePack> Events { get; set; }
+            
+            public ResponseEventProtocolMessagePack(List<EventMessagePack> events)
+            {
+                Tag = ProtocolTag;
+                Events = events;
+            }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseEventProtocolMessagePack() { }
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-    }
-    
-    [MessagePackObject]
-    public class ResponseEventProtocolMessagePack : ProtocolMessagePackBase
-    {
-        public ResponseEventProtocolMessagePack(List<EventMessagePack> events)
-        {
-            Events = events;
-        }
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseEventProtocolMessagePack()
-        {
-        }
-        
-        [Key(2)] public List<EventMessagePack> Events { get; set; }
     }
 }

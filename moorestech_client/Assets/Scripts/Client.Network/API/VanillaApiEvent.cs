@@ -4,9 +4,9 @@ using System.Threading;
 using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Server.Protocol;
-using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.EventProtocol;
 
 namespace Client.Network.API
 {

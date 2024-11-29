@@ -11,7 +11,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class BlockStateProtocol : IPacketResponse
     {
-        public const string Tag = "va:blockState";
+        public const string ProtocolTag = "va:blockState";
         
         public BlockStateProtocol(ServiceProvider serviceProvider)
         {
@@ -31,36 +31,35 @@ namespace Server.Protocol.PacketResponse
             
             return new ResponseBlockStateProtocolMessagePack(new BlockStateMessagePack(blockState, data.Position.Vector3Int));
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class RequestBlockStateProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public Vector3IntMessagePack Position { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestBlockStateProtocolMessagePack() { }
-        
-        public RequestBlockStateProtocolMessagePack(Vector3Int pos)
+        [MessagePackObject]
+        public class RequestBlockStateProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = BlockStateProtocol.Tag;
-            Position = new Vector3IntMessagePack(pos);
+            [Key(2)] public Vector3IntMessagePack Position { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestBlockStateProtocolMessagePack() { }
+            
+            public RequestBlockStateProtocolMessagePack(Vector3Int pos)
+            {
+                Tag = ProtocolTag;
+                Position = new Vector3IntMessagePack(pos);
+            }
         }
-    }
-    
-    [MessagePackObject]
-    public class ResponseBlockStateProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public BlockStateMessagePack State { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseBlockStateProtocolMessagePack() { }
-        
-        public ResponseBlockStateProtocolMessagePack(BlockStateMessagePack state)
+        [MessagePackObject]
+        public class ResponseBlockStateProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = BlockStateProtocol.Tag;
-            State = state;
+            [Key(2)] public BlockStateMessagePack State { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseBlockStateProtocolMessagePack() { }
+            
+            public ResponseBlockStateProtocolMessagePack(BlockStateMessagePack state)
+            {
+                Tag = ProtocolTag;
+                State = state;
+            }
         }
     }
 }

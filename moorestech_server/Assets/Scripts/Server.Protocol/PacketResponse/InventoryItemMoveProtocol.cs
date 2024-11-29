@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public class InventoryItemMoveProtocol : IPacketResponse
     {
-        public const string Tag = "va:invItemMove";
+        public const string ProtocolTag = "va:invItemMove";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
@@ -81,67 +81,55 @@ namespace Server.Protocol.PacketResponse
             
             return inventory;
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public InventoryItemMoveProtocolMessagePack()
-        {
-        }
         
-        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
-            ItemMoveInventoryInfo inventory, int fromSlot,
-            ItemMoveInventoryInfo toInventory, int toSlot)
+        [MessagePackObject]
+        public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = InventoryItemMoveProtocol.Tag;
-            PlayerId = playerId;
-            Count = count;
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public int Count { get; set; }
+            [Key(4)] public int ItemMoveTypeId { get; set; }
+            [IgnoreMember] public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
+            [Key(5)] public ItemMoveInventoryInfoMessagePack FromInventory { get; set; }
+            [Key(6)] public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
             
-            ItemMoveTypeId = (int)itemMoveType;
-            FromInventory = new ItemMoveInventoryInfoMessagePack(inventory, fromSlot);
-            ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory, toSlot);
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public InventoryItemMoveProtocolMessagePack() { }
+            public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
+                ItemMoveInventoryInfo inventory, int fromSlot,
+                ItemMoveInventoryInfo toInventory, int toSlot)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                Count = count;
+                
+                ItemMoveTypeId = (int)itemMoveType;
+                FromInventory = new ItemMoveInventoryInfoMessagePack(inventory, fromSlot);
+                ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory, toSlot);
+            }
         }
         
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public int Count { get; set; }
-        
-        [Key(4)] public int ItemMoveTypeId { get; set; }
-        
-        [IgnoreMember] public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
-        
-        [Key(5)] public ItemMoveInventoryInfoMessagePack FromInventory { get; set; }
-        
-        [Key(6)] public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
-    }
-    
-    [MessagePackObject]
-    public class ItemMoveInventoryInfoMessagePack
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ItemMoveInventoryInfoMessagePack()
+        [MessagePackObject]
+        public class ItemMoveInventoryInfoMessagePack
         {
+            [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
+            [Key(2)] public int InventoryId { get; set; }
+            
+            [IgnoreMember] public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
+            
+            [Key(3)] public int Slot { get; set; }
+            
+            [Key(4)] public Vector3IntMessagePack Pos { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ItemMoveInventoryInfoMessagePack() { }
+            public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
+            {
+                //メッセージパックでenumは重いらしいのでintを使う
+                InventoryId = (int)info.ItemMoveInventoryType;
+                Slot = slot;
+                Pos = new Vector3IntMessagePack(info.Pos);
+            }
         }
-        
-        public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
-        {
-            //メッセージパックでenumは重いらしいのでintを使う
-            InventoryId = (int)info.ItemMoveInventoryType;
-            Slot = slot;
-            Pos = new Vector3IntMessagePack(info.Pos);
-        }
-        
-        [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
-        [Key(2)]
-        public int InventoryId { get; set; }
-        
-        [IgnoreMember] public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
-        
-        [Key(3)] public int Slot { get; set; }
-        
-        [Key(4)] public Vector3IntMessagePack Pos { get; set; }
     }
 }

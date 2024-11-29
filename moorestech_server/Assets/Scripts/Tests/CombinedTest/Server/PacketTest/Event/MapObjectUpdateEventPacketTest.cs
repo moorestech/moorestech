@@ -6,6 +6,7 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using static Server.Protocol.PacketResponse.EventProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {

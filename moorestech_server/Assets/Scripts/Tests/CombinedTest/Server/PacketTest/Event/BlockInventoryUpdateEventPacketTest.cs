@@ -13,6 +13,7 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.EventProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -116,7 +117,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private List<byte> OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
         {
             return MessagePackSerializer
-                .Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId, pos, isOpen)).ToList();
+                .Serialize(new BlockInventoryOpenCloseProtocol.BlockInventoryOpenCloseProtocolMessagePack(PlayerId, pos, isOpen)).ToList();
         }
         
         private List<byte> GetEventPacket()

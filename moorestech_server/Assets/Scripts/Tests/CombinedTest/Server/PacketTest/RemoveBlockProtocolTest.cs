@@ -11,9 +11,9 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.RemoveBlockProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {

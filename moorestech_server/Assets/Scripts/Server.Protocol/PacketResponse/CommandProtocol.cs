@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class SendCommandProtocol : IPacketResponse
     {
-        public const string Tag = "va:sendCommand";
+        public const string ProtocolTag = "va:sendCommand";
         
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
@@ -40,23 +40,23 @@ namespace Server.Protocol.PacketResponse
             
             return null;
         }
+        
+        [MessagePackObject]
+        public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public string Command { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public SendCommandProtocolMessagePack()
+            {
+            }
+            
+            public SendCommandProtocolMessagePack(string command)
+            {
+                Tag = ProtocolTag;
+                Command = command;
+            }
+        }
     }
     
-    
-    [MessagePackObject]
-    public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public string Command { get; set; }
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public SendCommandProtocolMessagePack()
-        {
-        }
-        
-        public SendCommandProtocolMessagePack(string command)
-        {
-            Tag = SendCommandProtocol.Tag;
-            Command = command;
-        }
-    }
 }

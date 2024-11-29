@@ -11,7 +11,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class DebugBlockInfoRequestProtocol : IPacketResponse
     {
-        public const string Tag = "va:blockDebug";
+        public const string ProtocolTag = "va:blockDebug";
         
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         
@@ -39,37 +39,36 @@ namespace Server.Protocol.PacketResponse
             
             return new ResponseDebugBlockInfoRequestProtocolMessagePack(blockDebugInfo);
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class RequestDebugBlockInfoRequestProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public Vector3IntMessagePack BlockPos { get; set; }
         
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestDebugBlockInfoRequestProtocolMessagePack() { }
-        
-        public RequestDebugBlockInfoRequestProtocolMessagePack(Vector3Int pos)
+        [MessagePackObject]
+        public class RequestDebugBlockInfoRequestProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = BlockInventoryRequestProtocol.Tag;
-            BlockPos = new Vector3IntMessagePack(pos);
+            [Key(2)] public Vector3IntMessagePack BlockPos { get; set; }
+            
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestDebugBlockInfoRequestProtocolMessagePack() { }
+            
+            public RequestDebugBlockInfoRequestProtocolMessagePack(Vector3Int pos)
+            {
+                Tag = BlockInventoryRequestProtocol.ProtocolTag;
+                BlockPos = new Vector3IntMessagePack(pos);
+            }
         }
-    }
-    
-    [MessagePackObject]
-    public class ResponseDebugBlockInfoRequestProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public List<BlockDebugInfo> BlockDebugInfos { get; set; }
         
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseDebugBlockInfoRequestProtocolMessagePack() { }
-        public ResponseDebugBlockInfoRequestProtocolMessagePack(List<BlockDebugInfo> blockDebugInfo)
+        [MessagePackObject]
+        public class ResponseDebugBlockInfoRequestProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = BlockInventoryRequestProtocol.Tag;
-            BlockDebugInfos = blockDebugInfo;
+            [Key(2)] public List<BlockDebugInfo> BlockDebugInfos { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseDebugBlockInfoRequestProtocolMessagePack() { }
+            public ResponseDebugBlockInfoRequestProtocolMessagePack(List<BlockDebugInfo> blockDebugInfo)
+            {
+                Tag = BlockInventoryRequestProtocol.ProtocolTag;
+                BlockDebugInfos = blockDebugInfo;
+            }
         }
     }
 }

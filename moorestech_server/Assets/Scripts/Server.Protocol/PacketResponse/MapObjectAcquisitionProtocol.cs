@@ -12,7 +12,7 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public class MapObjectAcquisitionProtocol : IPacketResponse
     {
-        public const string Tag = "va:mapObjectInfoAcquisition";
+        public const string ProtocolTag = "va:mapObjectInfoAcquisition";
         
         
         private readonly IMapObjectDatastore _mapObjectDatastore;
@@ -38,29 +38,24 @@ namespace Server.Protocol.PacketResponse
             
             return null;
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class GetMapObjectProtocolProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public GetMapObjectProtocolProtocolMessagePack()
+        
+        [MessagePackObject]
+        public class GetMapObjectProtocolProtocolMessagePack : ProtocolMessagePackBase
         {
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public int InstanceId { get; set; }
+            [Key(4)] public int AttackDamage { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public GetMapObjectProtocolProtocolMessagePack() { }
+            
+            public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId, int attackDamage)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                InstanceId = instanceId;
+                AttackDamage = attackDamage;
+            }
         }
-        
-        public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId, int attackDamage)
-        {
-            Tag = MapObjectAcquisitionProtocol.Tag;
-            PlayerId = playerId;
-            InstanceId = instanceId;
-            AttackDamage = attackDamage;
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public int InstanceId { get; set; }
-        
-        [Key(4)] public int AttackDamage { get; set; }
     }
 }

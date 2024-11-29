@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class InitialHandshakeProtocol : IPacketResponse
     {
-        public const string Tag = "va:initialHandshake";
+        public const string ProtocolTag = "va:initialHandshake";
         
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
@@ -50,43 +50,37 @@ namespace Server.Protocol.PacketResponse
             //プレイヤーのデータがなかったのでスポーン地点を取得する
             return new Vector2MessagePack(_worldSettingsDatastore.WorldSpawnPoint);
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestInitialHandshakeMessagePack()
+        
+        [MessagePackObject]
+        public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public string PlayerName { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestInitialHandshakeMessagePack() { }
+            
+            public RequestInitialHandshakeMessagePack(int playerId, string playerName)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                PlayerName = playerName;
+            }
         }
         
-        public RequestInitialHandshakeMessagePack(int playerId, string playerName)
+        [MessagePackObject]
+        public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
-            Tag = InitialHandshakeProtocol.Tag;
-            PlayerId = playerId;
-            PlayerName = playerName;
+            [Key(2)] public Vector2MessagePack PlayerPos { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseInitialHandshakeMessagePack() { }
+            
+            public ResponseInitialHandshakeMessagePack(Vector2MessagePack playerPos)
+            {
+                Tag = ProtocolTag;
+                PlayerPos = playerPos;
+            }
         }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public string PlayerName { get; set; }
-    }
-    
-    [MessagePackObject]
-    public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseInitialHandshakeMessagePack()
-        {
-        }
-        
-        public ResponseInitialHandshakeMessagePack(Vector2MessagePack playerPos)
-        {
-            Tag = InitialHandshakeProtocol.Tag;
-            PlayerPos = playerPos;
-        }
-        
-        [Key(2)] public Vector2MessagePack PlayerPos { get; set; }
     }
 }

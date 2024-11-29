@@ -14,7 +14,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class OneClickCraft : IPacketResponse
     {
-        public const string Tag = "va:oneClickCraft";
+        public const string ProtocolTag = "va:oneClickCraft";
         private readonly CraftEvent _craftEvent;
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
@@ -143,26 +143,24 @@ namespace Server.Protocol.PacketResponse
                 }
             }
         }
-    }
-    
-    [MessagePackObject]
-    public class RequestOneClickCraftProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public int PlayerId { get; set; }
         
-        [Key(3)] public string CraftRecipeGuidStr { get; set; }
-        [IgnoreMember] public Guid CraftRecipeGuid => Guid.Parse(CraftRecipeGuidStr);
-        
-        public RequestOneClickCraftProtocolMessagePack(int playerId, Guid craftRecipeGuid)
+        [MessagePackObject]
+        public class RequestOneClickCraftProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = OneClickCraft.Tag;
-            PlayerId = playerId;
-            CraftRecipeGuidStr = craftRecipeGuid.ToString();
-        }
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestOneClickCraftProtocolMessagePack()
-        {
+            [Key(2)] public int PlayerId { get; set; }
+            
+            [Key(3)] public string CraftRecipeGuidStr { get; set; }
+            [IgnoreMember] public Guid CraftRecipeGuid => Guid.Parse(CraftRecipeGuidStr);
+            
+            public RequestOneClickCraftProtocolMessagePack(int playerId, Guid craftRecipeGuid)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                CraftRecipeGuidStr = craftRecipeGuid.ToString();
+            }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestOneClickCraftProtocolMessagePack() { }
         }
     }
 }

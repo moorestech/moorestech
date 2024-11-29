@@ -13,7 +13,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class SetCraftChainerCrafterRecipeProtocol : IPacketResponse
     {
-        public const string Tag = "va:setChainerRecipe";
+        public const string ProtocolTag = "va:setChainerRecipe";
         
         public SetCraftChainerCrafterRecipeProtocol(ServiceProvider serviceProvider) { }
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -33,33 +33,33 @@ namespace Server.Protocol.PacketResponse
             
             return null;
         }
-    }
-    
-    [MessagePackObject]
-    public class SetCraftChainerCrafterRecipeProtocolMessagePack : ProtocolMessagePackBase
-    {
-        [Key(2)] public Vector3IntMessagePack BlockPos { get; set; }
-        [Key(3)] public List<CraftingSolverItemJsonObjectMessagePack> Inputs { get; set; }
-        [Key(4)] public List<CraftingSolverItemJsonObjectMessagePack> Outputs { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public SetCraftChainerCrafterRecipeProtocolMessagePack() { }
-        
-        public SetCraftChainerCrafterRecipeProtocolMessagePack(Vector3Int blockPos, List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
+        [MessagePackObject]
+        public class SetCraftChainerCrafterRecipeProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = SetCraftChainerCrafterRecipeProtocol.Tag;
-            BlockPos = new Vector3IntMessagePack(blockPos);
-            Inputs = inputs.Select(item => new CraftingSolverItemJsonObjectMessagePack(item)).ToList();
-            Outputs = outputs.Select(item => new CraftingSolverItemJsonObjectMessagePack(item)).ToList();
-        }
-        
-        public List<CraftingSolverItem> GetInputs()
-        {
-            return Inputs.Select(item => item.ToCraftingSolverItem()).ToList();
-        }
-        public List<CraftingSolverItem> GetOutputs()
-        {
-            return Outputs.Select(item => item.ToCraftingSolverItem()).ToList();
+            [Key(2)] public Vector3IntMessagePack BlockPos { get; set; }
+            [Key(3)] public List<CraftingSolverItemJsonObjectMessagePack> Inputs { get; set; }
+            [Key(4)] public List<CraftingSolverItemJsonObjectMessagePack> Outputs { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public SetCraftChainerCrafterRecipeProtocolMessagePack() { }
+            
+            public SetCraftChainerCrafterRecipeProtocolMessagePack(Vector3Int blockPos, List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
+            {
+                Tag = ProtocolTag;
+                BlockPos = new Vector3IntMessagePack(blockPos);
+                Inputs = inputs.Select(item => new CraftingSolverItemJsonObjectMessagePack(item)).ToList();
+                Outputs = outputs.Select(item => new CraftingSolverItemJsonObjectMessagePack(item)).ToList();
+            }
+            
+            public List<CraftingSolverItem> GetInputs()
+            {
+                return Inputs.Select(item => item.ToCraftingSolverItem()).ToList();
+            }
+            public List<CraftingSolverItem> GetOutputs()
+            {
+                return Outputs.Select(item => item.ToCraftingSolverItem()).ToList();
+            }
         }
     }
 }

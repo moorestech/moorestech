@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class SendPlaceHotBarBlockProtocol : IPacketResponse
     {
-        public const string Tag = "va:palceHotbarBlock";
+        public const string ProtocolTag = "va:palceHotbarBlock";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
         
         #region GetResponse
         
-        static void PlaceBlock(PlaceInfoMessagePack placeInfo,SendPlaceHotBarBlockProtocolMessagePack data,PlayerInventoryData inventoryData)
+        static void PlaceBlock(PlaceInfoMessagePack placeInfo, SendPlaceHotBarBlockProtocolMessagePack data, PlayerInventoryData inventoryData)
         {
             //すでにブロックがある場合はそもまま処理を終了
             if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
@@ -61,6 +61,49 @@ namespace Server.Protocol.PacketResponse
         }
         
         #endregion
+        
+        
+        [MessagePackObject]
+        public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public int PlayerId { get; set; }
+            
+            [Key(3)] public int HotBarSlot { get; set; }
+            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+            
+            [Key(4)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
+            
+            public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int hotBarSlot, List<PlaceInfo> placeInfos)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                HotBarSlot = hotBarSlot;
+                PlacePositions = placeInfos.ConvertAll(v => new PlaceInfoMessagePack(v));
+            }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public SendPlaceHotBarBlockProtocolMessagePack() { }
+        }
+        
+        [MessagePackObject]
+        public class PlaceInfoMessagePack
+        {
+            [Key(0)] public Vector3IntMessagePack Position { get; set; }
+            
+            [Key(1)] public BlockDirection Direction { get; set; }
+            
+            [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public PlaceInfoMessagePack() { }
+            
+            public PlaceInfoMessagePack(PlaceInfo placeInfo)
+            {
+                Position = new Vector3IntMessagePack(placeInfo.Position);
+                Direction = placeInfo.Direction;
+                VerticalDirection = placeInfo.VerticalDirection;
+            }
+        }
     }
     
     public class PlaceInfo
@@ -70,51 +113,5 @@ namespace Server.Protocol.PacketResponse
         public BlockVerticalDirection VerticalDirection { get; set; }
         
         public bool Placeable { get; set; }
-    }
-    
-    
-    [MessagePackObject]
-    public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
-    {
-        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int hotBarSlot, List<PlaceInfo> placeInfos)
-        {
-            Tag = SendPlaceHotBarBlockProtocol.Tag;
-            PlayerId = playerId;
-            HotBarSlot = hotBarSlot;
-            PlacePositions = placeInfos.ConvertAll(v => new PlaceInfoMessagePack(v));
-        }
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public SendPlaceHotBarBlockProtocolMessagePack()
-        {
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public int HotBarSlot { get; set; }
-        [IgnoreMember] public int InventorySlot =>  PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-        
-        [Key(4)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
-    }
-    
-    [MessagePackObject]
-    public class PlaceInfoMessagePack
-    {
-        [Key(0)] public Vector3IntMessagePack Position { get; set; }
-        
-        [Key(1)] public BlockDirection Direction { get; set; }
-        
-        [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
-        
-        public PlaceInfoMessagePack()
-        {
-        }
-        
-        public PlaceInfoMessagePack(PlaceInfo placeInfo)
-        {
-            Position = new Vector3IntMessagePack(placeInfo.Position);
-            Direction = placeInfo.Direction;
-            VerticalDirection = placeInfo.VerticalDirection;
-        }
     }
 }

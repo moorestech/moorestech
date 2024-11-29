@@ -16,26 +16,26 @@ namespace Server.Protocol
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
-            _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag, new InitialHandshakeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(RequestWorldDataProtocol.Tag, new RequestWorldDataProtocol(serviceProvider));
-            _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.Tag, new SetPlayerCoordinateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(EventProtocol.Tag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
-            _packetResponseDictionary.Add(InventoryItemMoveProtocol.Tag, new InventoryItemMoveProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.Tag, new SendPlaceHotBarBlockProtocol(serviceProvider));
-            _packetResponseDictionary.Add(BlockInventoryRequestProtocol.Tag, new BlockInventoryRequestProtocol(serviceProvider));
-            _packetResponseDictionary.Add(RemoveBlockProtocol.Tag, new RemoveBlockProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SendCommandProtocol.Tag, new SendCommandProtocol(serviceProvider));
-            _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag, new BlockInventoryOpenCloseProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SaveProtocol.Tag, new SaveProtocol(serviceProvider));
-            _packetResponseDictionary.Add(GetMapObjectInfoProtocol.Tag, new GetMapObjectInfoProtocol(serviceProvider));
-            _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.Tag, new MapObjectAcquisitionProtocol(serviceProvider));
-            _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
-            _packetResponseDictionary.Add(GetChallengeInfoProtocol.Tag, new GetChallengeInfoProtocol(serviceProvider));
-            _packetResponseDictionary.Add(AllBlockStateProtocol.Tag, new AllBlockStateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(BlockStateProtocol.Tag, new BlockStateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.Tag, new DebugBlockInfoRequestProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SetCraftChainerCrafterRecipeProtocol.Tag, new SetCraftChainerCrafterRecipeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
+            _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
+            _packetResponseDictionary.Add(EventProtocol.ProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
+            _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.ProtocolTag, new SendPlaceHotBarBlockProtocol(serviceProvider));
+            _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SendCommandProtocol.ProtocolTag, new SendCommandProtocol(serviceProvider));
+            _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.ProtocolTag, new BlockInventoryOpenCloseProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SaveProtocol.ProtocolTag, new SaveProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetMapObjectInfoProtocol.ProtocolTag, new GetMapObjectInfoProtocol(serviceProvider));
+            _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.ProtocolTag, new MapObjectAcquisitionProtocol(serviceProvider));
+            _packetResponseDictionary.Add(OneClickCraft.ProtocolTag, new OneClickCraft(serviceProvider));
+            _packetResponseDictionary.Add(GetChallengeInfoProtocol.ProtocolTag, new GetChallengeInfoProtocol(serviceProvider));
+            _packetResponseDictionary.Add(AllBlockStateProtocol.ProtocolTag, new AllBlockStateProtocol(serviceProvider));
+            _packetResponseDictionary.Add(BlockStateProtocol.ProtocolTag, new BlockStateProtocol(serviceProvider));
+            _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SetCraftChainerCrafterRecipeProtocol.ProtocolTag, new SetCraftChainerCrafterRecipeProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)

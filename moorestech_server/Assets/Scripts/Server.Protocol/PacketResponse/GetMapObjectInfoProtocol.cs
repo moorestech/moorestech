@@ -11,7 +11,7 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public class GetMapObjectInfoProtocol : IPacketResponse
     {
-        public const string Tag = "va:mapObjectInfo";
+        public const string ProtocolTag = "va:mapObjectInfo";
         
         private readonly IMapObjectDatastore _mapObjectDatastore;
         
@@ -30,50 +30,46 @@ namespace Server.Protocol.PacketResponse
             
             return response;
         }
-    }
-    
-    [MessagePackObject]
-    public class RequestMapObjectInfosMessagePack : ProtocolMessagePackBase
-    {
-        public RequestMapObjectInfosMessagePack()
+        
+        
+        
+        [MessagePackObject]
+        public class RequestMapObjectInfosMessagePack : ProtocolMessagePackBase
         {
-            Tag = GetMapObjectInfoProtocol.Tag;
-        }
-    }
-    
-    [MessagePackObject]
-    public class ResponseMapObjectInfosMessagePack : ProtocolMessagePackBase
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseMapObjectInfosMessagePack()
-        {
+            public RequestMapObjectInfosMessagePack()
+            {
+                Tag = ProtocolTag;
+            }
         }
         
-        public ResponseMapObjectInfosMessagePack(List<MapObjectsInfoMessagePack> mapObjects)
+        [MessagePackObject]
+        public class ResponseMapObjectInfosMessagePack : ProtocolMessagePackBase
         {
-            Tag = GetMapObjectInfoProtocol.Tag;
-            MapObjects = mapObjects;
+            [Key(2)] public List<MapObjectsInfoMessagePack> MapObjects { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseMapObjectInfosMessagePack() { }
+            
+            public ResponseMapObjectInfosMessagePack(List<MapObjectsInfoMessagePack> mapObjects)
+            {
+                Tag = ProtocolTag;
+                MapObjects = mapObjects;
+            }
         }
         
-        [Key(2)] public List<MapObjectsInfoMessagePack> MapObjects { get; set; }
-    }
-    
-    [MessagePackObject]
-    public class MapObjectsInfoMessagePack
-    {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public MapObjectsInfoMessagePack()
+        [MessagePackObject]
+        public class MapObjectsInfoMessagePack
         {
+            [Key(0)] public int InstanceId { get; set; }
+            [Key(1)] public bool IsDestroyed { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public MapObjectsInfoMessagePack() { }
+            public MapObjectsInfoMessagePack(int instanceId, bool isDestroyed)
+            {
+                InstanceId = instanceId;
+                IsDestroyed = isDestroyed;
+            }
         }
-        
-        public MapObjectsInfoMessagePack(int instanceId, bool isDestroyed)
-        {
-            InstanceId = instanceId;
-            IsDestroyed = isDestroyed;
-        }
-        
-        [Key(0)] public int InstanceId { get; set; }
-        
-        [Key(1)] public bool IsDestroyed { get; set; }
     }
 }

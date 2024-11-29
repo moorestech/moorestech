@@ -13,7 +13,7 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public class SetPlayerCoordinateProtocol : IPacketResponse
     {
-        public const string Tag = "va:playerCoordinate";
+        public const string ProtocolTag = "va:playerCoordinate";
         
         private readonly IEntitiesDatastore _entitiesDatastore;
         
@@ -32,26 +32,23 @@ namespace Server.Protocol.PacketResponse
             
             return null;
         }
-    }
-    
-    
-    [MessagePackObject]
-    public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
-    {
-        public PlayerCoordinateSendProtocolMessagePack(int playerId, Vector2 pos)
+        
+        
+        [MessagePackObject]
+        public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
         {
-            Tag = SetPlayerCoordinateProtocol.Tag;
-            PlayerId = playerId;
-            Pos = new Vector2MessagePack(pos);
+            [Key(2)] public int PlayerId { get; set; }
+            [Key(3)] public Vector2MessagePack Pos { get; set; }
+            
+            public PlayerCoordinateSendProtocolMessagePack(int playerId, Vector2 pos)
+            {
+                Tag = ProtocolTag;
+                PlayerId = playerId;
+                Pos = new Vector2MessagePack(pos);
+            }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public PlayerCoordinateSendProtocolMessagePack() { }
         }
-        
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public PlayerCoordinateSendProtocolMessagePack()
-        {
-        }
-        
-        [Key(2)] public int PlayerId { get; set; }
-        
-        [Key(3)] public Vector2MessagePack Pos { get; set; }
     }
 }

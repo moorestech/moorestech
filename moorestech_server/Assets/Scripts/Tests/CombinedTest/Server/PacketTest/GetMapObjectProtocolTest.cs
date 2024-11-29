@@ -6,8 +6,8 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using static Server.Protocol.PacketResponse.MapObjectAcquisitionProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {

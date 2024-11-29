@@ -5,9 +5,10 @@ using Game.Block.Interface;
 using Game.Challenge;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
-using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
+using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
 
 namespace Client.Network.API
 {
