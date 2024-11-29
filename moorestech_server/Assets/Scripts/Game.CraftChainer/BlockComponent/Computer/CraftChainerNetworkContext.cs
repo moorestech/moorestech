@@ -61,7 +61,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 var map = new Dictionary<CraftingSolverRecipeId, CraftCraftChainerCrafterComponent>();
                 foreach (var crafter in _crafterComponents)
                 {
-                    map[crafter.CraftingSolverRecipe.CraftingSolverRecipeId] = crafter;
+                    var recipeId = crafter.CraftingSolverRecipe.CraftingSolverRecipeId;
+                    if (recipeId != CraftingSolverRecipeId.InvalidId)
+                    {
+                        map[recipeId] = crafter;
+                    }
                 }
                 return map;
             }

@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
         
         public RequestBlockStateProtocolMessagePack(Vector3Int pos)
         {
-            Tag = AllBlockStateProtocol.Tag;
+            Tag = BlockStateProtocol.Tag;
             Position = new Vector3IntMessagePack(pos);
         }
     }
@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse
         
         public ResponseBlockStateProtocolMessagePack(BlockStateMessagePack state)
         {
-            Tag = AllBlockStateProtocol.Tag;
+            Tag = BlockStateProtocol.Tag;
             State = state;
         }
     }

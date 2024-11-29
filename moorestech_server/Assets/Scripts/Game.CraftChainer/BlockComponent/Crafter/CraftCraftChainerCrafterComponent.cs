@@ -11,7 +11,7 @@ namespace Game.CraftChainer.BlockComponent.Crafter
     {
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
-        public CraftingSolverRecipe CraftingSolverRecipe { get; private set; }
+        public CraftingSolverRecipe CraftingSolverRecipe { get; private set; } = new();
         
         public CraftCraftChainerCrafterComponent() { }
         

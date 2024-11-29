@@ -18,11 +18,20 @@ namespace Game.CraftChainer.CraftChain
             Inputs = inputs;
             Outputs = outputs;
         }
+        
+        public CraftingSolverRecipe()
+        {
+            CraftingSolverRecipeId = CraftingSolverRecipeId.InvalidId;
+            Inputs = new List<CraftingSolverItem>();
+            Outputs = new List<CraftingSolverItem>();
+        }
     }
     
     [UnitOf(typeof(int), UnitGenerateOptions.Comparable)]
     public partial struct CraftingSolverRecipeId
     {
+        public static readonly CraftingSolverRecipeId InvalidId = new(0);
+        
         private static readonly Random Random = new();
         public static CraftingSolverRecipeId Create()
         {
