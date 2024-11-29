@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -55,6 +56,7 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 var beltConveyorItem = beltConveyor.BeltConveyorItems[i];
                 if (beltConveyorItem == null) continue;
+                if (beltConveyorItem.ItemId == ItemMaster.EmptyItemId) continue;
                 
                 //残り時間をどこまで進んだかに変換するために 1- する
                 var percent = 1f - (float)beltConveyorItem.RemainingPercent;
