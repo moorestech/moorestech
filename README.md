@@ -7,6 +7,7 @@ remoteの追加
 ```sh
 git remote add schema git@github.com:moorestech/VanillaSchema.git
 git fetch schema
+git subtree add --prefix=mooresmaster.SandBox/schema --squash schema main
 ```
 
 ## コミットをVanillaSchemaにpush
