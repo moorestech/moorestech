@@ -74,7 +74,7 @@ namespace Client.Game.InGame.UI.UIState
                 if (string.IsNullOrEmpty(inventoryPath))
                 {
                     // TODO ログ基盤に入れる
-                    Debug.LogError($"開いたブロックのインベントリのパスがありませんでした。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name}");
+                    Debug.LogError($"開こうとしたブロックインベントリのAddressableパスが指定されていません。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name}");
 
                     return false;
                 }

@@ -1397,7 +1397,8 @@
         }
       },
       "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
-      "blockGuid": "a68875a7-6af2-4d6f-931e-54d443e8d10d"
+      "blockGuid": "a68875a7-6af2-4d6f-931e-54d443e8d10d",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerCrafterInventory"
     },
     {
       "blockSize": [
