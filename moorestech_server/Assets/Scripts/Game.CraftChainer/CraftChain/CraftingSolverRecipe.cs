@@ -36,23 +36,23 @@ namespace Game.CraftChainer.CraftChain
     public class CraftingSolverRecipeSerializeObject
     {
         [JsonProperty("recipeId"), Key(0)] public int RecipeId;
-        [JsonProperty("inputs"), Key(1)] public List<CraftingSolverItemJsonObject> Inputs;
-        [JsonProperty("outputs"), Key(2)] public List<CraftingSolverItemJsonObject> Outputs;
+        [JsonProperty("inputs"), Key(1)] public List<CraftingSolverItemSerializeObject> Inputs;
+        [JsonProperty("outputs"), Key(2)] public List<CraftingSolverItemSerializeObject> Outputs;
         
         public CraftingSolverRecipeSerializeObject() { }
 
         public CraftingSolverRecipeSerializeObject(CraftingSolverRecipe craftingSolverRecipe)
         {
             RecipeId = craftingSolverRecipe.CraftingSolverRecipeId.AsPrimitive();
-            Inputs = new List<CraftingSolverItemJsonObject>();
+            Inputs = new List<CraftingSolverItemSerializeObject>();
             foreach (var input in craftingSolverRecipe.Inputs)
             {
-                Inputs.Add(new CraftingSolverItemJsonObject(input));
+                Inputs.Add(new CraftingSolverItemSerializeObject(input));
             }
-            Outputs = new List<CraftingSolverItemJsonObject>();
+            Outputs = new List<CraftingSolverItemSerializeObject>();
             foreach (var output in craftingSolverRecipe.Outputs)
             {
-                Outputs.Add(new CraftingSolverItemJsonObject(output));
+                Outputs.Add(new CraftingSolverItemSerializeObject(output));
             }
         }
         

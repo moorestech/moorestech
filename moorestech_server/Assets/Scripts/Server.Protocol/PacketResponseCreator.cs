@@ -35,7 +35,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(AllBlockStateProtocol.Tag, new AllBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockStateProtocol.Tag, new BlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.Tag, new DebugBlockInfoRequestProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SetChainerCrafterRecipeProtocol.Tag, new SetChainerCrafterRecipeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SetCraftChainerCrafterRecipeProtocol.Tag, new SetCraftChainerCrafterRecipeProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
