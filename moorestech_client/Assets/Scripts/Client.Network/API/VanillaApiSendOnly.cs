@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Network.Settings;
+using Game.CraftChainer.CraftChain;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
@@ -65,6 +66,12 @@ namespace Client.Network.API
         public void AttackMapObject(int mapObjectInstanceId, int attackDamage)
         {
             var request = new GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId, attackDamage);
+            _packetSender.Send(request);
+        }
+        
+        public void SetCraftChainerCrafterRecipe(Vector3Int block ,List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
+        {
+            var request = new SetCraftChainerCrafterRecipeProtocolMessagePack(block, inputs, outputs);
             _packetSender.Send(request);
         }
         
