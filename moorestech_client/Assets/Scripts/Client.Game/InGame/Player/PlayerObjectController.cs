@@ -1,6 +1,8 @@
 ﻿using Client.Game.InGame.BlockSystem;
+using Client.Network.API;
 using StarterAssets;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.Player
 {
@@ -30,6 +32,13 @@ namespace Client.Game.InGame.Player
         
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
+        
+        [Inject]
+        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
+        {
+            controller.Initialize();
+            SetPlayerPosition(initialHandshakeResponse.PlayerPos);
+        }
         
         private void LateUpdate()
         {

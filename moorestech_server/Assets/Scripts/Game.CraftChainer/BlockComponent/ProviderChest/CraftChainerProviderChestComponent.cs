@@ -11,20 +11,22 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
     {
         public CraftChainerNodeId NodeId { get; }
         public IReadOnlyList<IItemStack> Inventory => _vanillaChestComponent.InventoryItems;
+        private VanillaChestComponent _vanillaChestComponent;
         
-        private readonly VanillaChestComponent _vanillaChestComponent;
-        
-        public CraftChainerProviderChestComponent(CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent)
+        public CraftChainerProviderChestComponent()
         {
-            NodeId = nodeId;
-            _vanillaChestComponent = vanillaChestComponent;
+            NodeId = CraftChainerNodeId.Create();
         }
-        public CraftChainerProviderChestComponent(Dictionary<string, string> componentStates, CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent) : 
-            this(nodeId, vanillaChestComponent)
+        public CraftChainerProviderChestComponent(Dictionary<string, string> componentStates) : this()
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerProviderChestComponentJsonObject>(state);
             NodeId = new CraftChainerNodeId(jsonObject.NodeId);
+        }
+        
+        public void SetInitialVanillaChestComponent(VanillaChestComponent vanillaChestComponent)
+        {
+            _vanillaChestComponent = vanillaChestComponent;
         }
         
         

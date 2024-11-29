@@ -6,6 +6,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
 using Server.Protocol.PacketResponse;
+using UnityEngine;
 
 namespace Server.Protocol
 {
@@ -41,8 +42,18 @@ namespace Server.Protocol
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
         {
-            var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
-            var response = _packetResponseDictionary[request.Tag].GetResponse(payload);
+            ProtocolMessagePackBase request = null;
+            ProtocolMessagePackBase response = null;
+            try
+            {
+                request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
+                response = _packetResponseDictionary[request.Tag].GetResponse(payload);
+            }
+            catch (Exception e)
+            {
+                // TODO ログ基盤
+                Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
+            }
             
             if (response == null) return new List<List<byte>>();
             

@@ -2,8 +2,8 @@
 {
     public class NetworkConst
     {
-        public const int UpdateRate = 2;
-        public const int UpdateIntervalMilliseconds = 1000 / UpdateRate;
-        public const float UpdateIntervalSeconds = 1.0f / UpdateRate;
+        public const int SecondUpdateRate = 30;
+        public const int UpdateIntervalMilliseconds = 1000 / SecondUpdateRate;
+        public const float UpdateIntervalSeconds = 1.0f / SecondUpdateRate;
     }
 }

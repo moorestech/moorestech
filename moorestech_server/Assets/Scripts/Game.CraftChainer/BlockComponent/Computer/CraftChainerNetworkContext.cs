@@ -33,7 +33,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         private readonly Dictionary<ItemInstanceId,CraftChainerNodeId> _requestedMoveItems = new();
         // アイテムごとにどのノードに何個アイテムを入れなければならないか
         // How many items of each item type must be placed in each node?
-        private Dictionary<ItemId,Dictionary<CraftChainerNodeId,int>> _craftChainRecipeQue;
+        private Dictionary<ItemId,Dictionary<CraftChainerNodeId,int>> _craftChainRecipeQue = new();
         
         public CraftChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector, ICraftChainerNode mainComputerNode)
         {
@@ -110,6 +110,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         public void ReSearchNetwork()
         {
             _providerChests.Clear();
+            _crafterComponents.Clear();
             _nodes.Clear();
             
             _nodes.Add(_mainComputerNode.NodeId, _mainComputerNode);
