@@ -327,7 +327,7 @@ GameObject:
   - component: {fileID: 8396871071073105365}
   - component: {fileID: 4913954947600736580}
   - component: {fileID: 2243830455431487365}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -808,7 +808,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2864312415366314551}
   - component: {fileID: 6036322953463296240}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u30D6\u30ED\u30F3\u30BA\u63A1\u6398\u6A5F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -853,8 +853,12 @@ MonoBehaviour:
   rotationInfos:
   - rotationAxis: 0
     rotationTransform: {fileID: 8291855290040201034}
+    isReverse: 0
+    rotationSpeed: 1
   - rotationAxis: 1
     rotationTransform: {fileID: 8004967725647890796}
+    isReverse: 0
+    rotationSpeed: 1
 --- !u!1 &7232818041516098256
 GameObject:
   m_ObjectHideFlags: 0

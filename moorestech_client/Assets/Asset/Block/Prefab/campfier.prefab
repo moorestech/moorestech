@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7198148263525476782}
   - component: {fileID: 7518429389124020519}
   - component: {fileID: 3104422961356011113}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PreviewCollison
   m_TagString: Untagged
   m_Icon: {fileID: 0}

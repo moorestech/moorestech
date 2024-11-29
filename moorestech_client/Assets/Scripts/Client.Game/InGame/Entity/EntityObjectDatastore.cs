@@ -59,7 +59,16 @@ namespace Client.Game.InGame.Entity
                 var item = Instantiate(itemPrefab, entity.Position, Quaternion.identity, transform);
                 
                 var id = new ItemId(int.Parse(entity.State.Split(',')[0]));
-                var texture = ClientContext.ItemImageContainer.GetItemView(id).ItemTexture;
+                var viewData = ClientContext.ItemImageContainer.GetItemView(id);
+                Texture texture = null;
+                if (viewData == null)
+                {
+                    Debug.LogError("ItemTexture Not Found  ItemId:" + id);
+                }
+                else
+                {
+                    texture = viewData.ItemTexture;
+                }
                 item.SetTexture(texture);
                 return item;
             }

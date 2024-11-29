@@ -407,9 +407,11 @@ MonoBehaviour:
   - rotationAxis: 0
     rotationTransform: {fileID: 458783854469350616}
     isReverse: 0
+    rotationSpeed: 1
   - rotationAxis: 0
     rotationTransform: {fileID: 660948004848531355}
     isReverse: 1
+    rotationSpeed: 1
 --- !u!1 &5100227100758773828
 GameObject:
   m_ObjectHideFlags: 0

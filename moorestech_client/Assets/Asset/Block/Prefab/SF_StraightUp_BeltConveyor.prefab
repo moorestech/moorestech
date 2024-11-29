@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1607388146508271044}
   - component: {fileID: 3720008948928235164}
   - component: {fileID: 1742954970903622688}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.113"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 5729941773650656587}
   - component: {fileID: 8236457391432158200}
   - component: {fileID: 3937489703432946108}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.114"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ GameObject:
   - component: {fileID: 7215735268934729248}
   - component: {fileID: 8785983300332789888}
   - component: {fileID: 973501740967051394}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.110"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -258,7 +258,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5787676431962214743}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SF_StraightUp_BeltConveyor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -292,7 +292,7 @@ GameObject:
   - component: {fileID: 8482475821393365444}
   - component: {fileID: 2601282000978232141}
   - component: {fileID: 6333845892641982358}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SF_StraightUp_BeltConveyor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -381,7 +381,7 @@ GameObject:
   - component: {fileID: 448437521725214975}
   - component: {fileID: 489017703935520692}
   - component: {fileID: 891177323187033297}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.112"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -465,7 +465,7 @@ GameObject:
   - component: {fileID: 6715148612429504481}
   - component: {fileID: 4532675574649133030}
   - component: {fileID: 5794337196251348289}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.111"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
