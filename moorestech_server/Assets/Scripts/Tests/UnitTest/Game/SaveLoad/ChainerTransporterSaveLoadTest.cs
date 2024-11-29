@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Transporter blockを作成
             // Create a Transporter block
             var transporterBlock = blockFactory.Create(ForUnitTestModBlockId.CraftChainerTransporter, new BlockInstanceId(1), posInfo);
-            var originalTransporter = transporterBlock.GetComponent<ChainerTransporterComponent>();
+            var originalTransporter = transporterBlock.GetComponent<CraftChainerTransporterComponent>();
 
             // セーブデータを取得
             // Get the save data
@@ -31,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ブロックをロード
             // Load the block
             var loadedBlock = blockFactory.Load(transporterBlock.BlockGuid, new BlockInstanceId(2), saveState, posInfo);
-            var loadedTransporterComponent = loadedBlock.GetComponent<ChainerTransporterComponent>();
+            var loadedTransporterComponent = loadedBlock.GetComponent<CraftChainerTransporterComponent>();
 
             // ノードIDのチェック
             // Check the node ID

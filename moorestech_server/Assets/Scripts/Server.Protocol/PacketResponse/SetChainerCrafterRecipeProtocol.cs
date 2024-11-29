@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse
             var crafterBlock = ServerContext.WorldBlockDatastore.GetBlock(blockPos);
             if (crafterBlock == null) return null;
             
-            var chainerCrafter = crafterBlock.ComponentManager.GetComponent<ChainerCrafterComponent>();
+            var chainerCrafter = crafterBlock.ComponentManager.GetComponent<CraftCraftChainerCrafterComponent>();
             chainerCrafter.SetRecipe(recipe.Inputs, recipe.Outputs);
             
             return null;

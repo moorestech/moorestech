@@ -7,19 +7,19 @@ using UniRx;
 
 namespace Game.CraftChainer.BlockComponent.ProviderChest
 {
-    public class ChainerProviderChestComponent : ICraftChainerNode
+    public class CraftChainerProviderChestComponent : ICraftChainerNode
     {
         public CraftChainerNodeId NodeId { get; }
         public IReadOnlyList<IItemStack> Inventory => _vanillaChestComponent.InventoryItems;
         
         private readonly VanillaChestComponent _vanillaChestComponent;
         
-        public ChainerProviderChestComponent(CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent)
+        public CraftChainerProviderChestComponent(CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent)
         {
             NodeId = nodeId;
             _vanillaChestComponent = vanillaChestComponent;
         }
-        public ChainerProviderChestComponent(Dictionary<string, string> componentStates, CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent) : 
+        public CraftChainerProviderChestComponent(Dictionary<string, string> componentStates, CraftChainerNodeId nodeId, VanillaChestComponent vanillaChestComponent) : 
             this(nodeId, vanillaChestComponent)
         {
             var state = componentStates[SaveKey];
@@ -34,7 +34,7 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
             IsDestroy = true;
         }
         
-        public string SaveKey { get; } = typeof(ChainerProviderChestComponent).FullName;
+        public string SaveKey { get; } = typeof(CraftChainerProviderChestComponent).FullName;
         public string GetSaveState()
         {
             return JsonConvert.SerializeObject(new ChainerProviderChestComponentJsonObject(this));
@@ -46,7 +46,7 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         [JsonProperty("nodeId")] public int NodeId { get; set; }
         
         public ChainerProviderChestComponentJsonObject(){}
-        public ChainerProviderChestComponentJsonObject(ChainerProviderChestComponent component)
+        public ChainerProviderChestComponentJsonObject(CraftChainerProviderChestComponent component)
         {
             NodeId = component.NodeId.AsPrimitive();
         }

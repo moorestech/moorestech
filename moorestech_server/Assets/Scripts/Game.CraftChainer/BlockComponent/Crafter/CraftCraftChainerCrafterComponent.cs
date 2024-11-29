@@ -7,15 +7,15 @@ using Newtonsoft.Json;
 
 namespace Game.CraftChainer.BlockComponent.Crafter
 {
-    public class ChainerCrafterComponent : ICraftChainerNode, IBlockStateDetail
+    public class CraftCraftChainerCrafterComponent : ICraftChainerNode, IBlockStateDetail
     {
         public CraftChainerNodeId NodeId { get; } = CraftChainerNodeId.Create();
         
         public CraftingSolverRecipe CraftingSolverRecipe { get; private set; }
         
-        public ChainerCrafterComponent() { }
+        public CraftCraftChainerCrafterComponent() { }
         
-        public ChainerCrafterComponent(Dictionary<string, string> componentStates) : this()
+        public CraftCraftChainerCrafterComponent(Dictionary<string, string> componentStates) : this()
         {
             var state = componentStates[SaveKey];
             var jsonObject = JsonConvert.DeserializeObject<ChainerCrafterComponentSerializeObject>(state);
@@ -42,7 +42,7 @@ namespace Game.CraftChainer.BlockComponent.Crafter
             return new BlockStateDetail(ChainerCrafterComponentSerializeObject.StateDetailKey, bytes);
         }
         
-        public string SaveKey { get; } = typeof(ChainerCrafterComponent).FullName;
+        public string SaveKey { get; } = typeof(CraftCraftChainerCrafterComponent).FullName;
         public string GetSaveState()
         {
             return JsonConvert.SerializeObject(new ChainerCrafterComponentSerializeObject(this));
@@ -58,7 +58,7 @@ namespace Game.CraftChainer.BlockComponent.Crafter
         [JsonProperty("nodeId"), Key(1)] public int NodeId { get; set; }
         
         public ChainerCrafterComponentSerializeObject(){}
-        public ChainerCrafterComponentSerializeObject(ChainerCrafterComponent component)
+        public ChainerCrafterComponentSerializeObject(CraftCraftChainerCrafterComponent component)
         {
             Recipe = new CraftingSolverRecipeSerializeObject(component.CraftingSolverRecipe);
             NodeId = component.NodeId.AsPrimitive();

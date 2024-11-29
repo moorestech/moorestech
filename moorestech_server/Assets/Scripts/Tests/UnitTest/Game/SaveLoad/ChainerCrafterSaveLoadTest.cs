@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // レシピを設定
             // Set the recipe
-            var originalCrafter = crafterBlock.GetComponent<ChainerCrafterComponent>();
+            var originalCrafter = crafterBlock.GetComponent<CraftCraftChainerCrafterComponent>();
             var inputItems = new List<CraftingSolverItem>
             {
                 new(new ItemId(1), 10),
@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ブロックをロード
             // Load the block
             var loadedBlock = blockFactory.Load( crafterBlock.BlockGuid, new BlockInstanceId(2), saveState, posInfo);
-            var loadedCrafterComponent = loadedBlock.GetComponent<ChainerCrafterComponent>();
+            var loadedCrafterComponent = loadedBlock.GetComponent<CraftCraftChainerCrafterComponent>();
 
             // ノードIDのチェック
             // Check the node ID

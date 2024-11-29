@@ -5,7 +5,7 @@ using Core.Master;
 
 namespace Game.CraftChainer.CraftChain
 {
-    public class CraftingSolver
+    public static class CraftChainerCraftingSolver
     {
         public static Dictionary<CraftingSolverRecipeId, int> Solve(
             List<CraftingSolverRecipe> recipes,

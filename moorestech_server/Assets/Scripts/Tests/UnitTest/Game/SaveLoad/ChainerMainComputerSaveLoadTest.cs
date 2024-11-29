@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ChainerMainComputerブロックを作成
             // Create a ChainerMainComputer block
             var mainComputerBlock = blockFactory.Create(ForUnitTestModBlockId.CraftChainerMainComputer, new BlockInstanceId(1), posInfo);
-            var originalMainComputerComponent = mainComputerBlock.GetComponent<ChainerMainComputerComponent>();
+            var originalMainComputerComponent = mainComputerBlock.GetComponent<CraftChainerMainComputerComponent>();
             
             
             // セーブデータを取得
@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ブロックをロード
             // Load the block
             var loadedBlock = blockFactory.Load(mainComputerBlock.BlockGuid, new BlockInstanceId(2), saveState, posInfo);
-            var loadedMainComputerComponent = loadedBlock.GetComponent<ChainerMainComputerComponent>();
+            var loadedMainComputerComponent = loadedBlock.GetComponent<CraftChainerMainComputerComponent>();
             
             // NodeIdが正しく保存・ロードされているか確認
             // Check if NodeId is correctly saved and loaded

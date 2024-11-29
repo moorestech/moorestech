@@ -7,13 +7,13 @@ using Game.CraftChainer.CraftNetwork;
 
 namespace Game.CraftChainer.BlockComponent.Crafter
 {
-    public class ChainerCrafterInserter : IBlockInventoryInserter
+    public class CraftChainerCrafterInserter : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         
         private int _index = 0;
         
-        public ChainerCrafterInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public CraftChainerCrafterInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockConnectorComponent = blockConnectorComponent;
         }

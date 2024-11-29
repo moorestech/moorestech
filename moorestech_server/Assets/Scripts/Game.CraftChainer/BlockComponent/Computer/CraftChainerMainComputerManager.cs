@@ -7,13 +7,13 @@ using UniRx;
 
 namespace Game.CraftChainer.CraftNetwork
 {
-    public class CraftChainerManager
+    public class CraftChainerMainComputerManager
     {
-        public static CraftChainerManager Instance;
+        public static CraftChainerMainComputerManager Instance;
         
-        private readonly List<ChainerMainComputerComponent> _mainComputers = new();
+        private readonly List<CraftChainerMainComputerComponent> _mainComputers = new();
         
-        public CraftChainerManager()
+        public CraftChainerMainComputerManager()
         {
             Instance = this;
             
@@ -24,7 +24,7 @@ namespace Game.CraftChainer.CraftNetwork
         private void OnBlockPlaceEvent(BlockUpdateProperties updateProperties)
         {
             var block = updateProperties.BlockData.Block;
-            if (block.TryGetComponent<ChainerMainComputerComponent>(out var mainComputer))
+            if (block.TryGetComponent<CraftChainerMainComputerComponent>(out var mainComputer))
             {
                 _mainComputers.Add(mainComputer);
             }
@@ -32,7 +32,7 @@ namespace Game.CraftChainer.CraftNetwork
             {
                 foreach (var computer in _mainComputers)
                 {
-                    computer.ChainerNetworkContext.ReSearchNetwork();
+                    computer.CraftChainerNetworkContext.ReSearchNetwork();
                 }
             }
         }
@@ -40,7 +40,7 @@ namespace Game.CraftChainer.CraftNetwork
         private void OnBlockRemoveEvent(BlockUpdateProperties updateProperties)
         {
             var block = updateProperties.BlockData.Block;
-            if (block.TryGetComponent<ChainerMainComputerComponent>(out var mainComputer))
+            if (block.TryGetComponent<CraftChainerMainComputerComponent>(out var mainComputer))
             {
                 _mainComputers.Remove(mainComputer);
             }
@@ -48,19 +48,19 @@ namespace Game.CraftChainer.CraftNetwork
             {
                 foreach (var computer in _mainComputers)
                 {
-                    computer.ChainerNetworkContext.ReSearchNetwork();
+                    computer.CraftChainerNetworkContext.ReSearchNetwork();
                 }
             }
         }
         
         
-        public ChainerNetworkContext GetChainerNetworkContext(CraftChainerNodeId nodeId)
+        public CraftChainerNetworkContext GetChainerNetworkContext(CraftChainerNodeId nodeId)
         {
             foreach (var mainComputer in _mainComputers)
             {
-                if (mainComputer.ChainerNetworkContext.IsExistNode(nodeId))
+                if (mainComputer.CraftChainerNetworkContext.IsExistNode(nodeId))
                 {
-                    return mainComputer.ChainerNetworkContext;
+                    return mainComputer.CraftChainerNetworkContext;
                 }
             }
             

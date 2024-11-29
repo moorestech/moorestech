@@ -13,14 +13,14 @@ using UnityEngine;
 
 namespace Game.CraftChainer.BlockComponent.Computer
 {
-    public class ChainerNetworkContext
+    public class CraftChainerNetworkContext
     {
         // チェインネットワークに関する情報
         // Information about the chain network
-        public IReadOnlyList<ChainerProviderChestComponent> ProviderChests => _providerChests;
-        private readonly List<ChainerProviderChestComponent> _providerChests = new();
-        public IReadOnlyList<ChainerCrafterComponent> CrafterComponents => _crafterComponents;
-        private readonly List<ChainerCrafterComponent> _crafterComponents = new();
+        public IReadOnlyList<CraftChainerProviderChestComponent> ProviderChests => _providerChests;
+        private readonly List<CraftChainerProviderChestComponent> _providerChests = new();
+        public IReadOnlyList<CraftCraftChainerCrafterComponent> CrafterComponents => _crafterComponents;
+        private readonly List<CraftCraftChainerCrafterComponent> _crafterComponents = new();
         private readonly Dictionary<CraftChainerNodeId, ICraftChainerNode> _nodes = new();
         
         // このコンテキストを保持するメインコンピューターの情報
@@ -35,7 +35,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
         // How many items of each item type must be placed in each node?
         private Dictionary<ItemId,Dictionary<CraftChainerNodeId,int>> _craftChainRecipeQue;
         
-        public ChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector, ICraftChainerNode mainComputerNode)
+        public CraftChainerNetworkContext(BlockConnectorComponent<IBlockInventory> mainComputerConnector, ICraftChainerNode mainComputerNode)
         {
             _mainComputerConnector = mainComputerConnector;
             _mainComputerNode = mainComputerNode;
@@ -56,9 +56,9 @@ namespace Game.CraftChainer.BlockComponent.Computer
             
             #region Internal
             
-            Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent> GetCraftRecipeIdMap()
+            Dictionary<CraftingSolverRecipeId, CraftCraftChainerCrafterComponent> GetCraftRecipeIdMap()
             {
-                var map = new Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent>();
+                var map = new Dictionary<CraftingSolverRecipeId, CraftCraftChainerCrafterComponent>();
                 foreach (var crafter in _crafterComponents)
                 {
                     map[crafter.CraftingSolverRecipe.CraftingSolverRecipeId] = crafter;
@@ -66,7 +66,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return map;
             }
             
-            Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>> CreateRecipeQue(Dictionary<CraftingSolverRecipeId, int> solved, Dictionary<CraftingSolverRecipeId, ChainerCrafterComponent> recipes)
+            Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>> CreateRecipeQue(Dictionary<CraftingSolverRecipeId, int> solved, Dictionary<CraftingSolverRecipeId, CraftCraftChainerCrafterComponent> recipes)
             {
                 var result = new Dictionary<ItemId, Dictionary<CraftChainerNodeId,int>>();
                 foreach (var solvedResult in solved)
@@ -130,11 +130,11 @@ namespace Game.CraftChainer.BlockComponent.Computer
                         continue;
                     }
                     
-                    if (targetBlock.TryGetComponent<ChainerProviderChestComponent>(out var chest))
+                    if (targetBlock.TryGetComponent<CraftChainerProviderChestComponent>(out var chest))
                     {
                         _providerChests.Add(chest);
                     }
-                    if (targetBlock.TryGetComponent<ChainerCrafterComponent>(out var crafter))
+                    if (targetBlock.TryGetComponent<CraftCraftChainerCrafterComponent>(out var crafter))
                     {
                         _crafterComponents.Add(crafter);
                     }

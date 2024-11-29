@@ -279,7 +279,7 @@ D 1";
             string expectedStr)
         {
             var (recipes, initialInventory, targetItem, expected) = ParseInput(recipesStr, initialInventoryStr, targetItemStr, expectedStr);
-            var actual = CraftingSolver.Solve(recipes, initialInventory, targetItem);
+            var actual = CraftChainerCraftingSolver.Solve(recipes, initialInventory, targetItem);
             
             if (expected == null)
             {

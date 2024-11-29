@@ -11,13 +11,13 @@ namespace Game.CraftChainer
         {
             // block template register
             var blockFactory = ServerContext.BlockFactory;    
-            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerCrafter, new ChainerCrafterTemplate());
-            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerTransporter, new ChainerTransporterTemplate());
-            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerProviderChest, new ChainerProviderChestTemplate());
-            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerMainComputer, new ChainerMainComputerTemplate());
+            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerCrafter, new CraftChainerCrafterTemplate());
+            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerTransporter, new CraftChainerTransporterTemplate());
+            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerProviderChest, new CraftChainerProviderChestTemplate());
+            blockFactory.RegisterTemplateIBlock(BlockTypeConst.CraftChainerMainComputer, new CraftChainerMainComputerTemplate());
             
             // manager init
-            new CraftChainerManager();
+            new CraftChainerMainComputerManager();
         }
     }
 }

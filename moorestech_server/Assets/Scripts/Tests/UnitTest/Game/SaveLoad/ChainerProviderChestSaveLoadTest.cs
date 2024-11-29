@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // コンポーネントの取得
             // Get the component
-            var originalProviderChestComponent = providerChestBlock.GetComponent<ChainerProviderChestComponent>();
+            var originalProviderChestComponent = providerChestBlock.GetComponent<CraftChainerProviderChestComponent>();
 
             // セーブデータの取得
             // Retrieve the save data
@@ -35,7 +35,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ブロックのロード
             // Load the block
             var loadedBlock = blockFactory.Load(providerChestBlock.BlockGuid, new BlockInstanceId(2), saveState, posInfo);
-            var loadedProviderChestComponent = loadedBlock.GetComponent<ChainerProviderChestComponent>();
+            var loadedProviderChestComponent = loadedBlock.GetComponent<CraftChainerProviderChestComponent>();
 
             // NodeIdが正しく保存・ロードされているか確認
             // Check if NodeId is correctly saved and loaded
