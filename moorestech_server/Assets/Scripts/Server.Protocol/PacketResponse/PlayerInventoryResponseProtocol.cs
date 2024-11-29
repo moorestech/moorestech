@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
@@ -12,9 +13,9 @@ namespace Server.Protocol.PacketResponse
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
-        public PlayerInventoryResponseProtocol(IPlayerInventoryDataStore playerInventoryDataStore)
+        public PlayerInventoryResponseProtocol(ServiceProvider serviceProvider)
         {
-            _playerInventoryDataStore = playerInventoryDataStore;
+            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)

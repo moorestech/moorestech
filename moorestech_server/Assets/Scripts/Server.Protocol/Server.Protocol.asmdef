@@ -21,6 +21,7 @@
     "Game.Context",
     "Game.Challenge",
     "Game.Challenge.Interface",
+    "Game.CraftChainer",
     "Core.Master"
   ],
   "includePlatforms": [],

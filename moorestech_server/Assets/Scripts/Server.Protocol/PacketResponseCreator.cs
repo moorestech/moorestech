@@ -18,7 +18,7 @@ namespace Server.Protocol
         {
             _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag, new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestWorldDataProtocol.Tag, new RequestWorldDataProtocol(serviceProvider));
-            _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
+            _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.Tag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(EventProtocol.Tag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.Tag, new InventoryItemMoveProtocol(serviceProvider));
@@ -35,6 +35,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(AllBlockStateProtocol.Tag, new AllBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockStateProtocol.Tag, new BlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.Tag, new DebugBlockInfoRequestProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SetChainerCrafterRecipeProtocol.Tag, new SetChainerCrafterRecipeProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
