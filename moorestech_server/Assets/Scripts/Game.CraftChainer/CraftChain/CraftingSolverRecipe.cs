@@ -33,26 +33,26 @@ namespace Game.CraftChainer.CraftChain
     }
     
     [JsonObject, MessagePackObject]
-    public class CraftingSolverRecipeSerializeObject
+    public class CraftingSolverRecipeJsonObjectMessagePack
     {
         [JsonProperty("recipeId"), Key(0)] public int RecipeId;
-        [JsonProperty("inputs"), Key(1)] public List<CraftingSolverItemSerializeObject> Inputs;
-        [JsonProperty("outputs"), Key(2)] public List<CraftingSolverItemSerializeObject> Outputs;
+        [JsonProperty("inputs"), Key(1)] public List<CraftingSolverItemJsonObjectMessagePack> Inputs;
+        [JsonProperty("outputs"), Key(2)] public List<CraftingSolverItemJsonObjectMessagePack> Outputs;
         
-        public CraftingSolverRecipeSerializeObject() { }
+        public CraftingSolverRecipeJsonObjectMessagePack() { }
 
-        public CraftingSolverRecipeSerializeObject(CraftingSolverRecipe craftingSolverRecipe)
+        public CraftingSolverRecipeJsonObjectMessagePack(CraftingSolverRecipe craftingSolverRecipe)
         {
             RecipeId = craftingSolverRecipe.CraftingSolverRecipeId.AsPrimitive();
-            Inputs = new List<CraftingSolverItemSerializeObject>();
+            Inputs = new List<CraftingSolverItemJsonObjectMessagePack>();
             foreach (var input in craftingSolverRecipe.Inputs)
             {
-                Inputs.Add(new CraftingSolverItemSerializeObject(input));
+                Inputs.Add(new CraftingSolverItemJsonObjectMessagePack(input));
             }
-            Outputs = new List<CraftingSolverItemSerializeObject>();
+            Outputs = new List<CraftingSolverItemJsonObjectMessagePack>();
             foreach (var output in craftingSolverRecipe.Outputs)
             {
-                Outputs.Add(new CraftingSolverItemSerializeObject(output));
+                Outputs.Add(new CraftingSolverItemJsonObjectMessagePack(output));
             }
         }
         

@@ -54,13 +54,13 @@ namespace Game.CraftChainer.BlockComponent.Crafter
     {
         public const string StateDetailKey = "ChainerCrafterComponent";
         
-        [JsonProperty("recipe"), Key(0)] public CraftingSolverRecipeSerializeObject Recipe { get; set; }
+        [JsonProperty("recipe"), Key(0)] public CraftingSolverRecipeJsonObjectMessagePack Recipe { get; set; }
         [JsonProperty("nodeId"), Key(1)] public int NodeId { get; set; }
         
         public ChainerCrafterComponentSerializeObject(){}
         public ChainerCrafterComponentSerializeObject(CraftCraftChainerCrafterComponent component)
         {
-            Recipe = new CraftingSolverRecipeSerializeObject(component.CraftingSolverRecipe);
+            Recipe = new CraftingSolverRecipeJsonObjectMessagePack(component.CraftingSolverRecipe);
             NodeId = component.NodeId.AsPrimitive();
         }
     }

@@ -39,8 +39,8 @@ namespace Server.Protocol.PacketResponse
     public class SetCraftChainerCrafterRecipeProtocolMessagePack : ProtocolMessagePackBase
     {
         [Key(2)] public Vector3IntMessagePack BlockPos { get; set; }
-        [Key(3)] public List<CraftingSolverItemSerializeObject> Inputs { get; set; }
-        [Key(4)] public List<CraftingSolverItemSerializeObject> Outputs { get; set; }
+        [Key(3)] public List<CraftingSolverItemJsonObjectMessagePack> Inputs { get; set; }
+        [Key(4)] public List<CraftingSolverItemJsonObjectMessagePack> Outputs { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public SetCraftChainerCrafterRecipeProtocolMessagePack() { }
@@ -49,8 +49,8 @@ namespace Server.Protocol.PacketResponse
         {
             Tag = SetCraftChainerCrafterRecipeProtocol.Tag;
             BlockPos = new Vector3IntMessagePack(blockPos);
-            Inputs = inputs.Select(item => new CraftingSolverItemSerializeObject(item)).ToList();
-            Outputs = outputs.Select(item => new CraftingSolverItemSerializeObject(item)).ToList();
+            Inputs = inputs.Select(item => new CraftingSolverItemJsonObjectMessagePack(item)).ToList();
+            Outputs = outputs.Select(item => new CraftingSolverItemJsonObjectMessagePack(item)).ToList();
         }
         
         public List<CraftingSolverItem> GetInputs()

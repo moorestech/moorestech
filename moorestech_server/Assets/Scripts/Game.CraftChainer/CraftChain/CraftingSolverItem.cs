@@ -18,13 +18,13 @@ namespace Game.CraftChainer.CraftChain
     }
     
     [JsonObject, MessagePackObject]
-    public class CraftingSolverItemSerializeObject
+    public class CraftingSolverItemJsonObjectMessagePack
     {
         [JsonProperty("itemGuid"), Key(0)] public string ItemGuid;
         [JsonProperty("count"), Key(1)] public int Count;
         
-        public CraftingSolverItemSerializeObject() { }
-        public CraftingSolverItemSerializeObject(CraftingSolverItem craftingSolverItem)
+        public CraftingSolverItemJsonObjectMessagePack() { }
+        public CraftingSolverItemJsonObjectMessagePack(CraftingSolverItem craftingSolverItem)
         {
             ItemGuid = MasterHolder.ItemMaster.GetItemMaster(craftingSolverItem.ItemId).ItemGuid.ToString();
             Count = craftingSolverItem.Count;
