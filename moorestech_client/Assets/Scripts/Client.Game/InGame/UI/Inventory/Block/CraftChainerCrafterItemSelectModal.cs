@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
 {
-    public class ChainerCrafterItemSelectModal : MonoBehaviour
+    public class CraftChainerCrafterItemSelectModal : MonoBehaviour
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemsParent;

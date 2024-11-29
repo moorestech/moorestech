@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private List<ItemSlotObject> recipeInputItemSlotObjects;
         [SerializeField] private List<ItemSlotObject> recipeOutputItemSlotObjects;
         
-        [SerializeField] private ChainerCrafterItemSelectModal itemSelectModal;
+        [SerializeField] private CraftChainerCrafterItemSelectModal itemSelectModal;
         
         private BlockGameObject _blockGameObject;
         private CancellationToken _gameObjectCancellationToken;

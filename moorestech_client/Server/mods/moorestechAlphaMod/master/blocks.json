@@ -1562,7 +1562,8 @@
         }
       },
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "blockGuid": "5cef8365-31fb-4db6-844e-b2a346d42e7f"
+      "blockGuid": "5cef8365-31fb-4db6-844e-b2a346d42e7f",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerMainComputerInventory"
     },
     {
       "maxStack": 100,

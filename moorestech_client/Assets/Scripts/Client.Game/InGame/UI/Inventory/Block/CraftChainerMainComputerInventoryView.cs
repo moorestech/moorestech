@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
@@ -16,14 +19,17 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         [SerializeField] private RectTransform chestSlotsParent;
         
+        [SerializeField] private Button requestButton;
+        [SerializeField] private CraftChainerMainComputerSelectRequestItemModal selectRequestItemModal;
+        
         private BlockGameObject _blockGameObject;
-        private CancellationToken _gameObjectCancellationToken;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
             _blockGameObject = blockGameObject;
-            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
+            selectRequestItemModal.Initialize();
+            requestButton.onClick.AddListener(() => OnClickRequestButton().Forget());
             
             // アイテムリストを初期化
             // Initialize item list
@@ -45,6 +51,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
   #endregion
+        }
+        
+        private async UniTask OnClickRequestButton()
+        {
+            var (itemId, count) = await selectRequestItemModal.GetRequestItem();
+            if (itemId == ItemMaster.EmptyItemId) return;
+            
+            var pos = _blockGameObject.BlockPosInfo.OriginalPos;
+            ClientContext.VanillaApi.SendOnly.SetCraftChainerMainComputerRequestItem(pos, itemId, count);
         }
     }
 }
