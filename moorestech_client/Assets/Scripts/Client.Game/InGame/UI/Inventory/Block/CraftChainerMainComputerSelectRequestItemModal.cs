@@ -68,7 +68,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 
                 if (int.TryParse(countInputField.text, out var count))
                 {
-                    return (ItemMaster.EmptyItemId, count);
+                    return (_selectedItemId, count);
                 }
                 
                 return (_selectedItemId, 1);

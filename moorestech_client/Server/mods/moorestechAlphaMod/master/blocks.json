@@ -1722,7 +1722,8 @@
           ]
         }
       },
-      "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a"
+      "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "maxStack": 100,
@@ -1807,7 +1808,8 @@
         }
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
-      "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691"
+      "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     }
   ]
 }
