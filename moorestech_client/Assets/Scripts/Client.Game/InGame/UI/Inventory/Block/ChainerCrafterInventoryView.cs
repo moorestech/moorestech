@@ -164,8 +164,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var input = _currentRecipe.Inputs.Where(i => i.ItemId != ItemMaster.EmptyItemId).ToList();
                 var output = _currentRecipe.Outputs.Where(i => i.ItemId != ItemMaster.EmptyItemId).ToList();
                 
-                var recipe = new CraftingSolverRecipe(CraftingSolverRecipeId.Create(), input, output);
-                
+                var pos = _blockGameObject.BlockPosInfo.OriginalPos;
+                ClientContext.VanillaApi.SendOnly.SetCraftChainerCrafterRecipe(pos, input, output);
             }
             
   #endregion
