@@ -1480,7 +1480,8 @@
         }
       },
       "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "blockGuid": "367a5e2d-8ebb-4835-af31-15d0f317f7cf"
+      "blockGuid": "367a5e2d-8ebb-4835-af31-15d0f317f7cf",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory"
     },
     {
       "blockSize": [
