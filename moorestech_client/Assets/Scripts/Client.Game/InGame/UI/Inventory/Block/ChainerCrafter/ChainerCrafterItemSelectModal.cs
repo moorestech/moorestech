@@ -37,10 +37,13 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
                 slotObject.SetItem(itemView, 0);
                 _itemSlotObjects.Add(slotObject);
             }
+            
+            countInputField.onValueChanged.AddListener(UpdateOkButton);
         }
         
         public async UniTask<(ItemId,int)> GetSelectItem(ItemId currentItemId, int currentCount)
         {
+            currentCount = Mathf.Max(1, currentCount);
             _selectedItemId = currentItemId;
             SetupUI();
             
@@ -84,7 +87,12 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
                     return (ItemMaster.EmptyItemId, 0);
                 }
                 
-                return (_selectedItemId, int.Parse(countInputField.text));
+                if (int.TryParse(countInputField.text, out var count))
+                {
+                    return (_selectedItemId, count);
+                }
+                
+                return (_selectedItemId, 1);
             }
             
   #endregion
@@ -99,7 +107,18 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
             
             itemSlotObject.SetHotBarSelect(true);
             _selectedItemId = itemSlotObject.ItemViewData.ItemId;
-            okButton.interactable = true;
+            
+            UpdateOkButton(countInputField.text);
+        }
+        
+        private void UpdateOkButton(string inputFieldText)
+        {
+            if (int.TryParse(inputFieldText, out var count))
+            {
+                okButton.interactable = 0 < count;
+                return;
+            }
+            okButton.interactable = false;
         }
     }
 }
