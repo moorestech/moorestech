@@ -34,6 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         private bool _onPointing;
         
         public ItemViewData ItemViewData { get; private set; }
+        public int Count { get; private set; }
         
         private void Awake()
         {
@@ -59,6 +60,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         {
             ItemViewData = itemView;
             
+            Count = count;
             countText.text = count != 0 ? count.ToString() : string.Empty;
             
             if (itemView == null || itemView.ItemId == ItemMaster.EmptyItemId)

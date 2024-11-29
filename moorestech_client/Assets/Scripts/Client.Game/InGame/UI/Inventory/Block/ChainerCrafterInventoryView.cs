@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -11,6 +12,7 @@ using Game.Context;
 using Game.CraftChainer.BlockComponent.Crafter;
 using Game.CraftChainer.CraftChain;
 using Mooresmaster.Model.BlocksModule;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -72,6 +74,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             SetItemSlot(recipeInputItemSlotObjects, _currentRecipe.Inputs);
             SetItemSlot(recipeOutputItemSlotObjects, _currentRecipe.Outputs);
             
+            SetupRecipeSlotEvent();
+            
             #region Internal
             
             async UniTask<CraftingSolverRecipe> GetRecipe()
@@ -97,7 +101,35 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 }
             }
             
+            void SetupRecipeSlotEvent()
+            {
+                for (var i = 0; i < recipeInputItemSlotObjects.Count; i++)
+                {
+                    var input = recipeInputItemSlotObjects[i];
+                    var index = i;
+                    input.OnLeftClickUp.Subscribe(item => ClickRecipeInputItem(item, index, true).Forget());
+                }
+                for (var i = 0; i < recipeOutputItemSlotObjects.Count; i++)
+                {
+                    var output = recipeOutputItemSlotObjects[i];
+                    var index = i;
+                    output.OnLeftClickUp.Subscribe(item => ClickRecipeInputItem(item, index, false).Forget());
+                }
+            }
+            
             #endregion
+        }
+        
+        private async UniTask ClickRecipeInputItem(ItemSlotObject itemSlotObject, int index, bool isInput)
+        {
+            var currentId = itemSlotObject.ItemViewData.ItemId;
+            var currentCount = itemSlotObject.Count;
+            var (resultId, resultCount) = await itemSelectModal.GetSelectItem(currentId, currentCount);
+            
+            itemSlotObject.SetItem(ClientContext.ItemImageContainer.GetItemView(resultId), resultCount);
+            
+            var recipeItems = isInput ? _currentRecipe.Inputs : _currentRecipe.Outputs;
+            recipeItems[index] = new CraftingSolverItem(resultId, resultCount);
         }
     }
 }
