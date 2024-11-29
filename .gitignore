@@ -78,6 +78,7 @@ crashlytics-build.properties
 *.DS_Store
 
 *mono_crash*.json
+*mono_crash*.blob
 
 
 # lilToon
