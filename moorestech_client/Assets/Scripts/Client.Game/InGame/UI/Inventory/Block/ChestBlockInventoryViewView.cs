@@ -4,7 +4,6 @@ using Client.Game.InGame.UI.Inventory.Element;
 using Core.Item.Interface;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block

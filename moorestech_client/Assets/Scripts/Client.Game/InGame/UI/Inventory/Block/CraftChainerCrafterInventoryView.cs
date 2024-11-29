@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public class ChainerCrafterInventoryView : CommonBlockInventoryViewBase
+    public class CraftChainerCrafterInventoryView : CommonBlockInventoryViewBase
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
