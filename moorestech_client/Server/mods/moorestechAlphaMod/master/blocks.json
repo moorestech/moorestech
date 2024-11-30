@@ -1235,7 +1235,8 @@
       },
       "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de",
       "name": "原始的なチェスト",
-      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed"
+      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory"
     },
     {
       "maxStack": 100,
@@ -1246,7 +1247,7 @@
       ],
       "blockType": "CraftChainerTransporter",
       "blockParam": {
-        "timeOfItemEnterToExit": 0.1,
+        "timeOfItemEnterToExit": 0.5,
         "transporterConveyorItemCount": 5,
         "slopeType": "Straight",
         "inventoryConnectors": {
@@ -1578,7 +1579,7 @@
         "requiredPower": 5,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
-        "timeOfItemEnterToExit": 0.1,
+        "timeOfItemEnterToExit": 1,
         "beltConveyorItemCount": 5,
         "slopeType": "Straight",
         "inventoryConnectors": {

@@ -5,7 +5,6 @@ namespace Client.Game.InGame.Entity
 {
     public class ItemEntityObject : MonoBehaviour, IEntityObject
     {
-        private const float Interval = NetworkConst.UpdateIntervalSeconds;
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Material itemMaterial;
         private float _linerTime;
@@ -23,7 +22,7 @@ namespace Client.Game.InGame.Entity
         private void Update()
         {
             //補完する
-            var rate = _linerTime / Interval;
+            var rate = _linerTime / NetworkConst.UpdateIntervalSeconds;
             rate = Mathf.Clamp01(rate);
             transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
             _linerTime += Time.deltaTime;
