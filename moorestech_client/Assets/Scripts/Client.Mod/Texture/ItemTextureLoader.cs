@@ -48,7 +48,7 @@ namespace Client.Mod.Texture
                     itemMaster.ImagePath;
                 
                 texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
-                if (texture == null) Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
+                if (texture == null) Debug.LogWarning("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
                 sprite = texture.ToSprite();
                 
                 textureList.Add(new ItemViewData(sprite, texture, itemMaster));

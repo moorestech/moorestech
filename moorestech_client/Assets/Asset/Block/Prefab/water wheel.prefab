@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6279686696042962101}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 2512182391995814946}
   - component: {fileID: 7438051686074224969}
   - component: {fileID: 6008034435266267894}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 8016278930447381713}
   - component: {fileID: 1742607800974666361}
   - component: {fileID: 8943623845109265646}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: wheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -211,7 +211,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1962410185841670174}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: water wheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}

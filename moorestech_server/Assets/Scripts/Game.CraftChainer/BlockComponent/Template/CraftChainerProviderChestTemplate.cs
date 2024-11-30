@@ -27,16 +27,17 @@ namespace Game.CraftChainer.BlockComponent.Template
             var chest = blockMasterElement.BlockParam as CraftChainerProviderChestBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(chest.InventoryConnectors, blockPositionInfo);
             
-            var nodeId = CraftChainerNodeId.Create();
-            var inserter = new CraftChainerProviderChestBlockInventoryInserter(nodeId, inputConnectorComponent);
+            var chainerProviderChestComponent = componentStates == null ?
+                new CraftChainerProviderChestComponent() :
+                new CraftChainerProviderChestComponent(componentStates);
+            
+            var inserter = new CraftChainerProviderChestBlockInventoryInserter(chainerProviderChestComponent.NodeId, inputConnectorComponent);
             
             var chestComponent = componentStates == null ? 
                 new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inserter) : 
                 new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inserter);
             
-            var chainerProviderChestComponent = componentStates == null ?
-                new CraftChainerProviderChestComponent(nodeId, chestComponent) :
-                new CraftChainerProviderChestComponent(componentStates, nodeId, chestComponent);
+            chainerProviderChestComponent.SetInitialVanillaChestComponent(chestComponent);
             
             var components = new List<IBlockComponent>
             {

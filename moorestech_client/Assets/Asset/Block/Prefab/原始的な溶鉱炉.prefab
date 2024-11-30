@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1564300812920175325}
   - component: {fileID: 2526513757438361916}
   - component: {fileID: 7049838291006582951}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PreviewCollison
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -299,7 +299,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 507750004299185643, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_Layer
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 882762000588138321, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_RootOrder

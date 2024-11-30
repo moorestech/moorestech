@@ -963,5 +963,9 @@ MonoBehaviour:
   rotationInfos:
   - rotationAxis: 2
     rotationTransform: {fileID: 8628083112779359352}
+    isReverse: 0
+    rotationSpeed: 1
   - rotationAxis: 2
     rotationTransform: {fileID: 5880635445525047251}
+    isReverse: 0
+    rotationSpeed: 1

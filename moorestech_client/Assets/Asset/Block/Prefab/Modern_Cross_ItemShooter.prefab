@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8555561004104134914}
   - component: {fileID: 6503682647460839008}
   - component: {fileID: 4646376651178299486}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.096"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 5335032269197367978}
   - component: {fileID: 1634371866455685197}
   - component: {fileID: 2759130939378527377}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.097"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -178,7 +178,7 @@ GameObject:
   - component: {fileID: 8641430266259807325}
   - component: {fileID: 1870990379676583651}
   - component: {fileID: 5552039934226917487}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Modern_Cross_ItemShooter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -263,7 +263,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8857341995377996615}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Modern_Cross_ItemShooter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -297,7 +297,7 @@ GameObject:
   - component: {fileID: 7301274416923326650}
   - component: {fileID: 8655772681283656136}
   - component: {fileID: 5471540798194334194}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.098"
   m_TagString: Untagged
   m_Icon: {fileID: 0}

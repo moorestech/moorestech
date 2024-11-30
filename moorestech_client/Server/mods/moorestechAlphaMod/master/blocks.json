@@ -1235,7 +1235,8 @@
       },
       "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de",
       "name": "原始的なチェスト",
-      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed"
+      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory"
     },
     {
       "maxStack": 100,
@@ -1246,7 +1247,7 @@
       ],
       "blockType": "CraftChainerTransporter",
       "blockParam": {
-        "timeOfItemEnterToExit": 0.1,
+        "timeOfItemEnterToExit": 0.5,
         "transporterConveyorItemCount": 5,
         "slopeType": "Straight",
         "inventoryConnectors": {
@@ -1480,7 +1481,8 @@
         }
       },
       "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "blockGuid": "367a5e2d-8ebb-4835-af31-15d0f317f7cf"
+      "blockGuid": "367a5e2d-8ebb-4835-af31-15d0f317f7cf",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory"
     },
     {
       "blockSize": [
@@ -1562,7 +1564,8 @@
         }
       },
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "blockGuid": "5cef8365-31fb-4db6-844e-b2a346d42e7f"
+      "blockGuid": "5cef8365-31fb-4db6-844e-b2a346d42e7f",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerMainComputerInventory"
     },
     {
       "maxStack": 100,
@@ -1576,7 +1579,7 @@
         "requiredPower": 5,
         "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
-        "timeOfItemEnterToExit": 0.1,
+        "timeOfItemEnterToExit": 1,
         "beltConveyorItemCount": 5,
         "slopeType": "Straight",
         "inventoryConnectors": {
@@ -1720,7 +1723,8 @@
           ]
         }
       },
-      "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a"
+      "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "maxStack": 100,
@@ -1805,7 +1809,8 @@
         }
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
-      "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691"
+      "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     }
   ]
 }

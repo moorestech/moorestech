@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -48,6 +50,8 @@ namespace Server.Protocol.PacketResponse.Util
             return result;
         }
         
+        static Dictionary<ItemInstanceId,float> _itemInstanceIdToPercent = new Dictionary<ItemInstanceId, float>();
+        
         private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, IItemCollectableBeltConveyor beltConveyor, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
@@ -55,9 +59,18 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 var beltConveyorItem = beltConveyor.BeltConveyorItems[i];
                 if (beltConveyorItem == null) continue;
+                if (beltConveyorItem.ItemId == ItemMaster.EmptyItemId) continue;
                 
                 //残り時間をどこまで進んだかに変換するために 1- する
                 var percent = 1f - (float)beltConveyorItem.RemainingPercent;
+                
+                var last = _itemInstanceIdToPercent.GetValueOrDefault(beltConveyorItem.ItemInstanceId);
+                _itemInstanceIdToPercent[beltConveyorItem.ItemInstanceId] = percent;
+                
+                var diff = percent - last;
+                var instanceId = beltConveyorItem.ItemInstanceId;
+                UnityEngine.Debug.Log($"CollectItemFrom Last:{last:F3} Current:{percent:F3} Diff:{diff:F3} {instanceId}");
+                
                 float entityX = pos.x;
                 float entityZ = pos.z;
                 switch (blockDirection)

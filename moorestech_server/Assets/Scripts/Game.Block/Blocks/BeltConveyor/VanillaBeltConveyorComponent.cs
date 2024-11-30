@@ -3,7 +3,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Connector;
-using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -148,8 +147,6 @@ namespace Game.Block.Blocks.BeltConveyor
                         _inventoryItems[i - 1] = item;
                         _inventoryItems[i] = null;
                     }
-                    
-                    continue;
                 }
                 
                 //最後のアイテムの場合は接続先に渡す
@@ -166,7 +163,15 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 
                 //時間を減らす 
-                item.RemainingPercent -= (float)(GameUpdater.UpdateSecondTime * (1f / (float)_timeOfItemEnterToExit));
+                var diff = (float)(GameUpdater.UpdateSecondTime * (1f / (float)_timeOfItemEnterToExit));
+                var last = item.RemainingPercent;
+                item.RemainingPercent -= diff;
+                var current = item.RemainingPercent;
+                
+                if (item.ItemInstanceId.AsPrimitive() != 0)
+                {
+                    UnityEngine.Debug.Log($"Belt Last:{last:F3} Current:{current:F3} Diff:{diff:F3} {item.ItemInstanceId}");
+                }
             }
         }
         

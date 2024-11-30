@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3004938298820255773}
   - component: {fileID: 1166787366659528075}
   - component: {fileID: 2475660545585346936}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.093"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 2718831993235061689}
   - component: {fileID: 7459396364865400641}
   - component: {fileID: 1889675332983974585}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Modern_T_ItemShooter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -183,7 +183,7 @@ GameObject:
   - component: {fileID: 301624050390398781}
   - component: {fileID: 9134346725352202325}
   - component: {fileID: 1378721653612391244}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.094"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -267,7 +267,7 @@ GameObject:
   - component: {fileID: 6763630322256707103}
   - component: {fileID: 3509170247512513727}
   - component: {fileID: 6907631846168072306}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.091"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -350,7 +350,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5421132597307148093}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Modern_T_ItemShooter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -384,7 +384,7 @@ GameObject:
   - component: {fileID: 8527561614897772323}
   - component: {fileID: 7546745705350372405}
   - component: {fileID: 6405118373807127785}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.092"
   m_TagString: Untagged
   m_Icon: {fileID: 0}

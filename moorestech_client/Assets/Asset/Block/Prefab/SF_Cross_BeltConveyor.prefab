@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8267039342434348598}
   - component: {fileID: 1916784481665037078}
   - component: {fileID: 4420368028902166286}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.143"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 7915640517485149910}
   - component: {fileID: 341986982171441612}
   - component: {fileID: 1390996511845827012}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.145"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -175,7 +175,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6552052226751573498}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SF_Cross_BeltConveyor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -209,7 +209,7 @@ GameObject:
   - component: {fileID: 1218547658788985547}
   - component: {fileID: 1315521744319201013}
   - component: {fileID: 2411487823486751617}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.142"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -292,7 +292,7 @@ GameObject:
   - component: {fileID: 5504020859165119005}
   - component: {fileID: 8767786876372844429}
   - component: {fileID: 367436027674984410}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: "\u7ACB\u65B9\u4F53.141"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -376,7 +376,7 @@ GameObject:
   - component: {fileID: 2915932976139614092}
   - component: {fileID: 6621547872243919177}
   - component: {fileID: 540380918623997089}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SF_Cross_BeltConveyor
   m_TagString: Untagged
   m_Icon: {fileID: 0}

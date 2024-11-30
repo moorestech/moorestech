@@ -24,7 +24,6 @@ namespace Core.Update
         {
             UpdateSecondTime = (DateTime.Now - _lastUpdateTime).TotalSeconds;
             _lastUpdateTime = DateTime.Now;
-            
         }
         
         public static void ResetUpdate()
@@ -51,6 +50,12 @@ namespace Core.Update
             //TODO ゲームループ周りの修正についてはちょっと考えたい
             Update();
             Wait();
+        }
+        
+        public static void SpecifiedDeltaTimeUpdate(double updateSecondTime)
+        {
+            UpdateSecondTime = updateSecondTime;
+            _updateSubject.OnNext(Unit.Default);
         }
         
         public static void Wait()
