@@ -22,9 +22,6 @@
 
         <AdditionalFiles Include="schema\ref\blockConnectInfo.json"/>
         <AdditionalFiles Include="schema\ref\inventoryConnects.json"/>
-        <None Remove="Schema\interfaces.json"/>
-        <None Remove="Schema\interfaceImplementationSample.json"/>
-        <AdditionalFiles Include="Schema\interfaceImplementationSample.json"/>
     </ItemGroup>
 
     <ItemGroup>
