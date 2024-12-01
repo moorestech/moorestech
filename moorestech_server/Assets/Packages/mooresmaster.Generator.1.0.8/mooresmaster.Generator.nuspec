@@ -2,11 +2,11 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>mooresmaster.Generator</id>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <title>mooresmaster.Generator</title>
     <authors>Moorestech</authors>
     <developmentDependency>true</developmentDependency>
     <description>Package Description</description>
-    <repository type="git" commit="f2c3b7e7fe8a91780a0e8743bfa973eaeb54050b" />
+    <repository type="git" commit="431af7919a401fd3a9a9a3185735ed2dec236b0e" />
   </metadata>
 </package>
