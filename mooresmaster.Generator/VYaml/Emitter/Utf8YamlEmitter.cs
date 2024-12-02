@@ -465,7 +465,7 @@ namespace VYaml.Emitter
             {
                 WriteIndent(output, ref offset);
             }
-
+            
             value1.CopyTo(output[offset..]);
             offset += value1.Length;
 
