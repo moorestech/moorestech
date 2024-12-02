@@ -1,6 +1,6 @@
 namespace Game.Train.Train
 {
-    public class FreightCar : ITrainCar
+    public class FreightCar : TrainCarBase, ITrainCar
     {
         public TrainCarType TrainCarType => TrainCarType.Freight;
     }
