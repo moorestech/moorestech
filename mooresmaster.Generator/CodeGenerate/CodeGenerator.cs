@@ -63,7 +63,7 @@ public static class CodeGenerator
         return $$$"""
                   namespace Mooresmaster.Model.{{{typeDef.TypeName.ModuleName}}}
                   {
-                      public class {{{typeDef.TypeName.Name}}}{{{GenerateInheritCode(typeDef)}}}
+                      public class {{{typeDef.TypeName.Name}}} {{{GenerateInterfaceImplementationCode(typeDef.InheritList)}}}
                       {
                           {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
                           
@@ -81,7 +81,7 @@ public static class CodeGenerator
             "\n",
             typeDef
                 .PropertyTable
-                .Select(kvp => $"public readonly {GenerateTypeCode(kvp.Value.Type)} {kvp.Key};")
+                .Select(kvp => $"public {GenerateTypeCode(kvp.Value.Type)} {kvp.Key} {{ get; }}")
         );
     }
 
@@ -146,14 +146,35 @@ public static class CodeGenerator
         return $$$"""
                   namespace Mooresmaster.Model.{{{interfaceDef.TypeName.ModuleName}}}
                   {
-                      public interface {{{interfaceDef.TypeName.Name}}} { }
+                      public interface {{{interfaceDef.TypeName.Name}}}{{{GenerateInterfaceImplementationCode(interfaceDef.ImplementationList)}}}
+                      {
+                          {{{GenerateInterfacePropertiesCode(interfaceDef).Indent(level: 2)}}}
+                      }
                   }
                   """;
     }
 
-    private static string GenerateInheritCode(TypeDefinition type)
+    private static string GenerateInterfaceImplementationCode(IEnumerable<TypeName> implementations)
     {
-        return type.InheritList.Length > 0 ? $": {string.Join(", ", type.InheritList.Select(t => t.GetModelName()))}" : "";
+        var implementationsArray = implementations as TypeName[] ?? implementations.ToArray();
+        if (!implementationsArray.Any()) return "";
+
+        return $" : {string.Join(", ", implementationsArray.Select(i => i.GetModelName()))}";
+    }
+
+    private static string GenerateInterfacePropertiesCode(InterfaceDefinition interfaceDefinition)
+    {
+        var codes = new List<string>();
+
+        foreach (var kvp in interfaceDefinition.PropertyTable)
+        {
+            var name = kvp.Key;
+            var interfacePropertyDefinition = kvp.Value;
+
+            codes.Add($"public {GenerateTypeCode(interfacePropertyDefinition.Type)} {name} {{ get; }}");
+        }
+
+        return string.Join("\n", codes);
     }
 
     private static string Indent(this string code, bool firstLine = false, int level = 1)

@@ -11,17 +11,53 @@ public static class DefinitionGenerator
 {
     public static Definition Generate(Semantics semantics, NameTable nameTable, SchemaTable schemaTable)
     {
-        var definitions = new Definition();
+        var definition = new Definition();
 
         foreach (var interfaceSemantics in semantics.InterfaceSemanticsTable)
-            definitions.InterfaceDefinitions.Add(
-                new InterfaceDefinition(
+        {
+            // プロパティを生成
+            var propertyTable = new Dictionary<string, InterfacePropertyDefinition>();
+            foreach (var propertyId in interfaceSemantics.Value.Properties)
+            {
+                var interfaceProperty = semantics.InterfacePropertySemanticsTable[propertyId];
+                var typeId = propertyId;
+                var name = nameTable.InterfacePropertyNames[propertyId];
+
+                var type = Type.GetType(nameTable, typeId, interfaceProperty.PropertySchema, semantics, schemaTable);
+
+                propertyTable[name] = new InterfacePropertyDefinition(
+                    type
+                );
+            }
+
+            // Implementationを取得
+            var implementations = new List<TypeName>();
+            if (semantics.InterfaceInterfaceImplementationTable.TryGetValue(interfaceSemantics.Key, out var implementationsList))
+                foreach (var implementationInterfaceId in implementationsList)
+                {
+                    var implementationInterface = nameTable.TypeNames[implementationInterfaceId];
+                    implementations.Add(implementationInterface);
+                }
+
+            definition.InterfaceDefinitions.Add(new InterfaceDefinition(
                     $"mooresmaster.{nameTable.TypeNames[interfaceSemantics.Key].Name}.g.cs",
-                    nameTable.TypeNames[interfaceSemantics.Key]
+                    nameTable.TypeNames[interfaceSemantics.Key],
+                    propertyTable,
+                    implementations
                 )
             );
-        var inheritTable = new Dictionary<ITypeId, List<InterfaceId>>();
-        foreach (var inherit in semantics.InheritList)
+        }
+
+        foreach (var switchSemantics in semantics.SwitchSemanticsTable)
+            definition.InterfaceDefinitions.Add(new InterfaceDefinition(
+                    $"mooresmaster.{nameTable.TypeNames[switchSemantics.Key].Name}.g.cs",
+                    nameTable.TypeNames[switchSemantics.Key],
+                    [],
+                    []
+                )
+            );
+        var inheritTable = new Dictionary<ITypeId, List<SwitchId>>();
+        foreach (var inherit in semantics.SwitchInheritList)
         {
             if (!inheritTable.TryGetValue(inherit.typeId, out var interfaceList))
             {
@@ -29,7 +65,7 @@ public static class DefinitionGenerator
                 interfaceList = inheritTable[inherit.typeId];
             }
 
-            interfaceList.Add(inherit.interfaceId);
+            interfaceList.Add(inherit.switchId);
         }
 
         var schemaToRootTable = semantics.RootSemanticsTable.ToDictionary(kvp => schemaTable.Table[kvp.Value.Root.InnerSchema], kvp => kvp.Value.Root);
@@ -60,10 +96,20 @@ public static class DefinitionGenerator
                 fileName = $"mooresmaster.{firstInterface.Name}.g.cs";
             }
 
-            definitions.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList, propertyTable));
+            // implementation
+            var implementations = new List<TypeName>();
+            if (semantics.ClassInterfaceImplementationTable.TryGetValue(kvp.Key, out var interfaceIds))
+                foreach (var interfaceId in interfaceIds)
+                {
+                    var interfaceName = nameTable.TypeNames[interfaceId];
+                    implementations.Add(interfaceName);
+                }
+
+
+            definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList.Concat(implementations).ToArray(), propertyTable));
         }
 
-        return definitions;
+        return definition;
     }
 
     private static Dictionary<string, PropertyDefinition> GetProperties(NameTable nameTable, ClassId classId, Semantics semantics, SchemaTable table)
@@ -102,7 +148,7 @@ public static class DefinitionGenerator
                 }
 
                 break;
-            case OneOfSchema:
+            case SwitchSchema:
                 propertyTable["value"] = new PropertyDefinition(new CustomType(nameTable.TypeNames[classId]), null, typeSemantics.Schema.IsNullable, null);
                 break;
             case RefSchema refSchema:
