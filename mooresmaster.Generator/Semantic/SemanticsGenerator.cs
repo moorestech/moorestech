@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
@@ -13,6 +14,7 @@ public static class SemanticsGenerator
         var semantics = new Semantics();
 
         foreach (var schema in schemaArray)
+        {
             // ファイルに分けられているルートの要素はclassになる
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
             if (table.Table[schema.InnerSchema] is ObjectSchema objectSchema)
@@ -30,6 +32,71 @@ public static class SemanticsGenerator
                 Generate(table.Table[schema.InnerSchema], table).AddTo(semantics);
             }
 
+            foreach (var defineInterface in schema.Interfaces)
+                GenerateInterfaceSemantics(defineInterface, schema, table).AddTo(semantics);
+        }
+
+        ResolveInterfaceInterfaceImplementations(semantics);
+        ResolveClassInterfaceImplementations(semantics);
+
+        return semantics;
+    }
+
+    private static void ResolveInterfaceInterfaceImplementations(Semantics semantics)
+    {
+        var interfaceTable = semantics.InterfaceSemanticsTable.ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
+
+        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        {
+            var target = kvp.Key;
+
+            foreach (var interfaceId in kvp.Value.Interface.ImplementationInterfaces)
+            {
+                var other = interfaceTable[interfaceId];
+                semantics.AddInterfaceInterfaceImplementation(target, other);
+            }
+        }
+    }
+
+    private static void ResolveClassInterfaceImplementations(Semantics semantics)
+    {
+        var interfaceTable = semantics.InterfaceSemanticsTable.ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
+
+        foreach (var kvp in semantics.TypeSemanticsTable)
+        {
+            if (kvp.Value.Schema is not ObjectSchema objectSchema) continue;
+
+            var target = kvp.Key;
+
+            foreach (var interfaceName in objectSchema.InterfaceImplementations)
+            {
+                var interfaceId = interfaceTable[interfaceName];
+                semantics.AddClassInterfaceImplementation(target, interfaceId);
+            }
+        }
+    }
+
+    private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table)
+    {
+        var semantics = new Semantics();
+
+        var interfaceId = InterfaceId.NewInterfaceId();
+
+        List<InterfacePropertyId> propertyIds = new();
+        foreach (var property in defineInterface.Properties)
+        {
+            var propertySchema = property.Value;
+
+            var propertyId = semantics.AddInterfacePropertySemantics(new InterfacePropertySemantics(propertySchema, interfaceId));
+            propertyIds.Add(propertyId);
+        }
+
+        semantics.InterfaceSemanticsTable[interfaceId] = new InterfaceSemantics(
+            schema,
+            defineInterface,
+            propertyIds.ToArray()
+        );
+
         return semantics;
     }
 
@@ -46,7 +113,7 @@ public static class SemanticsGenerator
                 var (innerSemantics, _) = Generate(objectSchema, table);
                 innerSemantics.AddTo(semantics);
                 break;
-            case OneOfSchema oneOfSchema:
+            case SwitchSchema oneOfSchema:
                 var (oneOfInnerSemantics, _) = Generate(oneOfSchema, table);
                 oneOfInnerSemantics.AddTo(semantics);
                 break;
@@ -63,22 +130,22 @@ public static class SemanticsGenerator
         return semantics;
     }
 
-    private static (Semantics, InterfaceId) Generate(OneOfSchema oneOfSchema, SchemaTable table)
+    private static (Semantics, SwitchId) Generate(SwitchSchema switchSchema, SchemaTable table)
     {
         var semantics = new Semantics();
 
-        var interfaceId = InterfaceId.New();
+        var interfaceId = SwitchId.New();
         List<(JsonObject, ClassId)> thenList = new();
-        foreach (var ifThen in oneOfSchema.IfThenArray)
+        foreach (var ifThen in switchSchema.IfThenArray)
         {
             Generate(table.Table[ifThen.Then], table).AddTo(semantics);
 
             var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
-            semantics.InheritList.Add((interfaceId, then));
+            semantics.SwitchInheritList.Add((interfaceId, then));
             thenList.Add((ifThen.If, then));
         }
 
-        semantics.InterfaceSemanticsTable.Add(interfaceId, new InterfaceSemantics(oneOfSchema, thenList.ToArray()));
+        semantics.SwitchSemanticsTable.Add(interfaceId, new SwitchSemantics(switchSchema, thenList.ToArray()));
 
         return (semantics, interfaceId);
     }
@@ -106,7 +173,7 @@ public static class SemanticsGenerator
                         )
                     ));
                     break;
-                case OneOfSchema oneOfSchema:
+                case SwitchSchema oneOfSchema:
                     var (oneOfInnerSemantics, oneOfInnerTypeId) = Generate(oneOfSchema, table);
                     oneOfInnerSemantics.AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(

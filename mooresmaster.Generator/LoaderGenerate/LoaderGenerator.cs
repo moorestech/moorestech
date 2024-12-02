@@ -21,9 +21,9 @@ public static class LoaderGenerator
 {
     public static LoaderFile[] Generate(Definition definition, Semantics semantics, NameTable nameTable)
     {
-        var inheritTable = new Dictionary<InterfaceId, List<ClassId>>();
+        var inheritTable = new Dictionary<SwitchId, List<ClassId>>();
 
-        foreach (var (interfaceId, classId) in semantics.InheritList)
+        foreach (var (interfaceId, classId) in semantics.SwitchInheritList)
             if (inheritTable.ContainsKey(interfaceId))
                 inheritTable[interfaceId].Add(classId);
             else
@@ -35,7 +35,7 @@ public static class LoaderGenerator
             .Concat(
                 inheritTable
                     .Select(
-                        inherit => GenerateInterfaceLoaderCode(inherit.Key, semantics, nameTable)
+                        inherit => GenerateSwitchLoaderCode(inherit.Key, semantics, nameTable)
                     )
             )
             .Append(GenerateGlobalLoaderCode(semantics, nameTable))
@@ -155,11 +155,11 @@ public static class LoaderGenerator
         return builder.ToString();
     }
 
-    private static (string fileName, string code) GenerateInterfaceLoaderCode(InterfaceId interfaceId, Semantics semantics, NameTable nameTable)
+    private static (string fileName, string code) GenerateSwitchLoaderCode(SwitchId switchId, Semantics semantics, NameTable nameTable)
     {
-        var interfaceSemantics = semantics.InterfaceSemanticsTable[interfaceId];
+        var switchSemantics = semantics.SwitchSemanticsTable[switchId];
 
-        var name = nameTable.TypeNames[interfaceId];
+        var name = nameTable.TypeNames[switchId];
 
         return (
             $"mooresmaster.loader.{name.ModuleName}.{name.Name}.g.cs",
@@ -170,7 +170,7 @@ public static class LoaderGenerator
                    {
                        public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           {{{string.Join("\n", interfaceSemantics.Types.Select(value => GenerateInterfaceInheritedTypeLoaderCode(value.Item1, value.Item2, nameTable))).Indent(level: 3)}}}
+                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode(value.Item1, value.Item2, nameTable))).Indent(level: 3)}}}
                            
                            throw new global::System.NotImplementedException(json.Path);
                        }
@@ -180,14 +180,14 @@ public static class LoaderGenerator
         );
     }
 
-    private static string GenerateInterfaceCheckCode(string currentJson, string propertyName, string constValue)
+    private static string GenerateSwitchCheckCode(string currentJson, string propertyName, string constValue)
     {
         return $$$"""
                   (string)({{{currentJson}}}.Parent.Parent["{{{propertyName}}}"]) == "{{{constValue}}}"
                   """;
     }
 
-    private static string GenerateInterfaceInheritedTypeLoaderCode(JsonObject ifObject, ClassId classId, NameTable nameTable)
+    private static string GenerateSwitchInheritedTypeLoaderCode(JsonObject ifObject, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
         var properties = (JsonObject)ifObject.Nodes["properties"];
@@ -197,7 +197,7 @@ public static class LoaderGenerator
 
 
         return $$$"""
-                  if ({{{GenerateInterfaceCheckCode("json", propertyName, constValue)}}})
+                  if ({{{GenerateSwitchCheckCode("json", propertyName, constValue)}}})
                   {
                       return {{{name.GetLoaderName()}}}.Load(json);
                   }

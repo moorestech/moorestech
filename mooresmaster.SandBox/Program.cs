@@ -1,10 +1,4 @@
-﻿using Mooresmaster.Loader.BlocksModule;
-using Mooresmaster.Loader.ChallengesModule;
-using Mooresmaster.Loader.CraftRecipesModule;
-using Mooresmaster.Loader.ItemsModule;
-using Mooresmaster.Loader.MachineRecipesModule;
-using Mooresmaster.Loader.MapObjectsModule;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace mooresmaster.SandBox;
@@ -13,12 +7,12 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
-        var blocks = BlocksLoader.Load(GetJson("blocks"));
-        var challenges = ChallengesLoader.Load(GetJson("challenges"));
-        var craftRecipes = CraftRecipesLoader.Load(GetJson("craftRecipes"));
-        var items = ItemsLoader.Load(GetJson("items"));
-        var machineRecipes = MachineRecipesLoader.Load(GetJson("machineRecipes"));
-        var mapObjects = MapObjectsLoader.Load(GetJson("mapObjects"));
+        // var blocks = BlocksLoader.Load(GetJson("blocks"));
+        // var challenges = ChallengesLoader.Load(GetJson("challenges"));
+        // var craftRecipes = CraftRecipesLoader.Load(GetJson("craftRecipes"));
+        // var items = ItemsLoader.Load(GetJson("items"));
+        // var machineRecipes = MachineRecipesLoader.Load(GetJson("machineRecipes"));
+        // var mapObjects = MapObjectsLoader.Load(GetJson("mapObjects"));
 
 
         // Console.WriteLine(blocks);

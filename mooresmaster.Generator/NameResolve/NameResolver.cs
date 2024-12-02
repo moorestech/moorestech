@@ -9,11 +9,11 @@ namespace mooresmaster.Generator.NameResolve;
 
 public record struct TypeName(string Name, string ModuleName);
 
-public class NameTable(Dictionary<ITypeId, TypeName> typeNames, Dictionary<PropertyId, string> propertyNames)
+public class NameTable(Dictionary<ITypeId, TypeName> typeNames, Dictionary<InterfacePropertyId, string> interfacePropertyNames, Dictionary<PropertyId, string> propertyNames)
 {
+    public readonly Dictionary<InterfacePropertyId, string> InterfacePropertyNames = interfacePropertyNames;
     public readonly Dictionary<PropertyId, string> PropertyNames = propertyNames;
 
-//    public readonly Dictionary<string, Guid> Ids = names.ToDictionary(x => x.Value, x => x.Key);
     public readonly Dictionary<ITypeId, TypeName> TypeNames = typeNames;
 }
 
@@ -23,6 +23,7 @@ public static class NameResolver
     {
         var typeNames = new Dictionary<ITypeId, string>();
         var propertyNames = new Dictionary<PropertyId, string>();
+        var interfacePropertyNames = new Dictionary<InterfacePropertyId, string>();
 
         // root以外の全てのtypeの名前を登録
         foreach (var kvp in semantics.TypeSemanticsTable)
@@ -35,7 +36,7 @@ public static class NameResolver
             {
                 ObjectSchema => typeSemantics.Schema.PropertyName!,
                 ArraySchema arraySchema => arraySchema.GetPropertyName(),
-                OneOfSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
+                SwitchSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
                 _ => null
             };
 
@@ -51,8 +52,8 @@ public static class NameResolver
             typeNames[typeId] = root.Root.SchemaId.ToCamelCase();
         }
 
-        // interfaceの名前を登録
-        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        // switchの名前を登録
+        foreach (var kvp in semantics.SwitchSemanticsTable)
         {
             var id = kvp.Key;
             var interfaceSemantics = kvp.Value!;
@@ -61,19 +62,35 @@ public static class NameResolver
             typeNames[id] = $"I{interfaceName}";
         }
 
+        // interfaceの名前を登録
+        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        {
+            var id = kvp.Key;
+            var interfaceSemantics = kvp.Value;
+
+            var interfaceName = interfaceSemantics.Interface.InterfaceName.ToCamelCase();
+            typeNames[id] = interfaceName;
+        }
+
         // namespaceを登録
         var nameSpaces = new Dictionary<ITypeId, string>();
         var schemaToRoot = semantics.RootSemanticsTable.ToDictionary(r => semantics.TypeSemanticsTable[r.Value.ClassId].Schema, r => r.Value);
 
         foreach (var typeId in typeNames.Keys)
         {
+            if (typeId is InterfaceId interfaceId)
+            {
+                nameSpaces[typeId] = $"{semantics.InterfaceSemanticsTable[interfaceId].Schema.SchemaId.ToCamelCase()}Module";
+                continue;
+            }
+
             // child → parent
             var parentNames = new List<string>();
             var schema = typeId switch
             {
                 ClassId classId => semantics.TypeSemanticsTable[classId].Schema,
-                InterfaceId interfaceId => semantics.InterfaceSemanticsTable[interfaceId].Schema,
-                _ => throw new ArgumentOutOfRangeException(nameof(typeId))
+                SwitchId switchId => semantics.SwitchSemanticsTable[switchId].Schema,
+                _ => throw new ArgumentOutOfRangeException(typeId.GetType().Name)
             };
 
             var parentSchema = schema.Parent;
@@ -98,7 +115,7 @@ public static class NameResolver
                         parentNames.Add(objectSchema.PropertyName);
                         currentSchema = objectSchema.Parent;
                         break;
-                    case OneOfSchema oneOfSchema:
+                    case SwitchSchema oneOfSchema:
                         parentNames.Add(oneOfSchema.PropertyName);
                         currentSchema = oneOfSchema.Parent;
                         break;
@@ -122,6 +139,15 @@ public static class NameResolver
             propertyNames[kvp.Key] = name;
         }
 
+        // interfacePropertyの名前を登録
+        foreach (var kvp in semantics.InterfacePropertySemanticsTable)
+        {
+            var interfacePropertyId = kvp.Key;
+            var schema = kvp.Value.PropertySchema;
+            var name = schema.PropertyName!.ToCamelCase();
+            interfacePropertyNames[interfacePropertyId] = name;
+        }
+
         return new NameTable(
             typeNames
                 .Select(name =>
@@ -134,14 +160,15 @@ public static class NameResolver
                     kvp => kvp.Key,
                     kvp => kvp.Value
                 ),
+            interfacePropertyNames,
             propertyNames
         );
     }
 
-    private static string GetIfThenName(OneOfSchema oneOfSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
+    private static string GetIfThenName(SwitchSchema switchSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
     {
-        var ifThenSchema = oneOfSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
-        
+        var ifThenSchema = switchSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
+
         var jsonObjectStack = new Stack<JsonObject>();
         jsonObjectStack.Push(ifThenSchema.If);
 
@@ -157,7 +184,7 @@ public static class NameResolver
                         break;
                     case JsonString jsonString:
                         // BeltConveyorBlockParam のような命名にする
-                        return $"{jsonString.Literal}{oneOfSchema.PropertyName?.ToCamelCase()}";
+                        return $"{jsonString.Literal}{switchSchema.PropertyName?.ToCamelCase()}";
                     case JsonArray:
                     case JsonBoolean:
                         break;

@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
         <DefineConstants>ENABLE_MOORESMASTER_GENERATOR</DefineConstants>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
