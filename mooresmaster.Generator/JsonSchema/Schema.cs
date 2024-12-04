@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
@@ -169,5 +168,11 @@ public record UUIDSchema(string? PropertyName, SchemaId? Parent, bool IsNullable
     public SchemaId? Parent { get; } = Parent;
 }
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct SchemaId;
+[UnitOf(typeof(MasterId<SchemaId>))]
+public readonly partial struct SchemaId
+{
+    public static SchemaId New()
+    {
+        return new SchemaId(new MasterId<SchemaId>());
+    }
+}

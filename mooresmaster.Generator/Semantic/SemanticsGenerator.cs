@@ -79,7 +79,7 @@ public static class SemanticsGenerator
     {
         var semantics = new Semantics();
 
-        var interfaceId = InterfaceId.NewInterfaceId();
+        var interfaceId = InterfaceId.New();
 
         List<InterfacePropertyId> propertyIds = new();
         foreach (var property in defineInterface.Properties)
