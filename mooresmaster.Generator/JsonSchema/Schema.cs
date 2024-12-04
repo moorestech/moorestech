@@ -78,9 +78,9 @@ public record SwitchSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record IfThenSchema(JsonString SwitchReferencePath, JsonObject If, SchemaId Then)
+public record IfThenSchema(JsonString SwitchReferencePath, JsonString If, SchemaId Then)
 {
-    public JsonObject If = If;
+    public JsonString If = If;
     public JsonString SwitchReferencePath = SwitchReferencePath;
     public SchemaId Then = Then;
 }

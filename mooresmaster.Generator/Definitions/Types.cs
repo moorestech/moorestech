@@ -28,6 +28,12 @@ public record Type
             ObjectSchema => new CustomType(nameTable.TypeNames[typeId]),
             SwitchSchema => new CustomType(nameTable.TypeNames[typeId]),
             RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)]),
+            UUIDSchema => new UUIDType(),
+            Vector2Schema => new Vector2Type(),
+            Vector3Schema => new Vector3Type(),
+            Vector4Schema => new Vector4Type(),
+            Vector2IntSchema => new Vector2IntType(),
+            Vector3IntSchema => new Vector3IntType(),
             _ => throw new ArgumentOutOfRangeException(nameof(schema))
         };
         return schema.IsNullable ? new NullableType(type) : type;
