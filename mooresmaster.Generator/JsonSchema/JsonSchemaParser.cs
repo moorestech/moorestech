@@ -127,7 +127,7 @@ public static class JsonSchemaParser
         foreach (var node in (json["cases"] as JsonArray)!.Nodes)
         {
             var jsonObject = (node as JsonObject)!;
-            var whenJson = (jsonObject["when"] as JsonObject)!;
+            var whenJson = (JsonString)jsonObject["when"];
             var thenJson = jsonObject;
 
             ifThenList.Add(new IfThenSchema(switchReferencePath, whenJson, Parse(thenJson, schemaId, table)));

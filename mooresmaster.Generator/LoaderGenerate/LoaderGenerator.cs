@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
-using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 using Type = mooresmaster.Generator.Definitions.Type;
@@ -170,7 +169,7 @@ public static class LoaderGenerator
                    {
                        public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode(value.Item1, value.Item2, nameTable))).Indent(level: 3)}}}
+                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode(value.switchReferencePath, value.constValue, value.classId, nameTable))).Indent(level: 3)}}}
                            
                            throw new global::System.NotImplementedException(json.Path);
                        }
@@ -187,17 +186,12 @@ public static class LoaderGenerator
                   """;
     }
 
-    private static string GenerateSwitchInheritedTypeLoaderCode(JsonObject ifObject, ClassId classId, NameTable nameTable)
+    private static string GenerateSwitchInheritedTypeLoaderCode(string switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
-        var properties = (JsonObject)ifObject.Nodes["properties"];
-        var firstProperty = properties.Nodes.First();
-        var propertyName = firstProperty.Key;
-        var constValue = ((JsonString)((JsonObject)firstProperty.Value).Nodes["const"]).Literal;
-
 
         return $$$"""
-                  if ({{{GenerateSwitchCheckCode("json", propertyName, constValue)}}})
+                  if ({{{GenerateSwitchCheckCode("json", switchReferencePath, constValue)}}})
                   {
                       return {{{name.GetLoaderName()}}}.Load(json);
                   }

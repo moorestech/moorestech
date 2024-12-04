@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
 
@@ -168,32 +167,7 @@ public static class NameResolver
     private static string GetIfThenName(SwitchSchema switchSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
     {
         var ifThenSchema = switchSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
-
-        var jsonObjectStack = new Stack<JsonObject>();
-        jsonObjectStack.Push(ifThenSchema.If);
-
-        while (jsonObjectStack.Count > 0)
-        {
-            var jsonObject = jsonObjectStack.Pop();
-
-            foreach (var node in jsonObject.Nodes.Values)
-                switch (node)
-                {
-                    case JsonObject o:
-                        jsonObjectStack.Push(o);
-                        break;
-                    case JsonString jsonString:
-                        // BeltConveyorBlockParam のような命名にする
-                        return $"{jsonString.Literal}{switchSchema.PropertyName?.ToCamelCase()}";
-                    case JsonArray:
-                    case JsonBoolean:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(node));
-                }
-        }
-
-        throw new Exception();
+        return $"{ifThenSchema.If.Literal}{switchSchema.PropertyName?.ToCamelCase()}";
     }
 
     public static string GetModelName(this TypeName typeName)
