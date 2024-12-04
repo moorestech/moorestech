@@ -58,8 +58,8 @@ public static class JsonSchemaParser
 
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
     {
-        if (root.Nodes.ContainsKey("oneOf")) return ParseOneOf(root, parent, schemaTable);
         if (root.Nodes.ContainsKey("$ref")) return ParseRef(root, parent, schemaTable);
+        if (root.Nodes.ContainsKey("switch")) return ParseSwitch(root, parent, schemaTable);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
@@ -117,18 +117,20 @@ public static class JsonSchemaParser
         return arraySchemaId;
     }
 
-    private static SchemaId ParseOneOf(JsonObject json, SchemaId? parent, SchemaTable table)
+    private static SchemaId ParseSwitch(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var ifThenList = new List<IfThenSchema>();
         var schemaId = SchemaId.New();
 
-        foreach (var node in (json["oneOf"] as JsonArray)!.Nodes)
+        var switchReferencePath = (json["switch"] as JsonString)!;
+
+        foreach (var node in (json["cases"] as JsonArray)!.Nodes)
         {
             var jsonObject = (node as JsonObject)!;
-            var ifJson = (jsonObject["if"] as JsonObject)!;
-            var thenJson = (jsonObject["then"] as JsonObject)!;
+            var whenJson = (jsonObject["when"] as JsonObject)!;
+            var thenJson = jsonObject;
 
-            ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson, schemaId, table)));
+            ifThenList.Add(new IfThenSchema(switchReferencePath, whenJson, Parse(thenJson, schemaId, table)));
         }
 
         table.Add(schemaId, new SwitchSchema(json.PropertyName, parent, ifThenList.ToArray(), IsNullable(json)));
