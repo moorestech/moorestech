@@ -58,8 +58,8 @@ public static class JsonSchemaParser
 
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
     {
-        if (root.Nodes.ContainsKey("$ref")) return ParseRef(root, parent, schemaTable);
         if (root.Nodes.ContainsKey("switch")) return ParseSwitch(root, parent, schemaTable);
+        if (root.Nodes.ContainsKey("ref")) return ParseRef(root, parent, schemaTable);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
@@ -139,8 +139,8 @@ public static class JsonSchemaParser
 
     private static SchemaId ParseRef(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var refJson = json["$ref"] as JsonString;
-        return table.Add(new RefSchema(json.PropertyName, parent, refJson.Literal, IsNullable((JsonObject)json.Parent)));
+        var refJson = json["ref"] as JsonString;
+        return table.Add(new RefSchema(json.PropertyName, parent, refJson.Literal, IsNullable(json)));
     }
 
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, SchemaTable table)
