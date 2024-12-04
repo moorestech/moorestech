@@ -1,10 +1,11 @@
-using Game.Train.Station;
+using Game.Train.Blocks;
 using System.Collections.Generic;
 /// <summary>
 /// 距離は暫定的にint型で表現しているが、実際のゲームで問題が起きそうならLong intにしたり経路探索のときだけ浮動小数点数使う
 /// </summary>
 
-namespace Game.Train { 
+namespace Game.Train.RailGraph
+{ 
     public class RailNode
     {
         public int NodeId { get; }  // ノードを識別するためのユニークなID

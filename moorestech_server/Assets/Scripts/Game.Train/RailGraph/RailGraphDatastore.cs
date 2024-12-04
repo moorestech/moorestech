@@ -1,22 +1,17 @@
 using System.Collections.Generic;
-///
-/// NodeId is a unique ID to identify the node
-///
-namespace Game.Train.Common
-{ 
+namespace Game.Train.RailGraph
+{
+    ///
+    /// NodeId is a unique ID to identify the node
+    ///
     public class RailGraphDatastore
     {
-        private static RailGraphDatastore _instance;
-
         private readonly Dictionary<int, RailNode> _nodes = new();
 
-        private RailGraphDatastore()
+        public RailGraphDatastore()
         {
-            _instance = this;
+            //UnityEngine.Debug.Log("RailGraphDatastore created");
         }
-
-        public static RailGraphDatastore Instance => _instance ??= new RailGraphDatastore();
-
 
         
         public void AddNode(RailNode node)
@@ -29,6 +24,5 @@ namespace Game.Train.Common
             _nodes.Remove(nodeId);
         }
         
-
     }
 }
