@@ -115,8 +115,9 @@ public static class JsonSchemaParser
     {
         var overrideCodeGeneratePropertyName = json["overrideCodeGeneratePropertyName"] as JsonString;
         var arraySchemaId = SchemaId.New();
+        var key = json["key"] as JsonString;
         var items = Parse((json["items"] as JsonObject)!, arraySchemaId, table);
-        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, overrideCodeGeneratePropertyName, IsNullable(json)));
+        table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, overrideCodeGeneratePropertyName, IsNullable(json)));
         return arraySchemaId;
     }
 
