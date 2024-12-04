@@ -12,31 +12,19 @@ public record Type
     {
         Type type = schema switch
         {
-            ArraySchema arraySchema => arraySchema.Pattern?.Literal switch
-            {
-                "@vector2" => new Vector2Type(),
-                "@vector3" => new Vector3Type(),
-                "@vector4" => new Vector4Type(),
-                "@vector2Int" => new Vector2IntType(),
-                "@vector3Int" => new Vector3IntType(),
-                _ => new ArrayType(GetType(
-                    nameTable,
-                    semantics.SchemaTypeSemanticsTable.ContainsKey(schemaTable.Table[arraySchema.Items])
-                        ? semantics.SchemaTypeSemanticsTable[schemaTable.Table[arraySchema.Items]]
-                        : null,
-                    schemaTable.Table[arraySchema.Items],
-                    semantics,
-                    schemaTable
-                ))
-            },
+            ArraySchema arraySchema => new ArrayType(GetType(
+                nameTable,
+                semantics.SchemaTypeSemanticsTable.ContainsKey(schemaTable.Table[arraySchema.Items])
+                    ? semantics.SchemaTypeSemanticsTable[schemaTable.Table[arraySchema.Items]]
+                    : null,
+                schemaTable.Table[arraySchema.Items],
+                semantics,
+                schemaTable
+            )),
             BooleanSchema => new BooleanType(),
             IntegerSchema => new IntType(),
             NumberSchema => new FloatType(),
-            StringSchema stringSchema => stringSchema.Format?.Literal switch
-            {
-                "uuid" => new UUIDType(),
-                _ => new StringType()
-            },
+            StringSchema => new StringType(),
             ObjectSchema => new CustomType(nameTable.TypeNames[typeId]),
             SwitchSchema => new CustomType(nameTable.TypeNames[typeId]),
             RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)]),

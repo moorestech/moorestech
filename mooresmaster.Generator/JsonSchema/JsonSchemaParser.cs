@@ -69,6 +69,12 @@ public static class JsonSchemaParser
             "number" => ParseNumber(root, parent, schemaTable),
             "integer" => ParseInteger(root, parent, schemaTable),
             "boolean" => ParseBoolean(root, parent, schemaTable),
+            "uuid" => ParseUUID(root, parent, schemaTable),
+            "vector2" => ParseVector2(root, parent, schemaTable),
+            "vector3" => ParseVector3(root, parent, schemaTable),
+            "vector4" => ParseVector4(root, parent, schemaTable),
+            "vector2Int" => ParseVector2Int(root, parent, schemaTable),
+            "vector3Int" => ParseVector3Int(root, parent, schemaTable),
             _ => throw new Exception($"Unknown type: {type}")
         };
     }
@@ -104,11 +110,10 @@ public static class JsonSchemaParser
 
     private static SchemaId ParseArray(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var pattern = json["pattern"] as JsonString;
         var overrideCodeGeneratePropertyName = json["overrideCodeGeneratePropertyName"] as JsonString;
         var arraySchemaId = SchemaId.New();
         var items = Parse((json["items"] as JsonObject)!, arraySchemaId, table);
-        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, pattern, overrideCodeGeneratePropertyName, IsNullable(json)));
+        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, overrideCodeGeneratePropertyName, IsNullable(json)));
         return arraySchemaId;
     }
 
@@ -138,7 +143,6 @@ public static class JsonSchemaParser
 
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var format = json["format"] as JsonString;
         var enumJson = json["enum"];
         List<string>? enums = null;
         if (enumJson is JsonArray enumArray)
@@ -153,7 +157,7 @@ public static class JsonSchemaParser
             }
         }
 
-        return table.Add(new StringSchema(json.PropertyName, parent, format, IsNullable(json), enums?.ToArray()));
+        return table.Add(new StringSchema(json.PropertyName, parent, IsNullable(json), enums?.ToArray()));
     }
 
     private static SchemaId ParseNumber(JsonObject json, SchemaId? parent, SchemaTable table)
@@ -174,5 +178,35 @@ public static class JsonSchemaParser
     private static bool IsNullable(JsonObject json)
     {
         return json["optional"] is JsonBoolean { Literal: true };
+    }
+
+    private static SchemaId ParseUUID(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new UUIDSchema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector2(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector2Schema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector3(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector3Schema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector4(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector4Schema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector2Int(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector2IntSchema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector3Int(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector3IntSchema(json.PropertyName, parent, IsNullable(json)));
     }
 }
