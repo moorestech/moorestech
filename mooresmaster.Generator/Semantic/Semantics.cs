@@ -164,14 +164,38 @@ public readonly partial struct PropertyId;
 
 public interface ITypeId;
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct ClassId : ITypeId;
+[UnitOf(typeof(MasterId<ClassId>))]
+public readonly partial struct ClassId : ITypeId
+{
+    public static ClassId New()
+    {
+        return new ClassId(new MasterId<ClassId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct SwitchId : ITypeId;
+[UnitOf(typeof(MasterId<SwitchId>))]
+public readonly partial struct SwitchId : ITypeId
+{
+    public static SwitchId New()
+    {
+        return new SwitchId(new MasterId<SwitchId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct InterfaceId : ITypeId;
+[UnitOf(typeof(MasterId<InterfaceId>))]
+public readonly partial struct InterfaceId : ITypeId
+{
+    public static InterfaceId New()
+    {
+        return new InterfaceId(new MasterId<InterfaceId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct InterfacePropertyId : ITypeId;
+[UnitOf(typeof(MasterId<InterfacePropertyId>))]
+public readonly partial struct InterfacePropertyId : ITypeId
+{
+    public static InterfacePropertyId New()
+    {
+        return new InterfacePropertyId(new MasterId<InterfacePropertyId>());
+    }
+}
