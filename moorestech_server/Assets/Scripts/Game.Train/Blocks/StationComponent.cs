@@ -4,6 +4,8 @@ namespace Game.Train.Station
 {
     public class StationComponent : IBlockComponent
     {
+        public string StationName { get; }
+
         // 駅の長さ（何両分か）
         private int _stationLength;
 
@@ -13,11 +15,12 @@ namespace Game.Train.Station
         // IBlockComponentからのメンバ
         public bool IsDestroy { get; private set; }
 
-        public StationComponent(int stationLength)
+        public StationComponent(int stationLength, string stationName = "DefaultStation")
         {
             _stationLength = stationLength;
             _currentTrain = null;
             IsDestroy = false;
+            StationName = stationName;
         }
 
 
