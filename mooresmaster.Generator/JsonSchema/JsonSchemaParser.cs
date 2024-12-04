@@ -83,13 +83,19 @@ public static class JsonSchemaParser
 
         if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
 
-        var propertiesJson = (json["properties"] as JsonObject)!;
+        var propertiesJson = (json["properties"] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
         var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var objectSchemaId = SchemaId.New();
-        var properties = propertiesJson.Nodes
-            .Select(kvp => (kvp.Key, Parse((kvp.Value as JsonObject)!, objectSchemaId, table)))
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Item2);
+
+        Dictionary<string, SchemaId> properties = [];
+        foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
+        {
+            var key = propertyNode.Nodes["key"] as JsonString;
+            var value = propertyNode;
+            var schemaId = Parse(value, objectSchemaId, table);
+            properties.Add(key.Literal, schemaId);
+        }
 
         table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray()));
 
