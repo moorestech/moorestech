@@ -51,11 +51,10 @@ public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<st
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable) : ISchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable) : ISchema
 {
     public SchemaId Items = Items;
     public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
-    public JsonString? Pattern = Pattern;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
     public string? PropertyName { get; } = PropertyName;
@@ -85,10 +84,9 @@ public record IfThenSchema(JsonObject If, SchemaId Then)
     public SchemaId Then = Then;
 }
 
-public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable, string[]? Enums) : ISchema, IDefineInterfacePropertySchema
+public record StringSchema(string? PropertyName, SchemaId? Parent, bool IsNullable, string[]? Enums) : ISchema, IDefineInterfacePropertySchema
 {
     public string[]? Enums = Enums;
-    public JsonString? Format = Format;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
@@ -126,6 +124,48 @@ public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, bool
     {
         return new TypeName(Ref, $"{Ref}Module");
     }
+}
+
+public record Vector2Schema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector3Schema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector4Schema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector2IntSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector3IntSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record UUIDSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
 }
 
 [UnitOf(typeof(Guid))]
