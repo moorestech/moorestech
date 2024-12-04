@@ -87,7 +87,9 @@ public static class JsonSchemaParser
                 if (implementation is JsonString name)
                     interfaceImplementations.Add(name.Literal);
 
-        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
+        var objectName = json.Nodes.ContainsKey("key") ? (json["key"] as JsonString)!.Literal : null;
+
+        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
 
         var propertiesJson = (json["properties"] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
@@ -100,10 +102,11 @@ public static class JsonSchemaParser
             var key = propertyNode.Nodes["key"] as JsonString;
             var value = propertyNode;
             var schemaId = Parse(value, objectSchemaId, table);
+
             properties.Add(key.Literal, schemaId);
         }
 
-        table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray()));
+        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray()));
 
         return objectSchemaId;
     }
