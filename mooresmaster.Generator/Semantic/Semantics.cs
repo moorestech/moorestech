@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.JsonSchema;
 using UnitGenerator;
@@ -156,11 +155,23 @@ public record InterfacePropertySemantics(IDefineInterfacePropertySchema Property
     public IDefineInterfacePropertySchema PropertySchema = PropertySchema;
 }
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct RootId;
+[UnitOf(typeof(MasterId<RootId>))]
+public readonly partial struct RootId
+{
+    public static RootId New()
+    {
+        return new RootId(new MasterId<RootId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct PropertyId;
+[UnitOf(typeof(MasterId<PropertyId>))]
+public readonly partial struct PropertyId
+{
+    public static PropertyId New()
+    {
+        return new PropertyId(new MasterId<PropertyId>());
+    }
+}
 
 public interface ITypeId;
 
