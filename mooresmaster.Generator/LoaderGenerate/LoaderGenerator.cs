@@ -28,7 +28,7 @@ public static class LoaderGenerator
             else
                 inheritTable[interfaceId] = [classId];
 
-        return definition
+        var loaderFiles = definition
             .TypeDefinitions
             .Select(typeDefinition => GenerateTypeLoaderCode(typeDefinition, semantics, nameTable))
             .Concat(
@@ -39,7 +39,22 @@ public static class LoaderGenerator
             )
             .Append(GenerateGlobalLoaderCode(semantics, nameTable))
             .Select(value => new LoaderFile(value.fileName, value.code.GetPreprocessedCode()))
-            .ToArray();
+            .ToList();
+
+        for (var i = loaderFiles.Count - 1; i >= 0; i--)
+        for (var j = 0; j < i; j++)
+            if (loaderFiles[j].FileName == loaderFiles[i].FileName)
+            {
+                var removeLoaderFile = loaderFiles[i];
+                var loaderFile = loaderFiles[j];
+
+                loaderFile.Code += $"\n{removeLoaderFile.Code}";
+
+                loaderFiles.RemoveAt(i);
+                break;
+            }
+
+        return loaderFiles.ToArray();
     }
 
     private static (string fileName, string code) GenerateGlobalLoaderCode(Semantics semantics, NameTable nameTable)
