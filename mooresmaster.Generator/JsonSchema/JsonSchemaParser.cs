@@ -9,7 +9,7 @@ public static class JsonSchemaParser
 {
     public static Schema ParseSchema(JsonObject root, SchemaTable schemaTable)
     {
-        var id = (root["$id"] as JsonString)!.Literal;
+        var id = (root["id"] as JsonString)!.Literal;
         var defineInterfaces = ParseDefineInterfaces(root, schemaTable);
         return new Schema(id, Parse(root, null, schemaTable), defineInterfaces);
     }
