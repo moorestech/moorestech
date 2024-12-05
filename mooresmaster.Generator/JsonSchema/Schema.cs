@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
@@ -51,11 +50,10 @@ public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<st
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? Pattern, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable) : ISchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable) : ISchema
 {
     public SchemaId Items = Items;
     public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
-    public JsonString? Pattern = Pattern;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
     public string? PropertyName { get; } = PropertyName;
@@ -79,16 +77,16 @@ public record SwitchSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record IfThenSchema(JsonObject If, SchemaId Then)
+public record IfThenSchema(JsonString SwitchReferencePath, JsonString If, SchemaId Then)
 {
-    public JsonObject If = If;
+    public JsonString If = If;
+    public JsonString SwitchReferencePath = SwitchReferencePath;
     public SchemaId Then = Then;
 }
 
-public record StringSchema(string? PropertyName, SchemaId? Parent, JsonString? Format, bool IsNullable, string[]? Enums) : ISchema, IDefineInterfacePropertySchema
+public record StringSchema(string? PropertyName, SchemaId? Parent, bool IsNullable, string[]? Enums) : ISchema, IDefineInterfacePropertySchema
 {
     public string[]? Enums = Enums;
-    public JsonString? Format = Format;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
@@ -128,5 +126,53 @@ public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, bool
     }
 }
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct SchemaId;
+public record Vector2Schema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector3Schema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector4Schema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector2IntSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record Vector3IntSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+public record UUIDSchema(string? PropertyName, SchemaId? Parent, bool IsNullable) : IDefineInterfacePropertySchema
+{
+    public string? PropertyName { get; } = PropertyName;
+    public bool IsNullable { get; } = IsNullable;
+    public SchemaId? Parent { get; } = Parent;
+}
+
+[UnitOf(typeof(MasterId<SchemaId>))]
+public readonly partial struct SchemaId
+{
+    public static SchemaId New()
+    {
+        return new SchemaId(new MasterId<SchemaId>());
+    }
+}

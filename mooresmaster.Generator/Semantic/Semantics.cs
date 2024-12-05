@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using UnitGenerator;
 
@@ -138,10 +136,10 @@ public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, IType
     public ISchema Schema = Schema;
 }
 
-public record SwitchSemantics(SwitchSchema Schema, (JsonObject, ClassId)[] Types)
+public record SwitchSemantics(SwitchSchema Schema, (string switchReferencePath, string constValue, ClassId classId)[] Types)
 {
     public SwitchSchema Schema = Schema;
-    public (JsonObject, ClassId)[] Types = Types;
+    public (string switchReferencePath, string constValue, ClassId classId)[] Types = Types;
 }
 
 public record InterfaceSemantics(Schema Schema, DefineInterface Interface, InterfacePropertyId[] Properties)
@@ -157,22 +155,58 @@ public record InterfacePropertySemantics(IDefineInterfacePropertySchema Property
     public IDefineInterfacePropertySchema PropertySchema = PropertySchema;
 }
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct RootId;
+[UnitOf(typeof(MasterId<RootId>))]
+public readonly partial struct RootId
+{
+    public static RootId New()
+    {
+        return new RootId(new MasterId<RootId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct PropertyId;
+[UnitOf(typeof(MasterId<PropertyId>))]
+public readonly partial struct PropertyId
+{
+    public static PropertyId New()
+    {
+        return new PropertyId(new MasterId<PropertyId>());
+    }
+}
 
 public interface ITypeId;
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct ClassId : ITypeId;
+[UnitOf(typeof(MasterId<ClassId>))]
+public readonly partial struct ClassId : ITypeId
+{
+    public static ClassId New()
+    {
+        return new ClassId(new MasterId<ClassId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct SwitchId : ITypeId;
+[UnitOf(typeof(MasterId<SwitchId>))]
+public readonly partial struct SwitchId : ITypeId
+{
+    public static SwitchId New()
+    {
+        return new SwitchId(new MasterId<SwitchId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct InterfaceId : ITypeId;
+[UnitOf(typeof(MasterId<InterfaceId>))]
+public readonly partial struct InterfaceId : ITypeId
+{
+    public static InterfaceId New()
+    {
+        return new InterfaceId(new MasterId<InterfaceId>());
+    }
+}
 
-[UnitOf(typeof(Guid))]
-public readonly partial struct InterfacePropertyId : ITypeId;
+[UnitOf(typeof(MasterId<InterfacePropertyId>))]
+public readonly partial struct InterfacePropertyId : ITypeId
+{
+    public static InterfacePropertyId New()
+    {
+        return new InterfacePropertyId(new MasterId<InterfacePropertyId>());
+    }
+}

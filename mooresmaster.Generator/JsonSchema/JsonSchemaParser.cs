@@ -9,7 +9,7 @@ public static class JsonSchemaParser
 {
     public static Schema ParseSchema(JsonObject root, SchemaTable schemaTable)
     {
-        var id = (root["$id"] as JsonString)!.Literal;
+        var id = (root["id"] as JsonString)!.Literal;
         var defineInterfaces = ParseDefineInterfaces(root, schemaTable);
         return new Schema(id, Parse(root, null, schemaTable), defineInterfaces);
     }
@@ -58,8 +58,8 @@ public static class JsonSchemaParser
 
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
     {
-        if (root.Nodes.ContainsKey("oneOf")) return ParseOneOf(root, parent, schemaTable);
-        if (root.Nodes.ContainsKey("$ref")) return ParseRef(root, parent, schemaTable);
+        if (root.Nodes.ContainsKey("switch")) return ParseSwitch(root, parent, schemaTable);
+        if (root.Nodes.ContainsKey("ref")) return ParseRef(root, parent, schemaTable);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
@@ -69,6 +69,12 @@ public static class JsonSchemaParser
             "number" => ParseNumber(root, parent, schemaTable),
             "integer" => ParseInteger(root, parent, schemaTable),
             "boolean" => ParseBoolean(root, parent, schemaTable),
+            "uuid" => ParseUUID(root, parent, schemaTable),
+            "vector2" => ParseVector2(root, parent, schemaTable),
+            "vector3" => ParseVector3(root, parent, schemaTable),
+            "vector4" => ParseVector4(root, parent, schemaTable),
+            "vector2Int" => ParseVector2Int(root, parent, schemaTable),
+            "vector3Int" => ParseVector3Int(root, parent, schemaTable),
             _ => throw new Exception($"Unknown type: {type}")
         };
     }
@@ -81,58 +87,68 @@ public static class JsonSchemaParser
                 if (implementation is JsonString name)
                     interfaceImplementations.Add(name.Literal);
 
-        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(json.PropertyName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
+        var objectName = json.Nodes.ContainsKey("key") ? (json["key"] as JsonString)!.Literal : null;
 
-        var propertiesJson = (json["properties"] as JsonObject)!;
+        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
+
+        var propertiesJson = (json["properties"] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
         var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var objectSchemaId = SchemaId.New();
-        var properties = propertiesJson.Nodes
-            .Select(kvp => (kvp.Key, Parse((kvp.Value as JsonObject)!, objectSchemaId, table)))
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Item2);
 
-        table.Add(objectSchemaId, new ObjectSchema(json.PropertyName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray()));
+        Dictionary<string, SchemaId> properties = [];
+        foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
+        {
+            var key = propertyNode.Nodes["key"] as JsonString;
+            var value = propertyNode;
+            var schemaId = Parse(value, objectSchemaId, table);
+
+            properties.Add(key.Literal, schemaId);
+        }
+
+        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray()));
 
         return objectSchemaId;
     }
 
     private static SchemaId ParseArray(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var pattern = json["pattern"] as JsonString;
         var overrideCodeGeneratePropertyName = json["overrideCodeGeneratePropertyName"] as JsonString;
         var arraySchemaId = SchemaId.New();
+        var key = json["key"] as JsonString;
         var items = Parse((json["items"] as JsonObject)!, arraySchemaId, table);
-        table.Add(arraySchemaId, new ArraySchema(json.PropertyName, parent, items, pattern, overrideCodeGeneratePropertyName, IsNullable(json)));
+        table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, overrideCodeGeneratePropertyName, IsNullable(json)));
         return arraySchemaId;
     }
 
-    private static SchemaId ParseOneOf(JsonObject json, SchemaId? parent, SchemaTable table)
+    private static SchemaId ParseSwitch(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var ifThenList = new List<IfThenSchema>();
         var schemaId = SchemaId.New();
 
-        foreach (var node in (json["oneOf"] as JsonArray)!.Nodes)
+        var switchReferencePath = (json["switch"] as JsonString)!;
+
+        foreach (var node in (json["cases"] as JsonArray)!.Nodes)
         {
             var jsonObject = (node as JsonObject)!;
-            var ifJson = (jsonObject["if"] as JsonObject)!;
-            var thenJson = (jsonObject["then"] as JsonObject)!;
+            var whenJson = (JsonString)jsonObject["when"];
+            var thenJson = jsonObject;
 
-            ifThenList.Add(new IfThenSchema(ifJson, Parse(thenJson, schemaId, table)));
+            ifThenList.Add(new IfThenSchema(switchReferencePath, whenJson, Parse(thenJson, schemaId, table)));
         }
 
-        table.Add(schemaId, new SwitchSchema(json.PropertyName, parent, ifThenList.ToArray(), IsNullable(json)));
+        table.Add(schemaId, new SwitchSchema((json["key"] as JsonString).Literal, parent, ifThenList.ToArray(), IsNullable(json)));
         return schemaId;
     }
 
     private static SchemaId ParseRef(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var refJson = json["$ref"] as JsonString;
-        return table.Add(new RefSchema(json.PropertyName, parent, refJson.Literal, IsNullable((JsonObject)json.Parent)));
+        var refJson = json["ref"] as JsonString;
+        return table.Add(new RefSchema(json.PropertyName, parent, refJson.Literal, IsNullable(json)));
     }
 
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var format = json["format"] as JsonString;
         var enumJson = json["enum"];
         List<string>? enums = null;
         if (enumJson is JsonArray enumArray)
@@ -147,7 +163,7 @@ public static class JsonSchemaParser
             }
         }
 
-        return table.Add(new StringSchema(json.PropertyName, parent, format, IsNullable(json), enums?.ToArray()));
+        return table.Add(new StringSchema(json.PropertyName, parent, IsNullable(json), enums?.ToArray()));
     }
 
     private static SchemaId ParseNumber(JsonObject json, SchemaId? parent, SchemaTable table)
@@ -168,5 +184,35 @@ public static class JsonSchemaParser
     private static bool IsNullable(JsonObject json)
     {
         return json["optional"] is JsonBoolean { Literal: true };
+    }
+
+    private static SchemaId ParseUUID(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new UUIDSchema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector2(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector2Schema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector3(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector3Schema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector4(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector4Schema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector2Int(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector2IntSchema(json.PropertyName, parent, IsNullable(json)));
+    }
+
+    private static SchemaId ParseVector3Int(JsonObject json, SchemaId? parent, SchemaTable table)
+    {
+        return table.Add(new Vector3IntSchema(json.PropertyName, parent, IsNullable(json)));
     }
 }

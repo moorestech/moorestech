@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator.Semantic;
@@ -80,7 +79,7 @@ public static class SemanticsGenerator
     {
         var semantics = new Semantics();
 
-        var interfaceId = InterfaceId.NewInterfaceId();
+        var interfaceId = InterfaceId.New();
 
         List<InterfacePropertyId> propertyIds = new();
         foreach (var property in defineInterface.Properties)
@@ -117,11 +116,17 @@ public static class SemanticsGenerator
                 var (oneOfInnerSemantics, _) = Generate(oneOfSchema, table);
                 oneOfInnerSemantics.AddTo(semantics);
                 break;
-            case RefSchema refSchema:
-            case BooleanSchema booleanSchema:
-            case IntegerSchema integerSchema:
-            case NumberSchema numberSchema:
-            case StringSchema stringSchema:
+            case RefSchema:
+            case BooleanSchema:
+            case IntegerSchema:
+            case NumberSchema:
+            case StringSchema:
+            case UUIDSchema:
+            case Vector2Schema:
+            case Vector3Schema:
+            case Vector4Schema:
+            case Vector2IntSchema:
+            case Vector3IntSchema:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(schema));
@@ -135,14 +140,14 @@ public static class SemanticsGenerator
         var semantics = new Semantics();
 
         var interfaceId = SwitchId.New();
-        List<(JsonObject, ClassId)> thenList = new();
+        List<(string, string, ClassId)> thenList = new();
         foreach (var ifThen in switchSchema.IfThenArray)
         {
             Generate(table.Table[ifThen.Then], table).AddTo(semantics);
 
             var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
             semantics.SwitchInheritList.Add((interfaceId, then));
-            thenList.Add((ifThen.If, then));
+            thenList.Add((ifThen.SwitchReferencePath.Literal, ifThen.If.Literal, then));
         }
 
         semantics.SwitchSemanticsTable.Add(interfaceId, new SwitchSemantics(switchSchema, thenList.ToArray()));
