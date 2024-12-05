@@ -1,5 +1,4 @@
 using Game.Train.Blocks;
-using Core.Item.Interface;
 using System.Collections.Generic;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
@@ -9,14 +8,14 @@ namespace Game.Train.RailGraph
 { 
     public class RailNode
     {
-        public ItemInstanceId NodeId { get; }  // ノードを識別するためのユニークなID
+        public RailNodeInstanceId NodeId { get; }  // ノードを識別するためのユニークなID
         public Dictionary<RailNode, int> ConnectedNodes { get; }  // このノードからつながるノードとその距離
 
         public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
 
         public RailNode(StationComponent station = null)
         {
-            NodeId = ItemInstanceId.Create();
+            NodeId = RailNodeInstanceId.Create();
             Station = station;
             ConnectedNodes = new Dictionary<RailNode, int>();
         }
