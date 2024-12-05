@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Item.Interface;
 namespace Game.Train.RailGraph
 {
     ///
@@ -6,7 +7,7 @@ namespace Game.Train.RailGraph
     ///
     public class RailGraphDatastore
     {
-        private readonly Dictionary<int, RailNode> _nodes = new();
+        private readonly Dictionary<ItemInstanceId, RailNode> _nodes = new();
 
         public RailGraphDatastore()
         {
@@ -19,7 +20,7 @@ namespace Game.Train.RailGraph
             _nodes[node.NodeId] = node;
         }
 
-        public void RemoveNode(int nodeId)
+        public void RemoveNode(ItemInstanceId nodeId)
         {
             _nodes.Remove(nodeId);
         }
