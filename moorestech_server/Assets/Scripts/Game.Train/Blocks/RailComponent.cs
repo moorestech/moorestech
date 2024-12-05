@@ -1,6 +1,6 @@
 using Game.Block.Interface.Component;
 
-namespace Game.Train.Station
+namespace Game.Train.Blocks
 {
     public class RailComponent : IBlockComponent
     {
