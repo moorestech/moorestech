@@ -5,14 +5,14 @@ namespace Game.Train.RailGraph
 {
     //多分uintで十分
     [UnitOf(typeof(uint))]
-    public partial struct RailNodeInstanceId
+    public partial struct RailNodeId
     {
         private static readonly Random Random = new();
         
-        public static RailNodeInstanceId Create()
+        public static RailNodeId Create()
         {
             uint result = (uint)Random.Next(int.MinValue, int.MaxValue);
-            return new RailNodeInstanceId(result);
+            return new RailNodeId(result);
         }
     }
 }

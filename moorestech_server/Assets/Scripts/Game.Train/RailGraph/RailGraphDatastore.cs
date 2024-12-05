@@ -6,7 +6,7 @@ namespace Game.Train.RailGraph
     ///
     public class RailGraphDatastore
     {
-        private readonly Dictionary<RailNodeInstanceId, RailNode> _nodes = new();
+        private readonly Dictionary<RailNodeId, RailNode> _nodes = new();
 
         public RailGraphDatastore()
         {
@@ -18,7 +18,7 @@ namespace Game.Train.RailGraph
             _nodes[node.NodeId] = node;
         }
 
-        public void RemoveNode(RailNodeInstanceId nodeId)
+        public void RemoveNode(RailNodeId nodeId)
         {
             _nodes.Remove(nodeId);
         }

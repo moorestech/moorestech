@@ -8,14 +8,14 @@ namespace Game.Train.RailGraph
 { 
     public class RailNode
     {
-        public RailNodeInstanceId NodeId { get; }  // ノードを識別するためのユニークなID
+        public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID
         public Dictionary<RailNode, int> ConnectedNodes { get; }  // このノードからつながるノードとその距離
 
         public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
 
         public RailNode(StationComponent station = null)
         {
-            NodeId = RailNodeInstanceId.Create();
+            NodeId = RailNodeId.Create();
             Station = station;
             ConnectedNodes = new Dictionary<RailNode, int>();
         }
