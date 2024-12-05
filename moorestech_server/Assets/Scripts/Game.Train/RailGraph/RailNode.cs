@@ -1,21 +1,22 @@
 using Game.Train.Blocks;
+using Core.Item.Interface;
 using System.Collections.Generic;
 /// <summary>
-/// 距離は暫定的にint型で表現しているが、実際のゲームで問題が起きそうならLong intにしたり経路探索のときだけ浮動小数点数使う
+/// 距離はint型で表現している。理由はNotion参照
 /// </summary>
 
 namespace Game.Train.RailGraph
 { 
     public class RailNode
     {
-        public int NodeId { get; }  // ノードを識別するためのユニークなID
+        public ItemInstanceId NodeId { get; }  // ノードを識別するためのユニークなID
         public Dictionary<RailNode, int> ConnectedNodes { get; }  // このノードからつながるノードとその距離
 
         public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
 
-        public RailNode(int nodeId, StationComponent station = null)
+        public RailNode(StationComponent station = null)
         {
-            NodeId = nodeId;
+            NodeId = ItemInstanceId.Create();
             Station = station;
             ConnectedNodes = new Dictionary<RailNode, int>();
         }
