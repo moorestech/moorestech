@@ -3,6 +3,22 @@
   "type": "object",
   "isDefaultOpen": true,
 
+
+  "defineInterface": [
+      {
+          "interfaceName": "IMachineParam",
+          "properties": {
+              "inputSlotCount": {
+                  "type": "integer"
+              },
+              "outputSlotCount": {
+                  "type": "integer"
+              }
+          }
+      }
+  ],
+
+
   "properties": {
 
     "data": {
@@ -117,10 +133,17 @@
                   }
                 },
                 "then": {
+
+                  "implementationInterface": [
+                    "IMachineParam"
+                  ],
+
                   "type": "object",
                   "properties": {
-                    "inputItemSlotCount": {"type": "integer", "default": 1},
-                    "outputItemSlotCount": {"type": "integer", "default": 1},
+
+                    "inputSlotCount": { "type": "integer", "default": 1 },
+                    "outputSlotCount": { "type": "integer", "default": 1 },
+                    
                     "requiredPower": {"type": "number", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
@@ -257,10 +280,17 @@
                   }
                 },
                 "then": {
+
+                  "implementationInterface": [
+                    "IMachineParam"
+                  ],
+
                   "type": "object",
                   "properties": {
-                    "inputItemSlotCount": {"type": "integer", "default": 1},
-                    "outputItemSlotCount": {"type": "integer", "default": 1},
+
+                    "inputSlotCount": { "type": "integer", "default": 1 },
+                    "outputSlotCount": { "type": "integer", "default": 1 },
+                    
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
                     "requiredRpm": {"type": "number", "default": 5},
