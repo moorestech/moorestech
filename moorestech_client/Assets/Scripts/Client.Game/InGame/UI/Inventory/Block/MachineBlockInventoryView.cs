@@ -29,27 +29,19 @@ namespace Client.Game.InGame.UI.Inventory.Block
             _blockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
-            var param = blockGameObject.BlockMasterElement.BlockParam;
-            var inputCount = param switch
-            {
-                ElectricMachineBlockParam blockParam => blockParam.InputItemSlotCount, // TODO master interfaceブロックインベントリの整理箇所
-                GearMachineBlockParam blockParam => blockParam.InputItemSlotCount,
-                _ => 0
-            };
-            for (var i = 0; i < inputCount; i++)
+            
+            // GearMachineParamとElectricMachineParamを共通して使える
+            var param = blockGameObject.BlockMasterElement.BlockParam as IMachineParam;
+            
+            
+            for (var i = 0; i < param.InputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                 _blockItemSlotObjects.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
-            var outputCount = param switch
-            {
-                ElectricMachineBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO master interfaceブロックインベントリの整理箇所
-                GearMachineBlockParam blockParam => blockParam.OutputItemSlotCount,
-                _ => 0
-            };
-            for (var i = 0; i < outputCount; i++)
+            for (var i = 0; i < param.OutputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                 _blockItemSlotObjects.Add(slotObject);

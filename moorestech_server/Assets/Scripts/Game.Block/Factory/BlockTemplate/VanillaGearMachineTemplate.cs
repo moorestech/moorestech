@@ -39,10 +39,8 @@ namespace Game.Block.Factory.BlockTemplate
             var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
-            var inputSlot = machineParam.InputItemSlotCount;
-            var outputSlot = machineParam.OutputItemSlotCount;
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, inputSlot, outputSlot, inventoryConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);

@@ -10,6 +10,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.EnergySystem;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
 
@@ -25,10 +26,13 @@ namespace Game.Block.Factory.BlockTemplate
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
             BlockId blockId,BlockInstanceId blockInstanceId,
-            int inputSlotCount,int outputSlotCount,
+            IMachineParam machineParam, 
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
+            var inputSlotCount = machineParam.InputSlotCount;
+            var outputSlotCount = machineParam.OutputSlotCount;
+            
             var input = new VanillaMachineInputInventory(
                 blockId, inputSlotCount,
                 blockInventoryUpdateEvent, blockInstanceId);
