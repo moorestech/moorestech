@@ -312,6 +312,31 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c7d31de868216fa449519e33ab7fcad0
+    m_Address: Vanilla/Block/steam_pipe_straight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39ce48b794ee6934cacd89b06ee3537b
+    m_Address: Vanilla/Block/steam_pipe_cross
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5811483c9bb99c74da116b7bb8f34f7a
+    m_Address: Vanilla/Block/steam_pipe_t
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6f2b73c83523ba469dfbcbf32495cdd
+    m_Address: Vanilla/Block/steam_pipe_curve
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 74c661b69539b4646b58bacbc3365a30
+    m_Address: Vanilla/Block/steam_pipe_straight_window
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
