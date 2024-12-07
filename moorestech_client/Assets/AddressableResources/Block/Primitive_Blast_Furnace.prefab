@@ -109,7 +109,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1390559905493790235}
   m_Layer: 7
-  m_Name: "\u539F\u59CB\u7684\u306A\u6EB6\u9271\u7089"
+  m_Name: Primitive_Blast_Furnace
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -128,7 +128,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7302078999814900957}
   m_Layer: 7
-  m_Name: "\u70AD\u7AAF"
+  m_Name: Charcoal_Kiln
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

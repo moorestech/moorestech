@@ -1540,7 +1540,7 @@ GameObject:
   - component: {fileID: 6070916361125752825}
   - component: {fileID: 8115039583878400241}
   m_Layer: 7
-  m_Name: "\u539F\u59CB\u7684\u306A\u98A8\u8ECA"
+  m_Name: Primitive_Windmill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

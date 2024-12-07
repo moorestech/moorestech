@@ -47,6 +47,261 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 04a0e8da3bd0f4c9d874fdba9cd907f0
+    m_Address: Vanilla/Block/Old/CraftChainerMainComputer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a580b107f1a0e493dbfb43a76d09e90a
+    m_Address: Vanilla/Block/fusion_reactor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b112ff9fe273445dea888761fe3e6b15
+    m_Address: Vanilla/Block/Old/CraftChainerCrafter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f66b5f793cadea49bd28b222c6c710b
+    m_Address: Vanilla/Block/Old/iron chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 107503fe8cad07c4994e7e2c837e8bb0
+    m_Address: Vanilla/Block/Modern_T_ItemShooter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2fda64207decf264c9a9430c59cfe575
+    m_Address: Vanilla/Block/Old/miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
+    m_Address: Vanilla/Block/SmallGear
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4936fc7b570875c42905898d5f044465
+    m_Address: Vanilla/Block/Modern_Straight_ItemShooter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f148ee4b0ebd54839ad8213503691341
+    m_Address: Vanilla/Block/GearBeltConveyor Shaft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 64343c606fc9fff41992f7bb60916462
+    m_Address: Vanilla/Block/Old/miner mk2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dc6116d42d12ea04c8eccb7c41618a1e
+    m_Address: Vanilla/Block/Old/btc miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a22f794443335e74c82387a9f622ffcd
+    m_Address: Vanilla/Block/gear belt conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e939d603e0ddc4cde80e504f56368881
+    m_Address: Vanilla/Block/Shaft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c297eff442e9c419db5659a81dba7084
+    m_Address: Vanilla/Block/Old/NoneBlock
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 949b6c1afc6444d5bbb480710ca7a8f3
+    m_Address: Vanilla/Block/Primitive_Windmill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 55ea1d24ef9724ab49e54472f1949a33
+    m_Address: Vanilla/Block/Charcoal_Kiln
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 07df01a6c472c5e48915ca6a1969df88
+    m_Address: Vanilla/Block/SF_StraightUp_BeltConveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 764764c4c5bb8b043a34afd794f9c161
+    m_Address: Vanilla/Block/Old/generator mk3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb72c386ac1ae15458bc2b7afbd83b6b
+    m_Address: Vanilla/Block/Modern_StraightUp_ItemShooter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 57dddaed5e986a94c83e73dc6c8b2d8c
+    m_Address: Vanilla/Block/Old/beltconbeyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1cf601f7c10835f4790932aad2abdb25
+    m_Address: Vanilla/Block/Old/IC chip assembler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e039e23dd6ec87742ac59a0964a66fa0
+    m_Address: Vanilla/Block/iron furnace with bellows
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: df26304a296b7e44daa5a26c3739abcc
+    m_Address: Vanilla/Block/gear belt conveyor down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d95e40af44108424b84b2d5e13947edc
+    m_Address: Vanilla/Block/Old/generator mk2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c337d044e0b938b4986eee09c082e90c
+    m_Address: Vanilla/Block/water wheel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 186b231c7e36d2b4db90c4e2de5c1119
+    m_Address: Vanilla/Block/Old/smelting
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4c74988d44f6aa44184b9c89d585c25f
+    m_Address: Vanilla/Block/bronze_sawmill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 23c9427641be06a49b66517f3f5bfd6c
+    m_Address: Vanilla/Block/SF_Cross_BeltConveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4685e69708529f14084d76cb7178947d
+    m_Address: Vanilla/Block/static steam engine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 562d641c5fcd7ef49b4f89c211fb4bbf
+    m_Address: Vanilla/Block/Old/crasher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d793aaf0184d71c448ea70d6f7a7fab9
+    m_Address: Vanilla/Block/itemshooter down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8d6e5fa3cf72b8c418ea4fcb8c0f23ca
+    m_Address: Vanilla/Block/Modern_L_ItemShooter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0a577e00dc0e74ecd904ee712f7b2606
+    m_Address: Vanilla/Block/BigGear
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 679918cdb2be9a74b90e1396abee2ff3
+    m_Address: Vanilla/Block/SF_T_BeltConveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 13592f052c9445a4c812036b49af1929
+    m_Address: Vanilla/Block/Old/generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c12941c940d97294c9c356852b9f0463
+    m_Address: Vanilla/Block/Old/compressor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5b349ac7c57a647f38b973f299dbd5a1
+    m_Address: Vanilla/Block/SmallSimpleGeneretor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bbb696b242c00184fa25aa90c771adf2
+    m_Address: Vanilla/Block/Primitive_Blast_Furnace
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 56313327b02a04da896fffcd4b389621
+    m_Address: Vanilla/Block/bronze_miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 22764527d2fc13546af09d27fe46126e
+    m_Address: Vanilla/Block/SF_Straight_BeltConveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5d884e7556f41f74f85a834f48830b6e
+    m_Address: Vanilla/Block/itemshooter straight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d53243d74377b724f9ad131c7510fa39
+    m_Address: Vanilla/Block/gear belt conveyor up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ea12cf12024a0f24a927a47473535079
+    m_Address: Vanilla/Block/SF_L_BeltConveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7b4696d31466c1c44a6d4a34d4c0c5ec
+    m_Address: Vanilla/Block/Old/precision assembler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ab89c4d500216c4f837a2fe7be439af
+    m_Address: Vanilla/Block/Old/pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e83f622eeba41ae4b9696601b8bc61a4
+    m_Address: Vanilla/Block/Modern_Cross_ItemShooter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aec28d5cf61a6ce4db83c4c669c55eb7
+    m_Address: Vanilla/Block/campfier
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 256d551412e04be438bfb4481298cfa5
+    m_Address: Vanilla/Block/Old/Silicon processor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c35136d02ef7ece45addc80eae509ea1
+    m_Address: Vanilla/Block/itemshooter up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5ce3b59d11b0043458c6baa21b4033e7
+    m_Address: Vanilla/Block/Old/steel chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f123349f5164a1e4da588fdf74b3d462
+    m_Address: Vanilla/Block/iron furnace
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:

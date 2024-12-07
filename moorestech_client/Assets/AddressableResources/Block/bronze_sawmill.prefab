@@ -365,7 +365,7 @@ GameObject:
   - component: {fileID: 8736375804090706838}
   - component: {fileID: 6039713562615356459}
   m_Layer: 7
-  m_Name: "\u30D6\u30ED\u30F3\u30BA\u88FD\u6750\u6A5F"
+  m_Name: bronze_sawmill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
