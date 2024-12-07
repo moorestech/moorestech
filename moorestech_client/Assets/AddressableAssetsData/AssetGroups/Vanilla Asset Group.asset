@@ -302,6 +302,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 589a9ea807eb8aa4baac7255ad18784a
+    m_Address: Vanilla/Block/Boyler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
+    m_Address: Vanilla/Block/processing_machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
