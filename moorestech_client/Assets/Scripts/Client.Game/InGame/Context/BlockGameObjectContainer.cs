@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.Define;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
@@ -28,12 +29,24 @@ namespace Client.Game.InGame.Context
             _blockObjects = blockObjects;
         }
         
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(BlockPrefabContainer blockPrefabContainer, BlockGameObject missingBlockIdObject)
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(BlockGameObject missingBlockIdObject)
         {
-            // TODO アドレッサブルの対応
-            var blockObjectList = blockPrefabContainer.GetBlockDataList();
+            var blocks = new Dictionary<BlockId, BlockObjectInfo>();
+            foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
+            {
+                var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                var blockAsset = await AddressableLoader.LoadAsync<GameObject>(masterElement.BlockPrefabAddressablesPath);
+                if (blockAsset == null)
+                {
+                    Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
+                }
+                else
+                {
+                    blocks.Add(blockId, new BlockObjectInfo(blockAsset.Asset, masterElement));
+                }
+            }
             
-            return new BlockGameObjectContainer(missingBlockIdObject, blockObjectList);
+            return new BlockGameObjectContainer(missingBlockIdObject, blocks);
         }
         
         public BlockGameObject CreateBlock(BlockId blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition, BlockDirection direction)
@@ -137,6 +150,18 @@ namespace Client.Game.InGame.Context
             previewGameObject.Initialize(blockId);
             
             return previewGameObject;
+        }
+    }
+    
+    public class BlockObjectInfo
+    {
+        public readonly BlockMasterElement BlockMasterElement;
+        public readonly GameObject BlockObject;
+        
+        public BlockObjectInfo(GameObject blockObject, BlockMasterElement blockMasterElement)
+        {
+            BlockObject = blockObject;
+            BlockMasterElement = blockMasterElement;
         }
     }
 }
