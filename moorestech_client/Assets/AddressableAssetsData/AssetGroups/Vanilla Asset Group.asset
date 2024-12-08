@@ -342,6 +342,36 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 921d8d98340992f4aba03c52b5ac1a5a
+    m_Address: "Vanilla/Block/Old/tmp \u77F3\u6CB9\u63A1\u6398"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: edb6fe869fe158a4ab9b4d1624436f1c
+    m_Address: "Vanilla/Block/Old/tmp \u7CBE\u6CB9"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b29f0181457b14246b619880e1f0950a
+    m_Address: Vanilla/Block/WoodenPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a819d4d8e87d2d5429bf8bfe484fce58
+    m_Address: Vanilla/Block/WoodenPlatformStairs
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd1c955822767a148878352e9611cbed
+    m_Address: Vanilla/Block/HighPerformanceMetalPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9e8373fc2636994ea752acae8ff9263
+    m_Address: Vanilla/Block/HighPerformanceMetalPlatform 1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
