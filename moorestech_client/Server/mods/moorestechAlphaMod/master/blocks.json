@@ -1754,7 +1754,8 @@
         "outputSlotCount": 1
       },
       "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/miner"
     },
     {
       "maxStack": 100,
@@ -1844,6 +1845,212 @@
       "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "blockPrefabAddressablesPath": "Vanilla/Block/Old/miner"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ベルトコンベア",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "edfa387f-183a-47dc-a548-5d2f14e315d7",
+      "blockGuid": "67e34538-d9a2-4c1e-89cd-0a6caca40952",
+      "blockPrefabAddressablesPath": "Vanilla/Block/BeltConveyor_Straight"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/BeltConveyor_Up",
+      "blockGuid": "468fdcdd-65e7-433b-a13f-81194c13baa5",
+      "name": "上りベルトコンベア",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "slopeType": "Up",
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "itemGuid": "26b38ec5-a2ce-432c-9211-530f2f86d435"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "3f1b7698-db08-490d-bd0d-b4a3e0fb2f9c",
+      "name": "下りベルトコンベア",
+      "blockPrefabAddressablesPath": "Vanilla/Block/BeltConveyor_Down",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1,
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "blockGuid": "e1687fd0-43e8-48f7-b509-426274ccb462"
     }
   ]
 }

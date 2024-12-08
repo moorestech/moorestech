@@ -284,6 +284,26 @@
       "maxStack": 100,
       "name": "Chainer - C",
       "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "ベルトコンベア",
+      "itemGuid": "edfa387f-183a-47dc-a548-5d2f14e315d7"
+    },
+    {
+      "maxStack": 100,
+      "name": "上りベルトコンベア",
+      "itemGuid": "26b38ec5-a2ce-432c-9211-530f2f86d435"
+    },
+    {
+      "maxStack": 100,
+      "name": "下りベルトコンベア",
+      "itemGuid": "3f1b7698-db08-490d-bd0d-b4a3e0fb2f9c"
     }
   ]
 }
