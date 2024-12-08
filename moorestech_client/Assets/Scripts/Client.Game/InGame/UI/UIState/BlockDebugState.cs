@@ -24,7 +24,7 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _screenClickableCameraController.OnEnter();
-            _screenClickableCameraController.StartTween();
+            _screenClickableCameraController.StartTweenFromTop();
         }
         
         public UIStateEnum GetNextUpdate()
