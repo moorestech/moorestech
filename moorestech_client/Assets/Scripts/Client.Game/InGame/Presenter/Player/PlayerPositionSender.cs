@@ -10,9 +10,6 @@ namespace Client.Game.InGame.Presenter.Player
     {
         private readonly IPlayerObjectController _playerObjectController;
         
-        
-        private bool _startPositionSend;
-        
         private float _timer;
         
         public PlayerPositionSender(IPlayerObjectController playerObjectController)
@@ -25,9 +22,6 @@ namespace Client.Game.InGame.Presenter.Player
         /// </summary>
         public void Tick()
         {
-            if (!_startPositionSend) return;
-            
-            
             _timer += Time.deltaTime;
             if (_timer < NetworkConst.UpdateIntervalSeconds) return;
             _timer = 0;
