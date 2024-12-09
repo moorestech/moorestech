@@ -128,7 +128,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 07df01a6c472c5e48915ca6a1969df88
-    m_Address: Vanilla/Block/SF_StraightUp_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_Up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -243,7 +243,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22764527d2fc13546af09d27fe46126e
-    m_Address: Vanilla/Block/SF_Straight_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_Straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -369,6 +369,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e9e8373fc2636994ea752acae8ff9263
     m_Address: Vanilla/Block/HighPerformanceMetalPlatform 1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4330922e5f42eeb47a769eb9d3ef359f
+    m_Address: Vanilla/Block/BeltConveyor_Down
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
