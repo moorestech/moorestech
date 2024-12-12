@@ -113,7 +113,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c297eff442e9c419db5659a81dba7084
-    m_Address: Vanilla/Block/Old/NoneBlock
+    m_Address: Vanilla/Block/NoneBlock
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

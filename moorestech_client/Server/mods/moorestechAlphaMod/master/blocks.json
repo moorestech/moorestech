@@ -12,7 +12,8 @@
       "blockParam": {
         "requiredPower": 0,
         "outputItemSlotCount": 1,
-        "inputItemSlotCount": 3,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
@@ -134,8 +135,8 @@
         "requiredRpm": 30,
         "requireTorque": 1,
         "teethCount": 10,
-        "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -228,8 +229,8 @@
         "requiredRpm": 5,
         "requireTorque": 1,
         "teethCount": 10,
-        "outputItemSlotCount": 1,
-        "inputItemSlotCount": 1,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
@@ -1652,8 +1653,8 @@
       "blockParam": {
         "chestItemSlotCount": 5,
         "requiredPower": 0,
-        "outputItemSlotCount": 3,
-        "inputItemSlotCount": 3,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -1737,8 +1738,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 0,
-        "outputItemSlotCount": 3,
-        "inputItemSlotCount": 3,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "outputConnects": [
             {

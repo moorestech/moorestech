@@ -35,10 +35,15 @@ namespace Client.Game.InGame.Context
             foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
             {
                 var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                if (masterElement.BlockPrefabAddressablesPath == null)
+                {
+                    Debug.LogWarning($"ブロックのパスの設定がありません。 Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
+                    continue;
+                }
                 var blockAsset = await AddressableLoader.LoadAsync<GameObject>(masterElement.BlockPrefabAddressablesPath);
                 if (blockAsset == null)
                 {
-                    Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
+                    Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} GUID:{masterElement.BlockGuid} Path:{masterElement.BlockPrefabAddressablesPath}");
                 }
                 else
                 {
