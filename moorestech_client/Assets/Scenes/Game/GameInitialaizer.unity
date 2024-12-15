@@ -288,8 +288,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7db84907b1e1464398e9cdd7c05d6260, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nothingIndexBlock: {fileID: 9132462905212096051, guid: a1d79b5509bdd461d9b93377bbd5c780, type: 3}
-  blockPrefabContainer: {fileID: 11400000, guid: cdb977e09e04d47c09838da25474dbd8, type: 2}
+  missingBlockIdObject: {fileID: -4404788463801551958, guid: c297eff442e9c419db5659a81dba7084, type: 3}
   loadingLog: {fileID: 112092569}
   backToMainMenuButton: {fileID: 23532836}
 --- !u!1 &84856256
