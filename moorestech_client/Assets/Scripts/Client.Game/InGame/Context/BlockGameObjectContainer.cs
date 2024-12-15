@@ -43,7 +43,8 @@ namespace Client.Game.InGame.Context
                 var blockAsset = await AddressableLoader.LoadAsync<GameObject>(masterElement.BlockPrefabAddressablesPath);
                 if (blockAsset == null)
                 {
-                    Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} GUID:{masterElement.BlockGuid} Path:{masterElement.BlockPrefabAddressablesPath}");
+                    //TODO ログ基盤に入れる
+                    Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} Path:{masterElement.BlockPrefabAddressablesPath} GUID:{masterElement.BlockGuid} ");
                 }
                 else
                 {

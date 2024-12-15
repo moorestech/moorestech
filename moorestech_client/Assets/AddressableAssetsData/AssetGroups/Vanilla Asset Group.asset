@@ -128,7 +128,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 07df01a6c472c5e48915ca6a1969df88
-    m_Address: Vanilla/Block/SF_StraightUp_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_Up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -243,7 +243,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22764527d2fc13546af09d27fe46126e
-    m_Address: Vanilla/Block/SF_Straight_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_Straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -299,6 +299,81 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f123349f5164a1e4da588fdf74b3d462
     m_Address: Vanilla/Block/iron furnace
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 589a9ea807eb8aa4baac7255ad18784a
+    m_Address: Vanilla/Block/Boyler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
+    m_Address: Vanilla/Block/processing_machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c7d31de868216fa449519e33ab7fcad0
+    m_Address: Vanilla/Block/steam_pipe_straight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39ce48b794ee6934cacd89b06ee3537b
+    m_Address: Vanilla/Block/steam_pipe_cross
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5811483c9bb99c74da116b7bb8f34f7a
+    m_Address: Vanilla/Block/steam_pipe_t
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6f2b73c83523ba469dfbcbf32495cdd
+    m_Address: Vanilla/Block/steam_pipe_curve
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 74c661b69539b4646b58bacbc3365a30
+    m_Address: Vanilla/Block/steam_pipe_straight_window
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5ffc46bc4a760e64e95274af20bdc2cf
+    m_Address: Vanilla/Block/TmpBlock
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 921d8d98340992f4aba03c52b5ac1a5a
+    m_Address: "Vanilla/Block/Old/tmp \u77F3\u6CB9\u63A1\u6398"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: edb6fe869fe158a4ab9b4d1624436f1c
+    m_Address: "Vanilla/Block/Old/tmp \u7CBE\u6CB9"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b29f0181457b14246b619880e1f0950a
+    m_Address: Vanilla/Block/WoodenPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a819d4d8e87d2d5429bf8bfe484fce58
+    m_Address: Vanilla/Block/WoodenPlatformStairs
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd1c955822767a148878352e9611cbed
+    m_Address: Vanilla/Block/HighPerformanceMetalPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9e8373fc2636994ea752acae8ff9263
+    m_Address: Vanilla/Block/HighPerformanceMetalPlatform 1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4330922e5f42eeb47a769eb9d3ef359f
+    m_Address: Vanilla/Block/BeltConveyor_Down
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
