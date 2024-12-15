@@ -17,9 +17,7 @@
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
-        },
-        "outputSlotCount": 1,
-        "inputSlotCount": 1
+        }
       },
       "name": "原始的な溶鉱炉",
       "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",

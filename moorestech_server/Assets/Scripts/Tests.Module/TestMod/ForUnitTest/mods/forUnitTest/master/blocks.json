@@ -28,8 +28,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 100,
-        "outputItemSlotCount": 3,
-        "inputItemSlotCount": 2,
+        "outputSlotCount": 3,
+        "inputSlotCount": 2,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -1150,8 +1150,8 @@
         "requiredRpm": 10,
         "requireTorque": 0.1,
         "teethCount": 10,
-        "outputItemSlotCount": 3,
-        "inputItemSlotCount": 2,
+        "outputSlotCount": 3,
+        "inputSlotCount": 2,
         "gear": {
           "gearConnects": [
             {
@@ -2024,8 +2024,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 101,
-        "outputItemSlotCount": 100,
-        "inputItemSlotCount": 100,
+        "outputSlotCount": 100,
+        "inputSlotCount": 100,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2126,8 +2126,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 101,
-        "outputItemSlotCount": 100,
-        "inputItemSlotCount": 100,
+        "outputSlotCount": 100,
+        "inputSlotCount": 100,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2228,8 +2228,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 101,
-        "outputItemSlotCount": 100,
-        "inputItemSlotCount": 100,
+        "outputSlotCount": 100,
+        "inputSlotCount": 100,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2831,8 +2831,8 @@
       "blockParam": {
         "chestItemSlotCount": 5,
         "requiredPower": 0,
-        "outputItemSlotCount": 3,
-        "inputItemSlotCount": 3,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2915,8 +2915,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 0,
-        "outputItemSlotCount": 3,
-        "inputItemSlotCount": 3,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "outputConnects": [
             {
