@@ -1,3 +1,5 @@
+using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,8 +14,21 @@ namespace Client.Game.InGame.Block
         
         private void Start()
         {
-            var sprite = _blockIconImagePhotographer.GetIcon(_blockPrefab);
+            TakeScreenShot().Forget();
+        }
+        
+        private async UniTask TakeScreenShot()
+        {
+            var sprite = await _blockIconImagePhotographer.GetIcon(_blockPrefab);
             _image.sprite = sprite;
+        }
+        
+        private void Update()
+        {
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Space))
+            {
+                TakeScreenShot().Forget();
+            }
         }
     }
 }
