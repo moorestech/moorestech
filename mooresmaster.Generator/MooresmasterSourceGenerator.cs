@@ -26,6 +26,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
         context.AddSource("mooresmaster.loader.BuiltinLoader.g.cs", LoaderGenerator.GenerateBuiltinLoaderCode());
+        context.AddSource("mooresmaster.loader.exception.g.cs", LoaderGenerator.GenerateLoaderExceptionTypeCode());
 
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
         var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);

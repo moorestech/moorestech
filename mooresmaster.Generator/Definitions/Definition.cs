@@ -26,6 +26,6 @@ public record TypeDefinition(string FileName, TypeName TypeName, TypeName[] Inhe
     public TypeName TypeName = TypeName;
 }
 
-public record struct PropertyDefinition(Type Type, PropertyId? PropertyId, bool IsNullable, string[]? Enums);
+public record struct PropertyDefinition(Type Type, string PropertyName, PropertyId? PropertyId, bool IsNullable, string[]? Enums);
 
 public record struct InterfacePropertyDefinition(Type Type);
