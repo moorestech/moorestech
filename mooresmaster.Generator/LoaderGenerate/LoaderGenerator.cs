@@ -372,6 +372,35 @@ public static class LoaderGenerator
                """.GetPreprocessedCode();
     }
 
+    public static string GenerateLoaderExceptionTypeCode()
+    {
+        return """"
+               public class MooresmasterLoaderException : Exception
+               {
+                   public string ErrorProperty;
+                   public string ErrorType;
+                   public string[] PropertyPath;
+               
+                   public MooresmasterLoaderException(string[] propertyPath, string errorType, string errorProperty)
+                   {
+                       PropertyPath = propertyPath;
+                       ErrorType = errorType;
+                       ErrorProperty = errorProperty;
+                   }
+               
+                   public override string Message => ToString();
+               
+                   public override string ToString()
+                   {
+                       return $$$"""
+                                 PropertyPath: {{{string.Join(" / ", PropertyPath)}}}
+                                 ErrorProperty: {{{ErrorType}}}.{{{ErrorProperty}}}
+                                 """;
+                   }
+               }
+               """".GetPreprocessedCode();
+    }
+
     private static string Indent(this string code, bool firstLine = false, int level = 1)
     {
         var indent = new string(' ', 4 * level);
