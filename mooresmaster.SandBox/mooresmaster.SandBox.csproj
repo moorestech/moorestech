@@ -38,6 +38,14 @@
         <AdditionalFiles Include="Schema\ymlSample\machineRecipes.yml"/>
         <None Remove="Schema\ymlSample\mapObjects.yml"/>
         <AdditionalFiles Include="Schema\ymlSample\mapObjects.yml"/>
+        <None Remove="schema\ymlSample\loaderTest.yml"/>
+        <AdditionalFiles Include="schema\ymlSample\loaderTest.yml"/>
+        <None Update="TestMod\loaderTest.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="TestMod\loaderTest2.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
