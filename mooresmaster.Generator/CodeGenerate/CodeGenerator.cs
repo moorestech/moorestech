@@ -33,11 +33,6 @@ public static class CodeGenerator
             files[interfaceDefinition.FileName].Add(GenerateInterfaceCode(interfaceDefinition));
         }
 
-//         $$$"""
-//                {{{string.Join("\n", definition.TypeDefinitions.Select(GenerateTypeDefinitionCode))}}}
-//                {{{string.Join("\n", definition.InterfaceDefinitions.Select(GenerateInterfaceCode))}}}
-//                """
-
         return files
             .Select(file =>
                 new CodeFile(
