@@ -144,25 +144,18 @@ public static class LoaderGenerator
 
         foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue).Where(v => !semantics.PropertySemanticsTable[v.PropertyId!.Value].IsNullable))
         {
-            var propertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
+            var jsonPropertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
+            var typeName = typeDefinition.TypeName.GetModelName();
 
             builder.AppendLine(
-                $$$"""
-                   if (json["{{{propertyName}}}"] == null)
-                   {
-                       var errorMessage = $"SchemaLoadError\nErrorPath: {json.Path}\nTargetProperty: {{{propertyName}}}\n\n";
-                       
-                       var parent = json.Parent;
-                       while (parent != null)
-                       {
-                       //    errorMessage += parent.ToString() + "\n";
-                           parent = parent.Parent;
-                       }
-                   
-                       throw new global::System.Exception(errorMessage);
-                   }
+                $$$$"""
+                    if (json["{{{{jsonPropertyName}}}}"] == null)
+                    {
+                        var propertyPath = json.Parent == null ? "{{{{jsonPropertyName}}}}" : $"{json.Path}.{{{{jsonPropertyName}}}}";
+                        throw new global::Mooresmaster.Loader.MooresmasterLoaderException(propertyPath, typeof({{{{typeName}}}}).Name, "{{{{propertyDefinition.PropertyName}}}}");
+                    }
 
-                   """
+                    """
             );
         }
 
@@ -375,27 +368,30 @@ public static class LoaderGenerator
     public static string GenerateLoaderExceptionTypeCode()
     {
         return """"
-               public class MooresmasterLoaderException : Exception
+               namespace Mooresmaster.Loader
                {
-                   public string ErrorProperty;
-                   public string ErrorType;
-                   public string[] PropertyPath;
-               
-                   public MooresmasterLoaderException(string[] propertyPath, string errorType, string errorProperty)
+                   public class MooresmasterLoaderException : Exception
                    {
-                       PropertyPath = propertyPath;
-                       ErrorType = errorType;
-                       ErrorProperty = errorProperty;
-                   }
-               
-                   public override string Message => ToString();
-               
-                   public override string ToString()
-                   {
-                       return $$$"""
-                                 PropertyPath: {{{string.Join(" / ", PropertyPath)}}}
-                                 ErrorProperty: {{{ErrorType}}}.{{{ErrorProperty}}}
-                                 """;
+                       public string ErrorProperty;
+                       public string ErrorType;
+                       public string PropertyPath;
+                   
+                       public MooresmasterLoaderException(string propertyPath, string errorType, string errorProperty)
+                       {
+                           PropertyPath = propertyPath;
+                           ErrorType = errorType;
+                           ErrorProperty = errorProperty;
+                       }
+                   
+                       public override string Message => ToString();
+                   
+                       public override string ToString()
+                       {
+                           return $$$"""
+                                     PropertyPath: {{{PropertyPath}}}
+                                     ErrorProperty: {{{ErrorType}}}.{{{ErrorProperty}}}
+                                     """;
+                       }
                    }
                }
                """".GetPreprocessedCode();
