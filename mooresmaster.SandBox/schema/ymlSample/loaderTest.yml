@@ -1,9 +1,0 @@
-id: loaderTest
-type: object
-properties:
-  - key: data
-    type: array
-    items:
-      type: number
-  - key: name
-    type: string
