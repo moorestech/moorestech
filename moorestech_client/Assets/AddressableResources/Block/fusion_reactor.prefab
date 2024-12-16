@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1652527023930740780}
   - component: {fileID: 2960794808214757700}
   - component: {fileID: 962945945012523723}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_top_window_frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 7225918813404124576}
   - component: {fileID: 1138657815734563989}
   - component: {fileID: 8898161344639675011}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_lower.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -178,7 +178,7 @@ GameObject:
   - component: {fileID: 724018411827129106}
   - component: {fileID: 1091431379389443965}
   - component: {fileID: 8793380289962851424}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_side
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -263,7 +263,7 @@ GameObject:
   - component: {fileID: 3969761608533729398}
   - component: {fileID: 1621697303463571005}
   - component: {fileID: 8562910804172893694}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_top_window
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -344,7 +344,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4369542882929464048}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -392,7 +392,7 @@ GameObject:
   - component: {fileID: 7313927835454370280}
   - component: {fileID: 7282382871291417135}
   - component: {fileID: 2739785229627100991}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_lower.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -475,7 +475,7 @@ GameObject:
   - component: {fileID: 7848255170051086913}
   - component: {fileID: 5075156795350812028}
   - component: {fileID: 8559899924881540523}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -558,7 +558,7 @@ GameObject:
   - component: {fileID: 2264468932800943204}
   - component: {fileID: 4776813147152920277}
   - component: {fileID: 6773061026891407857}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_center_base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -639,7 +639,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2282283923505635542}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: beltconveyor 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -679,7 +679,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3606317542318881062}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -715,7 +715,7 @@ GameObject:
   - component: {fileID: 1524659228673455210}
   - component: {fileID: 6234996703120681188}
   - component: {fileID: 4732857675905640896}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_lower_window_frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -800,7 +800,7 @@ GameObject:
   - component: {fileID: 5318692523371395363}
   - component: {fileID: 4331677011407174016}
   - component: {fileID: 2092877423595179150}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_lower_window
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -881,7 +881,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6679595324172293687}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: beltconveyor 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -923,7 +923,7 @@ GameObject:
   - component: {fileID: 2947966091136112811}
   - component: {fileID: 1644496617614885924}
   - component: {fileID: 1581775369572884356}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_center_entry.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1008,7 +1008,7 @@ GameObject:
   - component: {fileID: 3522616697619568158}
   - component: {fileID: 3905943230134019038}
   - component: {fileID: 9112984270140973727}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_lower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1092,7 +1092,7 @@ GameObject:
   - component: {fileID: 267154095674095638}
   - component: {fileID: 6108489662791602493}
   - component: {fileID: 6607199448500215500}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_top
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1180,7 +1180,7 @@ GameObject:
   - component: {fileID: 2848154640135948439}
   - component: {fileID: 1350952252213216753}
   - component: {fileID: 9211830564520442826}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_lower_window_frame.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1264,7 +1264,7 @@ GameObject:
   - component: {fileID: 5275760584137612466}
   - component: {fileID: 4567683864106523381}
   - component: {fileID: 7294821317892836175}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_center_entry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1349,7 +1349,7 @@ GameObject:
   - component: {fileID: 3215909119070328827}
   - component: {fileID: 3708857456972906172}
   - component: {fileID: 5209508202541411686}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: fusion_reactor_middle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
