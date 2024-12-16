@@ -1,5 +1,4 @@
-﻿using Mooresmaster.Loader.LoaderTestModule;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace mooresmaster.SandBox;
@@ -8,8 +7,6 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
-        LoaderTestLoader.Load(GetJson("loaderTest"));
-        LoaderTestLoader.Load(GetJson("loaderTest2"));
     }
 
     private static JToken GetJson(string name)
