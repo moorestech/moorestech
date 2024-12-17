@@ -20,6 +20,7 @@ namespace Client.Game.InGame.Context
     /// </summary>
     public class BlockGameObjectContainer
     {
+        public IReadOnlyDictionary<BlockId, BlockObjectInfo> BlockObjects => _blockObjects;
         private readonly Dictionary<BlockId, BlockObjectInfo> _blockObjects;
         private readonly BlockGameObject _missingBlockIdObject;
         
@@ -32,27 +33,40 @@ namespace Client.Game.InGame.Context
         public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(BlockGameObject missingBlockIdObject)
         {
             var blocks = new Dictionary<BlockId, BlockObjectInfo>();
+            var tasks = new List<UniTask<BlockObjectInfo>>();
             foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
             {
-                var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                if (masterElement.BlockPrefabAddressablesPath == null)
-                {
-                    Debug.LogWarning($"ブロックのパスの設定がありません。 Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
-                    continue;
-                }
-                var blockAsset = await AddressableLoader.LoadAsync<GameObject>(masterElement.BlockPrefabAddressablesPath);
-                if (blockAsset == null)
-                {
-                    //TODO ログ基盤に入れる
-                    Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} Path:{masterElement.BlockPrefabAddressablesPath} GUID:{masterElement.BlockGuid} ");
-                }
-                else
-                {
-                    blocks.Add(blockId, new BlockObjectInfo(blockAsset.Asset, masterElement));
-                }
+                tasks.Add(LoadBlockGameObject(blockId));
+            }
+            
+            var results = await UniTask.WhenAll(tasks);
+            foreach (var result in results)
+            {
+                if (result == null) continue;
+                blocks.Add(result.BlockId, result);
             }
             
             return new BlockGameObjectContainer(missingBlockIdObject, blocks);
+        }
+        
+        private static async UniTask<BlockObjectInfo> LoadBlockGameObject(BlockId blockId)
+        {
+            var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            if (masterElement.BlockPrefabAddressablesPath == null)
+            {
+                Debug.LogWarning($"ブロックのパスの設定がありません。 Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
+                return null;
+            }
+            
+            var blockAsset = await AddressableLoader.LoadAsync<GameObject>(masterElement.BlockPrefabAddressablesPath);
+            if (blockAsset == null)
+            {
+                //TODO ログ基盤に入れる
+                Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} Path:{masterElement.BlockPrefabAddressablesPath} GUID:{masterElement.BlockGuid} ");
+                return null;
+            }
+            
+            return new BlockObjectInfo(blockId, blockAsset.Asset, masterElement);
         }
         
         public BlockGameObject CreateBlock(BlockId blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition, BlockDirection direction)
@@ -85,13 +99,14 @@ namespace Client.Game.InGame.Context
                 var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
                 
                 //ブロックの作成とセットアップをして返す
-                var block = Object.Instantiate(blockObjectInfo.BlockObject, position, rotation, parent);
+                var block = Object.Instantiate(blockObjectInfo.BlockObjectPrefab, position, rotation, parent);
                 
                 //コンポーネントの設定
                 if (!block.TryGetComponent(out BlockGameObject blockObj))
                 {
                     blockObj = block.AddComponent<BlockGameObject>();
                 }
+                
                 //子要素のコンポーネントの設定
                 foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
                 {
@@ -148,7 +163,7 @@ namespace Client.Game.InGame.Context
             }
             
             //ブロックの作成とセットアップをして返す
-            var block = Object.Instantiate(blockObjectInfo.BlockObject, Vector3.zero, Quaternion.identity);
+            var block = Object.Instantiate(blockObjectInfo.BlockObjectPrefab, Vector3.zero, Quaternion.identity);
             block.SetActive(true);
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();
@@ -161,13 +176,15 @@ namespace Client.Game.InGame.Context
     
     public class BlockObjectInfo
     {
+        public readonly BlockId BlockId;
         public readonly BlockMasterElement BlockMasterElement;
-        public readonly GameObject BlockObject;
+        public readonly GameObject BlockObjectPrefab;
         
-        public BlockObjectInfo(GameObject blockObject, BlockMasterElement blockMasterElement)
+        public BlockObjectInfo(BlockId blockId, GameObject blockObjectPrefab, BlockMasterElement blockMasterElement)
         {
-            BlockObject = blockObject;
+            BlockObjectPrefab = blockObjectPrefab;
             BlockMasterElement = blockMasterElement;
+            BlockId = blockId;
         }
     }
 }

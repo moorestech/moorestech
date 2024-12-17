@@ -6,7 +6,7 @@ namespace Client.Game.InGame.UI.Util
 {
     /// <summary>
     ///     GameObjectのマウスカーソル説明コンポーネントにマウスカーソルが乗っているかを統合的に管理するシステム
-    ///     TODO 命名を買えたい
+    ///     TODO 命名を変えたい
     /// </summary>
     public class AllGameObjectEnterExplainerController : MonoBehaviour
     {

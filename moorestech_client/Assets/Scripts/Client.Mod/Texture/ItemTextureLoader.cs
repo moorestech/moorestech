@@ -11,7 +11,6 @@ namespace Client.Mod.Texture
 {
     public static class ItemTextureLoader
     {
-        
         public static Dictionary<ItemId, ItemViewData> GetItemTexture(string modDirectory)
         {
             var textureList = new Dictionary<ItemId, ItemViewData>();
@@ -40,18 +39,13 @@ namespace Client.Mod.Texture
             foreach (var itemId in itemIds)
             {
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                Texture2D texture = null;
-                Sprite sprite = null;
                 
-                var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? 
-                    Path.Combine("assets","item",$"{itemMaster.Name}.png") : 
-                    itemMaster.ImagePath;
+                var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? Path.Combine("assets", "item", $"{itemMaster.Name}.png") : itemMaster.ImagePath;
                 
-                texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
+                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
                 if (texture == null) Debug.LogWarning("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
-                sprite = texture.ToSprite();
                 
-                textureList.Add(new ItemViewData(sprite, texture, itemMaster));
+                textureList.Add(new ItemViewData(texture, itemMaster));
             }
             
             return textureList;
@@ -68,9 +62,9 @@ namespace Client.Mod.Texture
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
         
-        public ItemViewData(Sprite itemImage, UnityEngine.Texture itemTexture, ItemMasterElement itemMasterElement)
+        public ItemViewData(Texture2D itemTexture, ItemMasterElement itemMasterElement)
         {
-            ItemImage = itemImage;
+            ItemImage = itemTexture.ToSprite();
             ItemTexture = itemTexture;
             ItemMasterElement = itemMasterElement;
             ItemId = MasterHolder.ItemMaster.GetItemId(itemMasterElement.ItemGuid);

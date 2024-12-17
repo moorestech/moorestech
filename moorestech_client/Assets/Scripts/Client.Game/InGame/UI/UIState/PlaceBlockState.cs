@@ -26,8 +26,9 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
+            BlockPlaceSystem.SetEnableBlockPlace(true);
             _screenClickableCameraController.OnEnter();
-            _screenClickableCameraController.StartTween();
+            _screenClickableCameraController.StartTweenFromTop();
         }
         
         public UIStateEnum GetNextUpdate()
@@ -46,6 +47,7 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnExit()
         {
+            BlockPlaceSystem.SetEnableBlockPlace(false);
             _screenClickableCameraController.OnExit();
         }
     }
