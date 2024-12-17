@@ -67,7 +67,17 @@ namespace Client.Starter
             InitialHandshakeResponse handshakeResponse = null;
             
             //各種ロードを並列実行
-            await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad());
+            try
+            {
+                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad());
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"初期化処理中にエラーが発生しました: {e.Message}\n{e.StackTrace}");
+                // 初期化に失敗した場合はメインメニューへ戻る
+                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                return;
+            }
             
             //staticアクセスできるコンテキストの作成
             var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
@@ -112,19 +122,30 @@ namespace Client.Starter
             
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
+                var serverConfig = new ConnectionServerConfig(_proprieties.ServerIp, _proprieties.ServerPort);
                 try
                 {
-                    var serverConfig = new ConnectionServerConfig(_proprieties.ServerIp, _proprieties.ServerPort);
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig);
+                    // 10秒以内にサーバー接続できなければタイムアウト
+                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig)
+                        .Timeout(TimeSpan.FromSeconds(10));
                     
                     Debug.Log("接続完了");
-                    
                     return serverCommunicator;
+                }
+                catch (TimeoutException)
+                {
+                    Debug.LogError("サーバーへの接続がタイムアウトしました");
+                    loadingLog.text += "\nサーバーへの接続がタイムアウトしました。メインメニューに戻ります。";
+                    await UniTask.Delay(2000);
+                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                    throw; // 再度スローして後続処理中断
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("サーバーへの接続に失敗しました");
-                    Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
+                    Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
+                    loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
+                    await UniTask.Delay(2000);
+                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                     throw;
                 }
             }
