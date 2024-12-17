@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12729266, g: 0.13414232, b: 0.12114291, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -288,6 +288,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7db84907b1e1464398e9cdd7c05d6260, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  blockIconImagePhotographer: {fileID: 8583865459141145339}
   missingBlockIdObject: {fileID: -4404788463801551958, guid: c297eff442e9c419db5659a81dba7084, type: 3}
   loadingLog: {fileID: 112092569}
   backToMainMenuButton: {fileID: 23532836}
@@ -806,6 +807,74 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1001 &8583865459141145338
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 458504595137717596, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138308956879786412, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+      propertyPath: m_Name
+      value: BlockIconImagePhotographer
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+--- !u!114 &8583865459141145339 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2461419615517437385, guid: 1298950df83efad4db68ca5799784a5f, type: 3}
+  m_PrefabInstance: {fileID: 8583865459141145338}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ebc31251cba4c55b92364db2e855e9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -813,3 +882,4 @@ SceneRoots:
   - {fileID: 77786660}
   - {fileID: 1621655616}
   - {fileID: 1266953668}
+  - {fileID: 8583865459141145338}

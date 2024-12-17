@@ -27,7 +27,6 @@ namespace Client.Game.InGame.UI.UIState.Input
         public void OnEnter()
         {
             InputManager.MouseCursorVisible(true);
-            BlockPlaceSystem.SetEnableBlockPlace(true);
         }
         
         public void GetNextUpdate()
@@ -57,14 +56,13 @@ namespace Client.Game.InGame.UI.UIState.Input
             }
             
             InputManager.MouseCursorVisible(false);
-            BlockPlaceSystem.SetEnableBlockPlace(false);
         }
         
         /// <summary>
         /// 上からのビューにカメラを移動させる
         /// Move the camera to a top view
         /// </summary>
-        public void StartTween()
+        public void StartTweenFromTop()
         {
             _startCameraDistance = _inGameCameraController.CameraDistance;
             _startCameraRotation = _inGameCameraController.CameraEulerAngle;

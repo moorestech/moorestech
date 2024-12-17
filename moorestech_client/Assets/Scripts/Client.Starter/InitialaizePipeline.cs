@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,9 +7,11 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Define;
+using Client.Mod.Texture;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using TMPro;
@@ -25,6 +28,7 @@ namespace Client.Starter
     /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
+        [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
         
         [SerializeField] private TMP_Text loadingLog;
@@ -37,7 +41,12 @@ namespace Client.Starter
             backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
         }
         
-        private async UniTask Start()
+        private void Start()
+        {
+            Initialize().Forget();
+        }
+        
+        private async UniTask Initialize()
         {
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
@@ -58,7 +67,7 @@ namespace Client.Starter
             InitialHandshakeResponse handshakeResponse = null;
             
             //各種ロードを並列実行
-            await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets(), LoadItemAssets(), MainGameSceneLoad());
+            await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad());
             
             //staticアクセスできるコンテキストの作成
             var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
@@ -120,18 +129,57 @@ namespace Client.Starter
                 }
             }
             
+            async UniTask LoadBlockAndItemAssets()
+            {
+                // ブロックとアイテムのアセットをロード
+                await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets());
+                
+                // アイテム画像がロードされていないブロックのアイテム画像をロードする
+                await TakeBlockItemImage();
+            }
+            
             async UniTask LoadBlockAssets()
             {
+                // TODo この辺も必要な時に必要なだけロードする用にしたいなぁ
                 blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(missingBlockIdObject);
-                loadingLog.text += $"\nブロックロード完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nブロックアセットロード完了  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask LoadItemAssets()
             {
-                //アイテム画像をロード
+                //通常のアイテム画像をロード
                 //TODO 非同期で実行できるようにする
                 itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory);
-                loadingLog.text += $"\nアイテムロード完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nアイテム画像ロード完了  {loadingStopwatch.Elapsed}";
+            }
+            
+            async UniTask TakeBlockItemImage()
+            {
+                // スクリーンショットを取る必要があるブロックを集める
+                // Collect the blocks that need to be screenshot.
+                var takeBlockPrefabs = new List<GameObject>();
+                var itemIds = new List<ItemId>();
+                foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
+                {
+                    var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
+                    var itemViewData = itemImageContainer.GetItemView(itemId);
+                    
+                    if (itemViewData.ItemImage != null || !blockGameObjectContainer.BlockObjects.TryGetValue(blockId, out var blockObjectInfo)) continue;
+                    
+                    itemIds.Add(itemId);
+                    takeBlockPrefabs.Add(blockObjectInfo.BlockObjectPrefab);
+                }
+                
+                // アイコンを設定
+                // Set the icon.
+                var texture2Ds = await blockIconImagePhotographer.TakeBlockIconImages(takeBlockPrefabs);
+                for (var i = 0; i < itemIds.Count; i++)
+                {
+                    var itemViewData = new ItemViewData(texture2Ds[i], MasterHolder.ItemMaster.GetItemMaster(itemIds[i]));
+                    itemImageContainer.AddItemView(itemIds[i], itemViewData);
+                }
+                
+                loadingLog.text += $"\nブロックスクリーンショット完了  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask MainGameSceneLoad()
@@ -161,6 +209,7 @@ namespace Client.Starter
             
             #endregion
         }
+        
         
         public void SetProperty(InitializeProprieties proprieties)
         {
