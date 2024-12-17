@@ -324,6 +324,7 @@ GameObject:
   - component: {fileID: 5047170245314936041}
   - component: {fileID: 6361725212279544918}
   - component: {fileID: 8336541943210442641}
+  - component: {fileID: 4440623343465929086}
   m_Layer: 0
   m_Name: CutSceneCamera
   m_TagString: Untagged
@@ -449,6 +450,27 @@ MonoBehaviour:
     mipBias: 0
     varianceClampScale: 0.9
     contrastAdaptiveSharpening: 0
+--- !u!95 &4440623343465929086
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5452561270368060701}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &6655010629732821152
 GameObject:
   m_ObjectHideFlags: 0
