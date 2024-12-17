@@ -11,9 +11,9 @@ namespace Client.Game.InGame.Context
     /// </summary>
     public class ItemImageContainer
     {
-        private readonly Dictionary<ItemId,ItemViewData> _itemImageList = new();
+        private readonly Dictionary<ItemId, ItemViewData> _itemImageList = new();
         
-        private ItemImageContainer(Dictionary<ItemId,ItemViewData> itemImageList)
+        private ItemImageContainer(Dictionary<ItemId, ItemViewData> itemImageList)
         {
             _itemImageList = itemImageList;
         }
@@ -42,6 +42,11 @@ namespace Client.Game.InGame.Context
             
             Debug.LogError($"ItemViewData not found. itemId:{itemId}");
             return null;
+        }
+        
+        public void AddItemView(ItemId itemId, ItemViewData itemViewData)
+        {
+            _itemImageList[itemId] = itemViewData;
         }
     }
 }

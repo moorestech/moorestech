@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -7,9 +9,10 @@ namespace Client.Game.InGame.Block
 {
     public class BlockIconImagePhotographer : MonoBehaviour
     {
-        [SerializeField] Camera _cameraPrefab;
+        [SerializeField] private int iconSize = 512;
+        [SerializeField] Camera cameraPrefab;
         
-        public async UniTask<List<Sprite>> GetIcons(List<GameObject> blockPrefabs)
+        public async UniTask<List<Texture2D>> TakeBlockIconImages(List<GameObject> blockPrefabs)
         {
             var blocks = new List<GameObject>();
             
@@ -31,7 +34,7 @@ namespace Client.Game.InGame.Block
             }
             
             // 全てのブロックでアイコンを取得
-            var tasks = new List<UniTask<Sprite>>();
+            var tasks = new List<UniTask<Texture2D>>();
             foreach (var block in blocks)
             {
                 tasks.Add(GetIcon(block));
@@ -42,7 +45,7 @@ namespace Client.Game.InGame.Block
             return result.ToList();
         }
         
-        private async UniTask<Sprite> GetIcon(GameObject blockPrefab)
+        private async UniTask<Texture2D> GetIcon(GameObject blockPrefab)
         {
             var block = Instantiate(blockPrefab);
             
@@ -51,7 +54,7 @@ namespace Client.Game.InGame.Block
             var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
             
             // カメラ角度設定(例：上から30度、Y軸に対して45度傾ける)
-            var camera = Instantiate(_cameraPrefab);
+            var camera = Instantiate(cameraPrefab);
             camera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
             
             // バウンディングボックスの最大寸法を取得
@@ -73,18 +76,20 @@ namespace Client.Game.InGame.Block
             await UniTask.Yield(PlayerLoopTiming.Update);
             
             // アルファ付きのRenderTextureを使用
-            var renderTexture = new RenderTexture(256, 256, 24, RenderTextureFormat.ARGB32);
-            renderTexture.useMipMap = false;
-            renderTexture.autoGenerateMips = false;
+            var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
+            {
+                useMipMap = false,
+                autoGenerateMips = false
+            };
             
             camera.targetTexture = renderTexture;
             camera.Render();
             camera.targetTexture = null;
             
             // アルファ付きのTexture2Dに読み込み
-            var texture = new Texture2D(256, 256, TextureFormat.RGBA32, false);
+            var texture = new Texture2D(iconSize, iconSize, TextureFormat.RGBA32, false);
             RenderTexture.active = renderTexture;
-            texture.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
+            texture.ReadPixels(new Rect(0, 0, iconSize, iconSize), 0, 0);
             texture.Apply();
             RenderTexture.active = null;
             
@@ -92,7 +97,7 @@ namespace Client.Game.InGame.Block
             Destroy(block);
             Destroy(renderTexture);
             
-            return Sprite.Create(texture, new Rect(0, 0, 256, 256), Vector2.one * 0.5f);
+            return texture;
         }
         
         private float GetMaxBlockSize(List<GameObject> blocks)
