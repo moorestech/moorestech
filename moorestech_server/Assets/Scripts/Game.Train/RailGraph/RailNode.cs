@@ -9,7 +9,7 @@ namespace Game.Train.RailGraph
     public class RailNode
     {
         public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID
-        public Dictionary<RailNode, int> ConnectedNodes { get; }  // このノードからつながるノードとその距離
+        public List<(RailNode, int)> ConnectedNodes { get; }  // つながる先のノードとその距離
 
         public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
 
@@ -17,15 +17,13 @@ namespace Game.Train.RailGraph
         {
             NodeId = RailNodeId.Create();
             Station = station;
-            ConnectedNodes = new Dictionary<RailNode, int>();
+            ConnectedNodes = new List<(RailNode, int)>();
         }
 
         public void ConnectNode(RailNode targetNode, int distance)
         {
-            if (!ConnectedNodes.ContainsKey(targetNode))
-            {
-                ConnectedNodes[targetNode] = distance;
-            }
+            ConnectedNodes.Add((targetNode, distance));
+            //TODO、ここで分岐のつながる先のノードの位置を見て、左から順番になるように並び替えを行う
         }
 
         public override string ToString()
