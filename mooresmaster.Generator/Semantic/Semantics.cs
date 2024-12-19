@@ -136,10 +136,10 @@ public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, IType
     public ISchema Schema = Schema;
 }
 
-public record SwitchSemantics(SwitchSchema Schema, (string switchReferencePath, string constValue, ClassId classId)[] Types)
+public record SwitchSemantics(SwitchSchema Schema, (SwitchPath switchReferencePath, string constValue, ClassId classId)[] Types)
 {
     public SwitchSchema Schema = Schema;
-    public (string switchReferencePath, string constValue, ClassId classId)[] Types = Types;
+    public (SwitchPath switchReferencePath, string constValue, ClassId classId)[] Types = Types;
 }
 
 public record InterfaceSemantics(Schema Schema, DefineInterface Interface, InterfacePropertyId[] Properties)

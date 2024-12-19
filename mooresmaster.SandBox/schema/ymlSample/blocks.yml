@@ -39,7 +39,7 @@ properties:
       - 1
       - 1
     - key: blockParam
-      switch: blockType
+      switch: ./blockType
       cases:
         # ここのWhenはパスで指定するようにするので、他のサンプルを用意している
       - when: BeltConveyor
