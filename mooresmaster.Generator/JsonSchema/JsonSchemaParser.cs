@@ -185,7 +185,7 @@ public static class JsonSchemaParser
 
     private static bool IsNullable(JsonObject json)
     {
-        return json["optional"] is JsonBoolean { Literal: true };
+        return json["optional"] is JsonBoolean { Literal: true } || json["optional"] is JsonString { Literal: "true" };
     }
 
     private static SchemaId ParseUUID(JsonObject json, SchemaId? parent, SchemaTable table)
