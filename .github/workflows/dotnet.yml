@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: ReleaseBuild
+    - name: BuildGenerator
       run: dotnet build mooresmaster.Generator/ -c release
     - name: Test
       run: dotnet test
