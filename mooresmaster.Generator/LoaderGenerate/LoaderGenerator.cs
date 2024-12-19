@@ -143,7 +143,11 @@ public static class LoaderGenerator
     {
         StringBuilder builder = new();
 
-        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue).Where(p => !p.IsNullable))
+        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values
+                     .Where(v => v.PropertyId.HasValue)
+                     .Where(p => !p.IsNullable)
+                     .Where(v => !semantics.PropertySemanticsTable[v.PropertyId!.Value].IsNullable)
+                )
         {
             var jsonPropertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
             var typeName = typeDefinition.TypeName.GetModelName();
