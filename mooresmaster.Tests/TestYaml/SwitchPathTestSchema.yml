@@ -1,0 +1,24 @@
+id: switchPathTestSchema
+type: object
+properties:
+  - key: data0
+    type: object
+    properties:
+      - key: data1
+        switch: ./data2
+        cases:
+          - when: Moores
+            type: object
+            properties:
+              - key: data3
+                type: string
+          - when: Tech
+            type: object
+            properties:
+              - key: data4
+                type: number
+      - key: data2
+        type: string
+        enum:
+          - Moores
+          - Tech
