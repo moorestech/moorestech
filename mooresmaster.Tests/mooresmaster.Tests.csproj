@@ -45,12 +45,26 @@
         <None Update="SwitchPathTest\SwitchPathThrowTestSchema.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="OptionalTests\OptionalTestSchema1.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="OptionalTests\OptionalTestSchema2.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="SwitchPathTests\SwitchPathTestSchema.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="SwitchPathTests\SwitchPathThrowTestSchema.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="SwitchPathTest\RelativeSwitchPathTestSchema.yml"/>
+        <AdditionalFiles Include="SwitchPathTests\RelativeSwitchPathTestSchema.yml"/>
         <None Remove="SwitchPathTest\AbsoluteSwitchPathTestSchema.yml"/>
-        <AdditionalFiles Include="SwitchPathTest\AbsoluteSwitchPathTestSchema.yml"/>
+        <AdditionalFiles Include="SwitchPathTests\AbsoluteSwitchPathTestSchema.yml"/>
+        <None Remove="OptionalTests\OptionalTestSchema.yml"/>
+        <AdditionalFiles Include="OptionalTests\OptionalTestSchema.yml"/>
     </ItemGroup>
 
 
