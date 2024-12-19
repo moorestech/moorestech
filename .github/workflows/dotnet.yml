@@ -17,8 +17,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
     - name: ReleaseBuild
       run: dotnet build mooresmaster.Generator/ -c release
     - name: Test
