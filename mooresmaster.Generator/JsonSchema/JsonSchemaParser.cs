@@ -134,7 +134,9 @@ public static class JsonSchemaParser
             var whenJson = (JsonString)jsonObject["when"];
             var thenJson = jsonObject;
 
-            ifThenList.Add(new IfThenSchema(switchReferencePath, whenJson, Parse(thenJson, schemaId, table)));
+            var switchPath = SwitchPathParser.Parse(switchReferencePath.Literal);
+
+            ifThenList.Add(new IfThenSchema(switchPath, whenJson, Parse(thenJson, schemaId, table)));
         }
 
         table.Add(schemaId, new SwitchSchema((json["key"] as JsonString).Literal, parent, ifThenList.ToArray(), IsNullable(json)));
