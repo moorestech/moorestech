@@ -43,14 +43,9 @@ public static class CodeGenerator
             .Select(file =>
                 file with
                 {
-                    Code = $"{file.Code}".GetPreprocessedCode()
+                    Code = $"{file.Code}"
                 })
             .ToArray();
-    }
-
-    public static string GetPreprocessedCode(this string code)
-    {
-        return $"#if ENABLE_MOORESMASTER_GENERATOR\n{code}\n#endif";
     }
 
     private static string GenerateTypeDefinitionCode(TypeDefinition typeDef)

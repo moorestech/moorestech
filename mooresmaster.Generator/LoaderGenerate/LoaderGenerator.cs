@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
@@ -39,7 +38,7 @@ public static class LoaderGenerator
                     )
             )
             .Append(GenerateGlobalLoaderCode(semantics, nameTable))
-            .Select(value => new LoaderFile(value.fileName, value.code.GetPreprocessedCode()))
+            .Select(value => new LoaderFile(value.fileName, value.code))
             .ToList();
 
         for (var i = loaderFiles.Count - 1; i >= 0; i--)
@@ -392,7 +391,7 @@ public static class LoaderGenerator
                        }
                    }
                }
-               """.GetPreprocessedCode();
+               """;
     }
 
     public static string GenerateLoaderExceptionTypeCode()
@@ -400,7 +399,7 @@ public static class LoaderGenerator
         return """"
                namespace Mooresmaster.Loader
                {
-                   public class MooresmasterLoaderException : Exception
+                   public class MooresmasterLoaderException : global::System.Exception
                    {
                        public string ErrorProperty;
                        public string ErrorType;
@@ -424,7 +423,7 @@ public static class LoaderGenerator
                        }
                    }
                }
-               """".GetPreprocessedCode();
+               """";
     }
 
     private static string Indent(this string code, bool firstLine = false, int level = 1)
