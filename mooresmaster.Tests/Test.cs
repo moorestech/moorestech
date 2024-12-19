@@ -5,8 +5,6 @@ using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
-using Mooresmaster.Loader.AbsoluteSwitchPathTestSchemaModule;
-using Mooresmaster.Loader.RelativeSwitchPathTestSchemaModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -102,31 +100,7 @@ public class Test
         foreach (var propertySemantics in semantics.PropertySemanticsTable.Values) Assert.True(propertySemantics.IsNullable);
     }
 
-    [Fact]
-    public void RelativeSwitchPathLoaderTest()
-    {
-        RelativeSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathTestSchema"));
-    }
-
-    [Fact]
-    public void RelativeSwitchPathLoaderThrowTest()
-    {
-        Assert.ThrowsAny<Exception>(() => RelativeSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
-    }
-
-    [Fact]
-    public void AbsoluteSwitchPathLoaderTest()
-    {
-        AbsoluteSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathTestSchema"));
-    }
-
-    [Fact]
-    public void AbsoluteSwitchPathLoaderThrowTest()
-    {
-        Assert.ThrowsAny<Exception>(() => AbsoluteSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
-    }
-
-    private static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(string yaml)
+    public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(string yaml)
     {
         var jsonSchema = Yaml.ToJson(yaml);
         var schemaTable = new SchemaTable();
@@ -139,7 +113,7 @@ public class Test
         return (schemaTable, nameTable, semantics, definition);
     }
 
-    private static JToken GetJson(string name)
+    public static JToken GetJson(string name)
     {
         var blockJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{name}.json");
         var blockJson = File.ReadAllText(blockJsonPath);

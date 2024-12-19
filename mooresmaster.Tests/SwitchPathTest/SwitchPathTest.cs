@@ -1,16 +1,37 @@
-using mooresmaster.Generator.CodeGenerate;
-using mooresmaster.Generator.Definitions;
-using mooresmaster.Generator.Json;
+using System;
 using mooresmaster.Generator.JsonSchema;
-using mooresmaster.Generator.LoaderGenerate;
-using mooresmaster.Generator.NameResolve;
-using mooresmaster.Generator.Semantic;
+using Mooresmaster.Loader.AbsoluteSwitchPathTestSchemaModule;
+using Mooresmaster.Loader.RelativeSwitchPathTestSchemaModule;
 using Xunit;
 
-namespace mooresmaster.Tests;
+namespace mooresmaster.Tests.SwitchPathTest;
 
-public class SchemaParserTest
+public class SwitchPathTest
 {
+    [Fact]
+    public void RelativeSwitchPathLoaderTest()
+    {
+        RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathTestSchema"));
+    }
+
+    [Fact]
+    public void RelativeSwitchPathLoaderThrowTest()
+    {
+        Assert.ThrowsAny<Exception>(() => RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
+    }
+
+    [Fact]
+    public void AbsoluteSwitchPathLoaderTest()
+    {
+        AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathTestSchema"));
+    }
+
+    [Fact]
+    public void AbsoluteSwitchPathLoaderThrowTest()
+    {
+        Assert.ThrowsAny<Exception>(() => AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
+    }
+
     [Fact]
     public void SchemaSwitchAbsolutePathParseTest()
     {
