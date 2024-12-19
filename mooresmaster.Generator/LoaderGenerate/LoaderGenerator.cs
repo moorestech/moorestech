@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
+using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 using Type = mooresmaster.Generator.Definitions.Type;
@@ -142,7 +143,7 @@ public static class LoaderGenerator
     {
         StringBuilder builder = new();
 
-        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue).Where(v => !semantics.PropertySemanticsTable[v.PropertyId!.Value].IsNullable))
+        foreach (var propertyDefinition in typeDefinition.PropertyTable.Values.Where(v => v.PropertyId.HasValue).Where(p => !p.IsNullable))
         {
             var jsonPropertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
             var typeName = typeDefinition.TypeName.GetModelName();
@@ -187,14 +188,39 @@ public static class LoaderGenerator
         );
     }
 
-    private static string GenerateSwitchCheckCode(string currentJson, string propertyName, string constValue)
+    private static string GenerateSwitchCheckCode(string currentJson, SwitchPath switchReferencePath, string constValue)
     {
+        var path = "";
+
+        switch (switchReferencePath.Type)
+        {
+            case SwitchPathType.Absolute:
+                path += ".Root";
+                break;
+            case SwitchPathType.Relative:
+                path += ".Parent.Parent";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        foreach (var element in switchReferencePath.Elements)
+            switch (element)
+            {
+                case NormalSwitchPathElement normalSwitchPathElement:
+                    path += $"[\"{normalSwitchPathElement.Path}\"]";
+                    break;
+                case ParentSwitchPathElement parentSwitchPathElement:
+                    path += ".Parent";
+                    break;
+            }
+
         return $$$"""
-                  (string)({{{currentJson}}}.Parent.Parent["{{{propertyName}}}"]) == "{{{constValue}}}"
+                  (string)({{{currentJson}}}{{{path}}}) == "{{{constValue}}}"
                   """;
     }
 
-    private static string GenerateSwitchInheritedTypeLoaderCode(string switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
+    private static string GenerateSwitchInheritedTypeLoaderCode(SwitchPath switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
 
