@@ -39,10 +39,18 @@
 
     <ItemGroup>
         <None Remove="TestYaml\SwitchPathTestSchema.yml"/>
-        <AdditionalFiles Include="TestYaml\SwitchPathTestSchema.yml"/>
-        <None Update="TestMod\SwitchPathTestSchema.json">
+        <None Update="SwitchPathTest\SwitchPathTestSchema.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="SwitchPathTest\SwitchPathThrowTestSchema.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="SwitchPathTest\RelativeSwitchPathTestSchema.yml"/>
+        <None Remove="SwitchPathTest\AbsoluteSwitchPathTestSchema.yml"/>
+        <AdditionalFiles Include="SwitchPathTest\AbsoluteSwitchPathTestSchema.yml"/>
     </ItemGroup>
 
 
