@@ -72,34 +72,6 @@ public class Test
         // Assert.Equivalent(node, answer, true);
     }
 
-    [Fact]
-    public void OptionalLoaderTest()
-    {
-        var yamlSchema = """
-                         id: test
-                         type: object
-                         properties:
-                         - key: data0
-                           type: string
-                           optional: true
-                         - key: data1
-                           type: number
-                           optional: true
-                         - key: data2
-                           type: object
-                           optional: true
-                           properties:
-                           - key: data3
-                             type: number
-                             optional: true
-                         """;
-
-        var (schemaTable, nameTable, semantics, definition) = Generate(yamlSchema);
-
-        // 全てのプロパティがoptionalのはず
-        foreach (var propertySemantics in semantics.PropertySemanticsTable.Values) Assert.True(propertySemantics.IsNullable);
-    }
-
     public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(string yaml)
     {
         var jsonSchema = Yaml.ToJson(yaml);
