@@ -174,8 +174,8 @@ public static class NameResolver
 
     private static string GetIfThenName(SwitchSchema switchSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
     {
-        var ifThenSchema = switchSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Then])[typeSemantics.Schema];
-        return $"{ifThenSchema.If.Literal}{switchSchema.PropertyName?.ToCamelCase()}";
+        var ifThenSchema = switchSchema.IfThenArray.ToDictionary(ifThen => schemaTable.Table[ifThen.Schema])[typeSemantics.Schema];
+        return $"{ifThenSchema.When}{switchSchema.PropertyName?.ToCamelCase()}";
     }
 
     public static string GetModelName(this TypeName typeName)

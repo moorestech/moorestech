@@ -123,7 +123,7 @@ public static class JsonSchemaParser
 
     private static SchemaId ParseSwitch(JsonObject json, SchemaId? parent, SchemaTable table)
     {
-        var ifThenList = new List<IfThenSchema>();
+        var ifThenList = new List<SwitchCaseSchema>();
         var schemaId = SchemaId.New();
 
         var switchReferencePath = (json["switch"] as JsonString)!;
@@ -136,7 +136,7 @@ public static class JsonSchemaParser
 
             var switchPath = SwitchPathParser.Parse(switchReferencePath.Literal);
 
-            ifThenList.Add(new IfThenSchema(switchPath, whenJson, Parse(thenJson, schemaId, table)));
+            ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, Parse(thenJson, schemaId, table)));
         }
 
         table.Add(schemaId, new SwitchSchema((json["key"] as JsonString).Literal, parent, ifThenList.ToArray(), IsNullable(json)));

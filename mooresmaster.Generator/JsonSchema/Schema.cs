@@ -69,19 +69,19 @@ public static class ArraySchemaExtension
     }
 }
 
-public record SwitchSchema(string? PropertyName, SchemaId? Parent, IfThenSchema[] IfThenArray, bool IsNullable) : ISchema
+public record SwitchSchema(string? PropertyName, SchemaId? Parent, SwitchCaseSchema[] IfThenArray, bool IsNullable) : ISchema
 {
-    public IfThenSchema[] IfThenArray = IfThenArray;
+    public SwitchCaseSchema[] IfThenArray = IfThenArray;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record IfThenSchema(SwitchPath SwitchReferencePath, JsonString If, SchemaId Then)
+public record SwitchCaseSchema(SwitchPath SwitchReferencePath, string When, SchemaId Schema)
 {
-    public JsonString If = If;
     public SwitchPath SwitchReferencePath = SwitchReferencePath;
-    public SchemaId Then = Then;
+    public SchemaId Schema = Schema;
+    public string When = When;
 }
 
 public record StringSchema(string? PropertyName, SchemaId? Parent, bool IsNullable, string[]? Enums) : ISchema, IDefineInterfacePropertySchema
