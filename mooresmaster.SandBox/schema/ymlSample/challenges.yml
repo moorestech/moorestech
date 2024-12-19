@@ -27,7 +27,7 @@ properties:
       - None
       - BackgroundSkit
     - key: playSkitParam
-      switch: playSkitType
+      switch: ./playSkitType
       cases:
       - when: None
         type: object
@@ -45,7 +45,7 @@ properties:
       - inInventoryItem
       - blockPlace
     - key: taskParam
-      switch: taskCompletionType
+      switch: ./taskCompletionType
       cases:
       - when: createItem
         type: object
@@ -84,7 +84,7 @@ properties:
           - keyControl
           - uiHighLight
         - key: tutorialParam
-          switch: tutorialType
+          switch: ./tutorialType
           cases:
           - when: mapObjectPin
             type: object
