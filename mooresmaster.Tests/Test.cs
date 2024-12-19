@@ -1,8 +1,13 @@
+using System;
+using System.IO;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
+using Mooresmaster.Loader.SwitchPathTestSchemaModule;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace mooresmaster.Tests;
@@ -93,10 +98,13 @@ public class Test
         var (schemaTable, nameTable, semantics, definition) = Generate(yamlSchema);
 
         // 全てのプロパティがoptionalのはず
-        foreach (var propertySemantics in semantics.PropertySemanticsTable.Values)
-        {
-            Assert.True(propertySemantics.IsNullable);
-        }
+        foreach (var propertySemantics in semantics.PropertySemanticsTable.Values) Assert.True(propertySemantics.IsNullable);
+    }
+
+    [Fact]
+    public void SwitchPathLoaderTest()
+    {
+        SwitchPathTestSchemaLoader.Load(GetJson("switchPathTestSchema"));
     }
 
     private static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(string yaml)
@@ -110,5 +118,12 @@ public class Test
         var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
 
         return (schemaTable, nameTable, semantics, definition);
+    }
+
+    private static JToken GetJson(string name)
+    {
+        var blockJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestMod", $"{name}.json");
+        var blockJson = File.ReadAllText(blockJsonPath);
+        return (JToken)JsonConvert.DeserializeObject(blockJson)!;
     }
 }
