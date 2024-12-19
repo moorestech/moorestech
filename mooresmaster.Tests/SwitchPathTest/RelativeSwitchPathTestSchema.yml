@@ -1,4 +1,4 @@
-id: switchPathTestSchema
+id: relativeSwitchPathTestSchema
 type: object
 properties:
   - key: data0

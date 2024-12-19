@@ -5,7 +5,8 @@ using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
-using Mooresmaster.Loader.SwitchPathTestSchemaModule;
+using Mooresmaster.Loader.AbsoluteSwitchPathTestSchemaModule;
+using Mooresmaster.Loader.RelativeSwitchPathTestSchemaModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -102,9 +103,27 @@ public class Test
     }
 
     [Fact]
-    public void SwitchPathLoaderTest()
+    public void RelativeSwitchPathLoaderTest()
     {
-        SwitchPathTestSchemaLoader.Load(GetJson("switchPathTestSchema"));
+        RelativeSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathTestSchema"));
+    }
+
+    [Fact]
+    public void RelativeSwitchPathLoaderThrowTest()
+    {
+        Assert.ThrowsAny<Exception>(() => RelativeSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
+    }
+
+    [Fact]
+    public void AbsoluteSwitchPathLoaderTest()
+    {
+        AbsoluteSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathTestSchema"));
+    }
+
+    [Fact]
+    public void AbsoluteSwitchPathLoaderThrowTest()
+    {
+        Assert.ThrowsAny<Exception>(() => AbsoluteSwitchPathTestSchemaLoader.Load(GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
     }
 
     private static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(string yaml)
@@ -122,7 +141,7 @@ public class Test
 
     private static JToken GetJson(string name)
     {
-        var blockJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestMod", $"{name}.json");
+        var blockJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{name}.json");
         var blockJson = File.ReadAllText(blockJsonPath);
         return (JToken)JsonConvert.DeserializeObject(blockJson)!;
     }
