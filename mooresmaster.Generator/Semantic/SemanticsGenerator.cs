@@ -143,11 +143,11 @@ public static class SemanticsGenerator
         List<(SwitchPath, string, ClassId)> thenList = new();
         foreach (var ifThen in switchSchema.IfThenArray)
         {
-            Generate(table.Table[ifThen.Then], table).AddTo(semantics);
+            Generate(table.Table[ifThen.Schema], table).AddTo(semantics);
 
-            var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Then]];
+            var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Schema]];
             semantics.SwitchInheritList.Add((interfaceId, then));
-            thenList.Add((ifThen.SwitchReferencePath, ifThen.If.Literal, then));
+            thenList.Add((ifThen.SwitchReferencePath, ifThen.When, then));
         }
 
         semantics.SwitchSemanticsTable.Add(interfaceId, new SwitchSemantics(switchSchema, thenList.ToArray()));
