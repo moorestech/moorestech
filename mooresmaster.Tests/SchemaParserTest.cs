@@ -1,4 +1,10 @@
+using mooresmaster.Generator.CodeGenerate;
+using mooresmaster.Generator.Definitions;
+using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
+using mooresmaster.Generator.LoaderGenerate;
+using mooresmaster.Generator.NameResolve;
+using mooresmaster.Generator.Semantic;
 using Xunit;
 
 namespace mooresmaster.Tests;
@@ -6,7 +12,7 @@ namespace mooresmaster.Tests;
 public class SchemaParserTest
 {
     [Fact]
-    public void SchemaSwitchAbsolutePathTest()
+    public void SchemaSwitchAbsolutePathParseTest()
     {
         var path = "/Test/aaa/bbb";
 
@@ -28,7 +34,7 @@ public class SchemaParserTest
     }
 
     [Fact]
-    public void SchemaSwitchRelativePathTest()
+    public void SchemaSwitchRelativePathParseTest()
     {
         var path = "./Test/aaa/bbb";
 
@@ -51,7 +57,7 @@ public class SchemaParserTest
     }
 
     [Fact]
-    public void SchemaSwitchParentPathTest()
+    public void SchemaSwitchParentPathParseTest()
     {
         var path = "./Test/../Test/aaa/bbb";
 
