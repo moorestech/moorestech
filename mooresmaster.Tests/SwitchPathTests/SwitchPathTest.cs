@@ -4,32 +4,32 @@ using Mooresmaster.Loader.AbsoluteSwitchPathTestSchemaModule;
 using Mooresmaster.Loader.RelativeSwitchPathTestSchemaModule;
 using Xunit;
 
-namespace mooresmaster.Tests.SwitchPathTest;
+namespace mooresmaster.Tests.SwitchPathTests;
 
 public class SwitchPathTest
 {
     [Fact]
     public void RelativeSwitchPathLoaderTest()
     {
-        RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathTestSchema"));
+        RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathTestSchema"));
     }
 
     [Fact]
     public void RelativeSwitchPathLoaderThrowTest()
     {
-        Assert.ThrowsAny<Exception>(() => RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
+        Assert.ThrowsAny<Exception>(() => RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathThrowTestSchema")));
     }
 
     [Fact]
     public void AbsoluteSwitchPathLoaderTest()
     {
-        AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathTestSchema"));
+        AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathTestSchema"));
     }
 
     [Fact]
     public void AbsoluteSwitchPathLoaderThrowTest()
     {
-        Assert.ThrowsAny<Exception>(() => AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTest/SwitchPathThrowTestSchema")));
+        Assert.ThrowsAny<Exception>(() => AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathThrowTestSchema")));
     }
 
     [Fact]
