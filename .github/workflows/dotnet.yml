@@ -21,10 +21,8 @@ jobs:
       run: dotnet restore
     - name: ReleaseBuild
       run: dotnet build mooresmaster.Generator/ -c release
-    - name: Build
-      run: dotnet build
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test
     - name: Pack
       run: dotnet pack mooresmaster.Generator/
     - name: Push
