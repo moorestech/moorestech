@@ -12,8 +12,6 @@ public static class SchemaWatcher
     private static readonly string schemaFolderPath;
     private static readonly string cacheFilePath;
     private static Dictionary<string, string> cachedFileHashes = new Dictionary<string, string>();
-    private static float timer = 0f;
-    private static readonly float checkInterval = 1f; // 1秒ごとにチェック
     
     // Core.Masterフォルダのパスを指定
     private static readonly string coreMasterFolderPath;
@@ -31,25 +29,16 @@ public static class SchemaWatcher
         
         // エディタの更新イベントに登録
         EditorApplication.update += Update;
-    }
-    
-    private static void Update()
-    {
-        timer += Time.deltaTime;
-        if (timer >= checkInterval)
+        
+        #region Internal
+        
+        // キャッシュの読み込み
+        void LoadCache()
         {
-            timer = 0f;
-            CheckForChanges();
-        }
-    }
-    
-    // キャッシュの読み込み
-    private static void LoadCache()
-    {
-        if (File.Exists(cacheFilePath))
-        {
+            if (!File.Exists(cacheFilePath)) return;
+            
             cachedFileHashes = new Dictionary<string, string>();
-            string[] lines = File.ReadAllLines(cacheFilePath);
+            var lines = File.ReadAllLines(cacheFilePath);
             foreach (var line in lines)
             {
                 var split = line.Split('|');
@@ -59,18 +48,20 @@ public static class SchemaWatcher
                 }
             }
         }
+        
+  #endregion
     }
     
-    // キャッシュの保存
-    private static void SaveCache()
+    private const float CheckInterval = 1f; // 1秒ごとにチェック
+    private static float timer = 0f;
+    private static void Update()
     {
-        List<string> lines = new List<string>();
-        foreach (var kvp in cachedFileHashes)
+        timer += Time.deltaTime;
+        if (timer >= CheckInterval)
         {
-            lines.Add($"{kvp.Key}|{kvp.Value}");
+            timer = 0f;
+            CheckForChanges();
         }
-        
-        File.WriteAllLines(cacheFilePath, lines.ToArray());
     }
     
     // 変更のチェック
@@ -109,60 +100,75 @@ public static class SchemaWatcher
             UpdateDummyScript();
             CompilationPipeline.RequestScriptCompilation();
         }
-    }
-    
-    // ファイルのハッシュ値を計算
-    private static string ComputeHash(string filePath)
-    {
-        using (var md5 = MD5.Create())
+        
+        #region Internal
+        
+        // ファイルのハッシュ値を計算
+        string ComputeHash(string filePath)
         {
+            using var md5 = MD5.Create();
+            
             var content = File.ReadAllBytes(filePath);
             var hash = md5.ComputeHash(content);
             return System.BitConverter.ToString(hash);
         }
-    }
-    
-    // フォルダの変更を検出
-    private static bool HasFolderChanged(Dictionary<string, string> oldHashes, Dictionary<string, string> newHashes)
-    {
-        if (oldHashes.Count != newHashes.Count)
-            return true;
         
-        foreach (var kvp in newHashes)
+        // キャッシュの保存
+        void SaveCache()
         {
-            if (!oldHashes.TryGetValue(kvp.Key, out string oldHash) || oldHash != kvp.Value)
+            var lines = new List<string>();
+            foreach (var kvp in cachedFileHashes)
+            {
+                lines.Add($"{kvp.Key}|{kvp.Value}");
+            }
+            
+            File.WriteAllLines(cacheFilePath, lines.ToArray());
+        }
+        
+        // フォルダの変更を検出
+        static bool HasFolderChanged(Dictionary<string, string> oldHashes, Dictionary<string, string> newHashes)
+        {
+            if (oldHashes.Count != newHashes.Count)
                 return true;
+            
+            foreach (var kvp in newHashes)
+            {
+                if (!oldHashes.TryGetValue(kvp.Key, out string oldHash) || oldHash != kvp.Value)
+                    return true;
+            }
+            
+            return false;
         }
         
-        return false;
-    }
-    
-    // Dummy.csを更新してCore.Masterアセンブリを再コンパイル
-    private static void UpdateDummyScript()
-    {
-        // Core.Masterフォルダが存在するか確認
-        if (!Directory.Exists(coreMasterFolderPath))
+        // Dummy.csを更新してCore.Masterアセンブリを再コンパイル
+        static void UpdateDummyScript()
         {
-            Debug.LogError($"Core.Masterフォルダが見つかりません: {coreMasterFolderPath}");
-            return;
-        }
-        
-        // Dummy.csのパスを指定
-        string dummyFilePath = Path.Combine(coreMasterFolderPath, "Dummy.cs");
-        
-        // 現在の日付を取得
-        string currentDateTime = System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
-        
-        // Dummy.csの内容を作成
-        string dummyScriptContent = $@"
+            // Core.Masterフォルダが存在するか確認
+            if (!Directory.Exists(coreMasterFolderPath))
+            {
+                Debug.LogError($"Core.Masterフォルダが見つかりません: {coreMasterFolderPath}");
+                return;
+            }
+            
+            // Dummy.csのパスを指定
+            string dummyFilePath = Path.Combine(coreMasterFolderPath, "Dummy.cs");
+            
+            // 現在の日付を取得
+            string currentDateTime = System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+            
+            // Dummy.csの内容を作成
+            string dummyScriptContent = $@"
 // このコードはCore.Masterアセンブリを再コンパイルするためのスクリプトです。gitignoreに設定しています。
 // This code is a script to recompile the Core.Master assembly. It is set in gitignore.
 public class Dummy
 {{
     private const string dummyText = ""{currentDateTime}"";
 }}";
+            
+            // Dummy.csに書き込む
+            File.WriteAllText(dummyFilePath, dummyScriptContent);
+        }
         
-        // Dummy.csに書き込む
-        File.WriteAllText(dummyFilePath, dummyScriptContent);
+        #endregion
     }
 }
