@@ -2,104 +2,108 @@
 using System;
 using System.Collections.Generic;
 
-public class MinHeap<T> where T : IComparable<T>
+namespace Game.Train.RailGraph
 {
-    private List<T> _elements;
-
-    public MinHeap()
+    public class MinHeap<T> where T : IComparable<T>
     {
-        _elements = new List<T>();
-    }
+        private List<T> _elements;
 
-    public int Count => _elements.Count;
-
-    public bool IsEmpty => Count == 0;
-
-    // Insert a new element into the heap
-    public void Insert(T item)
-    {
-        _elements.Add(item);
-        HeapifyUp(_elements.Count - 1);
-    }
-
-    // Get the minimum element without removing it
-    public T Peek()
-    {
-        if (IsEmpty)
+        public MinHeap()
         {
-            throw new InvalidOperationException("Heap is empty.");
-        }
-        return _elements[0];
-    }
-
-    // Remove and return the minimum element
-    public T RemoveMin()
-    {
-        if (IsEmpty)
-        {
-            throw new InvalidOperationException("Heap is empty.");
+            _elements = new List<T>();
         }
 
-        T root = _elements[0];
-        _elements[0] = _elements[Count - 1];
-        _elements.RemoveAt(Count - 1);
+        public int Count => _elements.Count;
 
-        if (!IsEmpty)
+        public bool IsEmpty => Count == 0;
+
+        // Insert a new element into the heap
+        public void Insert(T item)
         {
-            HeapifyDown(0);
+            _elements.Add(item);
+            HeapifyUp(_elements.Count - 1);
         }
 
-        return root;
-    }
-
-    private void HeapifyUp(int index)
-    {
-        while (index > 0)
+        // Get the minimum element without removing it
+        public T Peek()
         {
-            int parentIndex = (index - 1) / 2;
-
-            if (_elements[index].CompareTo(_elements[parentIndex]) >= 0)
+            if (IsEmpty)
             {
-                break;
+                throw new InvalidOperationException("Heap is empty.");
+            }
+            return _elements[0];
+        }
+
+        // Remove and return the minimum element
+        public T RemoveMin()
+        {
+            if (IsEmpty)
+            {
+                throw new InvalidOperationException("Heap is empty.");
             }
 
-            Swap(index, parentIndex);
-            index = parentIndex;
-        }
-    }
+            T root = _elements[0];
+            _elements[0] = _elements[Count - 1];
+            _elements.RemoveAt(Count - 1);
 
-    private void HeapifyDown(int index)
-    {
-        while (index < Count)
+            if (!IsEmpty)
+            {
+                HeapifyDown(0);
+            }
+
+            return root;
+        }
+
+        private void HeapifyUp(int index)
         {
-            int leftChildIndex = 2 * index + 1;
-            int rightChildIndex = 2 * index + 2;
-            int smallestIndex = index;
-
-            if (leftChildIndex < Count && _elements[leftChildIndex].CompareTo(_elements[smallestIndex]) < 0)
+            while (index > 0)
             {
-                smallestIndex = leftChildIndex;
-            }
+                int parentIndex = (index - 1) / 2;
 
-            if (rightChildIndex < Count && _elements[rightChildIndex].CompareTo(_elements[smallestIndex]) < 0)
+                if (_elements[index].CompareTo(_elements[parentIndex]) >= 0)
+                {
+                    break;
+                }
+
+                Swap(index, parentIndex);
+                index = parentIndex;
+            }
+        }
+
+        private void HeapifyDown(int index)
+        {
+            while (index < Count)
             {
-                smallestIndex = rightChildIndex;
-            }
+                int leftChildIndex = 2 * index + 1;
+                int rightChildIndex = 2 * index + 2;
+                int smallestIndex = index;
 
-            if (smallestIndex == index)
-            {
-                break;
-            }
+                if (leftChildIndex < Count && _elements[leftChildIndex].CompareTo(_elements[smallestIndex]) < 0)
+                {
+                    smallestIndex = leftChildIndex;
+                }
 
-            Swap(index, smallestIndex);
-            index = smallestIndex;
+                if (rightChildIndex < Count && _elements[rightChildIndex].CompareTo(_elements[smallestIndex]) < 0)
+                {
+                    smallestIndex = rightChildIndex;
+                }
+
+                if (smallestIndex == index)
+                {
+                    break;
+                }
+
+                Swap(index, smallestIndex);
+                index = smallestIndex;
+            }
+        }
+
+        private void Swap(int index1, int index2)
+        {
+            T temp = _elements[index1];
+            _elements[index1] = _elements[index2];
+            _elements[index2] = temp;
         }
     }
 
-    private void Swap(int index1, int index2)
-    {
-        T temp = _elements[index1];
-        _elements[index1] = _elements[index2];
-        _elements[index2] = temp;
-    }
 }
