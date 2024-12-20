@@ -39,17 +39,17 @@ namespace Tests.CombinedTest.Game
 
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            //railGraphDatastoreに登録
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var node0 = new RailNode();
-            var node1 = new RailNode();
-            var node2 = new RailNode();
-            var node3 = new RailNode();
+            var node0 = new RailNode(railGraphDatastore);
+            var node1 = new RailNode(railGraphDatastore);
+            var node2 = new RailNode(railGraphDatastore);
+            var node3 = new RailNode(railGraphDatastore);
             node0.ConnectNode(node1, 1);
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
 
-            //railGraphDatastoreに登録
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
             railGraphDatastore.AddNode(node0);
             railGraphDatastore.AddNode(node1);
             railGraphDatastore.AddNode(node2);
@@ -73,18 +73,18 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            //railGraphDatastoreに登録
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var node0 = new RailNode();
-            var node1 = new RailNode();
-            var node2 = new RailNode();
-            var node3 = new RailNode();
+            var node0 = new RailNode(railGraphDatastore);
+            var node1 = new RailNode(railGraphDatastore);
+            var node2 = new RailNode(railGraphDatastore);
+            var node3 = new RailNode(railGraphDatastore);
             node0.ConnectNode(node1, 123);
             node0.ConnectNode(node2, 345);
             node1.ConnectNode(node3, 400);
             node2.ConnectNode(node3, 1);
 
-            //railGraphDatastoreに登録
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
             railGraphDatastore.AddNode(node0);
             railGraphDatastore.AddNode(node1);
             railGraphDatastore.AddNode(node2);
@@ -107,7 +107,6 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
             //10000個のノードを作成し、それぞれが10つのノードにつながる。距離は1
@@ -118,7 +117,7 @@ namespace Tests.CombinedTest.Game
             RailNode[] nodeList = new RailNode[nodenum];
             for (int i = 0; i < nodenum; i++) 
             {
-                nodeList[i] = new RailNode();
+                nodeList[i] = new RailNode(railGraphDatastore);
                 railGraphDatastore.AddNode(nodeList[i]);
             }
             //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
@@ -167,13 +166,15 @@ namespace Tests.CombinedTest.Game
             //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            //railGraphDatastoreに登録
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var nodeA = new RailNode();
-            var nodeB = new RailNode();
-            var nodeC1 = new RailNode();
-            var nodeC2 = new RailNode();
-            var nodeD1 = new RailNode();
-            var nodeD2 = new RailNode();
+            var nodeA = new RailNode(railGraphDatastore);
+            var nodeB = new RailNode(railGraphDatastore);
+            var nodeC1 = new RailNode(railGraphDatastore);
+            var nodeC2 = new RailNode(railGraphDatastore);
+            var nodeD1 = new RailNode(railGraphDatastore);
+            var nodeD2 = new RailNode(railGraphDatastore);
             nodeA.ConnectNode(nodeC1, 3782);
             nodeB.ConnectNode(nodeC1, 67329);
             nodeC1.ConnectNode(nodeD1, 71894);
@@ -181,8 +182,6 @@ namespace Tests.CombinedTest.Game
             nodeC2.ConnectNode(nodeA, 28973);
             nodeC2.ConnectNode(nodeB, 718);
 
-            //railGraphDatastoreに登録
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
             railGraphDatastore.AddNode(nodeA);
             railGraphDatastore.AddNode(nodeB);
             railGraphDatastore.AddNode(nodeC1);
