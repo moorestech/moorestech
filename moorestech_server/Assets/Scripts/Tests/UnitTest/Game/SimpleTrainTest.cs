@@ -6,7 +6,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Tests.CombinedTest.Game
+namespace Tests.UnitTest.Game
 {
     public class SimpleTrainTest
     {
