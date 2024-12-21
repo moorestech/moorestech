@@ -2988,6 +2988,49 @@
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "blockGuid": "00000000-0000-0000-0000-000000000023"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+      "name": "TestTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000024"
+    },
+    {
+      "blockSize": [
+        22,
+        5,
+        5
+      ],
+      "itemGuid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
+      "blockType": "TrainStation",
+      "blockParam": {
+        "stationDistance": 22
+      },
+      "name": "TestTrainStation",
+      "blockGuid": "00000000-0000-0000-0000-000000000025"
+    },
+    {
+      "blockSize": [
+        11,
+        5,
+        5
+      ],
+      "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
+      "blockType": "TrainCargoPlatform",
+      "blockParam": {
+        "loadingSpeed": 20,
+        "outputSlotCount": 10,
+        "inputSlotCount": 10,
+        "platformDistance": 11
+      },
+      "name": "TestTrainCargoPlatform",
+      "blockGuid": "00000000-0000-0000-0000-000000000026"
     }
   ]
 }
