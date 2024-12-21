@@ -336,6 +336,18 @@
       "maxStack": 100,
       "name": "液体タンク",
       "itemGuid": "0a665a5a-3499-4ad5-a36c-6f52b4a643ec"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraight",
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "パイプ",
+      "itemGuid": "fd1bc661-61d5-4d53-b7e3-0d84d18e8f5d"
     }
   ]
 }

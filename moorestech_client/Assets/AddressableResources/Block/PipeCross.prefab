@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8050139922338932547}
   - component: {fileID: 8366887692389852417}
   - component: {fileID: 2136456758052244754}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 2489729091741415233}
   - component: {fileID: 2631272957409877265}
   - component: {fileID: 405070876631728093}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ GameObject:
   - component: {fileID: 1540141868056404983}
   - component: {fileID: 3825289501614868258}
   - component: {fileID: 4217738678987689094}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -260,7 +260,7 @@ GameObject:
   - component: {fileID: 3830166909557412356}
   - component: {fileID: 651409354574933035}
   - component: {fileID: 4648711093683327034}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -341,8 +341,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6683584423400644314}
-  m_Layer: 0
-  m_Name: steam_pipe_cross
+  m_Layer: 7
+  m_Name: PipeCross
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -375,7 +375,7 @@ GameObject:
   - component: {fileID: 1981143185678659561}
   - component: {fileID: 5602057299697030984}
   - component: {fileID: 4016362314669538695}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.007
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -458,7 +458,7 @@ GameObject:
   - component: {fileID: 244922642572674958}
   - component: {fileID: 3906477858888931692}
   - component: {fileID: 8956053921093087591}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -541,7 +541,7 @@ GameObject:
   - component: {fileID: 8289373418583459415}
   - component: {fileID: 2892905865464354892}
   - component: {fileID: 1349048994804067799}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -624,7 +624,7 @@ GameObject:
   - component: {fileID: 7016722856566676971}
   - component: {fileID: 4430964084395254071}
   - component: {fileID: 2604465797605425330}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe3.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -707,7 +707,7 @@ GameObject:
   - component: {fileID: 6178081081766116095}
   - component: {fileID: 7780040695377258253}
   - component: {fileID: 8081014274757981779}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe5.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -790,7 +790,7 @@ GameObject:
   - component: {fileID: 6763093481385737388}
   - component: {fileID: 6980823728144318427}
   - component: {fileID: 6690457661016417312}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe3.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -873,7 +873,7 @@ GameObject:
   - component: {fileID: 5485139539241939406}
   - component: {fileID: 5269749346916027205}
   - component: {fileID: 7198508387294058958}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: pipe_model
   m_TagString: Untagged
   m_Icon: {fileID: 0}

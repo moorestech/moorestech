@@ -2102,6 +2102,21 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/OilTank",
       "blockGuid": "d4afcd6b-46c2-4f71-bde1-2baf04794dd6",
       "blockParam": {}
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "fd1bc661-61d5-4d53-b7e3-0d84d18e8f5d",
+      "blockType": "Block",
+      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraight",
+      "name": "パイプ",
+      "blockGuid": "08efcc86-a099-4ee6-bcab-84aae6a796a3",
+      "blockParam": {}
     }
   ]
 }
