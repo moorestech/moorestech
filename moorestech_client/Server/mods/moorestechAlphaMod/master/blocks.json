@@ -2059,10 +2059,15 @@
         3
       ],
       "name": "溶接加工機械",
-      "blockType": "ElectricMiner",
+      "blockType": "ElectricMachine",
       "blockParam": {
         "outputItemSlotCount": 3,
-        "requiredPower": 5
+        "requiredPower": 0,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": []
+        }
       },
       "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c",
       "blockPrefabAddressablesPath": "Vanilla/Block/WeldingProcessingMachine",
