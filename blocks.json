@@ -512,7 +512,7 @@
                   "type": "object",
                   "properties": {
 
-                    "stationDistance": {"type": "integer", "default": 5},
+                    "stationDistance": {"type": "integer", "default": 5}
 
                   }
                 }
