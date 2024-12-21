@@ -2869,7 +2869,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4969907893796220278}
   m_Layer: 7
-  m_Name: processing_machine
+  m_Name: WeldingProcessingMachine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
