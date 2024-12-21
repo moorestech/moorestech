@@ -5,33 +5,35 @@ using System.Collections.Generic;
 /// </summary>
 
 namespace Game.Train.RailGraph
-{ 
+{   
     public class RailNode
     {
-        public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID
-        public Dictionary<RailNode, int> ConnectedNodes { get; }  // このノードからつながるノードとその距離
-
+        //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
+        //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
+        public List<(RailNode, int)> ConnectedNodes { get; }  // つながる先のノードとその距離
         public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
+        private readonly RailGraphDatastore _railGraph; // Graph への参照
 
-        public RailNode(StationComponent station = null)
+
+        public RailNode(RailGraphDatastore railGraph, StationComponent station = null)
         {
-            NodeId = RailNodeId.Create();
+            _railGraph = railGraph;
             Station = station;
-            ConnectedNodes = new Dictionary<RailNode, int>();
         }
+
+        /*
+        public List<(RailNode targetNode, int distance)> GetConnections()
+        {
+            return _railGraph.GetConnections(this);
+        }
+        */
+        
 
         public void ConnectNode(RailNode targetNode, int distance)
         {
-            if (!ConnectedNodes.ContainsKey(targetNode))
-            {
-                ConnectedNodes[targetNode] = distance;
-            }
+            _railGraph.ConnectNode(this, targetNode, distance);
         }
 
-        public override string ToString()
-        {
-            return $"RailNode {{ NodeId: {NodeId}, IsStation: {Station != null}, Connections: {ConnectedNodes.Count} }}";
-        }
     }
 
 }

@@ -41,6 +41,7 @@
         "MessagePack.Annotations",
         "Game.Context",
         "Game.Gear",
+        "Game.Train",
         "Game.Challenge",
         "Game.Challenge.Interface",
         "UniRx",
