@@ -27,7 +27,11 @@ namespace Core.Master
             // GUIDの順番にint型のItemIdを割り当てる
             Items = ItemsLoader.Load(itemJToken);
             
-            var sortedItemElements = Items.Data.ToList().OrderBy(x => x.ItemGuid).ToList();
+            // ソート優先度、GUIDの順番でソート
+            var sortedItemElements = Items.Data.ToList().
+                OrderBy(x => x.SortPriority ?? float.MaxValue).
+                ThenBy(x => x.ItemGuid).
+                ToList();
             
             _itemElementTableById = new Dictionary<ItemId,ItemMasterElement>();
             _itemGuidToItemId = new Dictionary<Guid,ItemId>();
