@@ -2998,6 +2998,7 @@
       ],
       "blockType": "TrainRail",
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+      "blockParam": { },
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024"
     },
