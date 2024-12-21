@@ -2050,6 +2050,24 @@
         }
       },
       "blockGuid": "e1687fd0-43e8-48f7-b509-426274ccb462"
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        3,
+        4,
+        3
+      ],
+      "name": "溶接加工機械",
+      "blockType": "ElectricMiner",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "requiredPower": 5
+      },
+      "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c",
+      "blockPrefabAddressablesPath": "Vanilla/Block/WeldingProcessingMachine",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "blockGuid": "49ff4f43-42a3-4dcc-9e78-fa6a7c4944e0"
     }
   ]
 }
