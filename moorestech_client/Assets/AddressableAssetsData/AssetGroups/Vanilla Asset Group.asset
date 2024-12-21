@@ -308,7 +308,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
-    m_Address: Vanilla/Block/processing_machine
+    m_Address: Vanilla/Block/WeldingProcessingMachine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
