@@ -1675,8 +1675,8 @@
       "blockParam": {
         "chestItemSlotCount": 5,
         "requiredPower": 0,
-        "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -1761,8 +1761,8 @@
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 0,
-        "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "outputConnects": [
             {
