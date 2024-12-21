@@ -53,7 +53,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a580b107f1a0e493dbfb43a76d09e90a
-    m_Address: Vanilla/Block/fusion_reactor
+    m_Address: Vanilla/Block/FusionReactor
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -313,7 +313,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c7d31de868216fa449519e33ab7fcad0
-    m_Address: Vanilla/Block/steam_pipe_straight
+    m_Address: Vanilla/Block/PipeStraight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -374,6 +374,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4330922e5f42eeb47a769eb9d3ef359f
     m_Address: Vanilla/Block/BeltConveyor_Down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
+    m_Address: Vanilla/Block/OilWell
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e23c1ad2c3e6e49d6aa1009315a9c33d
+    m_Address: Vanilla/Block/OilTank
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

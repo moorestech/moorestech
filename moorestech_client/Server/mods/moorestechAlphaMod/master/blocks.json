@@ -214,9 +214,7 @@
               }
             }
           ]
-        },
-        "outputSlotCount": 1,
-        "inputSlotCount": 1
+        }
       },
       "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
       "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257",
@@ -243,9 +241,7 @@
         },
         "gear": {
           "gearConnects": []
-        },
-        "inputSlotCount": 1,
-        "outputSlotCount": 1
+        }
       },
       "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
@@ -1665,7 +1661,7 @@
       "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
       "name": "CraftChainerBeltConveyor",
       "blockGuid": "f37f87a5-1b5f-4261-9fd6-6bd03c98f2a9",
-      "blockPrefabAddressablesPath": "Vanilla/Block/SF_Straight_BeltConveyor"
+      "blockPrefabAddressablesPath": "Vanilla/Block/Modern_Straight_ItemShooter"
     },
     {
       "blockSize": [
@@ -1748,9 +1744,7 @@
               "connectOption": {}
             }
           ]
-        },
-        "inputSlotCount": 1,
-        "outputSlotCount": 1
+        }
       },
       "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
@@ -1836,9 +1830,7 @@
               "connectOption": {}
             }
           ]
-        },
-        "outputSlotCount": 1,
-        "inputSlotCount": 1
+        }
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691",
@@ -2059,15 +2051,57 @@
         3
       ],
       "name": "溶接加工機械",
-      "blockType": "ElectricMiner",
+      "blockType": "ElectricMachine",
       "blockParam": {
         "outputItemSlotCount": 3,
-        "requiredPower": 5
+        "requiredPower": 0,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       },
       "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c",
       "blockPrefabAddressablesPath": "Vanilla/Block/WeldingProcessingMachine",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "blockGuid": "49ff4f43-42a3-4dcc-9e78-fa6a7c4944e0"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        3,
+        7,
+        9
+      ],
+      "name": "油井",
+      "blockType": "Block",
+      "itemGuid": "4a35c49b-f662-4a0e-b224-8f43bddd5b30",
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilWell",
+      "blockGuid": "945b1af8-3963-4726-9e2b-0f59baccbb8f",
+      "blockParam": {
+        "beltConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "inputSlotCount": 2,
+        "requiredPower": 5,
+        "outputSlotCount": 1
+      }
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        9,
+        7,
+        8
+      ],
+      "name": "液体タンク",
+      "blockType": "Block",
+      "itemGuid": "0a665a5a-3499-4ad5-a36c-6f52b4a643ec",
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilTank",
+      "blockGuid": "d4afcd6b-46c2-4f71-bde1-2baf04794dd6",
+      "blockParam": {}
     }
   ]
 }
