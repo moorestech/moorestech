@@ -47,7 +47,8 @@
 
               "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
               "ItemShooter",
-              "CraftChainerTransporter", "CraftChainerCrafter", "CraftChainerProviderChest", "CraftChainerMainComputer"
+              "CraftChainerTransporter", "CraftChainerCrafter", "CraftChainerProviderChest", "CraftChainerMainComputer",
+              "TrainRail", "TrainStation", "TrainCargoPlatform"
             ]
           },
 
@@ -482,6 +483,58 @@
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "TrainRail"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": { }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "TrainStation"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "stationDistance": {"type": "integer", "default": 5},
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "TrainCargoPlatform"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "platformDistance": {"type": "integer", "default": 5},
+                    
+                    "inputSlotCount": { "type": "integer", "default": 10 },
+                    "outputSlotCount": { "type": "integer", "default": 10 },
+
+                    "loadingSpeed":  { "type": "number", "default": 20 }
 
                   }
                 }
