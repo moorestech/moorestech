@@ -33,6 +33,12 @@
           "maxStack": {
             "type": "integer",
             "default" : 100
+          },
+
+          "sortPriority": {
+            "type": "number",
+            "default" : 100,
+            "optional": true
           }
         }
       }
