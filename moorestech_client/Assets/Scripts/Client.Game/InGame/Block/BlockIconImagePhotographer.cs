@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Client.Game.InGame.Context;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -12,32 +13,32 @@ namespace Client.Game.InGame.Block
         [SerializeField] private int iconSize = 512;
         [SerializeField] Camera cameraPrefab;
         
-        public async UniTask<List<Texture2D>> TakeBlockIconImages(List<GameObject> blockPrefabs)
+        public async UniTask<List<Texture2D>> TakeBlockIconImages(List<BlockObjectInfo> blockObjectInfos)
         {
-            var blocks = new List<GameObject>();
+            var createdBlocks = new List<(GameObject block,BlockObjectInfo blockObjectInfo)>();
             
-            foreach (var blockPrefab in blockPrefabs)
+            foreach (var blockObjectInfo in blockObjectInfos)
             {
-                var block = Instantiate(blockPrefab, transform);
-                blocks.Add(block);
+                var block = Instantiate(blockObjectInfo.BlockObjectPrefab, transform);
+                createdBlocks.Add((block, blockObjectInfo));
             }
             
             // ブロックを一直線に並べる
-            var maxSize = GetMaxBlockSize(blocks);
+            var maxSize = GetMaxBlockSize(createdBlocks);
             var spacing = maxSize * 2f;
-            for (int i = 0; i < blocks.Count; i++)
+            for (int i = 0; i < createdBlocks.Count; i++)
             {
-                var block = blocks[i];
-                block.transform.position = new Vector3(i * spacing, 0f, 0f);
-                block.transform.rotation = Quaternion.identity;
-                block.transform.localScale = Vector3.one;
+                var createdBlock = createdBlocks[i];
+                createdBlock.block.transform.position = new Vector3(i * spacing, 0f, 0f);
+                createdBlock.block.transform.rotation = Quaternion.identity;
+                createdBlock.block.transform.localScale = Vector3.one;
             }
             
             // 全てのブロックでアイコンを取得
             var tasks = new List<UniTask<Texture2D>>();
-            foreach (var block in blocks)
+            foreach (var block in createdBlocks)
             {
-                tasks.Add(GetIcon(block));
+                tasks.Add(GetIcon(block.block, block.blockObjectInfo));
             }
             
             var result = await UniTask.WhenAll(tasks);
@@ -45,17 +46,19 @@ namespace Client.Game.InGame.Block
             return result.ToList();
         }
         
-        private async UniTask<Texture2D> GetIcon(GameObject blockPrefab)
+        private async UniTask<Texture2D> GetIcon(GameObject block, BlockObjectInfo blockObjectInfo)
         {
-            var block = Instantiate(blockPrefab);
-            
             // ブロックの重心とバウンディングを取得
-            var bounds = block.GetComponentsInChildren<MeshRenderer>().Select(b => b.bounds).ToList();
+            var bounds = block.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
+            if (bounds.Count == 0)
+            {
+                throw new System.Exception("ブロックにメッシュレンダラーがありませんでした:" + block.name + " " + blockObjectInfo.BlockMasterElement.Name);
+            }
             var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
             
             // カメラ角度設定(例：上から30度、Y軸に対して45度傾ける)
-            var camera = Instantiate(cameraPrefab);
-            camera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
+            var blockImageCamera = Instantiate(cameraPrefab);
+            blockImageCamera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
             
             // バウンディングボックスの最大寸法を取得
             var minPos = bounds.Select(b => b.min).Aggregate(Vector3.Min);
@@ -63,15 +66,15 @@ namespace Client.Game.InGame.Block
             var maxSize = Vector3.Distance(minPos, maxPos);
             
             // カメラの視野角(FOV)と最大サイズから距離を計算
-            float fovRad = camera.fieldOfView * Mathf.Deg2Rad;
+            float fovRad = blockImageCamera.fieldOfView * Mathf.Deg2Rad;
             float distance = (maxSize * 0.5f) / Mathf.Tan(fovRad * 0.5f);
             
-            camera.transform.position = center - camera.transform.forward * (distance * 0.8f);
-            camera.transform.LookAt(center);
+            blockImageCamera.transform.position = center - blockImageCamera.transform.forward * (distance * 0.8f);
+            blockImageCamera.transform.LookAt(center);
             
             // カメラ背景をアルファ付き透明に設定
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            blockImageCamera.clearFlags = CameraClearFlags.SolidColor;
+            blockImageCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
             
             await UniTask.Yield(PlayerLoopTiming.Update);
             
@@ -82,9 +85,9 @@ namespace Client.Game.InGame.Block
                 autoGenerateMips = false
             };
             
-            camera.targetTexture = renderTexture;
-            camera.Render();
-            camera.targetTexture = null;
+            blockImageCamera.targetTexture = renderTexture;
+            blockImageCamera.Render();
+            blockImageCamera.targetTexture = null;
             
             // アルファ付きのTexture2Dに読み込み
             var texture = new Texture2D(iconSize, iconSize, TextureFormat.RGBA32, false);
@@ -100,12 +103,12 @@ namespace Client.Game.InGame.Block
             return texture;
         }
         
-        private float GetMaxBlockSize(List<GameObject> blocks)
+        private float GetMaxBlockSize(List<(GameObject block,BlockObjectInfo blockObjectInfo)> createdBlocks)
         {
             float maxSize = 0f;
-            foreach (var block in blocks)
+            foreach (var createdBlock in createdBlocks)
             {
-                var renderers = block.GetComponentsInChildren<MeshRenderer>();
+                var renderers = createdBlock.block.GetComponentsInChildren<MeshRenderer>();
                 if (renderers.Length == 0) continue;
                 
                 var boundsList = renderers.Select(r => r.bounds).ToList();

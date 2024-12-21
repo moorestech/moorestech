@@ -314,6 +314,28 @@
       "maxStack": 100,
       "name": "溶接加工機械",
       "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "油井",
+      "itemGuid": "4a35c49b-f662-4a0e-b224-8f43bddd5b30"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "液体タンク",
+      "itemGuid": "0a665a5a-3499-4ad5-a36c-6f52b4a643ec"
     }
   ]
 }

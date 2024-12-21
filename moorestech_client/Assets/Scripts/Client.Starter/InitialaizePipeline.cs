@@ -18,6 +18,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using BlockObjectInfo = Client.Game.InGame.Context.BlockObjectInfo;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -178,7 +179,7 @@ namespace Client.Starter
             {
                 // スクリーンショットを取る必要があるブロックを集める
                 // Collect the blocks that need to be screenshot.
-                var takeBlockPrefabs = new List<GameObject>();
+                var takeBlockInfos = new List<BlockObjectInfo>();
                 var itemIds = new List<ItemId>();
                 foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
                 {
@@ -188,12 +189,12 @@ namespace Client.Starter
                     if (itemViewData.ItemImage != null || !blockGameObjectContainer.BlockObjects.TryGetValue(blockId, out var blockObjectInfo)) continue;
                     
                     itemIds.Add(itemId);
-                    takeBlockPrefabs.Add(blockObjectInfo.BlockObjectPrefab);
+                    takeBlockInfos.Add(blockObjectInfo);
                 }
                 
                 // アイコンを設定
                 // Set the icon.
-                var texture2Ds = await blockIconImagePhotographer.TakeBlockIconImages(takeBlockPrefabs);
+                var texture2Ds = await blockIconImagePhotographer.TakeBlockIconImages(takeBlockInfos);
                 for (var i = 0; i < itemIds.Count; i++)
                 {
                     var itemViewData = new ItemViewData(texture2Ds[i], MasterHolder.ItemMaster.GetItemMaster(itemIds[i]));
