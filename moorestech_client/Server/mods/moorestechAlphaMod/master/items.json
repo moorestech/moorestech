@@ -304,6 +304,16 @@
       "maxStack": 100,
       "name": "下りベルトコンベア",
       "itemGuid": "3f1b7698-db08-490d-bd0d-b4a3e0fb2f9c"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "maxStack": 100,
+      "name": "溶接加工機械",
+      "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c"
     }
   ]
 }
