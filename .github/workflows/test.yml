@@ -1,4 +1,4 @@
-name: .NET
+name: Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
 
@@ -21,7 +21,3 @@ jobs:
       run: dotnet build mooresmaster.Generator/ -c release
     - name: Test
       run: dotnet test
-    - name: Pack
-      run: dotnet pack mooresmaster.Generator/
-    - name: Push
-      run: dotnet nuget push ./mooresmaster.Generator/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
