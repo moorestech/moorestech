@@ -38,18 +38,5 @@ namespace Game.Train.Blocks
             IsDestroy = true;
         }
 
-        /// <summary>
-        /// ノード間の接続を作成する
-        /// </summary>
-        /// <param name="targetComponent">接続先のRailComponent</param>
-        /// <param name="distance">距離</param>
-        public void ConnectTo(RailComponent targetComponent, int distance)
-        {
-            if (targetComponent == null) return;
-
-            // FrontNodeとBackNodeを接続
-            FrontNode.ConnectNode(targetComponent.BackNode, distance);
-            BackNode.ConnectNode(targetComponent.FrontNode, distance);
-        }
     }
 }
