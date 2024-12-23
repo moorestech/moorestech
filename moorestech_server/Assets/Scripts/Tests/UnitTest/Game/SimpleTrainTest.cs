@@ -1,3 +1,4 @@
+using System.Linq;
 using Game.Context;
 using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
@@ -222,6 +223,32 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(nodeD2, outListPath[3]);
             Assert.AreEqual(nodeC2, outListPath[4]);
             Assert.AreEqual(nodeB, outListPath[5]);
+        }
+
+
+
+        //RailGraphDatastoreに実装したGetConnectedNodesのテスト
+        [Test]
+        public void ConnectedNodesTest()
+        {
+            var railGraphDatastore = new RailGraphDatastore();
+
+            var nodeA = new RailNode(railGraphDatastore, null);
+            var nodeB = new RailNode(railGraphDatastore, null);
+            var nodeC = new RailNode(railGraphDatastore, null);
+
+            railGraphDatastore.AddNode(nodeA);
+            railGraphDatastore.AddNode(nodeB);
+            railGraphDatastore.AddNode(nodeC);
+
+            nodeA.ConnectNode(nodeB, 10);
+            nodeA.ConnectNode(nodeC, 20);
+
+            var connectedNodes = nodeA.ConnectedNodes.ToList();
+
+            Assert.AreEqual(2, connectedNodes.Count);
+            Assert.IsTrue(connectedNodes.Contains(nodeB));
+            Assert.IsTrue(connectedNodes.Contains(nodeC));
         }
 
     }

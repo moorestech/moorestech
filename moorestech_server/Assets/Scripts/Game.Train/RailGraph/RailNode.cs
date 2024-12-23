@@ -1,4 +1,5 @@
 using Game.Train.Blocks;
+using System;
 using System.Collections.Generic;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
@@ -10,29 +11,47 @@ namespace Game.Train.RailGraph
     {
         //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
         //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
-        public List<(RailNode, int)> ConnectedNodes { get; }  // つながる先のノードとその距離
-        public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
+
+
+        // 駅であれば駅のコンポーネント、なければnull
+        public StationComponent Station { get; private set; }
+        // 自分に対応する裏表のノード
+        public RailNode OppositeNode { get; private set; }
         private readonly RailGraphDatastore _railGraph; // Graph への参照
 
+        
+        /// なぜ IEnumerable を使うのか？
+        //IEnumerable<RailNode> を使う理由には以下があります：
+        //柔軟性:
+        //  使用する側で foreach を使って簡単に列挙できる。
+        //  必要に応じてリストや配列に変換可能。
+        //遅延評価:
+        //  コレクションが大きい場合でも、全体を一度にメモリに読み込む必要がない。
+        //抽象化:
+        //  呼び出し元に具体的なコレクションの型（List<T> や Array など）を意識させない。
+        /// </summary>
+        public IEnumerable<RailNode> ConnectedNodes
+        {
+            get
+            {
+                return _railGraph.GetConnectedNodes(this);
+            }
+        }
 
-        public RailNode(RailGraphDatastore railGraph, StationComponent station = null)
+
+        public RailNode(RailGraphDatastore railGraph, RailNode oppositeNode = null, StationComponent station = null)
         {
             _railGraph = railGraph;
+            OppositeNode = oppositeNode;
             Station = station;
         }
 
-        /*
-        public List<(RailNode targetNode, int distance)> GetConnections()
-        {
-            return _railGraph.GetConnections(this);
-        }
-        */
-        
 
         public void ConnectNode(RailNode targetNode, int distance)
         {
             _railGraph.ConnectNode(this, targetNode, distance);
         }
+
 
     }
 

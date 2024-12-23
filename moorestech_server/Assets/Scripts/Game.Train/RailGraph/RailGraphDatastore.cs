@@ -78,7 +78,14 @@ namespace Game.Train.RailGraph
             connectNodes[nodeid].Clear();
         }
 
-
+        //RailNodeの入力に対しRailNodeのリストで返すので少しややこしいことをしている
+        public List<RailNode> GetConnectedNodes(RailNode node)
+        {
+            if (!railIdDic.ContainsKey(node))
+                return new List<RailNode>();
+            int nodeId = railIdDic[node];
+            return connectNodes[nodeId].Select(x => railNodes[x.Item1]).ToList();
+        }
 
 
         /// <summary>
