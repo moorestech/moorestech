@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,68 +6,150 @@ namespace Game.Train.RailGraph
 {
     public class RailPosition
     {
-        // ノードリスト: 現在のルートを構成するノードリスト
-        private List<RailNode> _nodePath;
+        // RailNodeのリスト。インデックスが小さいほうに向かって進む。
+        private List<RailNode> _railNodes;
 
-        // 先頭ノードの次の点までの距離
+        // 先頭の前輪が次のノードまでどれだけ離れているか
         private int _distanceToNextNode;
 
         // 列車の長さ
         private int _trainLength;
 
-        public RailPosition(List<RailNode> initialPath, int initialDistance, int trainLength)
+        public RailPosition(List<RailNode> railNodes, int trainLength, int initialDistanceToNextNode)
         {
-            _nodePath = initialPath;
-            _distanceToNextNode = initialDistance;
-            _trainLength = trainLength;
-        }
-
-        // 現在進行している先のRailNodeを取得
-        public RailNode GetCurrentNode()
-        {
-            return _nodePath.FirstOrDefault();
-        }
-
-        // 現在進行している次のRailNodeを取得
-        public RailNode GetNextNode()
-        {
-            return _nodePath.Skip(1).FirstOrDefault();
-        }
-
-        // 移動処理: 指定距離だけ進む
-        public int Move(int distance)
-        {
-            _distanceToNextNode -= distance;
-
-            while (_distanceToNextNode <= 0 && _nodePath.Count > 1)
+            if (railNodes == null || railNodes.Count < 1)
             {
-                // 次のノードに移動
-                _nodePath.RemoveAt(0);
-                _distanceToNextNode += _nodePath.First().ConnectedNodes.First(x => x.Item1 == GetNextNode()).Item2;
+                throw new ArgumentException("RailNodeリストには1つ以上の要素が必要です。");
             }
 
-            return _distanceToNextNode;
+            if (trainLength <= 0)
+            {
+                throw new ArgumentException("列車の長さは正の値である必要があります。");
+            }
+
+            _railNodes = railNodes;
+            _trainLength = trainLength;
+            _distanceToNextNode = initialDistanceToNextNode;
+
+            ValidatePosition();
+        }
+
+        private void ValidatePosition()
+        {
+            // 現在のRailNodeリストと距離が列車の長さに収まっているかを確認
+            int totalDistance = CalculateTotalDistance();
+
+            if (totalDistance + _distanceToNextNode < _trainLength)
+            {
+                throw new InvalidOperationException("列車の長さが現在のルートを超えています。");
+            }
+        }
+
+        private int CalculateTotalDistance()
+        {
+            int totalDistance = 0;
+            for (int i = 0; i < _railNodes.Count - 1; i++) 
+            {
+                totalDistance += _railNodes[i].GetDistanceToNode(_railNodes[i + 1]);
+            }
+            //万が一int maxを超える場合エラー
+            if (totalDistance < 0) 
+            {
+                throw new InvalidOperationException("列車の長さがintの最大値を超えています。");
+            }   
+            return totalDistance;
+        }
+
+        // 距離だけ進むメソッド
+        // マイナスの距離がはいることも考慮する
+        //整数で入力された距離だけ進む。ただしRailNodeを超えそうなときは、一旦RailNodeで停止し残りの進むべき距離を整数で返す
+        //進んだときにリストの経路の中でいらない情報を削除する
+        public int MoveForward(int distance)
+        {
+            // 進む距離が負なら反転してfowardで計算しまた反転する
+            if (distance < 0) 
+            {
+                Reverse();
+                var result = MoveForward(-distance);
+                Reverse();
+                return -result;
+            }
+
+            // あとは進む距離が正のみを考える
+            if (distance <= _distanceToNextNode)
+            {
+                _distanceToNextNode -= distance;
+                RemoveUnnecessaryNodes();
+                return 0;
+            }
+            else 
+            {
+                distance -= _distanceToNextNode;
+                _distanceToNextNode = 0;
+                RemoveUnnecessaryNodes();
+                return distance;
+            }
+        }
+
+        // 列車を反転させる
+        public void Reverse()
+        {
+            _railNodes.Reverse();
+            for (int i = 0; i < _railNodes.Count; i++)
+            {
+                _railNodes[i] = _railNodes[i].OppositeNode; // RailNode自体の反転
+            }
+            //_distanceToNextNode再計算
+            _distanceToNextNode = CalculateTotalDistance() - _distanceToNextNode;
+        }
+
+        // 今持っているリストの中でいらない情報を削除する
+        // 具体的には列車が含まれる経路の全部のNodeを残したい。また前輪後輪がぴったりのっているNodeは残す
+        public void RemoveUnnecessaryNodes()
+        {
+            //list[0]から最後尾の距離
+            int distanceFromFront = _trainLength + _distanceToNextNode;
+            if (distanceFromFront == 0) 
+            {
+                //リストは最初のindexのみ残す removeRange
+                _railNodes.RemoveRange(1, _railNodes.Count - 1);
+                return;
+            }
+            //2ノード以上にまたがっている場合
+            int totalListDistance = 0;
+            for (int i = 0; i < _railNodes.Count - 1; i++)
+            {
+                totalListDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
+                //はじめてtotalListDistanceがdistanceFromFrontを超えたら
+                if (totalListDistance > distanceFromFront)
+                {
+                    if (i + 2 == _railNodes.Count) break;
+                    //それ以降の情報はいらない
+                    _railNodes.RemoveRange(i + 2, _railNodes.Count - i - 2);
+                    break;
+                }
+            }
+            return;
+        }
+
+        // 現在の先頭のRailNodeを取得
+        public RailNode GetCurrentNode()
+        {
+            return _railNodes.FirstOrDefault();
+        }
+
+        // 次のRailNodeを取得
+        public RailNode GetNextNode()
+        {
+            return _railNodes.Count > 1 ? _railNodes[1] : null;
         }
 
         /*
-        // 列車の方向を反転
-        public void Reverse()
+        // 現在の距離情報を取得
+        public int GetDistanceToNextNode()
         {
-            _nodePath.Reverse();
-            _distanceToNextNode = _trainLength - _distanceToNextNode;
+            return _distanceToNextNode;
         }
         */
-
-        // 進行予定のノードリストを更新
-        public void UpdatePath(List<RailNode> newPath)
-        {
-            _nodePath = newPath;
-        }
-
-        // 列車の全長を取得
-        public int GetTrainLength()
-        {
-            return _trainLength;
-        }
     }
 }
