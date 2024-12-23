@@ -51,11 +51,6 @@ namespace Tests.UnitTest.Game
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
 
-            railGraphDatastore.AddNode(node0);
-            railGraphDatastore.AddNode(node1);
-            railGraphDatastore.AddNode(node2);
-            railGraphDatastore.AddNode(node3);
-
             //ダイクストラ法を実行 node0からnode3までの最短経路を求める
             var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
 
@@ -86,11 +81,6 @@ namespace Tests.UnitTest.Game
             node1.ConnectNode(node3, 400);
             node2.ConnectNode(node3, 1);
 
-            railGraphDatastore.AddNode(node0);
-            railGraphDatastore.AddNode(node1);
-            railGraphDatastore.AddNode(node2);
-            railGraphDatastore.AddNode(node3);
-
             //ダイクストラ法を実行 node0からnode3までの最短経路を求める
             var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
 
@@ -119,7 +109,6 @@ namespace Tests.UnitTest.Game
             for (int i = 0; i < nodenum; i++) 
             {
                 nodeList[i] = new RailNode(railGraphDatastore);
-                railGraphDatastore.AddNode(nodeList[i]);
             }
             //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
             for (int i = 0; i < nodenum; i++)
@@ -183,13 +172,6 @@ namespace Tests.UnitTest.Game
             nodeC2.ConnectNode(nodeA, 28973);
             nodeC2.ConnectNode(nodeB, 718);
 
-            railGraphDatastore.AddNode(nodeA);
-            railGraphDatastore.AddNode(nodeB);
-            railGraphDatastore.AddNode(nodeC1);
-            railGraphDatastore.AddNode(nodeC2);
-            railGraphDatastore.AddNode(nodeD1);
-            railGraphDatastore.AddNode(nodeD2);
-
             //上から下
             //ダイクストラ法を実行 nodeAからnodeDまでの最短経路を求める
             var outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeD1);
@@ -231,15 +213,15 @@ namespace Tests.UnitTest.Game
         [Test]
         public void ConnectedNodesTest()
         {
-            var railGraphDatastore = new RailGraphDatastore();
+            //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            //railGraphDatastoreに登録
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var nodeA = new RailNode(railGraphDatastore, null);
-            var nodeB = new RailNode(railGraphDatastore, null);
-            var nodeC = new RailNode(railGraphDatastore, null);
-
-            railGraphDatastore.AddNode(nodeA);
-            railGraphDatastore.AddNode(nodeB);
-            railGraphDatastore.AddNode(nodeC);
+            var nodeA = new RailNode(railGraphDatastore);
+            var nodeB = new RailNode(railGraphDatastore);
+            var nodeC = new RailNode(railGraphDatastore);
 
             nodeA.ConnectNode(nodeB, 10);
             nodeA.ConnectNode(nodeC, 20);

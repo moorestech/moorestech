@@ -43,6 +43,7 @@ namespace Game.Train.RailGraph
         {
             _railGraph = railGraph;
             Station = station;
+            railGraph.AddNode(this);
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
