@@ -39,12 +39,18 @@ namespace Game.Train.RailGraph
         }
 
 
-        public RailNode(RailGraphDatastore railGraph, RailNode oppositeNode = null, StationComponent station = null)
+        public RailNode(RailGraphDatastore railGraph, StationComponent station = null)
         {
             _railGraph = railGraph;
-            OppositeNode = oppositeNode;
             Station = station;
         }
+
+        //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
+        public void SetOppositeNode(RailNode oppositeNode)
+        {
+            OppositeNode = oppositeNode;
+        }
+
 
 
         public void ConnectNode(RailNode targetNode, int distance)
