@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// </summary>
 
 namespace Game.Train.RailGraph
-{   
+{
     public class RailNode
     {
         //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
@@ -19,7 +19,7 @@ namespace Game.Train.RailGraph
         public RailNode OppositeNode { get; private set; }
         private readonly RailGraphDatastore _railGraph; // Graph への参照
 
-        
+
         /// なぜ IEnumerable を使うのか？
         //IEnumerable<RailNode> を使う理由には以下があります：
         //柔軟性:
@@ -33,11 +33,13 @@ namespace Game.Train.RailGraph
         public IEnumerable<RailNode> ConnectedNodes
         {
             get
-            {
-                return _railGraph.GetConnectedNodes(this);
-            }
+            { return _railGraph.GetConnectedNodes(this); }
         }
-
+        public IEnumerable<(RailNode, int)> ConnectedNodesWithDistance
+        {
+            get
+            { return _railGraph.GetConnectedNodesWithDistance(this); }
+        }
 
         public RailNode(RailGraphDatastore railGraph, StationComponent station = null)
         {
@@ -53,10 +55,15 @@ namespace Game.Train.RailGraph
         }
 
 
-
+        //RailGraphに登録する
         public void ConnectNode(RailNode targetNode, int distance)
         {
             _railGraph.ConnectNode(this, targetNode, distance);
+        }
+        //自分から入力nodeまでの距離を返す
+        public int GetDistanceToNode(RailNode node)
+        {
+            return _railGraph.GetDistanceBetweenNodes(this, node);
         }
 
 
