@@ -78,6 +78,7 @@ namespace Game.Train.RailGraph
             connectNodes[nodeid].Clear();
         }
 
+        //RailNodeの入力に対しつながっているRailNodeをリスト<Nod>で返す
         //RailNodeの入力に対しRailNodeのリストで返すので少しややこしいことをしている
         public List<RailNode> GetConnectedNodes(RailNode node)
         {
@@ -85,6 +86,31 @@ namespace Game.Train.RailGraph
                 return new List<RailNode>();
             int nodeId = railIdDic[node];
             return connectNodes[nodeId].Select(x => railNodes[x.Item1]).ToList();
+        }
+        //RailNodeの入力に対しつながっているRailNodeをリスト<Node,距離int>で返す
+        public List<(RailNode, int)> GetConnectedNodesWithDistance(RailNode node)
+        {
+            if (!railIdDic.ContainsKey(node))
+                return new List<(RailNode, int)>();
+            int nodeId = railIdDic[node];
+            return connectNodes[nodeId].Select(x => (railNodes[x.Item1], x.Item2)).ToList();
+        }
+
+
+        //railnode2つの入力 start から target までの距離を返す。ここでは経路探索しないで直接つながっている2点間の距離を返す
+        //つながっていない場合は-1を返す
+        public int GetDistanceBetweenNodes(RailNode start, RailNode target)
+        {
+            if (!railIdDic.ContainsKey(start) || !railIdDic.ContainsKey(target))
+                return -1;
+            int startid = railIdDic[start];
+            int targetid = railIdDic[target];
+            foreach (var (neighbor, distance) in connectNodes[startid])
+            {
+                if (neighbor == targetid)
+                    return distance;
+            }
+            return -1;
         }
 
 
