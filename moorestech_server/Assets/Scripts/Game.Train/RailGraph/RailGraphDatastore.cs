@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Game.Train.RailGraph;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+
 namespace Game.Train.RailGraph
 {
     public class RailGraphDatastore
@@ -78,7 +76,45 @@ namespace Game.Train.RailGraph
             connectNodes[nodeid].Clear();
         }
 
+        //RailNodeの入力に対しつながっているRailNodeをリスト<Nod>で返す
+        //RailNodeの入力に対しRailNodeのリストで返すので少しややこしいことをしている
+        public List<RailNode> GetConnectedNodes(RailNode node)
+        {
+            if (!railIdDic.ContainsKey(node))
+                return new List<RailNode>();
+            int nodeId = railIdDic[node];
+            return connectNodes[nodeId].Select(x => railNodes[x.Item1]).ToList();
+        }
+        //RailNodeの入力に対しつながっているRailNodeをリスト<Node,距離int>で返す
+        public List<(RailNode, int)> GetConnectedNodesWithDistance(RailNode node)
+        {
+            if (!railIdDic.ContainsKey(node))
+                return new List<(RailNode, int)>();
+            int nodeId = railIdDic[node];
+            return connectNodes[nodeId].Select(x => (railNodes[x.Item1], x.Item2)).ToList();
+        }
 
+
+        //railnode2つの入力 start から target までの距離を返す。ここでは経路探索しないで直接つながっている2点間の距離を返す
+        //つながっていない場合は-1を返して警告だす
+        public int GetDistanceBetweenNodes(RailNode start, RailNode target)
+        {
+            if (!railIdDic.ContainsKey(start) || !railIdDic.ContainsKey(target)) 
+            {
+                Debug.LogWarning("RailNodeが登録されていません");
+                return -1;
+            }
+            int startid = railIdDic[start];
+            int targetid = railIdDic[target];
+            foreach (var (neighbor, distance) in connectNodes[startid])
+            {
+                if (neighbor == targetid)
+                    return distance;
+            }
+            //警告だす
+            Debug.LogWarning("RailNodeがつながっていません" + startid + "to" + targetid + "");
+            return -1;
+        }
 
 
         /// <summary>
@@ -156,7 +192,6 @@ namespace Game.Train.RailGraph
             var pathNodes = path.Select(id => railNodes[id]).ToList();
             return pathNodes;
         }
-
 
 
 

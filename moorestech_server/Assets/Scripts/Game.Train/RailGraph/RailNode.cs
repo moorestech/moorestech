@@ -5,34 +5,66 @@ using System.Collections.Generic;
 /// </summary>
 
 namespace Game.Train.RailGraph
-{   
+{
     public class RailNode
     {
         //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
         //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
-        public List<(RailNode, int)> ConnectedNodes { get; }  // つながる先のノードとその距離
-        public StationComponent Station { get; }  // 駅であれば駅のコンポーネント、なければnull
+
+
+        // 駅であれば駅のコンポーネント、なければnull
+        public StationComponent Station { get; private set; }
+        // 自分に対応する裏表のノード
+        public RailNode OppositeNode { get; private set; }
         private readonly RailGraphDatastore _railGraph; // Graph への参照
 
+
+        /// なぜ IEnumerable を使うのか？
+        //IEnumerable<RailNode> を使う理由には以下があります：
+        //柔軟性:
+        //  使用する側で foreach を使って簡単に列挙できる。
+        //  必要に応じてリストや配列に変換可能。
+        //遅延評価:
+        //  コレクションが大きい場合でも、全体を一度にメモリに読み込む必要がない。
+        //抽象化:
+        //  呼び出し元に具体的なコレクションの型（List<T> や Array など）を意識させない。
+        /// </summary>
+        public IEnumerable<RailNode> ConnectedNodes
+        {
+            get
+            { return _railGraph.GetConnectedNodes(this); }
+        }
+        public IEnumerable<(RailNode, int)> ConnectedNodesWithDistance
+        {
+            get
+            { return _railGraph.GetConnectedNodesWithDistance(this); }
+        }
 
         public RailNode(RailGraphDatastore railGraph, StationComponent station = null)
         {
             _railGraph = railGraph;
             Station = station;
+            railGraph.AddNode(this);
         }
 
-        /*
-        public List<(RailNode targetNode, int distance)> GetConnections()
+        //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
+        public void SetOppositeNode(RailNode oppositeNode)
         {
-            return _railGraph.GetConnections(this);
+            OppositeNode = oppositeNode;
         }
-        */
-        
 
+
+        //RailGraphに登録する
         public void ConnectNode(RailNode targetNode, int distance)
         {
             _railGraph.ConnectNode(this, targetNode, distance);
         }
+        //自分から入力nodeまでの距離を返す
+        public int GetDistanceToNode(RailNode node)
+        {
+            return _railGraph.GetDistanceBetweenNodes(this, node);
+        }
+
 
     }
 
