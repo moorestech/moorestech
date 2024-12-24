@@ -1,5 +1,4 @@
 using Game.Train.Blocks;
-using System;
 using System.Collections.Generic;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
