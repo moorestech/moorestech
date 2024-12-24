@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Game.Train.RailGraph;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+
 namespace Game.Train.RailGraph
 {
     public class RailGraphDatastore
@@ -98,11 +96,14 @@ namespace Game.Train.RailGraph
 
 
         //railnode2つの入力 start から target までの距離を返す。ここでは経路探索しないで直接つながっている2点間の距離を返す
-        //つながっていない場合は-1を返す
+        //つながっていない場合は-1を返して警告だす
         public int GetDistanceBetweenNodes(RailNode start, RailNode target)
         {
-            if (!railIdDic.ContainsKey(start) || !railIdDic.ContainsKey(target))
+            if (!railIdDic.ContainsKey(start) || !railIdDic.ContainsKey(target)) 
+            {
+                Debug.LogWarning("RailNodeが登録されていません");
                 return -1;
+            }
             int startid = railIdDic[start];
             int targetid = railIdDic[target];
             foreach (var (neighbor, distance) in connectNodes[startid])
@@ -110,6 +111,8 @@ namespace Game.Train.RailGraph
                 if (neighbor == targetid)
                     return distance;
             }
+            //警告だす
+            Debug.LogWarning("RailNodeがつながっていません" + startid + "to" + targetid + "");
             return -1;
         }
 

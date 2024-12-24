@@ -24,10 +24,6 @@ namespace Game.Train.Blocks
             BackNode = new RailNode(railGraph);
             FrontNode.SetOppositeNode(BackNode);
             BackNode.SetOppositeNode(FrontNode);
-
-            // RailGraphに登録
-            railGraph.AddNode(FrontNode);
-            railGraph.AddNode(BackNode);
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.RailGraph
@@ -50,7 +51,7 @@ namespace Game.Train.RailGraph
             int totalDistance = 0;
             for (int i = 0; i < _railNodes.Count - 1; i++) 
             {
-                totalDistance += _railNodes[i].GetDistanceToNode(_railNodes[i + 1]);
+                totalDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
             }
             //万が一int maxを超える場合エラー
             if (totalDistance < 0) 
@@ -100,7 +101,7 @@ namespace Game.Train.RailGraph
                 _railNodes[i] = _railNodes[i].OppositeNode; // RailNode自体の反転
             }
             //_distanceToNextNode再計算
-            _distanceToNextNode = CalculateTotalDistance() - _distanceToNextNode;
+            _distanceToNextNode = CalculateTotalDistance() - _distanceToNextNode - _trainLength;
         }
 
         // 今持っているリストの中でいらない情報を削除する
@@ -133,23 +134,30 @@ namespace Game.Train.RailGraph
         }
 
         // 現在の先頭のRailNodeを取得
-        public RailNode GetCurrentNode()
+        public RailNode GetNodeApproaching()
         {
             return _railNodes.FirstOrDefault();
         }
 
         // 次のRailNodeを取得
-        public RailNode GetNextNode()
+        public RailNode GetNodeJustPassed()
         {
             return _railNodes.Count > 1 ? _railNodes[1] : null;
         }
 
-        /*
+        
         // 現在の距離情報を取得
         public int GetDistanceToNextNode()
         {
             return _distanceToNextNode;
         }
-        */
+
+        //_railNodesを返す関数(　テスト用)
+        public List<RailNode> TestGet_railNodes() 
+        {
+            return _railNodes;
+        }
+
+
     }
 }
