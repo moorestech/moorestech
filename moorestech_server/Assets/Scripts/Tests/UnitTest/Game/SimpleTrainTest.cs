@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Game.Context;
 using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,18 +18,18 @@ namespace Tests.UnitTest.Game
         public void SimpleTrainMoveTest()
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            
+
             // TODO レールブロック1を設置
             // TODO レールブロック2を設置
             // TODO レールブロック同士がつながっていることを確認
-            
+
             // TODO レールの両端に駅を設置
-            
+
             // TODO レールに動力車1台を設置
             // TODO 列車に指定された駅に行くように指示
-            
+
             // TODO 列車が駅に到着するまで待つ
-            
+
             // TODO 列車が駅に到着すればpass、指定時間以内に到着しなければfail
             //
         }
@@ -49,11 +51,6 @@ namespace Tests.UnitTest.Game
             node0.ConnectNode(node1, 1);
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
-
-            railGraphDatastore.AddNode(node0);
-            railGraphDatastore.AddNode(node1);
-            railGraphDatastore.AddNode(node2);
-            railGraphDatastore.AddNode(node3);
 
             //ダイクストラ法を実行 node0からnode3までの最短経路を求める
             var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
@@ -85,11 +82,6 @@ namespace Tests.UnitTest.Game
             node1.ConnectNode(node3, 400);
             node2.ConnectNode(node3, 1);
 
-            railGraphDatastore.AddNode(node0);
-            railGraphDatastore.AddNode(node1);
-            railGraphDatastore.AddNode(node2);
-            railGraphDatastore.AddNode(node3);
-
             //ダイクストラ法を実行 node0からnode3までの最短経路を求める
             var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
 
@@ -115,10 +107,9 @@ namespace Tests.UnitTest.Game
             Debug.Log(nodenum);
 
             RailNode[] nodeList = new RailNode[nodenum];
-            for (int i = 0; i < nodenum; i++) 
+            for (int i = 0; i < nodenum; i++)
             {
                 nodeList[i] = new RailNode(railGraphDatastore);
-                railGraphDatastore.AddNode(nodeList[i]);
             }
             //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
             for (int i = 0; i < nodenum; i++)
@@ -145,7 +136,7 @@ namespace Tests.UnitTest.Game
                 var node_end = nodeList[rand1];
                 var outListPath = railGraphDatastore.FindShortestPath(node_start, node_end);
                 //結果が正しいか outListPathは4+1以内のはず
-                if (outListPath.Count > 5) 
+                if (outListPath.Count > 5)
                 {
                     Debug.Log(rand0);
                     Debug.Log(rand1);
@@ -182,13 +173,6 @@ namespace Tests.UnitTest.Game
             nodeC2.ConnectNode(nodeA, 28973);
             nodeC2.ConnectNode(nodeB, 718);
 
-            railGraphDatastore.AddNode(nodeA);
-            railGraphDatastore.AddNode(nodeB);
-            railGraphDatastore.AddNode(nodeC1);
-            railGraphDatastore.AddNode(nodeC2);
-            railGraphDatastore.AddNode(nodeD1);
-            railGraphDatastore.AddNode(nodeD2);
-
             //上から下
             //ダイクストラ法を実行 nodeAからnodeDまでの最短経路を求める
             var outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeD1);
@@ -222,6 +206,165 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(nodeD2, outListPath[3]);
             Assert.AreEqual(nodeC2, outListPath[4]);
             Assert.AreEqual(nodeB, outListPath[5]);
+        }
+
+
+
+        //RailGraphDatastoreに実装したGetConnectedNodesのテスト
+        [Test]
+        public void ConnectedNodesTest()
+        {
+            //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            //railGraphDatastoreに登録
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+
+            var nodeA = new RailNode(railGraphDatastore);
+            var nodeB = new RailNode(railGraphDatastore);
+            var nodeC = new RailNode(railGraphDatastore);
+
+            nodeA.ConnectNode(nodeB, 10);
+            nodeA.ConnectNode(nodeC, 20);
+
+            var connectedNodes = nodeA.ConnectedNodes.ToList();
+
+            Assert.AreEqual(2, connectedNodes.Count);
+            Assert.IsTrue(connectedNodes.Contains(nodeB));
+            Assert.IsTrue(connectedNodes.Contains(nodeC));
+        }
+
+        //RailPositionのmoveForwardのテストその1
+        [Test]
+        public void MoveForward_LongTrain_MovesAcrossMultipleNodes()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraph = serviceProvider.GetService<RailGraphDatastore>();
+
+            // ノードを準備
+            var nodeA = new RailNode(railGraph);
+            var nodeB = new RailNode(railGraph);
+            var nodeC = new RailNode(railGraph);
+            var nodeD = new RailNode(railGraph);
+            var nodeE = new RailNode(railGraph);
+
+            // ノードを接続
+            nodeB.ConnectNode(nodeA, 10);//9から列車
+            nodeC.ConnectNode(nodeB, 15);//列車
+            nodeD.ConnectNode(nodeC, 20);//列車
+            nodeE.ConnectNode(nodeD, 25);//14まで列車
+
+            // 長い列車（列車長50）をノードAからEにまたがる状態に配置
+            var nodes = new List<RailNode> { nodeA, nodeB, nodeC, nodeD, nodeE };
+            var railPosition = new RailPosition(nodes, 50, 9); // 先頭はノードAとBの間の9地点
+
+            //進む
+            var remainingDistance = railPosition.MoveForward(6); // 6進む（ノードAに近づく）
+            // Assert
+            Assert.AreEqual(0, remainingDistance); // ノードAに到達するまでに残り3
+
+            //地道に全部チェック。ノードEの情報はまだ消えてない
+            var list = railPosition.TestGet_railNodes();
+            Assert.AreEqual(nodeA, list[0]);
+            Assert.AreEqual(nodeB, list[1]);
+            Assert.AreEqual(nodeC, list[2]);
+            Assert.AreEqual(nodeD, list[3]);
+            Assert.AreEqual(nodeE, list[4]);
+
+            //進む、残りの進むべき距離
+            remainingDistance = railPosition.MoveForward(4); // 3進んでAで停止、残り1
+            // Assert
+            Assert.AreEqual(nodeA, railPosition.GetNodeApproaching()); // 
+            Assert.AreEqual(1, remainingDistance); //
+            Assert.AreEqual(nodeB, railPosition.GetNodeJustPassed()); // 
+        }
+
+        //RailPositionのmoveForwardのテストその2
+        [Test]
+        public void MoveBackward_LongTrain_MovesAcrossMultipleNodes()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraph = serviceProvider.GetService<RailGraphDatastore>();
+
+            // ノードを準備
+            // 表
+            var nodeA1 = new RailNode(railGraph);
+            var nodeB1 = new RailNode(railGraph);
+            var nodeC1 = new RailNode(railGraph);
+            var nodeD1 = new RailNode(railGraph);
+            var nodeE1 = new RailNode(railGraph);
+            // 裏
+            var nodeA2 = new RailNode(railGraph);
+            var nodeB2 = new RailNode(railGraph);
+            var nodeC2 = new RailNode(railGraph);
+            var nodeD2 = new RailNode(railGraph);
+            var nodeE2 = new RailNode(railGraph);
+
+            // ノードを接続
+            nodeB1.ConnectNode(nodeA1, 10);//5から列車
+            nodeC1.ConnectNode(nodeB1, 15);//列車
+            nodeD1.ConnectNode(nodeC1, 20);//列車
+            nodeE1.ConnectNode(nodeD1, 25);//10まで列車
+
+            nodeD2.ConnectNode(nodeE2, 25);
+            nodeC2.ConnectNode(nodeD2, 20);
+            nodeB2.ConnectNode(nodeC2, 15);
+            nodeA2.ConnectNode(nodeB2, 10);
+
+            nodeA1.SetOppositeNode(nodeA2);//ここは本来RailConmponentのコンストラクタでやる
+            nodeB1.SetOppositeNode(nodeB2);
+            nodeC1.SetOppositeNode(nodeC2);
+            nodeD1.SetOppositeNode(nodeD2);
+            nodeE1.SetOppositeNode(nodeE2);
+            nodeA2.SetOppositeNode(nodeA1);
+            nodeB2.SetOppositeNode(nodeB1);
+            nodeC2.SetOppositeNode(nodeC1);
+            nodeD2.SetOppositeNode(nodeD1);
+            nodeE2.SetOppositeNode(nodeE1);
+            {  //Reverseを使ってMoveForward(マイナス)を使わないパターン
+                var nodes = new List<RailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
+                var railPosition = new RailPosition(nodes, 50, 5); // 先頭はノードAとBの間の5地点
+                railPosition.Reverse();//ノードEまで15になる
+                //地道に全部チェック。ノードEの情報はまだ消えてない
+                var list = railPosition.TestGet_railNodes();
+                Assert.AreEqual(nodeE2, list[0]);
+                Assert.AreEqual(nodeD2, list[1]);
+                Assert.AreEqual(nodeC2, list[2]);
+                Assert.AreEqual(nodeB2, list[3]);
+                Assert.AreEqual(nodeA2, list[4]);
+                Assert.AreEqual(15, railPosition.GetDistanceToNextNode());
+                var remainingDistance = railPosition.MoveForward(6); // 6すすむ（ノードEに近づく）
+                Assert.AreEqual(9, railPosition.GetDistanceToNextNode());
+                Assert.AreEqual(0, remainingDistance);
+
+                list = railPosition.TestGet_railNodes();//後輪が完全にB-C間にいるためノードAの情報は削除される
+                Assert.AreEqual(4, list.Count);
+                Assert.AreEqual(nodeE2, list[0]);
+                Assert.AreEqual(nodeD2, list[1]);
+                Assert.AreEqual(nodeC2, list[2]);
+                Assert.AreEqual(nodeB2, list[3]);
+            }
+
+            { //MoveForward(マイナス)を使うパターン
+                // 長い列車（列車長50）をノードAからEにまたがる状態に配置
+                var nodes = new List<RailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
+                var railPosition = new RailPosition(nodes, 50, 5); // 先頭はノードAとBの間の5地点
+
+                //進む、残りの進むべき距離
+                var remainingDistance = railPosition.MoveForward(-11); // 11後退（ノードEに近づく）
+
+                Assert.AreEqual(6, railPosition.GetDistanceToNextNode()); //
+                Assert.AreEqual(nodeB1, railPosition.GetNodeApproaching()); // nodeAまで5のところから11後退してる
+                Assert.AreEqual(nodeC1, railPosition.GetNodeJustPassed()); // 
+
+                var list = railPosition.TestGet_railNodes(); Assert.AreEqual(4, list.Count);
+                Assert.AreEqual(nodeB1, list[0]);
+                Assert.AreEqual(nodeC1, list[1]);
+                Assert.AreEqual(nodeD1, list[2]);
+                Assert.AreEqual(nodeE1, list[3]);
+            }
         }
 
     }
