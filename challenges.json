@@ -73,7 +73,7 @@
               {
                 "if": {
                   "properties": {
-                    "playSkitType": { "const": "BackgroundSkit" }
+                    "taskCompletionType": { "const": "blockPlace" }
                   }
                 },
                 "then": {
