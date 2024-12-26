@@ -31,7 +31,28 @@ items:
     - when: Inventory
       type: object
       optional: true
-      properties: []
+      properties:
+      - key: inventoryOptions
+        type: array
+        optional: true
+        items:
+          type: object
+          properties:
+          - key: inventoryConnectOptionType
+            type: string
+            enum:
+            - CraftChainerCrafter
+          - key: inventoryConnectOptionParam
+            switch: inventoryConnectOptionType
+            cases:
+            - when: CraftChainerCrafter
+              type: object
+              properties:
+              - key: connectType
+                type: string
+                enum:
+                - Network
+                - Factory
     - when: Gear
       type: object
       properties:
