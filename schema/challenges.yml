@@ -38,15 +38,6 @@ properties:
         properties:
         - key: fireSkitName
           type: string
-      - when: BackgroundSkit
-        type: object
-        properties:
-        - key: blockGuid
-          type: uuid
-          foreignKey: items:itemGuid:name
-        - key: itemCount
-          type: integer
-          default: 1
     - key: taskCompletionType
       type: string
       default: createItem
