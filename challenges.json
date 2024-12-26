@@ -69,29 +69,6 @@
                     }
                   }
                 }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "taskCompletionType": { "const": "blockPlace" }
-                  }
-                },
-                "then": {
-                  "type": "object",
-                  "properties": {
-
-                    "blockGuid": {
-                      "type": "string",
-                      "format": "uuid",
-                      "foreignKey": "items:itemGuid:name"
-                    },
-                    "itemCount": {
-                      "type": "integer",
-                        "default": 1
-                    }
-
-                  }
-                }
               }
             ]
           },
