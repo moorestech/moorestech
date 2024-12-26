@@ -1,6 +1,13 @@
 id: blocks
 type: object
 isDefaultOpen: true
+defineInterface:
+- interfaceName: IMachineParam
+  properties:
+  - key: inputSlotCount
+    type: integer
+  - key: outputSlotCount
+    type: integer
 properties:
 - key: data
   type: array
@@ -30,6 +37,13 @@ properties:
       - GearBeltConveyor
       - GearMiner
       - ItemShooter
+      - CraftChainerTransporter
+      - CraftChainerCrafter
+      - CraftChainerProviderChest
+      - CraftChainerMainComputer
+      - TrainRail
+      - TrainStation
+      - TrainCargoPlatform
     - key: itemGuid
       type: uuid
       foreignKey: items:itemGuid:name
@@ -39,6 +53,12 @@ properties:
       - 1
       - 1
       - 1
+    - key: blockPrefabAddressablesPath
+      type: string
+      optional: true
+    - key: blockUIAddressablesPath
+      type: string
+      optional: true
     - key: blockParam
       switch: blockType
       cases:
@@ -54,6 +74,12 @@ properties:
         - key: timeOfItemEnterToExit
           type: number
           default: 1
+        - key: slopeType
+          type: string
+          enum:
+          - Straight
+          - Up
+          - Down
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: Chest
@@ -66,11 +92,13 @@ properties:
           ref: inventoryConnects
       - when: ElectricMachine
         type: object
+        implementationInterface:
+        - IMachineParam
         properties:
-        - key: inputItemSlotCount
+        - key: inputSlotCount
           type: integer
           default: 1
-        - key: outputItemSlotCount
+        - key: outputSlotCount
           type: integer
           default: 1
         - key: requiredPower
@@ -150,11 +178,13 @@ properties:
           ref: gear
       - when: GearMachine
         type: object
+        implementationInterface:
+        - IMachineParam
         properties:
-        - key: inputItemSlotCount
+        - key: inputSlotCount
           type: integer
           default: 1
-        - key: outputItemSlotCount
+        - key: outputSlotCount
           type: integer
           default: 1
         - key: teethCount
@@ -199,6 +229,12 @@ properties:
         - key: requireTorque
           type: number
           default: 2
+        - key: slopeType
+          type: string
+          enum:
+          - Straight
+          - Up
+          - Down
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: gear
@@ -218,6 +254,12 @@ properties:
         - key: acceleration
           type: number
           default: 1
+        - key: slopeType
+          type: string
+          enum:
+          - Straight
+          - Up
+          - Down
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: GearMiner
@@ -241,6 +283,71 @@ properties:
           ref: inventoryConnects
         - key: gear
           ref: gear
+      - when: CraftChainerTransporter
+        type: object
+        properties:
+        - key: transporterConveyorItemCount
+          type: integer
+          default: 1
+        - key: timeOfItemEnterToExit
+          type: number
+          default: 1
+        - key: slopeType
+          type: string
+          enum:
+          - Straight
+          - Up
+          - Down
+        - key: inventoryConnectors
+          ref: inventoryConnects
+      - when: CraftChainerCrafter
+        type: object
+        properties:
+        - key: itemSlotCount
+          type: integer
+          default: 5
+        - key: inventoryConnectors
+          ref: inventoryConnects
+      - when: CraftChainerProviderChest
+        type: object
+        properties:
+        - key: itemSlotCount
+          type: integer
+          default: 5
+        - key: inventoryConnectors
+          ref: inventoryConnects
+      - when: CraftChainerMainComputer
+        type: object
+        properties:
+        - key: itemSlotCount
+          type: integer
+          default: 5
+        - key: inventoryConnectors
+          ref: inventoryConnects
+      - when: TrainRail
+        type: object
+        properties: []
+      - when: TrainStation
+        type: object
+        properties:
+        - key: stationDistance
+          type: integer
+          default: 5
+      - when: TrainCargoPlatform
+        type: object
+        properties:
+        - key: platformDistance
+          type: integer
+          default: 5
+        - key: inputSlotCount
+          type: integer
+          default: 10
+        - key: outputSlotCount
+          type: integer
+          default: 10
+        - key: loadingSpeed
+          type: number
+          default: 20
     - key: overrideVerticalBlock
       type: object
       optional: true
