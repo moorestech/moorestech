@@ -2046,9 +2046,9 @@
     {
       "maxStack": 100,
       "blockSize": [
-        3,
-        4,
-        3
+        5,
+        5,
+        4
       ],
       "name": "溶接加工機械",
       "blockType": "ElectricMachine",
