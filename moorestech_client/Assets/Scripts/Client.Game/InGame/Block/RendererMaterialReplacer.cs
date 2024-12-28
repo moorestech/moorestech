@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
+using Client.Game.InGame.Context;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -12,7 +13,7 @@ namespace Client.Game.InGame.Block
         ///     ゲームオブジェクトのパスに、このリストに含まれる文字列が含まれている場合、マテリアルを置き換えない
         ///     Do not replace materials if the game object's path contains any of the strings in this list.
         /// </summary>
-        private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/" };
+        private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/"};
         
         private readonly Renderer _renderer;
         private readonly List<Material> _originalMaterials = new();
@@ -26,7 +27,6 @@ namespace Client.Game.InGame.Block
                 if (!path.Contains(keyWord)) continue;
                 return;
             }
-            
             
             _renderer = renderer;
             _originalMaterials = new List<Material>();
@@ -66,9 +66,9 @@ namespace Client.Game.InGame.Block
             foreach (var material in _replacedMaterials) material.SetFloat(propertyName, value);
         }
         
-        public void SetColor(Color color)
+        public void SetColor(string propertyName, Color color)
         {
-            foreach (var material in _replacedMaterials) material.color = color;
+            foreach (var material in _replacedMaterials) material.SetColor(propertyName, color);
         }
         
         public void ResetMaterial()

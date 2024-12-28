@@ -2117,6 +2117,91 @@
       "name": "パイプ",
       "blockGuid": "08efcc86-a099-4ee6-bcab-84aae6a796a3",
       "blockParam": {}
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "caa17dec-8e5e-477b-9b1f-03cdfaa4df08",
+      "blockType": "Chest",
+      "blockParam": {
+        "chestItemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "name": "分岐ベルトコンベア",
+      "blockPrefabAddressablesPath": "Vanilla/Block/ConveyorSplitter",
+      "blockGuid": "d2f17d1f-74ed-4449-8f06-b22cfaed4c25"
     }
   ]
 }

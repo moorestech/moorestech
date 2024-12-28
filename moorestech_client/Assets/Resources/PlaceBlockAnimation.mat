@@ -50,6 +50,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _DesolveRate: 1
+    - _DevolveRate: 0.26
     - _LightPower: 1
     - _QueueControl: 0
     - _QueueOffset: 0

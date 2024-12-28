@@ -1,5 +1,7 @@
+using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
@@ -29,9 +31,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             BlockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             
-            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            
             var placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
@@ -40,12 +41,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             var visualEffects = GetComponentsInChildren<VisualEffect>(false);
             foreach (var visualEffect in visualEffects) visualEffect.gameObject.SetActive(false);
+            
+            // プレビュー限定オブジェクトをオンに
+            // Turn on preview-only object
+            var previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
+            previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(true));
         }
         
         public void SetPlaceableColor(bool isPlaceable)
         {
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-            _rendererMaterialReplacerController.SetColor(color);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
         
         public void SetTriggerCollider(bool isTrigger)
