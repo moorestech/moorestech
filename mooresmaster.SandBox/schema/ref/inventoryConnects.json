@@ -5,10 +5,18 @@
   "properties": {
 
     "inputConnects": {
+      "fixedParameter": {
+        "path" : "./connectType",
+        "value": "Inventory"
+      },
       "$ref" : "blockConnectInfo"
     },
 
     "outputConnects": {
+      "fixedParameter": {
+        "path" : "./connectType",
+        "value": "Inventory"
+      },
       "$ref" : "blockConnectInfo"
     }
 
