@@ -15,8 +15,13 @@ properties:
     - key: imagePath
       type: string
       thumbnail: true
+      optional: true
     - key: name
       type: string
     - key: maxStack
       type: integer
       default: 100
+    - key: sortPriority
+      type: number
+      default: 100
+      optional: true

@@ -3,6 +3,22 @@
   "type": "object",
   "isDefaultOpen": true,
 
+
+  "defineInterface": [
+      {
+          "interfaceName": "IMachineParam",
+          "properties": {
+              "inputSlotCount": {
+                  "type": "integer"
+              },
+              "outputSlotCount": {
+                  "type": "integer"
+              }
+          }
+      }
+  ],
+
+
   "properties": {
 
     "data": {
@@ -29,8 +45,11 @@
               "Block","BeltConveyor","Chest",
               "ElectricMachine","ElectricPole","ElectricGenerator","ElectricMiner",
 
-              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor",
-              "ItemShooter"]
+              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
+              "ItemShooter",
+              "CraftChainerTransporter", "CraftChainerCrafter", "CraftChainerProviderChest", "CraftChainerMainComputer",
+              "TrainRail", "TrainStation", "TrainCargoPlatform"
+            ]
           },
 
           "itemGuid": {
@@ -45,6 +64,16 @@
               "type": "integer"
             },
             "default": [1,1,1]
+          },
+
+          "blockPrefabAddressablesPath": {
+            "type": "string",
+            "optional": true
+          },
+
+          "blockUIAddressablesPath": {
+            "type": "string",
+            "optional": true
           },
 
           "blockParam": {
@@ -76,6 +105,7 @@
                   "properties": {
                     "beltConveyorItemCount": {"type": "integer", "default": 1},
                     "timeOfItemEnterToExit": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -109,10 +139,17 @@
                   }
                 },
                 "then": {
+
+                  "implementationInterface": [
+                    "IMachineParam"
+                  ],
+
                   "type": "object",
                   "properties": {
-                    "inputItemSlotCount": {"type": "integer", "default": 1},
-                    "outputItemSlotCount": {"type": "integer", "default": 1},
+
+                    "inputSlotCount": { "type": "integer", "default": 1 },
+                    "outputSlotCount": { "type": "integer", "default": 1 },
+                    
                     "requiredPower": {"type": "number", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
@@ -195,22 +232,7 @@
                     "requiredPower": {"type": "number", "default": 5},
                     "outputItemSlotCount": {"type": "integer", "default": 3},
                     "mineSettings": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "itemGuid": {
-                            "type": "string",
-                            "format": "uuid",
-                            "foreignKey": "items:itemGuid:name"
-                          },
-
-                          "time": {
-                            "type": "number",
-                            "default": 1
-                          }
-                        }
-                      }
+                      "$ref": "mineSettings"
                     },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
@@ -231,8 +253,8 @@
                   "properties": {
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -249,8 +271,8 @@
                   "type": "object",
                   "properties": {
                     "requireTorque": {"type": "number", "default": 1},
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -264,18 +286,25 @@
                   }
                 },
                 "then": {
+
+                  "implementationInterface": [
+                    "IMachineParam"
+                  ],
+
                   "type": "object",
                   "properties": {
-                    "inputItemSlotCount": {"type": "integer", "default": 1},
-                    "outputItemSlotCount": {"type": "integer", "default": 1},
+
+                    "inputSlotCount": { "type": "integer", "default": 1 },
+                    "outputSlotCount": { "type": "integer", "default": 1 },
+                    
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
                     "requiredRpm": {"type": "number", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -295,8 +324,8 @@
                     "generateRpm": {"type": "number", "default": 5},
                     "generateTorque": {"type": "number", "default": 1},
                     "requireTorque": {"type": "number", "default": 1},
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -315,12 +344,12 @@
                     "beltConveyorItemCount": {"type": "integer", "default": 4},
                     "beltConveyorSpeed": {"type": "number", "default": 2},
                     "requireTorque": {"type": "number", "default": 2},
-
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     },
-                    "gearConnects": {
-                      "$ref": "blockConnectInfo"
+                    "gear": {
+                      "$ref": "gear"
                     }
                   }
                 }
@@ -340,9 +369,173 @@
                     "initialShootSpeed": {"type": "number", "default": 3},
                     "itemShootSpeed": {"type": "number", "default": 2},
                     "acceleration": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "GearMiner"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "teethCount": {"type": "integer", "default": 10},
+                    "requireTorque": {"type": "number", "default": 1},
+                    "requiredRpm": {"type": "number", "default": 5},
+                    
+                    "outputItemSlotCount": {"type": "integer", "default": 3},
+                    
+                    "mineSettings": {
+                      "$ref": "mineSettings"
+                    },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    },
+                    
+                    "gear": {
+                      "$ref": "gear"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerTransporter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+
+                  "properties": {
+                    "transporterConveyorItemCount": {"type": "integer", "default": 1},
+                    "timeOfItemEnterToExit": {"type": "number", "default": 1},
+                    "slopeType": {"type": "string", "enum": ["Straight", "Up", "Down"] },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerCrafter"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+                    
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerProviderChest"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "CraftChainerMainComputer"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "itemSlotCount": {"type": "integer", "default": 5},
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    }
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "TrainRail"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": { }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "TrainStation"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "stationDistance": {"type": "integer", "default": 5}
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "TrainCargoPlatform"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "platformDistance": {"type": "integer", "default": 5},
+                    
+                    "inputSlotCount": { "type": "integer", "default": 10 },
+                    "outputSlotCount": { "type": "integer", "default": 10 },
+
+                    "loadingSpeed":  { "type": "number", "default": 20 }
+
                   }
                 }
               }

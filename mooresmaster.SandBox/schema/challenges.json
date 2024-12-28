@@ -21,7 +21,8 @@
           "prevChallengeGuid": {
             "type": "string",
             "format": "uuid",
-            "foreignKey": "challenges:challengeGuid:title"
+            "foreignKey": "challenges:challengeGuid:title",
+            "optional": true
           },
 
           "title": {
@@ -66,29 +67,6 @@
                     "fireSkitName": {
                       "type": "string"
                     }
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "taskCompletionType": { "const": "blockPlace" }
-                  }
-                },
-                "then": {
-                  "type": "object",
-                  "properties": {
-
-                    "blockGuid": {
-                      "type": "string",
-                      "format": "uuid",
-                      "foreignKey": "items:itemGuid:name"
-                    },
-                    "itemCount": {
-                      "type": "integer",
-                        "default": 1
-                    }
-
                   }
                 }
               }
@@ -155,7 +133,7 @@
                     "blockGuid": {
                       "type": "string",
                       "format": "uuid",
-                      "foreignKey": "items:itemGuid:name"
+                      "foreignKey": "blocks:blockGuid:name"
                     },
                     "itemCount": {
                       "type": "integer",

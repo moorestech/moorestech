@@ -59,26 +59,65 @@
               }
             }
           },
-          "miningTools": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "toolItemGuid": {
-                  "type": "string",
-                  "format": "uuid",
-                  "foreignKey": "items:itemGuid:name"
+          
+          "miningType": {
+            "type": "string",
+            "enum":["PickUp","Mining"]
+          },
+          
+          "miningParam": {
+            "oneOf": [
+              {
+                "if": {
+                  "properties": {
+                    "miningType": { "const": "PickUp" }
+                  }
                 },
-                "damage": {
-                  "type": "integer",
-                    "default": 10
+                "then": {
+                  "type": "object",
+                  "optional": true,
+                  "properties": {
+                  }
+                }
+              },
+
+              {
+                "if": {
+                  "properties": {
+                    "miningType": { "const": "Mining" }
+                  }
                 },
-                "attackSpeed": {
-                  "type": "number",
-                    "default": 1
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    
+                    "miningTools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "toolItemGuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "foreignKey": "items:itemGuid:name"
+                          },
+                          "damage": {
+                            "type": "integer",
+                            "default": 10
+                          },
+                          "attackSpeed": {
+                            "type": "number",
+                            "default": 1
+                          }
+                        }
+                      }
+                    }
+
+                  }
                 }
               }
-            }
+
+            ]
           }
         }
       }
