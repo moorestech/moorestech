@@ -29,9 +29,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             BlockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             
-            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            
             var placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
@@ -45,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void SetPlaceableColor(bool isPlaceable)
         {
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-            _rendererMaterialReplacerController.SetColor(color);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
         
         public void SetTriggerCollider(bool isTrigger)

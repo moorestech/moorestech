@@ -27,9 +27,9 @@ namespace Client.Game.InGame.Block
             _rendererMaterialReplacers.ForEach(replacer => replacer.SetPlaceMaterialProperty(propertyName, value));
         }
         
-        public void SetColor(Color color)
+        public void SetColor(string propertyName, Color color)
         {
-            _rendererMaterialReplacers.ForEach(replacer => replacer.SetColor(color));
+            _rendererMaterialReplacers.ForEach(replacer => replacer.SetColor(propertyName, color));
         }
         
         public void ResetMaterial()

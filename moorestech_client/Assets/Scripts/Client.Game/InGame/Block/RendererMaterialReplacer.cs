@@ -27,7 +27,6 @@ namespace Client.Game.InGame.Block
                 return;
             }
             
-            
             _renderer = renderer;
             _originalMaterials = new List<Material>();
             foreach (var material in renderer.sharedMaterials) _originalMaterials.Add(material);
@@ -66,9 +65,9 @@ namespace Client.Game.InGame.Block
             foreach (var material in _replacedMaterials) material.SetFloat(propertyName, value);
         }
         
-        public void SetColor(Color color)
+        public void SetColor(string propertyName, Color color)
         {
-            foreach (var material in _replacedMaterials) material.color = color;
+            foreach (var material in _replacedMaterials) material.SetColor(propertyName, color);
         }
         
         public void ResetMaterial()

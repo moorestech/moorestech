@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Block
             var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
             
             _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
-            _rendererMaterialReplacerController.SetColor(MaterialConst.NotPlaceableColor);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName ,MaterialConst.NotPlaceableColor);
             Resources.UnloadAsset(placePreviewMaterial);
         }
         
