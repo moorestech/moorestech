@@ -11,8 +11,19 @@ namespace Client.Game.InGame.Block
         public RendererMaterialReplacerController(GameObject targetObject)
         {
             _rendererMaterialReplacers = new List<RendererMaterialReplacer>();
+            var ignoreParents = targetObject.GetComponentsInChildren<IgnoreRendererMaterialReplacer>(true);
+            
             foreach (var renderer in targetObject.GetComponentsInChildren<Renderer>())
             {
+                // レンダラーが IgnoreRendererMaterialReplacer の子である場合は無視
+                // Ignore if the renderer is a child of the IgnoreRendererMaterialReplacer
+                var isIgnore = false;
+                foreach (var ignoreParent in ignoreParents)
+                {
+                    isIgnore |= renderer.transform.IsChildOf(ignoreParent.transform);
+                }
+                if (isIgnore) continue;
+                
                 _rendererMaterialReplacers.Add(new RendererMaterialReplacer(renderer));
             }
         }

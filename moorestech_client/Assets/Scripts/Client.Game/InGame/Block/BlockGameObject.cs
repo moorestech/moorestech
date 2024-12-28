@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.Context;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -43,6 +45,11 @@ namespace Client.Game.InGame.Block
             {
                 groundCollisionDetector.enabled = false;
             }
+            
+            // プレビュー限定オブジェクトをオフに
+            // Turn off preview-only object
+            var previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
+            previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(false));
         }
         
         public async UniTask PlayPlaceAnimation()

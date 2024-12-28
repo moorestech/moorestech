@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
+using Client.Game.InGame.Context;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -12,7 +13,7 @@ namespace Client.Game.InGame.Block
         ///     ゲームオブジェクトのパスに、このリストに含まれる文字列が含まれている場合、マテリアルを置き換えない
         ///     Do not replace materials if the game object's path contains any of the strings in this list.
         /// </summary>
-        private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/" };
+        private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/"};
         
         private readonly Renderer _renderer;
         private readonly List<Material> _originalMaterials = new();
