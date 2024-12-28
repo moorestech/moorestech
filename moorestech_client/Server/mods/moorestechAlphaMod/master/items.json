@@ -397,6 +397,17 @@
       "maxStack": 100,
       "name": "パイプ",
       "itemGuid": "fd1bc661-61d5-4d53-b7e3-0d84d18e8f5d"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 575,
+      "maxStack": 100,
+      "name": "分岐ベルトコンベア",
+      "itemGuid": "caa17dec-8e5e-477b-9b1f-03cdfaa4df08"
     }
   ]
 }
