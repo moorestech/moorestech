@@ -223,9 +223,9 @@
     },
     {
       "blockSize": [
-        1,
-        1,
-        1
+        3,
+        3,
+        7
       ],
       "name": "レンガ作りの精錬炉",
       "blockType": "GearMachine",
@@ -2202,6 +2202,44 @@
       "name": "分岐ベルトコンベア",
       "blockPrefabAddressablesPath": "Vanilla/Block/ConveyorSplitter",
       "blockGuid": "d2f17d1f-74ed-4449-8f06-b22cfaed4c25"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        7,
+        15,
+        10
+      ],
+      "blockType": "Block",
+      "blockParam": {
+        "requiredPower": 5,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "outputItemSlotCount": 3
+      },
+      "name": "精製施設",
+      "itemGuid": "96f845c8-6365-47e6-b78a-e2853a6ebae7",
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilRefinery",
+      "blockGuid": "4b6fe78b-a99e-41ca-b11f-03f0aa9cb608"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        5,
+        2,
+        5
+      ],
+      "itemGuid": "27218416-d4d8-4583-b8d8-911cc778e95e",
+      "blockType": "Block",
+      "blockPrefabAddressablesPath": "Vanilla/Block/WoodenFoundation",
+      "blockGuid": "4c7b140d-518a-497f-ae33-9d974b49a77f",
+      "name": "木の土台",
+      "blockParam": {
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1
+      }
     }
   ]
 }

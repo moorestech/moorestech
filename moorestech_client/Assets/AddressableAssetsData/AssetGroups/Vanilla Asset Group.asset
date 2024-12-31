@@ -353,12 +353,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b29f0181457b14246b619880e1f0950a
-    m_Address: Vanilla/Block/WoodenPlatform
+    m_Address: Vanilla/Block/WoodenFoundation
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a819d4d8e87d2d5429bf8bfe484fce58
-    m_Address: Vanilla/Block/WoodenPlatformStairs
+    m_Address: Vanilla/Block/WoodenFoundationStairs
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -389,6 +389,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1ade7ec81dc8c4207a0723e2bf2919db
     m_Address: Vanilla/Block/ConveyorSplitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 79a02af79b4d244f3951276026734a3e
+    m_Address: Vanilla/Block/OilRefinery
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
