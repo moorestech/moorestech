@@ -408,6 +408,28 @@
       "maxStack": 100,
       "name": "分岐ベルトコンベア",
       "itemGuid": "caa17dec-8e5e-477b-9b1f-03cdfaa4df08"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 620,
+      "maxStack": 100,
+      "name": "精製施設",
+      "itemGuid": "96f845c8-6365-47e6-b78a-e2853a6ebae7"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 445,
+      "maxStack": 100,
+      "name": "木の土台",
+      "itemGuid": "27218416-d4d8-4583-b8d8-911cc778e95e"
     }
   ]
 }

@@ -14,7 +14,7 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
-        public Vector2 PlayerPos { get; }
+        public Vector3 PlayerPos { get; }
         public WorldDataResponse WorldData { get; }
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
         public PlayerInventoryResponse Inventory { get; }

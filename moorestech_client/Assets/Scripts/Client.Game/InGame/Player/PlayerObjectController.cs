@@ -9,8 +9,7 @@ namespace Client.Game.InGame.Player
     public interface IPlayerObjectController
     {
         public Vector3 Position { get; }
-        public Vector2 Position2d { get; }
-        public void SetPlayerPosition(Vector2 playerPos);
+        public void SetPlayerPosition(Vector3 playerPos);
         public void SetActive(bool active);
         
         public void SetAnimationState(string state);
@@ -42,7 +41,11 @@ namespace Client.Game.InGame.Player
         
         private void LateUpdate()
         {
-            if (transform.localPosition.y < -10) SetPlayerPosition(new Vector2(transform.localPosition.x, transform.localPosition.z));
+            if (transform.localPosition.y < -10)
+            {
+                var height = SlopeBlockPlaceSystem.GetGroundPoint(transform.position).y;
+                SetPlayerPosition(new Vector3(transform.localPosition.x, height, transform.localPosition.z));
+            }
         }
         
         /// <summary>
@@ -50,10 +53,9 @@ namespace Client.Game.InGame.Player
         ///     セットしても位置が変わらなかった時はThirdPersonController.csをオフにして位置がセットできているか試してください
         /// </summary>
         /// <param name="playerPos"></param>
-        public void SetPlayerPosition(Vector2 playerPos)
+        public void SetPlayerPosition(Vector3 playerPos)
         {
-            var height = SlopeBlockPlaceSystem.GetGroundPoint(playerPos).y;
-            controller.Warp(new Vector3(playerPos.x, height, playerPos.y));
+            controller.Warp(playerPos);
         }
         
         public void SetActive(bool active)
