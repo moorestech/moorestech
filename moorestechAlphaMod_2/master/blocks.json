@@ -8,17 +8,6 @@
         1,
         1
       ],
-      "itemGuid": "d0827778-5f29-490d-8170-a43ed8f203c0",
-      "blockGuid": "e68eb44a-8688-46b5-85cd-52f89eae4672"
-    },
-    {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "name": "原始的な伐採機",
       "blockType": "ElectricMachine",
       "blockParam": {

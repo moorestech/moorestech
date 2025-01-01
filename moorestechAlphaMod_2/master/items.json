@@ -8,31 +8,88 @@
       ],
       "sortPriority": 100,
       "maxStack": 100,
-      "name": "石の斧",
-      "itemGuid": "12ffbeb6-94cd-4291-81b3-eb7db8904232"
+      "name": "石",
+      "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
     },
     {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "name": "原始的な伐採機",
-      "itemGuid": "08556c72-408e-4813-9723-7c359e938938"
-    },
-    {
+      "time": 1,
       "blockSize": [
         1,
         1,
         1
       ],
-      "sortPriority": 100,
+      "sortPriority": 110,
       "maxStack": 100,
-      "name": "石",
-      "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "name": "石器",
+      "itemGuid": "ea61676a-74e8-436b-bc17-8bf2b56016b4"
     },
     {
-      "sortPriority": 100,
+      "sortPriority": 120,
       "maxStack": 100,
-      "name": "石器",
-      "itemGuid": "1178b8e9-808e-4fe0-aca9-a3c42f9b940e"
+      "name": "原木",
+      "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+    },
+    {
+      "sortPriority": 130,
+      "maxStack": 100,
+      "name": "石の斧",
+      "itemGuid": "56cbe645-1f29-494e-997b-6eb17e156ac3"
+    },
+    {
+      "sortPriority": 140,
+      "maxStack": 100,
+      "name": "原始的な伐採期",
+      "itemGuid": "7b7f1b37-b5b1-484a-8ff7-dfb35bfb2273"
+    },
+    {
+      "sortPriority": 150,
+      "maxStack": 100,
+      "name": "原始的な風車",
+      "itemGuid": "f427ef68-21b3-4454-b576-115b854694fe"
+    },
+    {
+      "sortPriority": 160,
+      "maxStack": 100,
+      "name": "加工した原木",
+      "itemGuid": "126acbd8-715b-4d52-9a58-2eeb94228a35"
+    },
+    {
+      "sortPriority": 170,
+      "maxStack": 100,
+      "name": "シャフト",
+      "itemGuid": "38a61e64-9587-45f3-886c-9445c0783f4d"
+    },
+    {
+      "sortPriority": 180,
+      "maxStack": 100,
+      "name": "原始的な製材機",
+      "itemGuid": "59c2796b-203e-44e9-9f57-0277f3cadf4f"
+    },
+    {
+      "sortPriority": 190,
+      "maxStack": 100,
+      "name": "シューター",
+      "itemGuid": "a928fcd3-21af-456b-8fc4-71fc8e9cbb32"
+    },
+    {
+      "sortPriority": 200,
+      "maxStack": 100,
+      "name": "麻",
+      "itemGuid": "b7fa352e-da68-45fe-b173-47d8c173047e"
+    },
+    {
+      "sortPriority": 210,
+      "maxStack": 100,
+      "name": "麻布",
+      "itemGuid": "715a31a4-aa08-41ee-b20a-1ede6212584e"
+    },
+    {
+      "sortPriority": 220,
+      "maxStack": 100,
+      "name": "歯車ベルトコンベア",
+      "itemGuid": "b648e067-7cee-48ab-9b95-2d8c24ee3262"
     }
   ]
 }
