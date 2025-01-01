@@ -17,6 +17,59 @@
       },
       "itemGuid": "08556c72-408e-4813-9723-7c359e938938",
       "blockGuid": "fa14b435-577a-4512-a2bf-efc3e9429f99"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "原始的な風車",
+      "itemGuid": "f427ef68-21b3-4454-b576-115b854694fe",
+      "blockType": "Block",
+      "blockGuid": "5096f4ac-f597-40ed-ac90-c1277359ba60"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "シャフト",
+      "itemGuid": "38a61e64-9587-45f3-886c-9445c0783f4d",
+      "blockGuid": "f417bb6d-62af-4adb-be03-d35141dc8e65"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "原始的な製材機",
+      "itemGuid": "59c2796b-203e-44e9-9f57-0277f3cadf4f",
+      "blockGuid": "1d5302fa-9ccc-4641-881a-f11e05db7181"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "シューター",
+      "itemGuid": "a928fcd3-21af-456b-8fc4-71fc8e9cbb32",
+      "blockGuid": "288fe3e7-dedd-413f-acc6-ed06102c31f5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "歯車ベルトコンベア",
+      "itemGuid": "b648e067-7cee-48ab-9b95-2d8c24ee3262",
+      "blockGuid": "01d0405d-9c81-4f0b-b165-5e4b62333325"
     }
   ]
 }
