@@ -15,7 +15,7 @@
         "outputSlotCount": 1,
         "inputSlotCount": 1
       },
-      "itemGuid": "08556c72-408e-4813-9723-7c359e938938",
+      "itemGuid": "7b7f1b37-b5b1-484a-8ff7-dfb35bfb2273",
       "blockGuid": "fa14b435-577a-4512-a2bf-efc3e9429f99"
     },
     {
@@ -28,8 +28,36 @@
       ],
       "name": "原始的な風車",
       "itemGuid": "f427ef68-21b3-4454-b576-115b854694fe",
-      "blockType": "Block",
-      "blockGuid": "5096f4ac-f597-40ed-ac90-c1277359ba60"
+      "blockType": "SimpleGearGenerator",
+      "blockGuid": "5096f4ac-f597-40ed-ac90-c1277359ba60",
+      "blockParam": {
+        "generateRpm": 5,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "generateTorque": 1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      }
     },
     {
       "blockSize": [
