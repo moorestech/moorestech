@@ -38,6 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
+        private int _baseHeight;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
         
@@ -68,7 +69,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             if (Instance == null) return;
             
             Instance._enableBlockPlace = enable;
-            if (!enable)
+            
+            if (enable)
+            {
+                Instance._baseHeight = Mathf.RoundToInt(Instance._playerObjectController.Position.y);
+            }
+            else
             {
                 Instance._blockPlacePreview.SetActive(false);
             }
@@ -206,9 +212,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var point = Vector3Int.zero;
                 point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
                 point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
-                point.y = Mathf.FloorToInt(hitPoint.y);
                 
-                point += new Vector3Int(0, _heightOffset, 0);
+                point += new Vector3Int(0, _heightOffset + _baseHeight, 0);
                 point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
                 
                 return point;
