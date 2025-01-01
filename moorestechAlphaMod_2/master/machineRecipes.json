@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "summary": "New Challenge summary",
+      "title": "New Challenge",
+      "time": 1,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockGuid": "fa14b435-577a-4512-a2bf-efc3e9429f99",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "1178b8e9-808e-4fe0-aca9-a3c42f9b940e"
+        }
+      ],
+      "machineRecipeGuid": "45cc453c-718c-4772-9670-8cee38d0770a"
+    }
+  ]
+}

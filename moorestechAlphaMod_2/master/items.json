@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "石の斧",
+      "itemGuid": "12ffbeb6-94cd-4291-81b3-eb7db8904232"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "原始的な伐採機",
+      "itemGuid": "08556c72-408e-4813-9723-7c359e938938"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "石",
+      "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "石器",
+      "itemGuid": "1178b8e9-808e-4fe0-aca9-a3c42f9b940e"
+    }
+  ]
+}
