@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Presenter.Player
             _timer += Time.deltaTime;
             if (_timer < NetworkConst.UpdateIntervalSeconds) return;
             _timer = 0;
-            ClientContext.VanillaApi.SendOnly.SendPlayerPosition(_playerObjectController.Position2d);
+            ClientContext.VanillaApi.SendOnly.SendPlayerPosition(_playerObjectController.Position);
         }
     }
 }

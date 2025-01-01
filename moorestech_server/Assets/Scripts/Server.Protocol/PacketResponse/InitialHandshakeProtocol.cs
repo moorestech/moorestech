@@ -34,13 +34,13 @@ namespace Server.Protocol.PacketResponse
         }
         
         
-        private Vector2MessagePack GetPlayerPosition(EntityInstanceId playerId)
+        private Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
         {
             if (_entitiesDatastore.Exists(playerId))
             {
                 //プレイヤーがいるのでセーブされた座標を返す
                 var pos = _entitiesDatastore.GetPosition(playerId);
-                return new Vector2MessagePack(pos.x, pos.z);
+                return new Vector3MessagePack(pos.x, pos.y, pos.z);
             }
             
             var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId);
@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
             
             
             //プレイヤーのデータがなかったのでスポーン地点を取得する
-            return new Vector2MessagePack(_worldSettingsDatastore.WorldSpawnPoint);
+            return new Vector3MessagePack(_worldSettingsDatastore.WorldSpawnPoint);
         }
         
         [MessagePackObject]
@@ -71,12 +71,12 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public Vector2MessagePack PlayerPos { get; set; }
+            [Key(2)] public Vector3MessagePack PlayerPos { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
             
-            public ResponseInitialHandshakeMessagePack(Vector2MessagePack playerPos)
+            public ResponseInitialHandshakeMessagePack(Vector3MessagePack playerPos)
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;

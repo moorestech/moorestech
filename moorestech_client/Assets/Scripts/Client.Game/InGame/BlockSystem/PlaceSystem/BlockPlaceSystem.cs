@@ -72,6 +72,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             if (enable)
             {
+                Instance._clickStartHeightOffset = -1;
                 Instance._baseHeight = Mathf.RoundToInt(Instance._playerObjectController.Position.y);
             }
             else

@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector2Int(100, -100)));
+            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)));
             
             
             //再度ハンドシェイクを実行して座標が変更されていることを確認
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
         
         
-        private List<byte> GetPlayerPositionPacket(int playerId, Vector2Int pos)
+        private List<byte> GetPlayerPositionPacket(int playerId, Vector3 pos)
         {
             return MessagePackSerializer.Serialize(
                 new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos)).ToList();
