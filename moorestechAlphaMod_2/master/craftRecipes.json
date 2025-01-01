@@ -1,21 +1,6 @@
 {
   "data": [
     {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "craftTime": 3,
-      "craftResultCount": 1,
-      "time": 1,
-      "craftResultItemGuid": "12ffbeb6-94cd-4291-81b3-eb7db8904232",
-      "requiredItems": [
-        {
-          "count": 3,
-          "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
-        }
-      ],
-      "craftRecipeGuid": "2221e295-7e64-4b3c-ad8f-a1aac7ef786c"
-    },
-    {
       "blockSize": [
         1,
         1,

@@ -1,28 +1,24 @@
 {
   "data": [
     {
-      "summary": "New Challenge summary",
-      "title": "New Challenge",
-      "time": 1,
       "craftTime": 3,
       "craftResultCount": 1,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockGuid": "fa14b435-577a-4512-a2bf-efc3e9429f99",
-      "inputItems": [
-        {
-          "count": 1,
-          "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
-        }
-      ],
+      "time": 1,
+      "blockGuid": "1d5302fa-9ccc-4641-881a-f11e05db7181",
       "outputItems": [
         {
           "percent": 1,
           "count": 1,
-          "itemGuid": "1178b8e9-808e-4fe0-aca9-a3c42f9b940e"
+          "itemGuid": "126acbd8-715b-4d52-9a58-2eeb94228a35"
         }
       ],
-      "machineRecipeGuid": "45cc453c-718c-4772-9670-8cee38d0770a"
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+        }
+      ],
+      "machineRecipeGuid": "8b50a1fb-8005-4a50-b851-f0f7873a3eeb"
     }
   ]
 }
