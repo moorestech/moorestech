@@ -43,7 +43,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
-            Assert.AreEqual(-100, handShakeResponse.PlayerPos.Y);
+            Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
+            Assert.AreEqual(-100, handShakeResponse.PlayerPos.Z);
         }
         
         private List<byte> GetHandshakePacket(int playerId)
