@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void Calculate_2x2_East_Test()
         {
-            var direction = BlockDirection.North;
+            var direction = BlockDirection.East;
             
             var blockPositionInfo = new BlockPositionInfo(Vector3Int.zero, direction, new Vector3Int(2, 2, 2));
             
@@ -56,8 +56,8 @@ namespace Tests.UnitTest.Game
         
         void AssertConnectors(Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> result, int index, Vector3Int connectorPosition, Vector3Int targetPosition)
         {
-            Assert.AreEqual(targetPosition, result.Keys.ToList()[index]);
             Assert.AreEqual(connectorPosition, result.Values.ToList()[index].position);
+            Assert.AreEqual(targetPosition, result.Keys.ToList()[index]);
         }
     }
 }
