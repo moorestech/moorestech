@@ -19,7 +19,7 @@ namespace Client.Game.InGame.BlockSystem
         {
             // 大きさをBlockDirection系に変換
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
-            var originPos = blockDirection.GetBlockOriginPos(blockPosition, blockSize);
+            var originPos = blockDirection.GetBlockModelOriginPos(blockPosition, blockSize);
             
             return originPos;
         }
