@@ -8,7 +8,14 @@ namespace Game.Block.Component
 {
     public static class BlockConnectorConnectPositionCalculator
     {
-        public static Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> CalculateInputConnectPoss(BlockConnectInfo inputConnectInfo, BlockPositionInfo blockPositionInfo)
+        /// <summary>
+        /// key: コネクターの位置
+        ///      Position of the connector
+        ///
+        /// value: そのコネクターと接続できる位置のリスト
+        ///        List of positions that can be connected to the connector
+        /// </summary>
+        public static Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> CalculateConnectorToConnectPosList(BlockConnectInfo inputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
             var blockPos = blockPositionInfo.OriginalPos;
             var blockDirection = blockPositionInfo.BlockDirection;
@@ -34,24 +41,29 @@ namespace Game.Block.Component
             return result;
         }
         
-        public static Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> CalculateOutputConnectPoss(BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
+        /// <summary>
+        /// key: コネクターと接続する位置
+        ///     Position to connect to the connector
+        ///
+        /// value: その位置と接続するコネクターの位置
+        ///        Position of the connector to connect to that position
+        /// </summary>
+        public static Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> CalculateConnectPosToConnector(BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
-            var blockPos = blockPositionInfo.OriginalPos;
-            var blockDirection = blockPositionInfo.BlockDirection;
-            var blockModelOriginPos = blockDirection.GetBlockModelOriginPos(blockPositionInfo);
             var result = new Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)>();
             
             if (outputConnectInfo == null) return result;
             
-            foreach (var connectSetting in outputConnectInfo.items)
+            var connectorToConnectPosList = CalculateConnectorToConnectPosList(outputConnectInfo, blockPositionInfo);
+            foreach (var (connectPos, targetOptions) in connectorToConnectPosList)
             {
-                var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
+                if (targetOptions == null) continue;
                 
-                var outputConnectorPos = blockPos + blockPosConvertAction(connectSetting.Offset);
-                var directions = connectSetting.Directions;
-                var targetPoss = directions.Select(c => blockPosConvertAction(c) + outputConnectorPos).ToList();
-                
-                foreach (var targetPos in targetPoss) result.Add(targetPos, (outputConnectorPos, connectSetting.ConnectOption));
+                foreach (var (targetPos, targetOption) in targetOptions)
+                {
+                    // targetPosの重複は今のところ考慮しない
+                    result[targetPos] = (connectPos, targetOption);
+                }
             }
             
             return result;

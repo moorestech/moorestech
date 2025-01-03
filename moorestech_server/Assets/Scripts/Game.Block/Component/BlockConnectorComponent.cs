@@ -26,8 +26,8 @@ namespace Game.Block.Component
         {
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
             
-            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateInputConnectPoss(inputConnectInfo, blockPositionInfo);
-            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateOutputConnectPoss(outputConnectInfo, blockPositionInfo);
+            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectInfo, blockPositionInfo);
+            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectInfo, blockPositionInfo);
             
             foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
