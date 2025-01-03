@@ -101,7 +101,14 @@ namespace Game.Block.Interface
             }
         }
         
-        public static Vector3Int GetBlockOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
+        public static Vector3Int GetBlockModelOriginPos(this BlockDirection blockDirection, BlockPositionInfo blockPositionInfo)
+        {
+            var pos = blockPositionInfo.OriginalPos;
+            var size = blockPositionInfo.BlockSize;
+            return blockDirection.GetBlockModelOriginPos(pos, size);
+        }
+        
+        public static Vector3Int GetBlockModelOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
         {
             var addPos = Vector3Int.zero;
             switch (blockDirection)

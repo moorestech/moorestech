@@ -24,12 +24,10 @@ namespace Game.Block.Component
         
         public BlockConnectorComponent(BlockConnectInfo inputConnectInfo, BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
-            var blockPos = blockPositionInfo.OriginalPos;
-            var blockDirection = blockPositionInfo.BlockDirection;
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
             
-            CreateInputConnectPoss();
-            CreateOutputTargetToOutputConnector();
+            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateInputConnectPoss(inputConnectInfo, blockPositionInfo);
+            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateOutputConnectPoss(outputConnectInfo, blockPositionInfo);
             
             foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
@@ -39,46 +37,6 @@ namespace Game.Block.Component
                 //アウトプット先にブロックがあったら接続を試みる
                 if (ServerContext.WorldBlockDatastore.Exists(outputPos)) OnPlaceBlock(outputPos);
             }
-            
-            #region Internal
-            
-            void CreateInputConnectPoss()
-            {
-                if (inputConnectInfo == null) return;
-                foreach (var inputConnectSetting in inputConnectInfo.items)
-                {
-                    var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
-                    
-                    var inputConnectorPos = blockPos + blockPosConvertAction(inputConnectSetting.Offset);
-                    var directions = inputConnectSetting.Directions;
-                    if (directions == null)
-                    {
-                        _inputConnectPoss.Add(inputConnectorPos, null);
-                        continue;
-                    }
-                    
-                    var targetPositions = directions.Select(c => (blockPosConvertAction(c) + inputConnectorPos, inputConnectSetting.ConnectOption)).ToList();
-                    if (!_inputConnectPoss.TryAdd(inputConnectorPos, targetPositions)) _inputConnectPoss[inputConnectorPos] = _inputConnectPoss[inputConnectorPos].Concat(targetPositions).ToList();
-                }
-            }
-            
-            void CreateOutputTargetToOutputConnector()
-            {
-                if (outputConnectInfo == null) return;
-                
-                foreach (var connectSetting in outputConnectInfo.items)
-                {
-                    var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
-                    
-                    var outputConnectorPos = blockPos + blockPosConvertAction(connectSetting.Offset);
-                    var directions = connectSetting.Directions;
-                    var targetPoss = directions.Select(c => blockPosConvertAction(c) + outputConnectorPos).ToList();
-                    
-                    foreach (var targetPos in targetPoss) _outputTargetToOutputConnector.Add(targetPos, (outputConnectorPos, connectSetting.ConnectOption));
-                }
-            }
-            
-            #endregion
         }
         
         public bool IsDestroy { get; private set; }
