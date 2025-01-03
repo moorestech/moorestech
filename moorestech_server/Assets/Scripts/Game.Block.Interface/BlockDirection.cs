@@ -68,93 +68,60 @@ namespace Game.Block.Interface
         
         public static BlockPosConvertAction GetCoordinateConvertAction(this BlockDirection blockDirection)
         {
-            switch (blockDirection)
+            var rotation = blockDirection.GetRotation();
+            var rotationMatrix = Matrix4x4.Rotate(rotation);
+            
+            // 変換処理を返す
+            return pos =>
             {
-                case BlockDirection.UpNorth:
-                    return p => new Vector3Int(p.x, p.z, -p.y);
-                case BlockDirection.UpEast:
-                    return p => new Vector3Int(-p.y, p.z, -p.x);
-                case BlockDirection.UpSouth:
-                    return p => new Vector3Int(-p.x, p.z, p.y);
-                case BlockDirection.UpWest:
-                    return p => new Vector3Int(p.y, p.z, p.x);
-                
-                case BlockDirection.North:
-                    return p => p;
-                case BlockDirection.East:
-                    return p => new Vector3Int(p.z, p.y, -p.x);
-                case BlockDirection.South:
-                    return p => new Vector3Int(-p.x, p.y, -p.z);
-                case BlockDirection.West:
-                    return p => new Vector3Int(-p.z, p.y, p.x);
-                
-                case BlockDirection.DownNorth:
-                    return p => new Vector3Int(-p.x, -p.z, -p.y);
-                case BlockDirection.DownEast:
-                    return p => new Vector3Int(-p.y, -p.z, p.x);
-                case BlockDirection.DownSouth:
-                    return p => new Vector3Int(p.x, -p.z, p.y);
-                case BlockDirection.DownWest:
-                    return p => new Vector3Int(p.y, -p.z, -p.x);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null);
-            }
+                // 行列は float4 × float4 の形なので pos を拡張して計算
+                var transformed = rotationMatrix.MultiplyPoint3x4(pos);
+                // 戻り値は Vector3Int に丸め
+                return Vector3Int.RoundToInt(transformed);
+            };
         }
         
-        public static Vector3Int GetBlockOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
+        /// <summary>
+        /// そのブロックが回転している時、そのブロック座標系の基準座標が、ワールドのどこにあるかを返す
+        /// When the block is rotating, return the world position of the reference coordinate in the block's local coordinate system.
+        /// </summary>
+        public static Vector3Int GetBlockBaseOriginPos(this BlockDirection blockDirection, BlockPositionInfo blockPositionInfo)
         {
-            var addPos = Vector3Int.zero;
-            switch (blockDirection)
-            {
-                case BlockDirection.UpNorth:
-                    addPos = new Vector3Int(0, 0, size.y);
-                    break;
-                case BlockDirection.UpEast:
-                    addPos = new Vector3Int(size.y, 0, size.x);
-                    break;
-                case BlockDirection.UpSouth:
-                    addPos = new Vector3Int(size.x, 0, size.y);
-                    break;
-                case BlockDirection.UpWest:
-                    addPos = new Vector3Int(0, 0, size.y);
-                    break;
-                
-                case BlockDirection.North:
-                    addPos = new Vector3Int(0, 0, 0);
-                    break;
-                case BlockDirection.East:
-                    addPos = new Vector3Int(0, 0, size.x);
-                    break;
-                case BlockDirection.South:
-                    addPos = new Vector3Int(size.x, 0, size.z);
-                    break;
-                case BlockDirection.West:
-                    addPos = new Vector3Int(size.z, 0, 0);
-                    break;
-                
-                case BlockDirection.DownNorth:
-                    addPos = new Vector3Int(size.x, size.z, size.y);
-                    break;
-                case BlockDirection.DownEast:
-                    addPos = new Vector3Int(size.y, size.z, 0);
-                    break;
-                case BlockDirection.DownSouth:
-                    addPos = new Vector3Int(0, size.z, 0);
-                    break;
-                case BlockDirection.DownWest:
-                    addPos = new Vector3Int(0, size.z, size.x);
-                    break;
-            }
+            var pos = blockPositionInfo.OriginalPos;
+            var size = blockPositionInfo.BlockSize;
+            
+            var minus = blockDirection.GetBlockDirectionOffset() * Vector3Int.one;
+            var originPos = blockDirection.GetBlockModelOriginPos(pos, size);
+            
+            return originPos - minus;
+        }
+        
+        
+        public static Vector3Int GetBlockModelOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
+        {
+            var addPos = blockDirection.GetBlockDirectionOffset() * size;
             
             return pos + addPos;
         }
         
-        public static Vector3Int RotationPosition(this BlockDirection blockDirection, Vector3Int originPos, Vector3Int targetPos)
+        public static Vector3Int GetBlockDirectionOffset(this BlockDirection blockDirection)
         {
-            var originBaseTargetPos = targetPos - originPos;
-            var convertAction = blockDirection.GetCoordinateConvertAction();
-            
-            return convertAction(originBaseTargetPos) + originPos;
+            return blockDirection switch
+            {
+                BlockDirection.UpNorth => new Vector3Int(0, 0, 1),
+                BlockDirection.UpEast => new Vector3Int(1, 0, 1),
+                BlockDirection.UpSouth => new Vector3Int(1, 0, 1),
+                BlockDirection.UpWest => new Vector3Int(0, 0, 1),
+                BlockDirection.North => new Vector3Int(0, 0, 0),
+                BlockDirection.East => new Vector3Int(0, 0, 1),
+                BlockDirection.South => new Vector3Int(1, 0, 1),
+                BlockDirection.West => new Vector3Int(1, 0, 0),
+                BlockDirection.DownNorth => new Vector3Int(1, 1, 1),
+                BlockDirection.DownEast => new Vector3Int(1, 1, 0),
+                BlockDirection.DownSouth => new Vector3Int(0, 1, 0),
+                BlockDirection.DownWest => new Vector3Int(0, 1, 1),
+                _ => Vector3Int.zero
+            };
         }
         
         public static BlockDirection HorizonRotation(this BlockDirection blockDirection)
