@@ -19,8 +19,8 @@ namespace Game.Block.Component
         
         private readonly List<IDisposable> _blockUpdateEvents = new();
         
-        private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss = new(); // key インプットコネクターの位置 value そのコネクターと接続できる位置
-        private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector = new(); // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
+        private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss; // key インプットコネクターの位置 value そのコネクターと接続できる位置
+        private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector; // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
         
         public BlockConnectorComponent(BlockConnectInfo inputConnectInfo, BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
