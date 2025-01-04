@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.Input;
@@ -13,13 +14,15 @@ namespace Client.Game.InGame.UI.UIState
         private readonly IBlockPlacePreview _blockPlacePreview;
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         
         private Vector3 _startCameraRotation;
         private float _startCameraDistance;
         
-        public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
+        public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _skitManager = skitManager;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             _blockPlacePreview = blockPlacePreview;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
         }
@@ -29,6 +32,12 @@ namespace Client.Game.InGame.UI.UIState
             BlockPlaceSystem.SetEnableBlockPlace(true);
             _screenClickableCameraController.OnEnter();
             _screenClickableCameraController.StartTweenFromTop();
+            
+            // ここが重くなったら近いブロックだけプレビューをオンにするなどする
+            foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
+            {
+                blockGameObject.EnablePreviewOnlyObjects(true);
+            }
         }
         
         public UIStateEnum GetNextUpdate()
@@ -48,6 +57,11 @@ namespace Client.Game.InGame.UI.UIState
         public void OnExit()
         {
             BlockPlaceSystem.SetEnableBlockPlace(false);
+            foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
+            {
+                blockGameObject.EnablePreviewOnlyObjects(false);
+            }
+            
             _screenClickableCameraController.OnExit();
         }
     }

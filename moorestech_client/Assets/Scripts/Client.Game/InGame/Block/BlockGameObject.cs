@@ -25,6 +25,8 @@ namespace Client.Game.InGame.Block
         private bool _isShaderAnimating;
         private List<VisualEffect> _visualEffects = new();
         
+        private List<PreviewOnlyObject> _previewOnlyObjects = new();
+        
         
         public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
         {
@@ -48,8 +50,8 @@ namespace Client.Game.InGame.Block
             
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
-            var previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
-            previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(false));
+            _previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
+            _previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(false));
         }
         
         public async UniTask PlayPlaceAnimation()
@@ -75,6 +77,11 @@ namespace Client.Game.InGame.Block
         {
             if (_isShaderAnimating) return;
             _rendererMaterialReplacerController.ResetMaterial();
+        }
+        
+        public void EnablePreviewOnlyObjects(bool enable)
+        {
+            _previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(enable));
         }
         
         public async UniTask DestroyBlock()
