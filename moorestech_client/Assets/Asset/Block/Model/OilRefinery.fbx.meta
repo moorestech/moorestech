@@ -3,7 +3,47 @@ guid: 565b8012abc604c40b63cdab5e5bb13a
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fuel_Plant
+    second: {fileID: 2100000, guid: de4191ac87e95df40a666d9eb093ce71, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fuel_Plant.001
+    second: {fileID: 2100000, guid: 838ce17ee0616df4586f6fb591a5d8a9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fuel_Plant.002
+    second: {fileID: 2100000, guid: 25f198bf23c93664593402cbfd3affe0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fuel_Plant.003
+    second: {fileID: 2100000, guid: fbd2ffa6556f00647b7a5d07fe5c7754, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fuel_Plant.004
+    second: {fileID: 2100000, guid: 8bae594fe2f3bf74590a5559d2779ee9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fuel_Plant.005
+    second: {fileID: 2100000, guid: edebf25e63a655a43a6a7a6b5b348dc4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: steam_bolt
+    second: {fileID: 2100000, guid: a363fd13f7e37234098701e4df06cdd6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: steam_pipe
+    second: {fileID: 2100000, guid: e4b031da45f7bef4089e2f0f02958e28, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
