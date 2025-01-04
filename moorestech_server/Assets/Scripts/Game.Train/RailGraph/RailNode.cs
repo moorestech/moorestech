@@ -66,6 +66,13 @@ namespace Game.Train.RailGraph
         }
 
 
+        //RailGraphから削除する
+        public void Destroy()
+        {
+            OppositeNode = null;
+            _railGraph.RemoveNode(this);
+        }
+
     }
 
 }

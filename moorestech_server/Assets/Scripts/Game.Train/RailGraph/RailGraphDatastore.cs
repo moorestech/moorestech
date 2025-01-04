@@ -70,12 +70,14 @@ namespace Game.Train.RailGraph
         //"削除対象のノードに向かう経路"の情報はこのクラスでしか管理してないので、このクラスで削除する
         public void RemoveNode(RailNode node)
         {
+            //railIdDicにnodeがなければ何もしない
+            if (!railIdDic.ContainsKey(node))
+                return;
             var nodeid = railIdDic[node];
             railIdDic.Remove(node);
             railNodes[nodeid] = null;
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
-
             RemoveNodeTo(nodeid);//削除対象のノードに向かう経路の削除
         }
 

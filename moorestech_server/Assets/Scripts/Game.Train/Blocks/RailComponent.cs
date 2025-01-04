@@ -32,6 +32,10 @@ namespace Game.Train.Blocks
         public void Destroy()
         {
             IsDestroy = true;
+            FrontNode.Destroy();
+            BackNode.Destroy();
+            FrontNode = null;
+            BackNode = null;
         }
 
     }
