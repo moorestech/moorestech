@@ -12,9 +12,8 @@ namespace Client.Game.InGame.Block
 {
     public class BlockGameObjectDataStore : MonoBehaviour
     {
-        private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
-        
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
+        private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
         
         public event Action<BlockGameObject> OnPlaceBlock;
         
