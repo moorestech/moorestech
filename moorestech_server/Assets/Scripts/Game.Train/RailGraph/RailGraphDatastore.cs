@@ -67,6 +67,7 @@ namespace Game.Train.RailGraph
         }
 
         //ノードの削除。削除対象のノードに向かう経路の削除は別に行う必要がある
+        //"削除対象のノードに向かう経路"の情報はこのクラスでしか管理してないので、このクラスで削除する
         public void RemoveNode(RailNode node)
         {
             var nodeid = railIdDic[node];
@@ -74,7 +75,20 @@ namespace Game.Train.RailGraph
             railNodes[nodeid] = null;
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
+
+            RemoveNodeTo(nodeid);//削除対象のノードに向かう経路の削除
         }
+
+        //削除対象のノードに向かう経路の削除
+        //これはnode反転したときのすべての行き先から見ればいい。ただし反転nodeがすでに存在しないと思わぬバグになるしそこまで考慮するとコードが複雑になるので全探索する
+        public void RemoveNodeTo(int nodeid)
+        {
+            for (int i = 0; i < connectNodes.Count; i++)
+            {
+                connectNodes[i].RemoveAll(x => x.Item1 == nodeid);
+            }
+        }
+
 
         //RailNodeの入力に対しつながっているRailNodeをリスト<Nod>で返す
         //RailNodeの入力に対しRailNodeのリストで返すので少しややこしいことをしている
