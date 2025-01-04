@@ -48,7 +48,6 @@ namespace Game.Train.RailGraph
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
-        //例外もあると思うのでpublicのまま
         public void SetOppositeNode(RailNode oppositeNode)
         {
             OppositeNode = oppositeNode;
@@ -56,6 +55,7 @@ namespace Game.Train.RailGraph
 
 
         //RailGraphに登録する
+        //基本的にrailComponent側からのみよびだす
         public void ConnectNode(RailNode targetNode, int distance)
         {
             _railGraph.ConnectNode(this, targetNode, distance);
