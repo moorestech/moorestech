@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
+using Client.Common.Asset;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
@@ -27,6 +28,7 @@ namespace Client.Game.InGame.Block
         
         private List<PreviewOnlyObject> _previewOnlyObjects = new();
         
+        private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
         
         public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
         {
@@ -52,6 +54,23 @@ namespace Client.Game.InGame.Block
             // Turn off preview-only object
             _previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
             _previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(false));
+            
+            LoadBoundingBox().Forget();
+            
+            // バウンディングボックス用オブジェクトを作成
+            // Create a bounding box object
+            #region Internal
+            
+            async UniTask LoadBoundingBox()
+            {
+                var previewBoundingBoxPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(PreviewBoundingBoxAddressablePath);
+                var previewBoundingBoxObj = Instantiate(previewBoundingBoxPrefab, transform);
+                previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize);
+                previewBoundingBoxObj.SetActive(false);
+                _previewOnlyObjects.Add(previewBoundingBoxObj.GetComponent<PreviewOnlyObject>());
+            }
+            
+            #endregion
         }
         
         public async UniTask PlayPlaceAnimation()
