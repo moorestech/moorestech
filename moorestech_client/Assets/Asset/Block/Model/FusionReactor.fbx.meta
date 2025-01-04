@@ -3,7 +3,67 @@ guid: d7abe58821e104d01ba6de40897c4c03
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line
+    second: {fileID: 2100000, guid: 82b4c5bc4d19c7a4698d5580990aeaf7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_1
+    second: {fileID: 2100000, guid: 457175f7ec231b54cba5a8e6a6602ac5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_2
+    second: {fileID: 2100000, guid: 984b3928ebb1ab7499bc820a0f61494f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_3
+    second: {fileID: 2100000, guid: 421ae25c8b409f448ae236d626fc6614, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: dark_glay
+    second: {fileID: 2100000, guid: 89fe4c497dc3d9b4da4dfe5cdba444a4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: dark_glay_Fusion
+    second: {fileID: 2100000, guid: 2729fae7f8940014b9098f7ed885fc4a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: glay
+    second: {fileID: 2100000, guid: 2ce2e18c463d9224e922ee2997afd11a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grass_Purple
+    second: {fileID: 2100000, guid: bd9e7b68248948847820212cc9d24684, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: light_glay
+    second: {fileID: 2100000, guid: f3c311f62d587fb44aca6128c2b4acfd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: orange
+    second: {fileID: 2100000, guid: efee305003031054d9898b14055782bf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: purple
+    second: {fileID: 2100000, guid: 1a837b5da2f8af942a6471313867304e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: yellow
+    second: {fileID: 2100000, guid: 8652e6a99dc54d743afbcc34b4165aec, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
