@@ -278,11 +278,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
-            //そのrayが地面のオブジェクトかブロックにヒットしてるか
+            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
+            //そのrayが地面のオブジェクトかブロックのバウンディングボックスにヒットしてるか
             if (
                 !hit.transform.TryGetComponent<GroundGameObject>(out _) &&
-                !hit.transform.TryGetComponent<BlockGameObjectChild>(out _) &&
                 !hit.transform.TryGetComponent(out surface)
             )
             {

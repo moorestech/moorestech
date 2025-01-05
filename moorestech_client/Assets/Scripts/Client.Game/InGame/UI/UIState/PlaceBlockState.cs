@@ -17,8 +17,8 @@ namespace Client.Game.InGame.UI.UIState
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly List<IDisposable> _blockPlacedDisposable = new();
         
-        private List<IDisposable> _blockPlacedDisposable;
         private Vector3 _startCameraRotation;
         private float _startCameraDistance;
         
@@ -77,6 +77,7 @@ namespace Client.Game.InGame.UI.UIState
             }
             
             _blockPlacedDisposable.ForEach(d => d.Dispose());
+            _blockPlacedDisposable.Clear();
             _screenClickableCameraController.OnExit();
         }
     }

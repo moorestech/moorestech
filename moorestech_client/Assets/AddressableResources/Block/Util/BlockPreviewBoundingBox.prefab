@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1152746051879301160}
   - component: {fileID: 5147690393572355824}
   - component: {fileID: 6113146226755706037}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -225,7 +225,7 @@ GameObject:
   - component: {fileID: 3402703702326629435}
   - component: {fileID: 4342589292544344759}
   - component: {fileID: 33906132995900715}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -280,7 +280,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b8048fc2a9541ebb0098de49f02a2d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewSurfaceType: 3
+  _previewSurfaceType: 0
 --- !u!1 &1568596138454311897
 GameObject:
   m_ObjectHideFlags: 0
@@ -637,7 +637,7 @@ GameObject:
   - component: {fileID: 8405672310212498986}
   - component: {fileID: 8604657366233277171}
   - component: {fileID: 7218240447116573781}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -692,7 +692,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b8048fc2a9541ebb0098de49f02a2d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewSurfaceType: 5
+  _previewSurfaceType: 0
 --- !u!1 &3389911387650411745
 GameObject:
   m_ObjectHideFlags: 0
@@ -998,7 +998,7 @@ GameObject:
   - component: {fileID: 7347731344524244816}
   - component: {fileID: 4039785355782975247}
   - component: {fileID: 1922265137331391318}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1053,7 +1053,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b8048fc2a9541ebb0098de49f02a2d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewSurfaceType: 5
+  _previewSurfaceType: 0
 --- !u!1 &4920655041473275962
 GameObject:
   m_ObjectHideFlags: 0
@@ -1378,7 +1378,7 @@ GameObject:
   - component: {fileID: 1804287103342468948}
   - component: {fileID: 4678928943505567823}
   - component: {fileID: 5962286434532576186}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1643,7 +1643,7 @@ GameObject:
   - component: {fileID: 5699504592216742726}
   - component: {fileID: 1217646145365689657}
   - component: {fileID: 7938617044555930103}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
