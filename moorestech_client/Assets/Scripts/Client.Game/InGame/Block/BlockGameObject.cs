@@ -53,7 +53,11 @@ namespace Client.Game.InGame.Block
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
             _previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
-            _previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(false));
+            _previewOnlyObjects.ForEach(obj =>
+            {
+                obj.Initialize();
+                obj.SetActive(false);
+            });
             
             LoadBoundingBox().Forget();
             
@@ -66,8 +70,11 @@ namespace Client.Game.InGame.Block
                 var previewBoundingBoxPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(PreviewBoundingBoxAddressablePath);
                 var previewBoundingBoxObj = Instantiate(previewBoundingBoxPrefab, transform);
                 previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize, posInfo.BlockDirection);
-                previewBoundingBoxObj.SetActive(false);
-                _previewOnlyObjects.Add(previewBoundingBoxObj.GetComponent<PreviewOnlyObject>());
+                
+                var previewOnlyObject = previewBoundingBoxObj.GetComponent<PreviewOnlyObject>();
+                previewOnlyObject.Initialize();
+                previewOnlyObject.SetActive(false);
+                _previewOnlyObjects.Add(previewOnlyObject);
             }
             
             #endregion
