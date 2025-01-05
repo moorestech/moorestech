@@ -6,6 +6,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Block
@@ -15,7 +16,8 @@ namespace Client.Game.InGame.Block
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
         
-        public event Action<BlockGameObject> OnPlaceBlock;
+        public IObservable<BlockGameObject> OnBlockPlaced => _onBlockPlaced;
+        private readonly Subject<BlockGameObject> _onBlockPlaced = new();
         
         
         public BlockGameObject GetBlockGameObject(Vector3Int position)
@@ -59,7 +61,7 @@ namespace Client.Game.InGame.Block
             block.PlayPlaceAnimation().Forget();
             
             _blockObjectsDictionary.Add(blockPosition, block);
-            OnPlaceBlock?.Invoke(block);
+            _onBlockPlaced.OnNext(block);
         }
         
         public void RemoveBlock(Vector3Int blockPosition)

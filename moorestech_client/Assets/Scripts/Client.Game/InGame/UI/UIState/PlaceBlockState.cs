@@ -1,10 +1,11 @@
-﻿using System.Threading;
+﻿using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.Skit;
 using Client.Input;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
@@ -16,6 +17,7 @@ namespace Client.Game.InGame.UI.UIState
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         
+        private IDisposable _blockPlacedDisposable;
         private Vector3 _startCameraRotation;
         private float _startCameraDistance;
         
@@ -38,6 +40,7 @@ namespace Client.Game.InGame.UI.UIState
             {
                 blockGameObject.EnablePreviewOnlyObjects(true);
             }
+            _blockPlacedDisposable = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock);
         }
         
         public UIStateEnum GetNextUpdate()
@@ -54,6 +57,11 @@ namespace Client.Game.InGame.UI.UIState
             return UIStateEnum.Current;
         }
         
+        private void OnPlaceBlock(BlockGameObject blockGameObject)
+        {
+            blockGameObject.EnablePreviewOnlyObjects(true);
+        }
+            
         public void OnExit()
         {
             BlockPlaceSystem.SetEnableBlockPlace(false);
@@ -62,6 +70,7 @@ namespace Client.Game.InGame.UI.UIState
                 blockGameObject.EnablePreviewOnlyObjects(false);
             }
             
+            _blockPlacedDisposable?.Dispose();
             _screenClickableCameraController.OnExit();
         }
     }

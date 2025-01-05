@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
@@ -23,12 +24,11 @@ namespace Client.Game.InGame.Block
         
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
-        private bool _isShaderAnimating;
         private List<VisualEffect> _visualEffects = new();
-        
         private List<PreviewOnlyObject> _previewOnlyObjects = new();
-        
         private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
+        
+        private bool _isShaderAnimating;
         
         public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
         {
