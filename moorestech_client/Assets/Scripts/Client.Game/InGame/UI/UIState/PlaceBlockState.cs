@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
@@ -17,7 +18,7 @@ namespace Client.Game.InGame.UI.UIState
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         
-        private IDisposable _blockPlacedDisposable;
+        private List<IDisposable> _blockPlacedDisposable;
         private Vector3 _startCameraRotation;
         private float _startCameraDistance;
         
@@ -38,9 +39,9 @@ namespace Client.Game.InGame.UI.UIState
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
-                blockGameObject.EnablePreviewOnlyObjects(true);
+                blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
-            _blockPlacedDisposable = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock);
+            _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
         }
         
         public UIStateEnum GetNextUpdate()
@@ -59,18 +60,23 @@ namespace Client.Game.InGame.UI.UIState
         
         private void OnPlaceBlock(BlockGameObject blockGameObject)
         {
-            blockGameObject.EnablePreviewOnlyObjects(true);
-        }
+            blockGameObject.EnablePreviewOnlyObjects(true, false);
             
+            _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
+            {
+                blockGameObject.EnablePreviewOnlyObjects(true, true);
+            }));
+        }
+        
         public void OnExit()
         {
             BlockPlaceSystem.SetEnableBlockPlace(false);
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
-                blockGameObject.EnablePreviewOnlyObjects(false);
+                blockGameObject.EnablePreviewOnlyObjects(false, false);
             }
             
-            _blockPlacedDisposable?.Dispose();
+            _blockPlacedDisposable.ForEach(d => d.Dispose());
             _screenClickableCameraController.OnExit();
         }
     }

@@ -10,6 +10,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
+using UniRx;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -21,6 +22,9 @@ namespace Client.Game.InGame.Block
         public BlockMasterElement BlockMasterElement { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; }
+        
+        public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
+        private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
         
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
@@ -87,6 +91,7 @@ namespace Client.Game.InGame.Block
             await _blockShaderAnimation.PlaceAnimation();
             _isShaderAnimating = false;
             SetVfxActive(true);
+            _onFinishedPlaceAnimation.OnNext(this);
         }
         
         public void SetRemovePreviewing()
@@ -105,9 +110,13 @@ namespace Client.Game.InGame.Block
             _rendererMaterialReplacerController.ResetMaterial();
         }
         
-        public void EnablePreviewOnlyObjects(bool enable)
+        public void EnablePreviewOnlyObjects(bool active, bool renderEnable)
         {
-            _previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(enable));
+            _previewOnlyObjects.ForEach(obj =>
+            {
+                obj.SetActive(active);
+                obj.SetEnableRenderers(renderEnable);
+            });
         }
         
         public async UniTask DestroyBlock()
