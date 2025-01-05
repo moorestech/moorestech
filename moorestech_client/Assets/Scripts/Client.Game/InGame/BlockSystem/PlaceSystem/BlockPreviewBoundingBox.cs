@@ -21,21 +21,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         [SerializeField] private GameObject z_XY_Edge;
         
         [SerializeField] private GameObject xy_Origin_Surface;
+        [SerializeField] private BlockPreviewBoundingBoxSurface xy_Origin_SurfaceScript;
         [SerializeField] private GameObject xy_Z_Surface;
+        [SerializeField] private BlockPreviewBoundingBoxSurface xy_Z_SurfaceScript;
         
         [SerializeField] private GameObject yz_Origin_Surface;
+        [SerializeField] private BlockPreviewBoundingBoxSurface yz_Origin_SurfaceScript;
         [SerializeField] private GameObject yz_X_Surface;
+        [SerializeField] private BlockPreviewBoundingBoxSurface yz_X_SurfaceScript;
         
         [SerializeField] private GameObject zx_Origin_Surface;
-        [SerializeField] private GameObject ZX_Y_Surface;
+        [SerializeField] private BlockPreviewBoundingBoxSurface zx_Origin_SurfaceScript;
+        [SerializeField] private GameObject zx_Y_Surface;
+        [SerializeField] private BlockPreviewBoundingBoxSurface zx_Y_SurfaceScript;
         
         public void SetBoundingBox(Vector3Int blockSize, BlockDirection blockDirection)
         {
-            var position = blockDirection.GetBlockModelOriginPos(Vector3Int.zero, blockSize);
-            transform.localPosition = position;
-            var rotation = blockDirection.GetRotation();
-            transform.localRotation = rotation;
-            
             // ========== X軸方向のエッジ ==========
             x_Origin_Edge.transform.localScale = new Vector3(blockSize.x, 1, 1);
             x_Origin_Edge.transform.localPosition = new Vector3(0, 0, 0);
@@ -81,25 +82,53 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // ========== x-y 平面 ==========
             xy_Origin_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);
             xy_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
+            xy_Origin_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
+            { 
+                BlockDirection.North => PreviewSurfaceType.YX_Origin,
+                BlockDirection.East => PreviewSurfaceType.YZ_Origin,
+                BlockDirection.South => PreviewSurfaceType.YX_Z,
+                BlockDirection.West => PreviewSurfaceType.YZ_X,
+            });
             
             xy_Z_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);
             xy_Z_Surface.transform.localPosition = new Vector3(0, 0, blockSize.z);
+            xy_Z_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
+            {
+                BlockDirection.North => PreviewSurfaceType.YX_Z,
+                BlockDirection.East => PreviewSurfaceType.YZ_X,
+                BlockDirection.South => PreviewSurfaceType.YX_Origin,
+                BlockDirection.West => PreviewSurfaceType.YZ_Origin,
+            });
             
             
             // ========== y-z 平面 ==========
             yz_Origin_Surface.transform.localScale = new Vector3(1, blockSize.y, blockSize.z);
             yz_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
+            yz_Origin_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
+            {
+                BlockDirection.North => PreviewSurfaceType.YZ_Origin,
+                BlockDirection.East => PreviewSurfaceType.YX_Z,
+                BlockDirection.South => PreviewSurfaceType.YZ_X,
+                BlockDirection.West => PreviewSurfaceType.YX_Origin,
+            });
             
             yz_X_Surface.transform.localScale = new Vector3(1, blockSize.y, blockSize.z);
             yz_X_Surface.transform.localPosition = new Vector3(blockSize.x, 0, 0);
+            yz_X_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
+            {
+                BlockDirection.North => PreviewSurfaceType.YZ_X,
+                BlockDirection.East => PreviewSurfaceType.YX_Origin,
+                BlockDirection.South => PreviewSurfaceType.YZ_Origin,
+                BlockDirection.West => PreviewSurfaceType.YX_Z,
+            });
             
             
             // ========== z-x 平面 ==========
             zx_Origin_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
             
-            ZX_Y_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
-            ZX_Y_Surface.transform.localPosition = new Vector3(0, blockSize.y, 0);
+            zx_Y_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
+            zx_Y_Surface.transform.localPosition = new Vector3(0, blockSize.y, 0);
         }
     }
 }
