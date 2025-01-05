@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
@@ -7,11 +8,9 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Context;
 using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -131,7 +130,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _blockPlacePreview.SetActive(false);
             
             if (!MasterHolder.BlockMaster.IsBlock(itemId)) return; // 置けるブロックかどうか
-            if (!TryGetRayHitPosition(out hitPoint)) return; // ブロック設置用のrayが当たっているか
+            if (!TryGetRayHitPosition(out hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
             
             //設置座標計算 calculate place point
             var blockId = MasterHolder.BlockMaster.GetBlockId(itemId);
@@ -210,29 +209,85 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
                 var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
                 
-                var point = Vector3Int.zero;
-                point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
-                point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
+                if (boundingBoxSurface == null)
+                {
+                    var point = Vector3Int.zero;
+                    point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
+                    point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
+                    point.y = Mathf.FloorToInt(hitPoint.y);
+                    
+                    point += new Vector3Int(0, _heightOffset, 0);
+                    point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
+                    
+                    return point;
+                }
                 
-                point += new Vector3Int(0, _heightOffset + _baseHeight, 0);
-                point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
-                
-                return point;
+                switch (boundingBoxSurface.PreviewSurfaceType)
+                {
+                    case PreviewSurfaceType.YX_Origin:
+                        return new Vector3Int(
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.CeilToInt(rotatedSize.x / 2f),
+                            Mathf.FloorToInt(hitPoint.y),
+                            Mathf.FloorToInt(hitPoint.z)
+                        );
+                    case PreviewSurfaceType.YX_Z:
+                        return new Vector3Int(
+                            Mathf.FloorToInt(hitPoint.x) + Mathf.CeilToInt(rotatedSize.x / 2f),
+                            Mathf.FloorToInt(hitPoint.y),
+                            Mathf.FloorToInt(hitPoint.z)
+                        );
+                    case PreviewSurfaceType.YZ_Origin:
+                        return new Vector3Int(
+                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.y),
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.CeilToInt(rotatedSize.z / 2f)
+                        );
+                    case PreviewSurfaceType.YZ_X:
+                        return new Vector3Int(
+                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.y),
+                            Mathf.FloorToInt(hitPoint.z) + Mathf.CeilToInt(rotatedSize.z / 2f)
+                        );
+                    
+                    case PreviewSurfaceType.XZ_Origin:
+                        return new Vector3Int(
+                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
+                            Mathf.FloorToInt(hitPoint.z)
+                        );
+                    case PreviewSurfaceType.XZ_Y:
+                        return new Vector3Int(
+                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.y),
+                            Mathf.FloorToInt(hitPoint.z)
+                        );
+                    
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
             
             #endregion
         }
         
         
-        private bool TryGetRayHitPosition(out Vector3 pos)
+        private bool TryGetRayHitPosition(out Vector3 pos,out BlockPreviewBoundingBoxSurface surface)
         {
+            surface = null;
             pos = Vector3Int.zero;
             var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
             //そのrayが地面のオブジェクトかブロックにヒットしてるか
-            if (!hit.transform.TryGetComponent<GroundGameObject>(out _) && !hit.transform.TryGetComponent<BlockGameObjectChild>(out _)) return false;
+            if (
+                !hit.transform.TryGetComponent<GroundGameObject>(out _) &&
+                !hit.transform.TryGetComponent<BlockGameObjectChild>(out _) &&
+                !hit.transform.TryGetComponent(out surface)
+            )
+            {
+                return false;
+            }
             
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             pos = hit.point;

@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Block
             {
                 var previewBoundingBoxPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(PreviewBoundingBoxAddressablePath);
                 var previewBoundingBoxObj = Instantiate(previewBoundingBoxPrefab, transform);
-                previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize);
+                previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize, posInfo.BlockDirection);
                 previewBoundingBoxObj.SetActive(false);
                 _previewOnlyObjects.Add(previewBoundingBoxObj.GetComponent<PreviewOnlyObject>());
             }
