@@ -1,6 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Gear.Common;
+using Game.Train.Blocks;
 using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -365,6 +370,60 @@ namespace Tests.UnitTest.Game
                 Assert.AreEqual(nodeD1, list[2]);
                 Assert.AreEqual(nodeE1, list[3]);
             }
+        }
+
+
+        //railComponentの表裏テスト
+        [Test]
+        public void TestRailComponentsAreConnected()
+        {
+            // Initialize the RailGraphDatastore
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+
+            //worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
+            //worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
+            
+            // Create two RailComponents
+            var railComponent1 = new RailComponent(railGraphDatastore);
+            var railComponent2 = new RailComponent(railGraphDatastore);
+
+            // Connect the two RailComponents
+            railComponent1.ConnectRailComponent(railComponent2, true, true); // Front of railComponent1 to front of railComponent2
+
+            // Validate connections
+            var connectedNodes = railComponent1.FrontNode.ConnectedNodesWithDistance;
+            var connectedNode = connectedNodes.FirstOrDefault();
+
+            Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
+            Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
+            Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
+            
+        }
+
+        [Test]
+        public void TestRailComponentsBackToFrontConnection()
+        {
+            // Initialize the RailGraphDatastore
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+
+            // Create two RailComponents
+            var railComponent1 = new RailComponent(railGraphDatastore);
+            var railComponent2 = new RailComponent(railGraphDatastore);
+
+            // Connect the two RailComponents: Back of railComponent1 to Front of railComponent2
+            railComponent1.ConnectRailComponent(railComponent2, false, true);
+
+            // Validate connections
+            var connectedNodes = railComponent1.BackNode.ConnectedNodesWithDistance;
+            var connectedNode = connectedNodes.FirstOrDefault();
+
+            Assert.NotNull(connectedNode, "RailComponent1's BackNode is not connected.");
+            Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's BackNode is not connected to RailComponent2's FrontNode.");
+            Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
         }
 
     }
