@@ -6,6 +6,7 @@ namespace Game.Train.RailGraph
 {
     public class RailGraphDatastore
     {
+        private static RailGraphDatastore _instance;
         private readonly Dictionary<RailNode, int> railIdDic;//RailNode→Id辞書。下の逆引き
         private readonly List<RailNode> railNodes;//Id→RailNode辞書。上の逆引き
         MinHeap<int> nextidQueue;//上のリストで穴開き状態をなるべく防ぐために、次使う最小Idを取得するためのキュー。そのためだけにminheapを実装している
@@ -15,13 +16,39 @@ namespace Game.Train.RailGraph
 
         public RailGraphDatastore()
         {
+            _instance = this;
             railIdDic = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
             nextidQueue = new MinHeap<int>();
             connectNodes = new List<List<(int, int)>>();
         }
 
-        public void AddNode(RailNode node)
+        //gearを参考にinternal化
+        public static void AddNode(RailNode node)
+        {
+            _instance.AddNodeInternal(node); 
+        }
+        public static void ConnectNode(RailNode node, RailNode targetNode, int distance) 
+        {
+            _instance.ConnectNodeInternal(node, targetNode, distance); 
+        }
+        public static List<(RailNode, int)> GetConnectedNodesWithDistance(RailNode node)
+        {
+            return _instance.GetConnectedNodesWithDistanceInternal(node);
+        }
+        public static void RemoveNode(RailNode node) 
+        {
+            _instance.RemoveNodeInternal(node);
+        }
+        public static int GetDistanceBetweenNodes(RailNode start, RailNode target)
+        {
+            return _instance.GetDistanceBetweenNodesInternal(start, target);
+        }
+
+
+
+
+        private void AddNodeInternal(RailNode node)
         {
             //すでにnodeが登録されている場合は何もしない
             if (railIdDic.ContainsKey(node))
@@ -41,12 +68,11 @@ namespace Game.Train.RailGraph
             {
                 railNodes[nextid] = node;
             }
-
             railIdDic[node] = nextid;
         }
 
         //接続元RailNode、接続先RailNode、int距離
-        public void ConnectNode(RailNode node, RailNode targetNode, int distance)
+        private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
         {
             //nodeが辞書になければ追加
             if (!railIdDic.ContainsKey(node))
@@ -68,7 +94,7 @@ namespace Game.Train.RailGraph
 
         //ノードの削除。削除対象のノードに向かう経路の削除は別に行う必要がある
         //"削除対象のノードに向かう経路"の情報はこのクラスでしか管理してないので、このクラスで削除する
-        public void RemoveNode(RailNode node)
+        private void RemoveNodeInternal(RailNode node)
         {
             //railIdDicにnodeがなければ何もしない
             if (!railIdDic.ContainsKey(node))
@@ -83,7 +109,7 @@ namespace Game.Train.RailGraph
 
         //削除対象のノードに向かう経路の削除
         //これはnode反転したときのすべての行き先から見ればいい。ただし反転nodeがすでに存在しないと思わぬバグになるしそこまで考慮するとコードが複雑になるので全探索する
-        public void RemoveNodeTo(int nodeid)
+        private void RemoveNodeTo(int nodeid)
         {
             for (int i = 0; i < connectNodes.Count; i++)
             {
@@ -92,17 +118,8 @@ namespace Game.Train.RailGraph
         }
 
 
-        //RailNodeの入力に対しつながっているRailNodeをリスト<Nod>で返す
-        //RailNodeの入力に対しRailNodeのリストで返すので少しややこしいことをしている
-        public List<RailNode> GetConnectedNodes(RailNode node)
-        {
-            if (!railIdDic.ContainsKey(node))
-                return new List<RailNode>();
-            int nodeId = railIdDic[node];
-            return connectNodes[nodeId].Select(x => railNodes[x.Item1]).ToList();
-        }
         //RailNodeの入力に対しつながっているRailNodeをリスト<Node,距離int>で返す
-        public List<(RailNode, int)> GetConnectedNodesWithDistance(RailNode node)
+        private List<(RailNode, int)> GetConnectedNodesWithDistanceInternal(RailNode node)
         {
             if (!railIdDic.ContainsKey(node))
                 return new List<(RailNode, int)>();
@@ -113,7 +130,7 @@ namespace Game.Train.RailGraph
 
         //railnode2つの入力 start から target までの距離を返す。ここでは経路探索しないで直接つながっている2点間の距離を返す
         //つながっていない場合は-1を返して警告だす
-        public int GetDistanceBetweenNodes(RailNode start, RailNode target)
+        private int GetDistanceBetweenNodesInternal(RailNode start, RailNode target)
         {
             if (!railIdDic.ContainsKey(start) || !railIdDic.ContainsKey(target)) 
             {

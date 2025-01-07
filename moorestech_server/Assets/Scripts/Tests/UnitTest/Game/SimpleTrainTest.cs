@@ -49,10 +49,10 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var node0 = new RailNode(railGraphDatastore);
-            var node1 = new RailNode(railGraphDatastore);
-            var node2 = new RailNode(railGraphDatastore);
-            var node3 = new RailNode(railGraphDatastore);
+            var node0 = new RailNode();
+            var node1 = new RailNode();
+            var node2 = new RailNode();
+            var node3 = new RailNode();
             node0.ConnectNode(node1, 1);
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
@@ -78,10 +78,10 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var node0 = new RailNode(railGraphDatastore);
-            var node1 = new RailNode(railGraphDatastore);
-            var node2 = new RailNode(railGraphDatastore);
-            var node3 = new RailNode(railGraphDatastore);
+            var node0 = new RailNode();
+            var node1 = new RailNode();
+            var node2 = new RailNode();
+            var node3 = new RailNode();
             node0.ConnectNode(node1, 123);
             node0.ConnectNode(node2, 345);
             node1.ConnectNode(node3, 400);
@@ -114,7 +114,7 @@ namespace Tests.UnitTest.Game
             RailNode[] nodeList = new RailNode[nodenum];
             for (int i = 0; i < nodenum; i++)
             {
-                nodeList[i] = new RailNode(railGraphDatastore);
+                nodeList[i] = new RailNode();
             }
             //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
             for (int i = 0; i < nodenum; i++)
@@ -165,12 +165,12 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var nodeA = new RailNode(railGraphDatastore);
-            var nodeB = new RailNode(railGraphDatastore);
-            var nodeC1 = new RailNode(railGraphDatastore);
-            var nodeC2 = new RailNode(railGraphDatastore);
-            var nodeD1 = new RailNode(railGraphDatastore);
-            var nodeD2 = new RailNode(railGraphDatastore);
+            var nodeA = new RailNode();
+            var nodeB = new RailNode();
+            var nodeC1 = new RailNode();
+            var nodeC2 = new RailNode();
+            var nodeD1 = new RailNode();
+            var nodeD2 = new RailNode();
             nodeA.ConnectNode(nodeC1, 3782);
             nodeB.ConnectNode(nodeC1, 67329);
             nodeC1.ConnectNode(nodeD1, 71894);
@@ -225,9 +225,9 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var nodeA = new RailNode(railGraphDatastore);
-            var nodeB = new RailNode(railGraphDatastore);
-            var nodeC = new RailNode(railGraphDatastore);
+            var nodeA = new RailNode();
+            var nodeB = new RailNode();
+            var nodeC = new RailNode();
 
             nodeA.ConnectNode(nodeB, 10);
             nodeA.ConnectNode(nodeC, 20);
@@ -248,11 +248,11 @@ namespace Tests.UnitTest.Game
             var railGraph = serviceProvider.GetService<RailGraphDatastore>();
 
             // ノードを準備
-            var nodeA = new RailNode(railGraph);
-            var nodeB = new RailNode(railGraph);
-            var nodeC = new RailNode(railGraph);
-            var nodeD = new RailNode(railGraph);
-            var nodeE = new RailNode(railGraph);
+            var nodeA = new RailNode();
+            var nodeB = new RailNode();
+            var nodeC = new RailNode();
+            var nodeD = new RailNode();
+            var nodeE = new RailNode();
 
             // ノードを接続
             nodeB.ConnectNode(nodeA, 10);//9から列車
@@ -295,17 +295,17 @@ namespace Tests.UnitTest.Game
 
             // ノードを準備
             // 表
-            var nodeA1 = new RailNode(railGraph);
-            var nodeB1 = new RailNode(railGraph);
-            var nodeC1 = new RailNode(railGraph);
-            var nodeD1 = new RailNode(railGraph);
-            var nodeE1 = new RailNode(railGraph);
+            var nodeA1 = new RailNode();
+            var nodeB1 = new RailNode();
+            var nodeC1 = new RailNode();
+            var nodeD1 = new RailNode();
+            var nodeE1 = new RailNode();
             // 裏
-            var nodeA2 = new RailNode(railGraph);
-            var nodeB2 = new RailNode(railGraph);
-            var nodeC2 = new RailNode(railGraph);
-            var nodeD2 = new RailNode(railGraph);
-            var nodeE2 = new RailNode(railGraph);
+            var nodeA2 = new RailNode();
+            var nodeB2 = new RailNode();
+            var nodeC2 = new RailNode();
+            var nodeD2 = new RailNode();
+            var nodeE2 = new RailNode();
 
             // ノードを接続
             nodeB1.ConnectNode(nodeA1, 10);//5から列車
@@ -386,8 +386,8 @@ namespace Tests.UnitTest.Game
             //worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
             
             // Create two RailComponents
-            var railComponent1 = new RailComponent(railGraphDatastore);
-            var railComponent2 = new RailComponent(railGraphDatastore);
+            var railComponent1 = new RailComponent();
+            var railComponent2 = new RailComponent();
 
             // Connect the two RailComponents
             railComponent1.ConnectRailComponent(railComponent2, true, true); // Front of railComponent1 to front of railComponent2
@@ -411,8 +411,8 @@ namespace Tests.UnitTest.Game
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
             // Create two RailComponents
-            var railComponent1 = new RailComponent(railGraphDatastore);
-            var railComponent2 = new RailComponent(railGraphDatastore);
+            var railComponent1 = new RailComponent();
+            var railComponent2 = new RailComponent();
 
             // Connect the two RailComponents: Back of railComponent1 to Front of railComponent2
             railComponent1.ConnectRailComponent(railComponent2, false, true);

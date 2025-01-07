@@ -19,11 +19,11 @@ namespace Game.Train.Blocks
         public UnityEngine.Vector3Int Position { get; private set; }
 
         // コンストラクタ
-        public RailComponent(RailGraphDatastore railGraph)
+        public RailComponent()
         {
             // RailGraphにノードを登録
-            FrontNode = new RailNode(railGraph);
-            BackNode = new RailNode(railGraph);
+            FrontNode = new RailNode();
+            BackNode = new RailNode();
             FrontNode.SetOppositeNode(BackNode);
             BackNode.SetOppositeNode(FrontNode);
         }
