@@ -1,4 +1,3 @@
-using Game.Train.Blocks;
 using System.Collections.Generic;
 using System.Linq;
 /// <summary>
@@ -14,7 +13,7 @@ namespace Game.Train.RailGraph
 
 
         // 駅であれば駅のコンポーネント、なければnull
-        public StationComponent Station { get; private set; }
+        //public StationComponent Station { get; private set; }
         // 自分に対応する裏表のノード
         public RailNode OppositeNode { get; private set; }
 
@@ -47,9 +46,9 @@ namespace Game.Train.RailGraph
             }
         }
 
-        public RailNode(StationComponent station = null)
+        public RailNode()//StationComponent station = null
         {
-            Station = station;
+            //Station = station;
             RailGraphDatastore.AddNode(this);
         }
 

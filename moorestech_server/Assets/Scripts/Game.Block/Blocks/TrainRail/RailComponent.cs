@@ -1,7 +1,7 @@
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 
-namespace Game.Train.Blocks
+namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
     /// レールの基本構成要素を表すクラス。

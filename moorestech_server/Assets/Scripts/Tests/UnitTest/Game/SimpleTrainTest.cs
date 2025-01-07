@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
+//using System.Reflection.Emit;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
+//using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Block.Blocks.TrainRail;
 using Game.Context;
-using Game.Gear.Common;
-using Game.Train.Blocks;
 using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+
 
 namespace Tests.UnitTest.Game
 {
@@ -372,7 +373,7 @@ namespace Tests.UnitTest.Game
             }
         }
 
-
+        
         //railComponentの表裏テスト
         [Test]
         public void TestRailComponentsAreConnected()
@@ -382,12 +383,15 @@ namespace Tests.UnitTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            //worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
-            //worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
-            
-            // Create two RailComponents
-            var railComponent1 = new RailComponent();
-            var railComponent2 = new RailComponent();
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
+
+            //assert rail1が存在する
+            Assert.NotNull(rail1, "Rail1 does not exist.");
+
+            // Get two RailComponents
+            var railComponent1 = rail1.GetComponent<RailComponent>();
+            var railComponent2 = rail2.GetComponent<RailComponent>();
 
             // Connect the two RailComponents
             railComponent1.ConnectRailComponent(railComponent2, true, true); // Front of railComponent1 to front of railComponent2
@@ -399,7 +403,6 @@ namespace Tests.UnitTest.Game
             Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
             Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
             Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
-            
         }
 
         [Test]
@@ -410,9 +413,11 @@ namespace Tests.UnitTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            // Create two RailComponents
-            var railComponent1 = new RailComponent();
-            var railComponent2 = new RailComponent();
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
+            // Get two RailComponents
+            var railComponent1 = rail1.GetComponent<RailComponent>();
+            var railComponent2 = rail2.GetComponent<RailComponent>();
 
             // Connect the two RailComponents: Back of railComponent1 to Front of railComponent2
             railComponent1.ConnectRailComponent(railComponent2, false, true);
@@ -425,6 +430,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's BackNode is not connected to RailComponent2's FrontNode.");
             Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
         }
-
+        
     }
 }
