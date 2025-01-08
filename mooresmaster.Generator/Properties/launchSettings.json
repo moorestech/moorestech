@@ -4,6 +4,10 @@
     "DebugRoslynSourceGenerator": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "../mooresmaster.SandBox/mooresmaster.SandBox.csproj"
+    },
+    "DebugTestRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../mooresmaster.Tests/mooresmaster.Tests.csproj"
     }
   }
 }
