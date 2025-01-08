@@ -17,21 +17,21 @@ public class Semantics
     public readonly List<(SwitchId switchId, ClassId typeId)> SwitchInheritList = new();
     public readonly Dictionary<SwitchId, SwitchSemantics> SwitchSemanticsTable = new();
     public readonly Dictionary<ClassId, TypeSemantics> TypeSemanticsTable = new();
-
+    
     public SwitchId AddSwitchSemantics(SwitchSemantics switchSemantics)
     {
         var id = SwitchId.New();
         SwitchSemanticsTable.Add(id, switchSemantics);
         return id;
     }
-
+    
     public InterfaceId AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
         var id = InterfaceId.New();
         InterfaceSemanticsTable.Add(id, interfaceSemantics);
         return id;
     }
-
+    
     public ClassId AddTypeSemantics(TypeSemantics typeSemantics)
     {
         var id = ClassId.New();
@@ -39,21 +39,21 @@ public class Semantics
         SchemaTypeSemanticsTable.Add(typeSemantics.Schema, id);
         return id;
     }
-
+    
     public RootId AddRootSemantics(RootSemantics rootSemantics)
     {
         var id = RootId.New();
         RootSemanticsTable.Add(id, rootSemantics);
         return id;
     }
-
+    
     public PropertyId AddPropertySemantics(PropertySemantics propertySemantics)
     {
         var id = PropertyId.New();
         PropertySemanticsTable.Add(id, propertySemantics);
         return id;
     }
-
+    
     public InterfacePropertyId AddInterfacePropertySemantics(InterfacePropertySemantics interfacePropertySemantics)
     {
         var id = InterfacePropertyId.New();
@@ -61,7 +61,7 @@ public class Semantics
         InterfacePropertyIdTable.Add(interfacePropertySemantics, id);
         return id;
     }
-
+    
     public void AddInterfaceInterfaceImplementation(InterfaceId target, InterfaceId other)
     {
         if (!InterfaceInterfaceImplementationTable.TryGetValue(target, out var list))
@@ -69,10 +69,10 @@ public class Semantics
             list = new List<InterfaceId>();
             InterfaceInterfaceImplementationTable[target] = list;
         }
-
+        
         list.Add(other);
     }
-
+    
     public void AddClassInterfaceImplementation(ClassId target, InterfaceId other)
     {
         if (!ClassInterfaceImplementationTable.TryGetValue(target, out var list))
@@ -80,10 +80,10 @@ public class Semantics
             list = new List<InterfaceId>();
             ClassInterfaceImplementationTable[target] = list;
         }
-
+        
         list.Add(other);
     }
-
+    
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.SwitchInheritList) SwitchInheritList.Add(inherit);
@@ -97,10 +97,10 @@ public class Semantics
         foreach (var kvp in other.InterfacePropertyIdTable) InterfacePropertyIdTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfaceInterfaceImplementationTable) InterfaceInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.ClassInterfaceImplementationTable) ClassInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
-
+        
         return this;
     }
-
+    
     public Semantics AddTo(Semantics other)
     {
         return other.Merge(this);
@@ -121,9 +121,10 @@ public record RootSemantics(Schema Root, ClassId ClassId)
 ///     親要素がinterfaceになることはない
 /// </param>
 /// <param name="Schema"></param>
-public record TypeSemantics(PropertyId[] Properties, ISchema Schema)
+public record TypeSemantics(PropertyId[] Properties, ISchema Schema, RootId RootId)
 {
     public PropertyId[] Properties = Properties;
+    public RootId RootId = RootId;
     public ISchema Schema = Schema;
 }
 
