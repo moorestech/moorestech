@@ -10,19 +10,19 @@ public static class JsonSchemaParser
     public static Schema ParseSchema(JsonObject root, SchemaTable schemaTable)
     {
         var id = (root["id"] as JsonString)!.Literal;
-        var defineInterfaces = ParseDefineInterfaces(root, schemaTable);
+        var defineInterfaces = ParseDefineInterfaces(id, root, schemaTable);
         return new Schema(id, Parse(root, null, schemaTable), defineInterfaces);
     }
     
-    private static DefineInterface[] ParseDefineInterfaces(JsonObject root, SchemaTable schemaTable)
+    private static DefineInterface[] ParseDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable)
     {
-        var localDefineInterfaces = ParseLocalDefineInterfaces(root, schemaTable);
-        var globalDefineInterfaces = ParseGlobalDefineInterfaces(root, schemaTable);
+        var localDefineInterfaces = ParseLocalDefineInterfaces(id, root, schemaTable);
+        var globalDefineInterfaces = ParseGlobalDefineInterfaces(id, root, schemaTable);
         
         return localDefineInterfaces.Concat(globalDefineInterfaces).ToArray();
     }
     
-    private static DefineInterface[] ParseLocalDefineInterfaces(JsonObject root, SchemaTable schemaTable)
+    private static DefineInterface[] ParseLocalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable)
     {
         if (!root.Nodes.ContainsKey("defineInterface")) return [];
         
@@ -33,13 +33,13 @@ public static class JsonSchemaParser
         {
             var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
             
-            interfaces.Add(ParseDefineInterface(defineJson, schemaTable, false));
+            interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, false));
         }
         
         return interfaces.ToArray();
     }
     
-    private static DefineInterface[] ParseGlobalDefineInterfaces(JsonObject root, SchemaTable schemaTable)
+    private static DefineInterface[] ParseGlobalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable)
     {
         if (!root.Nodes.ContainsKey("globalDefineInterface")) return [];
         
@@ -50,13 +50,13 @@ public static class JsonSchemaParser
         {
             var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
             
-            interfaces.Add(ParseDefineInterface(defineJson, schemaTable, true));
+            interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, true));
         }
         
         return interfaces.ToArray();
     }
     
-    private static DefineInterface ParseDefineInterface(JsonObject node, SchemaTable schemaTable, bool isGlobal)
+    private static DefineInterface ParseDefineInterface(string id, JsonObject node, SchemaTable schemaTable, bool isGlobal)
     {
         var interfaceName = (node["interfaceName"] as JsonString)?.Literal ?? throw new InvalidOperationException();
         
@@ -85,7 +85,7 @@ public static class JsonSchemaParser
         if (interfaceName == null) throw new Exception("interfaceName is null");
         if (properties == null) throw new Exception("properties is null");
         
-        return new DefineInterface(interfaceName, properties, implementationInterfaces.ToArray(), isGlobal);
+        return new DefineInterface(id, interfaceName, properties, implementationInterfaces.ToArray(), isGlobal);
     }
     
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
