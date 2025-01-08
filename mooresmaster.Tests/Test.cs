@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
@@ -72,13 +73,20 @@ public class Test
         // Assert.Equivalent(node, answer, true);
     }
     
-    public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(string yaml)
+    public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(params string[] yamlTexts)
     {
-        var jsonSchema = Yaml.ToJson(yaml);
         var schemaTable = new SchemaTable();
-        var json = JsonParser.Parse(JsonTokenizer.GetTokens(jsonSchema));
-        var schema = JsonSchemaParser.ParseSchema(json as JsonObject, schemaTable);
-        var semantics = SemanticsGenerator.Generate([schema], schemaTable);
+        var schemas = new List<Schema>();
+        
+        foreach (var yaml in yamlTexts)
+        {
+            var jsonSchema = Yaml.ToJson(yaml);
+            var json = JsonParser.Parse(JsonTokenizer.GetTokens(jsonSchema));
+            var schema = JsonSchemaParser.ParseSchema(json as JsonObject, schemaTable);
+            schemas.Add(schema);
+        }
+        
+        var semantics = SemanticsGenerator.Generate([..schemas], schemaTable);
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
         var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
         

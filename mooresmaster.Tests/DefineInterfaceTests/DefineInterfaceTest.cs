@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Xunit;
 
@@ -31,5 +32,45 @@ public class DefineInterfaceTest
         Assert.True(firstGlobalInterface.IsGlobal);
         Assert.True(firstGlobalInterface.Properties.ContainsKey("test2"));
         Assert.True(firstGlobalInterface.Properties.ContainsKey("test3"));
+    }
+    
+    [Fact]
+    public void GlobalDefineInterfaceFailedTest()
+    {
+        const string failedTestText = """
+                                      id: defineInterfaceFailedTestSchema
+                                      type: object
+                                      
+                                      implementationInterface:
+                                        - ILocalInterface
+                                      
+                                      properties:
+                                        - key: test0
+                                          type: integer
+                                        - key: test1
+                                          type: integer
+                                      """;
+        
+        const string passedTestText = """
+                                      id: defineInterfaceFailedTestSchema
+                                      type: object
+                                      
+                                      implementationInterface:
+                                        - IGlobalInterface
+                                      
+                                      properties:
+                                        - key: test2
+                                          type: integer
+                                        - key: test3
+                                          type: integer
+                                      """;
+        
+        var defineInterfaceTestSchemaText = Test.GetSchema("DefineInterfaceTests/DefineInterfaceTestSchema.yml");
+        
+        // ScopeがLocalのInterfaceを別ファイルから参照している場合エラーになる
+        Assert.ThrowsAny<Exception>(() => { _ = Test.Generate(defineInterfaceTestSchemaText, failedTestText); });
+
+        // globalであれば問題ない
+        Test.Generate(defineInterfaceTestSchemaText, passedTestText);
     }
 }
