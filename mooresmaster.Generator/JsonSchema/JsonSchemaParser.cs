@@ -16,6 +16,14 @@ public static class JsonSchemaParser
     
     private static DefineInterface[] ParseDefineInterfaces(JsonObject root, SchemaTable schemaTable)
     {
+        var localDefineInterfaces = ParseLocalDefineInterfaces(root, schemaTable);
+        var globalDefineInterfaces = ParseGlobalDefineInterfaces(root, schemaTable);
+        
+        return localDefineInterfaces.Concat(globalDefineInterfaces).ToArray();
+    }
+    
+    private static DefineInterface[] ParseLocalDefineInterfaces(JsonObject root, SchemaTable schemaTable)
+    {
         if (!root.Nodes.ContainsKey("defineInterface")) return [];
         
         List<DefineInterface> interfaces = new();
@@ -25,13 +33,30 @@ public static class JsonSchemaParser
         {
             var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
             
-            interfaces.Add(ParseDefineInterface(defineJson, schemaTable));
+            interfaces.Add(ParseDefineInterface(defineJson, schemaTable, false));
         }
         
         return interfaces.ToArray();
     }
     
-    private static DefineInterface ParseDefineInterface(JsonObject node, SchemaTable schemaTable)
+    private static DefineInterface[] ParseGlobalDefineInterfaces(JsonObject root, SchemaTable schemaTable)
+    {
+        if (!root.Nodes.ContainsKey("globalDefineInterface")) return [];
+        
+        var interfaces = new List<DefineInterface>();
+        var defineJsons = root["globalDefineInterface"] as JsonArray;
+        
+        foreach (var defineJsonNode in defineJsons!.Nodes)
+        {
+            var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
+            
+            interfaces.Add(ParseDefineInterface(defineJson, schemaTable, true));
+        }
+        
+        return interfaces.ToArray();
+    }
+    
+    private static DefineInterface ParseDefineInterface(JsonObject node, SchemaTable schemaTable, bool isGlobal)
     {
         var interfaceName = (node["interfaceName"] as JsonString)?.Literal ?? throw new InvalidOperationException();
         
@@ -60,7 +85,7 @@ public static class JsonSchemaParser
         if (interfaceName == null) throw new Exception("interfaceName is null");
         if (properties == null) throw new Exception("properties is null");
         
-        return new DefineInterface(interfaceName, properties, implementationInterfaces.ToArray());
+        return new DefineInterface(interfaceName, properties, implementationInterfaces.ToArray(), isGlobal);
     }
     
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
