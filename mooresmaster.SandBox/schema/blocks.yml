@@ -1,7 +1,7 @@
 id: blocks
 type: object
 isDefaultOpen: true
-globalDefineInterface:
+defineInterface:
   - interfaceName: IMachineParam
     properties:
       - key: inputSlotCount
