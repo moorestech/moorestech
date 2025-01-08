@@ -1,0 +1,18 @@
+id: defineInterfaceTestSchema
+type: object
+
+defineInterface:
+  - interfaceName: ILocalInterface
+    properties:
+      - key: test0
+        type: integer
+      - key: test1
+        type: integer
+
+globalDefineInterface:
+  - interfaceName: IGlobalInterface
+    properties:
+      - key: test2
+        type: integer
+      - key: test3
+        type: integer

@@ -38,33 +38,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="TestYaml\SwitchPathTestSchema.yml"/>
-        <None Update="SwitchPathTest\SwitchPathTestSchema.json">
+        <None Update="**\*.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="SwitchPathTest\SwitchPathThrowTestSchema.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="OptionalTests\OptionalTestSchema1.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="OptionalTests\OptionalTestSchema2.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="SwitchPathTests\SwitchPathTestSchema.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="SwitchPathTests\SwitchPathThrowTestSchema.json">
+        <None Update="**\*.yml">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="SwitchPathTests\RelativeSwitchPathTestSchema.yml"/>
-        <None Remove="SwitchPathTest\AbsoluteSwitchPathTestSchema.yml"/>
-        <AdditionalFiles Include="SwitchPathTests\AbsoluteSwitchPathTestSchema.yml"/>
-        <None Remove="OptionalTests\OptionalTestSchema.yml"/>
-        <AdditionalFiles Include="OptionalTests\OptionalTestSchema.yml"/>
+        <AdditionalFiles Include="**\*.yml" Exclude="bin\**;obj\**"/>
     </ItemGroup>
 
 
