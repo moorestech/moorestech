@@ -4,58 +4,58 @@ overrideCodeGeneratePropertyName: blockConnectInfoElement
 items:
   type: object
   properties:
-  - key: connectType
-    type: string
-    enum:
-    - Inventory
-    - Gear
-    description: TODO これは後々外部（上位スキーマ？）から設定できるようにする
-  - key: offset
-    type: vector3Int
-    default:
-    - 0
-    - 0
-    - 0
-  - key: directions
-    type: array
-    optional: true
-    items:
+    - key: connectType
+      type: string
+      enum:
+        - Inventory
+        - Gear
+      description: TODO これは後々外部（上位スキーマ？）から設定できるようにする
+    - key: offset
       type: vector3Int
       default:
-      - 0
-      - 0
-      - 0
-  - key: connectOption
-    switch: ./connectType
-    cases:
-    - when: Inventory
-      type: object
+        - 0
+        - 0
+        - 0
+    - key: directions
+      type: array
       optional: true
-      properties:
-      - key: inventoryOptions
-        type: array
-        optional: true
-        items:
+      items:
+        type: vector3Int
+        default:
+          - 0
+          - 0
+          - 0
+    - key: connectOption
+      switch: ./connectType
+      cases:
+        - when: Inventory
+          type: object
+          optional: true
+          properties:
+            - key: inventoryOptions
+              type: array
+              optional: true
+              items:
+                type: object
+                properties:
+                  - key: inventoryConnectOptionType
+                    type: string
+                    enum:
+                      - CraftChainerCrafter
+                  - key: inventoryConnectOptionParam
+                    switch: ./inventoryConnectOptionType
+                    cases:
+                      - when: CraftChainerCrafter
+                        type: object
+                        properties:
+                          - key: connectType
+                            type: string
+                            enum:
+                              - Network
+                              - Factory
+        - when: Gear
           type: object
           properties:
-          - key: inventoryConnectOptionType
-            type: string
-            enum:
-            - CraftChainerCrafter
-          - key: inventoryConnectOptionParam
-            switch: inventoryConnectOptionType
-            cases:
-            - when: CraftChainerCrafter
-              type: object
-              properties:
-              - key: connectType
-                type: string
-                enum:
-                - Network
-                - Factory
-    - when: Gear
-      type: object
-      properties:
-      - key: isReverse
-        type: boolean
-        default: true
+            - key: isReverse
+              type: boolean
+              default: true
