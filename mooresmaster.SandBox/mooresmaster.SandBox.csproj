@@ -13,32 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="schema\blocks.json"/>
-        <AdditionalFiles Include="schema\items.json"/>
-        <AdditionalFiles Include="schema\challenges.json"/>
-        <AdditionalFiles Include="schema\craftRecipes.json"/>
-        <AdditionalFiles Include="schema\machineRecipes.json"/>
-        <AdditionalFiles Include="schema\mapObjects.json"/>
-
-        <AdditionalFiles Include="schema\ref\blockConnectInfo.json"/>
-        <AdditionalFiles Include="schema\ref\inventoryConnects.json"/>
-        <None Remove="Schema\ymlSample\ref\blockConnectInfo.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\ref\blockConnectInfo.yml"/>
-        <None Remove="Schema\ymlSample\ref\inventoryConnects.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\ref\inventoryConnects.yml"/>
-        <None Remove="Schema\ymlSample\blocks.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\blocks.yml"/>
-        <None Remove="Schema\ymlSample\challenges.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\challenges.yml"/>
-        <None Remove="Schema\ymlSample\craftRecipes.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\craftRecipes.yml"/>
-        <None Remove="Schema\ymlSample\items.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\items.yml"/>
-        <None Remove="Schema\ymlSample\machineRecipes.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\machineRecipes.yml"/>
-        <None Remove="Schema\ymlSample\mapObjects.yml"/>
-        <AdditionalFiles Include="Schema\ymlSample\mapObjects.yml"/>
-        <None Remove="schema\ymlSample\loaderTest.yml"/>
+        <AdditionalFiles Include="Schema\**\*"/>
     </ItemGroup>
 
     <ItemGroup>
