@@ -404,98 +404,149 @@ namespace Tests.UnitTest.Game
             Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
             Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
             Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
+
+            //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
+            //表
+            var outListPath = railGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+            //裏
+            outListPath = railGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+
         }
 
-        //ブロック大量設置して削除したりしてrailComponentの接続テスト
-        //50*50*50の立方体の中にレールブロックを設置して、内部だけくりぬく
+        //50*50*50個のRailComponentの立方体の中にレールグラフを構築したり、内部だけくりぬいたりしてテスト。
+        //ブロック大量設置してと思っていたがブロック設置が1000個で1秒以上かかるため断念
+        //railComponentのみを大量設置する
         [Test]
-        public void TestRailComponentsBackToFrontConnection()
+        public void TestRailComponentsRandomCase()
         {
+            //listを入力とし、順番をシャッフルする関数
+            List<(int, int, int)> ShuffleList(List<(int, int, int)> list)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int j = Random.Range(i, list.Count);
+                    var tmp = list[i];
+                    list[i] = list[j];
+                    list[j] = tmp;
+                }
+                return list;
+            }
             // Initialize the RailGraphDatastore
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            const int size = 40;//立方体の一辺の長さ
 
-            // Create a 50x50x50 cube of rail blocksこれをランダムに
-            //0～50*50*50のリストを作成
-            var list = new List<int>();
-            for (int i = 0; i < 50 * 50 * 50; i++)
-            {
-                list.Add(i);
-            }
-            //シャッフル
-            for (int i = 0; i < 50 * 50 * 50; i++)
-            {
-                int j = Random.Range(0, 50 * 50 * 50);
-                int tmp = list[i];
-                list[i] = list[j];
-                list[j] = tmp;
-            }
 
-            var railBlocks = new RailComponent[51, 51, 51];
-            for (int x = 0; x < 50; x++)
+            //これから作るべきRailComponentの場所のリストの宣言
+            var listIsDestroy = new List<(int, int, int)>();
+            for (int x = 0; x < size; x++)
             {
-                for (int y = 0; y < 50; y++)
+                for (int y = 0; y < size; y++)
                 {
-                    for (int z = 0; z < 50; z++)
+                    for (int z = 0; z < size; z++)
                     {
-                        var id = list[x * 50 * 50 + y * 50 + z];
-                        var idx = id % 50;
-                        var idy = (id / 50) % 50;
-                        var idz = (id / 50 / 50) % 50;
-                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(idx, idy, idz), BlockDirection.North, out var railBlock);
-                        railBlocks[idx, idy, idz] = railBlock.GetComponent<RailComponent>();
-                        //隣り合うrailBlocksがあれば接続
-                        if ((idx > 0) & (railBlocks[idx - 1, idy, idz] != null))
-                        {
-                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx - 1, idy, idz], true, true);
-                        }
-                        if ((idy > 0) & (railBlocks[idx, idy - 1, idz] != null))
-                        {
-                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy - 1, idz], true, true);
-                        }
-                        if ((idz > 0) & (railBlocks[idx, idy, idz - 1] != null))
-                        {
-                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy, idz - 1], true, true);
-                        }
-                        if ((idx < 49) & (railBlocks[idx + 1, idy, idz] != null))
-                        {
-                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx + 1, idy, idz], true, true);
-                        }
-                        if ((idy < 49) & (railBlocks[idx, idy + 1, idz] != null))
-                        {
-                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy + 1, idz], true, true);
-                        }
-                        if ((idz < 49) & (railBlocks[idx, idy, idz + 1] != null))
-                        {
-                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy, idz + 1], true, true);
-                        }
+                        listIsDestroy.Add((x, y, z));
                     }
                 }
             }
-            //1～48の範囲で削除していく
-            for (int x = 1; x < 49; x++)
+            listIsDestroy = ShuffleList(listIsDestroy);
+            //すでに作られているRailComponentのリスト
+            var listIsCreated = new List<(int, int, int)>();
+            var railBlocks = new RailComponent[size, size, size];
+
+
+            while (listIsDestroy.Count != 0)
             {
-                for (int y = 1; y < 49; y++)
+                //ランダムにRailComponent作成
+                var (x, y, z) = listIsDestroy[Random.Range(0, listIsDestroy.Count)];
+                listIsCreated.Add((x, y, z));
+                listIsDestroy.Remove((x, y, z));
+                railBlocks[x, y, z] = new RailComponent();
+                //ランダムに経路をつなげる
+                //2つ選ぶ
+                var (x1, y1, z1) = listIsCreated[Random.Range(0, listIsCreated.Count)];
+                var (x2, y2, z2) = listIsCreated[Random.Range(0, listIsCreated.Count)];
+                //場所が外周ならやらない   
+                if (x1 == 0 || x1 == size - 1 || y1 == 0 || y1 == size - 1 || z1 == 0 || z1 == size - 1) continue;
+                railBlocks[x1, y1, z1].ConnectRailComponent(railBlocks[x2, y2, z2], true, true);
+
+                //2分の1の確率でcontinue
+                if (Random.Range(0, 2) == 0) continue;
+
+                //ランダムにRailComponentを削除
+                var (x3, y3, z3) = listIsCreated[Random.Range(0, listIsCreated.Count)];
+                railBlocks[x3, y3, z3].Destroy();
+                listIsCreated.Remove((x3, y3, z3));
+                listIsDestroy.Add((x3, y3, z3));
+            }
+
+
+            //自分から+1方向につなげていく。まずはランダムに
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
                 {
-                    for (int z = 1; z < 49; z++)
+                    for (int z = 0; z < size; z++)
+                    {
+                        //2分の1の確率でcontinue
+                        if (Random.Range(0, 2) == 0) continue;
+                        if (x < size - 1) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x + 1, y, z], true, true);
+                        if (y < size - 1) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y + 1, z], true, true);
+                        if (z < size - 1) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y, z + 1], true, true);
+                    }
+                }
+            }
+
+            //残りを全部やる(全部順番にやるとランダムケースで起こるバグを拾えない可能性を考慮し)
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    for (int z = 0; z < size; z++)
+                    {
+                        if (x > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x - 1, y, z], false, false);
+                        if (y > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y - 1, z], false, false);
+                        if (z > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y, z - 1], false, false);
+                    }
+                }
+            }
+            //この時点で
+            //立方体の0,0,0から49,49,49まで経路があるか
+            var node_s = railBlocks[0, 0, 0].FrontNode;
+            var node_e = railBlocks[size - 1, size - 1, size - 1].FrontNode;
+
+            //ダイクストラ法を実行 経路を求める
+            var outListPath = railGraphDatastore.FindShortestPath(node_s, node_e);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+
+            //次に余分なpathを削除してちゃんと外周をたどるか
+            for (int x = 1; x < size - 1; x++)
+            {
+                for (int y = 1; y < size - 1; y++)
+                {
+                    for (int z = 1; z < size - 1; z++)
                     {
                         railBlocks[x, y, z].Destroy();
                     }
                 }
             }
-            //立方体の0,0,0から49,49,49まで経路があるか
-            var node000 = railBlocks[0, 0, 0].FrontNode;
-            var node494949 = railBlocks[49, 49, 49].FrontNode;
 
-
-            //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
-            var outListPath = railGraphDatastore.FindShortestPath(node000, node494949);
-            // outListPathの長さが0でないことを確認
-            Assert.AreNotEqual(0, outListPath.Count);
-
-
-
+            //ダイクストラ
+            outListPath = railGraphDatastore.FindShortestPath(node_s, node_e);
+            Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count);
+            //outListPathの中身を順番に確認して距離をはかる
+            int distance = 0;
+            for (int i = 0; i < outListPath.Count - 1; i++)
+            {
+                distance += outListPath[i].GetDistanceToNode(outListPath[i + 1]);
+            }
+            Assert.AreEqual(3 * (size - 1), distance);
         }
 
     }

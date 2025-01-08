@@ -65,6 +65,10 @@ namespace Game.Train.RailGraph
         {
             RailGraphDatastore.ConnectNode(this, targetNode, distance);
         }
+        public void DisconnectNode(RailNode targetNode)
+        {
+            RailGraphDatastore.DisconnectNode(this, targetNode);
+        }
         //自分から入力nodeまでの距離を返す
         public int GetDistanceToNode(RailNode node)
         {

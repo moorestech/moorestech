@@ -6,6 +6,7 @@ namespace Game.Block.Blocks.TrainRail
     /// <summary>
     /// レールの基本構成要素を表すクラス。
     /// レールに関連する機能を提供。
+    /// 基本1つのRailComponentが2つのRailNodeを持つ=裏表
     /// </summary>
     public class RailComponent : IBlockComponent
     {
@@ -52,6 +53,30 @@ namespace Game.Block.Blocks.TrainRail
             {
                 BackNode.ConnectNode(targetRail.BackNode, 1);
                 targetRail.FrontNode.ConnectNode(FrontNode, 1);
+            }
+        }
+
+        public void DisconnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target)
+        {
+            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→表自
+            {
+                FrontNode.DisconnectNode(targetRail.FrontNode);
+                targetRail.BackNode.DisconnectNode(BackNode);
+            }
+            else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
+            {
+                FrontNode.DisconnectNode(targetRail.BackNode);
+                targetRail.FrontNode.DisconnectNode(BackNode);
+            }
+            else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
+            {
+                BackNode.DisconnectNode(targetRail.FrontNode);
+                targetRail.BackNode.DisconnectNode(FrontNode);
+            }
+            else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
+            {
+                BackNode.DisconnectNode(targetRail.BackNode);
+                targetRail.FrontNode.DisconnectNode(FrontNode);
             }
         }
 

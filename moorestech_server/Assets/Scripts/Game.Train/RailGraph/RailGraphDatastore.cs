@@ -23,6 +23,7 @@ namespace Game.Train.RailGraph
             connectNodes = new List<List<(int, int)>>();
         }
 
+        //このクラスはシングルトンである
         //gearを参考にinternal化
         public static void AddNode(RailNode node)
         {
@@ -31,6 +32,10 @@ namespace Game.Train.RailGraph
         public static void ConnectNode(RailNode node, RailNode targetNode, int distance) 
         {
             _instance.ConnectNodeInternal(node, targetNode, distance); 
+        }
+        public static void DisconnectNode(RailNode node, RailNode targetNode)
+        {
+            _instance.DisconnectNodeInternal(node, targetNode);
         }
         public static List<(RailNode, int)> GetConnectedNodesWithDistance(RailNode node)
         {
@@ -87,7 +92,7 @@ namespace Game.Train.RailGraph
                 connectNodes[nodeid].Add((targetid, distance));
         }
         //接続削除
-        public void DisconnectNode(RailNode node, RailNode targetNode)
+        private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
         {
             var nodeid = railIdDic[node];
             var targetid = railIdDic[targetNode];
@@ -130,7 +135,8 @@ namespace Game.Train.RailGraph
         }
 
 
-        //railnode2つの入力 start から target までの距離を返す。ここでは経路探索しないで直接つながっている2点間の距離を返す
+        //start-targetは直接つながってないとダメなことに注意
+        //railnode2つの入力 start から target までの距離を返す
         //つながっていない場合は-1を返して警告だす
         private int GetDistanceBetweenNodesInternal(RailNode start, RailNode target)
         {
