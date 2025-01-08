@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System.Collections;
 
 
 namespace Tests.UnitTest.Game
@@ -374,7 +375,7 @@ namespace Tests.UnitTest.Game
         }
 
         
-        //railComponentの表裏テスト
+        //ブロック設置してrailComponentの表裏テスト
         [Test]
         public void TestRailComponentsAreConnected()
         {
@@ -405,6 +406,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
         }
 
+        //ブロック大量設置して削除したりしてrailComponentの接続テスト
+        //50*50*50の立方体の中にレールブロックを設置して、内部だけくりぬく
         [Test]
         public void TestRailComponentsBackToFrontConnection()
         {
@@ -413,23 +416,87 @@ namespace Tests.UnitTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
-            // Get two RailComponents
-            var railComponent1 = rail1.GetComponent<RailComponent>();
-            var railComponent2 = rail2.GetComponent<RailComponent>();
+            // Create a 50x50x50 cube of rail blocksこれをランダムに
+            //0～50*50*50のリストを作成
+            var list = new List<int>();
+            for (int i = 0; i < 50 * 50 * 50; i++)
+            {
+                list.Add(i);
+            }
+            //シャッフル
+            for (int i = 0; i < 50 * 50 * 50; i++)
+            {
+                int j = Random.Range(0, 50 * 50 * 50);
+                int tmp = list[i];
+                list[i] = list[j];
+                list[j] = tmp;
+            }
 
-            // Connect the two RailComponents: Back of railComponent1 to Front of railComponent2
-            railComponent1.ConnectRailComponent(railComponent2, false, true);
+            var railBlocks = new RailComponent[51, 51, 51];
+            for (int x = 0; x < 50; x++)
+            {
+                for (int y = 0; y < 50; y++)
+                {
+                    for (int z = 0; z < 50; z++)
+                    {
+                        var id = list[x * 50 * 50 + y * 50 + z];
+                        var idx = id % 50;
+                        var idy = (id / 50) % 50;
+                        var idz = (id / 50 / 50) % 50;
+                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(idx, idy, idz), BlockDirection.North, out var railBlock);
+                        railBlocks[idx, idy, idz] = railBlock.GetComponent<RailComponent>();
+                        //隣り合うrailBlocksがあれば接続
+                        if ((idx > 0) & (railBlocks[idx - 1, idy, idz] != null))
+                        {
+                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx - 1, idy, idz], true, true);
+                        }
+                        if ((idy > 0) & (railBlocks[idx, idy - 1, idz] != null))
+                        {
+                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy - 1, idz], true, true);
+                        }
+                        if ((idz > 0) & (railBlocks[idx, idy, idz - 1] != null))
+                        {
+                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy, idz - 1], true, true);
+                        }
+                        if ((idx < 49) & (railBlocks[idx + 1, idy, idz] != null))
+                        {
+                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx + 1, idy, idz], true, true);
+                        }
+                        if ((idy < 49) & (railBlocks[idx, idy + 1, idz] != null))
+                        {
+                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy + 1, idz], true, true);
+                        }
+                        if ((idz < 49) & (railBlocks[idx, idy, idz + 1] != null))
+                        {
+                            railBlocks[idx, idy, idz].ConnectRailComponent(railBlocks[idx, idy, idz + 1], true, true);
+                        }
+                    }
+                }
+            }
+            //1～48の範囲で削除していく
+            for (int x = 1; x < 49; x++)
+            {
+                for (int y = 1; y < 49; y++)
+                {
+                    for (int z = 1; z < 49; z++)
+                    {
+                        railBlocks[x, y, z].Destroy();
+                    }
+                }
+            }
+            //立方体の0,0,0から49,49,49まで経路があるか
+            var node000 = railBlocks[0, 0, 0].FrontNode;
+            var node494949 = railBlocks[49, 49, 49].FrontNode;
 
-            // Validate connections
-            var connectedNodes = railComponent1.BackNode.ConnectedNodesWithDistance;
-            var connectedNode = connectedNodes.FirstOrDefault();
 
-            Assert.NotNull(connectedNode, "RailComponent1's BackNode is not connected.");
-            Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's BackNode is not connected to RailComponent2's FrontNode.");
-            Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
+            //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
+            var outListPath = railGraphDatastore.FindShortestPath(node000, node494949);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+
+
+
         }
-        
+
     }
 }

@@ -82,7 +82,9 @@ namespace Game.Train.RailGraph
             if (!railIdDic.ContainsKey(targetNode))
                 AddNode(targetNode);
             var targetid = railIdDic[targetNode];
-            connectNodes[nodeid].Add((targetid, distance));
+            //connectNodes[nodeid]にtargetidがなければ追加
+            if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
+                connectNodes[nodeid].Add((targetid, distance));
         }
         //接続削除
         public void DisconnectNode(RailNode node, RailNode targetNode)
