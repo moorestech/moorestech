@@ -1,9 +1,11 @@
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Train;
-namespace Game.Train.Blocks
+namespace Game.Block.Blocks.TrainRail
 {
     public class StationComponent : IBlockComponent
     {
+        public BlockInstanceId BlockInstanceId { get; }
         public string StationName { get; }
 
         // 駅の長さ（何両分か）
@@ -15,8 +17,9 @@ namespace Game.Train.Blocks
         // IBlockComponentからのメンバ
         public bool IsDestroy { get; private set; }
 
-        public StationComponent(int stationLength, string stationName = "DefaultStation")
+        public StationComponent(BlockInstanceId blockInstanceId, int stationLength, string stationName = "DefaultStation")
         {
+            BlockInstanceId = blockInstanceId;
             _stationLength = stationLength;
             _currentTrain = null;
             IsDestroy = false;

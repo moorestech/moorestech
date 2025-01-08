@@ -1,5 +1,5 @@
-using Game.Train.Blocks;
 using System.Collections.Generic;
+using System.Linq;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
 /// </summary>
@@ -13,10 +13,9 @@ namespace Game.Train.RailGraph
 
 
         // 駅であれば駅のコンポーネント、なければnull
-        public StationComponent Station { get; private set; }
+        //public StationComponent Station { get; private set; }
         // 自分に対応する裏表のノード
         public RailNode OppositeNode { get; private set; }
-        private readonly RailGraphDatastore _railGraph; // Graph への参照
 
 
         /// なぜ IEnumerable を使うのか？
@@ -32,19 +31,25 @@ namespace Game.Train.RailGraph
         public IEnumerable<RailNode> ConnectedNodes
         {
             get
-            { return _railGraph.GetConnectedNodes(this); }
+            {
+                //RailNodeの入力に対しつながっているRailNodeをリスト<Node>で返す
+                return RailGraphDatastore.GetConnectedNodesWithDistance(this)
+                    .Select(x => x.Item1);
+            }
         }
         public IEnumerable<(RailNode, int)> ConnectedNodesWithDistance
         {
             get
-            { return _railGraph.GetConnectedNodesWithDistance(this); }
+            {
+                //RailNodeの入力に対しつながっているRailNodeをリスト<Node,距離int>で返す
+                return RailGraphDatastore.GetConnectedNodesWithDistance(this); 
+            }
         }
 
-        public RailNode(RailGraphDatastore railGraph, StationComponent station = null)
+        public RailNode()//StationComponent station = null
         {
-            _railGraph = railGraph;
-            Station = station;
-            railGraph.AddNode(this);
+            //Station = station;
+            RailGraphDatastore.AddNode(this);
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
@@ -55,16 +60,28 @@ namespace Game.Train.RailGraph
 
 
         //RailGraphに登録する
+        //基本的にrailComponent側からのみよびだす
         public void ConnectNode(RailNode targetNode, int distance)
         {
-            _railGraph.ConnectNode(this, targetNode, distance);
+            RailGraphDatastore.ConnectNode(this, targetNode, distance);
+        }
+        public void DisconnectNode(RailNode targetNode)
+        {
+            RailGraphDatastore.DisconnectNode(this, targetNode);
         }
         //自分から入力nodeまでの距離を返す
         public int GetDistanceToNode(RailNode node)
         {
-            return _railGraph.GetDistanceBetweenNodes(this, node);
+            return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
         }
 
+
+        //RailGraphから削除する
+        public void Destroy()
+        {
+            OppositeNode = null;
+            RailGraphDatastore.RemoveNode(this);
+        }
 
     }
 

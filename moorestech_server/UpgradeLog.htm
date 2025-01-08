@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+ <html xmlns:msxsl="urn:schemas-microsoft-com:xslt"><head><meta content="en-us" http-equiv="Content-Language" /><meta content="text/html; charset=utf-16" http-equiv="Content-Type" /><title _locID="ConversionReport0">
+          移行レポート
+        </title><style> 
+                    /* Body style, for the entire document */
+                    body
+                    {
+                        background: #F3F3F4;
+                        color: #1E1E1F;
+                        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    /* Header1 style, used for the main title */
+                    h1
+                    {
+                        padding: 10px 0px 10px 10px;
+                        font-size: 21pt;
+                        background-color: #E2E2E2;
+                        border-bottom: 1px #C1C1C2 solid; 
+                        color: #201F20;
+                        margin: 0;
+                        font-weight: normal;
+                    }
+
+                    /* Header2 style, used for "Overview" and other sections */
+                    h2
+                    {
+                        font-size: 18pt;
+                        font-weight: normal;
+                        padding: 15px 0 5px 0;
+                        margin: 0;
+                    }
+
+                    /* Header3 style, used for sub-sections, such as project name */
+                    h3
+                    {
+                        font-weight: normal;
+                        font-size: 15pt;
+                        margin: 0;
+                        padding: 15px 0 5px 0;
+                        background-color: transparent;
+                    }
+
+                    /* Color all hyperlinks one color */
+                    a
+                    {
+                        color: #1382CE;
+                    }
+
+                    /* Table styles */ 
+                    table
+                    {
+                        border-spacing: 0 0;
+                        border-collapse: collapse;
+                        font-size: 10pt;
+                    }
+
+                    table th
+                    {
+                        background: #E7E7E8;
+                        text-align: left;
+                        text-decoration: none;
+                        font-weight: normal;
+                        padding: 3px 6px 3px 6px;
+                    }
+
+                    table td
+                    {
+                        vertical-align: top;
+                        padding: 3px 6px 5px 5px;
+                        margin: 0px;
+                        border: 1px solid #E7E7E8;
+                        background: #F7F7F8;
+                    }
+
+                    /* Local link is a style for hyperlinks that link to file:/// content, there are lots so color them as 'normal' text until the user mouse overs */
+                    .localLink
+                    {
+                        color: #1E1E1F;
+                        background: #EEEEED;
+                        text-decoration: none;
+                    }
+
+                    .localLink:hover
+                    {
+                        color: #1382CE;
+                        background: #FFFF99;
+                        text-decoration: none;
+                    }
+
+                    /* Center text, used in the over views cells that contain message level counts */ 
+                    .textCentered
+                    {
+                        text-align: center;
+                    }
+
+                    /* The message cells in message tables should take up all avaliable space */
+                    .messageCell
+                    {
+                        width: 100%;
+                    }
+
+                    /* Padding around the content after the h1 */ 
+                    #content 
+                    {
+	                    padding: 0px 12px 12px 12px; 
+                    }
+
+                    /* The overview table expands to width, with a max width of 97% */ 
+                    #overview table
+                    {
+                        width: auto;
+                        max-width: 75%; 
+                    }
+
+                    /* The messages tables are always 97% width */
+                    #messages table
+                    {
+                        width: 97%;
+                    }
+
+                    /* All Icons */
+                    .IconSuccessEncoded, .IconInfoEncoded, .IconWarningEncoded, .IconErrorEncoded
+                    {
+                        min-width:18px;
+                        min-height:18px; 
+                        background-repeat:no-repeat;
+                        background-position:center;
+                    }
+
+                    /* Success icon encoded */
+                    .IconSuccessEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconSuccess#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABcElEQVR4Xq2TsUsCURzHv15g8ZJcBWlyiYYgCIWcb9DFRRwMW5TA2c0/QEFwFkxxUQdxVlBwCYWOi6IhWgQhBLHJUCkhLr/BW8S7gvrAg+N+v8/v+x68Z8MGy+XSCyABQAXgBgHGALoASkIIDWSLeLBetdHryMjd5IxQPWT4rn1c/P7+xxp72Cs9m5SZ0Bq2vPnbPFafK2zDvmNHypdC0BPkLlQhxJsCAhQoZwdZU5mwxh720qGo8MzTxTTKZDPCx2HoVzp6lz0Q9tKhyx0kGs8Ny+TkWRKk8lCROwEduhyg9l/6lunOPSfmH3NUH6uQ0KHLAe7JYvJjevm+DAMGJHToKtigE+vwvIidxLamb8IBY9e+C5LiXREkfho3TSd06HJA13/oh6T51MTsfQbHrsMynQ5dDihFjiK8JJAU9AKIWTp76dCVN7HWHrajmUEGvyF9nkbAE6gLIS7kTUyuf2gscLoJrElZo/Mvj+nPz/kLTmfnEwP3tB0AAAAASUVORK5CYII=);
+                    }
+
+                    /* Information icon encoded */
+                    .IconInfoEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconInformation#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHElEQVR4Xs2TsUoDQRRF7wwoziokjZUKadInhdhukR9YP8DMX1hYW+QvdsXa/QHBbcXC7W0CamWTQnclFutceIQJwwaWNLlwm5k5d94M76mmaeCrrmsLYOocY12FcxZFUeozCqKqqgYA8uevv1H6VuPxcwlfk5N92KHBxfFeCSAxxswlYAW/Xr989x/mv9gkhtyMDhcAxgzRsp7flj8B/HF1RsMXq+NZMkopaHe7lbKxQUEIGbKsYNoGn969060hZBkQex/W8oRQwsQaW2o3Ago2SVcJUzAgY3N0lTCZZm+zPS8HB51gMmS1DEYyOz9acKO1D8JWTlafKIMxdhvlfdyT94Vv5h7P8Ky7nQzACmhvKq3zk3PjW9asz9D/1oigecsioooAAAAASUVORK5CYII=);
+                    }
+
+                    /* Warning icon encoded */
+                    .IconWarningEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconWarning#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAx0lEQVR4XpWSMQ7CMAxFf4xAyBMLCxMrO8dhaBcuwdCJS3RJBw7SA/QGTCxdWJgiQYWKXJWKIXHIlyw5lqr34tQgEOdcBsCOx5yZK3hCCKdYXneQkh4pEfqzLfu+wVDSyyzFoJjfz9NB+pAF+eizx2Vruts0k15mPgvS6GYvpVtQhB61IB/dk6AF6fS4Ben0uIX5odtFe8Q/eW1KvFeH4e8khT6+gm5B+t3juyDt7n0jpe+CANTd+oTUjN/U3yVaABnSUjFz/gFq44JaVSCXeQAAAABJRU5ErkJggg==);
+                    }
+
+                    /* Error icon encoded */
+                    .IconErrorEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconError#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABQElEQVR4XqWTvUoEQRCE6wYPZUA80AfwAQz23uCMjA7MDRQEIzPBVEyNTQUFIw00vcQTTMzuAh/AxEQQT8HF/3G/oGGnEUGuoNnd6qoZuqltyKEsyzVJq5I6rnUp6SjGeGhESikzzlc1eL7opfuVbrqbU1Zw9NCgtQMaZpY0eNnaaL2fHusvTK5vKu7sjSS1Y4y3QUA6K3e3Mau5UFDyMP7tYF9o8cAHZv68vipoIJg971PZIZ5HiwdvYGGvFVFHmGmZ2MxwmQYPXubPl9Up0tfoMQGetXd6mRbvhBw+boZ6WF7Mbv1+GsHRk0fQmPAH1GfmZirbCfDJ61tw3Px8/8pZsPAG4jlVhcPgZ7adwNWBB68lkRQWFiTgFlbnLY3DGGM7izIJIyT/jjIvEJw6fdJTc6krDzh6aMwMP9bvDH4ADSsa9uSWVJkAAAAASUVORK5CYII=);
+                    }
+                 </style><script type="text/javascript" language="javascript"> 
+          
+            // Startup 
+            // Hook up the the loaded event for the document/window, to linkify the document content
+            var startupFunction = function() { linkifyElement("messages"); };
+            
+            if(window.attachEvent)
+            {
+              window.attachEvent('onload', startupFunction);
+            }
+            else if (window.addEventListener) 
+            {
+              window.addEventListener('load', startupFunction, false);
+            }
+            else 
+            {
+              document.addEventListener('load', startupFunction, false);
+            } 
+            
+            // Toggles the visibility of table rows with the specified name 
+            function toggleTableRowsByName(name)
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  if(!!currentName && currentName.indexOf(name) == 0)
+                  {
+                      var isVisible = allRows[i].style.display == ''; 
+                      isVisible ? allRows[i].style.display = 'none' : allRows[i].style.display = '';
+                  }
+               }
+            }
+            
+            function scrollToFirstVisibleRow(name) 
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  var isVisible = allRows[i].style.display == ''; 
+                  if(!!currentName && currentName.indexOf(name) == 0 && isVisible)
+                  {
+                     allRows[i].scrollIntoView(true); 
+                     return true; 
+                  }
+               }
+               
+               return false;
+            }
+            
+            // Linkifies the specified text content, replaces candidate links with html links 
+            function linkify(text)
+            {
+                 if(!text || 0 === text.length)
+                 {
+                     return text; 
+                 }
+
+                 // Find http, https and ftp links and replace them with hyper links 
+                 var urlLink = /(http|https|ftp)\:\/\/[a-zA-Z0-9\-\.]+(:[a-zA-Z0-9]*)?\/?([a-zA-Z0-9\-\._\?\,\/\\\+&%\$#\=~;\{\}])*/gi;
+                 
+                 return text.replace(urlLink, '<a href="$&">$&</a>') ;
+            }
+            
+            // Linkifies the specified element by ID
+            function linkifyElement(id)
+            {
+                var element = document.getElementById(id);
+                if(!!element)
+                {
+                  element.innerHTML = linkify(element.innerHTML); 
+                }
+            }
+            
+            function ToggleMessageVisibility(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              toggleTableRowsByName("MessageRowClass" + projectName);
+              toggleTableRowsByName('MessageRowHeaderShow' + projectName);
+              toggleTableRowsByName('MessageRowHeaderHide' + projectName); 
+            }
+            
+            function ScrollToFirstVisibleMessage(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              // First try the 'Show messages' row
+              if(!scrollToFirstVisibleRow('MessageRowHeaderShow' + projectName))
+              {
+                // Failed to find a visible row for 'Show messages', try an actual message row 
+                scrollToFirstVisibleRow('MessageRowClass' + projectName); 
+              }
+            }
+           </script></head><body><h1 _locID="ConversionReport">
+          変換レポート - </h1><div id="content"><h2 _locID="OverviewTitle">概要</h2><div id="overview"><table><tr><th></th><th _locID="ProjectTableHeader">プロジェクト</th><th _locID="PathTableHeader">パス</th><th _locID="ErrorsTableHeader">エラー</th><th _locID="WarningsTableHeader">警告</th><th _locID="MessagesTableHeader">メッセージ</th></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Assembly-CSharp">Assembly-CSharp</a></strong></td><td>Assembly-CSharp.csproj</td><td class="textCentered"><a href="#Assembly-CSharpError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Assembly-CSharp-Editor">Assembly-CSharp-Editor</a></strong></td><td>Assembly-CSharp-Editor.csproj</td><td class="textCentered"><a href="#Assembly-CSharp-EditorError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#ClassLibrary">ClassLibrary</a></strong></td><td>ClassLibrary.csproj</td><td class="textCentered"><a href="#ClassLibraryError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Core.Const">Core.Const</a></strong></td><td>Core.Const.csproj</td><td class="textCentered"><a href="#Core.ConstError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Core.Inventory">Core.Inventory</a></strong></td><td>Core.Inventory.csproj</td><td class="textCentered"><a href="#Core.InventoryError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Core.Item">Core.Item</a></strong></td><td>Core.Item.csproj</td><td class="textCentered"><a href="#Core.ItemError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Core.Item.Interface">Core.Item.Interface</a></strong></td><td>Core.Item.Interface.csproj</td><td class="textCentered"><a href="#Core.Item.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Core.Master">Core.Master</a></strong></td><td>Core.Master.csproj</td><td class="textCentered"><a href="#Core.MasterError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Core.Update">Core.Update</a></strong></td><td>Core.Update.csproj</td><td class="textCentered"><a href="#Core.UpdateError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Block">Game.Block</a></strong></td><td>Game.Block.csproj</td><td class="textCentered"><a href="#Game.BlockError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Block.Interface">Game.Block.Interface</a></strong></td><td>Game.Block.Interface.csproj</td><td class="textCentered"><a href="#Game.Block.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Challenge">Game.Challenge</a></strong></td><td>Game.Challenge.csproj</td><td class="textCentered"><a href="#Game.ChallengeError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Context">Game.Context</a></strong></td><td>Game.Context.csproj</td><td class="textCentered"><a href="#Game.ContextError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.CraftChainer">Game.CraftChainer</a></strong></td><td>Game.CraftChainer.csproj</td><td class="textCentered"><a href="#Game.CraftChainerError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Crafting.Interface">Game.Crafting.Interface</a></strong></td><td>Game.Crafting.Interface.csproj</td><td class="textCentered"><a href="#Game.Crafting.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.EnergySystem">Game.EnergySystem</a></strong></td><td>Game.EnergySystem.csproj</td><td class="textCentered"><a href="#Game.EnergySystemError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Entity">Game.Entity</a></strong></td><td>Game.Entity.csproj</td><td class="textCentered"><a href="#Game.EntityError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Entity.Interface">Game.Entity.Interface</a></strong></td><td>Game.Entity.Interface.csproj</td><td class="textCentered"><a href="#Game.Entity.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Gear">Game.Gear</a></strong></td><td>Game.Gear.csproj</td><td class="textCentered"><a href="#Game.GearError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Map">Game.Map</a></strong></td><td>Game.Map.csproj</td><td class="textCentered"><a href="#Game.MapError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Map.Interface">Game.Map.Interface</a></strong></td><td>Game.Map.Interface.csproj</td><td class="textCentered"><a href="#Game.Map.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Paths">Game.Paths</a></strong></td><td>Game.Paths.csproj</td><td class="textCentered"><a href="#Game.PathsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.PlayerInventory">Game.PlayerInventory</a></strong></td><td>Game.PlayerInventory.csproj</td><td class="textCentered"><a href="#Game.PlayerInventoryError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.PlayerInventory.Interface">Game.PlayerInventory.Interface</a></strong></td><td>Game.PlayerInventory.Interface.csproj</td><td class="textCentered"><a href="#Game.PlayerInventory.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.SaveLoad">Game.SaveLoad</a></strong></td><td>Game.SaveLoad.csproj</td><td class="textCentered"><a href="#Game.SaveLoadError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.SaveLoad.Interface">Game.SaveLoad.Interface</a></strong></td><td>Game.SaveLoad.Interface.csproj</td><td class="textCentered"><a href="#Game.SaveLoad.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.Train">Game.Train</a></strong></td><td>Game.Train.csproj</td><td class="textCentered"><a href="#Game.TrainError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.World">Game.World</a></strong></td><td>Game.World.csproj</td><td class="textCentered"><a href="#Game.WorldError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.World.EventHandler">Game.World.EventHandler</a></strong></td><td>Game.World.EventHandler.csproj</td><td class="textCentered"><a href="#Game.World.EventHandlerError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Game.World.Interface">Game.World.Interface</a></strong></td><td>Game.World.Interface.csproj</td><td class="textCentered"><a href="#Game.World.InterfaceError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#MessagePack">MessagePack</a></strong></td><td>MessagePack.csproj</td><td class="textCentered"><a href="#MessagePackError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#MessagePack.Annotations">MessagePack.Annotations</a></strong></td><td>MessagePack.Annotations.csproj</td><td class="textCentered"><a href="#MessagePack.AnnotationsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Mod.Base">Mod.Base</a></strong></td><td>Mod.Base.csproj</td><td class="textCentered"><a href="#Mod.BaseError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Mod.Config">Mod.Config</a></strong></td><td>Mod.Config.csproj</td><td class="textCentered"><a href="#Mod.ConfigError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Mod.Loader">Mod.Loader</a></strong></td><td>Mod.Loader.csproj</td><td class="textCentered"><a href="#Mod.LoaderError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Server.Boot">Server.Boot</a></strong></td><td>Server.Boot.csproj</td><td class="textCentered"><a href="#Server.BootError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Server.Event">Server.Event</a></strong></td><td>Server.Event.csproj</td><td class="textCentered"><a href="#Server.EventError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Server.Protocol">Server.Protocol</a></strong></td><td>Server.Protocol.csproj</td><td class="textCentered"><a href="#Server.ProtocolError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Server.Tests">Server.Tests</a></strong></td><td>Server.Tests.csproj</td><td class="textCentered"><a href="#Server.TestsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Server.Tests.Module">Server.Tests.Module</a></strong></td><td>Server.Tests.Module.csproj</td><td class="textCentered"><a href="#Server.Tests.ModuleError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Server.Util">Server.Util</a></strong></td><td>Server.Util.csproj</td><td class="textCentered"><a href="#Server.UtilError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#Solution"><span _locID="OverviewSolutionSpan">ソリューション</span></a></strong></td><td>moorestech_server.sln</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('Solution'); return false;">1</a></td></tr></table></div><h2 _locID="SolutionAndProjectsTitle">ソリューションおよびプロジェクト</h2><div id="messages"><a name="Assembly-CSharp" /><h3>Assembly-CSharp</h3><table><tr id="Assembly-CSharpHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassAssembly-CSharp"><td class="IconErrorEncoded"><a name="Assembly-CSharpError" /></td><td class="messageCell"><strong>Assembly-CSharp.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Assembly-CSharp-Editor" /><h3>Assembly-CSharp-Editor</h3><table><tr id="Assembly-CSharp-EditorHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassAssembly-CSharp-Editor"><td class="IconErrorEncoded"><a name="Assembly-CSharp-EditorError" /></td><td class="messageCell"><strong>Assembly-CSharp-Editor.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="ClassLibrary" /><h3>ClassLibrary</h3><table><tr id="ClassLibraryHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassClassLibrary"><td class="IconErrorEncoded"><a name="ClassLibraryError" /></td><td class="messageCell"><strong>ClassLibrary.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Core.Const" /><h3>Core.Const</h3><table><tr id="Core.ConstHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassCore.Const"><td class="IconErrorEncoded"><a name="Core.ConstError" /></td><td class="messageCell"><strong>Core.Const.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Core.Inventory" /><h3>Core.Inventory</h3><table><tr id="Core.InventoryHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassCore.Inventory"><td class="IconErrorEncoded"><a name="Core.InventoryError" /></td><td class="messageCell"><strong>Core.Inventory.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Core.Item" /><h3>Core.Item</h3><table><tr id="Core.ItemHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassCore.Item"><td class="IconErrorEncoded"><a name="Core.ItemError" /></td><td class="messageCell"><strong>Core.Item.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Core.Item.Interface" /><h3>Core.Item.Interface</h3><table><tr id="Core.Item.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassCore.Item.Interface"><td class="IconErrorEncoded"><a name="Core.Item.InterfaceError" /></td><td class="messageCell"><strong>Core.Item.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Core.Master" /><h3>Core.Master</h3><table><tr id="Core.MasterHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassCore.Master"><td class="IconErrorEncoded"><a name="Core.MasterError" /></td><td class="messageCell"><strong>Core.Master.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Core.Update" /><h3>Core.Update</h3><table><tr id="Core.UpdateHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassCore.Update"><td class="IconErrorEncoded"><a name="Core.UpdateError" /></td><td class="messageCell"><strong>Core.Update.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Block" /><h3>Game.Block</h3><table><tr id="Game.BlockHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Block"><td class="IconErrorEncoded"><a name="Game.BlockError" /></td><td class="messageCell"><strong>Game.Block.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Block.Interface" /><h3>Game.Block.Interface</h3><table><tr id="Game.Block.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Block.Interface"><td class="IconErrorEncoded"><a name="Game.Block.InterfaceError" /></td><td class="messageCell"><strong>Game.Block.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Challenge" /><h3>Game.Challenge</h3><table><tr id="Game.ChallengeHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Challenge"><td class="IconErrorEncoded"><a name="Game.ChallengeError" /></td><td class="messageCell"><strong>Game.Challenge.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Context" /><h3>Game.Context</h3><table><tr id="Game.ContextHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Context"><td class="IconErrorEncoded"><a name="Game.ContextError" /></td><td class="messageCell"><strong>Game.Context.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.CraftChainer" /><h3>Game.CraftChainer</h3><table><tr id="Game.CraftChainerHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.CraftChainer"><td class="IconErrorEncoded"><a name="Game.CraftChainerError" /></td><td class="messageCell"><strong>Game.CraftChainer.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Crafting.Interface" /><h3>Game.Crafting.Interface</h3><table><tr id="Game.Crafting.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Crafting.Interface"><td class="IconErrorEncoded"><a name="Game.Crafting.InterfaceError" /></td><td class="messageCell"><strong>Game.Crafting.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.EnergySystem" /><h3>Game.EnergySystem</h3><table><tr id="Game.EnergySystemHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.EnergySystem"><td class="IconErrorEncoded"><a name="Game.EnergySystemError" /></td><td class="messageCell"><strong>Game.EnergySystem.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Entity" /><h3>Game.Entity</h3><table><tr id="Game.EntityHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Entity"><td class="IconErrorEncoded"><a name="Game.EntityError" /></td><td class="messageCell"><strong>Game.Entity.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Entity.Interface" /><h3>Game.Entity.Interface</h3><table><tr id="Game.Entity.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Entity.Interface"><td class="IconErrorEncoded"><a name="Game.Entity.InterfaceError" /></td><td class="messageCell"><strong>Game.Entity.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Gear" /><h3>Game.Gear</h3><table><tr id="Game.GearHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Gear"><td class="IconErrorEncoded"><a name="Game.GearError" /></td><td class="messageCell"><strong>Game.Gear.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Map" /><h3>Game.Map</h3><table><tr id="Game.MapHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Map"><td class="IconErrorEncoded"><a name="Game.MapError" /></td><td class="messageCell"><strong>Game.Map.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Map.Interface" /><h3>Game.Map.Interface</h3><table><tr id="Game.Map.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Map.Interface"><td class="IconErrorEncoded"><a name="Game.Map.InterfaceError" /></td><td class="messageCell"><strong>Game.Map.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Paths" /><h3>Game.Paths</h3><table><tr id="Game.PathsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Paths"><td class="IconErrorEncoded"><a name="Game.PathsError" /></td><td class="messageCell"><strong>Game.Paths.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.PlayerInventory" /><h3>Game.PlayerInventory</h3><table><tr id="Game.PlayerInventoryHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.PlayerInventory"><td class="IconErrorEncoded"><a name="Game.PlayerInventoryError" /></td><td class="messageCell"><strong>Game.PlayerInventory.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.PlayerInventory.Interface" /><h3>Game.PlayerInventory.Interface</h3><table><tr id="Game.PlayerInventory.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.PlayerInventory.Interface"><td class="IconErrorEncoded"><a name="Game.PlayerInventory.InterfaceError" /></td><td class="messageCell"><strong>Game.PlayerInventory.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.SaveLoad" /><h3>Game.SaveLoad</h3><table><tr id="Game.SaveLoadHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.SaveLoad"><td class="IconErrorEncoded"><a name="Game.SaveLoadError" /></td><td class="messageCell"><strong>Game.SaveLoad.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.SaveLoad.Interface" /><h3>Game.SaveLoad.Interface</h3><table><tr id="Game.SaveLoad.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.SaveLoad.Interface"><td class="IconErrorEncoded"><a name="Game.SaveLoad.InterfaceError" /></td><td class="messageCell"><strong>Game.SaveLoad.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.Train" /><h3>Game.Train</h3><table><tr id="Game.TrainHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.Train"><td class="IconErrorEncoded"><a name="Game.TrainError" /></td><td class="messageCell"><strong>Game.Train.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.World" /><h3>Game.World</h3><table><tr id="Game.WorldHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.World"><td class="IconErrorEncoded"><a name="Game.WorldError" /></td><td class="messageCell"><strong>Game.World.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.World.EventHandler" /><h3>Game.World.EventHandler</h3><table><tr id="Game.World.EventHandlerHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.World.EventHandler"><td class="IconErrorEncoded"><a name="Game.World.EventHandlerError" /></td><td class="messageCell"><strong>Game.World.EventHandler.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Game.World.Interface" /><h3>Game.World.Interface</h3><table><tr id="Game.World.InterfaceHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassGame.World.Interface"><td class="IconErrorEncoded"><a name="Game.World.InterfaceError" /></td><td class="messageCell"><strong>Game.World.Interface.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="MessagePack" /><h3>MessagePack</h3><table><tr id="MessagePackHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassMessagePack"><td class="IconErrorEncoded"><a name="MessagePackError" /></td><td class="messageCell"><strong>MessagePack.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="MessagePack.Annotations" /><h3>MessagePack.Annotations</h3><table><tr id="MessagePack.AnnotationsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassMessagePack.Annotations"><td class="IconErrorEncoded"><a name="MessagePack.AnnotationsError" /></td><td class="messageCell"><strong>MessagePack.Annotations.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Mod.Base" /><h3>Mod.Base</h3><table><tr id="Mod.BaseHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassMod.Base"><td class="IconErrorEncoded"><a name="Mod.BaseError" /></td><td class="messageCell"><strong>Mod.Base.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Mod.Config" /><h3>Mod.Config</h3><table><tr id="Mod.ConfigHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassMod.Config"><td class="IconErrorEncoded"><a name="Mod.ConfigError" /></td><td class="messageCell"><strong>Mod.Config.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Mod.Loader" /><h3>Mod.Loader</h3><table><tr id="Mod.LoaderHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassMod.Loader"><td class="IconErrorEncoded"><a name="Mod.LoaderError" /></td><td class="messageCell"><strong>Mod.Loader.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Server.Boot" /><h3>Server.Boot</h3><table><tr id="Server.BootHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassServer.Boot"><td class="IconErrorEncoded"><a name="Server.BootError" /></td><td class="messageCell"><strong>Server.Boot.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Server.Event" /><h3>Server.Event</h3><table><tr id="Server.EventHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassServer.Event"><td class="IconErrorEncoded"><a name="Server.EventError" /></td><td class="messageCell"><strong>Server.Event.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Server.Protocol" /><h3>Server.Protocol</h3><table><tr id="Server.ProtocolHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassServer.Protocol"><td class="IconErrorEncoded"><a name="Server.ProtocolError" /></td><td class="messageCell"><strong>Server.Protocol.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Server.Tests" /><h3>Server.Tests</h3><table><tr id="Server.TestsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassServer.Tests"><td class="IconErrorEncoded"><a name="Server.TestsError" /></td><td class="messageCell"><strong>Server.Tests.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Server.Tests.Module" /><h3>Server.Tests.Module</h3><table><tr id="Server.Tests.ModuleHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassServer.Tests.Module"><td class="IconErrorEncoded"><a name="Server.Tests.ModuleError" /></td><td class="messageCell"><strong>Server.Tests.Module.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Server.Util" /><h3>Server.Util</h3><table><tr id="Server.UtilHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="ErrorRowClassServer.Util"><td class="IconErrorEncoded"><a name="Server.UtilError" /></td><td class="messageCell"><strong>Server.Util.csproj:
+        </strong><span>このプロジェクトの種類の基になるアプリケーションが見つかりませんでした。詳細については、このリンクを参照してください:http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Solution" /><h3 _locID="ProjectDisplayNameHeader">ソリューション</h3><table><tr id="SolutionHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">メッセージ</th></tr><tr name="MessageRowHeaderShowSolution"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="SolutionMessage" onclick="ToggleMessageVisibility('Solution'); return false;">
+          その他の1 メッセージを表示する
+        </a></td></tr><tr name="MessageRowClassSolution" style="display: none"><td class="IconInfoEncoded"><a name="SolutionMessage" /></td><td class="messageCell"><strong>moorestech_server.sln:
+        </strong><span>ソリューション ファイルは移行の必要がありません。</span></td></tr><tr style="display: none" name="MessageRowHeaderHideSolution"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="SolutionMessage" onclick="ToggleMessageVisibility('Solution'); return false;">
+          その他の1 メッセージを隠す
+        </a></td></tr></table></div></div></body></html>

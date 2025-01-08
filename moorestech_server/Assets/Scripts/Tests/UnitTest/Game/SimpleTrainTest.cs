@@ -1,5 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+//using System.Reflection.Emit;
+using Game.Block.Interface;
+//using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Block.Blocks.TrainRail;
 using Game.Context;
 using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +12,8 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System.Collections;
+
 
 namespace Tests.UnitTest.Game
 {
@@ -44,10 +51,10 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var node0 = new RailNode(railGraphDatastore);
-            var node1 = new RailNode(railGraphDatastore);
-            var node2 = new RailNode(railGraphDatastore);
-            var node3 = new RailNode(railGraphDatastore);
+            var node0 = new RailNode();
+            var node1 = new RailNode();
+            var node2 = new RailNode();
+            var node3 = new RailNode();
             node0.ConnectNode(node1, 1);
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
@@ -73,10 +80,10 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var node0 = new RailNode(railGraphDatastore);
-            var node1 = new RailNode(railGraphDatastore);
-            var node2 = new RailNode(railGraphDatastore);
-            var node3 = new RailNode(railGraphDatastore);
+            var node0 = new RailNode();
+            var node1 = new RailNode();
+            var node2 = new RailNode();
+            var node3 = new RailNode();
             node0.ConnectNode(node1, 123);
             node0.ConnectNode(node2, 345);
             node1.ConnectNode(node3, 400);
@@ -109,7 +116,7 @@ namespace Tests.UnitTest.Game
             RailNode[] nodeList = new RailNode[nodenum];
             for (int i = 0; i < nodenum; i++)
             {
-                nodeList[i] = new RailNode(railGraphDatastore);
+                nodeList[i] = new RailNode();
             }
             //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
             for (int i = 0; i < nodenum; i++)
@@ -160,12 +167,12 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var nodeA = new RailNode(railGraphDatastore);
-            var nodeB = new RailNode(railGraphDatastore);
-            var nodeC1 = new RailNode(railGraphDatastore);
-            var nodeC2 = new RailNode(railGraphDatastore);
-            var nodeD1 = new RailNode(railGraphDatastore);
-            var nodeD2 = new RailNode(railGraphDatastore);
+            var nodeA = new RailNode();
+            var nodeB = new RailNode();
+            var nodeC1 = new RailNode();
+            var nodeC2 = new RailNode();
+            var nodeD1 = new RailNode();
+            var nodeD2 = new RailNode();
             nodeA.ConnectNode(nodeC1, 3782);
             nodeB.ConnectNode(nodeC1, 67329);
             nodeC1.ConnectNode(nodeD1, 71894);
@@ -220,9 +227,9 @@ namespace Tests.UnitTest.Game
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
-            var nodeA = new RailNode(railGraphDatastore);
-            var nodeB = new RailNode(railGraphDatastore);
-            var nodeC = new RailNode(railGraphDatastore);
+            var nodeA = new RailNode();
+            var nodeB = new RailNode();
+            var nodeC = new RailNode();
 
             nodeA.ConnectNode(nodeB, 10);
             nodeA.ConnectNode(nodeC, 20);
@@ -243,11 +250,11 @@ namespace Tests.UnitTest.Game
             var railGraph = serviceProvider.GetService<RailGraphDatastore>();
 
             // ノードを準備
-            var nodeA = new RailNode(railGraph);
-            var nodeB = new RailNode(railGraph);
-            var nodeC = new RailNode(railGraph);
-            var nodeD = new RailNode(railGraph);
-            var nodeE = new RailNode(railGraph);
+            var nodeA = new RailNode();
+            var nodeB = new RailNode();
+            var nodeC = new RailNode();
+            var nodeD = new RailNode();
+            var nodeE = new RailNode();
 
             // ノードを接続
             nodeB.ConnectNode(nodeA, 10);//9から列車
@@ -290,17 +297,17 @@ namespace Tests.UnitTest.Game
 
             // ノードを準備
             // 表
-            var nodeA1 = new RailNode(railGraph);
-            var nodeB1 = new RailNode(railGraph);
-            var nodeC1 = new RailNode(railGraph);
-            var nodeD1 = new RailNode(railGraph);
-            var nodeE1 = new RailNode(railGraph);
+            var nodeA1 = new RailNode();
+            var nodeB1 = new RailNode();
+            var nodeC1 = new RailNode();
+            var nodeD1 = new RailNode();
+            var nodeE1 = new RailNode();
             // 裏
-            var nodeA2 = new RailNode(railGraph);
-            var nodeB2 = new RailNode(railGraph);
-            var nodeC2 = new RailNode(railGraph);
-            var nodeD2 = new RailNode(railGraph);
-            var nodeE2 = new RailNode(railGraph);
+            var nodeA2 = new RailNode();
+            var nodeB2 = new RailNode();
+            var nodeC2 = new RailNode();
+            var nodeD2 = new RailNode();
+            var nodeE2 = new RailNode();
 
             // ノードを接続
             nodeB1.ConnectNode(nodeA1, 10);//5から列車
@@ -365,6 +372,181 @@ namespace Tests.UnitTest.Game
                 Assert.AreEqual(nodeD1, list[2]);
                 Assert.AreEqual(nodeE1, list[3]);
             }
+        }
+
+        
+        //ブロック設置してrailComponentの表裏テスト
+        [Test]
+        public void TestRailComponentsAreConnected()
+        {
+            // Initialize the RailGraphDatastore
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
+
+            //assert rail1が存在する
+            Assert.NotNull(rail1, "Rail1 does not exist.");
+
+            // Get two RailComponents
+            var railComponent1 = rail1.GetComponent<RailComponent>();
+            var railComponent2 = rail2.GetComponent<RailComponent>();
+
+            // Connect the two RailComponents
+            railComponent1.ConnectRailComponent(railComponent2, true, true); // Front of railComponent1 to front of railComponent2
+
+            // Validate connections
+            var connectedNodes = railComponent1.FrontNode.ConnectedNodesWithDistance;
+            var connectedNode = connectedNodes.FirstOrDefault();
+
+            Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
+            Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
+            Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
+
+            //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
+            //表
+            var outListPath = railGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+            //裏
+            outListPath = railGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+
+        }
+
+        //50*50*50個のRailComponentの立方体の中にレールグラフを構築したり、内部だけくりぬいたりしてテスト。
+        //ブロック大量設置してと思っていたがブロック設置が1000個で1秒以上かかるため断念
+        //railComponentのみを大量設置する
+        [Test]
+        public void TestRailComponentsRandomCase()
+        {
+            //listを入力とし、順番をシャッフルする関数
+            List<(int, int, int)> ShuffleList(List<(int, int, int)> list)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int j = Random.Range(i, list.Count);
+                    var tmp = list[i];
+                    list[i] = list[j];
+                    list[j] = tmp;
+                }
+                return list;
+            }
+            // Initialize the RailGraphDatastore
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            const int size = 40;//立方体の一辺の長さ
+
+
+            //これから作るべきRailComponentの場所のリストの宣言
+            var listIsDestroy = new List<(int, int, int)>();
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    for (int z = 0; z < size; z++)
+                    {
+                        listIsDestroy.Add((x, y, z));
+                    }
+                }
+            }
+            listIsDestroy = ShuffleList(listIsDestroy);
+            //すでに作られているRailComponentのリスト
+            var listIsCreated = new List<(int, int, int)>();
+            var railBlocks = new RailComponent[size, size, size];
+
+
+            while (listIsDestroy.Count != 0)
+            {
+                //ランダムにRailComponent作成
+                var (x, y, z) = listIsDestroy[Random.Range(0, listIsDestroy.Count)];
+                listIsCreated.Add((x, y, z));
+                listIsDestroy.Remove((x, y, z));
+                railBlocks[x, y, z] = new RailComponent();
+                //ランダムに経路をつなげる
+                //2つ選ぶ
+                var (x1, y1, z1) = listIsCreated[Random.Range(0, listIsCreated.Count)];
+                var (x2, y2, z2) = listIsCreated[Random.Range(0, listIsCreated.Count)];
+                //場所が外周ならやらない   
+                if (x1 == 0 || x1 == size - 1 || y1 == 0 || y1 == size - 1 || z1 == 0 || z1 == size - 1) continue;
+                railBlocks[x1, y1, z1].ConnectRailComponent(railBlocks[x2, y2, z2], true, true);
+
+                //2分の1の確率でcontinue
+                if (Random.Range(0, 2) == 0) continue;
+
+                //ランダムにRailComponentを削除
+                var (x3, y3, z3) = listIsCreated[Random.Range(0, listIsCreated.Count)];
+                railBlocks[x3, y3, z3].Destroy();
+                listIsCreated.Remove((x3, y3, z3));
+                listIsDestroy.Add((x3, y3, z3));
+            }
+
+
+            //自分から+1方向につなげていく。まずはランダムに
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    for (int z = 0; z < size; z++)
+                    {
+                        //2分の1の確率でcontinue
+                        if (Random.Range(0, 2) == 0) continue;
+                        if (x < size - 1) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x + 1, y, z], true, true);
+                        if (y < size - 1) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y + 1, z], true, true);
+                        if (z < size - 1) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y, z + 1], true, true);
+                    }
+                }
+            }
+
+            //残りを全部やる(全部順番にやるとランダムケースで起こるバグを拾えない可能性を考慮し)
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    for (int z = 0; z < size; z++)
+                    {
+                        if (x > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x - 1, y, z], false, false);
+                        if (y > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y - 1, z], false, false);
+                        if (z > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y, z - 1], false, false);
+                    }
+                }
+            }
+            //この時点で
+            //立方体の0,0,0から49,49,49まで経路があるか
+            var node_s = railBlocks[0, 0, 0].FrontNode;
+            var node_e = railBlocks[size - 1, size - 1, size - 1].FrontNode;
+
+            //ダイクストラ法を実行 経路を求める
+            var outListPath = railGraphDatastore.FindShortestPath(node_s, node_e);
+            // outListPathの長さが0でないことを確認
+            Assert.AreNotEqual(0, outListPath.Count);
+
+            //次に余分なpathを削除してちゃんと外周をたどるか
+            for (int x = 1; x < size - 1; x++)
+            {
+                for (int y = 1; y < size - 1; y++)
+                {
+                    for (int z = 1; z < size - 1; z++)
+                    {
+                        railBlocks[x, y, z].Destroy();
+                    }
+                }
+            }
+
+            //ダイクストラ
+            outListPath = railGraphDatastore.FindShortestPath(node_s, node_e);
+            Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count);
+            //outListPathの中身を順番に確認して距離をはかる
+            int distance = 0;
+            for (int i = 0; i < outListPath.Count - 1; i++)
+            {
+                distance += outListPath[i].GetDistanceToNode(outListPath[i + 1]);
+            }
+            Assert.AreEqual(3 * (size - 1), distance);
         }
 
     }
