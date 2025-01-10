@@ -96,7 +96,7 @@ properties:
                 - IMachineParam
               properties:
                 - key: inputSlotCount
-                  type: integ
+                  type: integer
                   default: 1
                 - key: outputSlotCount
                   type: integer
