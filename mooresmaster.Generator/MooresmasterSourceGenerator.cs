@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -20,7 +21,45 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     {
         var additionalTextsProvider = context.AdditionalTextsProvider.Collect();
         var provider = context.CompilationProvider.Combine(additionalTextsProvider);
-        context.RegisterSourceOutput(provider, Emit);
+        context.RegisterSourceOutput(provider, (sourceProductionContext, input) =>
+        {
+            try
+            {
+                Emit(sourceProductionContext, input);
+            }
+            catch (Exception e)
+            {
+                GenerateErrorFile(sourceProductionContext, e);
+#pragma warning disable RS1035
+                var environmentVariables = Environment.GetEnvironmentVariables() as Dictionary<string, string> ?? new Dictionary<string, string>();
+                var isSourceGeneratorDebug = environmentVariables.TryGetValue("IsSourceGeneratorDebug", out var value) && value == "true";
+#pragma warning restore RS1035
+                if (isSourceGeneratorDebug) throw e;
+            }
+        });
+    }
+    
+    private void GenerateErrorFile(SourceProductionContext context, Exception exception)
+    {
+        context.AddSource(
+            "mooresmaster.error.g.cs",
+            $$$"""
+               // ErrorType:
+               // {{{exception.GetType().Name}}}
+               
+               // Message: 
+               // {{{
+                   exception.Message
+                       .Replace("\n", "\n// ")
+               }}}
+               
+               // StackTrace:
+               // {{{
+                   exception.StackTrace
+                       .Replace("\n", "\n// ")
+               }}}
+               """
+        );
     }
     
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)

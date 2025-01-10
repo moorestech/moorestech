@@ -3,11 +3,17 @@
   "profiles": {
     "DebugRoslynSourceGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../mooresmaster.SandBox/mooresmaster.SandBox.csproj"
+      "targetProject": "../mooresmaster.SandBox/mooresmaster.SandBox.csproj",
+      "environmentVariables": {
+        "IsSourceGeneratorDebug": "true"
+      }
     },
     "DebugTestRoslynSourceGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../mooresmaster.Tests/mooresmaster.Tests.csproj"
+      "targetProject": "../mooresmaster.Tests/mooresmaster.Tests.csproj",
+      "environmentVariables": {
+        "IsSourceGeneratorDebug": "true"
+      }
     }
   }
 }
