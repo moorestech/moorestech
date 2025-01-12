@@ -60,7 +60,7 @@ namespace Tests.UnitTest.Game
             node2.ConnectNode(node3, 1);
 
             //ダイクストラ法を実行 node0からnode3までの最短経路を求める
-            var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
+            var outListPath = RailGraphDatastore.FindShortestPath(node0, node3);
 
             //結果が正しいか
             Assert.AreEqual(4, outListPath.Count);
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game
             node2.ConnectNode(node3, 1);
 
             //ダイクストラ法を実行 node0からnode3までの最短経路を求める
-            var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
+            var outListPath = RailGraphDatastore.FindShortestPath(node0, node3);
 
             //結果が正しいか
             Assert.AreEqual(3, outListPath.Count);
@@ -141,7 +141,7 @@ namespace Tests.UnitTest.Game
                 int rand1 = Random.Range(0, nodenum);
                 var node_start = nodeList[rand0];
                 var node_end = nodeList[rand1];
-                var outListPath = railGraphDatastore.FindShortestPath(node_start, node_end);
+                var outListPath = RailGraphDatastore.FindShortestPath(node_start, node_end);
                 //結果が正しいか outListPathは4+1以内のはず
                 if (outListPath.Count > 5)
                 {
@@ -182,7 +182,7 @@ namespace Tests.UnitTest.Game
 
             //上から下
             //ダイクストラ法を実行 nodeAからnodeDまでの最短経路を求める
-            var outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeD1);
+            var outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeD1);
 
             //結果が正しいか
             Assert.AreEqual(3, outListPath.Count);
@@ -191,7 +191,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(nodeD1, outListPath[2]);
 
             //下から上
-            outListPath = railGraphDatastore.FindShortestPath(nodeD2, nodeA);
+            outListPath = RailGraphDatastore.FindShortestPath(nodeD2, nodeA);
 
             //結果が正しいか
             Assert.AreEqual(3, outListPath.Count);
@@ -200,12 +200,12 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(nodeA, outListPath[2]);
 
             //AからBは繋がらない
-            outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeB);
+            outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeB);
             Assert.AreEqual(0, outListPath.Count);
 
             //ここでD1とD2を繋げると
             nodeD1.ConnectNode(nodeD2, 721);
-            outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeB);
+            outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeB);
             Assert.AreEqual(6, outListPath.Count);
             Assert.AreEqual(nodeA, outListPath[0]);
             Assert.AreEqual(nodeC1, outListPath[1]);
@@ -407,11 +407,11 @@ namespace Tests.UnitTest.Game
 
             //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
             //表
-            var outListPath = railGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
+            var outListPath = RailGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
             // outListPathの長さが0でないことを確認
             Assert.AreNotEqual(0, outListPath.Count);
             //裏
-            outListPath = railGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
+            outListPath = RailGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
             // outListPathの長さが0でないことを確認
             Assert.AreNotEqual(0, outListPath.Count);
 
@@ -521,7 +521,7 @@ namespace Tests.UnitTest.Game
             var node_e = railBlocks[size - 1, size - 1, size - 1].FrontNode;
 
             //ダイクストラ法を実行 経路を求める
-            var outListPath = railGraphDatastore.FindShortestPath(node_s, node_e);
+            var outListPath = RailGraphDatastore.FindShortestPath(node_s, node_e);
             // outListPathの長さが0でないことを確認
             Assert.AreNotEqual(0, outListPath.Count);
 
@@ -538,7 +538,7 @@ namespace Tests.UnitTest.Game
             }
 
             //ダイクストラ
-            outListPath = railGraphDatastore.FindShortestPath(node_s, node_e);
+            outListPath = RailGraphDatastore.FindShortestPath(node_s, node_e);
             Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count);
             //outListPathの中身を順番に確認して距離をはかる
             int distance = 0;
