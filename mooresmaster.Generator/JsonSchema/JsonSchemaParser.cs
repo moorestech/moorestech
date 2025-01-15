@@ -69,7 +69,7 @@ public static class JsonSchemaParser
             // keyがプロパティ名
             
             var propertySchemaId = Parse(propertyNode, null, schemaTable);
-            var key = propertyNode["key"] as JsonString;
+            var key = propertyNode[Tokens.PropertyNameKey] as JsonString;
             properties[key.Literal] = schemaTable.Table[propertySchemaId] as IDefineInterfacePropertySchema;
         }
         
