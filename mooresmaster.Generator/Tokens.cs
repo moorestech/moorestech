@@ -22,4 +22,5 @@ public static class Tokens
     public const string ArrayType = "array";
     public const string StringType = "string";
     public const string NumberType = "number";
+    public const string IntegerType = "integer";
 }
