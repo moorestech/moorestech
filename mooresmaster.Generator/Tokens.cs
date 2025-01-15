@@ -13,4 +13,6 @@ public static class Tokens
     public const string InterfaceNameKey = "interfaceName";
     public const string PropertiesKey = "properties";
     public const string PropertyNameKey = "key";
+    public const string ImplementationInterfaceKey = "implementationInterface";
+    public const string SwitchKey = "switch";
 }

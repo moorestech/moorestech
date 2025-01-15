@@ -75,7 +75,7 @@ public static class JsonSchemaParser
         
         // interfaceの継承情報を取得
         var implementationInterfaces = new List<string>();
-        if (node.Nodes.TryGetValue("implementationInterface", out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
+        if (node.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
             foreach (var implementationInterfaceNode in nodesArray.Nodes)
             {
                 var name = (JsonString)implementationInterfaceNode;
@@ -90,7 +90,7 @@ public static class JsonSchemaParser
     
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
     {
-        if (root.Nodes.ContainsKey("switch")) return ParseSwitch(root, parent, schemaTable);
+        if (root.Nodes.ContainsKey(Tokens.SwitchKey)) return ParseSwitch(root, parent, schemaTable);
         if (root.Nodes.ContainsKey("ref")) return ParseRef(root, parent, schemaTable);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
