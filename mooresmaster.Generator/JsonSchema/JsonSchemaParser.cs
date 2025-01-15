@@ -114,7 +114,7 @@ public static class JsonSchemaParser
     private static SchemaId ParseObject(JsonObject json, SchemaId? parent, SchemaTable table)
     {
         var interfaceImplementations = new List<string>();
-        if (json.Nodes.TryGetValue("implementationInterface", out var node) && node is JsonArray array)
+        if (json.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var node) && node is JsonArray array)
             foreach (var implementation in array.Nodes)
                 if (implementation is JsonString name)
                     interfaceImplementations.Add(name.Literal);
