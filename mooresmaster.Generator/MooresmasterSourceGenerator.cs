@@ -65,15 +65,22 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
+        var analyzer = new Analyzer();
         var analysis = new Analysis();
         
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
-        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
-        var nameTable = NameResolver.Resolve(semantics, schemaTable);
-        var definitions = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
         
-        var codeFiles = CodeGenerator.Generate(definitions);
-        var loaderFiles = LoaderGenerator.Generate(definitions, semantics, nameTable);
+        analyzer.PreSemanticsLayerAnalyze(analysis, schemaTable);
+        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
+        analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemaTable);
+        
+        var nameTable = NameResolver.Resolve(semantics, schemaTable);
+        analyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemaTable);
+        var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
+        analyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemaTable, definition);
+        
+        var codeFiles = CodeGenerator.Generate(definition);
+        var loaderFiles = LoaderGenerator.Generate(definition, semantics, nameTable);
         
         // 生成するファイルがある場合のみ固定生成コードを生成する
         if (codeFiles.Length == 0 && loaderFiles.Length == 0) return;
