@@ -96,7 +96,7 @@ public static class JsonSchemaParser
         return type switch
         {
             Tokens.ObjectType => ParseObject(root, parent, schemaTable),
-            "array" => ParseArray(root, parent, schemaTable),
+            Tokens.ArrayType => ParseArray(root, parent, schemaTable),
             "string" => ParseString(root, parent, schemaTable),
             "number" => ParseNumber(root, parent, schemaTable),
             "integer" => ParseInteger(root, parent, schemaTable),
