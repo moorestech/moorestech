@@ -92,7 +92,7 @@ public static class JsonSchemaParser
     {
         if (root.Nodes.ContainsKey(Tokens.SwitchKey)) return ParseSwitch(root, parent, schemaTable);
         if (root.Nodes.ContainsKey(Tokens.RefKey)) return ParseRef(root, parent, schemaTable);
-        var type = (root["type"] as JsonString)!.Literal;
+        var type = (root[Tokens.TypeKey] as JsonString)!.Literal;
         return type switch
         {
             "object" => ParseObject(root, parent, schemaTable),
