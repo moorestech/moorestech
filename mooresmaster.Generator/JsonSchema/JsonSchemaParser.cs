@@ -58,7 +58,7 @@ public static class JsonSchemaParser
     
     private static DefineInterface ParseDefineInterface(string id, JsonObject node, SchemaTable schemaTable, bool isGlobal)
     {
-        var interfaceName = (node["interfaceName"] as JsonString)?.Literal ?? throw new InvalidOperationException();
+        var interfaceName = (node[Tokens.InterfaceNameKey] as JsonString)?.Literal ?? throw new InvalidOperationException();
         
         var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
         
