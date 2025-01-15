@@ -62,7 +62,7 @@ public static class JsonSchemaParser
         
         var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
         
-        var propertiesNode = node.Nodes["properties"] as JsonArray;
+        var propertiesNode = node.Nodes[Tokens.PropertiesKey] as JsonArray;
         foreach (var propertyNode in propertiesNode.Nodes.OfType<JsonObject>())
         {
             // valueがtypeとかdefaultとか
