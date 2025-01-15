@@ -42,7 +42,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     private void GenerateErrorFile(SourceProductionContext context, Exception exception)
     {
         context.AddSource(
-            "mooresmaster.error.g.cs",
+            Tokens.ErrorFileName,
             $$$"""
                // ErrorType:
                // {{{exception.GetType().Name}}}
