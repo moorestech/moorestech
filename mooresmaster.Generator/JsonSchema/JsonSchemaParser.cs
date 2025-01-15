@@ -91,7 +91,7 @@ public static class JsonSchemaParser
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
     {
         if (root.Nodes.ContainsKey(Tokens.SwitchKey)) return ParseSwitch(root, parent, schemaTable);
-        if (root.Nodes.ContainsKey("ref")) return ParseRef(root, parent, schemaTable);
+        if (root.Nodes.ContainsKey(Tokens.RefKey)) return ParseRef(root, parent, schemaTable);
         var type = (root["type"] as JsonString)!.Literal;
         return type switch
         {
