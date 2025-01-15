@@ -41,10 +41,10 @@ public static class JsonSchemaParser
     
     private static DefineInterface[] ParseGlobalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable)
     {
-        if (!root.Nodes.ContainsKey("globalDefineInterface")) return [];
+        if (!root.Nodes.ContainsKey(Tokens.GlobalDefineInterface)) return [];
         
         var interfaces = new List<DefineInterface>();
-        var defineJsons = root["globalDefineInterface"] as JsonArray;
+        var defineJsons = root[Tokens.GlobalDefineInterface] as JsonArray;
         
         foreach (var defineJsonNode in defineJsons!.Nodes)
         {

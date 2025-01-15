@@ -9,4 +9,5 @@ public static class Tokens
     public const string ErrorFileName = "mooresmaster.error.g.cs";
     
     public const string DefineInterface = "defineInterface";
+    public const string GlobalDefineInterface = "globalDefineInterface";
 }
