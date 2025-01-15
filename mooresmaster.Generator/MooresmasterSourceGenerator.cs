@@ -87,6 +87,8 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var codeFiles = CodeGenerator.Generate(definition);
         var loaderFiles = LoaderGenerator.Generate(definition, semantics, nameTable);
         
+        analysis.ThrowDiagnostics();
+        
         // 生成するファイルがある場合のみ固定生成コードを生成する
         if (codeFiles.Length == 0 && loaderFiles.Length == 0) return;
         
