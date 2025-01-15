@@ -32,7 +32,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
                 GenerateErrorFile(sourceProductionContext, e);
 #pragma warning disable RS1035
                 var environmentVariables = Environment.GetEnvironmentVariables() as Dictionary<string, string> ?? new Dictionary<string, string>();
-                var isSourceGeneratorDebug = environmentVariables.TryGetValue("IsSourceGeneratorDebug", out var value) && value == "true";
+                var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
 #pragma warning restore RS1035
                 if (isSourceGeneratorDebug) throw e;
             }
