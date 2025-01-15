@@ -32,7 +32,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
                 GenerateErrorFile(sourceProductionContext, e);
 #pragma warning disable RS1035
                 var environmentVariables = Environment.GetEnvironmentVariables() as Dictionary<string, string> ?? new Dictionary<string, string>();
-                var isSourceGeneratorDebug = environmentVariables.TryGetValue("IsSourceGeneratorDebug", out var value) && value == "true";
+                var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
 #pragma warning restore RS1035
                 if (isSourceGeneratorDebug) throw e;
             }
@@ -42,7 +42,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     private void GenerateErrorFile(SourceProductionContext context, Exception exception)
     {
         context.AddSource(
-            "mooresmaster.error.g.cs",
+            Tokens.ErrorFileName,
             $$$"""
                // ErrorType:
                // {{{exception.GetType().Name}}}
@@ -78,8 +78,8 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         foreach (var codeFile in codeFiles) context.AddSource(codeFile.FileName, codeFile.Code);
         foreach (var loaderFile in loaderFiles) context.AddSource(loaderFile.FileName, loaderFile.Code);
         
-        context.AddSource("mooresmaster.loader.BuiltinLoader.g.cs", LoaderGenerator.GenerateBuiltinLoaderCode());
-        context.AddSource("mooresmaster.loader.exception.g.cs", LoaderGenerator.GenerateLoaderExceptionTypeCode());
+        context.AddSource(Tokens.BuiltinLoaderFileName, LoaderGenerator.GenerateBuiltinLoaderCode());
+        context.AddSource(Tokens.ExceptionFileName, LoaderGenerator.GenerateLoaderExceptionTypeCode());
     }
     
     private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
