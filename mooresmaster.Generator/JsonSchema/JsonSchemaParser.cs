@@ -158,7 +158,7 @@ public static class JsonSchemaParser
         var ifThenList = new List<SwitchCaseSchema>();
         var schemaId = SchemaId.New();
         
-        var switchReferencePath = (json["switch"] as JsonString)!;
+        var switchReferencePath = (json[Tokens.SwitchKey] as JsonString)!;
         
         foreach (var node in (json["cases"] as JsonArray)!.Nodes)
         {
