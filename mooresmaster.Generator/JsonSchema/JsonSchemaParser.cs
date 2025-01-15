@@ -119,11 +119,11 @@ public static class JsonSchemaParser
                 if (implementation is JsonString name)
                     interfaceImplementations.Add(name.Literal);
         
-        var objectName = json.Nodes.ContainsKey("key") ? (json["key"] as JsonString)!.Literal : null;
+        var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
         
-        if (!json.Nodes.ContainsKey("properties")) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
+        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray()));
         
-        var propertiesJson = (json["properties"] as JsonArray)!;
+        var propertiesJson = (json[Tokens.PropertiesKey] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
         var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var objectSchemaId = SchemaId.New();
@@ -131,7 +131,7 @@ public static class JsonSchemaParser
         Dictionary<string, SchemaId> properties = [];
         foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
         {
-            var key = propertyNode.Nodes["key"] as JsonString;
+            var key = propertyNode.Nodes[Tokens.PropertyNameKey] as JsonString;
             var value = propertyNode;
             var schemaId = Parse(value, objectSchemaId, table);
             
@@ -147,7 +147,7 @@ public static class JsonSchemaParser
     {
         var overrideCodeGeneratePropertyName = json["overrideCodeGeneratePropertyName"] as JsonString;
         var arraySchemaId = SchemaId.New();
-        var key = json["key"] as JsonString;
+        var key = json[Tokens.PropertyNameKey] as JsonString;
         var items = Parse((json["items"] as JsonObject)!, arraySchemaId, table);
         table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, overrideCodeGeneratePropertyName, IsNullable(json)));
         return arraySchemaId;
