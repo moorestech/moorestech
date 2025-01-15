@@ -24,10 +24,10 @@ public static class JsonSchemaParser
     
     private static DefineInterface[] ParseLocalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable)
     {
-        if (!root.Nodes.ContainsKey("defineInterface")) return [];
+        if (!root.Nodes.ContainsKey(Tokens.DefineInterface)) return [];
         
         List<DefineInterface> interfaces = new();
-        var defineJsons = root["defineInterface"] as JsonArray;
+        var defineJsons = root[Tokens.DefineInterface] as JsonArray;
         
         foreach (var defineJsonNode in defineJsons!.Nodes)
         {
