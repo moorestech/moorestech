@@ -11,4 +11,5 @@ public static class Tokens
     public const string DefineInterface = "defineInterface";
     public const string GlobalDefineInterface = "globalDefineInterface";
     public const string InterfaceNameKey = "interfaceName";
+    public const string PropertiesKey = "properties";
 }
