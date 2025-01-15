@@ -17,4 +17,6 @@ public static class Tokens
     public const string SwitchKey = "switch";
     public const string RefKey = "ref";
     public const string TypeKey = "type";
+    
+    public const string ObjectType = "object";
 }

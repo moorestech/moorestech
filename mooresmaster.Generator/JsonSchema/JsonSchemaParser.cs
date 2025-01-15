@@ -95,7 +95,7 @@ public static class JsonSchemaParser
         var type = (root[Tokens.TypeKey] as JsonString)!.Literal;
         return type switch
         {
-            "object" => ParseObject(root, parent, schemaTable),
+            Tokens.ObjectType => ParseObject(root, parent, schemaTable),
             "array" => ParseArray(root, parent, schemaTable),
             "string" => ParseString(root, parent, schemaTable),
             "number" => ParseNumber(root, parent, schemaTable),
