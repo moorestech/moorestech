@@ -19,4 +19,5 @@ public static class Tokens
     public const string TypeKey = "type";
     
     public const string ObjectType = "object";
+    public const string ArrayType = "array";
 }
