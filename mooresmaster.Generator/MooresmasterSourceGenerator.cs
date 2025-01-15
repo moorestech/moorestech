@@ -78,8 +78,8 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         foreach (var codeFile in codeFiles) context.AddSource(codeFile.FileName, codeFile.Code);
         foreach (var loaderFile in loaderFiles) context.AddSource(loaderFile.FileName, loaderFile.Code);
         
-        context.AddSource("mooresmaster.loader.exception.g.cs", LoaderGenerator.GenerateLoaderExceptionTypeCode());
         context.AddSource(Tokens.BuiltinLoaderFileName, LoaderGenerator.GenerateBuiltinLoaderCode());
+        context.AddSource(Tokens.ExceptionFileName, LoaderGenerator.GenerateLoaderExceptionTypeCode());
     }
     
     private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
