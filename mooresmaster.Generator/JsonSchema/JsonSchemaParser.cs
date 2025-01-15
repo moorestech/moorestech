@@ -97,8 +97,8 @@ public static class JsonSchemaParser
         {
             Tokens.ObjectType => ParseObject(root, parent, schemaTable),
             Tokens.ArrayType => ParseArray(root, parent, schemaTable),
-            "string" => ParseString(root, parent, schemaTable),
-            "number" => ParseNumber(root, parent, schemaTable),
+            Tokens.StringType => ParseString(root, parent, schemaTable),
+            Tokens.NumberType => ParseNumber(root, parent, schemaTable),
             "integer" => ParseInteger(root, parent, schemaTable),
             "boolean" => ParseBoolean(root, parent, schemaTable),
             "uuid" => ParseUUID(root, parent, schemaTable),
