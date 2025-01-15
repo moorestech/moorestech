@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
@@ -64,6 +65,8 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
+        var analysis = new Analysis();
+        
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
         var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
