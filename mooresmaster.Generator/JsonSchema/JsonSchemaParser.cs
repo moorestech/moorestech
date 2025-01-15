@@ -100,13 +100,13 @@ public static class JsonSchemaParser
             Tokens.StringType => ParseString(root, parent, schemaTable),
             Tokens.NumberType => ParseNumber(root, parent, schemaTable),
             Tokens.IntegerType => ParseInteger(root, parent, schemaTable),
-            "boolean" => ParseBoolean(root, parent, schemaTable),
-            "uuid" => ParseUUID(root, parent, schemaTable),
-            "vector2" => ParseVector2(root, parent, schemaTable),
-            "vector3" => ParseVector3(root, parent, schemaTable),
-            "vector4" => ParseVector4(root, parent, schemaTable),
-            "vector2Int" => ParseVector2Int(root, parent, schemaTable),
-            "vector3Int" => ParseVector3Int(root, parent, schemaTable),
+            Tokens.BooleanType => ParseBoolean(root, parent, schemaTable),
+            Tokens.UuidType => ParseUUID(root, parent, schemaTable),
+            Tokens.Vector2Type => ParseVector2(root, parent, schemaTable),
+            Tokens.Vector3Type => ParseVector3(root, parent, schemaTable),
+            Tokens.Vector4Type => ParseVector4(root, parent, schemaTable),
+            Tokens.Vector2IntType => ParseVector2Int(root, parent, schemaTable),
+            Tokens.Vector3IntType => ParseVector3Int(root, parent, schemaTable),
             _ => throw new Exception($"Unknown type: {type}")
         };
     }
