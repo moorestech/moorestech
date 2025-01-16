@@ -28,7 +28,7 @@ namespace Game.Train.RailGraph
         // ----- 既存の静的コレクションは非静的に変更する -----
         private Dictionary<RailNode, int> railIdDic;
         private List<RailNode> railNodes;
-        private MinHeap<int> nextidQueue;
+        private MinHeap<int> nextidQueue;//railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
         private List<List<(int, int)>> connectNodes;
 
         // コンストラクタは private にして外部から new を禁止

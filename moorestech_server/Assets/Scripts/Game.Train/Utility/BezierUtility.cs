@@ -42,7 +42,7 @@ namespace Game.Train.Utility
         /// <param name="p3">アンカーポイント2</param>
         /// <param name="samples">サンプリング数（多いほど精度が高くなる）</param>
         /// <returns>ベジェ曲線の概算距離</returns>
-        public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples = 20)
+        public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples = 512)
         {
             float length = 0f;
             Vector3 previousPoint = GetBezierPoint(p0, p1, p2, p3, 0f);

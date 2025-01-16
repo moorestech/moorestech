@@ -439,7 +439,7 @@ namespace Tests.UnitTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
-            const int size = 10;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上
+            const int size = 12;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上
 
 
             //これから作るべきRailComponentの場所のリストの宣言
@@ -540,13 +540,15 @@ namespace Tests.UnitTest.Game
             //ダイクストラ
             outListPath = RailGraphDatastore.FindShortestPath(node_s, node_e);
             Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count);
-            //outListPathの中身を順番に確認して距離をはかる
+            //outListPathの中身を順番に確認して距離をはかる。これはConnectRailComponentでつなげたときの距離が1になる前提のときのテスト
+            /*
             int distance = 0;
             for (int i = 0; i < outListPath.Count - 1; i++)
             {
                 distance += outListPath[i].GetDistanceToNode(outListPath[i + 1]);
             }
             Assert.AreEqual(3 * (size - 1), distance);
+            */
         }
 
     }
