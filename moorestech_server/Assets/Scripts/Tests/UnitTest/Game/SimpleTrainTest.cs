@@ -439,7 +439,7 @@ namespace Tests.UnitTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
-            const int size = 40;//立方体の一辺の長さ
+            const int size = 10;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上
 
 
             //これから作るべきRailComponentの場所のリストの宣言
