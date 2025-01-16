@@ -32,7 +32,8 @@ namespace Game.Train.RailGraph
         private List<List<(int, int)>> connectNodes;
 
         // コンストラクタは private にして外部から new を禁止
-        private RailGraphDatastore()
+        // →やっぱDIが使用できるよう、コンストラクタをpublicに変更
+        public RailGraphDatastore()
         {
             railIdDic = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();

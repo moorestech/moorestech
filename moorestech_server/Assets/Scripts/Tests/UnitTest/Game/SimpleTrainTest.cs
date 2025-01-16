@@ -466,7 +466,7 @@ namespace Tests.UnitTest.Game
                 var (x, y, z) = listIsDestroy[Random.Range(0, listIsDestroy.Count)];
                 listIsCreated.Add((x, y, z));
                 listIsDestroy.Remove((x, y, z));
-                railBlocks[x, y, z] = new RailComponent();
+                railBlocks[x, y, z] = new RailComponent(new BlockPositionInfo(new Vector3Int(x, y, z), BlockDirection.North, new Vector3Int(0, 0, 0)));
                 //ランダムに経路をつなげる
                 //2つ選ぶ
                 var (x1, y1, z1) = listIsCreated[Random.Range(0, listIsCreated.Count)];
