@@ -67,7 +67,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
         var analyzer = new Analyzer()
-            .AddAnalyzer(new DefineInterfaceAnalyzer());
+            .AddAnalyzer(new DefineInterfaceScopeAnalyzer());
         
         var analysis = new Analysis();
         
