@@ -28,9 +28,9 @@ public class Analyzer
         return this;
     }
     
-    public void PostJsonSchemaLayerAnalyze(Analysis analysis, SchemaTable schemaTable)
+    public void PostJsonSchemaLayerAnalyze(Analysis analysis, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable)
     {
-        foreach (var postJsonSchemaLayerAnalyzer in _postJsonSchemaLayerAnalyzers) postJsonSchemaLayerAnalyzer.PostJsonSchemaLayerAnalyze(analysis, schemaTable);
+        foreach (var postJsonSchemaLayerAnalyzer in _postJsonSchemaLayerAnalyzers) postJsonSchemaLayerAnalyzer.PostJsonSchemaLayerAnalyze(analysis, schemaFiles, schemaTable);
     }
     
     public void PreJsonSchemaLayerAnalyze(Analysis analysis, ImmutableArray<AdditionalText> texts)
@@ -38,24 +38,24 @@ public class Analyzer
         foreach (var preJsonSchemaLayerAnalyzer in _preJsonSchemaLayerAnalyzers) preJsonSchemaLayerAnalyzer.PreJsonSchemaLayerAnalyze(analysis, texts);
     }
     
-    public void PostSemanticsLayerAnalyze(Analysis analysis, Semantics semantics, SchemaTable schemaTable)
+    public void PostSemanticsLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable)
     {
-        foreach (var postSemanticsLayerAnalyzer in _postSemanticsLayerAnalyzers) postSemanticsLayerAnalyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemaTable);
+        foreach (var postSemanticsLayerAnalyzer in _postSemanticsLayerAnalyzers) postSemanticsLayerAnalyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemaFiles, schemaTable);
     }
     
-    public void PreSemanticsLayerAnalyze(Analysis analysis, SchemaTable schemaTable)
+    public void PreSemanticsLayerAnalyze(Analysis analysis, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable)
     {
-        foreach (var preSemanticsLayerAnalyzer in _preSemanticsLayerAnalyzers) preSemanticsLayerAnalyzer.PreSemanticsLayerAnalyze(analysis, schemaTable);
+        foreach (var preSemanticsLayerAnalyzer in _preSemanticsLayerAnalyzers) preSemanticsLayerAnalyzer.PreSemanticsLayerAnalyze(analysis, schemaFiles, schemaTable);
     }
     
-    public void PostDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, SchemaTable schemaTable, Definition definition)
+    public void PostDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable, Definition definition)
     {
-        foreach (var postDefinitionLayerAnalyzer in _postDefinitionLayerAnalyzers) postDefinitionLayerAnalyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemaTable, definition);
+        foreach (var postDefinitionLayerAnalyzer in _postDefinitionLayerAnalyzers) postDefinitionLayerAnalyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemaFiles, schemaTable, definition);
     }
     
-    public void PreDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, SchemaTable schemaTable)
+    public void PreDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable)
     {
-        foreach (var preDefinitionLayerAnalyzer in _preDefinitionLayerAnalyzers) preDefinitionLayerAnalyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemaTable);
+        foreach (var preDefinitionLayerAnalyzer in _preDefinitionLayerAnalyzers) preDefinitionLayerAnalyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemaFiles, schemaTable);
     }
 }
 
@@ -63,7 +63,7 @@ public interface IAnalyzer;
 
 public interface IPostJsonSchemaLayerAnalyzer : IAnalyzer
 {
-    void PostJsonSchemaLayerAnalyze(Analysis analysis, SchemaTable schemaTable);
+    void PostJsonSchemaLayerAnalyze(Analysis analysis, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable);
 }
 
 public interface IPreJsonSchemaLayerAnalyzer : IAnalyzer
@@ -73,20 +73,20 @@ public interface IPreJsonSchemaLayerAnalyzer : IAnalyzer
 
 public interface IPostSemanticsLayerAnalyzer : IAnalyzer
 {
-    void PostSemanticsLayerAnalyze(Analysis analysis, Semantics semantics, SchemaTable schemaTable);
+    void PostSemanticsLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable);
 }
 
 public interface IPreSemanticsLayerAnalyzer : IAnalyzer
 {
-    void PreSemanticsLayerAnalyze(Analysis analysis, SchemaTable schemaTable);
+    void PreSemanticsLayerAnalyze(Analysis analysis, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable);
 }
 
 public interface IPostDefinitionLayerAnalyzer : IAnalyzer
 {
-    void PostDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, SchemaTable schemaTable, Definition definition);
+    void PostDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable, Definition definition);
 }
 
 public interface IPreDefinitionLayerAnalyzer : IAnalyzer
 {
-    void PreDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, SchemaTable schemaTable);
+    void PreDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable);
 }
