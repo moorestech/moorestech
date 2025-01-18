@@ -54,7 +54,7 @@ public class Analyzer
         foreach (var postJsonSchemaLayerAnalyzer in _postJsonSchemaLayerAnalyzers) postJsonSchemaLayerAnalyzer.PostJsonSchemaLayerAnalyze(analysis, schemaFiles, schemaTable);
     }
     
-    public void PreJsonSchemaLayerAnalyze(Analysis analysis, ImmutableArray<AdditionalText> texts)
+    public void PreJsonSchemaLayerAnalyze(Analysis analysis, AnalyzerTextFile[] texts)
     {
         foreach (var preJsonSchemaLayerAnalyzer in _preJsonSchemaLayerAnalyzers) preJsonSchemaLayerAnalyzer.PreJsonSchemaLayerAnalyze(analysis, texts);
     }
@@ -89,7 +89,7 @@ public interface IPostJsonSchemaLayerAnalyzer : IAnalyzer
 
 public interface IPreJsonSchemaLayerAnalyzer : IAnalyzer
 {
-    void PreJsonSchemaLayerAnalyze(Analysis analysis, ImmutableArray<AdditionalText> texts);
+    void PreJsonSchemaLayerAnalyze(Analysis analysis, AnalyzerTextFile[] texts);
 }
 
 public interface IPostSemanticsLayerAnalyzer : IAnalyzer
@@ -110,4 +110,23 @@ public interface IPostDefinitionLayerAnalyzer : IAnalyzer
 public interface IPreDefinitionLayerAnalyzer : IAnalyzer
 {
     void PreDefinitionLayerAnalyze(Analysis analysis, Semantics semantics, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable);
+}
+
+public struct AnalyzerTextFile(string filePath, string text)
+{
+    public string FilePath = filePath;
+    public string Text = text;
+}
+
+public static class TextFileExtension
+{
+    public static AnalyzerTextFile[] ToAnalyzerTextFiles(this ImmutableArray<AdditionalText> additionalTexts)
+    {
+        return additionalTexts.Select(t => new AnalyzerTextFile(t.Path, t.GetText()?.ToString() ?? "")).ToArray();
+    }
+    
+    public static AnalyzerTextFile[] ToAnalyzerTextFiles(this string[] texts)
+    {
+        return texts.Select(t => new AnalyzerTextFile("", t)).ToArray();
+    }
 }

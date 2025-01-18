@@ -71,7 +71,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         
         var analysis = new Analysis();
         
-        analyzer.PreJsonSchemaLayerAnalyze(analysis, input.additionalTexts);
+        analyzer.PreJsonSchemaLayerAnalyze(analysis, input.additionalTexts.ToAnalyzerTextFiles());
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
         analyzer.PostJsonSchemaLayerAnalyze(analysis, schemas, schemaTable);
         
