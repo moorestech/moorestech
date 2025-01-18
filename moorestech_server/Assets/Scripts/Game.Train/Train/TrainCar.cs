@@ -8,12 +8,13 @@ namespace Game.Train.Train
         // インベントリスロット数 (貨車での容量、動力車では0?)
         public int InventorySlots { get; private set; }
 
-        public int length { get; private set; }
+        public int Length { get; private set; }
 
-        public TrainCar(int tractionForce, int inventorySlots)
+        public TrainCar(int tractionForce, int inventorySlots, int length)
         {
             TractionForce = tractionForce;
             InventorySlots = inventorySlots;
+            Length = length;
         }
 
     }
