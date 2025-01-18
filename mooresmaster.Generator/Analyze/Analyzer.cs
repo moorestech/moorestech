@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.JsonSchema;
@@ -24,6 +27,24 @@ public class Analyzer
         if (analyzer is IPreDefinitionLayerAnalyzer preDefinitionLayerAnalyzer) _preDefinitionLayerAnalyzers.Add(preDefinitionLayerAnalyzer);
         if (analyzer is IPostJsonSchemaLayerAnalyzer postJsonSchemaLayerAnalyzer) _postJsonSchemaLayerAnalyzers.Add(postJsonSchemaLayerAnalyzer);
         if (analyzer is IPreJsonSchemaLayerAnalyzer preJsonSchemaLayerAnalyzer) _preJsonSchemaLayerAnalyzers.Add(preJsonSchemaLayerAnalyzer);
+        
+        return this;
+    }
+    
+    public Analyzer AddAllAnalyzer()
+    {
+        var analyzerTypes = Assembly
+            .GetAssembly(typeof(IAnalyzer))
+            .GetTypes()
+            .Where(t => t.GetInterfaces().Any(i => i == typeof(IAnalyzer)))
+            .Where(t => t.IsClass)
+            .ToArray();
+        
+        foreach (var analyzerType in analyzerTypes)
+        {
+            var analyzer = Activator.CreateInstance(analyzerType) as IAnalyzer;
+            AddAnalyzer(analyzer);
+        }
         
         return this;
     }
