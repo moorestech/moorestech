@@ -7,7 +7,7 @@ namespace Game.Train.RailGraph
     public class RailGraphDatastore
     {
         // ----- シングルトン実装用 -----
-        private static RailGraphDatastore _instance;
+        public static RailGraphDatastore _instance;
 
         /// <summary>
         /// インスタンスを取得する。nullの場合は内部で生成する例。
@@ -178,6 +178,21 @@ namespace Game.Train.RailGraph
             Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
             return -1;
         }
+
+        //test用
+        public void Test_ListIdLog(List<RailNode> railNodes)
+        {
+            foreach (var node in railNodes)
+            {
+                Debug.Log(railIdDic[node]);
+            }
+        }
+        public void Test_NodeIdLog(RailNode r)
+        {
+            Debug.Log(railIdDic[r]);
+        }
+
+
 
         // ダイクストラ
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)

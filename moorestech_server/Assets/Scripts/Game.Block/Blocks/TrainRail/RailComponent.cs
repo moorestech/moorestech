@@ -38,7 +38,8 @@ namespace Game.Block.Blocks.TrainRail
         //レール接続作業、手動でつなげたときを想定。自分の表or裏を起点に相手の表or裏につながる
         //isFront_this:true 自分の表から相手のxに入る
         //isFront_target:true 相手の表に入る
-        public void ConnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target)
+        //defaultdistanceはデバッグ時以外基本していしない
+        public void ConnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target, int defaultdistance = -1)
         {
             //距離を算出
             var p0 = (Vector3)GetPosition();//自分のアンカーポイント
@@ -46,6 +47,10 @@ namespace Game.Block.Blocks.TrainRail
             var p2 = targetRail.GetControlPoint(!isFront_target);//相手の制御点
             var p3 = (Vector3)targetRail.GetPosition();//相手のアンカーポイント
             int distance = (int)(BezierUtility.GetBezierCurveLength(p0, p1, p2, p3) * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
+            if (defaultdistance != -1)
+            {
+                distance = defaultdistance;
+            }
 
 
             if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→表自

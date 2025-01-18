@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.RailGraph
@@ -176,7 +177,12 @@ namespace Game.Train.RailGraph
         }
         public RailPosition DeepCopy()
         {
-            return new RailPosition(_railNodes.ToList(), _trainLength, _distanceToNextNode);
+            var newrailNodes = new List<RailNode>();
+            foreach (var node in _railNodes)
+            {
+                newrailNodes.Add(node);
+            }
+            return new RailPosition(newrailNodes, _trainLength, _distanceToNextNode);
         }
 
         //先頭の位置は変えずに長さだけかえる
@@ -192,6 +198,7 @@ namespace Game.Train.RailGraph
                 throw new ArgumentException("列車の長さは0または正の値である必要があります。");
             }
             _trainLength = newLength;
+            RemoveUnnecessaryNodes();
         }
 
         //テスト用

@@ -7,7 +7,7 @@ namespace Game.Train.Train
 {
     public class TrainUnit
     {
-        private RailPosition _railPosition;
+        public RailPosition _railPosition;
 
         private RailNode _destination; // 目的地（駅ノードなど）
         private float _currentSpeed;   // m/s など適宜
@@ -102,6 +102,9 @@ namespace Game.Train.Train
                 .Skip(_cars.Count - numberOfCarsToDetach)
                 .ToList();
 
+            // 3) 新しく後ろのTrainUnitを作る
+            var splittedRailPosition = CreateSplittedRailPosition(detachedCars);
+
             // 2) 既存のTrainUnitからは そのぶん削除
             _cars.RemoveRange(_cars.Count - numberOfCarsToDetach, numberOfCarsToDetach);
             // _carsの両数に応じて、列車長を算出する
@@ -109,9 +112,6 @@ namespace Game.Train.Train
             foreach (var car in _cars)
                 newTrainLength += car.Length;
             _railPosition.SetTrainLength(newTrainLength);
-
-            // 3) 新しく後ろのTrainUnitを作る
-            var splittedRailPosition = CreateSplittedRailPosition(detachedCars);
 
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(

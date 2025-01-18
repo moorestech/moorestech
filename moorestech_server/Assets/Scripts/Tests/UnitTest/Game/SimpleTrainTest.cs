@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Blocks.TrainRail;
 using Game.Context;
+using Game.Train.Train;
 using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -11,11 +12,12 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-
 namespace Tests.UnitTest.Game
 {
+    
     public class SimpleTrainTest
     {
+        
         [Test]
         // レールに乗っている列車が指定された駅に向かって移動するテスト
         // A test in which a train on rails moves towards a designated station
@@ -66,7 +68,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(node2, outListPath[2]);
             Assert.AreEqual(node3, outListPath[3]);
         }
-
 
         [Test]
         //ダイクストラ法が正しく動いているか、分岐あり 0=(1,2)=3
@@ -235,7 +236,6 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(connectedNodes.Contains(nodeB));
             Assert.IsTrue(connectedNodes.Contains(nodeC));
         }
-
         //RailPositionのmoveForwardのテストその1
         [Test]
         public void MoveForward_LongTrain_MovesAcrossMultipleNodes()
@@ -536,15 +536,142 @@ namespace Tests.UnitTest.Game
             //ダイクストラ
             outListPath = RailGraphDatastore.FindShortestPath(node_s, node_e);
             Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count);
-            //outListPathの中身を順番に確認して距離をはかる。これはConnectRailComponentでつなげたときの距離が1になる前提のときのテスト
-            /*
-            int distance = 0;
-            for (int i = 0; i < outListPath.Count - 1; i++)
+        }
+
+
+
+
+
+
+        
+        /// <summary>
+        /// 列車を編成分割できることをテスト。
+        /// 前後の車両数・RailPosition の列車長さが正しく更新されているか確認します。
+        /// </summary>
+        [Test]
+        public void SplitTrain_BasicTest()
+        {
+            /// RailPosition の列車長をテスト用に取得するためのヘルパーメソッド。
+            int GetTrainLengthForTest(RailPosition railPosition)
             {
-                distance += outListPath[i].GetDistanceToNode(outListPath[i + 1]);
+                // railPosition が null なら -1 などを返しておく
+                if (railPosition == null) return -1;
+                var fieldInfo = typeof(RailPosition)
+                    .GetField("_trainLength", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (fieldInfo == null) return -1;
+                return (int)fieldInfo.GetValue(railPosition);
             }
-            Assert.AreEqual(3 * (size - 1), distance);
-            */
+
+            // --- 1. レールノードを用意 ---
+            // 例として直線上のノード3つ (A <- B <- C) を作り、距離を設定
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var railB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var railC);
+            // A - B の距離を 20,  B - C の距離を 40 とする
+            var railComponentA = railA.GetComponent<RailComponent>();
+            var railComponentB = railB.GetComponent<RailComponent>();
+            var railComponentC = railC.GetComponent<RailComponent>();
+
+            // Connect the two RailComponents
+            railComponentC.ConnectRailComponent(railComponentB, true, true, 40);
+            railComponentB.ConnectRailComponent(railComponentA, true, true, 20);
+
+            // これで A -> B -> C の合計距離は 60
+            var nodeA = railComponentA.FrontNode;
+            var nodeB = railComponentB.FrontNode;
+            var nodeC = railComponentC.FrontNode;
+
+            // --- 2. 編成を構成する車両を用意 ---
+            // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
+            var cars = new List<TrainCar>
+            {
+                new TrainCar(tractionForce: 1000, inventorySlots: 0, length: 10),  // 仮: 動力車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 20),   // 貨車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 10),
+            };
+            int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
+            // --- 3. 初期の RailPosition を用意 ---
+            //   ノードリスト = [A, B, C], 列車長さ = 50
+            //   先頭が “A にあと10 で到達する位置” とする → initialDistanceToNextNode=10
+            //   （イメージ：A--(10進んだ場所で先頭)-->B----->C ...合計60）
+            var railNodes = new List<RailNode> { nodeA, nodeB, nodeC };
+            var initialRailPosition = new RailPosition(
+                railNodes,
+                totalTrainLength,
+                initialDistanceToNextNode: 10  // 先頭が A まであと10
+            );
+
+            // --- 4. TrainUnit を生成 ---
+            var destination = nodeA;   // 適当な目的地を A にしておく
+            var trainUnit = new TrainUnit(initialRailPosition, destination, cars);
+
+            // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
+            //   5両 → (前3両) + (後ろ2両) に分割
+            var splittedUnit = trainUnit.SplitTrain(2);
+
+            // --- 6. 結果の検証 ---
+            // 6-1) 戻り値（splittedUnit）は null ではない
+            Assert.NotNull(splittedUnit, "SplitTrain の結果が null になっています。");
+
+            // 6-2) オリジナル列車の車両数は 3 両になっている
+            //      新たに生成された列車の車両数は 2 両
+            Assert.AreEqual(3, trainUnit
+                .GetType()
+                .GetField("_cars", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.GetValue(trainUnit) is List<TrainCar> carsAfterSplit1
+                    ? carsAfterSplit1.Count
+                    : -1);
+
+            Assert.AreEqual(2, splittedUnit
+                .GetType()
+                .GetField("_cars", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.GetValue(splittedUnit) is List<TrainCar> carsAfterSplit2
+                    ? carsAfterSplit2.Count
+                    : -1);
+
+            // 6-3) 列車長さが正しく更新されているか
+            // オリジナル列車: 前3両 = 10 + 20 + 5 = 35
+            // 後続列車: 後ろ2両 = 5 + 10 = 15
+            // ※上の例では 10,20,5,5,10 の順で「後ろ2両」は後ろから 5,10 のはずなので合計15
+            // SplitTrain 内で _railPosition.SetTrainLength(...) を行うことで長さが更新されているはず
+            
+            var mainRailPos = trainUnit._railPosition;
+            var splittedRailPos = splittedUnit._railPosition;
+
+            var nodelist1 = mainRailPos.TestGet_railNodes();
+            var nodelist2 = splittedRailPos.TestGet_railNodes();
+            //nodelist1のid表示
+            //RailGraphDatastore._instance.Test_ListIdLog(nodelist1);
+            //nodelist2のid表示
+            //RailGraphDatastore._instance.Test_ListIdLog(nodelist2);
+            // RailPosition の列車長を直接取得するための Getter が無い場合は、
+            // 同様に Reflection や専用のテスト用メソッド (TestGetTrainLength() 等) を用意する形になります。
+            // ここではテスト用に「TestGetTrainLength」があると仮定している例を示します。
+            var mainTrainLength = GetTrainLengthForTest(mainRailPos);
+            var splittedTrainLength = GetTrainLengthForTest(splittedRailPos);
+
+            Assert.AreEqual(35, mainTrainLength, "分割後の先頭列車の長さが想定外です。");
+            Assert.AreEqual(15, splittedTrainLength, "分割後の後続列車の長さが想定外です。");
+
+            //mainRailPosはnodeAから10の距離にいるはず
+            Assert.AreEqual(nodeA, mainRailPos.GetNodeApproaching());
+            Assert.AreEqual(10, mainRailPos.GetDistanceToNextNode());
+            mainRailPos.Reverse();
+            //nodeCまで15の距離にいるはず
+            Assert.AreEqual(nodeC.OppositeNode, mainRailPos.GetNodeApproaching());
+            Assert.AreEqual(15, mainRailPos.GetDistanceToNextNode());
+
+            // 6-4) 新しい後続列車の RailPosition が「後ろ側」に連続した状態で生成されているか
+            //      → SplitTrain 内部では DeepCopy + Reverse + SetTrainLength + Reverse で位置を調整。
+            //splittedRailPosはnodeBから25の距離にいるはず
+            Assert.AreEqual(nodeB, splittedRailPos.GetNodeApproaching());
+            Assert.AreEqual(25, splittedRailPos.GetDistanceToNextNode());
         }
 
     }
