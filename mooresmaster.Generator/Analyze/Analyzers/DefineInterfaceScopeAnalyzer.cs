@@ -32,7 +32,7 @@ public class DefineInterfaceScopeAnalyzer : IPostSemanticsLayerAnalyzer
         }
     }
     
-    private class DefineInterfaceGlobalScopeDiagnostics(InterfaceId targetInterfaceId, InterfaceId implementationInterfaceId, Semantics semantics) : IDiagnostics
+    public class DefineInterfaceGlobalScopeDiagnostics(InterfaceId targetInterfaceId, InterfaceId implementationInterfaceId, Semantics semantics) : IDiagnostics
     {
         public string Message => $"""
                                   Global interface cannot depend on local interface.
@@ -42,7 +42,7 @@ public class DefineInterfaceScopeAnalyzer : IPostSemanticsLayerAnalyzer
                                   """;
     }
     
-    private class DefineInterfaceLocalScopeDiagnostics(InterfaceId targetInterfaceId, InterfaceId implementationInterfaceId, Semantics semantics) : IDiagnostics
+    public class DefineInterfaceLocalScopeDiagnostics(InterfaceId targetInterfaceId, InterfaceId implementationInterfaceId, Semantics semantics) : IDiagnostics
     {
         public string Message => $"""
                                   Local interface can only depend on global interface or same scope local interface.

@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using mooresmaster.Generator;
+using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
@@ -75,20 +79,34 @@ public class Test
     
     public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(params string[] yamlTexts)
     {
+        var analysis = new Analysis();
+        var analyzer = new Analyzer().AddAllAnalyzer();
+        
         var schemaTable = new SchemaTable();
-        var schemas = new List<Schema>();
+        var schemaFileList = new List<SchemaFile>();
+        
+        analyzer.PreJsonSchemaLayerAnalyze(analysis, yamlTexts.ToAnalyzerTextFiles());
         
         foreach (var yaml in yamlTexts)
         {
             var jsonSchema = Yaml.ToJson(yaml);
             var json = JsonParser.Parse(JsonTokenizer.GetTokens(jsonSchema));
             var schema = JsonSchemaParser.ParseSchema(json as JsonObject, schemaTable);
-            schemas.Add(schema);
+            schemaFileList.Add(new SchemaFile("", schema));
         }
         
-        var semantics = SemanticsGenerator.Generate([..schemas], schemaTable);
+        var schemaFiles = schemaFileList.ToImmutableArray();
+        
+        analyzer.PostJsonSchemaLayerAnalyze(analysis, schemaFiles, schemaTable);
+        
+        analyzer.PreSemanticsLayerAnalyze(analysis, schemaFiles, schemaTable);
+        var semantics = SemanticsGenerator.Generate([..schemaFileList.Select(s => s.Schema)], schemaTable);
+        analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemaFiles, schemaTable);
+        
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
+        analyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemaFiles, schemaTable);
         var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
+        analyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemaFiles, schemaTable, definition);
         
         return (schemaTable, nameTable, semantics, definition);
     }
