@@ -108,6 +108,8 @@ public class Test
         var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
         analyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemaFiles, schemaTable, definition);
         
+        analysis.ThrowDiagnostics();
+        
         return (schemaTable, nameTable, semantics, definition);
     }
     

@@ -38,7 +38,6 @@ public class DefineInterfaceScopeAnalyzeTest
                     type: integer
             """;
         
-        Test.Generate(localInterface0, localInterface1);
         var analyzeException = Assert.ThrowsAny<AnalyzeException>(() => Test.Generate(localInterface0, localInterface1));
         var diagnosticsArray = analyzeException.DiagnosticsArray;
         

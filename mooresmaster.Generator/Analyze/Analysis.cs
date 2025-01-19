@@ -13,6 +13,9 @@ public class Analysis
         DiagnosticsList.Add(analysis);
     }
     
+    /// <summary>
+    ///     Diagnosticsがあった場合はthrowする
+    /// </summary>
     public void ThrowDiagnostics()
     {
         if (!DiagnosticsList.Any()) return;
