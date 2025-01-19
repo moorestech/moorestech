@@ -13,8 +13,8 @@ namespace Game.Train.Train
         public bool _isUseDestination;
         public float _currentSpeed;   // m/s など適宜
         //摩擦係数、空気抵抗係数などはここに追加する
-        const float FRICTION = 0.01f;
-        const float AIR_RESISTANCE = 0.000002f;
+        const float FRICTION = 0.0002f;
+        const float AIR_RESISTANCE = 0.00002f;
 
         private List<TrainCar> _cars;
 
@@ -31,7 +31,8 @@ namespace Game.Train.Train
             _isUseDestination = false;
         }
 
-        public void UpdateTrain(float deltaTime)
+        //deltaTimeの間に進む
+        public void UpdateTrain(float deltaTime, out int calceddist)
         {
             if (_isUseDestination)//設定している目的地に向かうべきなら
             {
@@ -48,7 +49,7 @@ namespace Game.Train.Train
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
             int distanceToMove = Mathf.FloorToInt(floatDistance + Random.Range(0f, 0.999f));
-
+            int runningDistance = distanceToMove;//実走距離
             //進行メインループ
             //何かが原因で無限ループになることがあるので、一定回数で強制終了する
             int loopCount = 0;
@@ -79,7 +80,7 @@ namespace Game.Train.Train
                     break;
                 }
             }
-
+            calceddist = runningDistance - distanceToMove;
         }
 
 

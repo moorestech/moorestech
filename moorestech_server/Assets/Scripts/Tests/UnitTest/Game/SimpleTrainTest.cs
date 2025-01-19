@@ -11,6 +11,8 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEditor.Playables;
+using Game.Train.Utility;
 
 namespace Tests.UnitTest.Game
 {
@@ -681,6 +683,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void Train_Approaching_light()
         {
+            const bool DEBUG_LOG_FLAG = false;
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作る
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -688,9 +691,9 @@ namespace Tests.UnitTest.Game
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(112, 28, -74), BlockDirection.North, out var railB);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-54, 8, 147), BlockDirection.North, out var railC);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(491, 0, 447), BlockDirection.North, out var railD);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.North, out var railB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.North, out var railC);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.North, out var railD);
             var railComponentA = railA.GetComponent<RailComponent>();
             var railComponentB = railB.GetComponent<RailComponent>();
             var railComponentC = railC.GetComponent<RailComponent>();
@@ -710,11 +713,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                new TrainCar(tractionForce: 100000, inventorySlots: 0, length: 10),  // 仮: 動力車
-                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 20),   // 貨車
-                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
-                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
-                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 10),
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: 80),  // 仮: 動力車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 60),   // 貨車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 65),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 65),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 60),
             };
             var railNodes = new List<RailNode> { nodeC, nodeD };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
@@ -728,16 +731,36 @@ namespace Tests.UnitTest.Game
             var destination = nodeA;   // 適当な目的地を A にしておく
             var trainUnit = new TrainUnit(initialRailPosition, destination, cars);
             trainUnit._isUseDestination = true;//factorioでいう自動運転on
-            while (trainUnit._isUseDestination) //目的地に到達するまで
+            //while (trainUnit._isUseDestination) //目的地に到達するまで
+            int totaldist = 0;
+            for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
             {
-                trainUnit.UpdateTrain(1f / 60f);
-                break;
-                Debug.Log("速度"+ trainUnit._currentSpeed);
-                Debug.Log("現在向かっているnodeのID");
-                RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                int calceddist = 0;
+                trainUnit.UpdateTrain(1f / 60f, out calceddist);
+                totaldist += calceddist;
+                if ((i % 60 == 0) & (DEBUG_LOG_FLAG))
+                {
+                    Debug.Log("列車速度" + trainUnit._currentSpeed);
+                    Debug.Log("1フレームにすすむ距離int" + calceddist);
+                    Debug.Log("現在向かっているnodeのID");
+                    RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                }
+                if (!trainUnit._isUseDestination)
+                {
+                    if (DEBUG_LOG_FLAG)
+                    {
+                        Debug.Log("" + i + "フレームでつきました。約" + (i / 60) + "秒");
+                        Debug.Log("実装距離(int)" + totaldist + "");
+                        Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
+                    }
+                    break;
+                }
             }
-            Debug.Log("列車編成が無事目的地につきました");
-
+            
+            Assert.AreEqual(nodeA, trainUnit._railPosition.GetNodeApproaching());
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            if (DEBUG_LOG_FLAG)
+                Debug.Log("列車編成が無事目的地につきました");
         }
     }
 }

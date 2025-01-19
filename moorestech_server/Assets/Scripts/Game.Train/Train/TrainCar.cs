@@ -2,9 +2,10 @@ namespace Game.Train.Train
 {
     public class TrainCar
     {
-        const int WHEIGHT_PER_SLOT = 1000;
-        const int FUEL_WEIGHT_PER_SLOT = 1000;
-        const int DEFAULT_WEIGHT = 8000;
+        const int WHEIGHT_PER_SLOT = 40;
+        const int FUEL_WEIGHT_PER_SLOT = 40;
+        const int DEFAULT_WEIGHT = 120;
+        const int DEFAULT_TRACTION = 100;
         // 駆動力 (動力車での推進力、貨車では0)
         public int TractionForce { get; private set; }
 
@@ -29,7 +30,7 @@ namespace Game.Train.Train
             return (DEFAULT_WEIGHT +
                 InventorySlots * WHEIGHT_PER_SLOT +
                 FuelSlots * FUEL_WEIGHT_PER_SLOT
-                , TractionForce);
+                , TractionForce * DEFAULT_TRACTION);
         }
 
     }
