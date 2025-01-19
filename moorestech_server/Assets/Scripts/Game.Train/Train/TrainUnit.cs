@@ -7,10 +7,14 @@ namespace Game.Train.Train
 {
     public class TrainUnit
     {
+        //そのうちprivateにする
         public RailPosition _railPosition;
-
-        private RailNode _destination; // 目的地（駅ノードなど）
-        private float _currentSpeed;   // m/s など適宜
+        public RailNode _destination; // 目的地（駅ノードなど）
+        public bool _isUseDestination;
+        public float _currentSpeed;   // m/s など適宜
+        //摩擦係数、空気抵抗係数などはここに追加する
+        const float FRICTION = 0.0002f;
+        const float AIR_RESISTANCE = 0.00002f;
 
         private List<TrainCar> _cars;
 
@@ -23,49 +27,115 @@ namespace Game.Train.Train
             _railPosition = initialPosition;
             _destination = destination;
             _cars = cars;  // 追加
-            _currentSpeed = 5.0f; // 仮の初期速度
+            _currentSpeed = 0.0f; // 仮の初期速度
+            _isUseDestination = false;
         }
 
-        public void UpdateTrain(float deltaTime)
+        //deltaTimeの間に進む
+        public void UpdateTrain(float deltaTime, out int calceddist)
         {
+            if (_isUseDestination)//設定している目的地に向かうべきなら
+            {
+                var force = UpdateTractionForce(deltaTime);
+                _currentSpeed += force * deltaTime;
+            }
+            //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
+            //deltaTime次第でかわる
+            _currentSpeed -= _currentSpeed * deltaTime * FRICTION + _currentSpeed * _currentSpeed * deltaTime * AIR_RESISTANCE;
+            //速度が0以下にならないようにする
+            _currentSpeed = Mathf.Max(0, _currentSpeed);
+
             float floatDistance = _currentSpeed * deltaTime;
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
             int distanceToMove = Mathf.FloorToInt(floatDistance + Random.Range(0f, 0.999f));
-            
-            int leftover = _railPosition.MoveForward(distanceToMove);
-            CheckAndHandleBranch(leftover);
-
-            while (leftover != 0)
+            int runningDistance = distanceToMove;//実走距離
+            //進行メインループ
+            //何かが原因で無限ループになることがあるので、一定回数で強制終了する
+            int loopCount = 0;
+            while (distanceToMove != 0)
             {
-                leftover = _railPosition.MoveForward(leftover);
-                CheckAndHandleBranch(leftover);
+                distanceToMove = _railPosition.MoveForward(distanceToMove);
+                //目的地に到着してたら速度を0にする
+                if (IsArrivedDestination())
+                {
+                    _currentSpeed = 0;
+                    _isUseDestination = false;
+                    break;
+                }
+                if (distanceToMove == 0) break;
+                //distanceToMoveが0以外かつある分岐地点についてる状況
+                var isContinue = CheckAndHandleBranch();//次の経路をセット
+                if (!isContinue)
+                {
+                    _isUseDestination = false;
+                    _currentSpeed = 0;
+                    Debug.LogError("列車が進行中に分岐地点を見失いました。");
+                    break;
+                }
+                loopCount++;
+                if (loopCount > 1000)
+                {
+                    Debug.LogError("無限ループを検知しました。");
+                    break;
+                }
             }
-
-            if (IsArrivedDestination())
-            {
-                _currentSpeed = 0;
-            }
+            calceddist = runningDistance - distanceToMove;
         }
 
-        private void CheckAndHandleBranch(int leftover)
+
+        //毎フレーム燃料の在庫を確認しながら加速力を計算する
+        public float UpdateTractionForce(float deltaTime)
+        {
+            var totalWeight = 0;
+            var totalTraction = 0;
+
+            foreach (var car in _cars)
+            {
+                var (weight, traction) = car.GetWeightAndTraction();//deltaTimeに応じて燃料が消費される未実装
+                totalWeight += weight;
+                totalTraction += traction;
+            }
+            return (float)(totalTraction) / totalWeight;
+        }
+
+        //返り値はtrueならまだ進行するべきである
+        private bool CheckAndHandleBranch()
         {
             RailNode approaching = _railPosition.GetNodeApproaching();
-            if (approaching == null) return;
+            if (approaching == null)
+            {
+                return false;
+            }
+            //目的地についていたら。これはチェック済み
+            /*if (approaching == _destination)
+            {
+                _currentSpeed = 0;
+                _isUseDestination = false;
+                return false;
+            }*/
 
             var connectedNodes = approaching.ConnectedNodes.ToList();
-            if (connectedNodes.Count < 2) return;
-
+            //分岐先のむこうが1つなので。そのまま進むが経路探索はしない(デメリットは手動で経路をかえて、目的地までの経路が存在しないときにとまれないこと)
+            if (connectedNodes.Count < 2)
+            {
+                _railPosition.AddNodeToHead(connectedNodes[0]);
+                return true;
+            }
+            //分岐先が2つ以上ある場合は、最短経路を再度探す。最低でも返りlistにはapproaching, _destinationが入っているはず
             var newPath = RailGraphDatastore.FindShortestPath(approaching, _destination);
-            if (newPath.Count < 2) return;
-
+            if (newPath.Count < 2)
+            {
+                return false;
+            }
             _railPosition.AddNodeToHead(newPath[1]);
+            return true;
         }
 
         private bool IsArrivedDestination()
         {
             var nodes = _railPosition.GetNodeApproaching();
-            if (nodes == _destination)
+            if ((nodes == _destination) & (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
