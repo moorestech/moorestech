@@ -11,7 +11,7 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var transformer = new RailComponent();
+            var transformer = new RailComponent(blockPositionInfo);
             var components = new List<IBlockComponent>
             {
                 transformer,
@@ -22,7 +22,7 @@ namespace Game.Block.Factory.BlockTemplate
 
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var transformer = new RailComponent();
+            var transformer = new RailComponent(blockPositionInfo);
             var components = new List<IBlockComponent>
             {
                 transformer,

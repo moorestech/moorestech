@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.RailGraph
@@ -105,7 +106,7 @@ namespace Game.Train.RailGraph
 
         // 今持っているリストの中でいらない情報を削除する
         // 具体的には列車が含まれる経路の全部のNodeを残したい。また前輪後輪がぴったりのっているNodeは残す
-        public void RemoveUnnecessaryNodes()
+        private void RemoveUnnecessaryNodes()
         {
             //list[0]から最後尾の距離
             int distanceFromFront = _trainLength + _distanceToNextNode;
@@ -133,6 +134,7 @@ namespace Game.Train.RailGraph
         }
 
         // 現在の先頭のRailNodeを取得
+        // これは現在向かっているまたは前輪がちょうど乗っているRailNode
         public RailNode GetNodeApproaching()
         {
             return _railNodes.FirstOrDefault();
@@ -151,12 +153,59 @@ namespace Game.Train.RailGraph
             return _distanceToNextNode;
         }
 
-        //_railNodesを返す関数(　テスト用)
-        public List<RailNode> TestGet_railNodes() 
+        //_railNodesのindex 0にrailnodeを追加する
+        //それに合わせて_distanceToNextNodeを更新する
+        public void AddNodeToHead(RailNode node)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
+            //_railNodes.countが0の場合は_distanceToNextNodeは0
+            if (_railNodes.Count == 0)
+            {
+                _railNodes.Add(node);
+                _distanceToNextNode = 0;
+                return;
+            }
+            int distance = _railNodes[0].GetDistanceToNode(node);
+            if (distance != -1)//繋がっていれば
+            {
+                _railNodes.Insert(0, node);
+                _distanceToNextNode += distance;
+            }
+        }
+        public RailPosition DeepCopy()
+        {
+            var newrailNodes = new List<RailNode>();
+            foreach (var node in _railNodes)
+            {
+                newrailNodes.Add(node);
+            }
+            return new RailPosition(newrailNodes, _trainLength, _distanceToNextNode);
+        }
+
+        //先頭の位置は変えずに長さだけかえる
+        //基本的に長さが短くなるときだけ使う。長くなるときはNodeを超える可能性があるので
+        public void SetTrainLength(int newLength)
+        {
+            if (newLength >= _trainLength)
+            {
+                throw new ArgumentException("列車の長さは短くなる必要があります。");
+            }
+            if (newLength < 0) 
+            {
+                throw new ArgumentException("列車の長さは0または正の値である必要があります。");
+            }
+            _trainLength = newLength;
+            RemoveUnnecessaryNodes();
+        }
+
+        //テスト用
+        //TestGet_railNodes()
+        public List<RailNode> TestGet_railNodes()
         {
             return _railNodes;
         }
-
-
     }
 }

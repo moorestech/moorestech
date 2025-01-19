@@ -1,11 +1,6 @@
 using UnityEngine;
 namespace Game.Train.Utility
 { 
-    //途中/////////////
-    //途中/////////////
-    //途中/////////////
-    //途中/////////////
-    //途中/////////////
     public static class BezierUtility
     {
         /// <summary>
@@ -17,6 +12,11 @@ namespace Game.Train.Utility
         /// <param name="p3">アンカーポイント2</param>
         /// <param name="t">パラメータ t（0 <= t <= 1）</param>
         /// <returns>ベジェ曲線上の座標</returns>
+
+        //ベジェ曲線の長さはワールド座標と同じスケール
+        //ただしRailNodeの距離はint(固定小数点を想定)であるため定数倍の差がある
+        //そのスケールはとりあえずここに書いておく
+        public const float RAIL_LENGTH_SCALE = 1024.0f;
         public static Vector3 GetBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
         {
             float u = 1f - t;
@@ -42,7 +42,7 @@ namespace Game.Train.Utility
         /// <param name="p3">アンカーポイント2</param>
         /// <param name="samples">サンプリング数（多いほど精度が高くなる）</param>
         /// <returns>ベジェ曲線の概算距離</returns>
-        public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples = 20)
+        public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples = 512)
         {
             float length = 0f;
             Vector3 previousPoint = GetBezierPoint(p0, p1, p2, p3, 0f);
