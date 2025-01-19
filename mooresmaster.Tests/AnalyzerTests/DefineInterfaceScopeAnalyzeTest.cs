@@ -46,8 +46,11 @@ public class DefineInterfaceScopeAnalyzeTest
         Assert.Equal(typeof(DefineInterfaceScopeAnalyzer.DefineInterfaceLocalScopeDiagnostics), diagnosticsArray[0].GetType());
     }
     
+    /// <summary>
+    /// LocalInterfaceから別SchemaのGlobalInterfaceへの依存が問題ないことの確認
+    /// </summary>
     [Fact]
-    public void GlobalInterfaceDependOtherSchemaLocalInterface()
+    public void LocalInterfaceDependOtherSchemaGlobalInterface()
     {
         const string localInterfaceSchema =
             """
@@ -55,7 +58,9 @@ public class DefineInterfaceScopeAnalyzeTest
             type: object
             
             defineInterface:
-              - interfaceName: ILocalInterface0
+              - interfaceName: ILocalInterface
+                implementationInterface:
+                  - IGlobalInterface
                 properties:
                   - key: test0
                     type: integer
@@ -67,9 +72,42 @@ public class DefineInterfaceScopeAnalyzeTest
             type: object
             
             globalDefineInterface:
-              - interfaceName: ILocalInterface1
+              - interfaceName: IGlobalInterface
+                properties:
+                  - key: test1
+                    type: integer
+            """;
+        
+        Test.Generate(localInterfaceSchema, globalInterfaceSchema);
+    }
+    
+    /// <summary>
+    ///     GlobalInterfaceからLocalInterfaceへの依存時のエラーのテスト
+    /// </summary>
+    [Fact]
+    public void GlobalInterfaceDependOtherSchemaLocalInterface()
+    {
+        const string localInterfaceSchema =
+            """
+            id: localInterfaceSchema
+            type: object
+            
+            defineInterface:
+              - interfaceName: ILocalInterface
+                properties:
+                  - key: test0
+                    type: integer
+            """;
+        
+        const string globalInterfaceSchema =
+            """
+            id: globalInterfaceSchema
+            type: object
+            
+            globalDefineInterface:
+              - interfaceName: IGlobalInterface
                 implementationInterface:
-                  - ILocalInterface0
+                  - ILocalInterface
                 properties:
                   - key: test1
                     type: integer
