@@ -674,5 +674,70 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(25, splittedRailPos.GetDistanceToNextNode());
         }
 
+
+
+
+        //列車編成が目的地にいけるかテスト、簡単
+        [Test]
+        public void Train_Approaching_light()
+        {
+            // --- 1. レールノードを用意 ---
+            // 例として直線上のノード3つ (A <- B <- C) を作る
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(112, 28, -74), BlockDirection.North, out var railB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-54, 8, 147), BlockDirection.North, out var railC);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(491, 0, 447), BlockDirection.North, out var railD);
+            var railComponentA = railA.GetComponent<RailComponent>();
+            var railComponentB = railB.GetComponent<RailComponent>();
+            var railComponentC = railC.GetComponent<RailComponent>();
+            var railComponentD = railD.GetComponent<RailComponent>();
+
+            // Connect the two RailComponents
+            railComponentD.ConnectRailComponent(railComponentC, true, true);
+            railComponentC.ConnectRailComponent(railComponentB, true, true);
+            railComponentB.ConnectRailComponent(railComponentA, true, true);
+
+            var nodeA = railComponentA.FrontNode;
+            var nodeB = railComponentB.FrontNode;
+            var nodeC = railComponentC.FrontNode;
+            var nodeD = railComponentD.FrontNode;
+
+            // --- 2. 編成を構成する車両を用意 ---
+            // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
+            var cars = new List<TrainCar>
+            {
+                new TrainCar(tractionForce: 100000, inventorySlots: 0, length: 10),  // 仮: 動力車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 20),   // 貨車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 10),
+            };
+            var railNodes = new List<RailNode> { nodeC, nodeD };
+            int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
+            var initialRailPosition = new RailPosition(
+                railNodes,
+                totalTrainLength,
+                initialDistanceToNextNode: 10  // 先頭が C まであと10
+            );
+
+            // --- 4. TrainUnit を生成 ---
+            var destination = nodeA;   // 適当な目的地を A にしておく
+            var trainUnit = new TrainUnit(initialRailPosition, destination, cars);
+            trainUnit._isUseDestination = true;//factorioでいう自動運転on
+            while (trainUnit._isUseDestination) //目的地に到達するまで
+            {
+                trainUnit.UpdateTrain(1f / 60f);
+                break;
+                Debug.Log("速度"+ trainUnit._currentSpeed);
+                Debug.Log("現在向かっているnodeのID");
+                RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+            }
+            Debug.Log("列車編成が無事目的地につきました");
+
+        }
     }
 }
