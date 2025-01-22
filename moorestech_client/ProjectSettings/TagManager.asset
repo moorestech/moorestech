@@ -10,12 +10,12 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - MapObject
   - Block
-  - Player
+  - BlockBoundingBox
   - Ground
   - Outline
   - 
