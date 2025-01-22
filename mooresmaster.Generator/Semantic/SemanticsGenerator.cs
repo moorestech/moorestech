@@ -45,6 +45,9 @@ public static class SemanticsGenerator
     
     private static void ResolveInterfaceInterfaceImplementations(Semantics semantics)
     {
+        var allInterfaceTable = semantics.InterfaceSemanticsTable
+            .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
+        
         var globalInterfaceTable = semantics.InterfaceSemanticsTable
             .Where(i => i.Value.Interface.IsGlobal)
             .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
@@ -57,16 +60,13 @@ public static class SemanticsGenerator
                 .Where(i => !i.Value.Interface.IsGlobal)
                 .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
             
-            foreach (var interfaceId in kvp.Value.Interface.ImplementationInterfaces)
-                if (localInterfaceTable.TryGetValue(interfaceId, out var localOther))
-                {
+            foreach (var interfaceName in kvp.Value.Interface.ImplementationInterfaces)
+                if (localInterfaceTable.TryGetValue(interfaceName, out var localOther))
                     semantics.AddInterfaceInterfaceImplementation(target, localOther);
-                }
-                else
-                {
-                    var globalOther = globalInterfaceTable[interfaceId];
+                else if (globalInterfaceTable.TryGetValue(interfaceName, out var globalOther))
                     semantics.AddInterfaceInterfaceImplementation(target, globalOther);
-                }
+                else
+                    semantics.AddInterfaceInterfaceImplementation(target, allInterfaceTable[interfaceName]);
         }
     }
     
