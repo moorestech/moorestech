@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using mooresmaster.Generator.Analyze;
+using mooresmaster.Generator.Analyze.Analyzers;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.Json;
@@ -64,13 +66,28 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
-        var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
-        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
-        var nameTable = NameResolver.Resolve(semantics, schemaTable);
-        var definitions = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
+        var analyzer = new Analyzer()
+            .AddAnalyzer(new DefineInterfaceScopeAnalyzer());
         
-        var codeFiles = CodeGenerator.Generate(definitions);
-        var loaderFiles = LoaderGenerator.Generate(definitions, semantics, nameTable);
+        var analysis = new Analysis();
+        
+        analyzer.PreJsonSchemaLayerAnalyze(analysis, input.additionalTexts.ToAnalyzerTextFiles());
+        var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
+        analyzer.PostJsonSchemaLayerAnalyze(analysis, schemas, schemaTable);
+        
+        analyzer.PreSemanticsLayerAnalyze(analysis, schemas, schemaTable);
+        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
+        analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemas, schemaTable);
+        
+        var nameTable = NameResolver.Resolve(semantics, schemaTable);
+        analyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemas, schemaTable);
+        var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
+        analyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemas, schemaTable, definition);
+        
+        var codeFiles = CodeGenerator.Generate(definition);
+        var loaderFiles = LoaderGenerator.Generate(definition, semantics, nameTable);
+        
+        analysis.ThrowDiagnostics();
         
         // 生成するファイルがある場合のみ固定生成コードを生成する
         if (codeFiles.Length == 0 && loaderFiles.Length == 0) return;
