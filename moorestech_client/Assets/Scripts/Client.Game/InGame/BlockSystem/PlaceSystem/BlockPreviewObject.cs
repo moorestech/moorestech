@@ -45,7 +45,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // プレビュー限定オブジェクトをオンに
             // Turn on preview-only object
             var previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
-            previewOnlyObjects.ForEach(obj => obj.gameObject.SetActive(true));
+            previewOnlyObjects.ForEach(obj =>
+            {
+                obj.Initialize();
+                obj.SetActive(true);
+            });
         }
         
         public void SetPlaceableColor(bool isPlaceable)

@@ -1,10 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.Skit;
 using Client.Input;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState
@@ -15,13 +17,15 @@ namespace Client.Game.InGame.UI.UIState
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly InGameCameraController _inGameCameraController;
+        private readonly List<IDisposable> _blockPlacedDisposable = new();
         
-        private Vector3 _startCameraRotation;
-        private float _startCameraDistance;
+        private bool _isChangeCameraAngle;
         
         public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _skitManager = skitManager;
+            _inGameCameraController = inGameCameraController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _blockPlacePreview = blockPlacePreview;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
@@ -30,14 +34,26 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             BlockPlaceSystem.SetEnableBlockPlace(true);
-            _screenClickableCameraController.OnEnter();
-            _screenClickableCameraController.StartTweenFromTop();
+            
+            //TODO InputSystemのリファクタ対象
+            // シフト+Bのときはカメラの位置を変えない
+            // Shift+B does not change camera position
+            _isChangeCameraAngle = !UnityEngine.Input.GetKey(KeyCode.LeftShift);
+            _screenClickableCameraController.OnEnter(_isChangeCameraAngle);
+            
+            if (_isChangeCameraAngle)
+            {
+                // カメラの位置を保存しておく
+                var topDown = _inGameCameraController.CreateTopDownTweenCameraInfo();
+                _inGameCameraController.StartTweenCamera(topDown);
+            }
             
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
-                blockGameObject.EnablePreviewOnlyObjects(true);
+                blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
+            _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
         }
         
         public UIStateEnum GetNextUpdate()
@@ -54,14 +70,26 @@ namespace Client.Game.InGame.UI.UIState
             return UIStateEnum.Current;
         }
         
+        private void OnPlaceBlock(BlockGameObject blockGameObject)
+        {
+            blockGameObject.EnablePreviewOnlyObjects(true, false);
+            
+            _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
+            {
+                blockGameObject.EnablePreviewOnlyObjects(true, true);
+            }));
+        }
+        
         public void OnExit()
         {
             BlockPlaceSystem.SetEnableBlockPlace(false);
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
-                blockGameObject.EnablePreviewOnlyObjects(false);
+                blockGameObject.EnablePreviewOnlyObjects(false, false);
             }
             
+            _blockPlacedDisposable.ForEach(d => d.Dispose());
+            _blockPlacedDisposable.Clear();
             _screenClickableCameraController.OnExit();
         }
     }

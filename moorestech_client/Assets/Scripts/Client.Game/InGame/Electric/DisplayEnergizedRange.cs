@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.BlocksModule;
+using UniRx;
 using UnityEngine;
 using VContainer;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
@@ -36,7 +37,7 @@ namespace Client.Game.InGame.Electric
             
             hotBarView.OnSelectHotBar += OnSelectHotBar;
             uiStateControl.OnStateChanged += OnStateChanged;
-            blockGameObjectDataStore.OnPlaceBlock += OnPlaceBlock;
+            blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock);
         }
         
         private void OnSelectHotBar(int index)

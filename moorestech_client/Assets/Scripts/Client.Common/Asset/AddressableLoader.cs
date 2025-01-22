@@ -20,6 +20,12 @@ namespace Client.Common.Asset
             
             return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
         }
+        
+        public static async UniTask<T> LoadAsyncDefault<T>(string address) where T : UnityEngine.Object
+        {
+            var loadedAsset = await LoadAsync<T>(address);
+            return loadedAsset?.Asset;
+        }
     }
     
     public class LoadedAsset<T> : IDisposable where T : UnityEngine.Object
