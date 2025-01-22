@@ -8,11 +8,11 @@ using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.Analyze.Analyzers;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
-using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.LoaderGenerate;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
+using mooresmaster.Generator.Yaml;
 
 namespace mooresmaster.Generator;
 
@@ -108,9 +108,8 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
-            var jsonText = Yaml.ToJson(yamlText);
-            var json = JsonParser.Parse(JsonTokenizer.GetTokens(jsonText));
-            var schema = JsonSchemaParser.ParseSchema((json as JsonObject)!, schemaTable);
+            var json = YamlParser.Parse(yamlText);
+            var schema = JsonSchemaParser.ParseSchema(json!, schemaTable);
             schemas.Add(new SchemaFile(additionalText.Path, schema));
             parsedFiles.Add(additionalText.Path);
         }

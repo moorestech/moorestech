@@ -10,6 +10,7 @@ using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
+using mooresmaster.Generator.Yaml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -89,9 +90,8 @@ public class Test
         
         foreach (var yaml in yamlTexts)
         {
-            var jsonSchema = Yaml.ToJson(yaml);
-            var json = JsonParser.Parse(JsonTokenizer.GetTokens(jsonSchema));
-            var schema = JsonSchemaParser.ParseSchema(json as JsonObject, schemaTable);
+            var json = YamlParser.Parse(yaml);
+            var schema = JsonSchemaParser.ParseSchema(json, schemaTable);
             schemaFileList.Add(new SchemaFile("", schema));
         }
         
