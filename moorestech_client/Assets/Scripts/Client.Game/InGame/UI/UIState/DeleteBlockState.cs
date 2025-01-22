@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            _screenClickableCameraController.OnEnter();
+            _screenClickableCameraController.OnEnter(false);
             _deleteBarObject.gameObject.SetActive(true);
         }
         

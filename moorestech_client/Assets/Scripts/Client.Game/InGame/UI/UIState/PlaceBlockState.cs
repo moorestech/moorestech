@@ -17,14 +17,15 @@ namespace Client.Game.InGame.UI.UIState
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly InGameCameraController _inGameCameraController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         
-        private Vector3 _startCameraRotation;
-        private float _startCameraDistance;
+        private bool _isChangeCameraAngle;
         
         public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _skitManager = skitManager;
+            _inGameCameraController = inGameCameraController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _blockPlacePreview = blockPlacePreview;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
@@ -33,8 +34,19 @@ namespace Client.Game.InGame.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             BlockPlaceSystem.SetEnableBlockPlace(true);
-            _screenClickableCameraController.OnEnter();
-            _screenClickableCameraController.StartTweenFromTop();
+            
+            //TODO InputSystemのリファクタ対象
+            // シフト+Bのときはカメラの位置を変えない
+            // Shift+B does not change camera position
+            _isChangeCameraAngle = !UnityEngine.Input.GetKey(KeyCode.LeftShift);
+            _screenClickableCameraController.OnEnter(_isChangeCameraAngle);
+            
+            if (_isChangeCameraAngle)
+            {
+                // カメラの位置を保存しておく
+                var topDown = _inGameCameraController.CreateTopDownTweenCameraInfo();
+                _inGameCameraController.StartTweenCamera(topDown);
+            }
             
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)

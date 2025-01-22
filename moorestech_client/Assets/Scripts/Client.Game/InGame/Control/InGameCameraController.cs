@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Cinemachine;
+using Client.Game.InGame.UI.UIState.Input;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -91,6 +92,10 @@ namespace Client.Game.InGame.Control
             _currentSequence = DOTween.Sequence()
                 .Append(DOTween.To(() => _targetRotation, x => _targetRotation = x, targetRotation, duration).SetEase(Ease.InOutQuad))
                 .Join(DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, duration).SetEase(Ease.InOutQuad));
+        }
+        public void StartTweenCamera(TweenCameraInfo target)
+        {
+            StartTweenCamera(target.Rotation, target.Distance, target.TweenDuration);
         }
     }
 }

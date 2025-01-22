@@ -13,19 +13,22 @@ namespace Client.Game.InGame.UI.UIState.Input
     {
         private readonly InGameCameraController _inGameCameraController;
         
-        private const float TargetCameraDistance = 9;
-        private const float TweenDuration = 0.25f;
+        public const float DefaultTweenDuration = 0.25f;
         
-        private Vector3? _startCameraRotation;
-        private float? _startCameraDistance;
+        private TweenCameraInfo _startCameraTweenInfo;
         
         public ScreenClickableCameraController(InGameCameraController inGameCameraController)
         {
             _inGameCameraController = inGameCameraController;
         }
         
-        public void OnEnter()
+        public void OnEnter(bool saveCurrentCamera)
         {
+            if (saveCurrentCamera)
+            {
+                _startCameraTweenInfo = _inGameCameraController.CreateCurrentCameraTweenCameraInfo();
+            }
+            
             InputManager.MouseCursorVisible(true);
         }
         
@@ -48,46 +51,26 @@ namespace Client.Game.InGame.UI.UIState.Input
         
         public void OnExit()
         {
-            if (_startCameraRotation.HasValue && _startCameraDistance.HasValue)
+            if (_startCameraTweenInfo != null)
             {
-                var startCameraRotation = _startCameraRotation.Value;
-                var startCameraDistance = _startCameraDistance.Value;
-                _inGameCameraController.StartTweenCamera(startCameraRotation, startCameraDistance, TweenDuration);
+                _inGameCameraController.StartTweenCamera(_startCameraTweenInfo);
             }
             
             InputManager.MouseCursorVisible(false);
         }
+    }
+    
+    public class TweenCameraInfo
+    {
+        public readonly Vector3 Rotation;
+        public readonly float Distance;
+        public readonly float TweenDuration;
         
-        /// <summary>
-        /// 上からのビューにカメラを移動させる
-        /// Move the camera to a top view
-        /// </summary>
-        public void StartTweenFromTop()
+        public TweenCameraInfo(Vector3 rotation, float distance, float tweenDuration = ScreenClickableCameraController.DefaultTweenDuration)
         {
-            _startCameraDistance = _inGameCameraController.CameraDistance;
-            _startCameraRotation = _inGameCameraController.CameraEulerAngle;
-            
-            TweenCamera();
-            
-            #region Internal
-            
-            void TweenCamera()
-            {
-                var currentRotation = _inGameCameraController.CameraEulerAngle;
-                var targetCameraRotation = currentRotation;
-                targetCameraRotation.x = 70f;
-                targetCameraRotation.y = currentRotation.y switch
-                {
-                    var y when y < 45 => 0,
-                    var y when y < 135 => 90,
-                    var y when y < 225 => 180,
-                    var y when y < 315 => 270,
-                    _ => 0
-                };
-                _inGameCameraController.StartTweenCamera(targetCameraRotation, TargetCameraDistance, TweenDuration);
-            }
-            
-            #endregion
+            Rotation = rotation;
+            Distance = distance;
+            TweenDuration = tweenDuration;
         }
     }
 }
