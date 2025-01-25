@@ -36,6 +36,7 @@ properties:
       - SimpleGearGenerator
       - GearBeltConveyor
       - GearMiner
+      - GearMapObjectMiner
       - ItemShooter
       - CraftChainerTransporter
       - CraftChainerCrafter
@@ -279,6 +280,31 @@ properties:
           default: 3
         - key: mineSettings
           ref: mineSettings
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: gear
+          ref: gear
+      - when: GearMapObjectMiner
+        type: object
+        properties:
+        - key: teethCount
+          type: integer
+          default: 10
+        - key: requireTorque
+          type: number
+          default: 1
+        - key: requiredRpm
+          type: number
+          default: 5
+        - key: outputItemSlotCount
+          type: integer
+          default: 3
+        - key: miningAreaRange
+          type: vector3Int
+        - key: miningAreaOffset
+          type: vector3Int
+        - key: mapObjectMineSettings
+          ref: mapObjectMineSettings
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: gear

@@ -1,0 +1,15 @@
+id: mapObjectMineSettings
+type: array
+overrideCodeGeneratePropertyName: MapObjecetMineSettingsMasterElement
+items:
+  type: object
+  properties:
+  - key: mapObjectGuid
+    type: uuid
+    foreignKey: mapObjects:mapObjectGuid:mapObjectName
+  - key: miningTime
+    type: number
+    default: 1
+  - key: attackHp
+    type: integer
+    default: 1
