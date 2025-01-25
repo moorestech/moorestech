@@ -1,5 +1,5 @@
 using System;
-using Client.Game.GameDebug;
+using Common.Debug;
 using UnityDebugSheet.Runtime.Core.Scripts;
 
 namespace Client.DebugSystem

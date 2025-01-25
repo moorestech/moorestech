@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Debug;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
@@ -14,10 +15,11 @@ namespace Server.Boot
 {
     public static class StartServer
     {
+        public const string DebugServerDirectorySettingKey = "DebugServerDirectory";
+        
         private const int ArgsCount = 1;
         
-        private static string DebugServerDirectory =>
-            Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../moorestech_client/Server"));
+        private static string DebugServerDirectory => Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../moorestech_client/Server"));
         
         private static string StartupFromClientFolderPath
         {
@@ -32,7 +34,7 @@ namespace Server.Boot
         {
             //カレントディレクトリを表示
 #if DEBUG
-            var serverDirectory = DebugServerDirectory;
+            var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,DebugServerDirectory);
 #else
             var serverDirectory = Path.GetDirectoryName(Application.dataPath);
 #endif

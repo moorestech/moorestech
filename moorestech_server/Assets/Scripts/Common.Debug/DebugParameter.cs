@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using UnityEngine;
 
-namespace Client.Game.GameDebug
+namespace Common.Debug
 {
-    /// <summary>
-    /// デバッグ用のパラメータを管理するクラス
-    /// </summary>
     public static class DebugParameters
     {
-        static DebugParameters()
-        {
-            Load();
-        }
-        
+        private static readonly string CachePath = Path.GetFullPath("../cache");
+        private const string BoolFileName = "BoolDebugParameters.json";
+        private const string IntFileName = "IntDebugParameters.json";
+        private const string StringFileName = "StringDebugParameters.json";
+
         private static Dictionary<string, bool> BoolDebugParameters { get; set; } = new();
         private static Dictionary<string, int> IntDebugParameters { get; set; } = new();
         private static Dictionary<string, string> StringDebugParameters { get; set; } = new();
@@ -23,156 +20,151 @@ namespace Client.Game.GameDebug
 
         public static bool GetValueOrDefaultBool(string key, bool defaultValue)
         {
+            Load();
             return BoolDebugParameters.GetValueOrDefault(key, defaultValue);
         }
-        
+
         public static bool TryGetBool(string key, out bool value)
         {
+            Load();
             return BoolDebugParameters.TryGetValue(key, out value);
         }
 
         public static void SaveBool(string key, bool value)
         {
+            Load();
             BoolDebugParameters[key] = value;
             Save();
         }
-        
+
         public static bool RemoveBool(string key)
         {
+            Load();
             var result = BoolDebugParameters.Remove(key);
             Save();
             return result;
         }
-        
+
         public static bool ExistsBool(string key)
         {
+            Load();
             return BoolDebugParameters.ContainsKey(key);
         }
 
         public static int GetValueOrDefaultInt(string key, int defaultValue)
         {
+            Load();
             return IntDebugParameters.GetValueOrDefault(key, defaultValue);
         }
-        
+
         public static bool TryGetInt(string key, out int value)
         {
+            Load();
             return IntDebugParameters.TryGetValue(key, out value);
         }
 
         public static void SaveInt(string key, int value)
         {
+            Load();
             IntDebugParameters[key] = value;
             Save();
         }
-        
+
         public static bool RemoveInt(string key)
         {
+            Load();
             var result = IntDebugParameters.Remove(key);
             Save();
             return result;
         }
-        
+
         public static bool ExistsInt(string key)
         {
+            Load();
             return IntDebugParameters.ContainsKey(key);
         }
 
         public static string GetValueOrDefaultString(string key, string defaultValue)
         {
+            Load();
             return StringDebugParameters.GetValueOrDefault(key, defaultValue);
         }
-        
+
         public static bool TryGetString(string key, out string value)
         {
+            Load();
             return StringDebugParameters.TryGetValue(key, out value);
         }
 
         public static void SaveString(string key, string value)
         {
+            Load();
             StringDebugParameters[key] = value;
             Save();
         }
-        
+
         public static bool RemoveString(string key)
         {
+            Load();
             var result = StringDebugParameters.Remove(key);
             Save();
             return result;
         }
-        
+
         public static bool ExistsString(string key)
         {
+            Load();
             return StringDebugParameters.ContainsKey(key);
         }
 
         #endregion
 
-        #region Save / Load
-        
-        public const string BoolDebugParametersKey = "DebugParameters_Bool";
-        public const string IntDebugParametersKey = "DebugParameters_Int";
-        public const string StringDebugParametersKey = "DebugParameters_String";
+        #region File Operations
 
-        /// <summary>
-        /// デバッグパラメータを PlayerPrefs に保存します。
-        /// </summary>
         private static void Save()
         {
-            // bool
+            EnsureCacheDirectoryExists();
+
+            // Save bool parameters
             var boolDict = new SerializableDictionary<string, bool>(BoolDebugParameters);
-            string boolJson = JsonUtility.ToJson(boolDict);
-            PlayerPrefs.SetString(BoolDebugParametersKey, boolJson);
+            File.WriteAllText(GetFilePath(BoolFileName), JsonUtility.ToJson(boolDict));
 
-            // int
+            // Save int parameters
             var intDict = new SerializableDictionary<string, int>(IntDebugParameters);
-            string intJson = JsonUtility.ToJson(intDict);
-            PlayerPrefs.SetString(IntDebugParametersKey, intJson);
+            File.WriteAllText(GetFilePath(IntFileName), JsonUtility.ToJson(intDict));
 
-            // string
+            // Save string parameters
             var stringDict = new SerializableDictionary<string, string>(StringDebugParameters);
-            string stringJson = JsonUtility.ToJson(stringDict);
-            PlayerPrefs.SetString(StringDebugParametersKey, stringJson);
-
-            PlayerPrefs.Save();
+            File.WriteAllText(GetFilePath(StringFileName), JsonUtility.ToJson(stringDict));
         }
 
-        /// <summary>
-        /// 保存された PlayerPrefs からデバッグパラメータを読み込みます。
-        /// </summary>
         private static void Load()
         {
-            // bool
-            string boolJson = PlayerPrefs.GetString(BoolDebugParametersKey, "");
-            if (!string.IsNullOrEmpty(boolJson))
-            {
-                var boolDict = JsonUtility.FromJson<SerializableDictionary<string, bool>>(boolJson);
-                if (boolDict != null)
-                {
-                    BoolDebugParameters = boolDict.ToDictionary();
-                }
-            }
+            BoolDebugParameters = LoadDictionary<string, bool>(GetFilePath(BoolFileName));
+            IntDebugParameters = LoadDictionary<string, int>(GetFilePath(IntFileName));
+            StringDebugParameters = LoadDictionary<string, string>(GetFilePath(StringFileName));
+        }
 
-            // int
-            string intJson = PlayerPrefs.GetString(IntDebugParametersKey, "");
-            if (!string.IsNullOrEmpty(intJson))
-            {
-                var intDict = JsonUtility.FromJson<SerializableDictionary<string, int>>(intJson);
-                if (intDict != null)
-                {
-                    IntDebugParameters = intDict.ToDictionary();
-                }
-            }
+        private static Dictionary<TKey, TValue> LoadDictionary<TKey, TValue>(string filePath)
+        {
+            if (!File.Exists(filePath)) return new Dictionary<TKey, TValue>();
 
-            // string
-            string stringJson = PlayerPrefs.GetString(StringDebugParametersKey, "");
-            if (!string.IsNullOrEmpty(stringJson))
+            var json = File.ReadAllText(filePath);
+            var dict = JsonUtility.FromJson<SerializableDictionary<TKey, TValue>>(json);
+            return dict?.ToDictionary() ?? new Dictionary<TKey, TValue>();
+        }
+
+        private static void EnsureCacheDirectoryExists()
+        {
+            if (!Directory.Exists(CachePath))
             {
-                var stringDict = JsonUtility.FromJson<SerializableDictionary<string, string>>(stringJson);
-                if (stringDict != null)
-                {
-                    StringDebugParameters = stringDict.ToDictionary();
-                }
+                Directory.CreateDirectory(CachePath);
             }
+        }
+
+        private static string GetFilePath(string fileName)
+        {
+            return Path.Combine(CachePath, fileName);
         }
 
         #endregion

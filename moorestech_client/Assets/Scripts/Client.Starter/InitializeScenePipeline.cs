@@ -4,14 +4,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
-using Client.Game.GameDebug;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Define;
 using Client.Mod.Texture;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
+using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
@@ -30,9 +29,6 @@ namespace Client.Starter
     /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
-        public const string OtherDebugServerDirectoryKey = "OtherServerDirectory";
-        
-        
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
         
@@ -48,7 +44,8 @@ namespace Client.Starter
         
         private void Start()
         {
-            var serverDirectory = DebugParameters.GetValueOrDefaultString(OtherDebugServerDirectoryKey, ServerConst.DefaultServerDirectory);
+            const string key = StartServer.DebugServerDirectorySettingKey;
+            var serverDirectory = DebugParameters.GetValueOrDefaultString(key, ServerConst.DefaultServerDirectory);
             Initialize(serverDirectory).Forget();
         }
         
