@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
+using Client.Game.GameDebug;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Define;
@@ -29,6 +30,9 @@ namespace Client.Starter
     /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
+        public const string OtherDebugServerDirectoryKey = "OtherServerDirectory";
+        
+        
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
         
@@ -44,10 +48,11 @@ namespace Client.Starter
         
         private void Start()
         {
-            Initialize().Forget();
+            var serverDirectory = DebugParameters.GetValueOrDefaultString(OtherDebugServerDirectoryKey, ServerConst.DefaultServerDirectory);
+            Initialize(serverDirectory).Forget();
         }
         
-        private async UniTask Initialize()
+        private async UniTask Initialize(string serverDirectory)
         {
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
@@ -55,7 +60,7 @@ namespace Client.Starter
             _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
             
             // DIコンテナによるServerContextの作成
-            new MoorestechServerDIContainerGenerator().Create(ServerConst.ServerDirectory);
+            new MoorestechServerDIContainerGenerator().Create(serverDirectory);
             
             //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
@@ -171,7 +176,8 @@ namespace Client.Starter
             {
                 //通常のアイテム画像をロード
                 //TODO 非同期で実行できるようにする
-                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory);
+                var modDirectory = ServerConst.CreateServerModsDirectory(serverDirectory);
+                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
                 loadingLog.text += $"\nアイテム画像ロード完了  {loadingStopwatch.Elapsed}";
             }
             

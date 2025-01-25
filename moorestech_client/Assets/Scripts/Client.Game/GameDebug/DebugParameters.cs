@@ -15,15 +15,20 @@ namespace Client.Game.GameDebug
             Load();
         }
         
-        public static Dictionary<string, bool> BoolDebugParameters { get; private set; } = new();
-        public static Dictionary<string, int> IntDebugParameters { get; private set; } = new();
-        public static Dictionary<string, string> StringDebugParameters { get; private set; } = new();
+        private static Dictionary<string, bool> BoolDebugParameters { get; set; } = new();
+        private static Dictionary<string, int> IntDebugParameters { get; set; } = new();
+        private static Dictionary<string, string> StringDebugParameters { get; set; } = new();
 
         #region Public Accessors
 
-        public static bool GetBool(string key, bool defaultValue)
+        public static bool GetValueOrDefaultBool(string key, bool defaultValue)
         {
             return BoolDebugParameters.GetValueOrDefault(key, defaultValue);
+        }
+        
+        public static bool TryGetBool(string key, out bool value)
+        {
+            return BoolDebugParameters.TryGetValue(key, out value);
         }
 
         public static void SaveBool(string key, bool value)
@@ -31,10 +36,27 @@ namespace Client.Game.GameDebug
             BoolDebugParameters[key] = value;
             Save();
         }
+        
+        public static bool RemoveBool(string key)
+        {
+            var result = BoolDebugParameters.Remove(key);
+            Save();
+            return result;
+        }
+        
+        public static bool ExistsBool(string key)
+        {
+            return BoolDebugParameters.ContainsKey(key);
+        }
 
-        public static int GetInt(string key, int defaultValue)
+        public static int GetValueOrDefaultInt(string key, int defaultValue)
         {
             return IntDebugParameters.GetValueOrDefault(key, defaultValue);
+        }
+        
+        public static bool TryGetInt(string key, out int value)
+        {
+            return IntDebugParameters.TryGetValue(key, out value);
         }
 
         public static void SaveInt(string key, int value)
@@ -42,16 +64,45 @@ namespace Client.Game.GameDebug
             IntDebugParameters[key] = value;
             Save();
         }
+        
+        public static bool RemoveInt(string key)
+        {
+            var result = IntDebugParameters.Remove(key);
+            Save();
+            return result;
+        }
+        
+        public static bool ExistsInt(string key)
+        {
+            return IntDebugParameters.ContainsKey(key);
+        }
 
-        public static string GetString(string key, string defaultValue)
+        public static string GetValueOrDefaultString(string key, string defaultValue)
         {
             return StringDebugParameters.GetValueOrDefault(key, defaultValue);
+        }
+        
+        public static bool TryGetString(string key, out string value)
+        {
+            return StringDebugParameters.TryGetValue(key, out value);
         }
 
         public static void SaveString(string key, string value)
         {
             StringDebugParameters[key] = value;
             Save();
+        }
+        
+        public static bool RemoveString(string key)
+        {
+            var result = StringDebugParameters.Remove(key);
+            Save();
+            return result;
+        }
+        
+        public static bool ExistsString(string key)
+        {
+            return StringDebugParameters.ContainsKey(key);
         }
 
         #endregion
