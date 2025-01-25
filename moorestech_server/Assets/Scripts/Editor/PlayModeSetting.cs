@@ -11,6 +11,10 @@ public class PlayModeSetting : EditorWindow
         var window = GetWindow<PlayModeSetting>();
         window.titleContent = new GUIContent("PlayModeSetting");
         window.Show();
+        
+        var serverDirectory = DebugParameters.GetValueOrDefaultString(StartServer.DebugServerDirectorySettingKey, "");
+        window.isUseOtherServer = !string.IsNullOrEmpty(serverDirectory);
+        window.otherServerDirectory = serverDirectory;
     }
     
     [SerializeField] private bool isUseOtherServer;
@@ -24,7 +28,14 @@ public class PlayModeSetting : EditorWindow
         if (isUseOtherServer)
         {
             otherServerDirectory = EditorGUILayout.TextField("Other Server Directory", otherServerDirectory);
-            DebugParameters.SaveString(key, otherServerDirectory);
+            if (string.IsNullOrEmpty(otherServerDirectory))
+            {
+                DebugParameters.RemoveString(key);
+            }
+            else
+            {
+                DebugParameters.SaveString(key, otherServerDirectory);
+            }
         }
         else
         {
