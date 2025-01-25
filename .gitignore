@@ -94,3 +94,6 @@ moorestech_client/.vscode/settings.json
 # Core.Master recompile
 /moorestech_server/Assets/Scripts/Core.Master/Dummy.cs
 /moorestech_server/Assets/Scripts/Core.Master/Dummy.cs.meta
+
+# デバッグの設定
+/cache

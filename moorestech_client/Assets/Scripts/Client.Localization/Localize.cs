@@ -36,7 +36,7 @@ namespace Client.Localization
             CurrentLanguageCode = PlayerPrefs.GetString("LanguageCode", DefaultLanguageCode);
             
             // CSVファイルのパス
-            var csvFilePath = Path.Combine(ServerConst.ServerDirectory, "config", "localization.csv");
+            var csvFilePath = Path.Combine(ServerConst.DefaultServerDirectory, "config", "localization.csv");
             
             var languageCodes = new List<string>();
             var isFirstRow = true;
