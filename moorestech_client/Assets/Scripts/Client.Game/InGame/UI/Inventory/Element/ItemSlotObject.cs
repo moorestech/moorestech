@@ -1,7 +1,6 @@
 ﻿using System;
 using Client.Game.InGame.UI.Util;
 using Client.Mod.Texture;
-using Core.Const;
 using Core.Master;
 using TMPro;
 using UniRx;
