@@ -1,0 +1,27 @@
+{
+  "$id": "mapObjectMineSettings",
+
+  "type": "array",
+  "overrideCodeGeneratePropertyName": "MapObjecetMineSettingsMasterElement",
+  
+  "items": {
+    "type": "object",
+    "properties": {
+      "mapObjectGuid": {
+        "type": "string",
+        "format": "uuid",
+        "foreignKey": "mapObjects:mapObjectGuid:name"
+      },
+
+      "miningTime": {
+        "type": "number",
+        "default": 1
+      },
+
+      "attackHp": {
+        "type": "integer",
+        "default": 1
+      }
+    }
+  }
+}
