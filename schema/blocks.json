@@ -45,7 +45,7 @@
               "Block","BeltConveyor","Chest",
               "ElectricMachine","ElectricPole","ElectricGenerator","ElectricMiner",
 
-              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner",
+              "Gear","Shaft","GearMachine","SimpleGearGenerator","GearBeltConveyor","GearMiner","GearMapObjectMiner",
               "ItemShooter",
               "CraftChainerTransporter", "CraftChainerCrafter", "CraftChainerProviderChest", "CraftChainerMainComputer",
               "TrainRail", "TrainStation", "TrainCargoPlatform"
@@ -395,6 +395,51 @@
                     
                     "mineSettings": {
                       "$ref": "mineSettings"
+                    },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
+                    },
+                    
+                    "gear": {
+                      "$ref": "gear"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "blockType": {
+                      "const": "GearMapObjectMiner"
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "teethCount": {"type": "integer", "default": 10},
+                    "requireTorque": {"type": "number", "default": 1},
+                    "requiredRpm": {"type": "number", "default": 5},
+                    
+                    "outputItemSlotCount": {"type": "integer", "default": 3},
+
+                    "miningAreaRange": {
+                      "type": "array",
+                      "pattern": "@vector3Int",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "miningAreaOffset": {
+                      "type": "array",
+                      "pattern": "@vector3Int",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    
+                    "mapObjectMineSettings": {
+                      "$ref": "mapObjectMineSettings"
                     },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
