@@ -10,7 +10,7 @@
       "mapObjectGuid": {
         "type": "string",
         "format": "uuid",
-        "foreignKey": "mapObjects:mapObjectGuid:name"
+        "foreignKey": "mapObjects:mapObjectGuid:mapObjectName"
       },
 
       "miningTime": {
