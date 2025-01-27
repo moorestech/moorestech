@@ -401,7 +401,7 @@ namespace Tests.UnitTest.Game
             Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
             Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
             //Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
-            Debug.Log("Node1からNode2の距離" + connectedNode.Item2);
+            //Debug.Log("Node1からNode2の距離" + connectedNode.Item2);
 
             //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
             //表
