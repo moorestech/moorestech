@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.Analyze.Analyzers;
@@ -13,6 +12,8 @@ using mooresmaster.Generator.LoaderGenerate;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 using mooresmaster.Generator.Yaml;
+using Enumerable = System.Linq.Enumerable;
+using ImmutableArrayExtensions = System.Linq.ImmutableArrayExtensions;
 
 namespace mooresmaster.Generator;
 
@@ -37,6 +38,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
                 var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
 #pragma warning restore RS1035
                 if (isSourceGeneratorDebug) throw e;
+                throw e;
             }
         });
     }
@@ -76,7 +78,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         analyzer.PostJsonSchemaLayerAnalyze(analysis, schemas, schemaTable);
         
         analyzer.PreSemanticsLayerAnalyze(analysis, schemas, schemaTable);
-        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
+        var semantics = SemanticsGenerator.Generate(ImmutableArrayExtensions.Select(schemas, schema => schema.Schema).ToImmutableArray(), schemaTable);
         analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemas, schemaTable);
         
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
@@ -105,7 +107,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var schemaTable = new SchemaTable();
         var parsedFiles = new HashSet<string>();
         
-        foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
+        foreach (var additionalText in Enumerable.Where(ImmutableArrayExtensions.Where(additionalTexts, a => Path.GetExtension(a.Path) == ".yml"), a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
             var json = YamlParser.Parse(yamlText);

@@ -11,7 +11,7 @@ public static class YamlParser
     public static JsonObject Parse(string yamlText)
     {
         var document = ParseYamlDocument(yamlText);
-        foreach (var node in document.RootNode.AllNodes) Console.WriteLine($"{node.GetType()} {node}");
+        foreach (var node in ((YamlMappingNode)document.RootNode).Children) Console.WriteLine($"{node.GetType()} {node}");
         
         return ParseYamlNode(document);
     }
@@ -28,34 +28,70 @@ public static class YamlParser
     
     private static JsonObject ParseYamlNode(YamlDocument yamlDocument)
     {
-        return null;
+        var node = (YamlMappingNode)yamlDocument.RootNode;
+        return ParseYamlMappingNode(node, null, null);
     }
     
-    private static IJsonNode ParseYamlNode(YamlNode yamlNode, IJsonNode jsonNode, string propertyName)
+    private static IJsonNode ParseYamlNode(YamlNode yamlNode, IJsonNode jsonNode, string? propertyName)
     {
         return yamlNode switch
         {
             YamlMappingNode yamlMappingNode => ParseYamlMappingNode(yamlMappingNode, jsonNode, propertyName),
-            YamlScalarNode yamlScalarNode => throw new NotImplementedException(),
-            YamlSequenceNode yamlSequenceNode => throw new NotImplementedException(),
+            YamlScalarNode yamlScalarNode => ParseYamlScalarNode(yamlScalarNode, jsonNode, propertyName),
+            YamlSequenceNode yamlSequenceNode => ParseYamlSequenceNode(yamlSequenceNode, jsonNode, propertyName),
             YamlAliasNode => throw new Exception("alias is not supported"),
             _ => throw new ArgumentOutOfRangeException(nameof(yamlNode))
         };
     }
     
-    private static JsonObject ParseYamlMappingNode(YamlMappingNode yamlMappingNode, IJsonNode jsonNode, string propertyName)
+    private static JsonObject ParseYamlMappingNode(YamlMappingNode yamlMappingNode, IJsonNode parentJsonNode, string? propertyName)
     {
         var dictionary = new Dictionary<string, IJsonNode>();
-        var parent = new JsonObject(dictionary, jsonNode, propertyName);
+        var jsonObject = new JsonObject(dictionary, parentJsonNode, propertyName);
         
         foreach (var map in yamlMappingNode.Children)
         {
             var key = map.Key as YamlScalarNode;
             var childParentName = key!.Value;
-            var value = ParseYamlNode(map.Value, parent, childParentName);
+            var value = ParseYamlNode(map.Value, jsonObject, childParentName);
             dictionary[childParentName] = value;
         }
         
-        return parent;
+        return jsonObject;
+    }
+    
+    /// <summary>
+    ///     boolean(true) boolean(false) integer float string
+    ///     上の順で評価
+    /// </summary>
+    private static IJsonNode ParseYamlScalarNode(YamlScalarNode yamlScalarNode, IJsonNode parentJsonNode, string? propertyName)
+    {
+        // boolean
+        if (yamlScalarNode.Value is "true" or "True" or "TRUE") return new JsonBoolean(true, parentJsonNode, propertyName);
+        if (yamlScalarNode.Value is "false" or "False" or "FALSE") return new JsonBoolean(false, parentJsonNode, propertyName);
+        
+        // integer
+        if (long.TryParse(yamlScalarNode.Value, out var intValue)) return new JsonInt(intValue, parentJsonNode, propertyName);
+        
+        // float
+        if (double.TryParse(yamlScalarNode.Value, out var floatValue)) return new JsonNumber(floatValue, parentJsonNode, propertyName);
+        
+        // string
+        return new JsonString(yamlScalarNode.Value ?? "", parentJsonNode, propertyName);
+    }
+    
+    private static JsonArray ParseYamlSequenceNode(YamlSequenceNode yamlSequenceNode, IJsonNode parentJsonNode, string? propertyName)
+    {
+        var nodes = new IJsonNode[yamlSequenceNode.Children.Count];
+        var jsonArray = new JsonArray(nodes, parentJsonNode, propertyName);
+        
+        for (var i = 0; i < yamlSequenceNode.Children.Count; i++)
+        {
+            var child = yamlSequenceNode.Children[i];
+            var childJsonNode = ParseYamlNode(child, jsonArray, null);
+            nodes[i] = childJsonNode;
+        }
+        
+        return jsonArray;
     }
 }
