@@ -26,6 +26,11 @@ public struct Location
     {
         return Create(yamlNode.Start, yamlNode.End);
     }
+    
+    public override string ToString()
+    {
+        return $"({StartLine}:{StartColumn} - {EndLine}:{EndColumn})";
+    }
 }
 
 public interface IJsonNode

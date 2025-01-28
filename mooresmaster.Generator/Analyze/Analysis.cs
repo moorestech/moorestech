@@ -38,7 +38,14 @@ public class AnalyzeException : Exception
     {
         DiagnosticsArray = diagnosticsArray;
         var messages = new List<string>();
-        foreach (var diagnostics in diagnosticsArray) messages.Add($"type: {diagnostics.GetType().Name}\n    {diagnostics.Message.Replace("\n", "\n    ")}");
+        foreach (var diagnostics in diagnosticsArray)
+            messages.Add(
+                $"""
+                 type: {diagnostics.GetType().Name}
+                     location: {diagnostics.Location}
+                     {diagnostics.Message.Replace("\n", "\n    ")}
+                 """
+            );
         
         Message = string.Join("\n", messages);
     }
