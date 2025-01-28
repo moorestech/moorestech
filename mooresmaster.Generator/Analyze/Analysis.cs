@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using mooresmaster.Generator.Json;
 
 namespace mooresmaster.Generator.Analyze;
 
@@ -26,6 +27,7 @@ public class Analysis
 public interface IDiagnostics
 {
     string Message { get; }
+    public Location Location { get; }
 }
 
 public class AnalyzeException : Exception

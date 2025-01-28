@@ -38,7 +38,6 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
                 var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
 #pragma warning restore RS1035
                 if (isSourceGeneratorDebug) throw e;
-                throw e;
             }
         });
     }
