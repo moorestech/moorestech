@@ -8,6 +8,13 @@ defineInterface:
         type: integer
       - key: outputSlotCount
         type: integer
+globalDefineInterface:
+  - interfaceName: IGlobalTest
+    implementationInterface:
+      - IMachineParam
+    properties:
+      - key: test
+        type: integer
 properties:
   - key: data
     type: array
