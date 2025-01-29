@@ -6,30 +6,32 @@ namespace mooresmaster.Generator.Json;
 
 public struct Location
 {
+    public string FilePath;
     public long StartLine;
     public long StartColumn;
     public long EndLine;
     public long EndColumn;
     
-    private static Location Create(Mark start, Mark end)
+    private static Location Create(string filePath, Mark start, Mark end)
     {
         return new Location
         {
             StartLine = start.Line,
             StartColumn = start.Column,
             EndLine = end.Line,
-            EndColumn = end.Column
+            EndColumn = end.Column,
+            FilePath = filePath
         };
     }
     
-    public static Location Create(YamlNode yamlNode)
+    public static Location Create(string filePath, YamlNode yamlNode)
     {
-        return Create(yamlNode.Start, yamlNode.End);
+        return Create(filePath, yamlNode.Start, yamlNode.End);
     }
     
     public override string ToString()
     {
-        return $"({StartLine}:{StartColumn} - {EndLine}:{EndColumn})";
+        return $"({StartLine}:{StartColumn} - {EndLine}:{EndColumn}) in {FilePath}";
     }
 }
 

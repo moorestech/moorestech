@@ -109,7 +109,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         foreach (var additionalText in Enumerable.Where(ImmutableArrayExtensions.Where(additionalTexts, a => Path.GetExtension(a.Path) == ".yml"), a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
-            var json = YamlParser.Parse(yamlText);
+            var json = YamlParser.Parse(additionalText.Path, yamlText);
             var schema = JsonSchemaParser.ParseSchema(json!, schemaTable);
             schemas.Add(new SchemaFile(additionalText.Path, schema));
             parsedFiles.Add(additionalText.Path);

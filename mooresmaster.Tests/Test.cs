@@ -90,7 +90,7 @@ public class Test
         
         foreach (var yaml in yamlTexts)
         {
-            var json = YamlParser.Parse(yaml);
+            var json = YamlParser.Parse("TestDummyFilePath", yaml);
             var schema = JsonSchemaParser.ParseSchema(json, schemaTable);
             schemaFileList.Add(new SchemaFile("", schema));
         }
