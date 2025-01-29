@@ -74,18 +74,25 @@ public static class JsonSchemaParser
         }
         
         // interfaceの継承情報を取得
-        var implementationInterfaces = new List<string>();
+        var implementationNodes = new Dictionary<string, JsonString>();
         if (node.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
             foreach (var implementationInterfaceNode in nodesArray.Nodes)
             {
                 var name = (JsonString)implementationInterfaceNode;
-                implementationInterfaces.Add(name.Literal);
+                implementationNodes[name.Literal] = name;
             }
         
         if (interfaceName == null) throw new Exception("interfaceName is null");
         if (properties == null) throw new Exception("properties is null");
         
-        return new DefineInterface(id, interfaceName, properties, implementationInterfaces.ToArray(), isGlobal);
+        return new DefineInterface(
+            id,
+            interfaceName,
+            properties,
+            implementationNodes.Keys.ToArray(),
+            implementationNodes,
+            isGlobal
+        );
     }
     
     private static SchemaId Parse(JsonObject root, SchemaId? parent, SchemaTable schemaTable)
