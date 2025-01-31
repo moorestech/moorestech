@@ -62,15 +62,18 @@ public static class JsonSchemaParser
         
         var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
         
-        var propertiesNode = node.Nodes[Tokens.PropertiesKey] as JsonArray;
-        foreach (var propertyNode in propertiesNode.Nodes.OfType<JsonObject>())
+        if (node.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
         {
-            // valueがtypeとかdefaultとか
-            // keyがプロパティ名
-            
-            var propertySchemaId = Parse(propertyNode, null, schemaTable);
-            var key = propertyNode[Tokens.PropertyNameKey] as JsonString;
-            properties[key.Literal] = schemaTable.Table[propertySchemaId] as IDefineInterfacePropertySchema;
+            var propertiesArray = propertiesNode as JsonArray;
+            foreach (var propertyNode in propertiesArray.Nodes.OfType<JsonObject>())
+            {
+                // valueがtypeとかdefaultとか
+                // keyがプロパティ名
+                
+                var propertySchemaId = Parse(propertyNode, null, schemaTable);
+                var key = propertyNode[Tokens.PropertyNameKey] as JsonString;
+                properties[key.Literal] = schemaTable.Table[propertySchemaId] as IDefineInterfacePropertySchema;
+            }
         }
         
         // interfaceの継承情報を取得
