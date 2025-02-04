@@ -2,7 +2,6 @@
     "name": "Game.Fluid",
     "rootNamespace": "",
     "references": [
-        "GUID:edae0479a52bf4ddb8d67d9ceb84c31e",
         "GUID:559e05852f4834e6b836e9c5499e87db"
     ],
     "includePlatforms": [],

@@ -47,7 +47,8 @@
         "UniRx",
         "Core.Master",
         "Server.Tests.Module",
-        "Game.CraftChainer"
+        "Game.CraftChainer",
+        "Game.Fluid"
     ],
     "includePlatforms": [
         "Editor"

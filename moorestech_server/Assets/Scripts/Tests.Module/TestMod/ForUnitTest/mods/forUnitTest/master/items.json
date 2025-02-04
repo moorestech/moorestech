@@ -256,6 +256,11 @@
       "maxStack": 100,
       "name": "TestTrainCargoPlatform",
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84"
+    },
+    {
+      "maxStack": 100,
+      "name": "FluidPipe",
+      "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF"
     }
   ]
 }
