@@ -1,5 +1,5 @@
 using System;
-using Client.Game.GameDebug;
+using Common.Debug;
 using UnityDebugSheet.Runtime.Core.Scripts;
 
 namespace Client.DebugSystem
@@ -8,7 +8,7 @@ namespace Client.DebugSystem
     {
         public static void AddEnumPickerWithSave<TEnum>(this DebugPage debugPage, TEnum defaultValue, string label, string key, Action<TEnum> valueChangedOrInitialize) where TEnum : Enum
         {
-            var value = (TEnum)Enum.ToObject(typeof(TEnum), DebugParameters.GetInt(key, Convert.ToInt32(defaultValue)));
+            var value = (TEnum)Enum.ToObject(typeof(TEnum), DebugParameters.GetValueOrDefaultInt(key, Convert.ToInt32(defaultValue)));
             valueChangedOrInitialize(value);
             
             debugPage.AddEnumPicker(value, label, activeValueChanged: d =>

@@ -2,9 +2,9 @@
     "name": "Server.Boot",
     "rootNamespace": "",
     "references": [
+        "Common.Debug",
         "Game.SaveLoad.Interface",
         "Server.Protocol",
-        "Core.ConfigJson",
         "Game.Block.Interface",
         "Core.Item.Interface",
         "Game.Block",
@@ -14,7 +14,6 @@
         "Game.PlayerInventory.Interface",
         "Game.World.EventHandler",
         "Mod.Config",
-        "Game.Crafting",
         "Mod.Loader",
         "Game.World",
         "Game.PlayerInventory",
@@ -31,7 +30,6 @@
         "Core.Item",
         "Game.Gear",
         "Game.Challenge",
-        "Game.Challenge.Interface",
         "Core.Master",
         "Game.CraftChainer",
         "Game.Train"

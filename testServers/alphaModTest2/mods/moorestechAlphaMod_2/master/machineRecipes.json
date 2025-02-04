@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "time": 1,
+      "blockGuid": "1d5302fa-9ccc-4641-881a-f11e05db7181",
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "126acbd8-715b-4d52-9a58-2eeb94228a35"
+        }
+      ],
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+        }
+      ],
+      "machineRecipeGuid": "8b50a1fb-8005-4a50-b851-f0f7873a3eeb"
+    }
+  ]
+}

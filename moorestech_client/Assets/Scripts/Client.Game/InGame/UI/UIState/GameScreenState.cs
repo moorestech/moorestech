@@ -1,5 +1,4 @@
-﻿using Client.Game.GameDebug;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
+﻿using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
 using Client.Game.Skit;
 using Client.Input;
@@ -29,7 +28,6 @@ namespace Client.Game.InGame.UI.UIState
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.PlaceBlock;
-            if (DebugInfoStore.EnableBlockDebugMode) return UIStateEnum.BlockDebug;
             
             return UIStateEnum.Current;
         }

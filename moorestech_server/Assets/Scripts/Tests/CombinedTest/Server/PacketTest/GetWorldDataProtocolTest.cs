@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
@@ -46,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var block = responseWorld.Blocks[i];
                 var pos = block.BlockPos;
                 
-                var id = worldBlockDatastore.GetOriginPosBlock(pos)?.Block.BlockId ?? BlockConst.EmptyBlockId;
+                var id = worldBlockDatastore.GetOriginPosBlock(pos)?.Block.BlockId ?? new BlockId(0);
                 Assert.AreEqual(id, block.BlockId);
                 
                 var direction = worldBlockDatastore.GetOriginPosBlock(pos)?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
