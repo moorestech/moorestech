@@ -688,7 +688,7 @@ namespace Tests.UnitTest.Game
             // 例として直線上のノード3つ (A <- B <- C) を作る
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.North, out var railB);
@@ -771,18 +771,17 @@ namespace Tests.UnitTest.Game
 
 
         /// <summary>
-        /// 複数レールを一直線に配置し、列車長を大きめにしつつ前後に移動させるテスト
-        /// レールの一部を削除してルートが分断されるか確認
+        /// ループテスト
         /// </summary>
 
         [Test]
-        public void LargeTrainAndRemoveRailTest()
+        public void LoopTrainTest()
         {
             // サーバーDIを立てて、WorldBlockDatastore や RailGraphDatastore を取得
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
             // 1) ワールド上にいくつかレールを「TryAddBlock」して、RailComponentを取得
             //    例として4本だけ設置
@@ -790,257 +789,81 @@ namespace Tests.UnitTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.East, out var railBlockB);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.West, out var railBlockC);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.South, out var railBlockD);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(33, 4, 334), BlockDirection.South, out var railBlockE);
 
             // RailComponent を取得
             var railComponentA = railBlockA.GetComponent<RailComponent>();
             var railComponentB = railBlockB.GetComponent<RailComponent>();
             var railComponentC = railBlockC.GetComponent<RailComponent>();
             var railComponentD = railBlockD.GetComponent<RailComponent>();
+            var railComponentE = railBlockE.GetComponent<RailComponent>();
 
             // 2) レールどうしを Connect
-            //    レールが曲線か直線かは RailComponent 内部の BezierUtility などで計算。
-            //    connect の例： Aの表(front)->Bの表(front)
-            //                  Bの裏(back)->Aの裏(back)
+            // D→C→B→A→D の順でつなげる
             //    defaultdistance=-1 ならばベジェ曲線長が自動計算される
-            railComponentA.ConnectRailComponent(railComponentB, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentB.ConnectRailComponent(railComponentC, isFront_this: false, isFront_target: true, defaultdistance: -1);
-            railComponentC.ConnectRailComponent(railComponentD, isFront_this: true, isFront_target: true, defaultdistance: -1);
+            railComponentD.ConnectRailComponent(railComponentC, isFront_this: true, isFront_target: true, defaultdistance: -1);
+            railComponentC.ConnectRailComponent(railComponentB, isFront_this: true, isFront_target: true, defaultdistance: -1);
+            railComponentB.ConnectRailComponent(railComponentA, isFront_this: true, isFront_target: true, defaultdistance: -1);
+            railComponentA.ConnectRailComponent(railComponentD, isFront_this: true, isFront_target: true, defaultdistance: -1);
 
-            // これでA→B→C→D (ベジェ) の順で何らかのルートがつながったはず
             // ノード列を組み立てる
-            // まずAのFrontNodeを先頭に、connect された順序を辿るなどしてノード列を取得
-            // 実際にはダイクストラなどで最短経路を取るほうが正確
+            // Aに向かっているという状況
             var nodeList = new List<RailNode>();
             nodeList.Add(railComponentA.FrontNode);
             nodeList.Add(railComponentB.FrontNode);
-            nodeList.Add(railComponentB.BackNode);
             nodeList.Add(railComponentC.FrontNode);
-            nodeList.Add(railComponentC.BackNode);
             nodeList.Add(railComponentD.FrontNode);
+            nodeList.Add(railComponentA.FrontNode);
 
-            // 3) 距離合計をざっくり計算 (※ベジェ内部で距離計算しているため、ConnectRailComponentが何らかの形で距離を保持している想定)
-            //    ここでは RailNode.GetDistanceToNode(...) をループで合計する例
+            // ここでは RailNode.GetDistanceToNode(...) をループで合計する例
             int totalDist = 0;
             for (int i = 0; i < nodeList.Count - 1; i++)
             {
-                int dist = nodeList[i].GetDistanceToNode(nodeList[i + 1]);
-                if (dist > 0) totalDist += dist;
+                int dist = nodeList[i + 1].GetDistanceToNode(nodeList[i]);
+                totalDist += dist;
             }
+            nodeList.Add(railComponentB.FrontNode);
 
-            // 大きめの列車を作る
-            int trainLength = (int)(totalDist * 0.7f);
-            if (trainLength < 10) trainLength = 10; //最低10
-
-            // 4) RailPosition を作って先頭を配置
-            //    initialDistanceToNextNode=5あたりから開始する例
-            var railPosition = new RailPosition(nodeList, trainLength, 5);
-
-            // 5) いくつか進めてみる
-            var remain1 = railPosition.MoveForward(12);
-            Debug.Log($"1回目: Move=12, remain={remain1} / approach={railPosition.GetNodeApproaching()}");
-
-            // 6) 中途でレールを削除する (例: railComponentC を破壊)
-            railComponentC.Destroy();
-            // worldBlockDatastore.RemoveBlock(...) などで物理的にワールドから消す想定
-            worldBlockDatastore.RemoveBlock(railComponentC.GetPosition());
-
-            // Connect情報を切り離すには DisconnectRailComponent(...) を適宜呼ぶ
-            railComponentB.DisconnectRailComponent(railComponentC, isFront_this: false, isFront_target: true);
-            railComponentC.DisconnectRailComponent(railComponentD, isFront_this: true, isFront_target: true);
-
-            // 7) 再度 forward
-            var remain2 = railPosition.MoveForward(30);
-            Debug.Log($"2回目: Move=30, remain={remain2} / approach={railPosition.GetNodeApproaching()}");
-
-            // あとは最終的に何個のノードが残っているかなど
-            var restNodes = railPosition.TestGet_railNodes();
-            Debug.Log($"現在ノード列: count={restNodes.Count}");
-
-            // 8) 適宜アサート 
-            Assert.IsTrue(restNodes.Count <= 3, "レールCを削除したので、後半のノードが切断されているはず");
-        }
-
-
-        /// <summary>
-        /// レールをランダムに配置・接続して列車を走行させるテスト
-        /// </summary>
-
-        /// <summary>
-        /// レールを複数ランダム配置し、適当に connect してから列車を走らせるサンプルテスト。
-        /// 簡易的なルート（ノード列）を作り、RailPositionを動かしてみる。
-        /// </summary>
-        [Test]
-        public void RandomRailAndTrainTest()
-        {
-            const int TestSeed = 123456;
-            // サーバーDIを立てて、WorldBlockDatastore や RailGraphDatastore を取得
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
-
-            // 乱数
-            var random = new System.Random(TestSeed);
-
-            // ----- 1) ランダムにレールブロックを配置 -----
-            // 個数 n は適当に
-            const int n = 8;
-            var railComponents = new List<RailComponent>(n);
-            var blockDirections = new BlockDirection[]
+            // 列車の長さを適当にランダムに決めて計算
+            // 列車をある距離進めて、反転して同じ距離進める。同じ場所にもどるはず
+            for (int testnum = 0; testnum < 128; testnum++)
             {
-                BlockDirection.North, BlockDirection.East,
-                BlockDirection.South, BlockDirection.West
-            };
+                var rand = UnityEngine.Random.Range(0.001f, 0.9999f);
+                int trainLength = (int)(totalDist * rand);
+                if (trainLength < 1) trainLength = 1; //最低10
 
-            for (int i = 0; i < n; i++)
-            {
-                // ランダム座標(そこまで広くしすぎない程度)
-                var x = random.Next(-500, 501);
-                var y = 0;               // yは高さ。必要があれば random.Next(0,10)などでもOK
-                var z = random.Next(-500, 501);
-                var pos = new Vector3Int(x, y, z);
+                // 4) RailPosition を作って先頭を配置
+                //    initialDistanceToNextNode=5あたりから開始する例
+                //nodeListのdeepcopy。これをしないといけないことに注意
+                var nodeList2 = new List<RailNode>(nodeList);
+                var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
-                // ランダム向き
-                var dir = blockDirections[random.Next(blockDirections.Length)];
-
-                // TryAddBlock
-                worldBlockDatastore.TryAddBlock(
-                    ForUnitTestModBlockId.TestTrainRail,
-                    pos, dir, out var railBlock);
-
-                // RailComponent を取得
-                var railComp = railBlock.GetComponent<RailComponent>();
-                railComponents.Add(railComp);
-
-                Debug.Log($"[RandomRailAndTrain] Created rail {i} at {pos}, dir={dir}");
-            }
-
-            // ----- 2) レール同士を適当にconnect -----
-            // ※ すべてが連結される保証はなく、部分的につながらない可能性あり
-            //   ここでは簡易的に「隣のインデックス同士をconnect」＋「ランダムで何回か追加connect」
-            for (int i = 0; i < n - 1; i++)
-            {
-                // railComponents[i] → railComponents[i+1] を適当に繋ぐ
-                // isFront/Back の組合せをランダム化
-                bool isFrontThis = (random.Next(2) == 0);
-                bool isFrontNext = (random.Next(2) == 0);
-
-                railComponents[i].ConnectRailComponent(
-                    railComponents[i + 1],
-                    isFront_this: isFrontThis,
-                    isFront_target: isFrontNext,
-                    defaultdistance: -1);
-            }
-
-            // 追加で 1~3回ほど余分にconnect
-            int extraConnects = random.Next(1, 4);
-            for (int c = 0; c < extraConnects; c++)
-            {
-                var idxA = random.Next(n);
-                var idxB = random.Next(n);
-                if (idxA == idxB) continue;
-
-                bool isFrontA = (random.Next(2) == 0);
-                bool isFrontB = (random.Next(2) == 0);
-                railComponents[idxA].ConnectRailComponent(
-                    railComponents[idxB],
-                    isFront_this: isFrontA,
-                    isFront_target: isFrontB,
-                    defaultdistance: -1);
-            }
-
-            // ----- 3) ノード列を適当に組み立て -----
-            //   ここでは最初のレールのfrontNodeから順に並べるだけ。（実際にはダイクストラ等推奨）
-            var nodeList = new List<RailNode>();
-            var firstRail = railComponents[0];
-            nodeList.Add(firstRail.FrontNode);   // 適当に frontNode を始点とする
-            nodeList.Add(firstRail.BackNode);
-
-            // 残りのレールの backNodeなども加えてみるだけ
-            // (正しくは node の繋がりを BFS or ダイクストラ などで経路を抽出)
-            for (int i = 1; i < n; i++)
-            {
-                nodeList.Add(railComponents[i].FrontNode);
-                nodeList.Add(railComponents[i].BackNode);
-            }
-            // 重複ノードがいる可能性などは一旦無視、あくまでサンプル
-
-            // ----- 4) 距離合計を算出して列車長を決める -----
-            int totalDist = 0;
-            for (int i = 0; i < nodeList.Count - 1; i++)
-            {
-                int dist = nodeList[i].GetDistanceToNode(nodeList[i + 1]);
-                if (dist > 0) totalDist += dist;
-            }
-            // 列車長
-            int trainLength = Math.Max(8, totalDist / 2);
-            var railPos = new RailPosition(nodeList, trainLength, initialDistanceToNextNode: 5);
-
-            Debug.Log($"[RandomRailAndTrain] totalDist={totalDist}, trainLength={trainLength}");
-
-            // ----- 5) ランダムに前進・後退を試す -----
-            int steps = random.Next(6, 12); // 適当に6~12回動かす
-            for (int s = 0; s < steps; s++)
-            {
-                // ±1~20くらいの移動量
-                int moveDist = random.Next(1, 21);
-                if (random.NextDouble() < 0.3)
+                // --- 4. TrainUnit を生成 ---
+                var destination = railComponentE.FrontNode;//ありえない目的地をセットするが、ここではループするだけなので問題ない
+                var cars = new List<TrainCar>
                 {
-                    moveDist = -moveDist; // 30%で後退
-                }
+                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
+                };
+                var trainUnit = new TrainUnit(railPosition, destination, cars);
 
-                int remain = railPos.MoveForward(moveDist);
+                // 5) 進めるtotal距離をランダムにきめる
+                int totalrunDist = UnityEngine.Random.Range(1, 30000000);
+                var remain = trainUnit.UpdateTrainByDistance(totalrunDist);
+                //totalrunDist_は0でないといけない
+                Assert.AreEqual(0, remain);
+                //逆向きにして進みてみる
+                trainUnit._railPosition.Reverse();
+                remain = trainUnit.UpdateTrainByDistance(totalrunDist);
+                Assert.AreEqual(0, remain);
+                trainUnit._railPosition.Reverse();
 
-                Debug.Log($" Step:{s}  move={moveDist}, remain={remain}, " +
-                          $" nowApproach={railPos.GetNodeApproaching()} " +
-                          $" NodeCount={railPos.TestGet_railNodes().Count}");
-
-                if (railPos.TestGet_railNodes().Count < 2)
-                {
-                    // もうほぼルートが切れていそうなので終了
-                    break;
-                }
-
-                // 何らかのawait相当があるならあっても良い
-                // GameUpdater.UpdateWithWait(); // もし必要なら(物理的ワールド進行など)
-            }
-
-            // ----- 結果を一応アサート -----
-            // とりあえずエラーなくここまで動作したらPass
-            Assert.Pass("RandomRailAndTrainTest: 正常に完走しました");
-        }
-
-        /// <summary>
-        /// RailComponent の front/back ノードをすべて railGraph から切断するユーティリティ例
-        /// </summary>
-        private void DisconnectRailNodes(RailComponent rail)
-        {
-            var front = rail.FrontNode;
-            var back = rail.BackNode;
-
-            // frontに繋がっているノードとの接続をすべて外す
-            // railGraphDatastore 上で nodeA, nodeB を DisconnectNode
-            DisconnectAllConnections(front);
-            DisconnectAllConnections(back);
-        }
-
-        private void DisconnectAllConnections(RailNode node)
-        {
-            // node.ConnectedNodes は IEnumerable なので一旦リスト化
-            var connected = node.ConnectedNodes.ToList();
-            foreach (var cn in connected)
-            {
-                // node -> cn を外す
-                // RailGraphDatastore のAPIを呼ぶ必要があるが、本来は node 直呼びはラップメソッドがいる
-                // ここでは簡略化で
-                node.ConnectNode(cn, 0); // こうすると大抵ダミーになる
-                // ↑実際は ConnectNode ではなく railGraphDatastore.DisconnectNode(node, cn) などが必要
-                //   ただしサンプルコードなので実装は読み替えてください
+                //逆向きにして同じ場所か
+                //向かっているのがnodeAのはず
+                Assert.AreEqual(railComponentA.FrontNode, railPosition.GetNodeApproaching());
+                //initialDistanceToNextNode=5のはず
+                Assert.AreEqual(5, railPosition.GetDistanceToNextNode());
             }
         }
-
-
 
     }
 }
