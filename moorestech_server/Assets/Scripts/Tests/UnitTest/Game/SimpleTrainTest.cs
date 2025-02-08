@@ -953,6 +953,8 @@ namespace Tests.UnitTest.Game
             {
                 if (UnityEngine.Random.Range(0, 2) == 0)
                 {
+                    var next = (key.Item1 * 10) % nodenum / 10;
+                    if ((key.Item2 / 10 == next) & (key.Item3) & (key.Item4)) continue;
                     railComponents[key.Item1].DisconnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
                 }
             }
