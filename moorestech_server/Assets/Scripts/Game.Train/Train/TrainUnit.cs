@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
@@ -37,7 +38,7 @@ namespace Game.Train.Train
             if (_isUseDestination)//設定している目的地に向かうべきなら
             {
                 var force = UpdateTractionForce(deltaTime);
-                _currentSpeed += force* deltaTime;
+                _currentSpeed += force * deltaTime;
             }
             //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
             //deltaTime次第でかわる
@@ -48,7 +49,7 @@ namespace Game.Train.Train
             float floatDistance = _currentSpeed * deltaTime;
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
-            int distanceToMove = Mathf.FloorToInt(floatDistance + Random.Range(0f, 0.999f));
+            int distanceToMove = Mathf.FloorToInt(floatDistance + UnityEngine.Random.Range(0f, 0.999f));
             calceddist = UpdateTrainByDistance(distanceToMove);
         }
 
@@ -76,13 +77,13 @@ namespace Game.Train.Train
                 {
                     _isUseDestination = false;
                     _currentSpeed = 0;
-                    Debug.LogError("列車が進行中に分岐地点を見失いました。");
+                    throw new InvalidOperationException("列車が進行中に目的地までの経路を見失いました。");
                     break;
                 }
                 loopCount++;
-                if (loopCount > 1000)
+                if (loopCount > 10000)
                 {
-                    Debug.LogError("無限ループを検知しました。");
+                    throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                     break;
                 }
             }
@@ -151,6 +152,11 @@ namespace Game.Train.Train
         public void SetSpeed(float newSpeed)
         {
             _currentSpeed = newSpeed;
+        }
+
+        public void SetDestination(RailNode destination)
+        {
+            _destination = destination;
         }
 
         //============================================================

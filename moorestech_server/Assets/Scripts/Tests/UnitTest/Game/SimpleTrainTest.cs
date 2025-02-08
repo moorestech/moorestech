@@ -865,5 +865,156 @@ namespace Tests.UnitTest.Game
             }
         }
 
+        /// <summary>
+        /// 複雑テスト
+        /// 必ずつながる経路(A)
+        /// ランダム生成経路(B)
+        /// がある。Aが存在することでA内ではどこからどこでも行けることが保証される
+        /// Bは経路削除に伴うバグがでないか確認をしたい。Bを作成、削除を適当な回数行う
+        /// 最後に列車を走らせる。
+        /// </summary>
+
+        [Test]
+        public void ComplexTrainTest()
+        {
+
+            //順列を作成し、順番をシャッフルする関数
+            List<int> ReturnShuffleList(int n)
+            {
+                List<int> list = new List<int>();
+                for (int i = 0; i < n; i++)
+                {
+                    list.Add(i);
+                }
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int j = UnityEngine.Random.Range(i, list.Count);
+                    var tmp = list[i];
+                    list[i] = list[j];
+                    list[j] = tmp;
+                }
+                return list;
+            }
+
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            //10000回のTryAddBlockし、それぞれが10つのRailComponentにつながる。距離は1
+            const int nodenum_powerexponent = 4;
+            int nodenum = (int)System.Math.Pow(10, nodenum_powerexponent);
+
+            List<RailComponent> railComponents = new List<RailComponent>();
+            //blockの位置をきめる
+            //xの順列(0～nodenum)を作成、そのあとランダムシャッフルする
+            var xlist = ReturnShuffleList(nodenum);
+            var ylist = ReturnShuffleList(nodenum);
+            var zlist = ReturnShuffleList(nodenum);
+            for (int i = 0; i < nodenum; i++)
+            {
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(xlist[i], ylist[i], zlist[i]), BlockDirection.North, out var railBlock);
+                railComponents.Add(railBlock.GetComponent<RailComponent>());
+            }
+            //これでnode生成はおわった。あとはつなげる。Bを作成→Aを作成→Bを削除という操作を行う
+
+
+            //Bを作成
+            Dictionary<(int, int, bool, bool), bool> connectB = new Dictionary<(int, int, bool, bool), bool>();//つながる元、つながる先、isFront_this,is_front_target
+            const int blistnum = 1000;
+            for (int i = 0; i < blistnum; i++)
+            {
+                int rand0 = UnityEngine.Random.Range(0, nodenum);
+                int rand1 = UnityEngine.Random.Range(0, nodenum);
+                bool isFront_this = UnityEngine.Random.Range(0, 2) == 0;
+                bool isFront_target = UnityEngine.Random.Range(0, 2) == 0;
+                if (rand0 == rand1) continue;
+                if (connectB.ContainsKey((rand1, rand0, !isFront_target, !isFront_this))) continue;
+                connectB.Add((rand0, rand1, isFront_this, isFront_target), true);
+            }
+            //connectBを実行
+            foreach (var key in connectB.Keys)
+            {
+                railComponents[key.Item1].ConnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+            }
+
+            //Aを作成
+            //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
+            for (int i = 0; i < nodenum; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    var next = (i * 10) % nodenum + j;
+                    railComponents[i].ConnectRailComponent(railComponents[next], true, true);
+                }
+            }
+
+            //Bを一部または全部削除
+            //ここではランダムに50%削除
+            foreach (var key in connectB.Keys)
+            {
+                if (UnityEngine.Random.Range(0, 2) == 0)
+                {
+                    railComponents[key.Item1].DisconnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+                }
+            }
+
+
+
+            //あとは列車を走らせる
+            //複数の長さの列車を走らせる。短い～長い
+            //列車を乗せるためのレールを新規に生成
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-100000, 0, 0), BlockDirection.South, out var railBlockStart);
+            var railComponentStart = railBlockStart.GetComponent<RailComponent>();
+            railComponentStart.ConnectRailComponent(railComponents[0], true, true);
+
+            // ノード列を組み立てる
+            // 列車がrailComponents[0]に向かっているという状況
+            var nodeList = new List<RailNode>();
+            nodeList.Add(railComponents[0].FrontNode);
+            nodeList.Add(railComponentStart.FrontNode);
+
+            // 列車の長さを適当にランダムに決めて計算
+            for (int testnum = 0; testnum < 2; testnum++)//1000で大丈夫なことを確認
+            {
+                var trainLength = UnityEngine.Random.Range(1, 1000000);
+                //RailPosition を作って先頭を配置
+                //initialDistanceToNextNode=5あたりから開始する例
+                //nodeListのdeepcopy。これをしないといけないことに注意
+                var nodeList2 = new List<RailNode>(nodeList);
+                var railPosition = new RailPosition(nodeList2, trainLength, 5);
+
+                // --- TrainUnit を生成 ---
+                var destinationid = UnityEngine.Random.Range(0, nodenum);
+                var destination = railComponents[destinationid].FrontNode;//目的地をセット
+                var cars = new List<TrainCar>
+                {
+                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
+                };
+                var trainUnit = new TrainUnit(railPosition, destination, cars);
+                trainUnit._isUseDestination = true;//factorioでいう自動運転on
+
+                //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
+                for (int i = 0; i < 100; i++)
+                {
+                    for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
+                    {
+                        trainUnit.UpdateTrain(1f / 60f, out _);
+                        if (!trainUnit._isUseDestination)
+                            break;
+                        if (j == 65534)
+                            Assert.Fail("列車が目的地に到達しませんでした");
+                    }
+                    destinationid = UnityEngine.Random.Range(0, nodenum);
+                    destination = railComponents[destinationid].FrontNode;//目的地をセット
+                    trainUnit.SetDestination(destination);
+                }
+                //最後にrailComponentStart.FrontNodeにはつかないことを確認した
+                //destination = railComponentStart.FrontNode;//目的地をセット
+                //trainUnit.SetDestination(destination);
+                //trainUnit.UpdateTrainByDistance(3601237);//ここでエラーがでた
+            }
+
+
+        }
+
     }
 }
