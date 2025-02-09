@@ -1,52 +1,30 @@
-using System;
-using System.Collections.Generic;
-using Core.Update;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Map.Interface.MapObject;
+using Game.Block.Blocks.Gear;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.MapObjectMineSettingsModule;
+using UniRx;
 
 namespace Game.Block.Blocks.MapObjectMiner
 {
-    public class GearMapObjectMinerComponent : IUpdatableBlockComponent
+    public class GearMapObjectMinerComponent
     {
-        private readonly BlockPositionInfo _blockPositionInfo;
-        private readonly GearMapObjectMinerBlockParam _blockParam;
-        private readonly Dictionary<Guid, MapObjectMineSettingsMasterElement> _miningSettings;
-        private readonly List<Guid> _miningTargetGuids;
+        private readonly GearEnergyTransformer _gearEnergyTransformer;
+        private readonly GearMapObjectMinerProcessorComponent _gearMapObjectMinerProcessorComponent;
+        private readonly GearMinerBlockParam _gearMinerBlockParam;
         
-        private Dictionary<Guid,List<IMapObject>> _miningTargets;
-        
-        private Dictionary<Guid, float> _miningCurrentTimes;
-        
-        
-        public void Update()
+        public GearMapObjectMinerComponent(GearEnergyTransformer gearEnergyTransformer, GearMinerBlockParam gearMinerBlockParam)
         {
-            foreach (var targetGuid in _miningTargetGuids)
-            {
-                if (!_miningTargets.ContainsKey(targetGuid))
-                {
-                    continue;
-                }
-                
-                _miningCurrentTimes.TryAdd(targetGuid, 0);
-                
-                _miningCurrentTimes[targetGuid] += (float)GameUpdater.UpdateSecondTime;
-                var setting = _miningSettings[targetGuid];
-                if (!(_miningCurrentTimes[targetGuid] >= setting.MiningTime)) continue;
-                
-                
-                _miningCurrentTimes[targetGuid] = 0;
-                var target = _miningTargets[targetGuid];
-                foreach (var mapObject in target)
-                {
-                    var items = mapObject.Attack(setting.AttackHp);
-                    foreach (var item in items)
-                    {
-                    }
-                }
-            }
+            _gearMinerBlockParam = gearMinerBlockParam;
+            _gearEnergyTransformer = gearEnergyTransformer;
+            _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
+        }
+        
+        private void OnGearUpdate(GearUpdateType gearUpdateType)
+        {
+            var requiredRpm = new RPM(_gearMinerBlockParam.RequiredRpm);
+            var requireTorque = new Torque(_gearMinerBlockParam.RequireTorque);
+            
+            var currentElectricPower = _gearEnergyTransformer.CalcMachineSupplyPower(requiredRpm, requireTorque);
+            _gearMapObjectMinerProcessorComponent.SupplyPower(currentElectricPower);
         }
         
         public bool IsDestroy { get; private set; }

@@ -75,6 +75,8 @@ namespace Server.Boot
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
+            initializerCollection.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
+            initializerCollection.AddSingleton<IMapObjectFactory, MapObjectFactory>();
             
             var initializerProvider = initializerCollection.BuildServiceProvider();
             var serverContext = new ServerContext(initializerProvider);
@@ -97,9 +99,6 @@ namespace Server.Boot
 
             services.AddSingleton<ItemRecipeViewerDataContainer>();
             
-            services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
-            services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-            
             services.AddSingleton(configJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
@@ -109,7 +108,6 @@ namespace Server.Boot
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));
-            services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             
             //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();

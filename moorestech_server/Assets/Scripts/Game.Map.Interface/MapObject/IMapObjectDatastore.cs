@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.Map.Interface.Json;
+using UnityEngine;
 
 namespace Game.Map.Interface.MapObject
 {
@@ -16,6 +17,7 @@ namespace Game.Map.Interface.MapObject
         
         public void Add(IMapObject mapObject);
         public IMapObject Get(int instanceId);
+        public List<IMapObject> GetWithinBoundingBox(Vector3 minPosition, Vector3 maxPosition);
         
         public List<MapObjectJsonObject> GetSaveJsonObject();
         

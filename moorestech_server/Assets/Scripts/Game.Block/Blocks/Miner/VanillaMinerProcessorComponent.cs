@@ -23,7 +23,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IBlockStateDetail, IUpdatableBlockComponent
+    public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IUpdatableBlockComponent
     {
         public bool IsDestroy { get; private set; }
         public ElectricPower RequestEnergy { get; }

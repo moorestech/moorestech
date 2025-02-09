@@ -21,10 +21,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
             var itemFactory = ServerContext.ItemStackFactory;
             
-            var mapObject = worldMapObjectDataStore.MapObjects[0];
+            var mapObject = ServerContext.MapObjectDatastore.MapObjects[0];
             
             var playerInventory = playerInventoryDataStore.GetInventoryData(PlayerId).MainOpenableInventory;
             var itemSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
