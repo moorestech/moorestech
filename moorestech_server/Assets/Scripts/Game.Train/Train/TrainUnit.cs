@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
@@ -31,9 +32,9 @@ namespace Game.Train.Train
             _isUseDestination = false;
         }
 
-        //deltaTimeの間に進む
-        public void UpdateTrain(float deltaTime, out int calceddist)
-        {
+
+        public void UpdateTrain(float deltaTime, out int calceddist) 
+        { 
             if (_isUseDestination)//設定している目的地に向かうべきなら
             {
                 var force = UpdateTractionForce(deltaTime);
@@ -41,15 +42,21 @@ namespace Game.Train.Train
             }
             //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
             //deltaTime次第でかわる
-            _currentSpeed -= _currentSpeed * deltaTime * FRICTION + _currentSpeed * _currentSpeed * deltaTime * AIR_RESISTANCE;
+            _currentSpeed -= _currentSpeed* deltaTime * FRICTION + _currentSpeed* _currentSpeed * deltaTime * AIR_RESISTANCE;
             //速度が0以下にならないようにする
             _currentSpeed = Mathf.Max(0, _currentSpeed);
 
             float floatDistance = _currentSpeed * deltaTime;
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
-            int distanceToMove = Mathf.FloorToInt(floatDistance + Random.Range(0f, 0.999f));
-            int runningDistance = distanceToMove;//実走距離
+            int distanceToMove = Mathf.FloorToInt(floatDistance + UnityEngine.Random.Range(0f, 0.999f));
+            calceddist = UpdateTrainByDistance(distanceToMove);
+        }
+
+        //ゲームは基本こっちの関数を使う
+        //distanceToMoveの距離絶対進むが、唯一目的地についたときだけ残りの距離を返す
+        public int UpdateTrainByDistance(int distanceToMove) 
+        {
             //進行メインループ
             //何かが原因で無限ループになることがあるので、一定回数で強制終了する
             int loopCount = 0;
@@ -70,17 +77,17 @@ namespace Game.Train.Train
                 {
                     _isUseDestination = false;
                     _currentSpeed = 0;
-                    Debug.LogError("列車が進行中に分岐地点を見失いました。");
+                    throw new InvalidOperationException("列車が進行中に目的地までの経路を見失いました。");
                     break;
                 }
                 loopCount++;
-                if (loopCount > 1000)
+                if (loopCount > 10000)
                 {
-                    Debug.LogError("無限ループを検知しました。");
+                    throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                     break;
                 }
             }
-            calceddist = runningDistance - distanceToMove;
+            return distanceToMove;
         }
 
 
@@ -116,7 +123,7 @@ namespace Game.Train.Train
             }*/
 
             var connectedNodes = approaching.ConnectedNodes.ToList();
-            //分岐先のむこうが1つなので。そのまま進むが経路探索はしない(デメリットは手動で経路をかえて、目的地までの経路が存在しないときにとまれないこと)
+            //分岐先のむこうが1つなのでそのまま進む。経路探索はしない(デメリットは手動で経路をかえたあと、列車が目的地までの経路が存在しないときにとまれないこと)
             if (connectedNodes.Count < 2)
             {
                 _railPosition.AddNodeToHead(connectedNodes[0]);
@@ -134,8 +141,8 @@ namespace Game.Train.Train
 
         private bool IsArrivedDestination()
         {
-            var nodes = _railPosition.GetNodeApproaching();
-            if ((nodes == _destination) & (_railPosition.GetDistanceToNextNode() == 0))
+            var node = _railPosition.GetNodeApproaching();
+            if ((node == _destination) & (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
@@ -145,6 +152,11 @@ namespace Game.Train.Train
         public void SetSpeed(float newSpeed)
         {
             _currentSpeed = newSpeed;
+        }
+
+        public void SetDestination(RailNode destination)
+        {
+            _destination = destination;
         }
 
         //============================================================
