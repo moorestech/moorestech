@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Context;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -14,13 +15,10 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:mapObjectInfoAcquisition";
         
-        
-        private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
         public MapObjectAcquisitionProtocol(ServiceProvider serviceProvider)
         {
-            _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
@@ -29,7 +27,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload.ToArray());
             
-            var mapObject = _mapObjectDatastore.Get(data.InstanceId);
+            var mapObject = ServerContext.MapObjectDatastore.Get(data.InstanceId);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             
             var earnedItem = mapObject.Attack(data.AttackDamage); // ダメージを与える

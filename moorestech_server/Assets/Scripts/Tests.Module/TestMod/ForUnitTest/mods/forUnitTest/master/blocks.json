@@ -2998,7 +2998,7 @@
       ],
       "blockType": "TrainRail",
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
-      "blockParam": { },
+      "blockParam": {},
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024"
     },
@@ -3032,6 +3032,83 @@
       },
       "name": "TestTrainCargoPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
+      "blockType": "GearMapObjectMiner",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "requiredRpm": 5,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "miningAreaRange": [
+          3,
+          3,
+          3
+        ],
+        "miningAreaOffset": [
+          0,
+          0,
+          0
+        ],
+        "mapObjectMineSettings": [
+          {
+            "attackHp": 10,
+            "miningTime": 2,
+            "mapObjectGuid": "00000000-0000-1111-0000-000000000001"
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "name": "TestGearMapObjectMiner",
+      "blockGuid": "00000000-0000-0000-0000-000000000027"
     }
   ]
 }

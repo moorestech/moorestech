@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.Context;
 using Game.Map.Interface.MapObject;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,12 +16,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
-            
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             //一個だけマップオブジェクトを破壊
+            var mapObjectDatastore = ServerContext.MapObjectDatastore;
             mapObjectDatastore.Get(mapObjectDatastore.MapObjects[0].InstanceId).Destroy();
             
             

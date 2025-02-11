@@ -1,4 +1,5 @@
 using System;
+using Game.Context;
 using Game.Map.Interface.MapObject;
 using MessagePack;
 
@@ -13,12 +14,11 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IMapObjectDatastore _mapObjectDatastore;
         
-        public MapObjectUpdateEventPacket(IMapObjectDatastore mapObjectDatastore,
-            EventProtocolProvider eventProtocolProvider)
+        public MapObjectUpdateEventPacket(EventProtocolProvider eventProtocolProvider)
         {
-            _mapObjectDatastore = mapObjectDatastore;
             _eventProtocolProvider = eventProtocolProvider;
             
+            _mapObjectDatastore = ServerContext.MapObjectDatastore;
             _mapObjectDatastore.OnDestroyMapObject += OnDestroyMapObject;
         }
         

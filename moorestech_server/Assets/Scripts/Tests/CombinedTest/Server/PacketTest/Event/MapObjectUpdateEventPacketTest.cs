@@ -1,3 +1,4 @@
+using Game.Context;
 using Game.Map.Interface.MapObject;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void MapObjectDestroyToEventTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
             
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
             //MapObjectを一つ破壊する
-            var mapObject = mapObjectDatastore.MapObjects[0];
+            var mapObject = ServerContext.MapObjectDatastore.MapObjects[0];
             mapObject.Destroy();
             
             //map objectが破壊されたことを確かめる
