@@ -9,9 +9,9 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game
+namespace Tests.CombinedTest.Game
 {
-    public class MapObjectMinerTest
+    public class GearMapObjectMinerTest
     {
         [Test]
         public void MapObjectMinerMiningTest()
