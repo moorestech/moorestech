@@ -145,19 +145,18 @@ namespace Game.Block.Blocks.MapObjectMiner
 
             IsDestroy = true;
         }
+    }
+    public class MiningTargetInfo
+    {
+        public float RemainingMiningTime { get; set; }
+        public MapObjectMineSettingsMasterElement Setting { get; }
+        public List<IMapObject> MapObjects { get; }
         
-        class MiningTargetInfo
+        public MiningTargetInfo(MapObjectMineSettingsMasterElement setting, List<IMapObject> mapObjects)
         {
-            public float RemainingMiningTime { get; set; }
-            public MapObjectMineSettingsMasterElement Setting { get; }
-            public List<IMapObject> MapObjects { get; }
-            
-            public MiningTargetInfo(MapObjectMineSettingsMasterElement setting, List<IMapObject> mapObjects)
-            {
-                MapObjects = mapObjects;
-                Setting = setting;
-                RemainingMiningTime = setting.MiningTime;
-            }
+            MapObjects = mapObjects;
+            Setting = setting;
+            RemainingMiningTime = setting.MiningTime;
         }
     }
 }
