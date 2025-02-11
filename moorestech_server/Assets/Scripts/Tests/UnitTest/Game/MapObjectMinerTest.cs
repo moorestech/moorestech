@@ -18,7 +18,10 @@ namespace Tests.UnitTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMapObjectMiner, Vector3Int.zero, BlockDirection.North, out var block);
+            var gearMapObjectMinerPosition = Vector3Int.zero;
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMapObjectMiner, gearMapObjectMinerPosition, BlockDirection.North, out var block);
+            var infinityTorqueSimpleGearGeneratorPosition = new Vector3Int(1, 0, 0);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, infinityTorqueSimpleGearGeneratorPosition, BlockDirection.North, out _);
             
             // 1秒間採掘
             var startTime = DateTime.Now;

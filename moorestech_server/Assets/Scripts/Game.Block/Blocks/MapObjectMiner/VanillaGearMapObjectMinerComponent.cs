@@ -1,17 +1,18 @@
 using Game.Block.Blocks.Gear;
+using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
 
 namespace Game.Block.Blocks.MapObjectMiner
 {
-    public class GearMapObjectMinerComponent
+    public class VanillaGearMapObjectMinerComponent : IBlockComponent
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
-        private readonly GearMapObjectMinerProcessorComponent _gearMapObjectMinerProcessorComponent;
-        private readonly GearMinerBlockParam _gearMinerBlockParam;
+        private readonly VanillaGearMapObjectMinerProcessorComponent _vanillaGearMapObjectMinerProcessorComponent;
+        private readonly GearMapObjectMinerBlockParam _gearMinerBlockParam;
         
-        public GearMapObjectMinerComponent(GearEnergyTransformer gearEnergyTransformer, GearMinerBlockParam gearMinerBlockParam)
+        public VanillaGearMapObjectMinerComponent(GearEnergyTransformer gearEnergyTransformer, GearMapObjectMinerBlockParam gearMinerBlockParam)
         {
             _gearMinerBlockParam = gearMinerBlockParam;
             _gearEnergyTransformer = gearEnergyTransformer;
@@ -24,7 +25,7 @@ namespace Game.Block.Blocks.MapObjectMiner
             var requireTorque = new Torque(_gearMinerBlockParam.RequireTorque);
             
             var currentElectricPower = _gearEnergyTransformer.CalcMachineSupplyPower(requiredRpm, requireTorque);
-            _gearMapObjectMinerProcessorComponent.SupplyPower(currentElectricPower);
+            _vanillaGearMapObjectMinerProcessorComponent.SupplyPower(currentElectricPower);
         }
         
         public bool IsDestroy { get; private set; }

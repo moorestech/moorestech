@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Inventory;
-using Core.Master;
+using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -11,13 +10,14 @@ using Game.EnergySystem;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MapObjectMineSettingsModule;
+using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.MapObjectMiner
 {
-    public class GearMapObjectMinerProcessorComponent : IUpdatableBlockComponent
+    public class VanillaGearMapObjectMinerProcessorComponent : IUpdatableBlockComponent, IBlockSaveState
     {
         private readonly ElectricPower _requestEnergy;
-        private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
+        private readonly VanillaChestComponent _vanillaChestComponent;
         
         // 採掘対象
         // Mining target
@@ -26,18 +26,17 @@ namespace Game.Block.Blocks.MapObjectMiner
         
         private ElectricPower _currentPower;
         
-        public GearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, OpenableInventoryItemDataStoreService openableInventoryItemDataStoreService)
+        public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent)
         {
             _requestEnergy = new ElectricPower(blockParam.RequireTorque * blockParam.RequiredRpm);
-            _openableInventoryItemDataStoreService = openableInventoryItemDataStoreService;
+            _vanillaChestComponent = vanillaChestComponent;
             
-            var minPos = blockPositionInfo.MinPos;
-            var maxPos = blockPositionInfo.MaxPos;
+            var minPos = blockPositionInfo.MinPos - blockParam.MiningAreaRange;
+            var maxPos = blockPositionInfo.MaxPos + blockParam.MiningAreaRange;
             var mapObjects = ServerContext.MapObjectDatastore.GetWithinBoundingBox(minPos, maxPos);
-            _miningTargetGuids = new List<Guid>();
+            
             _miningTargetInfos = new Dictionary<Guid, MiningTargetInfo>();
             var settings = blockParam.MapObjectMineSettings.items.ToList();
-            
             foreach (var mapObject in mapObjects)
             {
                 var guid = mapObject.MapObjectGuid;
@@ -49,6 +48,25 @@ namespace Game.Block.Blocks.MapObjectMiner
                 
                 var info = new MiningTargetInfo(setting, new List<IMapObject> {mapObject});
                 _miningTargetInfos.TryAdd(guid, info);
+            }
+            
+            _miningTargetGuids = new List<Guid>();
+            _miningTargetGuids.AddRange(_miningTargetInfos.Keys);
+        }
+        
+        
+        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent) :
+            this(blockPositionInfo, blockParam, vanillaChestComponent)
+        {
+            var itemJsons = JsonConvert.DeserializeObject<Dictionary<Guid, float>>(componentStates[SaveKey]);
+            foreach (var (guid, remainingMiningTime) in itemJsons)
+            {
+                if (!_miningTargetInfos.TryGetValue(guid, out var info))
+                {
+                    continue;
+                }
+                
+                info.RemainingMiningTime = remainingMiningTime;
             }
         }
         
@@ -88,13 +106,29 @@ namespace Game.Block.Blocks.MapObjectMiner
                 foreach (var mapObject in info.MapObjects)
                 {
                     var items = mapObject.Attack(info.Setting.AttackHp);
-                    _openableInventoryItemDataStoreService.InsertItem(items);
+                    
+                    // TODO 残りスロットがなくても採掘し続ける不具合があるので修正したい
+                    // TODO There is a bug that continues to mine even if there are no remaining slots, so I want to fix it
+                    _vanillaChestComponent.InsertItem(items);
                 }
                 
                 // 破壊された場合は削除
                 // If it is destroyed, delete it
                 info.MapObjects.RemoveAll(mapObject => mapObject.IsDestroyed);
             }
+        }
+        
+        
+        public string SaveKey { get; } = typeof(VanillaGearMapObjectMinerProcessorComponent).FullName;
+        public string GetSaveState()
+        {
+            var remainMiningTimes = new Dictionary<Guid, float>();
+            foreach (var (guid, info) in _miningTargetInfos)
+            {
+                remainMiningTimes.Add(guid, info.RemainingMiningTime);
+            }
+            
+            return JsonConvert.SerializeObject(remainMiningTimes);
         }
         
         public bool IsDestroy { get; private set; }
