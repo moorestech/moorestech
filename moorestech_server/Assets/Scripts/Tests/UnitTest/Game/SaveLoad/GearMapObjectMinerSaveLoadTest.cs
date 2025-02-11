@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.MapObjectMiner;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -22,12 +24,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SaveLoadTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = ServerContext.BlockFactory;
-            var itemStackFactory = ServerContext.ItemStackFactory;
             
             // GearMapObjectMinerブロックの生成
             // GearMapObjectMiner block generation
             var posInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
+            var blockFactory = ServerContext.BlockFactory;
             var minerBlock = blockFactory.Create(ForUnitTestModBlockId.GearMapObjectMiner, new BlockInstanceId(1), posInfo);
             var processor = minerBlock.GetComponent<VanillaGearMapObjectMinerProcessorComponent>();
             
@@ -38,21 +39,20 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // 採掘対象の残り採掘時間を設定する
             // Set the remaining mining time of the mining target
-            var firstKey = miningTargetInfos.Keys.GetEnumerator().Current;
+            var firstKey = miningTargetInfos.Keys.ToList()[0];
             miningTargetInfos.TryGetValue(firstKey, out var miningTargetInfo);
             const float testRemainingTime = 0.5f;
             miningTargetInfo.RemainingMiningTime = testRemainingTime;
             
             
-            
             // 保存状態を取得
             // Get the save state
-            var save = processor.GetSaveState();
-            var states = new Dictionary<string, string>() { { processor.SaveKey, save } };
+            var states = minerBlock.GetSaveState();
             
             
             // --- セーブ状態から新規ロードする ---
-            var loadedBlock = blockFactory.Load(minerBlock.BlockGuid, new BlockInstanceId(1), states, posInfo);
+            var loadPosInfo = new BlockPositionInfo(new Vector3Int(0, 10, 0), BlockDirection.North, Vector3Int.one);
+            var loadedBlock = blockFactory.Load(minerBlock.BlockGuid, new BlockInstanceId(2), states, loadPosInfo);
             var loadedProcessor = loadedBlock.GetComponent<VanillaGearMapObjectMinerProcessorComponent>();
             
             
