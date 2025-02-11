@@ -12,9 +12,10 @@ namespace Game.Block.Blocks.MapObjectMiner
         private readonly VanillaGearMapObjectMinerProcessorComponent _vanillaGearMapObjectMinerProcessorComponent;
         private readonly GearMapObjectMinerBlockParam _gearMinerBlockParam;
         
-        public VanillaGearMapObjectMinerComponent(GearEnergyTransformer gearEnergyTransformer, GearMapObjectMinerBlockParam gearMinerBlockParam)
+        public VanillaGearMapObjectMinerComponent(GearEnergyTransformer gearEnergyTransformer, GearMapObjectMinerBlockParam gearMinerBlockParam, VanillaGearMapObjectMinerProcessorComponent vanillaGearMapObjectMinerProcessorComponent)
         {
             _gearMinerBlockParam = gearMinerBlockParam;
+            _vanillaGearMapObjectMinerProcessorComponent = vanillaGearMapObjectMinerProcessorComponent;
             _gearEnergyTransformer = gearEnergyTransformer;
             _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
         }

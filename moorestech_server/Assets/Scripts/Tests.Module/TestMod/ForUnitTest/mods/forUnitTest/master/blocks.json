@@ -3061,7 +3061,7 @@
         "mapObjectMineSettings": [
           {
             "attackHp": 10,
-            "miningTime": 1,
+            "miningTime": 2,
             "mapObjectGuid": "00000000-0000-1111-0000-000000000001"
           }
         ],

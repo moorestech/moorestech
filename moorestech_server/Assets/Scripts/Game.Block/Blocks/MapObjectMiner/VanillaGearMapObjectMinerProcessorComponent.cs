@@ -46,8 +46,15 @@ namespace Game.Block.Blocks.MapObjectMiner
                     continue;
                 }
                 
-                var info = new MiningTargetInfo(setting, new List<IMapObject> {mapObject});
-                _miningTargetInfos.TryAdd(guid, info);
+                if (_miningTargetInfos.TryGetValue(guid, out var currentInfo))
+                {
+                    currentInfo.MapObjects.Add(mapObject);
+                }
+                else
+                {
+                    var info = new MiningTargetInfo(setting, new List<IMapObject> {mapObject});
+                    _miningTargetInfos.TryAdd(guid, info);
+                }
             }
             
             _miningTargetGuids = new List<Guid>();
