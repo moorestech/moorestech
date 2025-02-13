@@ -61,7 +61,9 @@
                             "CraftChainerMainComputer",
                             "TrainRail",
                             "TrainStation",
-                            "TrainCargoPlatform"
+                            "TrainCargoPlatform",
+
+                            "FluidPipe"
                         ]
                     },
 
@@ -743,6 +745,19 @@
                                             "default": 20
                                         }
                                     }
+                                }
+                            },
+                            {
+                                "if": {
+                                    "properties": {
+                                        "blockType": {
+                                            "const": "FluidPipe"
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "type": "object",
+                                    "properties": {}
                                 }
                             }
                         ]
