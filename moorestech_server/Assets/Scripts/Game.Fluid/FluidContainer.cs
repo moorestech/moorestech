@@ -39,15 +39,45 @@ namespace Game.Fluid
             remainFluidStack = remainStack;
         }
         
+        /// <summary>
+        ///     移動済みのFluidStackから可能な限り指定された排出量を排出する
+        /// </summary>
+        /// <param name="maxDrain">最大排出量</param>
+        /// <returns>排出したfluidStack</returns>
         public FluidStack Drain(float maxDrain)
         {
-            var totalAmount = FluidStacks.Sum(f => f.Amount);
+            var amount = 0f;
             
-            if (totalAmount < maxDrain)
+            for (var i = FluidStacks.Count - 1; i >= 0; i--)
             {
+                var stack = FluidStacks[i];
+                
+                // 移動量が最大まで達していない場合は排出できない
+                if (!stack.IsMoved) continue;
+                
+                if (stack.FluidStack.Amount < maxDrain - amount)
+                {
+                    // 余らない場合
+                    amount += stack.FluidStack.Amount;
+                    FluidStacks.RemoveAt(i);
+                }
+                else
+                {
+                    // 余る場合
+                    var addingAmount = maxDrain - amount;
+                    amount += addingAmount;
+                    stack.FluidStack.Amount -= addingAmount;
+                    FluidStacks[i] = stack;
+                }
+                
+                // 必要量排出した場合
+                if (amount >= maxDrain)
+                {
+                    break;
+                }
             }
             
-            return default;
+            return new FluidStack(FluidId, amount, FluidMoveDirection.Forward);
         }
         
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
