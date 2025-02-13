@@ -757,7 +757,11 @@
                                 },
                                 "then": {
                                     "type": "object",
-                                    "properties": {}
+                                    "properties": {
+                                        "fluidInventoryConnectors": {
+                                            "$ref": "inventoryConnects"
+                                        }
+                                    }
                                 }
                             }
                         ]
