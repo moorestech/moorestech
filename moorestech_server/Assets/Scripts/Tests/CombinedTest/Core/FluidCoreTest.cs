@@ -6,6 +6,7 @@ namespace Tests.CombinedTest.Core
 {
     public class FluidCoreTest
     {
+        private const float Delta = 0.0001f;
         private static readonly Guid TestFluidId = Guid.NewGuid();
         
         [Test]
@@ -51,6 +52,35 @@ namespace Tests.CombinedTest.Core
             
             // containerの値は最終的に1になるはず
             Assert.AreEqual(1f, fluidContainer.TotalAmount);
+        }
+        
+        [Test]
+        public void FluidDrainTest()
+        {
+            // 初期化
+            var fluidContainer = new FluidContainer(1, TestFluidId);
+            {
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+                fluidContainer.Fill(stack, out _);
+            }
+            
+            // 移動
+            fluidContainer.MoveFluidStacks(1f);
+            
+            // 現在のamountより少ない量をdrainする
+            {
+                var stack = fluidContainer.Drain(0.3f);
+                Assert.AreEqual(0.3f, stack.Amount);
+                Assert.AreEqual(0.2f, fluidContainer.TotalAmount, Delta);
+            }
+            
+            // 現在のamountより多い量をdrainする
+            {
+                var stack = fluidContainer.Drain(0.3f);
+                Assert.AreEqual(0.2f, stack.Amount, Delta);
+                Assert.AreEqual(0f, fluidContainer.TotalAmount);
+                Assert.IsEmpty(fluidContainer.FluidStacks);
+            }
         }
         
         [Test]
