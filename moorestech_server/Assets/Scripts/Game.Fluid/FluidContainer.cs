@@ -54,7 +54,7 @@ namespace Game.Fluid
             var remainAmount = fluidStack.Amount - (Capacity - TotalAmount);
             var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.FluidMoveDirection);
             var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, fluidStack.FluidMoveDirection);
-            return (fluidStack, remainFluidStack);
+            return (newFluidStack, remainFluidStack);
         }
     }
 }
