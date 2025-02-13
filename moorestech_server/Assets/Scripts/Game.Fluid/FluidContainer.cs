@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Game.Fluid
 {
+    /// <remarks>
+    ///     速度の違うfluidStackはサポート外
+    /// </remarks>
     public class FluidContainer
     {
         public readonly float Capacity;
@@ -18,6 +21,9 @@ namespace Game.Fluid
             FluidId = fluidId;
         }
         
+        //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
+        public float TotalAmount => FluidStacks.Sum(f => f.Amount);
+        
         /// <param name="fluidStack">使用するfluidStack</param>
         /// <param name="remainFluidStack">残ったfluidStack</param>
         public void Fill(FluidStack fluidStack, out FluidStack? remainFluidStack)
@@ -29,18 +35,25 @@ namespace Game.Fluid
             remainFluidStack = remainStack;
         }
         
+        public FluidStack Drain(float maxDrain)
+        {
+            var totalAmount = FluidStacks.Sum(f => f.Amount);
+            
+            if (totalAmount < maxDrain)
+            {
+            }
+            
+            return default;
+        }
+        
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
         {
-            //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
-            var currentCapacity = FluidStacks.Sum(f => f.Amount);
-            
             // 容量を超えない場合は分けない
-            if (!(currentCapacity + fluidStack.Amount > Capacity)) return (fluidStack, null);
+            if (!(TotalAmount + fluidStack.Amount > Capacity)) return (fluidStack, null);
             
-            
-            var remainAmount = fluidStack.Amount - (Capacity - currentCapacity);
-            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount);
-            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount);
+            var remainAmount = fluidStack.Amount - (Capacity - TotalAmount);
+            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.FluidMoveDirection);
+            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, fluidStack.FluidMoveDirection);
             return (fluidStack, remainFluidStack);
         }
     }
