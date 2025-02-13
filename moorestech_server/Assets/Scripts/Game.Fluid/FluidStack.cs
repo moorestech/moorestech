@@ -2,11 +2,11 @@ using System;
 
 namespace Game.Fluid
 {
-    public struct FluidStack
+    public readonly struct FluidStack
     {
         public readonly Guid FluidId;
         public readonly float Amount;
-        public FluidMoveDirection FluidMoveDirection;
+        public readonly FluidMoveDirection FluidMoveDirection;
         
         public FluidStack(Guid fluidId, float amount, FluidMoveDirection fluidMoveDirection)
         {
