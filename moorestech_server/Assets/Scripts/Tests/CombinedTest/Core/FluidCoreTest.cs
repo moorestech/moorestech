@@ -52,5 +52,23 @@ namespace Tests.CombinedTest.Core
             // containerの値は最終的に1になるはず
             Assert.AreEqual(1f, fluidContainer.TotalAmount);
         }
+        
+        [Test]
+        public void FluidCanNotDrainTest()
+        {
+            // 初期化
+            var fluidContainer = new FluidContainer(1, TestFluidId);
+            {
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+                fluidContainer.Fill(stack, out _);
+            }
+            
+            // stackがまだ動いていない状態でdrainしようとする
+            {
+                var stack = fluidContainer.Drain(0.5f);
+                Assert.AreEqual(0, stack.Amount);
+                Assert.AreEqual(0.5f, fluidContainer.TotalAmount);
+            }
+        }
     }
 }
