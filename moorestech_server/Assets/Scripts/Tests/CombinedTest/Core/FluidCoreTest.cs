@@ -22,7 +22,6 @@ namespace Tests.CombinedTest.Core
         
         [Test]
         public void FluidFillRemainTest()
-        
         {
             var fluidContainer = new FluidContainer(1, TestFluidId);
             
