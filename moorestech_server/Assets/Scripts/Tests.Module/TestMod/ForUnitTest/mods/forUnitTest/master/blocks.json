@@ -3115,7 +3115,17 @@
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
       "blockType": "FluidPipe",
       "name": "FluidPipe",
-      "blockParam": {}
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ]
     }
   ]
 }

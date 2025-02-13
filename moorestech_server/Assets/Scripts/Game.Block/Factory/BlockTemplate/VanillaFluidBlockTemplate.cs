@@ -5,7 +5,6 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.InventoryConnectsModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -22,7 +21,9 @@ namespace Game.Block.Factory.BlockTemplate
         
         private BlockSystem GetBlock(BlockInstanceId blockInstanceId, BlockMasterElement blockMasterElement, BlockPositionInfo blockPositionInfo)
         {
-            var inventoryConnects = new InventoryConnects();
+            var fluidPipeParam = (blockMasterElement.BlockParam as FluidPipeBlockParam)!;
+            
+            var inventoryConnects = fluidPipeParam.FluidInventoryConnectors;
             BlockConnectorComponent<IFluidInventory> connectorComponent = FluidSystem.CreateFluidInventoryConnector(inventoryConnects, blockPositionInfo);
             
             var fluidPipeComponent = new FluidPipeComponent(blockPositionInfo, connectorComponent);
