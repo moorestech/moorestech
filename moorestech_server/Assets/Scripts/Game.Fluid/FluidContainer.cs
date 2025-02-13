@@ -10,7 +10,7 @@ namespace Game.Fluid
     public class FluidContainer
     {
         public readonly float Capacity;
-        public readonly List<FluidStack> FluidStacks = new();
+        public readonly List<InContainerFluidStack> FluidStacks = new();
         public Guid FluidId;
         
         /// <param name="capacity">液体の許容量</param>
@@ -22,15 +22,19 @@ namespace Game.Fluid
         }
         
         //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
-        public float TotalAmount => FluidStacks.Sum(f => f.Amount);
+        public float TotalAmount => FluidStacks.Sum(f => f.FluidStack.Amount);
         
+        /// <summary>
+        ///     可能な限り液体を入れる
+        /// </summary>
         /// <param name="fluidStack">使用するfluidStack</param>
         /// <param name="remainFluidStack">残ったfluidStack</param>
         public void Fill(FluidStack fluidStack, out FluidStack? remainFluidStack)
         {
             (var stack, FluidStack? remainStack) = Split(fluidStack);
             
-            FluidStacks.Add(stack);
+            var inContainerFluidStack = new InContainerFluidStack(stack, 0f);
+            FluidStacks.Add(inContainerFluidStack);
             
             remainFluidStack = remainStack;
         }
@@ -55,6 +59,19 @@ namespace Game.Fluid
             var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.FluidMoveDirection);
             var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, fluidStack.FluidMoveDirection);
             return (newFluidStack, remainFluidStack);
+        }
+    }
+    
+    public struct InContainerFluidStack
+    {
+        public FluidStack FluidStack;
+        public float MovePercent;
+        public bool IsMoved => MovePercent >= 1f;
+        
+        public InContainerFluidStack(FluidStack fluidStack, float movePercent)
+        {
+            FluidStack = fluidStack;
+            MovePercent = movePercent;
         }
     }
 }
