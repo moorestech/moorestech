@@ -80,6 +80,20 @@ namespace Game.Fluid
             return new FluidStack(FluidId, amount, FluidMoveDirection.Forward);
         }
         
+        /// <summary>
+        ///     全てのfluidStacksを指定された移動率分移動する
+        /// </summary>
+        /// <param name="movePercent">移動する移動率</param>
+        public void MoveFluidStacks(float movePercent)
+        {
+            for (var i = 0; i < FluidStacks.Count; i++)
+            {
+                var stack = FluidStacks[i];
+                stack.MovePercent += movePercent;
+                FluidStacks[i] = stack;
+            }
+        }
+        
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
         {
             // 容量を超えない場合は分けない
