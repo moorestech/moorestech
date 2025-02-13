@@ -49,6 +49,9 @@ namespace Tests.CombinedTest.Core
                 // 全て余るのでremainのamountも0.5
                 Assert.AreEqual(0.5f, remain.Value.Amount);
             }
+            
+            // containerの値は最終的に1になるはず
+            Assert.AreEqual(1f, fluidContainer.TotalAmount);
         }
     }
 }
