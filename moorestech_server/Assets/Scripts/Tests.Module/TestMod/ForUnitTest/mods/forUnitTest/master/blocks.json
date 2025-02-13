@@ -3034,17 +3034,88 @@
       "blockGuid": "00000000-0000-0000-0000-000000000026"
     },
     {
+      "sortPriority": 100,
+      "maxStack": 100,
       "blockSize": [
         1,
         1,
         1
       ],
+      "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
+      "blockType": "GearMapObjectMiner",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "requiredRpm": 5,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "miningAreaRange": [
+          3,
+          3,
+          3
+        ],
+        "miningAreaOffset": [
+          0,
+          0,
+          0
+        ],
+        "mapObjectMineSettings": [
+          {
+            "attackHp": 10,
+            "miningTime": 2,
+            "mapObjectGuid": "00000000-0000-1111-0000-000000000001"
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "name": "TestGearMapObjectMiner",
+      "blockGuid": "00000000-0000-0000-0000-000000000027"
+    },
+    {
       "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
       "blockType": "FluidPipe",
       "name": "FluidPipe",
-      "blockParam": {
-      }
+      "blockParam": {}
     }
   ]
 }

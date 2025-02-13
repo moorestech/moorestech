@@ -26,15 +26,15 @@ namespace Game.SaveLoad.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            IMapObjectDatastore mapObjectDatastore, ChallengeDatastore challengeDatastore)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore)
         {
-            _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            _mapObjectDatastore = ServerContext.MapObjectDatastore;
+            
+            _saveJsonFileName = saveJsonFileName;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
-            _mapObjectDatastore = mapObjectDatastore;
             _challengeDatastore = challengeDatastore;
         }
         

@@ -176,11 +176,7 @@
       "imagePath": "Test1"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
+      "blockSize": [1, 1, 1],
       "maxStack": 100,
       "name": "GearMiner",
       "imagePath": "Test1",
@@ -237,12 +233,6 @@
       "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockType": "TrainRail",
       "maxStack": 100,
       "name": "TestTrainRail",
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf"
@@ -256,6 +246,12 @@
       "maxStack": 100,
       "name": "TestTrainCargoPlatform",
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84"
+    },
+    {
+      "name": "TestGearMapObjectMiner",
+      "maxStack": 100,
+      "imagePath": "",
+      "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8"
     },
     {
       "maxStack": 100,

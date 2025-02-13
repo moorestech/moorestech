@@ -1,7 +1,6 @@
 using Game.Challenge;
 using Game.Context;
 using Game.Entity.Interface;
-using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.World.Interface.DataStore;
@@ -14,26 +13,27 @@ namespace Game.SaveLoad.Json
         private readonly ChallengeDatastore _challengeDatastore;
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
-        private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         
-        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, ChallengeDatastore challengeDatastore)
+        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
-            _mapObjectDatastore = mapObjectDatastore;
             _challengeDatastore = challengeDatastore;
         }
         
         public string AssembleSaveJson()
         {
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var mapObjectDatastore = ServerContext.MapObjectDatastore;
+            
             var saveData = new WorldSaveAllInfoV1(
-                ServerContext.WorldBlockDatastore.GetSaveJsonObject(),
+                worldBlockDatastore.GetSaveJsonObject(),
                 _inventoryDataStore.GetSaveJsonObject(),
                 _entitiesDatastore.GetSaveJsonObject(),
                 _worldSettingsDatastore.GetSaveJsonObject(),
-                _mapObjectDatastore.GetSaveJsonObject(),
+                mapObjectDatastore.GetSaveJsonObject(),
                 _challengeDatastore.GetSaveJsonObject()
             );
             

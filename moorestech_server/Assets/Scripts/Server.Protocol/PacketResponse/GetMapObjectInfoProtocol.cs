@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Context;
 using Game.Map.Interface.MapObject;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,17 +14,14 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:mapObjectInfo";
         
-        private readonly IMapObjectDatastore _mapObjectDatastore;
-        
         public GetMapObjectInfoProtocol(ServiceProvider serviceProvider)
         {
-            _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var sendMapObjects = new List<MapObjectsInfoMessagePack>();
-            foreach (var mapObject in _mapObjectDatastore.MapObjects)
+            foreach (var mapObject in ServerContext.MapObjectDatastore.MapObjects)
                 sendMapObjects.Add(new MapObjectsInfoMessagePack(mapObject.InstanceId, mapObject.IsDestroyed));
             
             var response = new ResponseMapObjectInfosMessagePack(sendMapObjects);

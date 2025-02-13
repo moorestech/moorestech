@@ -26,6 +26,27 @@
       "soundEffectType": "tree",
       "miningType": "PickUp",
       "miningParam": {}
+    },
+    {
+      "earnItemHps": [
+        0,
+        10,
+        20
+      ],
+      "hp": 30,
+      "mapObjectName": "vanilla:TreeTest",
+      "soundEffectType": "tree",
+      "miningType": "PickUp",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
+      "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
+      "miningParam": {},
+      "miningTools": [ ]
     }
   ]
 }

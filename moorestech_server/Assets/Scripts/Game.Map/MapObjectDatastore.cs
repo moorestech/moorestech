@@ -6,6 +6,7 @@ using Game.Context;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.SaveLoad.Json;
+using UnityEngine;
 
 namespace Game.Map
 {
@@ -50,13 +51,33 @@ namespace Game.Map
             return _mapObjects[instanceId];
         }
         
+        public List<IMapObject> GetWithinBoundingBox(Vector3 minPosition, Vector3 maxPosition)
+        {
+            var result = new List<IMapObject>();
+            var keys = _mapObjects.Keys.ToList();
+            
+            // 負荷対策のためfor文を使う
+            // Use for loop for performance reasons
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                var mapObject = _mapObjects[key];
+                if (mapObject.Position.x < minPosition.x || mapObject.Position.x > maxPosition.x) continue;
+                if (mapObject.Position.z < minPosition.z || mapObject.Position.z > maxPosition.z) continue;
+                result.Add(mapObject);
+            }
+            
+            return result;
+        }
+        
         public void LoadMapObject(List<MapObjectJsonObject> savedMapObjects)
         {
             foreach (var savedMapObject in savedMapObjects)
             {
                 if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject)) throw new KeyNotFoundException($"セーブデータ内にあるインスタンスID: {savedMapObject.instanceId} のmapObjectが実際のマップに存在しません。");
                 
-                //破壊状況をロード
+                // 破壊状況をロード
+                // Load destruction status
                 if (savedMapObject.isDestroyed) loadedMapObject.Destroy();
                 if (savedMapObject.hp != loadedMapObject.CurrentHp) loadedMapObject.Attack(loadedMapObject.CurrentHp - savedMapObject.hp);
             }
