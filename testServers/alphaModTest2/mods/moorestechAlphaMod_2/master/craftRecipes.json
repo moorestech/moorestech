@@ -28,7 +28,7 @@
           "itemGuid": "ea61676a-74e8-436b-bc17-8bf2b56016b4"
         },
         {
-          "count": 6,
+          "count": 4,
           "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
         }
       ]
@@ -39,7 +39,7 @@
       "craftResultItemGuid": "7b7f1b37-b5b1-484a-8ff7-dfb35bfb2273",
       "requiredItems": [
         {
-          "count": 5,
+          "count": 10,
           "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
         },
         {
