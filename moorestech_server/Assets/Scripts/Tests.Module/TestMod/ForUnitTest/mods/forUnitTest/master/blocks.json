@@ -3119,7 +3119,8 @@
         "fluidInventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
-        }
+        },
+        "capacity": 100
       },
       "blockSize": [
         1,
