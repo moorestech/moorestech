@@ -15,6 +15,14 @@
                   "type": "integer"
               }
           }
+      },
+      {
+          "interfaceName": "IChestParam",
+          "properties": {
+              "itemSlotCount": {
+                  "type": "integer"
+              }
+          }
       }
   ],
 
@@ -122,8 +130,13 @@
                 },
                 "then": {
                   "type": "object",
+
+                  "implementationInterface": [
+                    "IChestParam"
+                  ],
+
                   "properties": {
-                    "chestItemSlotCount": {"type": "integer", "default": 5},
+                    "itemSlotCount": {"type": "integer", "default": 5},
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }
@@ -416,21 +429,19 @@
                 },
                 "then": {
                   "type": "object",
+
+                  "implementationInterface": [
+                    "IChestParam"
+                  ],
+
                   "properties": {
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
                     "requiredRpm": {"type": "number", "default": 5},
                     
-                    "outputItemSlotCount": {"type": "integer", "default": 3},
+                    "itemSlotCount": {"type": "integer", "default": 3},
 
                     "miningAreaRange": {
-                      "type": "array",
-                      "pattern": "@vector3Int",
-                      "items": {
-                        "type": "integer"
-                      }
-                    },
-                    "miningAreaOffset": {
                       "type": "array",
                       "pattern": "@vector3Int",
                       "items": {
@@ -502,6 +513,11 @@
                 },
                 "then": {
                   "type": "object",
+
+                  "implementationInterface": [
+                    "IChestParam"
+                  ],
+
                   "properties": {
 
                     "itemSlotCount": {"type": "integer", "default": 5},
@@ -522,6 +538,11 @@
                 },
                 "then": {
                   "type": "object",
+                  
+                  "implementationInterface": [
+                    "IChestParam"
+                  ],
+
                   "properties": {
 
                     "itemSlotCount": {"type": "integer", "default": 5},
