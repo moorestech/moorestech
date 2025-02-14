@@ -33,8 +33,8 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
             var chestComponent = componentStates == null ?
-                new VanillaChestComponent(blockInstanceId, minerParam.OutputItemSlotCount, inserter) :
-                new VanillaChestComponent(componentStates, blockInstanceId, minerParam.OutputItemSlotCount, inserter);
+                new VanillaChestComponent(blockInstanceId, minerParam.ItemSlotCount, inserter) :
+                new VanillaChestComponent(componentStates, blockInstanceId, minerParam.ItemSlotCount, inserter);
             
             // 歯車の接続に必要なコンポーネント
             // Components required for gear connection
