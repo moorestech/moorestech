@@ -448,6 +448,13 @@
                         "type": "integer"
                       }
                     },
+                    "miningAreaOffset": {
+                      "type": "array",
+                      "pattern": "@vector3Int",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
                     
                     "mapObjectMineSettings": {
                       "$ref": "mapObjectMineSettings"
