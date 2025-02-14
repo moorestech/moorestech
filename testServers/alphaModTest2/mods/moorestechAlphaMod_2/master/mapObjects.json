@@ -1,0 +1,61 @@
+{
+  "data": [
+    {
+      "maxStack": 100,
+      "earnItemHps": [
+        0
+      ],
+      "hp": 1,
+      "mapObjectName": "Pebble",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+        }
+      ],
+      "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
+      "soundEffectType": "stone",
+      "miningType": "PickUp",
+      "miningParam": {}
+    },
+    {
+      "earnItemHps": [
+        0,
+        10,
+        20
+      ],
+      "hp": 30,
+      "mapObjectName": "Tree",
+      "soundEffectType": "tree",
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 2,
+          "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+        },
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "b7fa352e-da68-45fe-b173-47d8c173047e"
+        }
+      ],
+      "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7",
+      "miningType": "Mining",
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 2,
+            "damage": 10,
+            "toolItemGuid": "56cbe645-1f29-494e-997b-6eb17e156ac3"
+          },
+          {
+            "attackSpeed": 8,
+            "damage": 10,
+            "toolItemGuid": "ea61676a-74e8-436b-bc17-8bf2b56016b4"
+          }
+        ]
+      }
+    }
+  ]
+}

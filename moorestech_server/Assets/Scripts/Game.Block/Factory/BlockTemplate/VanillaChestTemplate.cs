@@ -27,8 +27,8 @@ namespace Game.Block.Factory.BlockTemplate
             var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
             
             var chestComponent = componentStates == null ?
-                new VanillaChestComponent(blockInstanceId, chest.ChestItemSlotCount, inserter) :
-                new VanillaChestComponent(componentStates, blockInstanceId, chest.ChestItemSlotCount, inserter);
+                new VanillaChestComponent(blockInstanceId, chest.ItemSlotCount, inserter) :
+                new VanillaChestComponent(componentStates, blockInstanceId, chest.ItemSlotCount, inserter);
             
             var components = new List<IBlockComponent>
             {

@@ -1843,14 +1843,5 @@
     }
   ],
   "mapVeins": [
-    {
-      "veinItemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488",
-      "minX": 4,
-      "minY": 0,
-      "minZ": 7,
-      "maxX": 7,
-      "maxY": 1,
-      "maxZ": 10
-    }
   ]
 }

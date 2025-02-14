@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Common.Asset;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -117,7 +118,7 @@ namespace Client.Game.InGame.Context
                 blockObj.gameObject.SetActive(true);
                 var blockType = blockMasterElement.BlockType;
                 //ブロックが開けるものの場合はそのコンポーネントを付与する
-                if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
+                if (blockMasterElement.IsBlockOpenable()) block.gameObject.AddComponent<OpenableInventoryBlock>();
                 // 機械の場合はそのプロセッサを付与する
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
                 
@@ -126,19 +127,6 @@ namespace Client.Game.InGame.Context
                 blockObj.Initialize(blockMasterElement, posInfo);
                 
                 return blockObj;
-            }
-            
-            
-            // todo ブロックコンフィグのロードのdynamicを辞める時に一緒にこれに対応したシステムを構築する
-            bool IsOpenableInventory(string type)
-            {
-                return type is
-                    BlockTypeConst.Chest or
-                    BlockTypeConst.ElectricGenerator or
-                    BlockTypeConst.ElectricMiner or
-                    BlockTypeConst.ElectricMachine or
-                    BlockTypeConst.GearMachine or
-                    BlockTypeConst.GearMiner;
             }
             
             bool IsCommonMachine(string type)

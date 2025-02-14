@@ -430,7 +430,7 @@
       "name": "TestChest",
       "blockType": "Chest",
       "blockParam": {
-        "chestItemSlotCount": 5,
+        "itemSlotCount": 5,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -3044,7 +3044,7 @@
       "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
       "blockType": "GearMapObjectMiner",
       "blockParam": {
-        "outputItemSlotCount": 3,
+        "itemSlotCount": 3,
         "requiredRpm": 5,
         "requireTorque": 1,
         "teethCount": 10,

@@ -28,6 +28,11 @@ namespace Game.Map
             foreach (var mapObjectInfo in mapInfoJson.MapObjects)
             {
                 var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectInfo.MapObjectGuid);
+                if (mapObjectConfig == null)
+                {
+                    Debug.Log($"マップに guid:{mapObjectInfo.MapObjectGuid} instanceId:{mapObjectInfo.InstanceId} の設定がありましたが、マスターにそのMapObjectが存在しませんでした。");
+                    continue;
+                }
                 var hp = mapObjectConfig.Hp;
                 
                 var mapObject = _mapObjectFactory.Create(mapObjectInfo.InstanceId, mapObjectInfo.MapObjectGuid, hp, false, mapObjectInfo.Position);
