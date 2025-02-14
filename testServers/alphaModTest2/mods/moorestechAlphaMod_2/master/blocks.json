@@ -12,8 +12,7 @@
       "blockType": "GearMapObjectMiner",
       "blockParam": {
         "requiredPower": 5,
-        "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "itemSlotCount": 1,
         "requireTorque": 1,
         "outputItemSlotCount": 3,
         "teethCount": 10,
