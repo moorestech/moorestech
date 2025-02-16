@@ -1,20 +1,19 @@
 {
   "$id": "blockConnectInfo",
-
   "type": "array",
   "overrideCodeGeneratePropertyName": "blockConnectInfoElement",
-
   "items": {
     "type": "object",
-
     "properties": {
-
       "connectType": {
         "type": "string",
-        "enum": ["Inventory", "Gear"],
+        "enum": [
+          "Inventory",
+          "Gear",
+          "Fluid"
+        ],
         "description": "TODO これは後々外部（上位スキーマ？）から設定できるようにする"
       },
-
       "offset": {
         "type": "array",
         "pattern": "@vector3Int",
@@ -27,7 +26,6 @@
           0
         ]
       },
-
       "directions": {
         "type": "array",
         "optional": true,
@@ -44,81 +42,103 @@
           ]
         }
       },
-
       "connectOption": {
         "oneOf": [
           {
             "if": {
               "properties": {
-                "connectType": { "const": "Inventory" }
+                "connectType": {
+                  "const": "Inventory"
+                }
               }
             },
             "then": {
               "type": "object",
               "optional": true,
               "properties": {
-                "inventoryOptions" :{
+                "inventoryOptions": {
                   "type": "array",
                   "optional": true,
-                  
                   "items": {
                     "type": "object",
                     "properties": {
-                      
                       "inventoryConnectOptionType": {
                         "type": "string",
-                        "enum": ["CraftChainerCrafter"]
+                        "enum": [
+                          "CraftChainerCrafter"
+                        ]
                       },
-                      
                       "inventoryConnectOptionParam": {
                         "oneOf": [
                           {
                             "if": {
                               "properties": {
-                                "inventoryConnectOptionType": { "const": "CraftChainerCrafter" }
+                                "inventoryConnectOptionType": {
+                                  "const": "CraftChainerCrafter"
+                                }
                               }
                             },
                             "then": {
                               "type": "object",
                               "properties": {
-
                                 "connectType": {
                                   "type": "string",
-                                  "enum": ["Network", "Factory"]
+                                  "enum": [
+                                    "Network",
+                                    "Factory"
+                                  ]
                                 }
                               }
                             }
-                            
                           }
                         ]
                       }
-                      
                     }
                   }
-                  
                 }
               }
             }
           },
-
           {
             "if": {
               "properties": {
-                "connectType": { "const": "Gear" }
+                "connectType": {
+                  "const": "Gear"
+                }
               }
             },
             "then": {
               "type": "object",
               "properties": {
-
                 "isReverse": {
                   "type": "boolean",
                   "default": true
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "connectType": {
+                  "const": "Fluid"
+                }
+              }
+            },
+            "then": {
+              "type": "object",
+              "properties": {
+                "isInflowBlocked": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "isOutflowBlocked": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
           }
-
         ]
       }
     }

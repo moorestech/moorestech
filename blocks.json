@@ -749,7 +749,7 @@
                   "type": "object",
                   "properties": {
                     "fluidInventoryConnectors": {
-                      "$ref": "inventoryConnects"
+                      "$ref": "fluidInventoryConnects"
                     },
                     "capacity": {
                       "type": "number",
