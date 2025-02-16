@@ -135,6 +135,9 @@
                 "isOutflowBlocked": {
                   "type": "boolean",
                   "default": false
+                },
+                "flowCapacity": {
+                  "type": "number"
                 }
               }
             }
