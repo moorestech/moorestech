@@ -56,32 +56,10 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var blockFactory = ServerContext.BlockFactory;
-            
-            var fluidPipeBlock0 = blockFactory.Create(
-                ForUnitTestModBlockId.FluidPipe,
-                new BlockInstanceId(0),
-                new BlockPositionInfo(
-                    Vector3Int.right * 0,
-                    BlockDirection.North,
-                    Vector3Int.one
-                )
-            );
-            
-            var fluidPipeBlock1 = blockFactory.Create(
-                ForUnitTestModBlockId.FluidPipe,
-                new BlockInstanceId(1),
-                new BlockPositionInfo(
-                    Vector3Int.right * 1,
-                    BlockDirection.North,
-                    Vector3Int.one
-                )
-            );
-            
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            worldBlockDatastore.TryAddBlock(fluidPipeBlock0.BlockId, Vector3Int.right * 0, BlockDirection.North, out _);
-            worldBlockDatastore.TryAddBlock(fluidPipeBlock1.BlockId, Vector3Int.right * 1, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
             
             BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
