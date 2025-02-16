@@ -13,8 +13,8 @@ namespace Game.Block.Blocks.Fluid
         public static BlockConnectorComponent<IFluidInventory> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
         {
             return new BlockConnectorComponent<IFluidInventory>(
-                fluidInventoryConnects.InputConnects,
-                fluidInventoryConnects.OutputConnects,
+                fluidInventoryConnects.Connects,
+                fluidInventoryConnects.Connects,
                 blockPositionInfo
             );
         }

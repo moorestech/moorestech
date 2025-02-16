@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Core
             // パイプ同士が接続されているかのテスト
             // Test if the pipes are connected
             KeyValuePair<IFluidInventory, ConnectedInfo> connect0 = fluidPipeConnector0.ConnectedTargets.First();
-            Assert.Equals(fluidPipeBlock1, connect0.Value.TargetBlock);
+            Assert.AreEqual(fluidPipeBlock1, connect0.Value.TargetBlock);
             
             KeyValuePair<IFluidInventory, ConnectedInfo> connect1 = fluidPipeConnector1.ConnectedTargets.First();
             Assert.AreEqual(fluidPipeBlock0, connect1.Value.TargetBlock);
