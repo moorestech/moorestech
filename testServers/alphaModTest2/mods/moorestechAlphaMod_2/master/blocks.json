@@ -12,11 +12,11 @@
       "blockType": "GearMapObjectMiner",
       "blockParam": {
         "requiredPower": 5,
-        "itemSlotCount": 1,
-        "requireTorque": 1,
+        "itemSlotCount": 5,
+        "requireTorque": 2,
         "outputItemSlotCount": 3,
         "teethCount": 10,
-        "requiredRpm": 5,
+        "requiredRpm": 30,
         "miningAreaRange": [
           5,
           1,
@@ -240,7 +240,13 @@
               ]
             }
           ]
-        }
+        },
+        "beltConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "requiredRpm": 5,
+        "inputSlotCount": 1,
+        "teethCount": 10,
+        "outputSlotCount": 1
       },
       "blockGuid": "30c41beb-e95b-4514-9e3c-75a066571d49",
       "name": "原始的なシャフト",
