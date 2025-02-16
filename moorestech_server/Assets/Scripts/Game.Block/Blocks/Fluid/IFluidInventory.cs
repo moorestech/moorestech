@@ -2,7 +2,7 @@
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Mooresmaster.Model.InventoryConnectsModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 
 namespace Game.Block.Blocks.Fluid
 {
@@ -10,11 +10,11 @@ namespace Game.Block.Blocks.Fluid
     {
         public FluidContainer FluidContainer { get; }
         
-        public static BlockConnectorComponent<IFluidInventory> CreateFluidInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IFluidInventory> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
         {
             return new BlockConnectorComponent<IFluidInventory>(
-                inventoryConnects.InputConnects,
-                inventoryConnects.OutputConnects,
+                fluidInventoryConnects.InputConnects,
+                fluidInventoryConnects.OutputConnects,
                 blockPositionInfo
             );
         }
