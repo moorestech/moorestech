@@ -3117,7 +3117,7 @@
       "name": "FluidPipe",
       "blockParam": {
         "fluidInventoryConnectors": {
-          "inputConnects": [
+          "connects": [
             {
               "offset": [
                 0,
@@ -3162,8 +3162,7 @@
                 "isOutflowBlocked": false
               }
             }
-          ],
-          "outputConnects": []
+          ]
         },
         "capacity": 100
       },

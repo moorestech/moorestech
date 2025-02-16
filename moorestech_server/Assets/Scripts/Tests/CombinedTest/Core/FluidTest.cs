@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -85,11 +86,25 @@ namespace Tests.CombinedTest.Core
             BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             
+            // パイプ同士が接続されているかのテスト
+            // Test if the pipes are connected
             KeyValuePair<IFluidInventory, ConnectedInfo> connect0 = fluidPipeConnector0.ConnectedTargets.First();
-            Assert.ReferenceEquals(fluidPipeBlock1, connect0.Value.TargetBlock);
+            Assert.Equals(fluidPipeBlock1, connect0.Value.TargetBlock);
             
             KeyValuePair<IFluidInventory, ConnectedInfo> connect1 = fluidPipeConnector1.ConnectedTargets.First();
-            Assert.ReferenceEquals(fluidPipeBlock0, connect1.Value.TargetBlock);
+            Assert.AreEqual(fluidPipeBlock0, connect1.Value.TargetBlock);
+            
+            // 正しくオプションが読み込まれているかのテスト
+            // Test if the options are read correctly
+            var option0 = connect0.Value.SelfOption as FluidConnectOption;
+            Assert.IsNotNull(option0);
+            Assert.False(option0.IsInflowBlocked);
+            Assert.False(option0.IsOutflowBlocked);
+            
+            var option1 = connect0.Value.SelfOption as FluidConnectOption;
+            Assert.IsNotNull(option1);
+            Assert.False(option1.IsInflowBlocked);
+            Assert.False(option1.IsOutflowBlocked);
         }
     }
 }
