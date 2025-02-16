@@ -152,6 +152,52 @@
       "maxStack": 100,
       "name": "加工原木用 作業台(これ作って加工原木作る",
       "itemGuid": "08e273a2-7fab-4162-b32c-85a0cc4919c0"
+    },
+    {
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 165,
+      "maxStack": 100,
+      "name": "加工した原木50個​収集",
+      "itemGuid": "1f60177f-1b6f-458b-b26c-050c0f4b6a81"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 185,
+      "maxStack": 100,
+      "name": "チェスト",
+      "itemGuid": "f513ae31-ef58-4a05-a0c4-3bd8a4418ec5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "小さな歯車",
+      "itemGuid": "f39963d5-ce6f-4362-b26f-d3028c030421"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "原始的な採掘機",
+      "itemGuid": "ee133d2f-ee80-4b45-b6db-5c26294e2b3a"
     }
   ]
 }
