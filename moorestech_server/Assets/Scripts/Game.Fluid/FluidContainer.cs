@@ -10,7 +10,7 @@ namespace Game.Fluid
     public class FluidContainer
     {
         public readonly float Capacity;
-        public readonly List<InContainerFluidStack> FluidStacks = new();
+        public readonly List<FluidStack> FluidStacks = new();
         public Guid FluidId;
         
         /// <param name="capacity">液体の許容量</param>
@@ -22,7 +22,7 @@ namespace Game.Fluid
         }
         
         //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
-        public float TotalAmount => FluidStacks.Sum(f => f.FluidStack.Amount);
+        public float TotalAmount => FluidStacks.Sum(f => f.Amount);
         
         /// <summary>
         ///     可能な限り液体を入れる
@@ -33,14 +33,13 @@ namespace Game.Fluid
         {
             (var stack, FluidStack? remainStack) = Split(fluidStack);
             
-            var inContainerFluidStack = new InContainerFluidStack(stack, 0f);
-            FluidStacks.Add(inContainerFluidStack);
+            FluidStacks.Add(stack);
             
             remainFluidStack = remainStack;
         }
         
         /// <summary>
-        ///     移動済みのFluidStackから可能な限り指定された排出量を排出する
+        ///     FluidStackから可能な限り指定された排出量を排出する
         /// </summary>
         /// <param name="maxDrain">最大排出量</param>
         /// <returns>排出したfluidStack</returns>
@@ -52,13 +51,10 @@ namespace Game.Fluid
             {
                 var stack = FluidStacks[i];
                 
-                // 移動量が最大まで達していない場合は排出できない
-                if (!stack.IsMoved) continue;
-                
-                if (stack.FluidStack.Amount < maxDrain - amount)
+                if (stack.Amount < maxDrain - amount)
                 {
                     // 余らない場合
-                    amount += stack.FluidStack.Amount;
+                    amount += stack.Amount;
                     FluidStacks.RemoveAt(i);
                 }
                 else
@@ -66,7 +62,7 @@ namespace Game.Fluid
                     // 余る場合
                     var addingAmount = maxDrain - amount;
                     amount += addingAmount;
-                    stack.FluidStack.Amount -= addingAmount;
+                    stack.Amount -= addingAmount;
                     FluidStacks[i] = stack;
                 }
                 
@@ -80,20 +76,6 @@ namespace Game.Fluid
             return new FluidStack(FluidId, amount, FluidMoveDirection.Forward);
         }
         
-        /// <summary>
-        ///     全てのfluidStacksを指定された移動率分移動する
-        /// </summary>
-        /// <param name="movePercent">移動する移動率</param>
-        public void MoveFluidStacks(float movePercent)
-        {
-            for (var i = 0; i < FluidStacks.Count; i++)
-            {
-                var stack = FluidStacks[i];
-                stack.MovePercent += movePercent;
-                FluidStacks[i] = stack;
-            }
-        }
-        
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
         {
             // 容量を超えない場合は分けない
@@ -103,19 +85,6 @@ namespace Game.Fluid
             var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.FluidMoveDirection);
             var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, fluidStack.FluidMoveDirection);
             return (newFluidStack, remainFluidStack);
-        }
-    }
-    
-    public struct InContainerFluidStack
-    {
-        public FluidStack FluidStack;
-        public float MovePercent;
-        public bool IsMoved => MovePercent >= 1f;
-        
-        public InContainerFluidStack(FluidStack fluidStack, float movePercent)
-        {
-            FluidStack = fluidStack;
-            MovePercent = movePercent;
         }
     }
 }

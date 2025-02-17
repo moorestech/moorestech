@@ -64,9 +64,6 @@ namespace Tests.CombinedTest.Core
                 fluidContainer.Fill(stack, out _);
             }
             
-            // 移動
-            fluidContainer.MoveFluidStacks(1f);
-            
             // 現在のamountより少ない量をdrainする
             {
                 var stack = fluidContainer.Drain(0.3f);
@@ -80,24 +77,6 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(0.2f, stack.Amount, Delta);
                 Assert.AreEqual(0f, fluidContainer.TotalAmount);
                 Assert.IsEmpty(fluidContainer.FluidStacks);
-            }
-        }
-        
-        [Test]
-        public void FluidCanNotDrainTest()
-        {
-            // 初期化
-            var fluidContainer = new FluidContainer(1, TestFluidId);
-            {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
-                fluidContainer.Fill(stack, out _);
-            }
-            
-            // stackがまだ動いていない状態でdrainしようとする
-            {
-                var stack = fluidContainer.Drain(0.5f);
-                Assert.AreEqual(0, stack.Amount);
-                Assert.AreEqual(0.5f, fluidContainer.TotalAmount);
             }
         }
     }
