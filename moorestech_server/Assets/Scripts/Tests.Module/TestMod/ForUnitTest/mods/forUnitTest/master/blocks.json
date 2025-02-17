@@ -3160,7 +3160,7 @@
               "connectOption": {
                 "isInflowBlocked": false,
                 "isOutflowBlocked": false,
-                "flowCapacity": 100
+                "flowCapacity": 10
               }
             }
           ]
