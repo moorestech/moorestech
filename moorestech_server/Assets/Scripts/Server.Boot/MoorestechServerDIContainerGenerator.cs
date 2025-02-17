@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.IO;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
@@ -10,7 +12,6 @@ using Game.Block.Interface.Event;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftChainer;
-using Game.CraftChainer.CraftNetwork;
 using Game.CraftChainer.Util;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -56,7 +57,7 @@ namespace Server.Boot
             
             // マスターをロード
             var modResource = new ModsResource(modDirectory);
-            var configJsons = ModJsonStringLoader.GetConfigString(modResource);
+            Dictionary<string, MasterJsonCpntens> configJsons = ModJsonStringLoader.GetConfigString(modResource);
             var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
             MasterHolder.Load(configJsonFileContainer);
             
@@ -70,8 +71,9 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
+            initializerCollection.AddSingleton<FluidNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
-
+            
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
@@ -95,8 +97,9 @@ namespace Server.Boot
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
+            services.AddSingleton<FluidNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
-
+            
             services.AddSingleton<ItemRecipeViewerDataContainer>();
             
             services.AddSingleton(configJsonFileContainer);
@@ -146,6 +149,7 @@ namespace Server.Boot
             serviceProvider.GetService<GearNetworkDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
+            serviceProvider.GetService<FluidNetworkDatastore>();
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
