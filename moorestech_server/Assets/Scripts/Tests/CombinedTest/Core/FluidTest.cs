@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -17,12 +20,42 @@ namespace Tests.CombinedTest.Core
     public class FluidTest
     {
         /// <summary>
-        ///     1単位の流体が正しく搬入、搬出されるかのテスト
-        ///     Test to 1unit of fluid is carried in and out correctly.
+        ///     最大流量を超えない量の流体が正しく搬入、搬出されるかのテスト
         /// </summary>
         [Test]
         public void FluidTransportTest()
         {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            
+            // fluidPipeのflowCapacityは10だから3倍の量の量の液体
+            var fluidStack = new FluidStack(Guid.NewGuid(), 30f, FluidMoveDirection.Right);
+            fluidPipe0.FluidContainer.Fill(fluidStack, out FluidStack? remainFluidStack);
+            
+            // fluidPipeのcapacityは100だから溢れない
+            if (remainFluidStack.HasValue) Assert.Fail();
+            
+            //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
+            var startTime = DateTime.Now;
+            // 全て搬入するのにかかる時間
+            const float fillTime = 3f;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > fillTime) break;
+            }
+            
+            Assert.AreEqual(fluidPipe0.FluidContainer.TotalAmount, 0f, 0.1f);
+            Assert.AreEqual(fluidPipe1.FluidContainer.TotalAmount, 30f, 0.1f);
         }
         
         /// <summary>
@@ -78,13 +111,13 @@ namespace Tests.CombinedTest.Core
             Assert.IsNotNull(option0);
             Assert.False(option0.IsInflowBlocked);
             Assert.False(option0.IsOutflowBlocked);
-            Assert.AreEqual(100, option0.FlowCapacity);
+            Assert.AreEqual(10, option0.FlowCapacity);
             
             var option1 = connect0.Value.SelfOption as FluidConnectOption;
             Assert.IsNotNull(option1);
             Assert.False(option1.IsInflowBlocked);
             Assert.False(option1.IsOutflowBlocked);
-            Assert.AreEqual(100, option1.FlowCapacity);
+            Assert.AreEqual(10, option1.FlowCapacity);
         }
     }
 }
