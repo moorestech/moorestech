@@ -78,11 +78,13 @@ namespace Tests.CombinedTest.Core
             Assert.IsNotNull(option0);
             Assert.False(option0.IsInflowBlocked);
             Assert.False(option0.IsOutflowBlocked);
+            Assert.AreEqual(100, option0.FlowCapacity);
             
             var option1 = connect0.Value.SelfOption as FluidConnectOption;
             Assert.IsNotNull(option1);
             Assert.False(option1.IsInflowBlocked);
             Assert.False(option1.IsOutflowBlocked);
+            Assert.AreEqual(100, option1.FlowCapacity);
         }
     }
 }
