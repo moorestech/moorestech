@@ -10,7 +10,10 @@ namespace Game.Fluid
     public class FluidContainer
     {
         public readonly float Capacity;
-        public readonly Dictionary<FluidMoveDirection, FluidStack> FluidStacks = new();
+        /// <summary>
+        ///     key: stackのfill元
+        /// </summary>
+        public readonly Dictionary<FluidContainer, FluidStack> FluidStacks = new();
         public Guid FluidId;
         
         /// <param name="capacity">液体の許容量</param>
@@ -19,13 +22,6 @@ namespace Game.Fluid
         {
             Capacity = capacity;
             FluidId = fluidId;
-            
-            const int fluidMoveDirectionCount = 6;
-            for (var i = 0; i < fluidMoveDirectionCount; i++)
-            {
-                var direction = (FluidMoveDirection)i;
-                FluidStacks.Add(direction, new FluidStack(fluidId, 0, direction));
-            }
         }
         
         //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
@@ -40,9 +36,18 @@ namespace Game.Fluid
         {
             (var addingStack, FluidStack? remainStack) = Split(fluidStack);
             
-            var currentStack = FluidStacks[addingStack.FluidMoveDirection];
+            if (!FluidStacks.ContainsKey(addingStack.PreviousFluidContainer))
+            {
+                FluidStacks[addingStack.PreviousFluidContainer] = new FluidStack(
+                    FluidId,
+                    0,
+                    this,
+                    addingStack.FluidContainer
+                );
+            }
+            var currentStack = FluidStacks[addingStack.PreviousFluidContainer];
             currentStack.Amount += addingStack.Amount;
-            FluidStacks[addingStack.FluidMoveDirection] = currentStack;
+            FluidStacks[addingStack.PreviousFluidContainer] = currentStack;
             
             remainFluidStack = remainStack;
         }
@@ -51,12 +56,14 @@ namespace Game.Fluid
         ///     FluidStackから可能な限り指定された排出量を排出する
         /// </summary>
         /// <param name="maxDrain">最大排出量</param>
-        /// <param name="direction">排出方向</param>
+        /// <param name="previousFluidContainer">fill元</param>
         /// <returns>排出したfluidStack</returns>
-        public FluidStack Drain(float maxDrain, FluidMoveDirection direction)
+        public FluidStack Drain(float maxDrain, FluidContainer previousFluidContainer)
         {
             var amount = 0f;
-            var currentStack = FluidStacks[direction];
+            
+            
+            var currentStack = FluidStacks[previousFluidContainer];
             
             if (currentStack.Amount < maxDrain - amount)
             {
@@ -72,9 +79,9 @@ namespace Game.Fluid
                 currentStack.Amount -= addingAmount;
             }
             
-            FluidStacks[direction] = currentStack;
+            FluidStacks[previousFluidContainer] = currentStack;
             
-            return new FluidStack(FluidId, amount, FluidMoveDirection.Forward);
+            return new FluidStack(FluidId, amount, this, previousFluidContainer);
         }
         
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
@@ -83,8 +90,8 @@ namespace Game.Fluid
             if (!(TotalAmount + fluidStack.Amount > Capacity)) return (fluidStack, null);
             
             var remainAmount = fluidStack.Amount - (Capacity - TotalAmount);
-            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.FluidMoveDirection);
-            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, fluidStack.FluidMoveDirection);
+            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, this, fluidStack.PreviousFluidContainer);
+            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, this, fluidStack.PreviousFluidContainer);
             return (newFluidStack, remainFluidStack);
         }
     }

@@ -6,26 +6,15 @@ namespace Game.Fluid
     {
         public readonly Guid FluidId;
         public float Amount;
-        public FluidMoveDirection FluidMoveDirection;
+        public FluidContainer FluidContainer;
+        public FluidContainer PreviousFluidContainer;
         
-        public FluidStack(Guid fluidId, float amount, FluidMoveDirection fluidMoveDirection)
+        public FluidStack(Guid fluidId, float amount, FluidContainer fluidContainer, FluidContainer previousFluidContainer)
         {
             FluidId = fluidId;
             Amount = amount;
-            FluidMoveDirection = fluidMoveDirection;
+            FluidContainer = fluidContainer;
+            PreviousFluidContainer = previousFluidContainer;
         }
-    }
-    
-    /// <summary>
-    ///     今後統一された向きを表すenumが現れたらそちらに統一してこれは消す
-    /// </summary>
-    public enum FluidMoveDirection
-    {
-        Up,
-        Down,
-        Right,
-        Left,
-        Forward,
-        Back,
     }
 }
