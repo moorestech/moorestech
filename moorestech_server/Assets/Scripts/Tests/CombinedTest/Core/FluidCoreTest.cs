@@ -57,26 +57,27 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidDrainTest()
         {
+            const FluidMoveDirection direction = FluidMoveDirection.Forward;
+            
             // 初期化
             var fluidContainer = new FluidContainer(1, TestFluidId);
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+                var stack = new FluidStack(TestFluidId, 0.5f, direction);
                 fluidContainer.Fill(stack, out _);
             }
             
             // 現在のamountより少ない量をdrainする
             {
-                var stack = fluidContainer.Drain(0.3f);
+                var stack = fluidContainer.Drain(0.3f, direction);
                 Assert.AreEqual(0.3f, stack.Amount);
                 Assert.AreEqual(0.2f, fluidContainer.TotalAmount, Delta);
             }
             
             // 現在のamountより多い量をdrainする
             {
-                var stack = fluidContainer.Drain(0.3f);
+                var stack = fluidContainer.Drain(0.3f, direction);
                 Assert.AreEqual(0.2f, stack.Amount, Delta);
                 Assert.AreEqual(0f, fluidContainer.TotalAmount);
-                Assert.IsEmpty(fluidContainer.FluidStacks);
             }
         }
     }

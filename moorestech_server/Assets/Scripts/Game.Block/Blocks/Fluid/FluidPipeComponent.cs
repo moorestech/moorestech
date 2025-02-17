@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Fluid;
 using Mooresmaster.Model.BlockConnectInfoModule;
 
@@ -34,8 +35,9 @@ namespace Game.Block.Blocks.Fluid
             {
                 var selfOption = kvp.Value.SelfOption as FluidConnectOption;
                 var targetOption = kvp.Value.TargetOption as FluidConnectOption;
+                var target = kvp.Value.TargetBlock.GetComponent<IFluidInventory>();
                 
-                if (selfOption == null || targetOption == null) throw new Exception();
+                if (selfOption == null || targetOption == null || target == null) throw new Exception();
             }
         }
     }
