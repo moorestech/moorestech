@@ -4,7 +4,6 @@ using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.Fluid;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
@@ -71,7 +70,6 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
-            initializerCollection.AddSingleton<FluidNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
@@ -97,7 +95,6 @@ namespace Server.Boot
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
-            services.AddSingleton<FluidNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
             
             services.AddSingleton<ItemRecipeViewerDataContainer>();
@@ -149,7 +146,6 @@ namespace Server.Boot
             serviceProvider.GetService<GearNetworkDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
-            serviceProvider.GetService<FluidNetworkDatastore>();
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
