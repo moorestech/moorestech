@@ -1,0 +1,79 @@
+name: Subtree Sync
+
+on:
+  push:
+    branches:
+      - master
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+jobs:
+  subtree-sync:
+    runs-on: ubuntu-latest
+    steps:
+      # リポジトリのチェックアウト（履歴全体が必要なため fetch-depth: 0）
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Git のユーザー情報を設定（コミット作成のため）
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 他リポジトリ（schemaリポジトリ）を HTTPS 経由でリモート追加
+      - name: Add remote for schema repository
+        run: |
+          git remote add schema https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorestech/VanillaSchema.git || echo "Remote 'schema' already exists"
+          git fetch schema
+
+      # 初回の場合、subtree が追加されていなければ追加する
+      - name: Initial subtree add (if not exists)
+        run: |
+          if ! git ls-tree -d HEAD schema > /dev/null 2>&1; then
+            git subtree add --prefix=schema --squash schema main
+          else
+            echo "Subtree 'schema' already added."
+          fi
+
+      # 他リポジトリの変更を取り込む
+      - name: Pull subtree updates
+        run: |
+          # subtree pull でエラー（＝コンフリクト等）が発生しても処理を継続するためエラーチェックは後で行う
+          set +e
+          git subtree pull --prefix=schema schema main
+          PULL_EXIT=$?
+          set -e
+          if [ $PULL_EXIT -ne 0 ]; then
+            echo "Subtree pull encountered conflicts or errors."
+          fi
+
+      # 変更（またはコンフリクト）があるかどうかをチェックする
+      - name: Check for subtree changes
+        id: check_changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 変更・コンフリクトがあれば、ブランチを作成してコミット後、gh コマンドで PR を作成する
+      - name: Create PR if changes or conflicts exist
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          # 作業用ブランチを強制作成（すでに存在していても上書き）
+          git checkout -B subtree-sync
+          git add -A
+          # コンフリクト状態でも commit できるように（変更がなければエラーは無視）
+          git commit -m "Subtree sync update" || echo "Nothing to commit"
+          git push origin subtree-sync --force
+          gh pr create --title "Subtree Sync Update" --body "This PR contains subtree sync updates." || echo "PR creation failed or already exists."
+
+      # 変更がなければ、subtree を push してリモートの schema リポジトリを更新する
+      - name: Push subtree if no changes/conflicts
+        if: steps.check_changes.outputs.changes_detected == 'false'
+        run: |
+          git subtree push --prefix=schema schema main
