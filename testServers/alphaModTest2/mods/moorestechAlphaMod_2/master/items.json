@@ -186,7 +186,7 @@
         1,
         1
       ],
-      "sortPriority": 100,
+      "sortPriority": 175,
       "maxStack": 100,
       "name": "小さな歯車",
       "itemGuid": "f39963d5-ce6f-4362-b26f-d3028c030421"
@@ -194,10 +194,29 @@
     {
       "craftTime": 3,
       "craftResultCount": 1,
-      "sortPriority": 100,
+      "sortPriority": 186,
       "maxStack": 100,
       "name": "原始的な採掘機",
       "itemGuid": "ee133d2f-ee80-4b45-b6db-5c26294e2b3a"
+    },
+    {
+      "sortPriority": 250,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ブロンズ鉱石",
+      "itemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a"
+    },
+    {
+      "sortPriority": 240,
+      "maxStack": 100,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "name": "キャンプファイア",
+      "itemGuid": "13f46fe4-bb42-4354-94c4-ae1e1b28415b"
     }
   ]
 }
