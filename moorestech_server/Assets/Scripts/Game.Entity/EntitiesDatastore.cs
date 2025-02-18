@@ -47,7 +47,7 @@ namespace Game.Entity
         {
             foreach (var save in saveBlockDataList)
             {
-                var entity = _entityFactory.CreateEntity(save.Type, new EntityInstanceId(save.InstanceId));
+                var entity = _entityFactory.LoadEntity(save.Type, new EntityInstanceId(save.InstanceId));
                 _entities.Add(entity.InstanceId, entity);
                 
                 var pos = new Vector3(save.X, save.Y, save.Z);
