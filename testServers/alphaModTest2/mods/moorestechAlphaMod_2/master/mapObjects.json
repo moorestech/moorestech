@@ -91,7 +91,14 @@
             "toolItemGuid": "c5c5cc63-da1a-4a2f-b7da-23b82ef5ecb3"
           }
         ]
-      }
+      },
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 2,
+          "itemGuid": "b9d207ab-2229-4dde-8cd5-32653980902d"
+        }
+      ]
     },
     {
       "craftTime": 3,
