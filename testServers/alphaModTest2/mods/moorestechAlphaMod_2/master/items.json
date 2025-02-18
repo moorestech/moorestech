@@ -231,6 +231,12 @@
       "itemGuid": "321f37ad-b204-49c5-af8b-9c977298ddbd"
     },
     {
+      "sortPriority": 275,
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッドの型",
+      "itemGuid": "e9aeabf1-bffc-4f99-bb46-8d4f6d04cbc2"
+    },
+    {
       "sortPriority": 280,
       "maxStack": 100,
       "name": "ブロンズハンマー",
@@ -257,8 +263,14 @@
     {
       "sortPriority": 320,
       "maxStack": 100,
-      "name": "炭窯​",
+      "name": "原始的な​窯​",
       "itemGuid": "0cd840e7-0518-43de-bf7f-f6973cf60732"
+    },
+    {
+      "sortPriority": 325,
+      "maxStack": 100,
+      "name": "ブロンズドリルの型​​​​​",
+      "itemGuid": "64c06bce-24f0-48a4-bb49-cec379335a76"
     },
     {
       "sortPriority": 330,
@@ -287,7 +299,7 @@
     {
       "sortPriority": 370,
       "maxStack": 100,
-      "name": "ブロンズ粉末​",
+      "name": "低品質なブロンズの粉末​",
       "itemGuid": "fdd4ebbd-9f77-45a0-8685-d118958f7c02"
     },
     {

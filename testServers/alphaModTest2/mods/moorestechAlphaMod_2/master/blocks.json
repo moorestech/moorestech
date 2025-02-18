@@ -1116,6 +1116,10 @@
           {
             "time": 15,
             "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+          },
+          {
+            "time": 15,
+            "itemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a"
           }
         ],
         "teethCount": 10,
@@ -1166,6 +1170,156 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
       "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
       "name": "原始的な採掘機"
+    },
+    {
+      "sortPriority": 100,
+      "maxStack": 100,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "blockSize": [
+        3,
+        1,
+        3
+      ],
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "itemGuid": "13f46fe4-bb42-4354-94c4-ae1e1b28415b",
+      "name": "キャンプファイア",
+      "blockPrefabAddressablesPath": "Vanilla/Block/campfier",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "blockGuid": "d156cddf-8142-49d2-ae91-2e2e7db8ce15"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        2,
+        2,
+        2
+      ],
+      "itemGuid": "0cd840e7-0518-43de-bf7f-f6973cf60732",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "requiredPower": 0,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "name": "原始的な​窯​",
+      "blockPrefabAddressablesPath": "Vanilla/Block/TmpBlock",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "blockGuid": "809d35b3-f1a4-4b38-b117-7707f4f56b4e"
+    },
+    {
+      "time": 1,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "04c369f3-62b5-4db9-af99-bdbdf821e9d0",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 30,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        }
+      },
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_crasher",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "name": "ブロンズ粉砕機​",
+      "blockGuid": "1fd14fe9-0ce8-47a2-b5f5-a7ba12844b25"
     }
   ]
 }
