@@ -3,15 +3,13 @@ name: Subtree Sync
 on:
   push:
     branches:
-      - master
-  # 手動実行デバッグ用
-  workflow_dispatch: {}
+      - main  # デフォルトブランチ。必要に応じて変更してください。
 
 jobs:
   subtree-sync:
     runs-on: ubuntu-latest
     steps:
-      # リポジトリのチェックアウト（履歴全体が必要なため fetch-depth: 0）
+      # リポジトリ全体のチェックアウト（履歴全体が必要なため fetch-depth: 0）
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -23,13 +21,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 他リポジトリ（schemaリポジトリ）を HTTPS 経由でリモート追加
+      # HTTPS経由で schema リポジトリをリモート追加
       - name: Add remote for schema repository
         run: |
           git remote add schema https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorestech/VanillaSchema.git || echo "Remote 'schema' already exists"
           git fetch schema
 
-      # 初回の場合、subtree が追加されていなければ追加する
+      # 初回実行時：まだ subtree が追加されていなければ追加する
       - name: Initial subtree add (if not exists)
         run: |
           if ! git ls-tree -d HEAD schema > /dev/null 2>&1; then
@@ -38,10 +36,17 @@ jobs:
             echo "Subtree 'schema' already added."
           fi
 
-      # 他リポジトリの変更を取り込む
+      # 事前に、既に存在する作業ブランチ(subtree-sync)の最新コミットを取得（なければ空文字）
+      - name: Get previous subtree-sync branch hash
+        id: prev_hash
+        run: |
+          git fetch origin subtree-sync || true
+          PREV_HASH=$(git rev-parse origin/subtree-sync 2>/dev/null || echo "")
+          echo "prev_hash=$PREV_HASH" >> $GITHUB_OUTPUT
+
+      # 他リポジトリの更新を取り込む（コンフリクトがあっても続行）
       - name: Pull subtree updates
         run: |
-          # subtree pull でエラー（＝コンフリクト等）が発生しても処理を継続するためエラーチェックは後で行う
           set +e
           git subtree pull --prefix=schema schema main
           PULL_EXIT=$?
@@ -50,7 +55,7 @@ jobs:
             echo "Subtree pull encountered conflicts or errors."
           fi
 
-      # 変更（またはコンフリクト）があるかどうかをチェックする
+      # subtree pull 後に、作業ツリーに変更（差分や未解決コンフリクト）があるかチェックする
       - name: Check for subtree changes
         id: check_changes
         run: |
@@ -60,19 +65,40 @@ jobs:
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           fi
 
-      # 変更・コンフリクトがあれば、ブランチを作成してコミット後、gh コマンドで PR を作成する
-      - name: Create PR if changes or conflicts exist
+      # 変更やコンフリクトがあれば、作業用ブランチ(subtree-sync)を作成してコミットする  
+      # このとき、新しいコミットハッシュを出力として保存
+      - name: Commit subtree changes if any
+        id: commit_changes
         if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
-          # 作業用ブランチを強制作成（すでに存在していても上書き）
           git checkout -B subtree-sync
           git add -A
-          # コンフリクト状態でも commit できるように（変更がなければエラーは無視）
-          git commit -m "Subtree sync update" || echo "Nothing to commit"
+          # コンフリクトがあっても「git add -A」で全ファイルをステージし、コミットする
+          git commit -m "Subtree sync update" || echo "No changes to commit"
+          NEW_HASH=$(git rev-parse HEAD)
+          echo "new_hash=$NEW_HASH" >> $GITHUB_OUTPUT
+
+      # gh CLI の認証（GITHUB_TOKEN を使用）
+      - name: Authenticate GitHub CLI
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      # 変更・コンフリクトがあって新しいコミットが生成された場合のみ PR を作成する
+      - name: Create PR if new commit is generated
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          PREV_HASH="${{ steps.prev_hash.outputs.prev_hash }}"
+          NEW_HASH="${{ steps.commit_changes.outputs.new_hash }}"
+          echo "PREV_HASH: $PREV_HASH"
+          echo "NEW_HASH: $NEW_HASH"
+          if [ "$PREV_HASH" = "$NEW_HASH" ]; then
+            echo "No new commit detected; skipping PR creation."
+            exit 0
+          fi
           git push origin subtree-sync --force
           gh pr create --title "Subtree Sync Update" --body "This PR contains subtree sync updates." || echo "PR creation failed or already exists."
 
-      # 変更がなければ、subtree を push してリモートの schema リポジトリを更新する
+      # 変更（差分もコンフリクトもない場合、subtree push によりリモートの schema リポジトリを更新する
       - name: Push subtree if no changes/conflicts
         if: steps.check_changes.outputs.changes_detected == 'false'
         run: |
