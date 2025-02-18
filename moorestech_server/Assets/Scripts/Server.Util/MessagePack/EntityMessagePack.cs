@@ -16,7 +16,6 @@ namespace Server.Util.MessagePack
         {
             InstanceId = entity.InstanceId.AsPrimitive();
             Type = entity.EntityType;
-            State = entity.State;
             Position = new Vector3MessagePack(entity.Position);
         }
         
@@ -25,7 +24,5 @@ namespace Server.Util.MessagePack
         [Key(1)] public string Type { get; set; }
         
         [Key(2)] public Vector3MessagePack Position { get; set; }
-        
-        [Key(3)] public string State { get; set; }
     }
 }
