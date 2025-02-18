@@ -74,7 +74,6 @@ namespace Client.Network.API
     {
         public readonly long InstanceId;
         public readonly Vector3 Position;
-        public readonly string State;
         public readonly string Type;
         
         public EntityResponse(EntityMessagePack entityMessagePack)
@@ -82,7 +81,6 @@ namespace Client.Network.API
             InstanceId = entityMessagePack.InstanceId;
             Type = entityMessagePack.Type;
             Position = entityMessagePack.Position;
-            State = entityMessagePack.State;
         }
     }
     

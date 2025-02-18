@@ -15,5 +15,9 @@ namespace Game.Entity
             
             throw new KeyNotFoundException("Entity type not found : " + entityType);
         }
+        public IEntity LoadEntity(string entityType, EntityInstanceId instanceId, Vector3 serverPosition = default)
+        {
+            return CreateEntity(entityType, instanceId, serverPosition); // いったん仮でCreateに流す
+        }
     }
 }
