@@ -3,7 +3,9 @@ name: Subtree Sync
 on:
   push:
     branches:
-      - main  # デフォルトブランチ。必要に応じて変更してください。
+      - master
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
 
 jobs:
   subtree-sync:
