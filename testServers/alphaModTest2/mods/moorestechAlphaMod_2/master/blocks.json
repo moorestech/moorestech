@@ -1110,7 +1110,26 @@
         "outputItemSlotCount": 2,
         "inventoryConnectors": {
           "inputConnects": [],
-          "outputConnects": []
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
         },
         "mineSettings": [
           {

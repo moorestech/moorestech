@@ -119,6 +119,7 @@ namespace Game.Block.Blocks.Miner
             BlockException.CheckDestroy(this);
             
             MinerProgressUpdate();
+            InsertConnectInventory();
             CheckStateAndInvokeEventUpdate();
             
             #region Internal
@@ -154,7 +155,6 @@ namespace Game.Block.Blocks.Miner
                 }
                 
                 _currentPower = new ElectricPower(0);
-                InsertConnectInventory();
             }
             
             void CheckStateAndInvokeEventUpdate()
