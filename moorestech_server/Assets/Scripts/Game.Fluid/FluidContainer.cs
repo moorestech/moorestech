@@ -9,11 +9,14 @@ namespace Game.Fluid
     /// </remarks>
     public class FluidContainer
     {
+        public static readonly FluidContainer Empty = new();
         public readonly float Capacity;
         /// <summary>
         ///     key: stackのfill元
         /// </summary>
         public readonly Dictionary<FluidContainer, FluidStack> FluidStacks = new();
+        
+        public readonly bool IsEmpty;
         public Guid FluidId;
         
         /// <param name="capacity">液体の許容量</param>
@@ -22,6 +25,16 @@ namespace Game.Fluid
         {
             Capacity = capacity;
             FluidId = fluidId;
+        }
+        
+        /// <summary>
+        ///     Create empty container.
+        /// </summary>
+        private FluidContainer()
+        {
+            FluidId = Guid.Empty;
+            Capacity = 0;
+            IsEmpty = true;
         }
         
         //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
