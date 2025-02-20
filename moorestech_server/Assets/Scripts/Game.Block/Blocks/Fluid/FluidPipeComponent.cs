@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Fluid
                 targetFluidContainer.AddToPendingList(fluidStack, out FluidStack? remainFluidStack);
                 if (remainFluidStack.HasValue)
                 {
-                    FluidContainer.Fill(remainFluidStack.Value, targetFluidContainer, out FluidStack? _);
+                    FluidContainer.AddToPendingList(remainFluidStack.Value, out _);
                 }
             }
         }
