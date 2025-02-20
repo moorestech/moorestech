@@ -48,26 +48,30 @@ namespace Game.Fluid
         ///     PendingListに追加する
         /// </summary>
         /// <param name="fluidStack">使用するfluidStack</param>
+        /// <param name="previousContainer">移動前のコンテナ</param>
         /// <param name="remainFluidStack">残ったfluidStack</param>
-        public void AddToPendingList(FluidStack fluidStack, out FluidStack? remainFluidStack)
+        public void AddToPendingList(FluidStack fluidStack, FluidContainer previousContainer, out FluidStack? remainFluidStack)
         {
             (var addingStack, FluidStack? remainStack) = Split(fluidStack);
+            remainFluidStack = remainStack;
+            
             addingStack.TargetContainer = Empty;
+            addingStack.PreviousContainer = previousContainer;
             
             PendingFluidStacks.Add(addingStack);
-            
-            remainFluidStack = remainStack;
         }
         
         /// <summary>
         ///     可能な限り液体を入れる
         /// </summary>
         /// <param name="fluidStack">使用するfluidStack</param>
+        /// <param name="previousContainer">移動前のコンテナ</param>
         /// <param name="targetFluidContainer">入れた液体の次の移動先</param>
         /// <param name="remainFluidStack">残ったfluidStack</param>
-        public void Fill(FluidStack fluidStack, FluidContainer targetFluidContainer, out FluidStack? remainFluidStack)
+        public void Fill(FluidStack fluidStack, FluidContainer previousContainer, FluidContainer targetFluidContainer, out FluidStack? remainFluidStack)
         {
             (var addingStack, FluidStack? remainStack) = Split(fluidStack);
+            addingStack.PreviousContainer = previousContainer;
             addingStack.TargetContainer = targetFluidContainer;
             
             if (!FluidStacks.ContainsKey(addingStack.TargetContainer))
@@ -75,6 +79,7 @@ namespace Game.Fluid
                 FluidStacks[addingStack.TargetContainer] = new FluidStack(
                     FluidId,
                     0,
+                    addingStack.PreviousContainer,
                     addingStack.TargetContainer
                 );
             }
@@ -115,7 +120,7 @@ namespace Game.Fluid
             
             FluidStacks[targetFluidContainer] = currentStack;
             
-            return new FluidStack(FluidId, amount, Empty);
+            return new FluidStack(FluidId, amount, this, Empty);
         }
         
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
@@ -124,8 +129,8 @@ namespace Game.Fluid
             if (!(TotalAmount + fluidStack.Amount > Capacity)) return (fluidStack, null);
             
             var remainAmount = fluidStack.Amount - (Capacity - TotalAmount);
-            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.TargetContainer);
-            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, Empty);
+            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.PreviousContainer, fluidStack.TargetContainer);
+            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, Empty, Empty);
             return (newFluidStack, remainFluidStack);
         }
     }

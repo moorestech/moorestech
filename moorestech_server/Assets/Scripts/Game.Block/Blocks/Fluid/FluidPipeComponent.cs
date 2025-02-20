@@ -44,14 +44,19 @@ namespace Game.Block.Blocks.Fluid
             
             // TODO: targetFluidContainerが存在するかどうかのチェックを行う
             // TODO: 新しく挿入されたfluidStackの移動先を決定
+            foreach (var pendingFluidStack in FluidContainer.PendingFluidStacks)
+            {
+            }
+            FluidContainer.PendingFluidStacks.Clear();
             
             // ターゲットに移動する
             foreach (var (targetFluidContainer, fluidStack) in FluidContainer.FluidStacks.Select(kvp => (kvp.Key, kvp.Value)))
             {
-                targetFluidContainer.AddToPendingList(fluidStack, out FluidStack? remainFluidStack);
+                targetFluidContainer.AddToPendingList(fluidStack, FluidContainer, out FluidStack? remainFluidStack);
                 if (remainFluidStack.HasValue)
                 {
-                    FluidContainer.AddToPendingList(remainFluidStack.Value, out _);
+                    // 残ったfluidStackは元のコンテナにもどす
+                    FluidContainer.AddToPendingList(remainFluidStack.Value, fluidStack.PreviousContainer, out _);
                 }
             }
         }

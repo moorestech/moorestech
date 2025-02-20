@@ -13,9 +13,9 @@ namespace Tests.CombinedTest.Core
         public void FluidFillTest()
         {
             var fluidContainer = new FluidContainer(1, TestFluidId);
-            var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
+            var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, fluidContainer);
             
-            fluidContainer.Fill(stack, FluidContainer.Empty, out FluidStack? remain);
+            fluidContainer.Fill(stack, FluidContainer.Empty, FluidContainer.Empty, out FluidStack? remain);
             
             // capacityが1、amountが0.5なので余らない
             Assert.False(remain.HasValue);
@@ -27,21 +27,21 @@ namespace Tests.CombinedTest.Core
             var fluidContainer = new FluidContainer(1, TestFluidId);
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
-                fluidContainer.Fill(stack, FluidContainer.Empty, out _);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, fluidContainer);
+                fluidContainer.Fill(stack, FluidContainer.Empty, FluidContainer.Empty, out _);
             }
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
-                fluidContainer.Fill(stack, FluidContainer.Empty, out FluidStack? remain);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, fluidContainer);
+                fluidContainer.Fill(stack, FluidContainer.Empty, FluidContainer.Empty, out FluidStack? remain);
                 
                 // capacityが1、amountの合計値が1なので余らない
                 Assert.False(remain.HasValue);
             }
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
-                fluidContainer.Fill(stack, FluidContainer.Empty, out FluidStack? remain);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, fluidContainer);
+                fluidContainer.Fill(stack, FluidContainer.Empty, FluidContainer.Empty, out FluidStack? remain);
                 
                 // capacityが1、amountの合計値が1.5なので全て余る
                 Assert.True(remain.HasValue);
@@ -60,8 +60,8 @@ namespace Tests.CombinedTest.Core
             // 初期化
             var fluidContainer = new FluidContainer(1, TestFluidId);
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty);
-                fluidContainer.Fill(stack, FluidContainer.Empty, out _);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
+                fluidContainer.Fill(stack, FluidContainer.Empty, FluidContainer.Empty, out _);
             }
             
             // 現在のamountより少ない量をdrainする
