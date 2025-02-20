@@ -42,7 +42,7 @@ namespace Game.Fluid
         }
         
         //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
-        public float TotalAmount => FluidStacks.Sum(kvp => kvp.Value.Amount);
+        public float TotalAmount => FluidStacks.Sum(kvp => kvp.Value.Amount) + PendingFluidStacks.Sum(s => s.Amount);
         
         /// <summary>
         ///     PendingListに追加する
@@ -103,6 +103,7 @@ namespace Game.Fluid
                 // 余らない場合
                 amount += currentStack.Amount;
                 currentStack.Amount = 0;
+                FluidStacks.Remove(targetFluidContainer);
             }
             else
             {
