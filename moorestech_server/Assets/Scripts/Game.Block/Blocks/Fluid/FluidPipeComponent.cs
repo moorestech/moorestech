@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -39,6 +40,19 @@ namespace Game.Block.Blocks.Fluid
                 var fluidInventory = kvp.Key;
                 
                 if (selfOption == null || targetOption == null || target == null) throw new Exception();
+            }
+            
+            // TODO: targetFluidContainerが存在するかどうかのチェックを行う
+            // TODO: 新しく挿入されたfluidStackの移動先を決定
+            
+            // ターゲットに移動する
+            foreach (var (targetFluidContainer, fluidStack) in FluidContainer.FluidStacks.Select(kvp => (kvp.Key, kvp.Value)))
+            {
+                targetFluidContainer.AddToPendingList(fluidStack, out FluidStack? remainFluidStack);
+                if (remainFluidStack.HasValue)
+                {
+                    FluidContainer.Fill(remainFluidStack.Value, targetFluidContainer, out FluidStack? _);
+                }
             }
         }
     }

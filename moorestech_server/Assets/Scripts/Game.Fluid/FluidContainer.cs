@@ -17,6 +17,10 @@ namespace Game.Fluid
         public readonly Dictionary<FluidContainer, FluidStack> FluidStacks = new();
         
         public readonly bool IsEmpty;
+        /// <summary>
+        ///     まだ次の移動先が決まっていないfluidStackのリスト
+        /// </summary>
+        public readonly List<FluidStack> PendingFluidStacks = new();
         public Guid FluidId;
         
         /// <param name="capacity">液体の許容量</param>
@@ -41,13 +45,30 @@ namespace Game.Fluid
         public float TotalAmount => FluidStacks.Sum(kvp => kvp.Value.Amount);
         
         /// <summary>
-        ///     可能な限り液体を入れる
+        ///     PendingListに追加する
         /// </summary>
         /// <param name="fluidStack">使用するfluidStack</param>
         /// <param name="remainFluidStack">残ったfluidStack</param>
-        public void Fill(FluidStack fluidStack, out FluidStack? remainFluidStack)
+        public void AddToPendingList(FluidStack fluidStack, out FluidStack? remainFluidStack)
         {
             (var addingStack, FluidStack? remainStack) = Split(fluidStack);
+            addingStack.TargetContainer = Empty;
+            
+            PendingFluidStacks.Add(addingStack);
+            
+            remainFluidStack = remainStack;
+        }
+        
+        /// <summary>
+        ///     可能な限り液体を入れる
+        /// </summary>
+        /// <param name="fluidStack">使用するfluidStack</param>
+        /// <param name="targetFluidContainer">入れた液体の次の移動先</param>
+        /// <param name="remainFluidStack">残ったfluidStack</param>
+        public void Fill(FluidStack fluidStack, FluidContainer targetFluidContainer, out FluidStack? remainFluidStack)
+        {
+            (var addingStack, FluidStack? remainStack) = Split(fluidStack);
+            addingStack.TargetContainer = targetFluidContainer;
             
             if (!FluidStacks.ContainsKey(addingStack.TargetContainer))
             {
