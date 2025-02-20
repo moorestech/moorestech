@@ -2,7 +2,8 @@
     "name": "Game.UnlockState",
     "rootNamespace": "",
     "references": [
-        "Core.Master"
+        "Core.Master",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
