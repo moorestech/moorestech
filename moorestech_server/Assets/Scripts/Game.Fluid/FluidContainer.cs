@@ -125,13 +125,7 @@ namespace Game.Fluid
         
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
         {
-            // 容量を超えない場合は分けない
-            if (!(TotalAmount + fluidStack.Amount > Capacity)) return (fluidStack, null);
-            
-            var remainAmount = fluidStack.Amount - (Capacity - TotalAmount);
-            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.PreviousContainer, fluidStack.TargetContainer);
-            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, Empty, Empty);
-            return (newFluidStack, remainFluidStack);
+            return FluidStack.Split(fluidStack, Capacity - TotalAmount);
         }
     }
 }

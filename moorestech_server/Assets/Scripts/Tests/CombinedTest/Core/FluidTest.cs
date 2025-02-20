@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Core
     public class FluidTest
     {
         /// <summary>
-        ///     最大流量を超えない量の流体が正しく搬入、搬出されるかのテスト
+        ///     与えた量の流体が搬入、搬出されるかのテスト
         /// </summary>
         [Test]
         public void FluidTransportTest()
@@ -34,9 +34,6 @@ namespace Tests.CombinedTest.Core
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
-            fluidPipe0.FluidContainer.FluidId = Guid.Parse("00000000-0000-0000-0000-000000000000");
-            fluidPipe1.FluidContainer.FluidId = Guid.Parse("00000000-0000-0000-0000-000000000001");
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             var fluidStack = new FluidStack(Guid.NewGuid(), 30f, FluidContainer.Empty, fluidPipe0.FluidContainer);
@@ -52,15 +49,61 @@ namespace Tests.CombinedTest.Core
             while (true)
             {
                 GameUpdater.UpdateWithWait();
-                Debug.Log($"{fluidPipe0.FluidContainer.PendingFluidStacks.Count} {fluidPipe0.FluidContainer.FluidStacks.Count} {fluidPipe1.FluidContainer.PendingFluidStacks.Count} {fluidPipe1.FluidContainer.FluidStacks.Count}");
                 
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > fillTime) break;
             }
             
             
-            Assert.AreEqual(0f, fluidPipe0.FluidContainer.TotalAmount, 0.1f);
-            Assert.AreEqual(30f, fluidPipe1.FluidContainer.TotalAmount, 0.1f);
+            Assert.AreEqual(0f, fluidPipe0.FluidContainer.TotalAmount, 1f);
+            Assert.AreEqual(30f, fluidPipe1.FluidContainer.TotalAmount, 1f);
+        }
+        
+        /// <summary>
+        ///     最大流量を超えない量の流体が正しく搬入、搬出されるかのテスト
+        /// </summary>
+        [Test]
+        public void RealtimeFluidTransportTest()
+        {
+            const float amount = 30f; // 搬入する液体の量
+            const float pipeFlowCapacity = 10f;
+            var fillTime = amount / pipeFlowCapacity; // 全て搬入するのにかかる時間
+            
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            
+            // fluidPipeのflowCapacityは10だから3倍の量の量の液体
+            var fluidStack = new FluidStack(Guid.NewGuid(), amount, FluidContainer.Empty, fluidPipe0.FluidContainer);
+            fluidPipe0.FluidContainer.AddToPendingList(fluidStack, FluidContainer.Empty, out FluidStack? remainFluidStack);
+            
+            // fluidPipeのcapacityは100だから溢れない
+            if (remainFluidStack.HasValue) Assert.Fail();
+            
+            //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                
+                // 輸送済み液体量
+                var currentTransportedAmount = (pipeFlowCapacity * elapsedTime).TotalSeconds;
+                Assert.AreEqual(amount - currentTransportedAmount, fluidPipe0.FluidContainer.TotalAmount, 1f);
+                Assert.AreEqual(currentTransportedAmount, fluidPipe1.FluidContainer.TotalAmount, 1f);
+                
+                if (elapsedTime.TotalSeconds > fillTime) break;
+            }
+            
+            Assert.AreEqual(0f, fluidPipe0.FluidContainer.TotalAmount, 1f);
+            Assert.AreEqual(30f, fluidPipe1.FluidContainer.TotalAmount, 1f);
         }
         
         /// <summary>

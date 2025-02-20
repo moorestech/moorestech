@@ -16,5 +16,15 @@ namespace Game.Fluid
             TargetContainer = targetContainer;
             PreviousContainer = previousContainer;
         }
+        
+        public static (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack, float amount)
+        {
+            if (fluidStack.Amount <= amount) return (fluidStack, null);
+            
+            var remainAmount = fluidStack.Amount - amount;
+            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.PreviousContainer, fluidStack.TargetContainer);
+            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, FluidContainer.Empty, FluidContainer.Empty);
+            return (newFluidStack, remainFluidStack);
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -33,16 +34,6 @@ namespace Game.Block.Blocks.Fluid
         
         public void Update()
         {
-            foreach (KeyValuePair<IFluidInventory, ConnectedInfo> kvp in _connectorComponent.ConnectedTargets)
-            {
-                var selfOption = kvp.Value.SelfOption as FluidConnectOption;
-                var targetOption = kvp.Value.TargetOption as FluidConnectOption;
-                var target = kvp.Value.TargetBlock.GetComponent<IFluidInventory>();
-                var fluidInventory = kvp.Key;
-                
-                if (selfOption == null || targetOption == null || target == null) throw new Exception();
-            }
-            
             // TODO: targetFluidContainerが存在するかどうかのチェックを行う
             
             for (var i = FluidContainer.PendingFluidStacks.Count - 1; i >= 0; i--)
@@ -55,6 +46,18 @@ namespace Game.Block.Blocks.Fluid
                 {
                     // 元のコンテナは除く
                     if (kvp.Key.FluidContainer == pendingFluidStack.PreviousContainer) continue;
+                    
+                    var selfOption = kvp.Value.SelfOption as FluidConnectOption;
+                    var targetOption = kvp.Value.TargetOption as FluidConnectOption;
+                    var target = kvp.Value.TargetBlock.GetComponent<IFluidInventory>();
+                    if (selfOption == null || targetOption == null || target == null) throw new Exception();
+                    
+                    // どちらかが搬入出をブロックしている場合は除く
+                    if (selfOption.IsOutflowBlocked || targetOption.IsInflowBlocked) continue;
+                    
+                    // どちらかのflowCapacityが0の場合は除く
+                    if (selfOption.FlowCapacity == 0 || targetOption.FlowCapacity == 0) continue;
+                    
                     targetContainers.Add(kvp.Key.FluidContainer);
                 }
                 
@@ -79,15 +82,23 @@ namespace Game.Block.Blocks.Fluid
             // ターゲットに移動する
             foreach (var (targetFluidContainer, fluidStack) in FluidContainer.FluidStacks.Select(kvp => (kvp.Key, kvp.Value)))
             {
+                //TODO: 圧倒的に効率が悪いためキャッシュする、もしくはつながりやネットワーク自体をCoreに作る
+                var connectInfo = _connectorComponent.ConnectedTargets.First(kvp => kvp.Key.FluidContainer == targetFluidContainer).Value;
+                var selfOption = connectInfo.SelfOption as FluidConnectOption;
+                var targetOption = connectInfo.TargetOption as FluidConnectOption;
+                var target = connectInfo.TargetBlock.GetComponent<IFluidInventory>();
+                if (selfOption == null || targetOption == null || target == null) throw new Exception();
+                
+                var minimumFlowCapacity = Mathf.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * (float)GameUpdater.UpdateSecondTime;
+                
+                (var transportingStack, FluidStack? remainStack1) = FluidStack.Split(fluidStack, minimumFlowCapacity);
+                
                 // ターゲットに移動
-                targetFluidContainer.AddToPendingList(fluidStack, FluidContainer, out FluidStack? remainFluidStack);
-                Debug.Log(targetFluidContainer.TotalAmount);
+                targetFluidContainer.AddToPendingList(transportingStack, FluidContainer, out FluidStack? remainStack2);
                 
                 // 残ったfluidStackは元のコンテナにもどす
-                if (remainFluidStack.HasValue)
-                {
-                    FluidContainer.AddToPendingList(remainFluidStack.Value, fluidStack.PreviousContainer, out _);
-                }
+                if (remainStack1.HasValue) FluidContainer.AddToPendingList(remainStack1.Value, fluidStack.PreviousContainer, out _);
+                if (remainStack2.HasValue) FluidContainer.AddToPendingList(remainStack2.Value, fluidStack.PreviousContainer, out _);
             }
             // 余ったstackは全てpendingListに戻っているためFluidStacksを削除
             FluidContainer.FluidStacks.Clear();
