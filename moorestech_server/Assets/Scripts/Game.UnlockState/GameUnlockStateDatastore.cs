@@ -10,6 +10,7 @@ namespace Game.UnlockState
     public interface IGameUnlockStateDatastore
     {
         public IObservable<Guid> OnUnlockRecipe { get; }
+        public IReadOnlyDictionary<Guid, RecipeUnlockStateInfo> RecipeUnlockStateInfos { get; }
         void UnlockRecipe(Guid recipeGuid);
         
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
@@ -18,11 +19,10 @@ namespace Game.UnlockState
     
     public class GameUnlockStateDatastore : IGameUnlockStateDatastore
     {
-        public readonly Dictionary<Guid, RecipeUnlockStateInfo> RecipeUnlockStateInfos = new();
-        private readonly Subject<Guid> _onUnlockRecipe = new();
-        
-        
         public IObservable<Guid> OnUnlockRecipe => _onUnlockRecipe;
+        private readonly Subject<Guid> _onUnlockRecipe = new();
+        public IReadOnlyDictionary<Guid, RecipeUnlockStateInfo> RecipeUnlockStateInfos => _recipeUnlockStateInfos;
+        private readonly Dictionary<Guid, RecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         public void UnlockRecipe(Guid recipeGuid)
         {
             RecipeUnlockStateInfos[recipeGuid].Unlock(); 
@@ -40,7 +40,7 @@ namespace Game.UnlockState
                 foreach (var recipeUnlockStateInfo in stateJsonObject.RecipeUnlockStateInfos)
                 {
                     var recipeGuid = Guid.Parse(recipeUnlockStateInfo.RecipeGuid);
-                    RecipeUnlockStateInfos.Add(recipeGuid, new RecipeUnlockStateInfo(recipeUnlockStateInfo));
+                    _recipeUnlockStateInfos.Add(recipeGuid, new RecipeUnlockStateInfo(recipeUnlockStateInfo));
                 }
                 
                 var recipes = MasterHolder.CraftRecipeMaster.GetAllCraftRecipes();
@@ -49,7 +49,7 @@ namespace Game.UnlockState
                     var guid = recipe.CraftRecipeGuid;
                     if (!RecipeUnlockStateInfos.ContainsKey(guid))
                     {
-                        RecipeUnlockStateInfos.Add(guid, new RecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
+                        _recipeUnlockStateInfos.Add(guid, new RecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
                     }
                 }
             }

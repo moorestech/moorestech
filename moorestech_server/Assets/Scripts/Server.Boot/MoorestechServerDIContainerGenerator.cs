@@ -126,6 +126,7 @@ namespace Server.Boot
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
             
             services.AddSingleton<MapObjectUpdateEventPacket>();
+            services.AddSingleton<UnlockedRecipeEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -149,6 +150,7 @@ namespace Server.Boot
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
+            serviceProvider.GetService<UnlockedRecipeEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
             

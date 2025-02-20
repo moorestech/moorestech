@@ -15,7 +15,8 @@
     "Game.Context",
     "Game.Challenge",
     "Game.Challenge.Interface",
-    "Core.Master"
+    "Core.Master",
+    "Game.UnlockState"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
