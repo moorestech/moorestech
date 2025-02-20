@@ -15,14 +15,15 @@ namespace Game.SaveLoad.Json
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly GameUnlockStateDatastore _gameUnlockStateDatastore;
+        private readonly IGameUnlockStateDatastore _gameUnlockStateDatastore;
         
-        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore)
+        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDatastore gameUnlockStateDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _challengeDatastore = challengeDatastore;
+            _gameUnlockStateDatastore = gameUnlockStateDatastore;
         }
         
         public string AssembleSaveJson()

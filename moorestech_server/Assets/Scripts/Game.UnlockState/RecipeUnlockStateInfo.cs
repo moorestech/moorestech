@@ -20,6 +20,12 @@ namespace Game.UnlockState
             IsUnlocked = jsonObject.IsUnlocked;
         }
         
+        
+        public void Unlock()
+        {
+            IsUnlocked = true;
+        }
+        
         public RecipeUnlockStateInfoJsonObject GetSaveJsonObject()
         {
             return new RecipeUnlockStateInfoJsonObject

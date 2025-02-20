@@ -3,12 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Newtonsoft.Json;
+using UniRx;
 
 namespace Game.UnlockState
 {
-    public class GameUnlockStateDatastore
+    public interface IGameUnlockStateDatastore
+    {
+        public IObservable<Guid> OnUnlockRecipe { get; }
+        void UnlockRecipe(Guid recipeGuid);
+        
+        void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
+        GameUnlockStateJsonObject GetSaveJsonObject();
+    }
+    
+    public class GameUnlockStateDatastore : IGameUnlockStateDatastore
     {
         public readonly Dictionary<Guid, RecipeUnlockStateInfo> RecipeUnlockStateInfos = new();
+        private readonly Subject<Guid> _onUnlockRecipe = new();
+        
+        
+        public IObservable<Guid> OnUnlockRecipe => _onUnlockRecipe;
+        public void UnlockRecipe(Guid recipeGuid)
+        {
+            RecipeUnlockStateInfos[recipeGuid].Unlock(); 
+        }
+        
         
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)
         {
