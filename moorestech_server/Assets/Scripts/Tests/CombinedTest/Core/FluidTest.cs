@@ -167,5 +167,25 @@ namespace Tests.CombinedTest.Core
             Assert.False(option1.IsOutflowBlocked);
             Assert.AreEqual(10, option1.FlowCapacity);
         }
+        
+        /// <summary>
+        ///     一方向のみに流れる設定が機能しているかテスト
+        /// </summary>
+        [Test]
+        public void FlowBlockTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+        }
     }
 }
