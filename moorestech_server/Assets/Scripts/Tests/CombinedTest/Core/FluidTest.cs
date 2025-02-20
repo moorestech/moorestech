@@ -35,9 +35,12 @@ namespace Tests.CombinedTest.Core
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             
+            fluidPipe0.FluidContainer.FluidId = Guid.Parse("00000000-0000-0000-0000-000000000000");
+            fluidPipe1.FluidContainer.FluidId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             var fluidStack = new FluidStack(Guid.NewGuid(), 30f, FluidContainer.Empty, fluidPipe0.FluidContainer);
-            fluidPipe0.FluidContainer.Fill(fluidStack, FluidContainer.Empty, fluidPipe1.FluidContainer, out FluidStack? remainFluidStack);
+            fluidPipe0.FluidContainer.AddToPendingList(fluidStack, FluidContainer.Empty, out FluidStack? remainFluidStack);
             
             // fluidPipeのcapacityは100だから溢れない
             if (remainFluidStack.HasValue) Assert.Fail();
@@ -49,13 +52,15 @@ namespace Tests.CombinedTest.Core
             while (true)
             {
                 GameUpdater.UpdateWithWait();
+                Debug.Log($"{fluidPipe0.FluidContainer.PendingFluidStacks.Count} {fluidPipe0.FluidContainer.FluidStacks.Count} {fluidPipe1.FluidContainer.PendingFluidStacks.Count} {fluidPipe1.FluidContainer.FluidStacks.Count}");
                 
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > fillTime) break;
             }
             
-            Assert.AreEqual(fluidPipe0.FluidContainer.TotalAmount, 0f, 0.1f);
-            Assert.AreEqual(fluidPipe1.FluidContainer.TotalAmount, 30f, 0.1f);
+            
+            Assert.AreEqual(0f, fluidPipe0.FluidContainer.TotalAmount, 0.1f);
+            Assert.AreEqual(30f, fluidPipe1.FluidContainer.TotalAmount, 0.1f);
         }
         
         /// <summary>
