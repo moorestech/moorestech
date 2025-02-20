@@ -4,7 +4,7 @@ using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
-    public class UnlockedRecipeEventPacketTest
+    public class UnlockedCraftRecipeEventPacketTest
     {
         [Test]
         public void UnlockedEventTest()

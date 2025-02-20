@@ -9,9 +9,9 @@ namespace Game.UnlockState
 {
     public interface IGameUnlockStateDatastore
     {
-        public IObservable<Guid> OnUnlockRecipe { get; }
-        public IReadOnlyDictionary<Guid, RecipeUnlockStateInfo> RecipeUnlockStateInfos { get; }
-        void UnlockRecipe(Guid recipeGuid);
+        public IObservable<Guid> OnUnlockCraftRecipe { get; }
+        public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos { get; }
+        void UnlockCraftRecipe(Guid recipeGuid);
         
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
         GameUnlockStateJsonObject GetSaveJsonObject();
@@ -19,15 +19,14 @@ namespace Game.UnlockState
     
     public class GameUnlockStateDatastore : IGameUnlockStateDatastore
     {
-        public IObservable<Guid> OnUnlockRecipe => _onUnlockRecipe;
+        public IObservable<Guid> OnUnlockCraftRecipe => _onUnlockRecipe;
         private readonly Subject<Guid> _onUnlockRecipe = new();
-        public IReadOnlyDictionary<Guid, RecipeUnlockStateInfo> RecipeUnlockStateInfos => _recipeUnlockStateInfos;
-        private readonly Dictionary<Guid, RecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
-        public void UnlockRecipe(Guid recipeGuid)
+        public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
+        private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
+        public void UnlockCraftRecipe(Guid recipeGuid)
         {
-            RecipeUnlockStateInfos[recipeGuid].Unlock(); 
+            CraftRecipeUnlockStateInfos[recipeGuid].Unlock(); 
         }
-        
         
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)
         {
@@ -37,19 +36,19 @@ namespace Game.UnlockState
             
             void LoadRecipeUnlockStateInfos()
             {
-                foreach (var recipeUnlockStateInfo in stateJsonObject.RecipeUnlockStateInfos)
+                foreach (var recipeUnlockStateInfo in stateJsonObject.CraftRecipeUnlockStateInfos)
                 {
-                    var recipeGuid = Guid.Parse(recipeUnlockStateInfo.RecipeGuid);
-                    _recipeUnlockStateInfos.Add(recipeGuid, new RecipeUnlockStateInfo(recipeUnlockStateInfo));
+                    var recipeGuid = Guid.Parse(recipeUnlockStateInfo.CraftRecipeGuid);
+                    _recipeUnlockStateInfos.Add(recipeGuid, new CraftRecipeUnlockStateInfo(recipeUnlockStateInfo));
                 }
                 
                 var recipes = MasterHolder.CraftRecipeMaster.GetAllCraftRecipes();
                 foreach (var recipe in recipes)
                 {
                     var guid = recipe.CraftRecipeGuid;
-                    if (!RecipeUnlockStateInfos.ContainsKey(guid))
+                    if (!CraftRecipeUnlockStateInfos.ContainsKey(guid))
                     {
-                        _recipeUnlockStateInfos.Add(guid, new RecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
+                        _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
                     }
                 }
             }
@@ -59,16 +58,16 @@ namespace Game.UnlockState
         
         public GameUnlockStateJsonObject GetSaveJsonObject()
         {
-            var recipeUnlockStateInfos = RecipeUnlockStateInfos.Values.Select(r => r.GetSaveJsonObject()).ToList();
+            var recipeUnlockStateInfos = CraftRecipeUnlockStateInfos.Values.Select(r => new CraftRecipeUnlockStateInfoJsonObject(r)).ToList();
             return new GameUnlockStateJsonObject
             {
-                RecipeUnlockStateInfos = recipeUnlockStateInfos
+                CraftRecipeUnlockStateInfos = recipeUnlockStateInfos
             };
         }
     }
     
     public class GameUnlockStateJsonObject
     {
-        [JsonProperty("recipeUnlockStateInfos")] public List<RecipeUnlockStateInfoJsonObject> RecipeUnlockStateInfos;
+        [JsonProperty("craftRecipeUnlockStateInfos")] public List<CraftRecipeUnlockStateInfoJsonObject> CraftRecipeUnlockStateInfos;
     }
 }

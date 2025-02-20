@@ -4,7 +4,7 @@ using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class RecipeUnlockStateProtocolTest
+    public class CraftRecipeUnlockStateProtocolTest
     {
         [Test]
         public void GetRecipeStateInfo()
