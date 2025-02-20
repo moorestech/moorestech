@@ -28,8 +28,8 @@ namespace Game.Block.Blocks.TrainRail
 
         public RailControlPoint Front_railControlPoint { get; }
         public RailControlPoint Back_railControlPoint { get; }
+        public RailComponentID railComponentID { get; }//中身はblockの座標とRailSeverComponentからみた自分のID
 
-        RailComponentID railComponentID;//中身はblockの座標とRailSeverComponentからみた自分のID
         // コンストラクタ
         public RailComponent(BlockPositionInfo componentPositionInfo_, RailComponentID railComponentID_ = null)
         {
@@ -42,7 +42,7 @@ namespace Game.Block.Blocks.TrainRail
             FrontNode = new RailNode();
             BackNode = new RailNode();
             RailGraphDatastore.AddRailComponentID(FrontNode, railComponentID);
-            RailGraphDatastore.AddRailComponentID(BackNode, railComponentID);
+            RailGraphDatastore.AddRailComponentID(BackNode, railComponentID.Return_Reverse_Front());
             //RailNodeは必ずしも反対Nodeを持つ必要はないが、RailComponentで生成したものに関しては持つ
             FrontNode.SetOppositeNode(BackNode);
             BackNode.SetOppositeNode(FrontNode);

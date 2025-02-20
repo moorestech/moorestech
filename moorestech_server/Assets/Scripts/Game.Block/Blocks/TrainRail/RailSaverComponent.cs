@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail
 {
-    public class RailSaverComponent : IBlockSaveState
+    public class RailSaverComponent : IBlockComponent, IBlockSaveState
     {
 
         /// <summary>
@@ -16,9 +16,9 @@ namespace Game.Block.Blocks.TrainRail
         /// </summary>
 
         public bool IsDestroy { get; private set; }
-        public static string SaveKey => "RailSaverComponent";
+        public string SaveKey => "RailSaverComponent";
 
-        private RailComponent[] railComponents;
+        public RailComponent[] railComponents { get; private set; }
 
         public RailSaverComponent(RailComponent[] railComponents_)
         {
@@ -28,7 +28,34 @@ namespace Game.Block.Blocks.TrainRail
 
         public string GetSaveState()
         {
-            return "";
+            //必要な情報はrailComponentごとに
+            //自分のRailComponentID
+            //自分のFrontNodeがつながる先のRailNodeに紐づいているRailComponentIDのリスト "_"区切り
+            //自分のBackNodeがつながる先のRailNodeに紐づいているRailComponentIDのリスト "_"区切り
+            //上3つを":"区切り
+            //railComponentの間は";"区切り
+            string saveData = "";
+            foreach (var railComponent in railComponents)
+            {
+                saveData += railComponent.railComponentID.GetSaveState();
+                saveData += ":";
+                var f_nodeList = railComponent.FrontNode.ConnectedNodes;
+                foreach (var f_node in f_nodeList)
+                {
+                    var f_node_railComponent = RailGraphDatastore.GetRailComponentID(f_node);
+                    saveData += f_node_railComponent.GetSaveState() + "_";
+                }
+                saveData += ":";
+                var b_nodeList = railComponent.BackNode.ConnectedNodes;
+                foreach (var b_node in b_nodeList)
+                {
+                    var b_node_railComponent = RailGraphDatastore.GetRailComponentID(b_node);
+                    saveData += b_node_railComponent.GetSaveState() + "_";
+                }
+                saveData += ":";
+                saveData += ";";
+            }
+            return saveData;
         }
 
         public void Destroy()
