@@ -3,6 +3,7 @@ using Game.Challenge;
 using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 
@@ -12,9 +13,14 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         [JsonProperty("worldVersion")] public int WorldVersion = 1;
         
-        public WorldSaveAllInfoV1(List<BlockJsonObject> world, List<PlayerInventorySaveJsonObject> inventory,
-            List<EntityJsonObject> entities, WorldSettingJsonObject setting,
-            List<MapObjectJsonObject> mapObjects, List<ChallengeJsonObject> challenge)
+        public WorldSaveAllInfoV1(
+            List<BlockJsonObject> world, 
+            List<PlayerInventorySaveJsonObject> inventory,
+            List<EntityJsonObject> entities, 
+            WorldSettingJsonObject setting,
+            List<MapObjectJsonObject> mapObjects, 
+            List<ChallengeJsonObject> challenge,
+            GameUnlockStateJsonObject gameUnlockStateJsonObject)
         {
             World = world;
             Inventory = inventory;
@@ -22,6 +28,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             Setting = setting;
             MapObjects = mapObjects;
             Challenge = challenge;
+            GameUnlockStateJsonObject = gameUnlockStateJsonObject;
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -30,5 +37,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("setting")] public WorldSettingJsonObject Setting { get; }
         [JsonProperty("mapObjects")] public List<MapObjectJsonObject> MapObjects { get; set; }
         [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
+        [JsonProperty("gameUnlockState")] public GameUnlockStateJsonObject GameUnlockStateJsonObject { get; set; }
     }
 }
