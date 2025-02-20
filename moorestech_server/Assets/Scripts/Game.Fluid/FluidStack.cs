@@ -6,15 +6,13 @@ namespace Game.Fluid
     {
         public readonly Guid FluidId;
         public float Amount;
-        public FluidContainer FluidContainer;
-        public FluidContainer PreviousFluidContainer;
+        public FluidContainer TargetContainer;
         
-        public FluidStack(Guid fluidId, float amount, FluidContainer fluidContainer, FluidContainer previousFluidContainer)
+        public FluidStack(Guid fluidId, float amount, FluidContainer targetContainer)
         {
             FluidId = fluidId;
             Amount = amount;
-            FluidContainer = fluidContainer;
-            PreviousFluidContainer = previousFluidContainer;
+            TargetContainer = targetContainer;
         }
     }
 }

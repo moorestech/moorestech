@@ -12,7 +12,7 @@ namespace Game.Fluid
         public static readonly FluidContainer Empty = new();
         public readonly float Capacity;
         /// <summary>
-        ///     key: stackのfill元
+        ///     key: stackのtargetFluidContainer
         /// </summary>
         public readonly Dictionary<FluidContainer, FluidStack> FluidStacks = new();
         
@@ -49,18 +49,17 @@ namespace Game.Fluid
         {
             (var addingStack, FluidStack? remainStack) = Split(fluidStack);
             
-            if (!FluidStacks.ContainsKey(addingStack.PreviousFluidContainer))
+            if (!FluidStacks.ContainsKey(addingStack.TargetContainer))
             {
-                FluidStacks[addingStack.PreviousFluidContainer] = new FluidStack(
+                FluidStacks[addingStack.TargetContainer] = new FluidStack(
                     FluidId,
                     0,
-                    this,
-                    addingStack.FluidContainer
+                    addingStack.TargetContainer
                 );
             }
-            var currentStack = FluidStacks[addingStack.PreviousFluidContainer];
+            var currentStack = FluidStacks[addingStack.TargetContainer];
             currentStack.Amount += addingStack.Amount;
-            FluidStacks[addingStack.PreviousFluidContainer] = currentStack;
+            FluidStacks[addingStack.TargetContainer] = currentStack;
             
             remainFluidStack = remainStack;
         }
@@ -69,14 +68,14 @@ namespace Game.Fluid
         ///     FluidStackから可能な限り指定された排出量を排出する
         /// </summary>
         /// <param name="maxDrain">最大排出量</param>
-        /// <param name="previousFluidContainer">fill元</param>
+        /// <param name="targetFluidContainer">次のターゲットの液体コンテナ</param>
         /// <returns>排出したfluidStack</returns>
-        public FluidStack Drain(float maxDrain, FluidContainer previousFluidContainer)
+        public FluidStack Drain(float maxDrain, FluidContainer targetFluidContainer)
         {
             var amount = 0f;
             
             
-            var currentStack = FluidStacks[previousFluidContainer];
+            var currentStack = FluidStacks[targetFluidContainer];
             
             if (currentStack.Amount < maxDrain - amount)
             {
@@ -92,9 +91,9 @@ namespace Game.Fluid
                 currentStack.Amount -= addingAmount;
             }
             
-            FluidStacks[previousFluidContainer] = currentStack;
+            FluidStacks[targetFluidContainer] = currentStack;
             
-            return new FluidStack(FluidId, amount, this, previousFluidContainer);
+            return new FluidStack(FluidId, amount, Empty);
         }
         
         private (FluidStack stack, FluidStack? remain) Split(FluidStack fluidStack)
@@ -103,8 +102,8 @@ namespace Game.Fluid
             if (!(TotalAmount + fluidStack.Amount > Capacity)) return (fluidStack, null);
             
             var remainAmount = fluidStack.Amount - (Capacity - TotalAmount);
-            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, this, fluidStack.PreviousFluidContainer);
-            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, this, fluidStack.PreviousFluidContainer);
+            var remainFluidStack = new FluidStack(fluidStack.FluidId, remainAmount, fluidStack.TargetContainer);
+            var newFluidStack = new FluidStack(fluidStack.FluidId, fluidStack.Amount - remainAmount, Empty);
             return (newFluidStack, remainFluidStack);
         }
     }

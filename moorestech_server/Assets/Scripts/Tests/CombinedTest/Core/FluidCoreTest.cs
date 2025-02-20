@@ -13,7 +13,7 @@ namespace Tests.CombinedTest.Core
         public void FluidFillTest()
         {
             var fluidContainer = new FluidContainer(1, TestFluidId);
-            var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
+            var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
             
             fluidContainer.Fill(stack, out FluidStack? remain);
             
@@ -27,12 +27,12 @@ namespace Tests.CombinedTest.Core
             var fluidContainer = new FluidContainer(1, TestFluidId);
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
+                var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
                 fluidContainer.Fill(stack, out _);
             }
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
+                var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
                 fluidContainer.Fill(stack, out FluidStack? remain);
                 
                 // capacityが1、amountの合計値が1なので余らない
@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Core
             }
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
+                var stack = new FluidStack(TestFluidId, 0.5f, fluidContainer);
                 fluidContainer.Fill(stack, out FluidStack? remain);
                 
                 // capacityが1、amountの合計値が1.5なので全て余る
@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Core
             // 初期化
             var fluidContainer = new FluidContainer(1, TestFluidId);
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty);
                 fluidContainer.Fill(stack, out _);
             }
             

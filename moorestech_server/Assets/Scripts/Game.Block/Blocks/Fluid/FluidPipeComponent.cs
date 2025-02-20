@@ -36,6 +36,7 @@ namespace Game.Block.Blocks.Fluid
                 var selfOption = kvp.Value.SelfOption as FluidConnectOption;
                 var targetOption = kvp.Value.TargetOption as FluidConnectOption;
                 var target = kvp.Value.TargetBlock.GetComponent<IFluidInventory>();
+                var fluidInventory = kvp.Key;
                 
                 if (selfOption == null || targetOption == null || target == null) throw new Exception();
             }
