@@ -21,27 +21,31 @@ namespace Game.Block.Blocks.TrainRail
         // このレールに関連付けられているRailNode（表と裏）
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
-        //3D上のブロック座標など
-        private BlockPositionInfo blockPositionInfo;
+        //ブロックではなくこのRailComponentの存在するべきワールド座標
+        private BlockPositionInfo componentPositionInfo;
         //制御点計算用ベジェ曲線微分強度
         private float bezierStrength = 0.5f;//今後手動でいじれるようにするかも
 
         public RailControlPoint Front_railControlPoint { get; }
         public RailControlPoint Back_railControlPoint { get; }
 
+        RailComponentID railComponentID;//中身はblockの座標とRailSeverComponentからみた自分のID
         // コンストラクタ
-        public RailComponent(BlockPositionInfo blockPositionInfo_)
+        public RailComponent(BlockPositionInfo componentPositionInfo_, RailComponentID railComponentID_ = null)
         {
-            blockPositionInfo = blockPositionInfo_;
-            Front_railControlPoint = new RailControlPoint(blockPositionInfo.OriginalPos, GetControlPoint(true));
-            Back_railControlPoint = new RailControlPoint(blockPositionInfo.OriginalPos, GetControlPoint(false));
+            railComponentID = railComponentID_;
+            componentPositionInfo = componentPositionInfo_;
+            Front_railControlPoint = new RailControlPoint(componentPositionInfo.OriginalPos, GetControlPoint(true));
+            Back_railControlPoint = new RailControlPoint(componentPositionInfo.OriginalPos, GetControlPoint(false));
 
             // RailGraphにノードを登録
             FrontNode = new RailNode();
             BackNode = new RailNode();
+            RailGraphDatastore.AddRailComponentID(FrontNode, railComponentID);
+            RailGraphDatastore.AddRailComponentID(BackNode, railComponentID);
             //RailNodeは必ずしも反対Nodeを持つ必要はないが、RailComponentで生成したものに関しては持つ
-            FrontNode.SetOppositeNode(BackNode, true);
-            BackNode.SetOppositeNode(FrontNode, false);
+            FrontNode.SetOppositeNode(BackNode);
+            BackNode.SetOppositeNode(FrontNode);
             //RailNodeの座標(RailControlPoint)は必ずしも持つ必要はないが、RailComponentで生成したものに関しては持つ
             FrontNode.SetRailControlPoints(Front_railControlPoint, Back_railControlPoint);
             BackNode.SetRailControlPoints(Back_railControlPoint, Front_railControlPoint);////裏Nodeにとって進行方向の制御点はback_railControlPointである
@@ -57,56 +61,68 @@ namespace Game.Block.Blocks.TrainRail
             var myControlPoint = isFront_this ? Front_railControlPoint : Back_railControlPoint;
             var targetControlPoint = isFront_target ? targetRail.Back_railControlPoint : targetRail.Front_railControlPoint;
 
-            int distance = (int)(BezierUtility.GetBezierCurveLength(myControlPoint, targetControlPoint) * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
+            int distance;
             if (defaultdistance != -1)
             {
                 distance = defaultdistance;
             }
+            else 
+            {
+                distance = (int)(BezierUtility.GetBezierCurveLength(myControlPoint, targetControlPoint) * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
+            }
 
 
-            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→表自
+            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→裏自
             {
                 FrontNode.ConnectNode(targetRail.FrontNode, distance);
-                targetRail.BackNode.ConnectNode(BackNode, distance);
+                targetRail.ConnectRailComponent(this, false, false, distance);
+                //targetRail.BackNode.ConnectNode(BackNode, distance);
             }
             else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
             {
                 FrontNode.ConnectNode(targetRail.BackNode, distance);
-                targetRail.FrontNode.ConnectNode(BackNode, distance);
+                targetRail.ConnectRailComponent(this, true, false, distance);
+                //targetRail.FrontNode.ConnectNode(BackNode, distance);
             }
             else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
             {
                 BackNode.ConnectNode(targetRail.FrontNode, distance);
-                targetRail.BackNode.ConnectNode(FrontNode, distance);
+                targetRail.ConnectRailComponent(this, false, true, distance);
+                //targetRail.BackNode.ConnectNode(FrontNode, distance);
             }
             else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
             {
                 BackNode.ConnectNode(targetRail.BackNode, distance);
-                targetRail.FrontNode.ConnectNode(FrontNode, distance);
+                targetRail.ConnectRailComponent(this, true, true, distance);
+                //targetRail.FrontNode.ConnectNode(FrontNode, distance);
             }
         }
 
         public void DisconnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target)
         {
-            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→表自
+            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→裏自
             {
                 FrontNode.DisconnectNode(targetRail.FrontNode);
-                targetRail.BackNode.DisconnectNode(BackNode);
+                targetRail.DisconnectRailComponent(this, false, false);
+                //targetRail.BackNode.DisconnectNode(BackNode);
             }
             else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
             {
                 FrontNode.DisconnectNode(targetRail.BackNode);
-                targetRail.FrontNode.DisconnectNode(BackNode);
+                targetRail.DisconnectRailComponent(this, true, false);
+                //targetRail.FrontNode.DisconnectNode(BackNode);
             }
             else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
             {
                 BackNode.DisconnectNode(targetRail.FrontNode);
-                targetRail.BackNode.DisconnectNode(FrontNode);
+                targetRail.DisconnectRailComponent(this, false, true);
+                //targetRail.BackNode.DisconnectNode(FrontNode);
             }
             else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
             {
                 BackNode.DisconnectNode(targetRail.BackNode);
-                targetRail.FrontNode.DisconnectNode(FrontNode);
+                targetRail.DisconnectRailComponent(this, true, true);
+                //targetRail.FrontNode.DisconnectNode(FrontNode);
             }
         }
 
@@ -123,7 +139,7 @@ namespace Game.Block.Blocks.TrainRail
         // 相対座標を返す
         public Vector3 GetControlPoint(bool isFront)
         {
-            var dir = blockPositionInfo.BlockDirection;
+            var dir = componentPositionInfo.BlockDirection;
             //ここではdirがnorth,east,south,westのみを想定
             Vector3 direction = new Vector3();
             switch (dir)

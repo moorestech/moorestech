@@ -9,10 +9,6 @@ namespace Game.Train.RailGraph
         // ----- シングルトン実装用 -----
         public static RailGraphDatastore _instance;
 
-        /// <summary>
-        /// インスタンスを取得する。nullの場合は内部で生成する例。
-        /// 必要に応じて明示的Initialize()呼び出しでもOK。
-        /// </summary>
         private static RailGraphDatastore Instance
         {
             get
@@ -30,6 +26,7 @@ namespace Game.Train.RailGraph
         private List<RailNode> railNodes;
         private MinHeap<int> nextidQueue;//railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
         private List<List<(int, int)>> connectNodes;
+        private Dictionary<int, RailComponentID> railIdToComponentId;//Nodeに対応するRailComponentIDを保存する。セーブ・ロード用のみ
 
         // コンストラクタは private にして外部から new を禁止
         // →やっぱDIが使用できるよう、コンストラクタをpublicに変更
@@ -39,6 +36,7 @@ namespace Game.Train.RailGraph
             railNodes = new List<RailNode>();
             nextidQueue = new MinHeap<int>();
             connectNodes = new List<List<(int, int)>>();
+            railIdToComponentId = new Dictionary<int, RailComponentID>();
         }
 
         //======================================================
@@ -68,6 +66,16 @@ namespace Game.Train.RailGraph
         public static void RemoveNode(RailNode node)
         {
             Instance.RemoveNodeInternal(node);
+        }
+
+        public static void AddRailComponentID(RailNode node, RailComponentID railComponentID)
+        {
+            Instance.AddRailComponentIDInternal(node, railComponentID);
+        }
+        
+        public static RailComponentID GetRailComponentID(RailNode node)
+        {
+            return Instance.GetRailComponentIDInternal(node);
         }
 
         public static int GetDistanceBetweenNodes(RailNode start, RailNode target)
@@ -114,6 +122,7 @@ namespace Game.Train.RailGraph
             railIdDic[node] = nextid;
         }
 
+
         private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
         {
             if (!railIdDic.ContainsKey(node))
@@ -146,6 +155,7 @@ namespace Game.Train.RailGraph
                 return;
             var nodeid = railIdDic[node];
             railIdDic.Remove(node);
+            railIdToComponentId.Remove(nodeid);
             railNodes[nodeid] = null;
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
@@ -159,6 +169,22 @@ namespace Game.Train.RailGraph
                 connectNodes[i].RemoveAll(x => x.Item1 == nodeid);
             }
         }
+
+
+        private void AddRailComponentIDInternal(RailNode node, RailComponentID railComponentID)
+        {
+            if (!railIdDic.ContainsKey(node))
+                return;
+            railIdToComponentId[railIdDic[node]] = railComponentID;
+        }
+        private RailComponentID GetRailComponentIDInternal(RailNode node)
+        {
+            if (!railIdDic.ContainsKey(node))
+                return null;
+            return railIdToComponentId[railIdDic[node]];
+        }
+
+
 
         private List<(RailNode, int)> GetConnectedNodesWithDistanceInternal(RailNode node)
         {

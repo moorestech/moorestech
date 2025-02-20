@@ -15,7 +15,7 @@ namespace Game.Train.RailGraph
 
         // 自分に対応する裏表のノード
         public RailNode OppositeNode { get; private set; }
-        public bool isFront { get; private set; } // このノードがRailComponentに対し裏表のどちらか(今はセーブのときしか使わない)
+        //public bool isFront { get; private set; } // このノードがRailComponentに対し裏表のどちらか(今はセーブのときしか使わない)
         // 座標はセーブ時と列車座標を求めるときにRailPositionのRailNode情報から3D座標を復元するために使う。
         // なくてもレール接続を組むことは可能だがセーブできないし表示できない
         public RailControlPoint FrontControlPoint { get; private set; }
@@ -57,10 +57,9 @@ namespace Game.Train.RailGraph
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
-        public void SetOppositeNode(RailNode oppositeNode, bool isFront_ = true)
+        public void SetOppositeNode(RailNode oppositeNode)
         {
             OppositeNode = oppositeNode;
-            isFront = isFront_;
         }
 
         public void SetRailControlPoints(RailControlPoint frontControlPoint, RailControlPoint backControlPoint)

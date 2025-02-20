@@ -16,10 +16,13 @@ namespace Game.Block.Blocks.TrainRail
         /// </summary>
 
         public bool IsDestroy { get; private set; }
-        public string SaveKey => "RailSaverComponent";
+        public static string SaveKey => "RailSaverComponent";
 
-        public RailSaverComponent(RailComponent[] railComponents)
+        private RailComponent[] railComponents;
+
+        public RailSaverComponent(RailComponent[] railComponents_)
         {
+            railComponents = railComponents_;
         }
 
 
