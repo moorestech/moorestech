@@ -1,5 +1,7 @@
+using Game.Block.Interface;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
 /// </summary>
@@ -11,12 +13,13 @@ namespace Game.Train.RailGraph
         //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
         //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
 
-
-        // 駅であれば駅のコンポーネント、なければnull
-        //public StationComponent Station { get; private set; }
         // 自分に対応する裏表のノード
         public RailNode OppositeNode { get; private set; }
-
+        public bool isFront { get; private set; } // このノードがRailComponentに対し裏表のどちらか(今はセーブのときしか使わない)
+        // 座標はセーブ時と列車座標を求めるときにRailPositionのRailNode情報から3D座標を復元するために使う。
+        // なくてもレール接続を組むことは可能だがセーブできないし表示できない
+        public RailControlPoint FrontControlPoint { get; private set; }
+        public RailControlPoint BackControlPoint { get; private set; }
 
         /// なぜ IEnumerable を使うのか？
         //IEnumerable<RailNode> を使う理由には以下があります：
@@ -46,18 +49,25 @@ namespace Game.Train.RailGraph
             }
         }
 
-        public RailNode()//StationComponent station = null
+        public RailNode()
         {
-            //Station = station;
             RailGraphDatastore.AddNode(this);
+            FrontControlPoint = null;
+            BackControlPoint = null;
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
-        public void SetOppositeNode(RailNode oppositeNode)
+        public void SetOppositeNode(RailNode oppositeNode, bool isFront_ = true)
         {
             OppositeNode = oppositeNode;
+            isFront = isFront_;
         }
 
+        public void SetRailControlPoints(RailControlPoint frontControlPoint, RailControlPoint backControlPoint)
+        {
+            FrontControlPoint = frontControlPoint;
+            BackControlPoint = backControlPoint;
+        }
 
         //RailGraphに登録する
         //基本的にrailComponent側からのみよびだす

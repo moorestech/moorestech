@@ -10,7 +10,8 @@
         "Core.Inventory",
         "Game.World.Interface",
         "Core.Update",
-        "MessagePack.Annotations"
+        "MessagePack.Annotations",
+        "ClassLibrary"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

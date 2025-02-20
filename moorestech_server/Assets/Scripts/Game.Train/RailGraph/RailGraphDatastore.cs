@@ -123,7 +123,14 @@ namespace Game.Train.RailGraph
                 AddNodeInternal(targetNode);
             var targetid = railIdDic[targetNode];
             if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
+            {
                 connectNodes[nodeid].Add((targetid, distance));
+            }
+            else//もし登録済みなら距離を上書き
+            {
+                connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
+                connectNodes[nodeid].Add((targetid, distance));
+            }
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)

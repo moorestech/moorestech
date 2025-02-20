@@ -1,3 +1,4 @@
+using Game.Train.RailGraph;
 using UnityEngine;
 namespace Game.Train.Utility
 { 
@@ -44,6 +45,8 @@ namespace Game.Train.Utility
         /// <returns>ベジェ曲線の概算距離</returns>
         public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples = 512)
         {
+            if (p0 == p3) 
+                return 0;
             float length = 0f;
             Vector3 previousPoint = GetBezierPoint(p0, p1, p2, p3, 0f);
 
@@ -56,6 +59,21 @@ namespace Game.Train.Utility
             }
 
             return length;
+        }
+
+        // RailControlPointの座標の入力
+        // floatが非常に大きい場合でおこる誤差をちゃんと考慮したver
+        public static float GetBezierCurveLength(RailControlPoint cp0, RailControlPoint cp1, int samples = 512)
+        {
+            var p0 = cp0.OriginalPosition;
+            var p1 = cp0.ControlPointPosition;
+            var p2 = cp1.ControlPointPosition;
+            var p3 = cp1.OriginalPosition;
+            p3 -= p0;
+            p0 -= p0;
+            p1 += p0;
+            p2 += p3;
+            return GetBezierCurveLength(p0, p1, p2, p3, samples);
         }
     }
 }

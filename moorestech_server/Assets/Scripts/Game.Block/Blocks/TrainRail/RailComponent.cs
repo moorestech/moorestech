@@ -7,9 +7,11 @@ using UnityEngine;
 namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
+    /// レールブロック1つにこのコンポーネントが1つ対応する
     /// レールの基本構成要素を表すクラス。
     /// レールに関連する機能を提供。
     /// 基本1つのRailComponentが2つのRailNodeを持つ=裏表
+    /// セーブ・ロードに関しては1つのブロックが2つのRailComponentを持つ可能性があるため"RailSaverComponent.cs"が担当
     /// </summary>
     public class RailComponent : IBlockComponent
     {
@@ -22,17 +24,27 @@ namespace Game.Block.Blocks.TrainRail
         //3D上のブロック座標など
         private BlockPositionInfo blockPositionInfo;
         //制御点計算用ベジェ曲線微分強度
-        private float bezierStrength { get; set; } = 0.5f;//今後手動でいじれるようにするかも
+        private float bezierStrength = 0.5f;//今後手動でいじれるようにするかも
+
+        public RailControlPoint Front_railControlPoint { get; }
+        public RailControlPoint Back_railControlPoint { get; }
 
         // コンストラクタ
         public RailComponent(BlockPositionInfo blockPositionInfo_)
         {
             blockPositionInfo = blockPositionInfo_;
+            Front_railControlPoint = new RailControlPoint(blockPositionInfo.OriginalPos, GetControlPoint(true));
+            Back_railControlPoint = new RailControlPoint(blockPositionInfo.OriginalPos, GetControlPoint(false));
+
             // RailGraphにノードを登録
             FrontNode = new RailNode();
             BackNode = new RailNode();
-            FrontNode.SetOppositeNode(BackNode);
-            BackNode.SetOppositeNode(FrontNode);
+            //RailNodeは必ずしも反対Nodeを持つ必要はないが、RailComponentで生成したものに関しては持つ
+            FrontNode.SetOppositeNode(BackNode, true);
+            BackNode.SetOppositeNode(FrontNode, false);
+            //RailNodeの座標(RailControlPoint)は必ずしも持つ必要はないが、RailComponentで生成したものに関しては持つ
+            FrontNode.SetRailControlPoints(Front_railControlPoint, Back_railControlPoint);
+            BackNode.SetRailControlPoints(Back_railControlPoint, Front_railControlPoint);////裏Nodeにとって進行方向の制御点はback_railControlPointである
         }
 
         //レール接続作業、手動でつなげたときを想定。自分の表or裏を起点に相手の表or裏につながる
@@ -42,11 +54,10 @@ namespace Game.Block.Blocks.TrainRail
         public void ConnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target, int defaultdistance = -1)
         {
             //距離を算出
-            var p0 = (Vector3)GetPosition();//自分のアンカーポイント
-            var p1 = GetControlPoint(isFront_this);//自分の制御点
-            var p2 = targetRail.GetControlPoint(!isFront_target);//相手の制御点
-            var p3 = (Vector3)targetRail.GetPosition();//相手のアンカーポイント
-            int distance = (int)(BezierUtility.GetBezierCurveLength(p0, p1, p2, p3) * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
+            var myControlPoint = isFront_this ? Front_railControlPoint : Back_railControlPoint;
+            var targetControlPoint = isFront_target ? targetRail.Back_railControlPoint : targetRail.Front_railControlPoint;
+
+            int distance = (int)(BezierUtility.GetBezierCurveLength(myControlPoint, targetControlPoint) * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
             if (defaultdistance != -1)
             {
                 distance = defaultdistance;
@@ -99,12 +110,17 @@ namespace Game.Block.Blocks.TrainRail
             }
         }
 
-        // 自分の座標vector3intを返す
-        public Vector3Int GetPosition()
+
+        public void ChangeBezierStrength(float val)
         {
-            return blockPositionInfo.OriginalPos;
+            bezierStrength = val;
+            Front_railControlPoint.ControlPointPosition = GetControlPoint(true);//更新
+            Back_railControlPoint.ControlPointPosition = GetControlPoint(false);//更新
+            //RailComponentが管理するRailNodeの制御点もこれで更新されている
         }
+
         // 自分の向いている方角とbezierStrengthから制御点を計算してvector3で返す
+        // 相対座標を返す
         public Vector3 GetControlPoint(bool isFront)
         {
             var dir = blockPositionInfo.BlockDirection;
@@ -128,11 +144,11 @@ namespace Game.Block.Blocks.TrainRail
             //isFrontがfalseの場合は反対側に制御点を設定
             if (isFront == false)
             {
-                return blockPositionInfo.OriginalPos - direction * bezierStrength;//多分vector3(0.5,0.5,0.5)が足されて中心になる
+                return  -direction * bezierStrength;
             }
             else
             {
-                return blockPositionInfo.OriginalPos + direction * bezierStrength;
+                return direction * bezierStrength;
             }
         }
 
