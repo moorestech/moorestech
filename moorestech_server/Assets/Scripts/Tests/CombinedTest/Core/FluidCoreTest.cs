@@ -13,7 +13,7 @@ namespace Tests.CombinedTest.Core
         public void FluidFillTest()
         {
             var fluidContainer = new FluidContainer(1, TestFluidId);
-            var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+            var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
             
             fluidContainer.Fill(stack, out FluidStack? remain);
             
@@ -27,12 +27,12 @@ namespace Tests.CombinedTest.Core
             var fluidContainer = new FluidContainer(1, TestFluidId);
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
                 fluidContainer.Fill(stack, out _);
             }
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
                 fluidContainer.Fill(stack, out FluidStack? remain);
                 
                 // capacityが1、amountの合計値が1なので余らない
@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Core
             }
             
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, FluidMoveDirection.Forward);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
                 fluidContainer.Fill(stack, out FluidStack? remain);
                 
                 // capacityが1、amountの合計値が1.5なので全て余る
@@ -57,25 +57,23 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidDrainTest()
         {
-            const FluidMoveDirection direction = FluidMoveDirection.Forward;
-            
             // 初期化
             var fluidContainer = new FluidContainer(1, TestFluidId);
             {
-                var stack = new FluidStack(TestFluidId, 0.5f, direction);
+                var stack = new FluidStack(TestFluidId, 0.5f, FluidContainer.Empty, FluidContainer.Empty);
                 fluidContainer.Fill(stack, out _);
             }
             
             // 現在のamountより少ない量をdrainする
             {
-                var stack = fluidContainer.Drain(0.3f, direction);
+                var stack = fluidContainer.Drain(0.3f, FluidContainer.Empty);
                 Assert.AreEqual(0.3f, stack.Amount);
                 Assert.AreEqual(0.2f, fluidContainer.TotalAmount, Delta);
             }
             
             // 現在のamountより多い量をdrainする
             {
-                var stack = fluidContainer.Drain(0.3f, direction);
+                var stack = fluidContainer.Drain(0.3f, FluidContainer.Empty);
                 Assert.AreEqual(0.2f, stack.Amount, Delta);
                 Assert.AreEqual(0f, fluidContainer.TotalAmount);
             }

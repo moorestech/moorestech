@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Core
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
-            var fluidStack = new FluidStack(Guid.NewGuid(), 30f, FluidMoveDirection.Right);
+            var fluidStack = new FluidStack(Guid.NewGuid(), 30f, FluidContainer.Empty, FluidContainer.Empty);
             fluidPipe0.FluidContainer.Fill(fluidStack, out FluidStack? remainFluidStack);
             
             // fluidPipeのcapacityは100だから溢れない
