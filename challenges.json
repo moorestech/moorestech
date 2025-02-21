@@ -229,23 +229,23 @@
             }
           },
 
-          "cleardActions": {
+          "clearedActions": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
 
-                "cleardActionType": {
+                "clearedActionType": {
                   "type": "string",
-                  "enum": ["unlockRecipe"]
+                  "enum": ["unlockCraftRecipe"]
                 },
 
-                "cleardActionParam": {
+                "clearedActionParam": {
                   "oneOf": [
                     {
                       "if": {
                         "properties": {
-                          "tutorialType": { "const": "unlockRecipe" }
+                          "clearedActionType": { "const": "unlockCraftRecipe" }
                         }
                       },
                       "then": {
