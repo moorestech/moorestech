@@ -31,9 +31,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestCraftRecipeUnlockStatusesMessagePack : ProtocolMessagePackBase
         {
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RequestCraftRecipeUnlockStatusesMessagePack() { }
-            public RequestCraftRecipeUnlockStatusesMessagePack(int playerId)
+            public RequestCraftRecipeUnlockStatusesMessagePack()
             {
                 Tag = ProtocolTag;
             }

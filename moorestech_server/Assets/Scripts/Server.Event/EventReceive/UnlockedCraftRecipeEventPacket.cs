@@ -19,7 +19,7 @@ namespace Server.Event.EventReceive
         
         private void OnUnlockCraftRecipe(Guid recipeGuid)
         {
-            var messagePack = new UnlockCraftRecipeEventMessage(recipeGuid);
+            var messagePack = new UnlockCraftRecipeEventMessagePack(recipeGuid);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
@@ -27,14 +27,14 @@ namespace Server.Event.EventReceive
     }
     
     [MessagePackObject]
-    public class UnlockCraftRecipeEventMessage
+    public class UnlockCraftRecipeEventMessagePack
     {
         [Key(0)] public string UnlockedCraftRecipeGuidStr { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public UnlockCraftRecipeEventMessage() { }
+        public UnlockCraftRecipeEventMessagePack() { }
         
-        public UnlockCraftRecipeEventMessage(Guid unlockedRecipeGuid)
+        public UnlockCraftRecipeEventMessagePack(Guid unlockedRecipeGuid)
         {
             UnlockedCraftRecipeGuidStr = unlockedRecipeGuid.ToString();
         }

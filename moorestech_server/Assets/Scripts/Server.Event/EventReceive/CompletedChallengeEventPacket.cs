@@ -21,7 +21,7 @@ namespace Server.Event.EventReceive
         
         private void OnCompletedChallenge(IChallengeTask currentChallenge)
         {
-            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            var messagePack = new CompletedChallengeEventMessagePack(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             var playerId = currentChallenge.PlayerId;
@@ -30,17 +30,17 @@ namespace Server.Event.EventReceive
     }
     
     [MessagePackObject]
-    public class CompletedChallengeEventMessage
+    public class CompletedChallengeEventMessagePack
     {
         [Key(0)] public string CompletedChallengeGuidStr { get; set; }
         [IgnoreMember] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public CompletedChallengeEventMessage()
+        public CompletedChallengeEventMessagePack()
         {
         }
         
-        public CompletedChallengeEventMessage(Guid completedChallengeGuid)
+        public CompletedChallengeEventMessagePack(Guid completedChallengeGuid)
         {
             CompletedChallengeGuidStr = completedChallengeGuid.ToString();
         }
