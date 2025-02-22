@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UnlockState;
 using Core.Master;
 using Game.CraftChainer.Util;
 using Mooresmaster.Model.CraftRecipesModule;
@@ -36,21 +37,24 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private ItemSlotObject _craftResultSlot;
         private ILocalPlayerInventory _localPlayerInventory;
         private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        private ClientGameUnlockStateDatastore _unlockStateDatastore;
         
-        private int CraftRecipeCount => _currentItemRecipes.CraftRecipes.Count;
+        private int CraftRecipeCount => _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore).Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private int _currentIndex;
         
         [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
+        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer, ClientGameUnlockStateDatastore unlockStateDatastore)
         {
+            _unlockStateDatastore = unlockStateDatastore;
             _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
             _localPlayerInventory = localPlayerInventory;
             _localPlayerInventory.OnItemChange.Subscribe(_ =>
             {
                 if (_currentItemRecipes != null && _currentIndex < CraftRecipeCount)
                 {
-                    UpdateCraftButton(_currentItemRecipes.CraftRecipes[_currentIndex]);
+                    var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore);
+                    UpdateCraftButton(currentUnlocked[_currentIndex]);
                 }
             });
             
@@ -75,7 +79,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     return;
                 }
                 
-                var currentCraftGuid = _currentItemRecipes.CraftRecipes[_currentIndex].CraftRecipeGuid;
+                var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore);
+                var currentCraftGuid = currentUnlocked[_currentIndex].CraftRecipeGuid;
                 ClientContext.VanillaApi.SendOnly.Craft(currentCraftGuid);
             }).AddTo(this);
         }
@@ -93,7 +98,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public void DisplayRecipe(int index)
         {
-            var craftRecipe = _currentItemRecipes.CraftRecipes[index];
+            var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore);
+            var craftRecipe = currentUnlocked[index];
             
             ClearSlotObject();
             

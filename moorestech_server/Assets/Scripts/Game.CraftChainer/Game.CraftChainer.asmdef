@@ -11,7 +11,8 @@
         "Core.Inventory",
         "Game.World.Interface",
         "MessagePack",
-        "MessagePack.Annotations"
+        "MessagePack.Annotations",
+        "Game.UnlockState"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
