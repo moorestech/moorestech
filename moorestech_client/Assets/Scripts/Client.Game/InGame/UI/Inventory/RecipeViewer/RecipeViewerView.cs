@@ -27,12 +27,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             recipeTabView.OnClickTab.Subscribe(OnClickTab);
         }
         
-        [Inject]
-        public void Construct(ClientGameUnlockStateDatastore unlockStateDatastore)
-        {
-            _unlockStateDatastore = unlockStateDatastore;
-        }
-        
         private void SetItemListView(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
             if (recipeViewerItemRecipes == null)

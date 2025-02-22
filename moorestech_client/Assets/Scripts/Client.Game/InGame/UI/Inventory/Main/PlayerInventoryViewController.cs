@@ -38,7 +38,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private bool _isItemOneDragging;
         private bool _isItemSplitDragging;
         
-        private LocalPlayerInventoryController _playerInventory;
+        [Inject] private LocalPlayerInventoryController _playerInventory;
         
         private ISubInventory _subInventory;
         
@@ -49,16 +49,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
             foreach (var mainInventorySlotObject in mainInventorySlotObjects) mainInventorySlotObject.OnPointerEvent.Subscribe(ItemSlotUIEvent);
         }
         
-        
         private void Update()
         {
             InventoryViewUpdate();
-        }
-        
-        [Inject]
-        public void Construct(LocalPlayerInventoryController playerInventory)
-        {
-            _playerInventory = playerInventory;
         }
         
         public void SetSubInventory(ISubInventory subInventory)

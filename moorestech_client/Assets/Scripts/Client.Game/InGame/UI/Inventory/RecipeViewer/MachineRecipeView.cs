@@ -33,21 +33,18 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         private readonly List<ItemSlotObject> _inputSlotList = new();
         private readonly List<ItemSlotObject> _outputSlotList = new();
-        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
         private int MachineRecipeCount => _currentItemRecipes.MachineRecipes[_currentBlockId].Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private BlockId _currentBlockId;
         private int _currentIndex;
         
-
         [Inject]
-        public void Construct(ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
+        public void Construct()
         {
             machineObject.SetFrame(ItemSlotFrameType.MachineSlot);
             machineObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
-            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
-
             
             nextRecipeButton.onClick.AddListener(() =>
             {

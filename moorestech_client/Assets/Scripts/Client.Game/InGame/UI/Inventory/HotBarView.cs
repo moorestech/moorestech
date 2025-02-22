@@ -18,9 +18,11 @@ namespace Client.Game.InGame.UI.Inventory
         [SerializeField] private List<HotBarItem> hotBarItems;
         [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
+        [Inject] private ILocalPlayerInventory _localPlayerInventory;
+        public event Action<int> OnSelectHotBar;
+        
         
         private GameObject _currentGrabItem;
-        private ILocalPlayerInventory _localPlayerInventory;
         
         public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
         public int SelectIndex { get; private set; }
@@ -101,13 +103,6 @@ namespace Client.Game.InGame.UI.Inventory
             #endregion
         }
         
-        public event Action<int> OnSelectHotBar;
-        
-        [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory)
-        {
-            _localPlayerInventory = localPlayerInventory;
-        }
         
         private void UpdateSelectedView(int prevIndex, int nextIndex)
         {

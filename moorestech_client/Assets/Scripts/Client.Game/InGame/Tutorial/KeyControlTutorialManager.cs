@@ -14,13 +14,7 @@ namespace Client.Game.InGame.Tutorial
         [SerializeField] private TMP_Text keyControlTutorialText;
         
         private KeyControlTutorialParam _keyControlTutorialParam;
-        private UIStateControl _uiStateControl;
-        
-        [Inject]
-        public void Construct(UIStateControl uiStateControl)
-        {
-            _uiStateControl = uiStateControl;
-        }
+        [Inject] private UIStateControl _uiStateControl;
         
         private void Update()
         {
