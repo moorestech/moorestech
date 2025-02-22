@@ -41,7 +41,7 @@ namespace Client.Game.InGame.Mining
         
         private IMapObjectMiningState PickUpProcess(MapObjectMiningControllerContext context)
         {
-            if (InputManager.Playable.ScreenLeftClick.GetKey)
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
                 MouseCursorExplainer.Instance.Hide();
                 return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject, int.MaxValue);

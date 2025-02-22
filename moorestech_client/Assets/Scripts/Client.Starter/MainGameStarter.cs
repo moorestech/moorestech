@@ -64,6 +64,7 @@ namespace Client.Starter
         [SerializeField] private MachineRecipeView machineRecipeView;
         [SerializeField] private RecipeViewerView recipeViewerView;
         [SerializeField] private ItemListView itemListView;
+        [SerializeField] private RecipeTabView recipeTabView;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -163,6 +164,7 @@ namespace Client.Starter
             builder.RegisterComponent(machineRecipeView);
             builder.RegisterComponent(recipeViewerView);
             builder.RegisterComponent(itemListView);
+            builder.RegisterComponent(recipeTabView);
             
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);

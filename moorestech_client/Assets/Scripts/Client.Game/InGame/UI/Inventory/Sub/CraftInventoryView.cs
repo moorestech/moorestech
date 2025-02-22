@@ -35,20 +35,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         private ItemSlotObject _craftResultSlot;
-        private ILocalPlayerInventory _localPlayerInventory;
-        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        private ClientGameUnlockStateDatastore _unlockStateDatastore;
+        [Inject] private ILocalPlayerInventory _localPlayerInventory;
+        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
         
         private int CraftRecipeCount => _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore).Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private int _currentIndex;
         
         [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer, ClientGameUnlockStateDatastore unlockStateDatastore)
+        public void Construct()
         {
-            _unlockStateDatastore = unlockStateDatastore;
-            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
-            _localPlayerInventory = localPlayerInventory;
             _localPlayerInventory.OnItemChange.Subscribe(_ =>
             {
                 if (_currentItemRecipes != null && _currentIndex < CraftRecipeCount)

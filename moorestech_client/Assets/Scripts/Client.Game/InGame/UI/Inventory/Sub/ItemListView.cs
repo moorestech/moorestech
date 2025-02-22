@@ -18,20 +18,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemListParent;
+        [Inject] private ILocalPlayerInventory _localPlayerInventory;
+        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
         private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
         
-        private ILocalPlayerInventory _localPlayerInventory;
-        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        private readonly List<ItemSlotObject> _itemListObjects = new();
         
         [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
+        public void Construct()
         {
-            _localPlayerInventory = localPlayerInventory;
-            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
-            
             _localPlayerInventory.OnItemChange.Subscribe(OnInventoryItemChange);
             
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
