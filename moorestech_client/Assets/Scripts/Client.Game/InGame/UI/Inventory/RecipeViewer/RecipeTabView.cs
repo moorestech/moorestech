@@ -22,13 +22,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         private readonly List<RecipeViewerTabElement> _currentTabs = new();
         
-        private ClientGameUnlockStateDatastore _unlockStateDatastore;
-        
-        [Inject]
-        public void Construct(ClientGameUnlockStateDatastore unlockStateDatastore)
-        {
-            _unlockStateDatastore = unlockStateDatastore;
-        }
+        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
         
         public void SetRecipeTabView(RecipeViewerItemRecipes recipes)
         {

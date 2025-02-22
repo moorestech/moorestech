@@ -17,7 +17,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         [SerializeField] private ItemListView itemListView;
         
-        private ClientGameUnlockStateDatastore _unlockStateDatastore;
+        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
         
         private void Awake()
         {
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             {
                 craftInventoryView.DisplayRecipe(0);
             }
-            else
+            else if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
             {
                 machineRecipeView.DisplayRecipe(0);
             }
