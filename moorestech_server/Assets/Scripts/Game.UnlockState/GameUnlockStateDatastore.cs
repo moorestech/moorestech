@@ -7,15 +7,6 @@ using UniRx;
 
 namespace Game.UnlockState
 {
-    public interface IGameUnlockStateDatastore
-    {
-        public IObservable<Guid> OnUnlockCraftRecipe { get; }
-        public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos { get; }
-        void UnlockCraftRecipe(Guid recipeGuid);
-        
-        void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
-        GameUnlockStateJsonObject GetSaveJsonObject();
-    }
     
     public class GameUnlockStateDatastore : IGameUnlockStateDatastore
     {

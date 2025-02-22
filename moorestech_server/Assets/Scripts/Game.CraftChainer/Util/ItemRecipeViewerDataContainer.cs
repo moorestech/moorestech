@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.UnlockState;
 using Mooresmaster.Model.CraftRecipesModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
@@ -66,7 +67,7 @@ namespace Game.CraftChainer.Util
                 var itemId = kv.Key;
                 var recipe = kv.Value;
                 
-                if (recipe.CraftRecipes.Count == 0 && recipe.MachineRecipes.Count == 0)
+                if (recipe.AllCraftRecipes.Count == 0 && recipe.MachineRecipes.Count == 0)
                 {
                     removeList.Add(itemId);
                 }
@@ -88,14 +89,20 @@ namespace Game.CraftChainer.Util
         public readonly ItemId ResultItemId;
         
         //TODO 他のmodの他のレシピにも対応できるようの柔軟性をもたせた設計を考える
-        public readonly List<CraftRecipeMasterElement> CraftRecipes;
         public readonly Dictionary<BlockId, List<MachineRecipeMasterElement>> MachineRecipes;
+        public readonly List<CraftRecipeMasterElement> AllCraftRecipes;
+        
         
         public RecipeViewerItemRecipes(List<CraftRecipeMasterElement> craftRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> machineRecipes, ItemId resultItemId)
         {
-            CraftRecipes = craftRecipes;
+            AllCraftRecipes = craftRecipes;
             MachineRecipes = machineRecipes;
             ResultItemId = resultItemId;
+        }
+        
+        public List<CraftRecipeMasterElement> UnlockedCraftRecipes(IUnlockCraftRecipeStateDatastore unlockCraftRecipeStateDatastore)
+        {
+            return AllCraftRecipes.Where(craftRecipe => unlockCraftRecipeStateDatastore.CraftRecipeUnlockStateInfos[craftRecipe.CraftRecipeGuid].IsUnlocked).ToList();
         }
     }
 }

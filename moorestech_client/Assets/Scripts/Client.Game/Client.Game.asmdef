@@ -54,7 +54,8 @@
         "Game.Challenge.Interface",
         "UniTask.DOTween",
         "Core.Master",
-        "Game.CraftChainer"
+        "Game.CraftChainer",
+        "Game.UnlockState"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

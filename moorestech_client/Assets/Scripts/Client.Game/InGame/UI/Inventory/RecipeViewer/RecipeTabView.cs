@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Sub;
+using Client.Game.InGame.UnlockState;
 using Core.Master;
 using Game.CraftChainer.Util;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
@@ -21,6 +22,8 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         private readonly List<RecipeViewerTabElement> _currentTabs = new();
         
+        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
+        
         public void SetRecipeTabView(RecipeViewerItemRecipes recipes)
         {
             foreach (var tab in _currentTabs)
@@ -33,7 +36,8 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             // クラフトタブがあればそれを優先的異選択
             // If there is a craft tab, select it preferentially
             var isFirstCraft = false;
-            if (recipes.CraftRecipes.Count != 0)
+            var unlockedRecipe = recipes.UnlockedCraftRecipes(_unlockStateDatastore);
+            if (unlockedRecipe.Count != 0)
             {
                 var tabElement = Instantiate(tabElementPrefab, tabElementParent);
                 tabElement.Initialize();

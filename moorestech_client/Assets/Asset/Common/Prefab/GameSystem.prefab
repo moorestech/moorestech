@@ -576,6 +576,7 @@ MonoBehaviour:
   machineRecipeView: {fileID: 640865458100709969}
   recipeViewerView: {fileID: 807033093719594881}
   itemListView: {fileID: 7746862281990510609}
+  recipeTabView: {fileID: 6932463085528317352}
   mapObjectPin: {fileID: 467412427984320023}
   uiHighlightTutorialManager: {fileID: 3842753579192151890}
   keyControlTutorialManager: {fileID: 6070939093797517548}
@@ -2027,6 +2028,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69fc92d2d835412b9df9dac1b589bf0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6932463085528317352 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4936788972155392462, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 2645848407441091686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f415405102648558feaab4fc3e44a8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &7499633600282642158 stripped

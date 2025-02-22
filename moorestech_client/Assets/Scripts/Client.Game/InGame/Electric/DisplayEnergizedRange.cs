@@ -21,23 +21,18 @@ namespace Client.Game.InGame.Electric
         [SerializeField] private EnergizedRangeObject rangePrefab;
         private readonly List<EnergizedRangeObject> rangeObjects = new();
         
-        private BlockGameObjectDataStore _blockGameObjectDataStore;
-        private HotBarView _hotBarView;
-        private ILocalPlayerInventory _localPlayerInventory;
+        [Inject] private BlockGameObjectDataStore _blockGameObjectDataStore;
+        [Inject] private HotBarView _hotBarView;
+        [Inject] private ILocalPlayerInventory _localPlayerInventory;
         
         private bool isBlockPlaceState;
         
         [Inject]
-        public void Construct(HotBarView hotBarView, UIStateControl uiStateControl, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
+        public void Construct(UIStateControl uiStateControl)
         {
-            _blockGameObjectDataStore = blockGameObjectDataStore;
-            
-            _localPlayerInventory = localPlayerInventory;
-            _hotBarView = hotBarView;
-            
-            hotBarView.OnSelectHotBar += OnSelectHotBar;
+            _hotBarView.OnSelectHotBar += OnSelectHotBar;
             uiStateControl.OnStateChanged += OnStateChanged;
-            blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock);
+            _blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock);
         }
         
         private void OnSelectHotBar(int index)
