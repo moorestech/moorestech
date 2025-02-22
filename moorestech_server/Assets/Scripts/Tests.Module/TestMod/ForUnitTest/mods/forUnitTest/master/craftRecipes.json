@@ -63,7 +63,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003"
         }
       ],
-      "craftRecipeGuid": "00000010-0000-0000-0000-000000000004",
+      "craftRecipeGuid": "00000010-0000-0000-0000-000000000003",
       "craftTime": 3,
       "initialUnlocked": false
     }

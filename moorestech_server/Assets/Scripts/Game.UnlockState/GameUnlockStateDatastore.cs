@@ -19,6 +19,20 @@ namespace Game.UnlockState
     
     public class GameUnlockStateDatastore : IGameUnlockStateDatastore
     {
+        public GameUnlockStateDatastore()
+        {
+            var recipes = MasterHolder.CraftRecipeMaster.GetAllCraftRecipes();
+            foreach (var recipe in recipes)
+            {
+                var guid = recipe.CraftRecipeGuid;
+                if (!CraftRecipeUnlockStateInfos.ContainsKey(guid))
+                {
+                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
+                }
+            }
+        }
+        
+        
         public IObservable<Guid> OnUnlockCraftRecipe => _onUnlockRecipe;
         private readonly Subject<Guid> _onUnlockRecipe = new();
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
@@ -39,17 +53,7 @@ namespace Game.UnlockState
                 foreach (var recipeUnlockStateInfo in stateJsonObject.CraftRecipeUnlockStateInfos)
                 {
                     var recipeGuid = Guid.Parse(recipeUnlockStateInfo.CraftRecipeGuid);
-                    _recipeUnlockStateInfos.Add(recipeGuid, new CraftRecipeUnlockStateInfo(recipeUnlockStateInfo));
-                }
-                
-                var recipes = MasterHolder.CraftRecipeMaster.GetAllCraftRecipes();
-                foreach (var recipe in recipes)
-                {
-                    var guid = recipe.CraftRecipeGuid;
-                    if (!CraftRecipeUnlockStateInfos.ContainsKey(guid))
-                    {
-                        _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
-                    }
+                    _recipeUnlockStateInfos[recipeGuid] = new CraftRecipeUnlockStateInfo(recipeUnlockStateInfo);
                 }
             }
             

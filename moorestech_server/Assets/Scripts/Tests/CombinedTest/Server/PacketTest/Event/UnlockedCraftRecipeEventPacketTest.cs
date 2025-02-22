@@ -1,3 +1,11 @@
+using System;
+using System.Linq;
+using Core.Master;
+using Core.Update;
+using Game.Challenge;
+using Game.Context;
+using Game.PlayerInventory.Interface;
+using Game.SaveLoad.Interface;
 using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,10 +49,41 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(Craft3.ToString(), data.UnlockedCraftRecipeGuidStr);
         }
         
+        /// <summary>
+        /// チャレンジがクリアされたらあんロックされるレシピのテスト
+        /// </summary>
         [Test]
         public void ClearedChallengeToUnlockEventTest()
         {
-            Assert.Fail();
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            
+            // インベントリに別々にアイテムを追加
+            const int itemId = 1;
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var item1 = ServerContext.ItemStackFactory.Create(new ItemId(itemId), 2);
+            playerInventoryData.MainOpenableInventory.SetItem(1, item1);
+            var item2 = ServerContext.ItemStackFactory.Create(new ItemId(itemId), 1);
+            playerInventoryData.MainOpenableInventory.SetItem(2, item2);
+            
+            // アップデートしてチャレンジをコンプリートする
+            GameUpdater.UpdateWithWait();
+            
+            // イベントを受け取り、テストする
+            // Receive and test the event
+            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0].ToArray());
+            
+            // レシピアンロックのイベントを取得
+            // Get the recipe unlock event
+            var unlockedCraftRecipeEvent = eventMessagePack.Events.First(e => e.Tag == UnlockedCraftRecipeEventPacket.EventTag);
+            var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(unlockedCraftRecipeEvent.Payload);
+            
+            // Craft2のレシピがアンロックされたことを確認する
+            // Make sure the recipe for Craft2 is unlocked
+            Assert.AreEqual(Craft2, unlockCraftRecipeEvent.UnlockedCraftRecipeGuid);
         }
     }
 }

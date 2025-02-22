@@ -31,6 +31,8 @@ namespace Server.Event.EventReceive
     {
         [Key(0)] public string UnlockedCraftRecipeGuidStr { get; set; }
         
+        [IgnoreMember] public Guid UnlockedCraftRecipeGuid => Guid.Parse(UnlockedCraftRecipeGuidStr);
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public UnlockCraftRecipeEventMessagePack() { }
         
