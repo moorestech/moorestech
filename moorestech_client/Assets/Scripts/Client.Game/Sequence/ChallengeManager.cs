@@ -48,7 +48,7 @@ namespace Client.Game.Sequence
         
         private void OnCompletedChallenge(byte[] packet)
         {
-            var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(packet);
+            var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
             var challengeInfo = MasterHolder.ChallengeMaster.GetChallenge(message.CompletedChallengeGuid);
             var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(challengeInfo.ChallengeGuid);
             

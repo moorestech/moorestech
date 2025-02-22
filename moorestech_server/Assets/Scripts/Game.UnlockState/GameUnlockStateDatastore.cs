@@ -27,7 +27,7 @@ namespace Game.UnlockState
                 var guid = recipe.CraftRecipeGuid;
                 if (!CraftRecipeUnlockStateInfos.ContainsKey(guid))
                 {
-                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
+                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked ?? false));
                 }
             }
         }
