@@ -21,6 +21,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
+using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.Sequence;
 using Client.Game.Skit;
@@ -131,9 +132,11 @@ namespace Client.Starter
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
-            // チュートリアル関連
-            // register tutorial
+            // その他インスタンス
+            // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
+            builder.Register<ClientGameUnlockStateDatastore>(Lifetime.Singleton);
+            
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
