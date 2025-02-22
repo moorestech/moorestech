@@ -18,16 +18,12 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var playerId = 1;
             
-            var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             //からの時のデータ要求
-            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId))
-                .ToList();
+            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId)).ToList();
             //データの検証
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(
-                packet.GetPacketResponse(payload)[0].ToArray());
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
             Assert.AreEqual(playerId, data.PlayerId);
             
             //プレイヤーインベントリの検証
@@ -51,12 +47,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //2回目のデータ要求
-            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(
-                packet.GetPacketResponse(payload)[0].ToArray());
+            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
             Assert.AreEqual(playerId, data.PlayerId);
             
             //データの検証
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            {
                 if (i == 0)
                 {
                     Assert.AreEqual(1, data.Main[i].Id.AsPrimitive());
@@ -77,6 +73,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                     Assert.AreEqual(ItemMaster.EmptyItemId, data.Main[i].Id);
                     Assert.AreEqual(0, data.Main[i].Count);
                 }
+            }
         }
     }
 }

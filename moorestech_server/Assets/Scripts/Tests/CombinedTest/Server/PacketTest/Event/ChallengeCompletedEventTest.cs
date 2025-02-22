@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
-            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
+            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000001");
             Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
@@ -91,7 +91,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
-            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
+            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000002");
             Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
@@ -112,7 +112,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
-            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(challengeCompleted.Payload);
+            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000003");
             Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);

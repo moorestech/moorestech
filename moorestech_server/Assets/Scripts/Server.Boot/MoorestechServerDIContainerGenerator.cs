@@ -28,6 +28,7 @@ using Game.PlayerInventory.Interface.Event;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.RailGraph;
+using Game.UnlockState;
 using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
@@ -96,6 +97,7 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
+            services.AddSingleton<IGameUnlockStateDatastore, GameUnlockStateDatastore>();
 
             services.AddSingleton<ItemRecipeViewerDataContainer>();
             
@@ -126,6 +128,7 @@ namespace Server.Boot
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
             
             services.AddSingleton<MapObjectUpdateEventPacket>();
+            services.AddSingleton<UnlockedCraftRecipeEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -149,6 +152,7 @@ namespace Server.Boot
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
+            serviceProvider.GetService<UnlockedCraftRecipeEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
             

@@ -32,7 +32,8 @@
         "Game.Challenge",
         "Core.Master",
         "Game.CraftChainer",
-        "Game.Train"
+        "Game.Train",
+        "Game.UnlockState"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
