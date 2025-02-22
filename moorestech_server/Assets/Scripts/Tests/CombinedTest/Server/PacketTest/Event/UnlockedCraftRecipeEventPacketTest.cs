@@ -39,6 +39,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDatastore>();
             unlockStateDatastore.UnlockCraftRecipe(Craft3);
             
+            // イベントを受け取り、テストする
+            // Receive and test the event
+            response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0].ToArray());
+            
             // イベントがあることを確認する
             // Make sure there are events
             Assert.AreEqual(1, eventMessagePack.Events.Count);
@@ -73,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
             var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0].ToArray());
             
             // レシピアンロックのイベントを取得

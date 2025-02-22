@@ -39,7 +39,8 @@ namespace Game.UnlockState
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         public void UnlockCraftRecipe(Guid recipeGuid)
         {
-            CraftRecipeUnlockStateInfos[recipeGuid].Unlock(); 
+            CraftRecipeUnlockStateInfos[recipeGuid].Unlock();
+            _onUnlockRecipe.OnNext(recipeGuid);
         }
         
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)

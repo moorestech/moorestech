@@ -13,7 +13,8 @@
     "Game.Block.Interface",
     "Game.World",
     "Game.World.Interface",
-    "Core.Master"
+    "Core.Master",
+    "Game.UnlockState"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
