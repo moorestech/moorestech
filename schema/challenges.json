@@ -227,6 +227,43 @@
                 }
               }
             }
+          },
+
+          "clearedActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+
+                "clearedActionType": {
+                  "type": "string",
+                  "enum": ["unlockCraftRecipe"]
+                },
+
+                "clearedActionParam": {
+                  "oneOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "clearedActionType": { "const": "unlockCraftRecipe" }
+                        }
+                      },
+                      "then": {
+                        "type": "object",
+                        "properties": {
+                          "unlockRecipeGuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "foreignKey": "craftRecipes:craftRecipeGuid:craftRecipeGuid"
+                          }
+                        }
+                      }
+                    }
+
+                  ]
+                }
+              }
+            }
           }
         }
       }

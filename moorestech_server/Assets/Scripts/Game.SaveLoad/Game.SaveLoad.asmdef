@@ -10,7 +10,8 @@
     "Game.SaveLoad.Interface",
     "Game.Block.Interface",
     "Game.Context",
-    "Game.Challenge"
+    "Game.Challenge",
+    "Game.UnlockState"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
