@@ -1,0 +1,15 @@
+{
+  "$id": "schemaSample",
+  "type": "object",
+  "isDefaultOpen": true,
+
+  "properties": {
+    "data": {
+      "type": "array",
+      "overrideCodeGeneratePropertyName": "schemaSampleElement",
+
+      "items": {
+      }
+    }
+  }
+}
