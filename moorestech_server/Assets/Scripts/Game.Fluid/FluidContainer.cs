@@ -10,7 +10,7 @@ namespace Game.Fluid
     public class FluidContainer
     {
         public static readonly FluidContainer Empty = new();
-        public readonly float Capacity;
+        public readonly double Capacity;
         /// <summary>
         ///     key: stackのtargetFluidContainer
         /// </summary>
@@ -25,7 +25,7 @@ namespace Game.Fluid
         
         /// <param name="capacity">液体の許容量</param>
         /// <param name="fluidId">内部の液体のID</param>
-        public FluidContainer(float capacity, Guid fluidId)
+        public FluidContainer(double capacity, Guid fluidId)
         {
             Capacity = capacity;
             FluidId = fluidId;
@@ -42,7 +42,7 @@ namespace Game.Fluid
         }
         
         //TODO: CurrentCapacityをキャッシュする。現時点では実装の簡単のため毎回計算する
-        public float TotalAmount => FluidStacks.Sum(kvp => kvp.Value.Amount) + PendingFluidStacks.Sum(s => s.Amount);
+        public double TotalAmount => FluidStacks.Sum(kvp => kvp.Value.Amount) + PendingFluidStacks.Sum(s => s.Amount);
         
         /// <summary>
         ///     PendingListに追加する
@@ -96,9 +96,9 @@ namespace Game.Fluid
         /// <param name="maxDrain">最大排出量</param>
         /// <param name="targetFluidContainer">次のターゲットの液体コンテナ</param>
         /// <returns>排出したfluidStack</returns>
-        public FluidStack Drain(float maxDrain, FluidContainer targetFluidContainer)
+        public FluidStack Drain(double maxDrain, FluidContainer targetFluidContainer)
         {
-            var amount = 0f;
+            var amount = 0d;
             
             
             var currentStack = FluidStacks[targetFluidContainer];
