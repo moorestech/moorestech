@@ -297,7 +297,7 @@
             "$memo": "ここはbooleanにしたいけど、コード生成側の都合で出来ないのでいったんstringにしている"
           },
 
-          "displayInChallengeListParam": {
+          "displayListParam": {
             "oneOf": [
               {
                 "if": {
