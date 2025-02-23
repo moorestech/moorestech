@@ -133,6 +133,7 @@ namespace Client.Starter
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
+            builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
             // その他インスタンス

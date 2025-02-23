@@ -41,6 +41,8 @@ namespace Client.Game.InGame.UI.Challenge
             // Set the RectTransform of ScrollContent
             SetScrollContentRectTransform();
             
+            SetActive(false);
+            
             #region Internal
             
             void CreateChallenges()
@@ -133,6 +135,10 @@ namespace Client.Game.InGame.UI.Challenge
                 }
             }
             
+        }
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
         }
     }
 }

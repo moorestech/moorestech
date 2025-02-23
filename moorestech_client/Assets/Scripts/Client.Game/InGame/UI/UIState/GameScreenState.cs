@@ -28,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.PlaceBlock;
+            if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return UIStateEnum.ChallengeList;
             
             return UIStateEnum.Current;
         }
