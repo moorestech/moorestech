@@ -367,37 +367,6 @@
             }
           ],
           "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
           ]
         }
       },
@@ -2370,37 +2339,6 @@
             }
           ],
           "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
           ]
         },
         "requiredRpm": 10,

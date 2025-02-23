@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Update;
+using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -28,11 +29,10 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            //手動で鉱石の設定を行う
-            var (mapVein, pos) = GetMapVein();
+            // 手動で鉱石の設定を行う
+            var (_, pos) = GetMapVein();
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, out _);
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.GetComponent<VanillaMinerProcessorComponent>();
@@ -42,11 +42,10 @@ namespace Tests.CombinedTest.Core
             var miningTime = (float)typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             
             
-            var dummyInventory = new DummyBlockInventory();
-            //接続先ブロックの設定
-            //本当はダメなことしているけどテストだから許してヒヤシンス
-            var minerConnectors = (Dictionary<IBlockInventory, ConnectedInfo>)miner.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            minerConnectors.Add(dummyInventory, new ConnectedInfo());
+            // チェストを隣に設置し、アイテムがアウトプットされていることを確認する
+            var chestBlockPos = new Vector3Int(pos.x + 1, pos.y, pos.z);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out var chestBlock);
+            var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
             //電力の設定
             var segment = new EnergySegment();
@@ -58,14 +57,14 @@ namespace Tests.CombinedTest.Core
             
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機
-            while (mineEndTime.AddSeconds(0.05).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
+            while (mineEndTime.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             //鉱石1個が出力されているかチェック
-            Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
-            Assert.AreEqual(1, dummyInventory.InsertedItems[0].Count);
+            Assert.AreEqual(miningItemId, chestComponent.InventoryItems[0].Id);
+            Assert.AreEqual(1, chestComponent.InventoryItems[0].Count);
             
-            //コネクターを外す
-            minerConnectors.Remove(dummyInventory);
+            // チェストを破壊して、採掘機の中にアイテムが残ることをチェックする
+            worldBlockDatastore.RemoveBlock(chestBlockPos);
             
             //鉱石2個分の採掘時間待機
             mineEndTime = DateTime.Now.AddSeconds(miningTime * 2);
@@ -76,15 +75,17 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(miningItemId, outputSlot.Id);
             Assert.AreEqual(2, outputSlot.Count);
             
-            //またコネクターをつなげる
-            minerConnectors.Add(dummyInventory, new ConnectedInfo());
+            
+            // チェストを再度設置して、アイテムがアウトプットされていることを確認する
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out chestBlock);
+            chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
             //コネクターにアイテムを入れるためのアップデート
             GameUpdater.UpdateWithWait();
             
-            //アイテムがさらに2個追加で入っているかチェック
-            Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
-            Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);
+            //アイテムがさらに2個入っているかチェック
+            Assert.AreEqual(miningItemId, chestComponent.InventoryItems[0].Id);
+            Assert.AreEqual(2, chestComponent.InventoryItems[0].Count);
         }
         
         public static (IMapVein mapVein, Vector3Int pos) GetMapVein()

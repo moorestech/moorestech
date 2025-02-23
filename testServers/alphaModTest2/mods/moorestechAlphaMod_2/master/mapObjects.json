@@ -23,9 +23,13 @@
       "earnItemHps": [
         0,
         10,
-        20
+        20,
+        30,
+        40,
+        50,
+        60
       ],
-      "hp": 30,
+      "hp": 70,
       "mapObjectName": "Tree",
       "soundEffectType": "tree",
       "earnItems": [
@@ -56,6 +60,85 @@
           }
         ]
       }
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "time": 1,
+      "earnItemHps": [
+        0,
+        10,
+        20
+      ],
+      "hp": 30,
+      "mapObjectName": "Clay",
+      "soundEffectType": "stone",
+      "miningType": "Mining",
+      "mapObjectGuid": "806c3cfe-d036-4b10-9837-2eb24377fe88",
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 10,
+            "damage": 10,
+            "toolItemGuid": "56cbe645-1f29-494e-997b-6eb17e156ac3"
+          },
+          {
+            "attackSpeed": 3,
+            "damage": 10,
+            "toolItemGuid": "c5c5cc63-da1a-4a2f-b7da-23b82ef5ecb3"
+          }
+        ]
+      },
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 2,
+          "itemGuid": "b9d207ab-2229-4dde-8cd5-32653980902d"
+        }
+      ]
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "earnItemHps": [
+        0,
+        10,
+        20,
+        30,
+        40
+      ],
+      "hp": 50,
+      "mapObjectName": "Bronze",
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "soundEffectType": "stone",
+      "miningType": "Mining",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a"
+        }
+      ],
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 3,
+            "damage": 10,
+            "toolItemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a"
+          }
+        ]
+      },
+      "mapObjectGuid": "dd3f771d-848c-4ca4-8b48-388ecd8321a5"
     }
   ]
 }

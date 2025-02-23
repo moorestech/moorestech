@@ -22,6 +22,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // Initialize item list
             var itemList = new List<IItemStack>();
             
+            if (blockGameObject.BlockMasterElement.BlockParam is not IChestParam)
+            {
+                var blockName = blockGameObject.BlockMasterElement.Name;
+                var guid = blockGameObject.BlockMasterElement.BlockGuid;
+                // TODO ログ基盤にいれる
+                Debug.LogError($"ブロック名:{blockName} guid:{guid} はIChestParamを持っていません。指定しているUIを見直すか、スキーマを見直してください。");
+                return;
+            }
+            
             var param = (IChestParam)blockGameObject.BlockMasterElement.BlockParam;
             for (var i = 0; i < param.ItemSlotCount; i++)
             {
