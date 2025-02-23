@@ -10,18 +10,19 @@ namespace Client.Game.InGame.UI.Challenge
     public class ChallengeListUIElement : MonoBehaviour
     {
         private Vector2 AnchoredPosition => rectTransform.anchoredPosition;
+        public ChallengeMasterElement ChallengeMasterElement { get; private set; }
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private ItemSlotObject itemSlotObject;
         [SerializeField] private RectTransform connectLineParent;
         
+        [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
         
-        private ChallengeMasterElement _challengeMasterElement;
         
         public void Initialize(ChallengeMasterElement challengeMasterElement)
         {
-            _challengeMasterElement = challengeMasterElement;
+            ChallengeMasterElement = challengeMasterElement;
             var param = (DisplayDisplayListParam)challengeMasterElement.DisplayListParam;
             
             rectTransform.anchoredPosition = param.UIPosition;
@@ -33,7 +34,7 @@ namespace Client.Game.InGame.UI.Challenge
             }
         }
         
-        public void CreateConnect(Dictionary<Guid, ChallengeListUIElement> challengeListUIElements)
+        public void CreateConnect(Transform lineParent, Dictionary<Guid, ChallengeListUIElement> challengeListUIElements)
         {
             // 線のオブジェクトをオフにしておく
             // Turn off the line object
@@ -41,7 +42,7 @@ namespace Client.Game.InGame.UI.Challenge
             
             // 前のチャレンジがある場合、線を引く
             // If there is a previous challenge, draw a line
-            var prev = _challengeMasterElement.PrevChallengeGuid;
+            var prev = ChallengeMasterElement.PrevChallengeGuid;
             if (!prev.HasValue) return;
             if (!challengeListUIElements.TryGetValue(prev.Value, out var prevChallengeListUIElement)) return;
             
@@ -56,11 +57,23 @@ namespace Client.Game.InGame.UI.Challenge
             
             var angle = Mathf.Atan2(targetPosition.y - currentPosition.y, targetPosition.x - currentPosition.x) * Mathf.Rad2Deg;
             connectLineParent.localEulerAngles = new Vector3(0, 0, angle);
+            
+            // 親の位置を変更
+            // Change the parent's position
+            connectLineParent.SetParent(lineParent);
         }
         
-        public void SetStatus(bool isCompleted)
+        public void SetStatus(ChallengeListUIElementState challengeListUIElementState)
         {
-            completedObject.SetActive(isCompleted);
+            completedObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Completed);
+            currentObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Current);
         }
+    }
+    
+    public enum ChallengeListUIElementState
+    {
+        Before,
+        Current,
+        Completed
     }
 }

@@ -95,7 +95,7 @@ namespace Game.Challenge
             
             // イベントを発行
             // Issue an event
-            _challengeEvent.InvokeCompleteChallenge(currentChallenge);
+            _challengeEvent.InvokeCompleteChallenge(currentChallenge, nextChallenges);
             
             // クリア時のアクションを実行
             // Perform the action when cleared

@@ -14,6 +14,7 @@ namespace Client.Game.InGame.UI.Challenge
     public class ChallengeListUI : MonoBehaviour
     {
         [SerializeField] private Transform challengeListParent;
+        [SerializeField] private Transform connectLineParent; // 線は一番下に表示される必要があるため専用の親に格納する
         [SerializeField] private ChallengeListUIElement challengeListUIElementPrefab;
         
         private readonly Dictionary<Guid, ChallengeListUIElement> _challengeListUIElements = new();
@@ -21,44 +22,70 @@ namespace Client.Game.InGame.UI.Challenge
         [Inject]
         public void Construct(InitialHandshakeResponse initial)
         {
-            // UIの作成
-            // Create UI
-            foreach (var challenge in MasterHolder.ChallengeMaster.ChallengeMasterElements)
-            {
-                var guid = challenge.ChallengeGuid;
-                var challengeListUIElement = Instantiate(challengeListUIElementPrefab, challengeListParent);
-                challengeListUIElement.Initialize(challenge);
-                
-                _challengeListUIElements.Add(guid, challengeListUIElement);
-            }
-            
-            foreach (var challengeListUIElement in _challengeListUIElements.Values)
-            {
-                challengeListUIElement.CreateConnect(_challengeListUIElements);
-            }
-            
             // チャレンジ完了時のイベント登録
             // Register event when challenge is completed
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
             
+            // チャレンジUIの作成
+            // Create challenge UI
+            CreateChallenges();
+            
             // チャレンジの初期状態を設定
             // Set the initial state of the challenge
-            foreach (var currentChallenge in initial.Challenge.CurrentChallenges)
+            SetInitialChallengeState();
+            
+            #region Internal
+            
+            void CreateChallenges()
             {
-                if (_challengeListUIElements.TryGetValue(currentChallenge.ChallengeGuid, out var challengeListUIElement))
+                foreach (var challenge in MasterHolder.ChallengeMaster.ChallengeMasterElements)
                 {
-                    const bool isComplete = false;
-                    challengeListUIElement.SetStatus(isComplete);
+                    var guid = challenge.ChallengeGuid;
+                    var challengeListUIElement = Instantiate(challengeListUIElementPrefab, challengeListParent);
+                    challengeListUIElement.Initialize(challenge);
+                    
+                    _challengeListUIElements.Add(guid, challengeListUIElement);
+                }
+                
+                foreach (var challengeListUIElement in _challengeListUIElements.Values)
+                {
+                    challengeListUIElement.CreateConnect(connectLineParent, _challengeListUIElements);
                 }
             }
-            foreach (var completedChallenge in initial.Challenge.CompletedChallenges)
+            
+            void SetInitialChallengeState()
             {
-                if (_challengeListUIElements.TryGetValue(completedChallenge.ChallengeGuid, out var challengeListUIElement))
+                // 挑戦中と完了したチャレンジの状態を設定
+                // Set the status of the challenges in progress and completed
+                var currentOrCompleted = new HashSet<Guid>();
+                foreach (var currentChallenge in initial.Challenge.CurrentChallenges)
                 {
-                    const bool isComplete = true;
-                    challengeListUIElement.SetStatus(isComplete);
+                    if (_challengeListUIElements.TryGetValue(currentChallenge.ChallengeGuid, out var challengeListUIElement))
+                    {
+                        challengeListUIElement.SetStatus(ChallengeListUIElementState.Current);
+                        currentOrCompleted.Add(currentChallenge.ChallengeGuid);
+                    }
+                }
+                foreach (var completedChallenge in initial.Challenge.CompletedChallenges)
+                {
+                    if (_challengeListUIElements.TryGetValue(completedChallenge.ChallengeGuid, out var challengeListUIElement))
+                    {
+                        challengeListUIElement.SetStatus(ChallengeListUIElementState.Completed);
+                        currentOrCompleted.Add(completedChallenge.ChallengeGuid);
+                    }
+                }
+                
+                // 挑戦前の状態を設定
+                foreach (var challengeListUIElement in _challengeListUIElements.Values)
+                {
+                    if (!currentOrCompleted.Contains(challengeListUIElement.ChallengeMasterElement.ChallengeGuid))
+                    {
+                        challengeListUIElement.SetStatus(ChallengeListUIElementState.Before);
+                    }
                 }
             }
+            
+  #endregion
         }
         
         /// <summary>
@@ -72,8 +99,17 @@ namespace Client.Game.InGame.UI.Challenge
             
             if (_challengeListUIElements.TryGetValue(challengeInfo.ChallengeGuid, out var challengeListUIElement))
             {
-                challengeListUIElement.SetStatus(true);
+                challengeListUIElement.SetStatus(ChallengeListUIElementState.Completed);
             }
+            
+            foreach (var nextChallenge in message.NextChallengeGuids)
+            {
+                if (_challengeListUIElements.TryGetValue(nextChallenge, out var nextChallengeListUIElement))
+                {
+                    nextChallengeListUIElement.SetStatus(ChallengeListUIElementState.Current);
+                }
+            }
+            
         }
     }
 }
