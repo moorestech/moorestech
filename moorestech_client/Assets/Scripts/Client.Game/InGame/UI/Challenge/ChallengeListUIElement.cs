@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Util;
+using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 
@@ -19,19 +21,69 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
         
+        [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
+        
         
         public void Initialize(ChallengeMasterElement challengeMasterElement)
         {
             ChallengeMasterElement = challengeMasterElement;
-            var param = (DisplayDisplayListParam)challengeMasterElement.DisplayListParam;
             
-            rectTransform.anchoredPosition = param.UIPosition;
+            SetUI();
             
-            if (param.IconItem != null)
+            SetUIEnterExplain();
+            
+            #region Internal
+            
+            void SetUI()
             {
-                var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem.Value);
-                itemSlotObject.SetItem(itemView, 0);
+                var param = (DisplayDisplayListParam)challengeMasterElement.DisplayListParam;
+                // 位置の指定
+                // Position specification
+                rectTransform.anchoredPosition = param.UIPosition;
+                
+                // アイコンの指定
+                // Icon specification
+                if (param.IconItem != null)
+                {
+                    var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem.Value);
+                    itemSlotObject.SetItem(itemView, 0);
+                }
+                itemSlotObject.SetItemSlotObjectOption(new ItemSlotObjectBehaviourOption
+                {
+                    IsShowUIEnterExplain = false,
+                });
             }
+            
+            void SetUIEnterExplain()
+            {
+                var clearedActionsTest = string.Empty;
+                foreach (var clearedActionsElement in challengeMasterElement.ClearedActions)
+                {
+                    switch (clearedActionsElement.ClearedActionType)
+                    {
+                        case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe :
+                            var recipeGuid = ((UnlockCraftRecipeClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockRecipeGuid;
+                            var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(recipeGuid);
+                            var unlockRecipeText = "レシピ解放: \n\t";
+                            foreach (var requiredItem in recipe.RequiredItems)
+                            {
+                                var requiredItemMaster = MasterHolder.ItemMaster.GetItemMaster(requiredItem.ItemGuid);
+                                unlockRecipeText += $"{requiredItemMaster.Name}x{requiredItem.Count} ";
+                            }
+                            var resultItemMaster = MasterHolder.ItemMaster.GetItemMaster(recipe.CraftResultItemGuid);
+                            unlockRecipeText += $"\n\t=> {resultItemMaster.Name}x{recipe.CraftResultCount}";
+                            
+                            clearedActionsTest += unlockRecipeText;
+                            break;
+                    }
+                }
+                
+                
+                var text = $"<size=30>{challengeMasterElement.Title}</size>\n\t{challengeMasterElement.Summary}\n\n達成報酬\n{clearedActionsTest}";
+                uiEnterExplainerController.SetText(text, false);
+            }
+            
+  #endregion
         }
         
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ChallengeListUIElement> challengeListUIElements)
