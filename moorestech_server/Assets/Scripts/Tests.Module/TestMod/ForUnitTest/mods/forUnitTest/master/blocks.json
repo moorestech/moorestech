@@ -3117,7 +3117,7 @@
       "name": "FluidPipe",
       "blockParam": {
         "fluidInventoryConnectors": {
-          "connects": [
+          "inflowConnects": [
             {
               "offset": [
                 0,
@@ -3158,8 +3158,51 @@
                 ]
               ],
               "connectOption": {
-                "isInflowBlocked": false,
-                "isOutflowBlocked": false,
+                "flowCapacity": 10
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
                 "flowCapacity": 10
               }
             }
@@ -3180,27 +3223,7 @@
       "name": "OneWayFluidPipe",
       "blockParam": {
         "fluidInventoryConnectors": {
-          "connects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Fluid",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ]
-              ],
-              "connectOption": {
-                "isInflowBlocked": true,
-                "isOutflowBlocked": false,
-                "flowCapacity": 10
-              }
-            },
+          "inflowConnects": [
             {
               "offset": [
                 0,
@@ -3216,8 +3239,26 @@
                 ]
               ],
               "connectOption": {
-                "isInflowBlocked": false,
-                "isOutflowBlocked": true,
+                "flowCapacity": 10
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
                 "flowCapacity": 10
               }
             }
