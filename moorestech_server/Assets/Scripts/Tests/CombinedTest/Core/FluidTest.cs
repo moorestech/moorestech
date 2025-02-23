@@ -19,6 +19,8 @@ namespace Tests.CombinedTest.Core
 {
     public class FluidTest
     {
+        public static readonly Guid FluidId = new("00000000-0000-0000-0000-000000001234");
+        
         /// <summary>
         ///     与えた量の流体が搬入、搬出されるかのテスト
         /// </summary>
@@ -36,7 +38,7 @@ namespace Tests.CombinedTest.Core
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
-            var fluidStack = new FluidStack(Guid.NewGuid(), 30f, FluidContainer.Empty, fluidPipe0.FluidContainer);
+            var fluidStack = new FluidStack(FluidId, 30f, FluidContainer.Empty, fluidPipe0.FluidContainer);
             fluidPipe0.FluidContainer.AddToPendingList(fluidStack, FluidContainer.Empty, out FluidStack? remainFluidStack);
             
             // fluidPipeのcapacityは100だから溢れない
@@ -80,7 +82,7 @@ namespace Tests.CombinedTest.Core
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
-            var fluidStack = new FluidStack(Guid.NewGuid(), amount, FluidContainer.Empty, fluidPipe0.FluidContainer);
+            var fluidStack = new FluidStack(FluidId, amount, FluidContainer.Empty, fluidPipe0.FluidContainer);
             fluidPipe0.FluidContainer.AddToPendingList(fluidStack, FluidContainer.Empty, out FluidStack? remainFluidStack);
             
             // fluidPipeのcapacityは100だから溢れない
@@ -157,14 +159,10 @@ namespace Tests.CombinedTest.Core
             // Test if the options are read correctly
             var option0 = connect0.Value.SelfOption as FluidConnectOption;
             Assert.IsNotNull(option0);
-            Assert.False(option0.IsInflowBlocked);
-            Assert.False(option0.IsOutflowBlocked);
             Assert.AreEqual(10, option0.FlowCapacity);
             
             var option1 = connect0.Value.SelfOption as FluidConnectOption;
             Assert.IsNotNull(option1);
-            Assert.False(option1.IsInflowBlocked);
-            Assert.False(option1.IsOutflowBlocked);
             Assert.AreEqual(10, option1.FlowCapacity);
         }
         
@@ -179,13 +177,48 @@ namespace Tests.CombinedTest.Core
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 1, BlockDirection.North, out var oneWayFluidPipeBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, out var fluidPipeBlock1);
             
             BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            
+            // oneWayFluidPipeの東（x+）方向にしか流れない設定になっていることを確認
+            {
+                // 出力
+                var connect = oneWayFluidPipeConnector.ConnectedTargets[fluidPipe1];
+                var selfOption = connect.SelfOption as FluidConnectOption;
+                Assert.NotNull(selfOption);
+            }
+            {
+                // 入力
+                Assert.False(oneWayFluidPipeConnector.ConnectedTargets.ContainsKey(fluidPipe0));
+            }
+            
+            // 10fは1秒間に流れる流体の量
+            var addingStack = new FluidStack(FluidId, 10f, FluidContainer.Empty, oneWayFluidPipe.FluidContainer);
+            fluidPipe0.FluidContainer.AddToPendingList(addingStack, FluidContainer.Empty, out _);
+            
+            // fluidPipe0からoneWayFluidPipe、fluidPipe1に流れる
+            // oneWayFluidPipeはfluidPipe1方向にしか流れないからfluidPipe0には流れない
+            // よって、ある程度時間が経つと全ての液体がfluidPipe1でとどまる
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 5) break;
+            }
+            
+            Assert.AreEqual(0, fluidPipe0.FluidContainer.TotalAmount);
+            Assert.AreEqual(0, oneWayFluidPipe.FluidContainer.TotalAmount);
+            Assert.AreEqual(10, fluidPipe1.FluidContainer.TotalAmount);
         }
     }
 }

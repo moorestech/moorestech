@@ -52,9 +52,6 @@ namespace Game.Block.Blocks.Fluid
                     var target = kvp.Value.TargetBlock.GetComponent<IFluidInventory>();
                     if (selfOption == null || targetOption == null || target == null) throw new Exception();
                     
-                    // どちらかが搬入出をブロックしている場合は除く
-                    if (selfOption.IsOutflowBlocked || targetOption.IsInflowBlocked) continue;
-                    
                     // どちらかのflowCapacityが0の場合は除く
                     if (selfOption.FlowCapacity == 0 || targetOption.FlowCapacity == 0) continue;
                     

@@ -12,9 +12,9 @@ namespace Tests.Module.TestMod
         public static readonly BlockId ElectricMinerId = (BlockId)6;
         public static readonly BlockId ChestId = (BlockId)7;
         public static readonly BlockId InfinityGeneratorId = (BlockId)8;
-
+        
         public static readonly BlockId MultiBlockGeneratorId = (BlockId)10;
-
+        
         public static readonly BlockId SmallGear = (BlockId)12;
         public static readonly BlockId BigGear = (BlockId)13;
         public static readonly BlockId Shaft = (BlockId)14;
@@ -25,17 +25,17 @@ namespace Tests.Module.TestMod
         public static readonly BlockId Teeth20RequireTorqueTestGear = (BlockId)19;
         public static readonly BlockId InfinityTorqueSimpleGearGenerator = (BlockId)20;
         public static readonly BlockId GearBeltConveyor = (BlockId)21;
-
+        
         public static readonly BlockId StraightItemShooter = (BlockId)22;
         public static readonly BlockId DownItemShooter = (BlockId)23;
         public static readonly BlockId UpItemShooter = (BlockId)24;
-
+        
         public static readonly BlockId MachineRecipeTest1 = (BlockId)25;
         public static readonly BlockId MachineRecipeTest2 = (BlockId)26;
         public static readonly BlockId MachineRecipeTest3 = (BlockId)27;
-
+        
         public static readonly BlockId GearMiner = (BlockId)28;
-
+        
         public static readonly BlockId CraftChainerTransporter = (BlockId)29;
         public static readonly BlockId CraftChainerCrafter = (BlockId)30;
         public static readonly BlockId CraftChainerProviderChest = (BlockId)31;
@@ -43,13 +43,14 @@ namespace Tests.Module.TestMod
         public static readonly BlockId CraftChainerBeltConveyor = (BlockId)33;
         public static readonly BlockId CraftChainerMachine1 = (BlockId)34;
         public static readonly BlockId CraftChainerMachine2 = (BlockId)35;
-
+        
         public static readonly BlockId TestTrainRail = (BlockId)36;
         public static readonly BlockId TestTrainStation = (BlockId)37;
         public static readonly BlockId TestTrainCargoPlatform = (BlockId)38;
-
+        
         public static readonly BlockId GearMapObjectMiner = (BlockId)39;
-
+        
         public static readonly BlockId FluidPipe = (BlockId)40;
+        public static readonly BlockId OneWayFluidPipe = (BlockId)41;
     }
 }
