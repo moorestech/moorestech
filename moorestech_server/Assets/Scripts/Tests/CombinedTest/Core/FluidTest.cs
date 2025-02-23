@@ -265,5 +265,45 @@ namespace Tests.CombinedTest.Core
             var lastTotalAmount = fluidPipe0.FluidContainer.TotalAmount + fluidPipe1.FluidContainer.TotalAmount + fluidPipe2.FluidContainer.TotalAmount;
             Assert.AreEqual(totalAmount, lastTotalAmount);
         }
+        
+        // 液体が複数のパイプへ正しく分割されるかのテスト
+        [Test]
+        public void FluidSplitTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            // 012 という並び
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, out var fluidPipeBlock2);
+            
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector2 = fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
+            
+            // 20fは1秒間に二つの方向へ流れる流体の量
+            var addingStack = new FluidStack(FluidId, 20f, FluidContainer.Empty, FluidContainer.Empty);
+            fluidPipe1.FluidContainer.AddToPendingList(addingStack, FluidContainer.Empty, out _);
+            
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 1) break;
+            }
+            
+            // 0と2に流れる
+            Assert.AreEqual(10f, fluidPipe0.FluidContainer.TotalAmount);
+            Assert.AreEqual(10f, fluidPipe2.FluidContainer.TotalAmount);
+        }
     }
 }
