@@ -220,5 +220,50 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, oneWayFluidPipe.FluidContainer.TotalAmount);
             Assert.AreEqual(10, fluidPipe1.FluidContainer.TotalAmount);
         }
+        
+        /// <summary>
+        ///     液体の総量が一定であることのテスト
+        /// </summary>
+        [Test]
+        public void FluidTotalAmountTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 2, BlockDirection.North, out var oneWayFluidPipeBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 3, BlockDirection.North, out var fluidPipeBlock2);
+            
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory> fluidPipeConnector2 = fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
+            var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
+            
+            // 10fは1秒間に流れる流体の量
+            var addingStack = new FluidStack(FluidId, 10f, FluidContainer.Empty, fluidPipe0.FluidContainer);
+            fluidPipe0.FluidContainer.AddToPendingList(addingStack, FluidContainer.Empty, out _);
+            
+            var totalAmount = fluidPipe0.FluidContainer.TotalAmount + fluidPipe1.FluidContainer.TotalAmount + fluidPipe2.FluidContainer.TotalAmount;
+            
+            // fluidPipe0からfluidPipe1に流れる
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 10) break;
+            }
+            
+            var lastTotalAmount = fluidPipe0.FluidContainer.TotalAmount + fluidPipe1.FluidContainer.TotalAmount + fluidPipe2.FluidContainer.TotalAmount;
+            Assert.AreEqual(totalAmount, lastTotalAmount);
+        }
     }
 }
