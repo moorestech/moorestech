@@ -3172,6 +3172,64 @@
         1,
         1
       ]
+    },
+    {
+      "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
+      "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
+      "blockType": "FluidPipe",
+      "name": "OneWayFluidPipe",
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "connects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "isInflowBlocked": true,
+                "isOutflowBlocked": false,
+                "flowCapacity": 10
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "isInflowBlocked": false,
+                "isOutflowBlocked": true,
+                "flowCapacity": 10
+              }
+            }
+          ]
+        },
+        "capacity": 100
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ]
     }
   ]
 }
