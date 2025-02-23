@@ -8,7 +8,8 @@ namespace Core.Master
 {
     public class ChallengeMaster
     {
-        public Challenges Challenges;
+        public readonly Challenges Challenges;
+        public ChallengeMasterElement[] ChallengeMasterElements => Challenges.Data;
         public readonly List<Guid> InitialChallenge;
         
         private readonly Dictionary<Guid, List<Guid>> _nextChallenges;

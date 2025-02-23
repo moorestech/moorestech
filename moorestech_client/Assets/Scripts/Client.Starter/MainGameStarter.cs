@@ -15,6 +15,7 @@ using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
@@ -65,6 +66,7 @@ namespace Client.Starter
         [SerializeField] private RecipeViewerView recipeViewerView;
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
+        [SerializeField] private ChallengeListUI challengeListUI;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -131,6 +133,7 @@ namespace Client.Starter
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
+            builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
             // その他インスタンス
@@ -165,6 +168,7 @@ namespace Client.Starter
             builder.RegisterComponent(recipeViewerView);
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
+            builder.RegisterComponent(challengeListUI);
             
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);

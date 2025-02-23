@@ -30,6 +30,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         [SerializeField] private TMP_Text countText;
         [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
         
+        private ItemSlotObjectBehaviourOption itemSlotObjectBehaviourOption = new();
         private bool _onPointing;
         
         public ItemViewData ItemViewData { get; private set; }
@@ -74,7 +75,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
                 itemImage.sprite = itemView.ItemImage;
                 
                 uiEnterExplainerController.SetText($"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>", false);
-                uiEnterExplainerController.DisplayEnable(true);
+                uiEnterExplainerController.DisplayEnable(itemSlotObjectBehaviourOption.IsShowUIEnterExplain);
             }
         }
         
@@ -99,6 +100,11 @@ namespace Client.Game.InGame.UI.Inventory.Element
         public void SetHotBarSelect(bool active)
         {
             hotBarSelect.SetActive(active);
+        }
+        
+        public void SetItemSlotObjectOption(ItemSlotObjectBehaviourOption behaviourOption)
+        {
+            itemSlotObjectBehaviourOption = behaviourOption;
         }
         
         public void SetActive(bool active)
@@ -240,5 +246,10 @@ namespace Client.Game.InGame.UI.Inventory.Element
         Normal,
         MachineSlot,
         CraftRecipe,
+    }
+    
+    public class ItemSlotObjectBehaviourOption
+    {
+        public bool IsShowUIEnterExplain { get; set; } = true;
     }
 }
