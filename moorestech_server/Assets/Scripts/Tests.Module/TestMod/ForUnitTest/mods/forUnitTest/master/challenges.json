@@ -11,7 +11,14 @@
       "playSkitType": "None",
       "playSkitParam": {},
       "tutorials": [],
-      "clearedActions": []
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     },
     {
       "summary": "テスト2",
@@ -32,7 +39,14 @@
             "unlockRecipeGuid": "00000010-0000-0000-0000-000000000002"
           }
         }
-      ]
+      ],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     },
     {
       "summary": "テスト3",
@@ -46,7 +60,14 @@
       "playSkitType": "None",
       "playSkitParam": {},
       "tutorials": [],
-      "clearedActions": []
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     },
     {
       "summary": "テスト1をクリアしたら始まるチャレンジ",
@@ -61,7 +82,14 @@
       "playSkitType": "None",
       "playSkitParam": {},
       "tutorials": [],
-      "clearedActions": []
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     }
   ]
 }
