@@ -3898,6 +3898,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ef441b0cae444e09226bb51cde86f2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  scrollContent: {fileID: 1470489326212007809}
+  scrollContentPadding: {x: 1604, y: 790}
   challengeListParent: {fileID: 2719599742396625530}
   connectLineParent: {fileID: 590675855918438133}
   challengeListUIElementPrefab: {fileID: 4361973891849932592, guid: 9c07199a451854599a56dce5ee96aefc, type: 3}
@@ -4570,8 +4572,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5881396281812764252}
   m_HandleRect: {fileID: 288789428798026087}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 1
+  m_Value: 0.5
+  m_Size: 0.99937654
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5322,10 +5324,10 @@ RectTransform:
   - {fileID: 2719599742396625530}
   m_Father: {fileID: 8399804156948289787}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 1604, y: 790}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5956068414056481954
 GameObject:

@@ -9,7 +9,7 @@ namespace Client.Game.InGame.UI.Challenge
 {
     public class ChallengeListUIElement : MonoBehaviour
     {
-        private Vector2 AnchoredPosition => rectTransform.anchoredPosition;
+        public Vector2 AnchoredPosition => rectTransform.anchoredPosition;
         public ChallengeMasterElement ChallengeMasterElement { get; private set; }
         
         [SerializeField] private RectTransform rectTransform;

@@ -13,6 +13,9 @@ namespace Client.Game.InGame.UI.Challenge
 {
     public class ChallengeListUI : MonoBehaviour
     {
+        [SerializeField] private RectTransform scrollContent;
+        [SerializeField] private Vector2 scrollContentPadding;
+        
         [SerializeField] private Transform challengeListParent;
         [SerializeField] private Transform connectLineParent; // 線は一番下に表示される必要があるため専用の親に格納する
         [SerializeField] private ChallengeListUIElement challengeListUIElementPrefab;
@@ -33,6 +36,10 @@ namespace Client.Game.InGame.UI.Challenge
             // チャレンジの初期状態を設定
             // Set the initial state of the challenge
             SetInitialChallengeState();
+            
+            // ScrollContentのRectTransformを設定
+            // Set the RectTransform of ScrollContent
+            SetScrollContentRectTransform();
             
             #region Internal
             
@@ -83,6 +90,22 @@ namespace Client.Game.InGame.UI.Challenge
                         challengeListUIElement.SetStatus(ChallengeListUIElementState.Before);
                     }
                 }
+            }
+            
+            void SetScrollContentRectTransform()
+            {
+                var min = new Vector2(float.MaxValue, float.MaxValue);
+                var max = new Vector2(float.MinValue, float.MinValue);
+                
+                foreach (var challengeListUIElement in _challengeListUIElements.Values)
+                {
+                    var position = challengeListUIElement.AnchoredPosition;
+                    min = Vector2.Min(min, position);
+                    max = Vector2.Max(max, position);
+                }
+                
+                var size = max - min + scrollContentPadding;
+                scrollContent.sizeDelta = size;
             }
             
   #endregion
