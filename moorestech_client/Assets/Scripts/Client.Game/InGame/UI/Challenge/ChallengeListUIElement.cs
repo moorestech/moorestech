@@ -15,16 +15,20 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private ItemSlotObject itemSlotObject;
         [SerializeField] private RectTransform connectLineParent;
         
+        [SerializeField] private GameObject completedObject;
+        
         private ChallengeMasterElement _challengeMasterElement;
         
         public void Initialize(ChallengeMasterElement challengeMasterElement)
         {
-            rectTransform.anchoredPosition = challengeMasterElement.DisplayInChallengeListPosition ?? Vector2.zero;
+            _challengeMasterElement = challengeMasterElement;
+            var param = (DisplayDisplayListParam)challengeMasterElement.DisplayListParam;
             
-            var iconItemGuid = challengeMasterElement.DisplayInChallengeListIconItemGuid;
-            if (iconItemGuid != null)
+            rectTransform.anchoredPosition = param.UIPosition;
+            
+            if (param.IconItem != null)
             {
-                var itemView = ClientContext.ItemImageContainer.GetItemView(iconItemGuid.Value);
+                var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem.Value);
                 itemSlotObject.SetItem(itemView, 0);
             }
         }
@@ -52,6 +56,11 @@ namespace Client.Game.InGame.UI.Challenge
             
             var angle = Mathf.Atan2(targetPosition.y - currentPosition.y, targetPosition.x - currentPosition.x) * Mathf.Rad2Deg;
             connectLineParent.localEulerAngles = new Vector3(0, 0, angle);
+        }
+        
+        public void SetStatus(bool isCompleted)
+        {
+            completedObject.SetActive(isCompleted);
         }
     }
 }

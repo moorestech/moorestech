@@ -1,3 +1,47 @@
 {
-    "data": []
+  "data": [
+    {
+      "summary": "テスト1",
+      "title": "テスト1",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "challengeGuid": "8d64b14c-3434-4a90-a0a4-ad364cfaf496",
+      "taskCompletionType": "createItem",
+      "taskParam": {
+        "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+      },
+      "displayListType": "Display",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "IconItem": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+      },
+      "tutorials": [],
+      "clearedActions": []
+    },
+    {
+      "summary": "テスト2",
+      "title": "テスト2",
+      "challengeGuid": "21e2a921-6d2f-4bb9-80fb-f153590355f1",
+      "prevChallengeGuid": "8d64b14c-3434-4a90-a0a4-ad364cfaf496",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "taskCompletionType": "createItem",
+      "taskParam": {
+        "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670"
+      },
+      "displayListType": "Display",
+      "displayListParam": {
+        "UIPosition": [
+          300,
+          0
+        ],
+        "IconItem": "ea61676a-74e8-436b-bc17-8bf2b56016b4"
+      },
+      "tutorials": [],
+      "clearedActions": []
+    }
+  ]
 }

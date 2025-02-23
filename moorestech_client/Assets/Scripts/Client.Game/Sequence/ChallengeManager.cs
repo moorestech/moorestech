@@ -27,6 +27,7 @@ namespace Client.Game.Sequence
         
         [Inject] private TutorialManager _tutorialManager;
         
+        [Inject]
         public void Construct(InitialHandshakeResponse initialHandshakeResponse)
         {
             //TODO 複数のチャレンジを表示する
