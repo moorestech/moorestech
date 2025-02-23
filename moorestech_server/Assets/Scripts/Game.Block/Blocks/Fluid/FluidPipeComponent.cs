@@ -68,7 +68,7 @@ namespace Game.Block.Blocks.Fluid
                     FluidContainer.FluidStacks[targetContainer] = newStack;
                 }
                 
-                // 移動先した場合はpendingListから削除
+                // 移動した場合はpendingListから削除
                 if (targetContainers.Count != 0)
                 {
                     FluidContainer.PendingFluidStacks[i] = FluidContainer.PendingFluidStacks[^1];
