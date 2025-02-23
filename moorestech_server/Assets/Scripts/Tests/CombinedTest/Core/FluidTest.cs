@@ -292,13 +292,17 @@ namespace Tests.CombinedTest.Core
             var addingStack = new FluidStack(FluidId, 20f, FluidContainer.Empty, FluidContainer.Empty);
             fluidPipe1.FluidContainer.AddToPendingList(addingStack, FluidContainer.Empty, out _);
             
-            var startTime = DateTime.Now;
-            while (true)
+            // var startTime = DateTime.Now;
+            // while (true)
+            // {
+            //     GameUpdater.UpdateWithWait();
+            //     
+            //     var elapsedTime = DateTime.Now - startTime;
+            //     if (elapsedTime.TotalSeconds > 2) break;
+            // }
+            for (var i = 0; i < 10; i++)
             {
-                GameUpdater.UpdateWithWait();
-                
-                var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 1) break;
+                GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
             }
             
             // 0と2に流れる
