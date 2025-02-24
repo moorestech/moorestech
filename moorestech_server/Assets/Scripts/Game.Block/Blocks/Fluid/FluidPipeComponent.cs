@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Fluid
         {
             _blockPositionInfo = blockPositionInfo;
             _connectorComponent = connectorComponent;
-            FluidContainer = new FluidContainer(capacity, Guid.Empty);
+            FluidContainer = new FluidContainer(capacity);
         }
         
         public FluidContainer FluidContainer { get; }
@@ -31,15 +31,17 @@ namespace Game.Block.Blocks.Fluid
         
         public void Update()
         {
+            if (FluidContainer.Amount <= 0) return;
+            
             // 流入対象のコンテナを列挙する
             var targetContainers = _connectorComponent.ConnectedTargets
                 .Select(kvp => (kvp.Key, kvp.Value, GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value)))
                 .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
+                .Where(kvp => !kvp.Key.FluidContainer.FluidId.HasValue || kvp.Key.FluidContainer.FluidId == FluidContainer.FluidId)
                 .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
                 .ToList();
             
             // 対象のコンテナに向かって流す
-            // 最大流量
             
             for (var i = 0; i < targetContainers.Count; i++)
             {
@@ -62,6 +64,7 @@ namespace Game.Block.Blocks.Fluid
             }
             
             FluidContainer.PreviousSourceFluidContainers.Clear();
+            if (FluidContainer.Amount <= 0) FluidContainer.FluidId = null;
             
             // ソートする
             // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す

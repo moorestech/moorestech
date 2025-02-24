@@ -39,7 +39,8 @@ namespace Tests.CombinedTest.Core
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             const double addingAmount = 30;
-            fluidPipe0.FluidContainer.AddLiquid(addingAmount, FluidContainer.Empty, out var remainAmount);
+            var addingStack = new FluidStack(addingAmount, FluidId);
+            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
             
             // fluidPipeのcapacityは100だから溢れない
             if (remainAmount.HasValue) Assert.Fail();
@@ -81,7 +82,8 @@ namespace Tests.CombinedTest.Core
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
-            fluidPipe0.FluidContainer.AddLiquid(amount, FluidContainer.Empty, out var remainAmount);
+            var addingStack = new FluidStack(amount, FluidId);
+            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
             
             // fluidPipeのcapacityは100だから溢れない
             if (remainAmount.HasValue) Assert.Fail();
@@ -198,7 +200,8 @@ namespace Tests.CombinedTest.Core
             
             // 10fは1秒間に流れる流体の量
             const double addingAmount = 10d;
-            fluidPipe0.FluidContainer.AddLiquid(addingAmount, FluidContainer.Empty, out var remainAmount);
+            var addingStack = new FluidStack(addingAmount, FluidId);
+            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
             
             Assert.Null(remainAmount);
             
@@ -217,6 +220,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, fluidPipe0.FluidContainer.Amount, 0.01d);
             Assert.AreEqual(0, oneWayFluidPipe.FluidContainer.Amount, 0.01d);
             Assert.AreEqual(10, fluidPipe1.FluidContainer.Amount, 0.01d);
+            Assert.Null(fluidPipe0.FluidContainer.FluidId);
+            Assert.Null(oneWayFluidPipe.FluidContainer.FluidId);
         }
         
         /// <summary>
@@ -240,7 +245,8 @@ namespace Tests.CombinedTest.Core
             
             // 10fは1秒間に流れる流体の量
             const double addingAmount = 10d;
-            fluidPipe0.FluidContainer.AddLiquid(addingAmount, FluidContainer.Empty, out var remainAmount);
+            var addingStack = new FluidStack(addingAmount, FluidId);
+            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
             
             Assert.Null(remainAmount);
             
@@ -280,7 +286,8 @@ namespace Tests.CombinedTest.Core
             
             // 20fは1秒間に二つの方向へ流れる流体の量
             const double addingAmount = 20d;
-            fluidPipe1.FluidContainer.AddLiquid(addingAmount, FluidContainer.Empty, out _);
+            var addingStack = new FluidStack(addingAmount, FluidId);
+            fluidPipe1.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out _);
             
             var startTime = DateTime.Now;
             while (true)
@@ -319,7 +326,8 @@ namespace Tests.CombinedTest.Core
             
             // 10dは1秒間に流れる量
             const double amount = 10d;
-            fluidPipe0.FluidContainer.AddLiquid(amount, FluidContainer.Empty, out _);
+            var addingStack = new FluidStack(amount, FluidId);
+            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out _);
             
             {
                 var startTime = DateTime.Now;
