@@ -59,6 +59,7 @@ namespace Game.Block.Blocks.Fluid
                     otherContainer.Amount += flowRate;
                     targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
                     
+                    otherContainer.FluidId = FluidContainer.FluidId;
                     otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
                 }
             }
