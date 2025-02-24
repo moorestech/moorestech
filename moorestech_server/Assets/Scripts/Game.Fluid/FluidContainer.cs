@@ -14,7 +14,7 @@ namespace Game.Fluid
         public readonly bool IsEmpty;
         public double Amount;
         public Guid FluidId;
-        public HashSet<FluidContainer> PreviousSourceFluidContainers = new();
+        public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
         
         /// <param name="capacity">液体の許容量</param>
         /// <param name="fluidId">内部の液体のID</param>
