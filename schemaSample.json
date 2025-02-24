@@ -62,119 +62,22 @@
                             "description": "TODO これは後々外部（上位スキーマ？）から設定できるようにする"
                           },
 
-                          "offset": {
+
+                          "arrayValue": {
                             "type": "array",
-                            "pattern": "@vector3Int",
                             "items": {
-                              "type": "integer"
-                            },
-                            "default": [
-                              0,
-                              0,
-                              0
-                            ]
-                          },
-
-                          "directions": {
-                            "type": "array",
-                            "optional": true,
-                            "items": {
-                              "type": "array",
-                              "pattern": "@vector3Int",
-                              "items": {
-                                "type": "integer"
-                              },
-                              "default": [
-                                0,
-                                0,
-                                0
-                              ]
-                            }
-                          },
-
-
-                          "connectOptionParam": {
-                            "oneOf": [
-                              {
-                                "if": {
-                                  "properties": {
-                                    "connectOptionType": { "const": "Type1" }
-                                  }
+                              "type": "object",
+                              "properties": {
+                                "arrayValue1": {
+                                  "type": "string"
                                 },
-                                "then": {
-                                  "type": "object",
-                                  "properties": {
-
-
-                                    "booleanOption": {
-                                      "type": "boolean",
-                                      "default": true
-                                    },
-
-                                    "inventoryOptions" :{
-                                      "type": "array",
-                                      "optional": true,
-
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-
-                                          "inventoryConnectOptionType": {
-                                            "type": "string",
-                                            "enum": ["Option1", "Option2"]
-                                          },
-
-                                          "inventoryConnectOptionParam": {
-                                            "oneOf": [
-                                              {
-                                                "if": {
-                                                  "properties": {
-                                                    "inventoryConnectOptionType": { "const": "Option2" }
-                                                  }
-                                                },
-                                                "then": {
-                                                  "type": "object",
-                                                  "properties": {
-
-                                                    "connectType": {
-                                                      "type": "string",
-                                                      "enum": ["Network", "Factory"]
-                                                    }
-                                                  }
-                                                }
-
-                                              }
-                                            ]
-                                          }
-
-                                        }
-                                      }
-
-                                    }
-                                  }
-                                }
-                              },
-
-                              {
-                                "if": {
-                                  "properties": {
-                                    "connectOptionType": { "const": "Type2" }
-                                  }
-                                },
-                                "then": {
-                                  "type": "object",
-                                  "properties": {
-
-                                    "booleanOption": {
-                                      "type": "boolean",
-                                      "default": true
-                                    }
-                                  }
+                                "arrayValue2": {
+                                  "type": "string"
                                 }
                               }
-
-                            ]
+                            }
                           }
+
                         }
                     }
 
