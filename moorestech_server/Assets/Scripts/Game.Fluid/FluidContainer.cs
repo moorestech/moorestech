@@ -12,9 +12,9 @@ namespace Game.Fluid
         public readonly double Capacity;
         
         public readonly bool IsEmpty;
+        public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
         public double Amount;
         public Guid FluidId;
-        public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
         
         /// <param name="capacity">液体の許容量</param>
         /// <param name="fluidId">内部の液体のID</param>
@@ -34,7 +34,7 @@ namespace Game.Fluid
             IsEmpty = true;
         }
         
-        public void AddLiquid(double amount, FluidContainer previous, out double? remain)
+        public void AddLiquid(double amount, FluidContainer source, out double? remain)
         {
             remain = null;
             if (IsEmpty) return;
@@ -43,13 +43,13 @@ namespace Game.Fluid
             {
                 var addingAmount = Capacity - Amount;
                 Amount += addingAmount;
-                previous.PreviousSourceFluidContainers.Add(this);
+                source.PreviousSourceFluidContainers.Add(this);
                 remain = amount - addingAmount;
                 return;
             }
             
             Amount += amount;
-            previous.PreviousSourceFluidContainers.Add(this);
+            source.PreviousSourceFluidContainers.Add(this);
         }
     }
 }
