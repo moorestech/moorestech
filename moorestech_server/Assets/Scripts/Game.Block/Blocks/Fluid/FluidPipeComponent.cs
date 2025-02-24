@@ -1,8 +1,11 @@
 using System;
+using System.Linq;
+using Core.Update;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
+using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Blocks.Fluid
 {
@@ -28,6 +31,56 @@ namespace Game.Block.Blocks.Fluid
         
         public void Update()
         {
+            // 流入対象のコンテナを列挙する
+            var targetContainers = _connectorComponent.ConnectedTargets
+                .Select(kvp => (kvp.Key, kvp.Value))
+                .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
+                .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
+                .ToList();
+            
+            // 対象のコンテナに向かって流す
+            // 最大流量
+            
+            for (var i = 0; i < targetContainers.Count; i++)
+            {
+                var (minimumOtherFluidInventory, minimumOtherConnectedInfo) = targetContainers[i];
+                var minimumOtherFluidContainer = minimumOtherFluidInventory.FluidContainer;
+                
+                var flowPerContainer = FluidContainer.Amount / (targetContainers.Count - i);
+                var flowRate = Math.Min(flowPerContainer, GetMaxFlowRate(minimumOtherFluidContainer, minimumOtherConnectedInfo));
+                
+                if (flowRate <= 0) break;
+                
+                for (var j = i; j < targetContainers.Count; j++)
+                {
+                    FluidContainer.Amount -= flowRate;
+                    var otherContainer = targetContainers[j].Key.FluidContainer;
+                    otherContainer.Amount += flowRate;
+                    
+                    otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
+                }
+            }
+            
+            FluidContainer.PreviousSourceFluidContainers.Clear();
+            
+            // ソートする
+            // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す
+            // 満たされた対象はリストから削除
+            // 元のコンテナから液体がなくなったら終了
+            // 全ての対象に繰り返す
+        }
+        
+        private double GetMaxFlowRate(FluidContainer container, ConnectedInfo connectedInfo)
+        {
+            var selfOption = connectedInfo.SelfOption as FluidConnectOption;
+            var targetOption = connectedInfo.TargetOption as FluidConnectOption;
+            
+            if (selfOption == null || targetOption == null) throw new ArgumentException();
+            
+            var flowRate = Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
+            flowRate = Math.Min(flowRate, container.Capacity - container.Amount);
+            
+            return flowRate;
         }
     }
 }

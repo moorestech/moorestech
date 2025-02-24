@@ -33,5 +33,23 @@ namespace Game.Fluid
             Capacity = 0;
             IsEmpty = true;
         }
+        
+        public void AddLiquid(double amount, FluidContainer previous, out double? remain)
+        {
+            remain = null;
+            if (IsEmpty) return;
+            
+            if (Capacity - Amount < amount)
+            {
+                var addingAmount = Capacity - Amount;
+                Amount += addingAmount;
+                previous.PreviousSourceFluidContainers.Add(this);
+                remain = amount - addingAmount;
+                return;
+            }
+            
+            Amount += amount;
+            previous.PreviousSourceFluidContainers.Add(this);
+        }
     }
 }
