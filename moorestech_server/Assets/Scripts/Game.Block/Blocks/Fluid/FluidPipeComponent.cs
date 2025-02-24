@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Fluid
         {
             // 流入対象のコンテナを列挙する
             var targetContainers = _connectorComponent.ConnectedTargets
-                .Select(kvp => (kvp.Key, kvp.Value))
+                .Select(kvp => (kvp.Key, kvp.Value, GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value)))
                 .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
                 .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
                 .ToList();
@@ -43,11 +43,10 @@ namespace Game.Block.Blocks.Fluid
             
             for (var i = 0; i < targetContainers.Count; i++)
             {
-                var (minimumOtherFluidInventory, minimumOtherConnectedInfo) = targetContainers[i];
-                var minimumOtherFluidContainer = minimumOtherFluidInventory.FluidContainer;
+                var (_, _, maxFlowRate) = targetContainers[i];
                 
                 var flowPerContainer = FluidContainer.Amount / (targetContainers.Count - i);
-                var flowRate = Math.Min(flowPerContainer, GetMaxFlowRate(minimumOtherFluidContainer, minimumOtherConnectedInfo));
+                var flowRate = Math.Min(flowPerContainer, maxFlowRate);
                 
                 if (flowRate <= 0) break;
                 
@@ -56,6 +55,7 @@ namespace Game.Block.Blocks.Fluid
                     FluidContainer.Amount -= flowRate;
                     var otherContainer = targetContainers[j].Key.FluidContainer;
                     otherContainer.Amount += flowRate;
+                    targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
                     
                     otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
                 }
