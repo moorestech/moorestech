@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Core
             const float pipeFlowCapacity = 10f;
             var fillTime = amount / pipeFlowCapacity; // 全て搬入するのにかかる時間
             
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void SetFluidPipeTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
             
@@ -135,7 +135,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidPipeConnectTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -178,9 +178,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 1, BlockDirection.North, out var oneWayFluidPipeBlock);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, out var fluidPipeBlock1);
             
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             BlockConnectorComponent<IFluidInventory> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
@@ -233,17 +231,11 @@ namespace Tests.CombinedTest.Core
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 2, BlockDirection.North, out var oneWayFluidPipeBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 2, BlockDirection.North, out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 3, BlockDirection.North, out var fluidPipeBlock2);
-            
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector2 = fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
             var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
             
             // 10fは1秒間に流れる流体の量
@@ -281,10 +273,6 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, out var fluidPipeBlock2);
-            
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector2 = fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory>>();
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
