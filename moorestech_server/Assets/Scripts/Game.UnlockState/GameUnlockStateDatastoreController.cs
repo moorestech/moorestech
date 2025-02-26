@@ -5,6 +5,7 @@ using Core.Master;
 using Game.UnlockState.States;
 using Newtonsoft.Json;
 using UniRx;
+using UnityEngine;
 
 namespace Game.UnlockState
 {

@@ -98,7 +98,6 @@ namespace Server.Boot
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
-            services.AddSingleton<IGameUnlockStateData, IGameUnlockStateDataController>();
 
             services.AddSingleton<ItemRecipeViewerDataContainer>();
             

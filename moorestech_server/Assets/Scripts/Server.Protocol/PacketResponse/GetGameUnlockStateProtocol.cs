@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
         
         public GetGameUnlockStateProtocol(ServiceProvider serviceProvider)
         {
-            gameUnlockStateData = serviceProvider.GetService<IGameUnlockStateData>();
+            gameUnlockStateData = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
