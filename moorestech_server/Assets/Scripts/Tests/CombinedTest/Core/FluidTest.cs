@@ -359,5 +359,37 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(10d, fluidPipe0.FluidContainer.Amount, 1d);
             Assert.AreEqual(0d, fluidPipe1.FluidContainer.Amount, 1d);
         }
+        
+        // 異なる液体が混ざらないことのテスト
+        [Test]
+        public void FluidMixTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            
+            var fluid0 = Guid.Parse("00000000-0000-0000-0000-000000000000");
+            var fluid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            
+            const double fluid0Amount = 10d;
+            const double fluid1Amount = 20d;
+            
+            fluidPipe0.FluidContainer.AddLiquid(new FluidStack(fluid0Amount, fluid0), FluidContainer.Empty, out _);
+            fluidPipe1.FluidContainer.AddLiquid(new FluidStack(fluid1Amount, fluid1), FluidContainer.Empty, out _);
+            
+            for (var i = 0; i < 10; i++)
+            {
+                GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
+                
+                Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
+                Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
+            }
+        }
     }
 }
