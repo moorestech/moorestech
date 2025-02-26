@@ -1,126 +1,141 @@
 {
-  "$id": "blockConnectInfo",
-
-  "type": "array",
-  "overrideCodeGeneratePropertyName": "blockConnectInfoElement",
-
-  "items": {
-    "type": "object",
-
-    "properties": {
-
-      "connectType": {
-        "type": "string",
-        "enum": ["Inventory", "Gear"],
-        "description": "TODO これは後々外部（上位スキーマ？）から設定できるようにする"
-      },
-
-      "offset": {
-        "type": "array",
-        "pattern": "@vector3Int",
-        "items": {
-          "type": "integer"
-        },
-        "default": [
-          0,
-          0,
-          0
-        ]
-      },
-
-      "directions": {
-        "type": "array",
-        "optional": true,
-        "items": {
-          "type": "array",
-          "pattern": "@vector3Int",
-          "items": {
-            "type": "integer"
-          },
-          "default": [
-            0,
-            0,
-            0
-          ]
-        }
-      },
-
-      "connectOption": {
-        "oneOf": [
-          {
-            "if": {
-              "properties": {
-                "connectType": { "const": "Inventory" }
-              }
+    "$id": "blockConnectInfo",
+    "type": "array",
+    "overrideCodeGeneratePropertyName": "blockConnectInfoElement",
+    "items": {
+        "type": "object",
+        "properties": {
+            "connectType": {
+                "type": "string",
+                "enum": [
+                    "Inventory",
+                    "Gear",
+                    "Fluid"
+                ],
+                "description": "TODO これは後々外部（上位スキーマ？）から設定できるようにする"
             },
-            "then": {
-              "type": "object",
-              "optional": true,
-              "properties": {
-                "inventoryOptions" :{
-                  "type": "array",
-                  "optional": true,
-                  
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      
-                      "inventoryConnectOptionType": {
-                        "type": "string",
-                        "enum": ["CraftChainerCrafter"]
-                      },
-                      
-                      "inventoryConnectOptionParam": {
-                        "oneOf": [
-                          {
-                            "if": {
-                              "properties": {
-                                "inventoryConnectOptionType": { "const": "CraftChainerCrafter" }
-                              }
-                            },
-                            "then": {
-                              "type": "object",
-                              "properties": {
-
+            "offset": {
+                "type": "array",
+                "pattern": "@vector3Int",
+                "items": {
+                    "type": "integer"
+                },
+                "default": [
+                    0,
+                    0,
+                    0
+                ]
+            },
+            "directions": {
+                "type": "array",
+                "optional": true,
+                "items": {
+                    "type": "array",
+                    "pattern": "@vector3Int",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "default": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            "connectOption": {
+                "oneOf": [
+                    {
+                        "if": {
+                            "properties": {
                                 "connectType": {
-                                  "type": "string",
-                                  "enum": ["Network", "Factory"]
+                                    "const": "Inventory"
                                 }
-                              }
                             }
-                            
-                          }
-                        ]
-                      }
-                      
+                        },
+                        "then": {
+                            "type": "object",
+                            "optional": true,
+                            "properties": {
+                                "inventoryOptions": {
+                                    "type": "array",
+                                    "optional": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "inventoryConnectOptionType": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "CraftChainerCrafter"
+                                                ]
+                                            },
+                                            "inventoryConnectOptionParam": {
+                                                "oneOf": [
+                                                    {
+                                                        "if": {
+                                                            "properties": {
+                                                                "inventoryConnectOptionType": {
+                                                                    "const": "CraftChainerCrafter"
+                                                                }
+                                                            }
+                                                        },
+                                                        "then": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "connectType": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "Network",
+                                                                        "Factory"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "connectType": {
+                                    "const": "Gear"
+                                }
+                            }
+                        },
+                        "then": {
+                            "type": "object",
+                            "properties": {
+                                "isReverse": {
+                                    "type": "boolean",
+                                    "default": true
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "connectType": {
+                                    "const": "Fluid"
+                                }
+                            }
+                        },
+                        "then": {
+                            "type": "object",
+                            "properties": {
+                                "flowCapacity": {
+                                    "type": "number"
+                                }
+                            }
+                        }
                     }
-                  }
-                  
-                }
-              }
+                ]
             }
-          },
-
-          {
-            "if": {
-              "properties": {
-                "connectType": { "const": "Gear" }
-              }
-            },
-            "then": {
-              "type": "object",
-              "properties": {
-
-                "isReverse": {
-                  "type": "boolean",
-                  "default": true
-                }
-              }
-            }
-          }
-
-        ]
-      }
+        }
     }
-  }
 }

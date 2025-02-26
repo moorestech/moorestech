@@ -99,9 +99,50 @@ namespace Game.Block.Interface
         
         public static Vector3Int GetBlockModelOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
         {
-            var addPos = blockDirection.GetBlockDirectionOffset() * size;
-            
-            return pos + addPos;
+                var addPos = Vector3Int.zero;
+                switch (blockDirection)
+                {
+                    case BlockDirection.UpNorth:
+                        addPos = new Vector3Int(0, 0, size.y);
+                        break;
+                    case BlockDirection.UpEast:
+                        addPos = new Vector3Int(size.y, 0, size.x);
+                        break;
+                    case BlockDirection.UpSouth:
+                        addPos = new Vector3Int(size.x, 0, size.y);
+                        break;
+                    case BlockDirection.UpWest:
+                        addPos = new Vector3Int(0, 0, size.y);
+                        break;
+                    
+                    case BlockDirection.North:
+                        addPos = new Vector3Int(0, 0, 0);
+                        break;
+                    case BlockDirection.East:
+                        addPos = new Vector3Int(0, 0, size.x);
+                        break;
+                    case BlockDirection.South:
+                        addPos = new Vector3Int(size.x, 0, size.z);
+                        break;
+                    case BlockDirection.West:
+                        addPos = new Vector3Int(size.z, 0, 0);
+                        break;
+                    
+                    case BlockDirection.DownNorth:
+                        addPos = new Vector3Int(size.x, size.z, size.y);
+                        break;
+                    case BlockDirection.DownEast:
+                        addPos = new Vector3Int(size.y, size.z, 0);
+                        break;
+                    case BlockDirection.DownSouth:
+                        addPos = new Vector3Int(0, size.z, 0);
+                        break;
+                    case BlockDirection.DownWest:
+                        addPos = new Vector3Int(0, size.z, size.x);
+                        break;
+                }
+                
+                return pos + addPos;
         }
         
         public static Vector3Int GetBlockDirectionOffset(this BlockDirection blockDirection)

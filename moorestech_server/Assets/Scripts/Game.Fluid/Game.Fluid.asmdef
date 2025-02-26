@@ -1,0 +1,16 @@
+{
+    "name": "Game.Fluid",
+    "rootNamespace": "",
+    "references": [
+        "GUID:559e05852f4834e6b836e9c5499e87db"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
