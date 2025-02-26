@@ -13,6 +13,7 @@
         "thumbnail": "imagePath",
 
         "properties": {
+
           "itemGuid": {
             "type": "string",
             "format": "uuid",
@@ -44,7 +45,7 @@
           "recipeViewType": {
             "type": "string",
             "default" : 100,
-            "enum": [ "IsRecipeExist", "ForceShow", "ForceHide" ]
+            "enum": [ "IsCraftRecipeExist", "ForceShow", "ForceHide" ]
           }
         }
       }
