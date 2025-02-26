@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.UnlockState.States;
 using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.UnlockState
 {
     
-    public class GameUnlockStateDatastore : IGameUnlockStateDatastore
+    public class GameUnlockStateDataController : IGameUnlockStateDataController
     {
-        public GameUnlockStateDatastore()
+        public GameUnlockStateDataController()
         {
             var recipes = MasterHolder.CraftRecipeMaster.GetAllCraftRecipes();
             foreach (var recipe in recipes)

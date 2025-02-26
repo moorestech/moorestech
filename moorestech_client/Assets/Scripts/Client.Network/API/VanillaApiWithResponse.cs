@@ -142,8 +142,8 @@ namespace Client.Network.API
         
         public async UniTask<UnlockCraftRecipeStateResponse> GetUnlockCraftRecipeState(CancellationToken ct)
         {
-            var request = new GetCraftRecipeUnlockStatusesProtocol.RequestCraftRecipeUnlockStatusesMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetCraftRecipeUnlockStatusesProtocol.ResponseCraftRecipeUnlockStatusesMessagePack>(request, ct);
+            var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
             
             return new UnlockCraftRecipeStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids);
         }

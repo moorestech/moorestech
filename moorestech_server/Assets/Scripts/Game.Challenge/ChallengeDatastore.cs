@@ -14,15 +14,15 @@ namespace Game.Challenge
 {
     public class ChallengeDatastore
     {
-        private readonly IGameUnlockStateDatastore _gameUnlockStateDatastore;
+        private readonly IGameUnlockStateDataController gameUnlockStateDataController;
         private ChallengeEvent _challengeEvent;
         
         private readonly Dictionary<int, PlayerChallengeInfo> _playerChallengeInfos = new();
         private readonly ChallengeFactory _challengeFactory = new();
         
-        public ChallengeDatastore(IGameUnlockStateDatastore gameUnlockStateDatastore, ChallengeEvent challengeEvent)
+        public ChallengeDatastore(IGameUnlockStateDataController gameUnlockStateDataController, ChallengeEvent challengeEvent)
         {
-            _gameUnlockStateDatastore = gameUnlockStateDatastore;
+            this.gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
             GameUpdater.UpdateObservable.Subscribe(Update);
         }
@@ -105,7 +105,7 @@ namespace Game.Challenge
                 {
                     case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
                         var param = (UnlockCraftRecipeClearedActionParam) action.ClearedActionParam;
-                        _gameUnlockStateDatastore.UnlockCraftRecipe(param.UnlockRecipeGuid);
+                        gameUnlockStateDataController.UnlockCraftRecipe(param.UnlockRecipeGuid);
                         break;
                 }
             }

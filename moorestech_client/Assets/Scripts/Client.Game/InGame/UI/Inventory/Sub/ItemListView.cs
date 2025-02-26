@@ -23,7 +23,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private RectTransform itemListParent;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private IUnlockCraftRecipeStateDatastore _unlockStateDatastore;
+        [Inject] private IGameUnlockStateData iiGameUnlockStateData;
         private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;

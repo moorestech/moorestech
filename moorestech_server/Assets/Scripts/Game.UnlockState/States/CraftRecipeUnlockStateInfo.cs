@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Game.UnlockState
+namespace Game.UnlockState.States
 {
     public class CraftRecipeUnlockStateInfo
     {

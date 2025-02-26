@@ -97,7 +97,8 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
-            services.AddSingleton<IGameUnlockStateDatastore, GameUnlockStateDatastore>();
+            services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
+            services.AddSingleton<IGameUnlockStateData, IGameUnlockStateDataController>();
 
             services.AddSingleton<ItemRecipeViewerDataContainer>();
             
@@ -128,7 +129,7 @@ namespace Server.Boot
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
             
             services.AddSingleton<MapObjectUpdateEventPacket>();
-            services.AddSingleton<UnlockedCraftRecipeEventPacket>();
+            services.AddSingleton<UnlockedEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -152,7 +153,7 @@ namespace Server.Boot
             
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
-            serviceProvider.GetService<UnlockedCraftRecipeEventPacket>();
+            serviceProvider.GetService<UnlockedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
             

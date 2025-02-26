@@ -5,16 +5,22 @@ using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    public class UnlockedCraftRecipeEventPacket
+    /// <summary>
+    /// ゲーム内のアンロックイベントを送信するためのクラス。アンロックされるものは複数あるが、そのためにイベントを複数用意するのは面倒なので統合して扱う。
+    /// 分割したい需要が発生したら分割するかも。
+    /// A class for sending in-game unlock events. There are multiple things that can be unlocked, but it would be tedious to prepare multiple events for that, so we will handle them together.
+    /// We may split it up if there is a demand to do so.
+    /// </summary>
+    public class UnlockedEventPacket
     {
-        public const string EventTag = "va:event:unlockedCraftRecipe";
+        public const string EventTag = "va:event:unlocked";
         
         private readonly EventProtocolProvider _eventProtocolProvider;
         
-        public UnlockedCraftRecipeEventPacket(EventProtocolProvider eventProtocolProvider, IGameUnlockStateDatastore gameUnlockStateDatastore)
+        public UnlockedEventPacket(EventProtocolProvider eventProtocolProvider, IGameUnlockStateDataController gameUnlockStateDataController)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            gameUnlockStateDatastore.OnUnlockCraftRecipe.Subscribe(OnUnlockCraftRecipe);
+            gameUnlockStateDataController.OnUnlockCraftRecipe.Subscribe(OnUnlockCraftRecipe);
         }
         
         private void OnUnlockCraftRecipe(Guid recipeGuid)

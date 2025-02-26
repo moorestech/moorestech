@@ -139,7 +139,7 @@ namespace Client.Starter
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
-            builder.Register<ClientGameUnlockStateDatastore>(Lifetime.Singleton);
+            builder.Register<ClientGameIiGameUnlockStateData>(Lifetime.Singleton);
             
             
             //Hierarchy上にあるcomponent

@@ -25,10 +25,10 @@ namespace Game.SaveLoad.Json
         private readonly SaveJsonFileName _saveJsonFileName;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly IGameUnlockStateDatastore _gameUnlockStateDatastore;
+        private readonly IGameUnlockStateDataController gameUnlockStateDataController;
         
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDatastore gameUnlockStateDatastore)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -38,7 +38,7 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _challengeDatastore = challengeDatastore;
-            _gameUnlockStateDatastore = gameUnlockStateDatastore;
+            this.gameUnlockStateDataController = gameUnlockStateDataController;
         }
         
         public void LoadOrInitialize()
@@ -76,7 +76,7 @@ namespace Game.SaveLoad.Json
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
             _challengeDatastore.LoadChallenge(load.Challenge);
-            _gameUnlockStateDatastore.LoadUnlockState(load.GameUnlockStateJsonObject);
+            gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
         }
         
         public void WorldInitialize()

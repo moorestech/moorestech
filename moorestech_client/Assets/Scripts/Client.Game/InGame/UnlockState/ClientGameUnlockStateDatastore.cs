@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using Game.UnlockState;
+using Game.UnlockState.States;
 using MessagePack;
 using Server.Event.EventReceive;
 
 namespace Client.Game.InGame.UnlockState
 {
-    public class ClientGameUnlockStateDatastore : IUnlockCraftRecipeStateDatastore
+    public class ClientGameIiGameUnlockStateData : IGameUnlockStateData
     {
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         
-        public ClientGameUnlockStateDatastore(InitialHandshakeResponse initialHandshakeResponse)
+        public ClientGameIiGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
             var unlockCraftRecipeState = initialHandshakeResponse.UnlockCraftRecipeState;
             foreach (var lockedGuid in unlockCraftRecipeState.LockedCraftRecipeGuids)
@@ -25,7 +26,7 @@ namespace Client.Game.InGame.UnlockState
                 _recipeUnlockStateInfos[unlockedGuid] = new CraftRecipeUnlockStateInfo(unlockedGuid, true);
             }
             
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedCraftRecipeEventPacket.EventTag, OnUpdateUnlockCraftRecipe);
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlockCraftRecipe);
         }
         
         public void OnUpdateUnlockCraftRecipe(byte[] payload)

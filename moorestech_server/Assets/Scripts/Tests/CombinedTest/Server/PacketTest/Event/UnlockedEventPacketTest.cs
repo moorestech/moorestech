@@ -19,7 +19,7 @@ using static Tests.Module.TestMod.ForUnitTest.ForUnitTestCraftRecipeId;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
-    public class UnlockedCraftRecipeEventPacketTest
+    public class UnlockedEventPacketTest
     {
         private const int PlayerId = 1;
         
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // レシピのアンロック状態を変更
             // Change the unlock state of the recipe
-            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDatastore>();
+            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
             unlockStateDatastore.UnlockCraftRecipe(Craft3);
             
             // イベントを受け取り、テストする
@@ -83,7 +83,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // レシピアンロックのイベントを取得
             // Get the recipe unlock event
-            var unlockedCraftRecipeEvent = eventMessagePack.Events.First(e => e.Tag == UnlockedCraftRecipeEventPacket.EventTag);
+            var unlockedCraftRecipeEvent = eventMessagePack.Events.First(e => e.Tag == UnlockedEventPacket.EventTag);
             var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(unlockedCraftRecipeEvent.Payload);
             
             // Craft2のレシピがアンロックされたことを確認する
