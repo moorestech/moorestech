@@ -44,7 +44,7 @@
           "recipeViewType": {
             "type": "string",
             "default" : 100,
-            "enum": [ "IsRecipeExist", "ForceView", "ForceHide" ]
+            "enum": [ "IsRecipeExist", "ForceShow", "ForceHide" ]
           }
         }
       }
