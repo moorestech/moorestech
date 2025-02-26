@@ -45,6 +45,22 @@
               }
             }
           },
+          "inputFluids": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fluidGuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "fluids:fluidGuid:name"
+                },
+                "amount": {
+                  "type": "number"
+                }
+              }
+            }
+          },
           "outputItems": {
             "type": "array",
             "items": {
