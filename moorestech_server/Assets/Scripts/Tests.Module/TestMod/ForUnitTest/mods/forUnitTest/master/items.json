@@ -342,12 +342,16 @@
     {
       "maxStack": 100,
       "name": "FluidPipe",
-      "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF"
+      "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView"
     },
     {
       "maxStack": 100,
       "name": "OneWayFluidPipe",
-      "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45"
+      "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView"
     }
   ]
 }
