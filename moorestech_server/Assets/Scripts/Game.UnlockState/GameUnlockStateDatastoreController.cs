@@ -18,7 +18,17 @@ namespace Game.UnlockState
                 var guid = recipe.CraftRecipeGuid;
                 if (!CraftRecipeUnlockStateInfos.ContainsKey(guid))
                 {
-                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked ?? false));
+                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked ?? true)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
+                }
+            }
+            
+            var items = MasterHolder.ItemMaster.GetItemAllIds();
+            foreach (var item in items)
+            {
+                if (!ItemUnlockStateInfos.ContainsKey(item))
+                {
+                    var itemMaster = MasterHolder.ItemMaster.GetItemMaster(item);
+                    _itemUnlockStateInfos.Add(item, new ItemUnlockStateInfo(item, itemMaster.InitialUnlocked ?? true)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
                 }
             }
         }
@@ -53,6 +63,7 @@ namespace Game.UnlockState
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)
         {
             LoadRecipeUnlockStateInfos();
+            LoadItemUnlockStateInfos();
             
             #region Internal
             
@@ -62,6 +73,15 @@ namespace Game.UnlockState
                 {
                     var recipeGuid = Guid.Parse(recipeUnlockStateInfo.CraftRecipeGuid);
                     _recipeUnlockStateInfos[recipeGuid] = new CraftRecipeUnlockStateInfo(recipeUnlockStateInfo);
+                }
+            }
+            
+            void LoadItemUnlockStateInfos()
+            {
+                foreach (var itemUnlockStateInfo in stateJsonObject.ItemUnlockStateInfos)
+                {
+                    var state = new ItemUnlockStateInfo(itemUnlockStateInfo);
+                    _itemUnlockStateInfos[state.ItemId] = state;
                 }
             }
             
