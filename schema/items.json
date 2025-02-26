@@ -39,6 +39,12 @@
             "type": "number",
             "default" : 100,
             "optional": true
+          },
+
+          "recipeViewType": {
+            "type": "string",
+            "default" : 100,
+            "enum": [ "IsRecipeExist", "ForceView", "ForceHide" ]
           }
         }
       }
