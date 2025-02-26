@@ -236,7 +236,7 @@
 
                 "clearedActionType": {
                   "type": "string",
-                  "enum": ["unlockCraftRecipe"]
+                  "enum": ["unlockCraftRecipe", "unlockItemRecipeView"]
                 },
 
                 "clearedActionParam": {
@@ -254,6 +254,23 @@
                             "type": "string",
                             "format": "uuid",
                             "foreignKey": "craftRecipes:craftRecipeGuid:craftRecipeGuid"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "clearedActionType": { "const": "unlockItemRecipeView" }
+                        }
+                      },
+                      "then": {
+                        "type": "object",
+                        "properties": {
+                          "unlockItemGuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "foreignKey": "items:itemGuid:name"
                           }
                         }
                       }
