@@ -360,7 +360,9 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0d, fluidPipe1.FluidContainer.Amount, 1d);
         }
         
-        // 異なる液体が混ざらないことのテスト
+        /// <summary>
+        ///     異なる液体が混ざらないことのテスト
+        /// </summary>
         [Test]
         public void FluidMixTest()
         {
