@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.GetCraftRecipeUnlockStatusesProtocol;
+using static Server.Protocol.PacketResponse.GetGameUnlockStateProtocol;
 using static Tests.Module.TestMod.ForUnitTest.ForUnitTestCraftRecipeId;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // レシピのアンロック状態を取得
             // Get the unlock state of the recipe
-            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDatastore>();
+            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
             var infos = unlockStateDatastore.CraftRecipeUnlockStateInfos;
             Assert.True(infos[Craft0].IsUnlocked);
             Assert.True(infos[Craft1].IsUnlocked);
@@ -29,9 +29,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // サーバーからレシピのアンロック状態を取得
             // Get the unlock state of the recipe from the server
-            var messagePack = new RequestCraftRecipeUnlockStatusesMessagePack();
+            var messagePack = new RequestGameUnlockStateProtocolMessagePack();
             var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            var response = MessagePackSerializer.Deserialize<ResponseCraftRecipeUnlockStatusesMessagePack>(responseBytes.ToArray());
+            var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes.ToArray());
             
             Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft0));
             Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft1));
@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 再びサーバーからレシピのアンロック状態を取得
             // Get the unlock state of the recipe from the server again
             responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            response = MessagePackSerializer.Deserialize<ResponseCraftRecipeUnlockStatusesMessagePack>(responseBytes.ToArray());
+            response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes.ToArray());
             
             Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft0));
             Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft1));
