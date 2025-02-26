@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.UnlockState.States;
 
 namespace Game.UnlockState
@@ -14,6 +15,7 @@ namespace Game.UnlockState
     public interface IGameUnlockStateData
     {
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos { get; }
+        public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos { get; }
     }
     
     /// <summary>
@@ -26,6 +28,8 @@ namespace Game.UnlockState
         public IObservable<Guid> OnUnlockCraftRecipe { get; }
         void UnlockCraftRecipe(Guid recipeGuid);
         
+        public IObservable<ItemId> OnUnlockItem { get; }
+        void UnlockItem(ItemId itemId);
         
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
         GameUnlockStateJsonObject GetSaveJsonObject();
