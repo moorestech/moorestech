@@ -53,12 +53,14 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     // 強制表示の場合は表示する
                     // If it is a forced display, display it
                 }
-                else if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsRecipeExist)
+                else if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
                 {
                     var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
                     var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
                     if (unlockRecipes.Count == 0)
                     {
+                        // クラフトレシピがない場合は表示しない
+                        // Do not display if there is no craft recipe
                         continue;
                     }
                 }
