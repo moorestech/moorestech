@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
@@ -392,6 +393,22 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
                 Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
             }
+        }
+        
+        /// <summary>
+        ///     液体の定義に水と蒸気があることのテスト
+        /// </summary>
+        [Test]
+        public void FluidMasterTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var fluidMaster = MasterHolder.FluidMaster;
+            
+            var names = fluidMaster.GetAllFluidIds().Select(id => fluidMaster.GetFluidMaster(id)).ToDictionary(f => f.Name);
+            
+            Assert.Contains("Water", names.Keys);
+            Assert.Contains("Steam", names.Keys);
         }
     }
 }
