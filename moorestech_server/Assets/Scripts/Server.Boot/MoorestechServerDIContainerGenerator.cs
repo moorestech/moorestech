@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using Core.Item;
 using Core.Item.Interface;
@@ -10,7 +11,6 @@ using Game.Block.Interface.Event;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftChainer;
-using Game.CraftChainer.CraftNetwork;
 using Game.CraftChainer.Util;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -51,22 +51,22 @@ namespace Server.Boot
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
             GameUpdater.ResetUpdate();
-            
+
             //必要な各種インスタンスを手動で作成
             var modDirectory = Path.Combine(serverDirectory, "mods");
-            
+
             // マスターをロード
             var modResource = new ModsResource(modDirectory);
-            var configJsons = ModJsonStringLoader.GetConfigString(modResource);
+            Dictionary<string, MasterJsonCpntens> configJsons = ModJsonStringLoader.GetConfigString(modResource);
             var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
             MasterHolder.Load(configJsonFileContainer);
-            
+
             var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(configJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
-            
+
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
@@ -78,14 +78,14 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
             initializerCollection.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             initializerCollection.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-            
+
             var initializerProvider = initializerCollection.BuildServiceProvider();
             var serverContext = new ServerContext(initializerProvider);
-            
-            
+
+
             //コンフィグ、ファクトリーのインスタンスを登録
             var services = new ServiceCollection();
-            
+
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
@@ -100,22 +100,22 @@ namespace Server.Boot
             services.AddSingleton<IGameUnlockStateDatastore, GameUnlockStateDatastore>();
 
             services.AddSingleton<ItemRecipeViewerDataContainer>();
-            
+
             services.AddSingleton(configJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
-            
+
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));
-            
+
             //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
             services.AddSingleton<CraftEvent, CraftEvent>();
-            
+
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateEventPacket>();
@@ -124,19 +124,19 @@ namespace Server.Boot
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();
-            
+
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
-            
+
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedCraftRecipeEventPacket>();
-            
+
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
-            
-            
+
+
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
-            
+
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
@@ -145,23 +145,23 @@ namespace Server.Boot
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<CompletedChallengeEventPacket>();
-            
+
             serviceProvider.GetService<GearNetworkDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
-            
+
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedCraftRecipeEventPacket>();
-            
+
             serverContext.SetMainServiceProvider(serviceProvider);
-            
+
             // CraftChainerの初期化
             CraftChainerEntryPoint.Entry();
-            
+
             // アップデート時間をリセット
             GameUpdater.ResetTime();
-            
+
             return (packetResponse, serviceProvider);
         }
     }

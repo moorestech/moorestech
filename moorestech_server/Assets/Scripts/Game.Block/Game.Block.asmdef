@@ -18,7 +18,8 @@
         "Game.Train",
         "MessagePack",
         "MessagePack.Annotations",
-        "Core.Master"
+        "Core.Master",
+        "Game.Fluid"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

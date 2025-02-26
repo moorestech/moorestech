@@ -49,5 +49,8 @@ namespace Tests.Module.TestMod
         public static readonly BlockId TestTrainCargoPlatform = (BlockId)38;
         
         public static readonly BlockId GearMapObjectMiner = (BlockId)39;
+        
+        public static readonly BlockId FluidPipe = (BlockId)40;
+        public static readonly BlockId OneWayFluidPipe = (BlockId)41;
     }
 }

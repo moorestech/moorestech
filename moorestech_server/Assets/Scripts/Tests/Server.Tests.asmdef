@@ -49,6 +49,7 @@
         "Server.Tests.Module",
         "Game.CraftChainer",
         "Game.UnlockState"
+        "Game.Fluid"
     ],
     "includePlatforms": [
         "Editor"
