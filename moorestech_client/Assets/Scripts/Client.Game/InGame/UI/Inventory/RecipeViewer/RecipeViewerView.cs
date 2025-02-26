@@ -1,11 +1,8 @@
-using System;
 using Client.Game.InGame.UI.Inventory.Sub;
-using Client.Game.InGame.UnlockState;
 using Core.Master;
 using Game.CraftChainer.Util;
 using UniRx;
 using UnityEngine;
-using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
@@ -16,8 +13,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         [SerializeField] private RecipeTabView recipeTabView;
         
         [SerializeField] private ItemListView itemListView;
-        
-        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
         
         private void Awake()
         {
@@ -39,7 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             recipeTabView.SetRecipeTabView(recipeViewerItemRecipes);
             
             // クラフトレシピがある場合はそれを最初に表示する
-            var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore).Count != 0;
+            var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
             machineRecipeView.SetActive(!isFirstCraft);
             if (isFirstCraft)

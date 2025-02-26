@@ -22,8 +22,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         private readonly List<RecipeViewerTabElement> _currentTabs = new();
         
-        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
-        
         public void SetRecipeTabView(RecipeViewerItemRecipes recipes)
         {
             foreach (var tab in _currentTabs)
@@ -36,7 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             // クラフトタブがあればそれを優先的異選択
             // If there is a craft tab, select it preferentially
             var isFirstCraft = false;
-            var unlockedRecipe = recipes.UnlockedCraftRecipes(_unlockStateDatastore);
+            var unlockedRecipe = recipes.UnlockedCraftRecipes();
             if (unlockedRecipe.Count != 0)
             {
                 var tabElement = Instantiate(tabElementPrefab, tabElementParent);
