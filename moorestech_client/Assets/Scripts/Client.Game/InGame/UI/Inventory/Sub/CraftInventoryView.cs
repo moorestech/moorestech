@@ -37,9 +37,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         private ItemSlotObject _craftResultSlot;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private ClientGameUnlockStateDatastore _unlockStateDatastore;
         
-        private int CraftRecipeCount => _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore).Count;
+        private int CraftRecipeCount => _currentItemRecipes.UnlockedCraftRecipes().Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private int _currentIndex;
         
@@ -50,7 +49,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 if (_currentItemRecipes != null && _currentIndex < CraftRecipeCount)
                 {
-                    var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore);
+                    var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes();
                     UpdateCraftButton(currentUnlocked[_currentIndex]);
                 }
             });
@@ -76,7 +75,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     return;
                 }
                 
-                var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore);
+                var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes();
                 var currentCraftGuid = currentUnlocked[_currentIndex].CraftRecipeGuid;
                 ClientContext.VanillaApi.SendOnly.Craft(currentCraftGuid);
             }).AddTo(this);
@@ -95,7 +94,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public void DisplayRecipe(int index)
         {
-            var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes(_unlockStateDatastore);
+            var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes();
             var craftRecipe = currentUnlocked[index];
             
             ClearSlotObject();
