@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Network.API;
+using Core.Master;
 using Game.UnlockState;
 using Game.UnlockState.States;
 using MessagePack;
@@ -12,7 +13,11 @@ namespace Client.Game.InGame.UnlockState
     public class ClientGameIiGameUnlockStateData : IGameUnlockStateData
     {
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
+        public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos => _itemUnlockStateInfos;
+        
+        
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
+        private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
         
         public ClientGameIiGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
