@@ -4,8 +4,10 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UnlockState;
 using Core.Master;
 using Game.CraftChainer.Util;
+using Game.UnlockState;
 using Mooresmaster.Model.ItemsModule;
 using UniRx;
 using UnityEngine;
@@ -21,7 +23,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private RectTransform itemListParent;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private 
+        [Inject] private IUnlockCraftRecipeStateDatastore _unlockStateDatastore;
         private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
@@ -46,15 +48,16 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 {
                     continue;
                 }
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceView)
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceShow)
                 {
                     // 強制表示の場合は表示する
                     // If it is a forced display, display it
                 }
                 else if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsRecipeExist)
                 {
-                    var recipes = _itemRecipeViewerDataContainer.GetItem(itemId);
-                    if (recipes.MachineRecipes.Count == 0 && recipes.CraftRecipes.Count == 0)
+                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
+                    if (unlockRecipes.Count == 0)
                     {
                         continue;
                     }

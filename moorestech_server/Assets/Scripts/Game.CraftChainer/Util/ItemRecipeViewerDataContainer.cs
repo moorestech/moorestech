@@ -106,11 +106,12 @@ namespace Game.CraftChainer.Util
         }
         
         /// <summary>
-        /// アンロック済み
+        /// アンロック済みのクラフトレシピを取得
         /// </summary>
         public List<CraftRecipeMasterElement> UnlockedCraftRecipes()
         {
-            return AllCraftRecipes.Where(craftRecipe => _unlockCraftRecipeStateDatastore.CraftRecipeUnlockStateInfos[craftRecipe.CraftRecipeGuid].IsUnlocked).ToList();
+            var infos = _unlockCraftRecipeStateDatastore.CraftRecipeUnlockStateInfos;
+            return AllCraftRecipes.Where(c => infos[c.CraftRecipeGuid].IsUnlocked).ToList();
         }
     }
 }
