@@ -55,11 +55,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // Craft4のレシピがアンロックされたことを確認する
             // Make sure the recipe for Craft3 is unlocked
-            var data = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(eventMessagePack.Events[0].Payload);
+            var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(eventMessagePack.Events[0].Payload);
+            Assert.AreEqual(UnlockEventType.CraftRecipe, data.UnlockEventType);
             Assert.AreEqual(Craft4.ToString(), data.UnlockedCraftRecipeGuidStr);
             
             // Item4のアイテムアンロックされたことを確認する
-            data = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(eventMessagePack.Events[1].Payload);
+            data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(eventMessagePack.Events[1].Payload);
+            Assert.AreEqual(UnlockEventType.Item, data.UnlockEventType);
             Assert.AreEqual(ItemId4, data.UnlockedItemId);
         }
         
@@ -92,12 +94,23 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // レシピアンロックのイベントを取得
             // Get the recipe unlock event
-            var unlockedCraftRecipeEvent = eventMessagePack.Events.First(e => e.Tag == UnlockedEventPacket.EventTag);
-            var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(unlockedCraftRecipeEvent.Payload);
+            var unlockedCraftRecipeEventPacket = eventMessagePack.Events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[0];
+            var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(unlockedCraftRecipeEventPacket.Payload);
             
             // Craft2のレシピがアンロックされたことを確認する
             // Make sure the recipe for Craft2 is unlocked
             Assert.AreEqual(Craft3, unlockCraftRecipeEvent.UnlockedCraftRecipeGuid);
+            Assert.AreEqual(UnlockEventType.CraftRecipe, unlockCraftRecipeEvent.UnlockEventType);
+            
+            // アイテムアンロックのイベントを取得
+            //
+            var unlockedItemEventPacket = eventMessagePack.Events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[1];
+            var unlockItemEvent = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(unlockedItemEventPacket.Payload);
+
+            // ItemId3がアンロックされたことを確認する
+            // 
+            Assert.AreEqual(ItemId3, unlockItemEvent.UnlockedItemId);
+            Assert.AreEqual(UnlockEventType.Item, unlockItemEvent.UnlockEventType);
         }
     }
 }
