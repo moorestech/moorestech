@@ -11,10 +11,10 @@ using static Tests.Module.TestMod.ForUnitTest.ForUnitTestCraftRecipeId;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class CraftRecipeUnlockStateProtocolTest
+    public class GetGameUnlockStateProtocolTest
     {
         [Test]
-        public void GetRecipeStateInfo()
+        public void GetUnlockStateInfo()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
