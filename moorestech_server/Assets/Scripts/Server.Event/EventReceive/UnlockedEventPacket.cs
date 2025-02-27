@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using Game.UnlockState;
 using MessagePack;
 using UniRx;
@@ -17,16 +18,17 @@ namespace Server.Event.EventReceive
         
         private readonly EventProtocolProvider _eventProtocolProvider;
         
-        public UnlockedEventPacket(EventProtocolProvider eventProtocolProvider, IGameUnlockStateDataController gameUnlockStateDataController)
+        public UnlockedEventPacket(EventProtocolProvider eventProtocolProvider, IGameUnlockStateDataController unlockState)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            gameUnlockStateDataController.OnUnlockCraftRecipe.Subscribe(OnUnlockCraftRecipe);
+            
+            unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockCraftRecipeEventMessagePack(c)));
+            unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockCraftRecipeEventMessagePack(i)));
         }
         
-        private void OnUnlockCraftRecipe(Guid recipeGuid)
+        private void AddBroadcastEvent(UnlockCraftRecipeEventMessagePack unlockCraftRecipeEventMessagePack)
         {
-            var messagePack = new UnlockCraftRecipeEventMessagePack(recipeGuid);
-            var payload = MessagePackSerializer.Serialize(messagePack);
+            var payload = MessagePackSerializer.Serialize(unlockCraftRecipeEventMessagePack);
             
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
@@ -35,16 +37,35 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class UnlockCraftRecipeEventMessagePack
     {
-        [Key(0)] public string UnlockedCraftRecipeGuidStr { get; set; }
-        
+        [IgnoreMember] public UnlockEventType UnlockEventType => (UnlockEventType)UnlockEventTypeInt; 
         [IgnoreMember] public Guid UnlockedCraftRecipeGuid => Guid.Parse(UnlockedCraftRecipeGuidStr);
+        [IgnoreMember] public ItemId UnlockedItemId => new(UnlockedItemIdInt);
+        
+        [Key(0)] public int UnlockEventTypeInt { get; }
+        [Key(1)] public string UnlockedCraftRecipeGuidStr { get; set; }
+        [Key(2)] public int UnlockedItemIdInt { get; set; } 
+        
+        
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public UnlockCraftRecipeEventMessagePack() { }
         
         public UnlockCraftRecipeEventMessagePack(Guid unlockedRecipeGuid)
         {
+            UnlockEventTypeInt = (int)UnlockEventType.CraftRecipe;
             UnlockedCraftRecipeGuidStr = unlockedRecipeGuid.ToString();
         }
+        
+        public UnlockCraftRecipeEventMessagePack(ItemId itemId)
+        {
+            UnlockEventTypeInt = (int)UnlockEventType.CraftRecipe;
+            UnlockedItemIdInt = (int)itemId;
+        }
+    }
+    
+    public enum UnlockEventType
+    {
+        CraftRecipe,
+        Item,
     }
 }
