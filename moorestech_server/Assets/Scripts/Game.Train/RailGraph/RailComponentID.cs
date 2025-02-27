@@ -5,17 +5,15 @@ using System.Collections.Generic;
 namespace Game.Train.RailGraph
 {
     /// <summary>
-    /// セーブ・ロード用
-    /// </summary>
-    
     /// RailComponentID
     /// railcomponentを座標とIDで一意に識別するためのクラス
-    
+    /// </summary>
     [Serializable]
     public class RailComponentID
     {
-        public Vector3Int Position;//railcomponentがアタッチされてるオブジェクト(ブロック)のワールド座標
-        public int ID;//railSaverComponentからみて自分のrailcomponentが何番目か。駅だと2つのrailcomponentを持つため、それぞれにIDを振る
+        public Vector3Int Position; // railcomponentがアタッチされているブロックのワールド座標
+        public int ID;             // RailSaverComponent内でのインデックス
+
         public RailComponentID(Vector3Int position, int id)
         {
             Position = position;
@@ -23,28 +21,40 @@ namespace Game.Train.RailGraph
         }
     }
 
+    /// <summary>
+    /// 接続先一つを表すクラス
+    /// </summary>
     [Serializable]
-    public class ConnectionDestination//接続先1つに対応
+    public class ConnectionDestination
     {
-        public (RailComponentID, bool) destination;
-        public ConnectionDestination(RailComponentID destination_, bool isFront)
+        // タプル(destinationRailComponentID, isFront)
+        public (RailComponentID, bool) Destination;
+
+        public ConnectionDestination(RailComponentID destination, bool isFront)
         {
-            destination = (destination_, isFront);
+            Destination = (destination, isFront);
         }
     }
 
+    /// <summary>
+    /// 1つのRailComponentのセーブ情報
+    /// </summary>
     [Serializable]
-    public class RailComponentInfo//1つのRailComponentに1つ対応
+    public class RailComponentInfo
     {
-        public RailComponentID myID;
-        public float bezierStrength;
-        public List<ConnectionDestination> connectMyFrontTo = new List<ConnectionDestination>();
-        public List<ConnectionDestination> connectMyBackTo = new List<ConnectionDestination>();
+        public RailComponentID MyID;
+        public float BezierStrength;
+        public List<ConnectionDestination> ConnectMyFrontTo = new List<ConnectionDestination>();
+        public List<ConnectionDestination> ConnectMyBackTo = new List<ConnectionDestination>();
     }
+
+    /// <summary>
+    /// RailSaverComponentが管理するデータ全体
+    /// </summary>
     [Serializable]
     public class RailSaverData
     {
-        public List<RailComponentInfo> values = new List<RailComponentInfo>();
+        // RailComponent1つにつき1要素
+        public List<RailComponentInfo> Values = new List<RailComponentInfo>();
     }
-
 }

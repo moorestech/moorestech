@@ -801,10 +801,10 @@ namespace Tests.UnitTest.Game
             // 2) レールどうしを Connect
             // D→C→B→A→D の順でつなげる
             //    defaultdistance=-1 ならばベジェ曲線長が自動計算される
-            railComponentD.ConnectRailComponent(railComponentC, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentC.ConnectRailComponent(railComponentB, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentB.ConnectRailComponent(railComponentA, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentA.ConnectRailComponent(railComponentD, isFront_this: true, isFront_target: true, defaultdistance: -1);
+            railComponentD.ConnectRailComponent(railComponentC, true, true, -1);
+            railComponentC.ConnectRailComponent(railComponentB, true, true, -1);
+            railComponentB.ConnectRailComponent(railComponentA, true, true, -1);
+            railComponentA.ConnectRailComponent(railComponentD, true, true, -1);
 
             // ノード列を組み立てる
             // Aに向かっているという状況

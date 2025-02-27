@@ -1,102 +1,145 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlocksModule;
-using Game.Block.Blocks.TrainRail;
-using Newtonsoft.Json;
-using Game.Train.RailGraph;
-using Game.Context;
 using Game.Block.Interface.Extension;
+using Mooresmaster.Model.BlocksModule;
+using Game.Train.RailGraph;
+using Newtonsoft.Json;
+using Game.Context;
+
+
+
+
 
 namespace Game.Block.Factory.BlockTemplate
 {
+    /// <summary>
+    /// バニラ版のTrainRailブロックを生成・復元するテンプレート
+    /// </summary>
     public class VanillaTrainRailTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        /// <summary>
+        /// 新規にブロック（と対応するRailComponent等）を生成
+        /// </summary>
+        public IBlock New(
+            BlockMasterElement blockMasterElement,
+            BlockInstanceId blockInstanceId,
+            BlockPositionInfo blockPositionInfo)
         {
-            RailComponent[] railComponents = new RailComponent[1];//railブロックは必ず1つだけのrailcomponentを持つ
+            // railブロックは常にRailComponentが1つだけ
+            var railComponents = new RailComponent[1];
             var railSaver = new RailSaverComponent(railComponents);
+
+            // RailComponentを生成
             for (int i = 0; i < railComponents.Length; i++)
             {
-                RailComponentID railComponentID = new RailComponentID(blockPositionInfo.OriginalPos, i);
-                var railcomponent = new RailComponent(blockPositionInfo, railComponentID);
-                railComponents[i] = railcomponent;
+                var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, i);
+                railComponents[i] = new RailComponent(blockPositionInfo, railComponentId);
             }
 
-            var components = new List<IBlockComponent>
-            {
-                railSaver
-            };
+            // コンポーネントをまとめてブロックに登録
+            var components = new List<IBlockComponent>();
+            components.Add(railSaver);
             components.AddRange(railComponents);
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        /// <summary>
+        /// セーブデータ（componentStates）からRailComponent等を復元してブロックを生成
+        /// </summary>
+        public IBlock Load(
+            Dictionary<string, string> componentStates,
+            BlockMasterElement blockMasterElement,
+            BlockInstanceId blockInstanceId,
+            BlockPositionInfo blockPositionInfo)
         {
-            var railComponents = LoadSaveData(componentStates, blockPositionInfo);
+            // RailComponent群を復元
+            var railComponents = LoadRailComponents(componentStates, blockPositionInfo);
+
+            // 生成したRailComponentをまとめるRailSaverComponentを作成
             var railSaver = new RailSaverComponent(railComponents);
 
-            var components = new List<IBlockComponent>
-            {
-                railSaver
-            };
+            // まとめてBlockSystemに載せる
+            var components = new List<IBlockComponent>();
+            components.Add(railSaver);
             components.AddRange(railComponents);
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
-
-        public RailComponent[] LoadSaveData(Dictionary<string, string> componentStates,BlockPositionInfo blockPositionInfo)
+        /// <summary>
+        /// RailSaverComponentに相当するJSON文字列をもとにRailComponent配列を復元する
+        /// </summary>
+        private RailComponent[] LoadRailComponents(
+            Dictionary<string, string> componentStates,
+            BlockPositionInfo blockPositionInfo)
         {
+            // セーブデータ(JSON)を取得・復元
             string json = componentStates["RailSaverComponent"];
-            var _saveData = JsonConvert.DeserializeObject<RailSaverData>(json);
-            var count = _saveData.values.Count;
-            //生成
+            var railSaverData = JsonConvert.DeserializeObject<RailSaverData>(json);
+
+            int count = railSaverData.Values.Count;
             var railComponents = new RailComponent[count];
+
+            // まずRailComponent自体を生成
             for (int i = 0; i < count; i++)
             {
-                var railcomponentinfo = _saveData.values[i];
-                railComponents[i] = new RailComponent(blockPositionInfo, railcomponentinfo.myID);
+                var info = railSaverData.Values[i];
+                railComponents[i] = new RailComponent(blockPositionInfo, info.MyID);
+                // ベジェ強度などを設定
+                railComponents[i].ChangeBezierStrength(info.BezierStrength);
             }
-            //接続情報を復元
+
+            // 接続情報を復元（Front/Back）
             for (int i = 0; i < count; i++)
             {
-                var railcomponentinfo = _saveData.values[i];
-                var railcomponent = railComponents[i];
-                //FrontNode
-                foreach (var cd in railcomponentinfo.connectMyFrontTo)
+                var info = railSaverData.Values[i];
+                var railComponent = railComponents[i];
+
+                // 自分のFrontNodeに接続する先を復元
+                foreach (var connDest in info.ConnectMyFrontTo)
                 {
-                    var (nextRailComponentInfo, isFront) = cd.destination;
-                    var position = nextRailComponentInfo.Position;
-                    var id = nextRailComponentInfo.ID;
-                    //World座標からBlockを取得、なければskip
-                    var block = ServerContext.WorldBlockDatastore.GetBlock(position);
-                    if (block == null) continue;
-                    //あればRailSaverComponentを取得
-                    if (!block.TryGetComponent<RailSaverComponent>(out var railSavercomponent)) continue;
-                    var nextRailComponent = railSavercomponent.railComponents[id];
-                    railcomponent.ConnectRailComponent(nextRailComponent, true, isFront);
+                    TryConnect(railComponent, connDest, isFrontThis: true);
                 }
-                //BackNode
-                foreach (var cd in railcomponentinfo.connectMyBackTo)
+                // 自分のBackNodeに接続する先を復元
+                foreach (var connDest in info.ConnectMyBackTo)
                 {
-                    var (nextRailComponentInfo, isFront) = cd.destination;
-                    var position = nextRailComponentInfo.Position;
-                    var id = nextRailComponentInfo.ID;
-                    //World座標からBlockを取得、なければskip
-                    var block = ServerContext.WorldBlockDatastore.GetBlock(position);
-                    if (block == null) continue;
-                    //あればRailSaverComponentを取得
-                    if (!block.TryGetComponent<RailSaverComponent>(out var railSavercomponent)) continue;
-                    var nextRailComponent = railSavercomponent.railComponents[id];
-                    railcomponent.ConnectRailComponent(nextRailComponent, false, isFront);
+                    TryConnect(railComponent, connDest, isFrontThis: false);
                 }
             }
+
             return railComponents;
         }
 
+        /// <summary>
+        /// 実際にRailComponentの接続を行うヘルパーメソッド
+        /// </summary>
+        private void TryConnect(RailComponent fromRail, ConnectionDestination connDest, bool isFrontThis)
+        {
+            // (RailComponentID, bool) のタプル
+            var (destinationRailComponentId, isFrontTarget) = connDest.Destination;
+            var position = destinationRailComponentId.Position;
+            var idIndex = destinationRailComponentId.ID;
 
+            // 実際のブロックをワールドから取得
+            var block = ServerContext.WorldBlockDatastore.GetBlock(position);
+            if (block == null) return;
 
+            // そのブロックがRailSaverComponentを持っているか確認
+            if (!block.TryGetComponent<RailSaverComponent>(out var railSaverComponent))
+                return;
+
+            // 配列からターゲットのRailComponentを取得
+            if (idIndex < 0 || idIndex >= railSaverComponent.RailComponents.Length)
+                return;
+
+            var targetRail = railSaverComponent.RailComponents[idIndex];
+
+            // 接続（既に接続済みでも重複接続されない設計なら安全）
+            fromRail.ConnectRailComponent(targetRail, isFrontThis, isFrontTarget);
+        }
     }
 }

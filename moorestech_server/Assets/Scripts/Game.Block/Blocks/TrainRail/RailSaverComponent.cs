@@ -3,43 +3,46 @@ using Game.Train.RailGraph;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-
 namespace Game.Block.Blocks.TrainRail
 {
+    /// <summary>
+    /// セーブ・ロード用コンポーネント
+    /// レールに関わる複数の RailComponent のセーブ／ロードを一括管理する
+    /// </summary>
     public class RailSaverComponent : IBlockComponent, IBlockSaveState
     {
         /// <summary>
-        /// RailComponentがついてるブロックに必ず付属するコンポーネント
-        /// セーブ・ロードに関しては1つのブロックが2つのRailComponentを持つ可能性があるため"RailSaverComponent.cs"が担当
-        /// 具体的には駅や貨物プラットフォームブロック
+        /// RailComponentをまとめてセーブするためのコンポーネント
+        /// 1つのブロックに2つのRailComponentを持つ可能性がある(例: 駅, 貨物プラットフォームなど)
         /// </summary>
         public bool IsDestroy { get; private set; }
         public string SaveKey => "RailSaverComponent";
-        
 
-        public RailComponent[] railComponents { get; private set; }
+        public RailComponent[] RailComponents { get; private set; }
 
-        public RailSaverComponent(RailComponent[] railComponents_)
+        public RailSaverComponent(RailComponent[] railComponents)
         {
-            railComponents = railComponents_;
+            RailComponents = railComponents;
         }
 
         public string GetSaveState()
         {
-            RailSaverData _saveData = new RailSaverData();
-            _saveData.values = new List<RailComponentInfo>();
-            foreach (var railComponent in railComponents)
+            var railSaverData = new RailSaverData
             {
-                _saveData.values.Add(railComponent.GetSaveState_Partial());
-            }
-            return JsonConvert.SerializeObject(_saveData);
-        }
+                Values = new List<RailComponentInfo>()
+            };
 
+            foreach (var railComponent in RailComponents)
+            {
+                railSaverData.Values.Add(railComponent.GetPartialSaveState());
+            }
+
+            return JsonConvert.SerializeObject(railSaverData);
+        }
 
         public void Destroy()
         {
             IsDestroy = true;
         }
-
     }
 }
