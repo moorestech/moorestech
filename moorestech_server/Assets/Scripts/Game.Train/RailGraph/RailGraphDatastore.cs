@@ -38,6 +38,10 @@ namespace Game.Train.RailGraph
             connectNodes = new List<List<(int, int)>>();
             railIdToComponentId = new Dictionary<int, ConnectionDestination>();
         }
+        public static void ResetInstance()
+        {
+            _instance = new RailGraphDatastore();
+        }
 
         //======================================================
         //  Public static API (外部から呼ばれるメソッド)  
