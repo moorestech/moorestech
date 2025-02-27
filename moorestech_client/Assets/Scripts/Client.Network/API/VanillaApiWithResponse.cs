@@ -145,7 +145,7 @@ namespace Client.Network.API
             var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
             
-            return new UnlockCraftRecipeStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids);
+            return new UnlockCraftRecipeStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids, response.LockedItemIds, response.UnlockItemIds);
         }
     }
 }
