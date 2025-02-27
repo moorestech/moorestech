@@ -4,6 +4,21 @@ using System.Collections.Generic;
 
 namespace Game.Train.RailGraph
 {
+    [Serializable]
+    public struct SerializableVector3Int
+    {
+        public int x, y, z;
+        public SerializableVector3Int(int x_, int y_, int z_) { x = x_; y = y_; z = z_; }
+
+        // Vector3Int -> SerializableVector3Int
+        public static implicit operator SerializableVector3Int(Vector3Int v)
+            => new SerializableVector3Int(v.x, v.y, v.z);
+
+        // 逆変換
+        public static implicit operator Vector3Int(SerializableVector3Int s)
+            => new Vector3Int(s.x, s.y, s.z);
+    }
+
     /// <summary>
     /// RailComponentID
     /// railcomponentを座標とIDで一意に識別するためのクラス
@@ -11,28 +26,28 @@ namespace Game.Train.RailGraph
     [Serializable]
     public class RailComponentID
     {
-        public Vector3Int Position; // railcomponentがアタッチされているブロックのワールド座標
-        public int ID;             // RailSaverComponent内でのインデックス
+        public SerializableVector3Int Position;
+        public int ID;
 
-        public RailComponentID(Vector3Int position, int id)
+        public RailComponentID(Vector3Int pos, int id)
         {
-            Position = position;
+            Position = pos;
             ID = id;
         }
     }
-
     /// <summary>
     /// 接続先一つを表すクラス
     /// </summary>
     [Serializable]
     public class ConnectionDestination
     {
-        // タプル(destinationRailComponentID, isFront)
-        public (RailComponentID, bool) Destination;
-
-        public ConnectionDestination(RailComponentID destination, bool isFront)
+        public RailComponentID DestinationID;
+        public bool IsFront;
+        // コンストラクタ
+        public ConnectionDestination(RailComponentID dest, bool front)
         {
-            Destination = (destination, isFront);
+            DestinationID = dest;
+            IsFront = front;
         }
     }
 

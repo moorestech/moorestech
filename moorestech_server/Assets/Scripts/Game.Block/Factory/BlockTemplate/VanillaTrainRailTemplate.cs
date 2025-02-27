@@ -39,7 +39,6 @@ namespace Game.Block.Factory.BlockTemplate
             var components = new List<IBlockComponent>();
             components.Add(railSaver);
             components.AddRange(railComponents);
-
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
@@ -62,7 +61,6 @@ namespace Game.Block.Factory.BlockTemplate
             var components = new List<IBlockComponent>();
             components.Add(railSaver);
             components.AddRange(railComponents);
-
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
@@ -76,7 +74,7 @@ namespace Game.Block.Factory.BlockTemplate
             // セーブデータ(JSON)を取得・復元
             string json = componentStates["RailSaverComponent"];
             var railSaverData = JsonConvert.DeserializeObject<RailSaverData>(json);
-
+            
             int count = railSaverData.Values.Count;
             var railComponents = new RailComponent[count];
 
@@ -115,8 +113,9 @@ namespace Game.Block.Factory.BlockTemplate
         /// </summary>
         private void TryConnect(RailComponent fromRail, ConnectionDestination connDest, bool isFrontThis)
         {
-            // (RailComponentID, bool) のタプル
-            var (destinationRailComponentId, isFrontTarget) = connDest.Destination;
+            var destinationRailComponentId = connDest.DestinationID;
+            var isFrontTarget = connDest.IsFront;
+
             var position = destinationRailComponentId.Position;
             var idIndex = destinationRailComponentId.ID;
 

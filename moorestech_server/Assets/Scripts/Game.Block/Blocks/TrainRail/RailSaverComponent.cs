@@ -36,7 +36,6 @@ namespace Game.Block.Blocks.TrainRail
             {
                 railSaverData.Values.Add(railComponent.GetPartialSaveState());
             }
-
             return JsonConvert.SerializeObject(railSaverData);
         }
 
