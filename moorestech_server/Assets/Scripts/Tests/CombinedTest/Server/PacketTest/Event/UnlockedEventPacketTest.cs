@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
         
         /// <summary>
-        /// チャレンジがクリアされたらあんロックされるレシピのテスト
+        /// チャレンジがクリアされたらアンロックされるレシピのテスト
         /// </summary>
         [Test]
         public void ClearedChallengeToUnlockEventTest()
