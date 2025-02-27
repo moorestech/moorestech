@@ -15,6 +15,7 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using static Tests.Module.TestMod.ForUnitTestCraftRecipeId;
+using static Tests.Module.TestMod.ForUnitTestItemId;
 
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -39,6 +40,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
             unlockStateDatastore.UnlockCraftRecipe(Craft4);
             
+            // アイテムのアンロック状態を変更
+            // 
+            unlockStateDatastore.UnlockItem(ItemId4);
+            
             // イベントを受け取り、テストする
             // Receive and test the event
             response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
@@ -46,12 +51,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントがあることを確認する
             // Make sure there are events
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            Assert.AreEqual(2, eventMessagePack.Events.Count);
             
-            // Craft3のレシピがアンロックされたことを確認する
+            // Craft4のレシピがアンロックされたことを確認する
             // Make sure the recipe for Craft3 is unlocked
             var data = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(Craft4.ToString(), data.UnlockedCraftRecipeGuidStr);
+            
+            // Item4のアイテムアンロックされたことを確認する
+            data = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(eventMessagePack.Events[1].Payload);
+            Assert.AreEqual(ItemId4, data.UnlockedItemId);
         }
         
         /// <summary>
