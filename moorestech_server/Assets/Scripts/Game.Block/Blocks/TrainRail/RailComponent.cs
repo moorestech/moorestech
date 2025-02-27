@@ -2,6 +2,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail
@@ -41,8 +42,9 @@ namespace Game.Block.Blocks.TrainRail
             // RailGraphにノードを登録
             FrontNode = new RailNode();
             BackNode = new RailNode();
-            RailGraphDatastore.AddRailComponentID(FrontNode, railComponentID);
-            RailGraphDatastore.AddRailComponentID(BackNode, railComponentID.Return_Reverse_Front());
+            
+            RailGraphDatastore.AddRailComponentID(FrontNode, new ConnectionDestination(railComponentID, true));
+            RailGraphDatastore.AddRailComponentID(BackNode, new ConnectionDestination(railComponentID, false));
             //RailNodeは必ずしも反対Nodeを持つ必要はないが、RailComponentで生成したものに関しては持つ
             FrontNode.SetOppositeNode(BackNode);
             BackNode.SetOppositeNode(FrontNode);
@@ -166,6 +168,30 @@ namespace Game.Block.Blocks.TrainRail
             {
                 return direction * bezierStrength;
             }
+        }
+
+        public RailComponentInfo GetSaveState_Partial() 
+        {
+            var state = new RailComponentInfo();
+            state.myID = railComponentID;
+            state.bezierStrength = bezierStrength;
+            var f = new List<ConnectionDestination>();
+            var b = new List<ConnectionDestination>();
+            
+            
+            foreach (var f_node in FrontNode.ConnectedNodes)
+            {
+                var f_node_railComponent = RailGraphDatastore.GetRailComponentID(f_node);
+                f.Add(f_node_railComponent);
+            }
+            foreach (var b_node in BackNode.ConnectedNodes)
+            {
+                var b_node_railComponent = RailGraphDatastore.GetRailComponentID(b_node);
+                b.Add(b_node_railComponent);
+            }
+            state.connectMyFrontTo = f;
+            state.connectMyBackTo = b;
+            return state;
         }
 
         // このレールを破壊する処理

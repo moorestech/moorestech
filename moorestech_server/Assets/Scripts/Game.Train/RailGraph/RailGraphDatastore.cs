@@ -26,7 +26,7 @@ namespace Game.Train.RailGraph
         private List<RailNode> railNodes;
         private MinHeap<int> nextidQueue;//railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
         private List<List<(int, int)>> connectNodes;
-        private Dictionary<int, RailComponentID> railIdToComponentId;//Nodeに対応するRailComponentIDを保存する。セーブ・ロード用のみ
+        private Dictionary<int, ConnectionDestination> railIdToComponentId;//Nodeに対応するRailComponentIDとをその表裏を保存する。セーブ・ロード用のみ
 
         // コンストラクタは private にして外部から new を禁止
         // →やっぱDIが使用できるよう、コンストラクタをpublicに変更
@@ -36,7 +36,7 @@ namespace Game.Train.RailGraph
             railNodes = new List<RailNode>();
             nextidQueue = new MinHeap<int>();
             connectNodes = new List<List<(int, int)>>();
-            railIdToComponentId = new Dictionary<int, RailComponentID>();
+            railIdToComponentId = new Dictionary<int, ConnectionDestination>();
         }
 
         //======================================================
@@ -68,12 +68,12 @@ namespace Game.Train.RailGraph
             Instance.RemoveNodeInternal(node);
         }
 
-        public static void AddRailComponentID(RailNode node, RailComponentID railComponentID)
+        public static void AddRailComponentID(RailNode node, ConnectionDestination dest)
         {
-            Instance.AddRailComponentIDInternal(node, railComponentID);
+            Instance.AddRailComponentIDInternal(node, dest);
         }
-        
-        public static RailComponentID GetRailComponentID(RailNode node)
+
+        public static ConnectionDestination GetRailComponentID(RailNode node)
         {
             return Instance.GetRailComponentIDInternal(node);
         }
@@ -171,13 +171,13 @@ namespace Game.Train.RailGraph
         }
 
 
-        private void AddRailComponentIDInternal(RailNode node, RailComponentID railComponentID)
+        private void AddRailComponentIDInternal(RailNode node, ConnectionDestination dest)
         {
             if (!railIdDic.ContainsKey(node))
                 return;
-            railIdToComponentId[railIdDic[node]] = railComponentID;
+            railIdToComponentId[railIdDic[node]] = dest;
         }
-        private RailComponentID GetRailComponentIDInternal(RailNode node)
+        private ConnectionDestination GetRailComponentIDInternal(RailNode node)
         {
             if (!railIdDic.ContainsKey(node))
                 return null;
