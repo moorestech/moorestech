@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         /// チャレンジがクリアされたらアンロックされるレシピのテスト
         /// </summary>
         [Test]
-        public void ClearedChallengeToUnlockEventTest()
+        public void ClearedChallengeToUnlockCraftRecipeEventTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
