@@ -9,10 +9,6 @@ using Game.Train.RailGraph;
 using Newtonsoft.Json;
 using Game.Context;
 
-
-
-
-
 namespace Game.Block.Factory.BlockTemplate
 {
     /// <summary>
@@ -138,7 +134,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             var targetRail = railSaverComponent.RailComponents[idIndex];
 
-            // 接続（既に接続済みでも重複接続されない設計なら安全）
+            // 接続（既に接続済みなら距離が上書きされるだけ）
             fromRail.ConnectRailComponent(targetRail, isFrontThis, isFrontTarget);
         }
     }

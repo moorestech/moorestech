@@ -135,18 +135,6 @@ namespace Game.Block.Blocks.TrainRail
         }
 
         /// <summary>
-        /// レールを破壊し、ノードを破棄する
-        /// </summary>
-        public void Destroy()
-        {
-            IsDestroy = true;
-            FrontNode.Destroy();
-            BackNode.Destroy();
-            FrontNode = null;
-            BackNode = null;
-        }
-
-        /// <summary>
         /// isFrontフラグに応じてFrontNode/BackNodeを返すヘルパーメソッド
         /// </summary>
         private (RailNode node, RailNode oppositeNode) GetNodes(bool isFront)
@@ -199,5 +187,18 @@ namespace Game.Block.Blocks.TrainRail
                 ? direction * bezierStrength
                 : -direction * bezierStrength;
         }
+
+        /// <summary>
+        /// レールを破壊し、ノードを破棄する
+        /// </summary>
+        public void Destroy()
+        {
+            IsDestroy = true;
+            FrontNode.Destroy();
+            BackNode.Destroy();
+            FrontNode = null;
+            BackNode = null;
+        }
+
     }
 }
