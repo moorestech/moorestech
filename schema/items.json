@@ -51,7 +51,7 @@
           "recipeViewType": {
             "type": "string",
             "default" : 100,
-            "enum": [ "IsCraftRecipeExist", "ForceShow", "ForceHide" ]
+            "enum": [  "Default", "IsUnlocked", "IsCraftRecipeExist", "ForceShow", "ForceHide" ]
           }
         }
       }

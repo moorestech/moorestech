@@ -23,7 +23,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private RectTransform itemListParent;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private IGameUnlockStateData iiGameUnlockStateData;
+        [Inject] private IGameUnlockStateData gameUnlockStateData;
         private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
@@ -44,26 +44,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceHide)
-                {
-                    continue;
-                }
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceShow)
-                {
-                    // 強制表示の場合は表示する
-                    // If it is a forced display, display it
-                }
-                else if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
-                {
-                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
-                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
-                    if (unlockRecipes.Count == 0)
-                    {
-                        // クラフトレシピがない場合は表示しない
-                        // Do not display if there is no craft recipe
-                        continue;
-                    }
-                }
+                if (!IsShow(itemMaster)) continue;
                 
                 
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
@@ -80,6 +61,61 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
                 target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.Name));
             }
+            
+            #region Internal
+            
+            bool IsShow(ItemMasterElement itemMaster)
+            {
+                var itemId = MasterHolder.ItemMaster.GetItemId(itemMaster.ItemGuid);
+                
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
+                {
+                    // デフォルトはアンロックされていてレシピがあれば表示する
+                    // 
+                    var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
+                    var isItemUnlocked = state.IsUnlocked;
+                    
+                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
+                    var isRecipeItemUnlocked = unlockRecipes.Count != 0;
+                    
+                    return isItemUnlocked && isRecipeItemUnlocked;
+                }
+
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)
+                {
+                    // アンロックされていれば表示する
+                    //
+                    var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
+                    return state.IsUnlocked;
+                }
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
+                {
+                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
+                    if (unlockRecipes.Count == 0)
+                    {
+                        // クラフトレシピがない場合は表示しない
+                        // Do not display if there is no craft recipe
+                        return false;
+                    }
+                    return true;
+                }
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceHide)
+                {
+                    return false;
+                }
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceShow)
+                {
+                    // 強制表示の場合は表示する
+                    // If it is a forced display, display it
+                    return true;
+                }
+                
+                throw new Exception($"{itemMaster.RecipeViewType}タイプの判定の実装が足りません");
+            }
+            
+  #endregion
         }
         
         private void OnClickItemList(ItemSlotObject slot)
