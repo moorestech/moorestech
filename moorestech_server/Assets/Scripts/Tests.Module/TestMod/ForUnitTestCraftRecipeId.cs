@@ -1,6 +1,6 @@
 using System;
 
-namespace Tests.Module.TestMod.ForUnitTest
+namespace Tests.Module.TestMod
 {
     public class ForUnitTestCraftRecipeId
     {
