@@ -21,25 +21,46 @@ namespace Client.Game.InGame.UnlockState
         
         public ClientGameIiGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
-            var unlockCraftRecipeState = initialHandshakeResponse.UnlockCraftRecipeState;
-            foreach (var lockedGuid in unlockCraftRecipeState.LockedCraftRecipeGuids)
+            var unlockState = initialHandshakeResponse.UnlockCraftRecipeState;
+            foreach (var lockedGuid in unlockState.LockedCraftRecipeGuids)
             {
                 _recipeUnlockStateInfos[lockedGuid] = new CraftRecipeUnlockStateInfo(lockedGuid, false);
             }
-            foreach (var unlockedGuid in unlockCraftRecipeState.UnlockedCraftRecipeGuids)
+            foreach (var unlockedGuid in unlockState.UnlockedCraftRecipeGuids)
             {
                 _recipeUnlockStateInfos[unlockedGuid] = new CraftRecipeUnlockStateInfo(unlockedGuid, true);
             }
             
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlockCraftRecipe);
+            foreach (var lockedItemId in unlockState.LockedItemIds)
+            {
+                _itemUnlockStateInfos[lockedItemId] = new ItemUnlockStateInfo(lockedItemId, false);
+            }
+            foreach (var unlockedItemId in unlockState.UnlockedItemIds)
+            {
+                _itemUnlockStateInfos[unlockedItemId] = new ItemUnlockStateInfo(unlockedItemId, true);
+            }
+            
+            
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
         
-        public void OnUpdateUnlockCraftRecipe(byte[] payload)
+        public void OnUpdateUnlock(byte[] payload)
         {
-             var message = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(payload);
+             var message = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(payload);
              
-             var recipeGuid = message.UnlockedCraftRecipeGuid;
-            _recipeUnlockStateInfos[recipeGuid] = new CraftRecipeUnlockStateInfo(recipeGuid, true);
+             switch (message.UnlockEventType)
+             {
+                 case UnlockEventType.CraftRecipe:
+                     var recipeGuid = message.UnlockedCraftRecipeGuid;
+                     _recipeUnlockStateInfos[recipeGuid] = new CraftRecipeUnlockStateInfo(recipeGuid, true);
+                     break;
+                 case UnlockEventType.Item:
+                     var itemId = message.UnlockedItemId;
+                     _itemUnlockStateInfos[itemId] = new ItemUnlockStateInfo(itemId, true);
+                     break;
+                 default:
+                     throw new ArgumentOutOfRangeException();
+             }
         }
     }
 }
