@@ -77,26 +77,26 @@ namespace Game.Block.Blocks.TrainRail
             if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→裏自
             {
                 FrontNode.ConnectNode(targetRail.FrontNode, distance);
-                targetRail.ConnectRailComponent(this, false, false, distance);
-                //targetRail.BackNode.ConnectNode(BackNode, distance);
+                //targetRail.ConnectRailComponent(this, false, false, distance);
+                targetRail.BackNode.ConnectNode(BackNode, distance);
             }
             else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
             {
                 FrontNode.ConnectNode(targetRail.BackNode, distance);
-                targetRail.ConnectRailComponent(this, true, false, distance);
-                //targetRail.FrontNode.ConnectNode(BackNode, distance);
+                //targetRail.ConnectRailComponent(this, true, false, distance);
+                targetRail.FrontNode.ConnectNode(BackNode, distance);
             }
             else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
             {
                 BackNode.ConnectNode(targetRail.FrontNode, distance);
-                targetRail.ConnectRailComponent(this, false, true, distance);
-                //targetRail.BackNode.ConnectNode(FrontNode, distance);
+                //targetRail.ConnectRailComponent(this, false, true, distance);
+                targetRail.BackNode.ConnectNode(FrontNode, distance);
             }
             else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
             {
                 BackNode.ConnectNode(targetRail.BackNode, distance);
-                targetRail.ConnectRailComponent(this, true, true, distance);
-                //targetRail.FrontNode.ConnectNode(FrontNode, distance);
+                //targetRail.ConnectRailComponent(this, true, true, distance);
+                targetRail.FrontNode.ConnectNode(FrontNode, distance);
             }
         }
 
@@ -105,26 +105,26 @@ namespace Game.Block.Blocks.TrainRail
             if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→裏自
             {
                 FrontNode.DisconnectNode(targetRail.FrontNode);
-                targetRail.DisconnectRailComponent(this, false, false);
-                //targetRail.BackNode.DisconnectNode(BackNode);
+                //targetRail.DisconnectRailComponent(this, false, false);
+                targetRail.BackNode.DisconnectNode(BackNode);
             }
             else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
             {
                 FrontNode.DisconnectNode(targetRail.BackNode);
-                targetRail.DisconnectRailComponent(this, true, false);
-                //targetRail.FrontNode.DisconnectNode(BackNode);
+                //targetRail.DisconnectRailComponent(this, true, false);
+                targetRail.FrontNode.DisconnectNode(BackNode);
             }
             else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
             {
                 BackNode.DisconnectNode(targetRail.FrontNode);
-                targetRail.DisconnectRailComponent(this, false, true);
-                //targetRail.BackNode.DisconnectNode(FrontNode);
+                //targetRail.DisconnectRailComponent(this, false, true);
+                targetRail.BackNode.DisconnectNode(FrontNode);
             }
             else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
             {
                 BackNode.DisconnectNode(targetRail.BackNode);
-                targetRail.DisconnectRailComponent(this, true, true);
-                //targetRail.FrontNode.DisconnectNode(FrontNode);
+                //targetRail.DisconnectRailComponent(this, true, true);
+                targetRail.FrontNode.DisconnectNode(FrontNode);
             }
         }
 
