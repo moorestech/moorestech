@@ -271,70 +271,70 @@
     {
       "sortPriority": 290,
       "maxStack": 100,
-      "name": "粘土​",
+      "name": "粘土",
       "itemGuid": "b9d207ab-2229-4dde-8cd5-32653980902d",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 300,
       "maxStack": 100,
-      "name": "レンガ​",
+      "name": "レンガ",
       "itemGuid": "fc58f13e-a083-418d-ae01-58ea1d7c7540",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 310,
       "maxStack": 100,
-      "name": "精錬炉​",
+      "name": "精錬炉",
       "itemGuid": "f7b0c1d3-0803-40cb-88d8-3061dee22e38",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 320,
       "maxStack": 100,
-      "name": "原始的な​窯​",
+      "name": "原始的な​窯",
       "itemGuid": "0cd840e7-0518-43de-bf7f-f6973cf60732",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 325,
       "maxStack": 100,
-      "name": "ブロンズドリルの型​​​​​",
+      "name": "ブロンズドリルの型",
       "itemGuid": "64c06bce-24f0-48a4-bb49-cec379335a76",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 330,
       "maxStack": 100,
-      "name": "ブロンズドリル​​​​​",
+      "name": "ブロンズドリル",
       "itemGuid": "f83666d2-5a65-4f22-8fc5-1e0255dc1eff",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 340,
       "maxStack": 100,
-      "name": "ブロンズ粉砕機​",
+      "name": "ブロンズ粉砕機",
       "itemGuid": "04c369f3-62b5-4db9-af99-bdbdf821e9d0",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 350,
       "maxStack": 100,
-      "name": "木炭​",
+      "name": "木炭",
       "itemGuid": "49e21d34-5ba8-465c-83f5-12883ea4b77e",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 360,
       "maxStack": 100,
-      "name": "木炭粉​",
+      "name": "木炭粉",
       "itemGuid": "e817d5ee-0cdf-4f7d-a07b-300d45311507",
       "recipeViewType": "ForceShow"
     },
     {
       "sortPriority": 370,
       "maxStack": 100,
-      "name": "低品質なブロンズの粉末​",
+      "name": "低品質なブロンズの粉末",
       "itemGuid": "fdd4ebbd-9f77-45a0-8685-d118958f7c02",
       "recipeViewType": "ForceShow"
     },
@@ -344,6 +344,19 @@
       "name": "中品質​なブロンズの塊",
       "itemGuid": "fba661a3-f6a8-4f3a-87ab-2277f1fc19b2",
       "recipeViewType": "ForceShow"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "initialUnlocked": false,
+      "sortPriority": 193,
+      "maxStack": 100,
+      "name": "原始的なブロンズ採掘機",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "33986ca9-a52d-4ac3-a304-eb71d6deef66"
     }
   ]
 }

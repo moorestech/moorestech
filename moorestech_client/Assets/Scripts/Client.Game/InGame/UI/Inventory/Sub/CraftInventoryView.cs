@@ -38,7 +38,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
-        private int CraftRecipeCount => _currentItemRecipes.UnlockedCraftRecipes().Count;
+        private int CraftRecipeCount => _currentItemRecipes?.UnlockedCraftRecipes().Count ?? 0;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private int _currentIndex;
         
