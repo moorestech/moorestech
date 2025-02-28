@@ -358,7 +358,7 @@
       "blockParam": {
         "acceleration": -0.2,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -440,7 +440,7 @@
       "blockParam": {
         "acceleration": 0.7,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -502,7 +502,7 @@
       "blockParam": {
         "acceleration": -0.9,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [

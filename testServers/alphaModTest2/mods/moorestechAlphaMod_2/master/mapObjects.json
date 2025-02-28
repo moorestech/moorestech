@@ -139,6 +139,21 @@
         ]
       },
       "mapObjectGuid": "dd3f771d-848c-4ca4-8b48-388ecd8321a5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "earnItemHps": [
+        0
+      ],
+      "hp": 150,
+      "mapObjectName": "BigTree",
+      "soundEffectType": "tree",
+      "miningType": "Mining",
+      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68"
     }
   ]
 }
