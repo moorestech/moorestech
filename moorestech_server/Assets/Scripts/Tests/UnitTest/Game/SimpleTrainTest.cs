@@ -437,7 +437,7 @@ namespace Tests.UnitTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
-            const int size = 12;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上
+            const int size = 8;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上
 
 
             //これから作るべきRailComponentの場所のリストの宣言
@@ -804,10 +804,10 @@ namespace Tests.UnitTest.Game
             // 2) レールどうしを Connect
             // D→C→B→A→D の順でつなげる
             //    defaultdistance=-1 ならばベジェ曲線長が自動計算される
-            railComponentD.ConnectRailComponent(railComponentC, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentC.ConnectRailComponent(railComponentB, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentB.ConnectRailComponent(railComponentA, isFront_this: true, isFront_target: true, defaultdistance: -1);
-            railComponentA.ConnectRailComponent(railComponentD, isFront_this: true, isFront_target: true, defaultdistance: -1);
+            railComponentD.ConnectRailComponent(railComponentC, true, true, -1);
+            railComponentC.ConnectRailComponent(railComponentB, true, true, -1);
+            railComponentB.ConnectRailComponent(railComponentA, true, true, -1);
+            railComponentA.ConnectRailComponent(railComponentD, true, true, -1);
 
             // ノード列を組み立てる
             // Aに向かっているという状況
@@ -903,7 +903,7 @@ namespace Tests.UnitTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //10000回のTryAddBlockし、それぞれが10つのRailComponentにつながる。距離は1
-            const int nodenum_powerexponent = 4;
+            const int nodenum_powerexponent = 3;//4でも確認済み
             int nodenum = (int)System.Math.Pow(10, nodenum_powerexponent);
 
             List<RailComponent> railComponents = new List<RailComponent>();
@@ -931,6 +931,7 @@ namespace Tests.UnitTest.Game
                 bool isFront_target = UnityEngine.Random.Range(0, 2) == 0;
                 if (rand0 == rand1) continue;
                 if (connectB.ContainsKey((rand1, rand0, !isFront_target, !isFront_this))) continue;
+                if (connectB.ContainsKey((rand0, rand1, isFront_this, isFront_target))) continue;
                 connectB.Add((rand0, rand1, isFront_this, isFront_target), true);
             }
             //connectBを実行

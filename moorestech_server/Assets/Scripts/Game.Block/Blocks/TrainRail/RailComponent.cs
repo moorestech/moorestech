@@ -1,142 +1,196 @@
-using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using UnityEngine;
+using System.Collections.Generic;
+using Game.Block.Interface;
 
 namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
-    /// レールの基本構成要素を表すクラス。
-    /// レールに関連する機能を提供。
-    /// 基本1つのRailComponentが2つのRailNodeを持つ=裏表
+    /// 1つのレールブロック内のレール要素を表すコンポーネント。
+    /// 基本的に1つのRailComponentが FrontNode と BackNode の2つのRailNodeを持つ。
     /// </summary>
     public class RailComponent : IBlockComponent
     {
-        // レールが破壊されたかどうかを示すフラグ
         public bool IsDestroy { get; private set; }
 
-        // このレールに関連付けられているRailNode（表と裏）
+        // このRailComponentが保持する2つのRailNode
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
-        //3D上のブロック座標など
-        private BlockPositionInfo blockPositionInfo;
-        //制御点計算用ベジェ曲線微分強度
-        private float bezierStrength { get; set; } = 0.5f;//今後手動でいじれるようにするかも
 
-        // コンストラクタ
-        public RailComponent(BlockPositionInfo blockPositionInfo_)
+        private BlockPositionInfo componentPositionInfo;
+        private float bezierStrength = 0.5f;
+
+        public RailControlPoint FrontRailControlPoint { get; }
+        public RailControlPoint BackRailControlPoint { get; }
+
+        // RailSaverComponent からみた自分の通し番号を含む識別子
+        public RailComponentID RailComponentID { get; }
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        public RailComponent(BlockPositionInfo positionInfo, RailComponentID railComponentID = null)
         {
-            blockPositionInfo = blockPositionInfo_;
-            // RailGraphにノードを登録
+            RailComponentID = railComponentID;
+            componentPositionInfo = positionInfo;
+
+            // ベジェ曲線の制御点
+            FrontRailControlPoint = new RailControlPoint(positionInfo.OriginalPos, GetControlPoint(true));
+            BackRailControlPoint = new RailControlPoint(positionInfo.OriginalPos, GetControlPoint(false));
+
+            // RailNode を作成して RailGraph に登録
             FrontNode = new RailNode();
             BackNode = new RailNode();
+
+            RailGraphDatastore.AddRailComponentID(FrontNode, new ConnectionDestination(railComponentID, true));
+            RailGraphDatastore.AddRailComponentID(BackNode, new ConnectionDestination(railComponentID, false));
+
+            // お互いを逆方向ノードとしてセット
             FrontNode.SetOppositeNode(BackNode);
             BackNode.SetOppositeNode(FrontNode);
+
+            // RailNodeに制御点を登録（表裏で使う制御点が異なる）
+            FrontNode.SetRailControlPoints(FrontRailControlPoint, BackRailControlPoint);
+            BackNode.SetRailControlPoints(BackRailControlPoint, FrontRailControlPoint);
         }
 
-        //レール接続作業、手動でつなげたときを想定。自分の表or裏を起点に相手の表or裏につながる
-        //isFront_this:true 自分の表から相手のxに入る
-        //isFront_target:true 相手の表に入る
-        //defaultdistanceはデバッグ時以外基本していしない
-        public void ConnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target, int defaultdistance = -1)
+        /// <summary>
+        /// RailComponent同士を接続する
+        /// </summary>
+        /// <param name="targetRail">接続先のRailComponent</param>
+        /// <param name="isFrontThis">自分側の接続がFrontかどうか</param>
+        /// <param name="isFrontTarget">相手側の接続がFrontかどうか</param>
+        /// <param name="defaultDistance">明示的に距離を指定したい場合（-1なら自動計算）</param>
+        public void ConnectRailComponent(RailComponent targetRail, bool isFrontThis, bool isFrontTarget, int defaultDistance = -1)
         {
-            //距離を算出
-            var p0 = (Vector3)GetPosition();//自分のアンカーポイント
-            var p1 = GetControlPoint(isFront_this);//自分の制御点
-            var p2 = targetRail.GetControlPoint(!isFront_target);//相手の制御点
-            var p3 = (Vector3)targetRail.GetPosition();//相手のアンカーポイント
-            int distance = (int)(BezierUtility.GetBezierCurveLength(p0, p1, p2, p3) * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
-            if (defaultdistance != -1)
-            {
-                distance = defaultdistance;
-            }
+            // まず、接続する2つのRailNodeを取得
+            var (thisNode, thisOppositeNode) = GetNodes(isFrontThis);
+            var (thatNode, thatOppositeNode) = targetRail.GetNodes(isFrontTarget);
 
+            // 距離計算（指定がなければベジェ曲線をもとに推定）
+            int distance = defaultDistance >= 0
+                ? defaultDistance
+                : CalculateDistanceTo(targetRail, isFrontThis, isFrontTarget);
 
-            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→表自
-            {
-                FrontNode.ConnectNode(targetRail.FrontNode, distance);
-                targetRail.BackNode.ConnectNode(BackNode, distance);
-            }
-            else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
-            {
-                FrontNode.ConnectNode(targetRail.BackNode, distance);
-                targetRail.FrontNode.ConnectNode(BackNode, distance);
-            }
-            else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
-            {
-                BackNode.ConnectNode(targetRail.FrontNode, distance);
-                targetRail.BackNode.ConnectNode(FrontNode, distance);
-            }
-            else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
-            {
-                BackNode.ConnectNode(targetRail.BackNode, distance);
-                targetRail.FrontNode.ConnectNode(FrontNode, distance);
-            }
+            // 相互接続
+            thisNode.ConnectNode(thatNode, distance);
+            thatOppositeNode.ConnectNode(thisOppositeNode, distance);
         }
 
-        public void DisconnectRailComponent(RailComponent targetRail, bool isFront_this, bool isFront_target)
+        /// <summary>
+        /// RailComponent同士の接続を解除する
+        /// </summary>
+        /// <param name="targetRail">切断先のRailComponent</param>
+        /// <param name="isFrontThis">自分側の接続がFrontかどうか</param>
+        /// <param name="isFrontTarget">相手側の接続がFrontかどうか</param>
+        public void DisconnectRailComponent(RailComponent targetRail, bool isFrontThis, bool isFrontTarget)
         {
-            if ((isFront_this == true) & (isFront_target == true))//表自→表相、裏相→表自
-            {
-                FrontNode.DisconnectNode(targetRail.FrontNode);
-                targetRail.BackNode.DisconnectNode(BackNode);
-            }
-            else if ((isFront_this == true) & (isFront_target == false))//表自→裏相、表相→裏自
-            {
-                FrontNode.DisconnectNode(targetRail.BackNode);
-                targetRail.FrontNode.DisconnectNode(BackNode);
-            }
-            else if ((isFront_this == false) & (isFront_target == true))//裏自→表相、裏相→表自
-            {
-                BackNode.DisconnectNode(targetRail.FrontNode);
-                targetRail.BackNode.DisconnectNode(FrontNode);
-            }
-            else if ((isFront_this == false) & (isFront_target == false))//裏自→裏相、表相→表自
-            {
-                BackNode.DisconnectNode(targetRail.BackNode);
-                targetRail.FrontNode.DisconnectNode(FrontNode);
-            }
+            var (thisNode, thisOppositeNode) = GetNodes(isFrontThis);
+            var (thatNode, thatOppositeNode) = targetRail.GetNodes(isFrontTarget);
+
+            thisNode.DisconnectNode(thatNode);
+            thatOppositeNode.DisconnectNode(thisOppositeNode);
         }
 
-        // 自分の座標vector3intを返す
-        public Vector3Int GetPosition()
+        /// <summary>
+        /// ベジェ曲線の強度を変更し、制御点を更新する
+        /// </summary>
+        public void ChangeBezierStrength(float val)
         {
-            return blockPositionInfo.OriginalPos;
+            bezierStrength = val;
+            FrontRailControlPoint.ControlPointPosition = GetControlPoint(true);
+            BackRailControlPoint.ControlPointPosition = GetControlPoint(false);
         }
-        // 自分の向いている方角とbezierStrengthから制御点を計算してvector3で返す
-        public Vector3 GetControlPoint(bool isFront)
+
+        /// <summary>
+        /// セーブ用の情報を部分的に取得
+        /// </summary>
+        public RailComponentInfo GetPartialSaveState()
         {
-            var dir = blockPositionInfo.BlockDirection;
-            //ここではdirがnorth,east,south,westのみを想定
-            Vector3 direction = new Vector3();
+            var state = new RailComponentInfo
+            {
+                MyID = RailComponentID,
+                BezierStrength = bezierStrength,
+                ConnectMyFrontTo = new List<ConnectionDestination>(),
+                ConnectMyBackTo = new List<ConnectionDestination>()
+            };
+
+            // FrontNode の接続リスト
+            foreach (var node in FrontNode.ConnectedNodes)
+            {
+                var destInfo = RailGraphDatastore.GetRailComponentID(node);
+                state.ConnectMyFrontTo.Add(destInfo);
+            }
+
+            // BackNode の接続リスト
+            foreach (var node in BackNode.ConnectedNodes)
+            {
+                var destInfo = RailGraphDatastore.GetRailComponentID(node);
+                state.ConnectMyBackTo.Add(destInfo);
+            }
+
+            return state;
+        }
+
+        /// <summary>
+        /// isFrontフラグに応じてFrontNode/BackNodeを返すヘルパーメソッド
+        /// </summary>
+        private (RailNode node, RailNode oppositeNode) GetNodes(bool isFront)
+        {
+            return isFront
+                ? (FrontNode, BackNode)
+                : (BackNode, FrontNode);
+        }
+
+        /// <summary>
+        /// 相手RailComponentとの距離をベジェ曲線から自動計算する
+        /// </summary>
+        private int CalculateDistanceTo(RailComponent targetRail, bool isFrontThis, bool isFrontTarget)
+        {
+            var myControlPoint = isFrontThis ? FrontRailControlPoint : BackRailControlPoint;
+            var targetControlPoint = isFrontTarget ? targetRail.BackRailControlPoint : targetRail.FrontRailControlPoint;
+
+            // 実際にはスケーリング等の係数をかけて距離に変換
+            float rawLength = BezierUtility.GetBezierCurveLength(myControlPoint, targetControlPoint);
+            float scaled = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
+            return (int)(scaled + 0.5f);
+        }
+
+        /// <summary>
+        /// isFront の値によってベジェ制御点（相対座標）を返す
+        /// </summary>
+        private Vector3 GetControlPoint(bool isFront)
+        {
+            // 想定：dirは North, East, South, West のみ
+            var dir = componentPositionInfo.BlockDirection;
+            Vector3 direction = Vector3.zero;
+
             switch (dir)
             {
                 case BlockDirection.North:
-                    direction = new Vector3(0, 0, 1);
+                    direction = Vector3.forward;  // (0,0,1)
                     break;
                 case BlockDirection.East:
-                    direction = new Vector3(1, 0, 0);
+                    direction = Vector3.right;    // (1,0,0)
                     break;
                 case BlockDirection.South:
-                    direction = new Vector3(0, 0, -1);
+                    direction = Vector3.back;     // (0,0,-1)
                     break;
                 case BlockDirection.West:
-                    direction = new Vector3(-1, 0, 0);
+                    direction = Vector3.left;     // (-1,0,0)
                     break;
             }
-            //isFrontがfalseの場合は反対側に制御点を設定
-            if (isFront == false)
-            {
-                return blockPositionInfo.OriginalPos - direction * bezierStrength;//多分vector3(0.5,0.5,0.5)が足されて中心になる
-            }
-            else
-            {
-                return blockPositionInfo.OriginalPos + direction * bezierStrength;
-            }
+
+            return isFront
+                ? direction * bezierStrength
+                : -direction * bezierStrength;
         }
 
-        // このレールを破壊する処理
+        /// <summary>
+        /// レールを破壊し、ノードを破棄する
+        /// </summary>
         public void Destroy()
         {
             IsDestroy = true;
