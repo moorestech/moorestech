@@ -10,7 +10,7 @@ using Server.Event.EventReceive;
 
 namespace Client.Game.InGame.UnlockState
 {
-    public class ClientGameIiGameUnlockStateData : IGameUnlockStateData
+    public class ClientGameUnlockStateData : IGameUnlockStateData
     {
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
         public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos => _itemUnlockStateInfos;
@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UnlockState
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
         
-        public ClientGameIiGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
+        public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
             var unlockState = initialHandshakeResponse.UnlockCraftRecipeState;
             foreach (var lockedGuid in unlockState.LockedCraftRecipeGuids)
