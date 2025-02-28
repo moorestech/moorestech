@@ -104,8 +104,13 @@ namespace Game.Challenge
                 switch (action.ClearedActionType)
                 {
                     case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
-                        var param = (UnlockCraftRecipeClearedActionParam) action.ClearedActionParam;
-                        gameUnlockStateDataController.UnlockCraftRecipe(param.UnlockRecipeGuid);
+                        var unlockRecipeGuid = ((UnlockCraftRecipeClearedActionParam) action.ClearedActionParam).UnlockRecipeGuid;
+                        gameUnlockStateDataController.UnlockCraftRecipe(unlockRecipeGuid);
+                        break;
+                    case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
+                        var itemGuid = ((UnlockItemRecipeViewClearedActionParam) action.ClearedActionParam).UnlockItemGuid;
+                        var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+                        gameUnlockStateDataController.UnlockItem(itemId);
                         break;
                 }
             }

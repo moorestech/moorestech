@@ -14,7 +14,8 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
-using static Tests.Module.TestMod.ForUnitTest.ForUnitTestCraftRecipeId;
+using static Tests.Module.TestMod.ForUnitTestCraftRecipeId;
+using static Tests.Module.TestMod.ForUnitTestItemId;
 
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -37,7 +38,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // レシピのアンロック状態を変更
             // Change the unlock state of the recipe
             var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
-            unlockStateDatastore.UnlockCraftRecipe(Craft3);
+            unlockStateDatastore.UnlockCraftRecipe(Craft4);
+            
+            // アイテムのアンロック状態を変更
+            // 
+            unlockStateDatastore.UnlockItem(ItemId4);
             
             // イベントを受け取り、テストする
             // Receive and test the event
@@ -46,19 +51,25 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントがあることを確認する
             // Make sure there are events
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            Assert.AreEqual(2, eventMessagePack.Events.Count);
             
-            // Craft3のレシピがアンロックされたことを確認する
+            // Craft4のレシピがアンロックされたことを確認する
             // Make sure the recipe for Craft3 is unlocked
-            var data = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(eventMessagePack.Events[0].Payload);
-            Assert.AreEqual(Craft3.ToString(), data.UnlockedCraftRecipeGuidStr);
+            var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(eventMessagePack.Events[0].Payload);
+            Assert.AreEqual(UnlockEventType.CraftRecipe, data.UnlockEventType);
+            Assert.AreEqual(Craft4.ToString(), data.UnlockedCraftRecipeGuidStr);
+            
+            // Item4のアイテムアンロックされたことを確認する
+            data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(eventMessagePack.Events[1].Payload);
+            Assert.AreEqual(UnlockEventType.Item, data.UnlockEventType);
+            Assert.AreEqual(ItemId4, data.UnlockedItemId);
         }
         
         /// <summary>
-        /// チャレンジがクリアされたらあんロックされるレシピのテスト
+        /// チャレンジがクリアされたらアンロックされるレシピのテスト
         /// </summary>
         [Test]
-        public void ClearedChallengeToUnlockEventTest()
+        public void ClearedChallengeToUnlockCraftRecipeEventTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
@@ -83,12 +94,23 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // レシピアンロックのイベントを取得
             // Get the recipe unlock event
-            var unlockedCraftRecipeEvent = eventMessagePack.Events.First(e => e.Tag == UnlockedEventPacket.EventTag);
-            var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockCraftRecipeEventMessagePack>(unlockedCraftRecipeEvent.Payload);
+            var unlockedCraftRecipeEventPacket = eventMessagePack.Events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[0];
+            var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(unlockedCraftRecipeEventPacket.Payload);
             
             // Craft2のレシピがアンロックされたことを確認する
             // Make sure the recipe for Craft2 is unlocked
-            Assert.AreEqual(Craft2, unlockCraftRecipeEvent.UnlockedCraftRecipeGuid);
+            Assert.AreEqual(Craft3, unlockCraftRecipeEvent.UnlockedCraftRecipeGuid);
+            Assert.AreEqual(UnlockEventType.CraftRecipe, unlockCraftRecipeEvent.UnlockEventType);
+            
+            // アイテムアンロックのイベントを取得
+            //
+            var unlockedItemEventPacket = eventMessagePack.Events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[1];
+            var unlockItemEvent = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(unlockedItemEventPacket.Payload);
+
+            // ItemId3がアンロックされたことを確認する
+            // 
+            Assert.AreEqual(ItemId3, unlockItemEvent.UnlockedItemId);
+            Assert.AreEqual(UnlockEventType.Item, unlockItemEvent.UnlockEventType);
         }
     }
 }

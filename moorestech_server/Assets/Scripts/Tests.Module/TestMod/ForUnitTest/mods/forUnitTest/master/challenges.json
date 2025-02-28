@@ -38,6 +38,12 @@
           "clearedActionParam": {
             "unlockRecipeGuid": "00000010-0000-0000-0000-000000000002"
           }
+        },
+        {
+          "clearedActionType": "unlockItemRecipeView",
+          "clearedActionParam": {
+            "unlockItemGuid": "00000000-0000-0000-1234-000000000003"
+          }
         }
       ],
       "displayListType": "NotDisplay",

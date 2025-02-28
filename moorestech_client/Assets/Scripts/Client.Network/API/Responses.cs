@@ -114,10 +114,15 @@ namespace Client.Network.API
         public readonly List<Guid> LockedCraftRecipeGuids;
         public readonly List<Guid> UnlockedCraftRecipeGuids;
         
-        public UnlockCraftRecipeStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids)
+        public readonly List<ItemId> LockedItemIds;
+        public readonly List<ItemId> UnlockedItemIds;
+        
+        public UnlockCraftRecipeStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids, List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
+            LockedItemIds = lockedItemIds;
+            UnlockedItemIds = unlockedItemIds;
         }
     }
 }
