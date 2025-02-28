@@ -5,7 +5,7 @@ using Game.UnlockState;
 using Mooresmaster.Model.CraftRecipesModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
-namespace Game.CraftChainer.Util
+namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
     /// <summary>
     /// アイテムID → 全てのレシピ を管理するためのクラス 
@@ -14,11 +14,6 @@ namespace Game.CraftChainer.Util
     {
         private readonly Dictionary<ItemId, RecipeViewerItemRecipes> _recipeViewerElements = new();
         
-        public ItemRecipeViewerDataContainer(IGameUnlockStateDataController gameUnlockStateDataController)
-            : this(gameUnlockStateDataController as IGameUnlockStateData)
-        {
-            
-        }
         
         public ItemRecipeViewerDataContainer(IGameUnlockStateData gameUnlockStateData)
         {
