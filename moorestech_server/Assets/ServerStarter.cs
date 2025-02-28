@@ -22,8 +22,20 @@ public class ServerStarter : MonoBehaviour
 
     private void OnDestroy()
     {
-        _serverUpdateThread.Abort();
-        _autoSaveToken.Cancel();
+        FinishServer();
+    }
+    
+    private void OnApplicationQuit()
+    {
+        FinishServer();
+    }
+    
+    private void FinishServer()
+    {
+        Debug.Log("サーバーを終了します");
+        _serverUpdateThread?.Abort();
+        _autoSaveToken?.Cancel();
         GameUpdater.Dispose();
+        Debug.Log("サーバーを終了しました");
     }
 }

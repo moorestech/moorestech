@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Core.Master;
 using Game.CraftChainer.Util;
@@ -34,14 +33,15 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             machineRecipeView.SetRecipes(recipeViewerItemRecipes);
             recipeTabView.SetRecipeTabView(recipeViewerItemRecipes);
             
-            var isFirstCraft = recipeViewerItemRecipes.CraftRecipes.Count != 0; 
+            // クラフトレシピがある場合はそれを最初に表示する
+            var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
             machineRecipeView.SetActive(!isFirstCraft);
             if (isFirstCraft)
             {
                 craftInventoryView.DisplayRecipe(0);
             }
-            else
+            else if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
             {
                 machineRecipeView.DisplayRecipe(0);
             }

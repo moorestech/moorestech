@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -20,15 +21,25 @@ namespace Client.Network.API
         public PlayerInventoryResponse Inventory { get; }
         public ChallengeResponse Challenge { get; }
         public List<BlockStateMessagePack> BlockStates { get; }
+        public UnlockCraftRecipeStateResponse UnlockCraftRecipeState { get; }
         
-        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, WorldDataResponse worldData, List<MapObjectsInfoMessagePack> mapObjects, PlayerInventoryResponse inventory, ChallengeResponse challenge, List<BlockStateMessagePack> blockStates)
+        public InitialHandshakeResponse(
+            ResponseInitialHandshakeMessagePack initialHandshake,
+            (
+                List<MapObjectsInfoMessagePack> mapObjects, 
+                WorldDataResponse worldData, 
+                PlayerInventoryResponse inventory, 
+                ChallengeResponse challenge, 
+                List<BlockStateMessagePack> blockStates, 
+                UnlockCraftRecipeStateResponse unlockCraftRecipeState) responses)
         {
-            PlayerPos = response.PlayerPos;
-            WorldData = worldData;
-            MapObjects = mapObjects;
-            Inventory = inventory;
-            Challenge = challenge;
-            BlockStates = blockStates;
+            PlayerPos = initialHandshake.PlayerPos;
+            WorldData = responses.worldData;
+            MapObjects = responses.mapObjects;
+            Inventory = responses.inventory;
+            Challenge = responses.challenge;
+            BlockStates = responses.blockStates;
+            UnlockCraftRecipeState = responses.unlockCraftRecipeState;
         }
     }
     
@@ -95,6 +106,18 @@ namespace Client.Network.API
         {
             CurrentChallenges = currentChallenges;
             CompletedChallenges = completedChallenges;
+        }
+    }
+    
+    public class UnlockCraftRecipeStateResponse
+    {
+        public readonly List<Guid> LockedCraftRecipeGuids;
+        public readonly List<Guid> UnlockedCraftRecipeGuids;
+        
+        public UnlockCraftRecipeStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids)
+        {
+            LockedCraftRecipeGuids = lockedCraftRecipeGuids;
+            UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
         }
     }
 }

@@ -367,37 +367,6 @@
             }
           ],
           "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
           ]
         }
       },
@@ -430,7 +399,7 @@
       "name": "TestChest",
       "blockType": "Chest",
       "blockParam": {
-        "chestItemSlotCount": 5,
+        "itemSlotCount": 5,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2370,37 +2339,6 @@
             }
           ],
           "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
           ]
         },
         "requiredRpm": 10,
@@ -3044,7 +2982,7 @@
       "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
       "blockType": "GearMapObjectMiner",
       "blockParam": {
-        "outputItemSlotCount": 3,
+        "itemSlotCount": 3,
         "requiredRpm": 5,
         "requireTorque": 1,
         "teethCount": 10,
@@ -3109,6 +3047,168 @@
       },
       "name": "TestGearMapObjectMiner",
       "blockGuid": "00000000-0000-0000-0000-000000000027"
+    },
+    {
+      "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
+      "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
+      "blockType": "FluidPipe",
+      "name": "FluidPipe",
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10
+              }
+            }
+          ]
+        },
+        "capacity": 100
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
+      "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
+      "blockType": "FluidPipe",
+      "name": "OneWayFluidPipe",
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10
+              }
+            }
+          ]
+        },
+        "capacity": 100
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ]
     }
   ]
 }

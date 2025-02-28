@@ -22,15 +22,17 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // Initialize item list
             var itemList = new List<IItemStack>();
             
-            var param = blockGameObject.BlockMasterElement.BlockParam;
-            var slotSize =  param switch
+            if (blockGameObject.BlockMasterElement.BlockParam is not IChestParam)
             {
-                ChestBlockParam blockParam => blockParam.ChestItemSlotCount, // TODO master interfaceブロックインベントリの整理箇所
-                CraftChainerProviderChestBlockParam blockParam => blockParam.ItemSlotCount,
-                CraftChainerMainComputerBlockParam blockParam => blockParam.ItemSlotCount,
-                _ => 0
-            };
-            for (var i = 0; i < slotSize; i++)
+                var blockName = blockGameObject.BlockMasterElement.Name;
+                var guid = blockGameObject.BlockMasterElement.BlockGuid;
+                // TODO ログ基盤にいれる
+                Debug.LogError($"ブロック名:{blockName} guid:{guid} はIChestParamを持っていません。指定しているUIを見直すか、スキーマを見直してください。");
+                return;
+            }
+            
+            var param = (IChestParam)blockGameObject.BlockMasterElement.BlockParam;
+            for (var i = 0; i < param.ItemSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
                 _blockItemSlotObjects.Add(slotObject);

@@ -1180,7 +1180,7 @@
       ],
       "blockType": "Chest",
       "blockParam": {
-        "chestItemSlotCount": 5,
+        "itemSlotCount": 5,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -2129,7 +2129,7 @@
       "itemGuid": "caa17dec-8e5e-477b-9b1f-03cdfaa4df08",
       "blockType": "Chest",
       "blockParam": {
-        "chestItemSlotCount": 5,
+        "itemSlotCount": 5,
         "inventoryConnectors": {
           "inputConnects": [
             {

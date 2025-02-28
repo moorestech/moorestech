@@ -1,4 +1,5 @@
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Input;
@@ -46,17 +47,7 @@ namespace Client.Game.InGame.Control
             if (blockPlacePreview.IsActive) return false; //ブロック設置中の場合は無効
             if (TryGetClickBlock(out var block))
             {
-                var openable = block.BlockMasterElement.BlockType is
-                    BlockTypeConst.Chest or
-                    BlockTypeConst.ElectricMachine or
-                    BlockTypeConst.ElectricGenerator or
-                    BlockTypeConst.ElectricMiner or
-                    BlockTypeConst.GearMachine or
-                    BlockTypeConst.GearMiner or 
-                    BlockTypeConst.CraftChainerProviderChest or
-                    BlockTypeConst.CraftChainerCrafter or
-                    BlockTypeConst.CraftChainerMainComputer;
-                return openable;
+                return block.BlockMasterElement.IsBlockOpenable();
             }
             
             return false;

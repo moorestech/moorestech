@@ -3,7 +3,6 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.UIState;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -22,7 +21,7 @@ namespace Client.Game.InGame.Mining
         private MapObjectMiningControllerContext _context;
         
         [Inject]
-        public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
+        public void Constructor(ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
         {
             _currentState = new MapObjectMiningIdleState();
             _context = new MapObjectMiningControllerContext(hotBarView, localPlayerInventory, playerObjectController);

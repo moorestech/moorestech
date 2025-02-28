@@ -18,7 +18,13 @@ namespace Client.Game.InGame.Mining
                 return new MapObjectMiningIdleState();
             }
             
+            // MapObjectのマスターデータが取得できない場合はIdleに遷移
+            // If the master data of MapObject cannot be obtained, transition to Idle
             var currentMapObjectMaster = context.CurrentFocusMapObjectGameObject.MapObjectMasterElement;
+            if (currentMapObjectMaster == null)
+            {
+                return new MapObjectMiningIdleState();
+            }
             var miningType = currentMapObjectMaster.MiningType;
             
             if (miningType == MapObjectMasterElement.MiningTypeConst.PickUp)
@@ -35,7 +41,7 @@ namespace Client.Game.InGame.Mining
         
         private IMapObjectMiningState PickUpProcess(MapObjectMiningControllerContext context)
         {
-            if (InputManager.Playable.ScreenLeftClick.GetKey)
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
                 MouseCursorExplainer.Instance.Hide();
                 return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject, int.MaxValue);

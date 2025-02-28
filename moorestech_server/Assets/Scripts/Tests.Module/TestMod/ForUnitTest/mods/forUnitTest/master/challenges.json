@@ -10,7 +10,15 @@
       "challengeGuid": "00000000-0000-0000-4567-000000000001",
       "playSkitType": "None",
       "playSkitParam": {},
-      "tutorials": []
+      "tutorials": [],
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     },
     {
       "summary": "テスト2",
@@ -23,7 +31,22 @@
       "challengeGuid": "00000000-0000-0000-4567-000000000002",
       "playSkitType": "None",
       "playSkitParam": {},
-      "tutorials": []
+      "tutorials": [],
+      "clearedActions": [
+        {
+          "clearedActionType": "unlockCraftRecipe",
+          "clearedActionParam": {
+            "unlockRecipeGuid": "00000010-0000-0000-0000-000000000002"
+          }
+        }
+      ],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     },
     {
       "summary": "テスト3",
@@ -36,7 +59,15 @@
       "challengeGuid": "00000000-0000-0000-4567-000000000003",
       "playSkitType": "None",
       "playSkitParam": {},
-      "tutorials": []
+      "tutorials": [],
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     },
     {
       "summary": "テスト1をクリアしたら始まるチャレンジ",
@@ -50,7 +81,15 @@
       "challengeGuid": "00000000-0000-0000-4567-000000000004",
       "playSkitType": "None",
       "playSkitParam": {},
-      "tutorials": []
+      "tutorials": [],
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      }
     }
   ]
 }

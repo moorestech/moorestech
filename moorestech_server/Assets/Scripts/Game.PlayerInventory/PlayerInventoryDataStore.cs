@@ -8,6 +8,7 @@ namespace Game.PlayerInventory
 {
     /// <summary>
     ///     プレイヤーインベントリのデータを扱います。
+    ///     TODO プレイヤーのエンティティ内で管理すべきか検討中
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {

@@ -27,7 +27,7 @@
     },
     {
       "sortPriority": 120,
-      "maxStack": 100,
+      "maxStack": 5,
       "name": "原木",
       "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
     },
@@ -51,7 +51,7 @@
     },
     {
       "sortPriority": 160,
-      "maxStack": 100,
+      "maxStack": 20,
       "name": "加工した原木",
       "itemGuid": "126acbd8-715b-4d52-9a58-2eeb94228a35"
     },
@@ -70,7 +70,7 @@
     {
       "sortPriority": 190,
       "maxStack": 100,
-      "name": "シューター",
+      "name": "直進アイテムシューター",
       "itemGuid": "a928fcd3-21af-456b-8fc4-71fc8e9cbb32"
     },
     {
@@ -88,8 +88,225 @@
     {
       "sortPriority": 220,
       "maxStack": 100,
-      "name": "歯車ベルトコンベア",
+      "name": "直進歯車ベルトコンベア",
       "itemGuid": "b648e067-7cee-48ab-9b95-2d8c24ee3262"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 191,
+      "maxStack": 100,
+      "name": "上りアイテムシューター",
+      "itemGuid": "4d505cb6-c330-4e18-b913-71f39587e61e"
+    },
+    {
+      "sortPriority": 192,
+      "maxStack": 100,
+      "name": "下りアイテムシューター",
+      "itemGuid": "d3a2ec32-0fc7-4fc9-858c-42f8f1a3a441"
+    },
+    {
+      "sortPriority": 221,
+      "maxStack": 100,
+      "name": "上り歯車ベルトコンベア",
+      "itemGuid": "0cbecd51-6053-4f3e-ad45-4c09154d755a"
+    },
+    {
+      "sortPriority": 222,
+      "maxStack": 100,
+      "name": "下り歯車ベルトコンベア",
+      "itemGuid": "4dc76a6f-1322-440d-a985-5b13b2c8a5d4"
+    },
+    {
+      "sortPriority": 223,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "直進歯車ベルトコンベアシャフト",
+      "itemGuid": "caed8faf-6c19-4730-9d05-f78de82b0014"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 125,
+      "maxStack": 100,
+      "name": "作業台",
+      "itemGuid": "75eb8add-b6b9-435e-b1a9-4df95989d9a1"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 155,
+      "maxStack": 100,
+      "name": "加工原木用 作業台(これ作って加工原木作る",
+      "itemGuid": "08e273a2-7fab-4162-b32c-85a0cc4919c0"
+    },
+    {
+      "earnItemHps": [
+        0
+      ],
+      "hp": 100,
+      "mapObjectName": "mapObjectName",
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 165,
+      "maxStack": 100,
+      "name": "加工した原木50個​収集",
+      "itemGuid": "1f60177f-1b6f-458b-b26c-050c0f4b6a81"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "time": 1,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 185,
+      "maxStack": 100,
+      "name": "チェスト",
+      "itemGuid": "f513ae31-ef58-4a05-a0c4-3bd8a4418ec5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 175,
+      "maxStack": 100,
+      "name": "小さな歯車",
+      "itemGuid": "f39963d5-ce6f-4362-b26f-d3028c030421"
+    },
+    {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 186,
+      "maxStack": 100,
+      "name": "原始的な採掘機",
+      "itemGuid": "ee133d2f-ee80-4b45-b6db-5c26294e2b3a"
+    },
+    {
+      "sortPriority": 250,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ブロンズ鉱石",
+      "itemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a"
+    },
+    {
+      "sortPriority": 240,
+      "maxStack": 100,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "name": "キャンプファイア",
+      "itemGuid": "13f46fe4-bb42-4354-94c4-ae1e1b28415b"
+    },
+    {
+      "sortPriority": 260,
+      "maxStack": 100,
+      "name": "低品質なブロンズの塊",
+      "itemGuid": "18e84450-24fc-4d52-927a-c6dd2861f439"
+    },
+    {
+      "sortPriority": 270,
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッド",
+      "itemGuid": "321f37ad-b204-49c5-af8b-9c977298ddbd"
+    },
+    {
+      "sortPriority": 275,
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッドの型",
+      "itemGuid": "e9aeabf1-bffc-4f99-bb46-8d4f6d04cbc2"
+    },
+    {
+      "sortPriority": 280,
+      "maxStack": 100,
+      "name": "ブロンズハンマー",
+      "itemGuid": "c5c5cc63-da1a-4a2f-b7da-23b82ef5ecb3"
+    },
+    {
+      "sortPriority": 290,
+      "maxStack": 100,
+      "name": "粘土​",
+      "itemGuid": "b9d207ab-2229-4dde-8cd5-32653980902d"
+    },
+    {
+      "sortPriority": 300,
+      "maxStack": 100,
+      "name": "レンガ​",
+      "itemGuid": "fc58f13e-a083-418d-ae01-58ea1d7c7540"
+    },
+    {
+      "sortPriority": 310,
+      "maxStack": 100,
+      "name": "精錬炉​",
+      "itemGuid": "f7b0c1d3-0803-40cb-88d8-3061dee22e38"
+    },
+    {
+      "sortPriority": 320,
+      "maxStack": 100,
+      "name": "原始的な​窯​",
+      "itemGuid": "0cd840e7-0518-43de-bf7f-f6973cf60732"
+    },
+    {
+      "sortPriority": 325,
+      "maxStack": 100,
+      "name": "ブロンズドリルの型​​​​​",
+      "itemGuid": "64c06bce-24f0-48a4-bb49-cec379335a76"
+    },
+    {
+      "sortPriority": 330,
+      "maxStack": 100,
+      "name": "ブロンズドリル​​​​​",
+      "itemGuid": "f83666d2-5a65-4f22-8fc5-1e0255dc1eff"
+    },
+    {
+      "sortPriority": 340,
+      "maxStack": 100,
+      "name": "ブロンズ粉砕機​",
+      "itemGuid": "04c369f3-62b5-4db9-af99-bdbdf821e9d0"
+    },
+    {
+      "sortPriority": 350,
+      "maxStack": 100,
+      "name": "木炭​",
+      "itemGuid": "49e21d34-5ba8-465c-83f5-12883ea4b77e"
+    },
+    {
+      "sortPriority": 360,
+      "maxStack": 100,
+      "name": "木炭粉​",
+      "itemGuid": "e817d5ee-0cdf-4f7d-a07b-300d45311507"
+    },
+    {
+      "sortPriority": 370,
+      "maxStack": 100,
+      "name": "低品質なブロンズの粉末​",
+      "itemGuid": "fdd4ebbd-9f77-45a0-8685-d118958f7c02"
+    },
+    {
+      "sortPriority": 380,
+      "maxStack": 100,
+      "name": "中品質​なブロンズの塊",
+      "itemGuid": "fba661a3-f6a8-4f3a-87ab-2277f1fc19b2"
     }
   ]
 }

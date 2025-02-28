@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Challenge;
 using Game.Challenge.Task;
 using MessagePack;
@@ -19,30 +20,34 @@ namespace Server.Event.EventReceive
             challengeEvent.OnCompleteChallenge.Subscribe(OnCompletedChallenge);
         }
         
-        private void OnCompletedChallenge(IChallengeTask currentChallenge)
+        private void OnCompletedChallenge(ChallengeEvent.CompleteChallengeEventProperty completeProperty)
         {
-            var messagePack = new CompletedChallengeEventMessage(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            var messagePack = new CompletedChallengeEventMessagePack(completeProperty);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
-            var playerId = currentChallenge.PlayerId;
+            var playerId = completeProperty.ChallengeTask.PlayerId;
             _eventProtocolProvider.AddEvent(playerId, EventTag, payload);
         }
     }
     
     [MessagePackObject]
-    public class CompletedChallengeEventMessage
+    public class CompletedChallengeEventMessagePack
     {
         [Key(0)] public string CompletedChallengeGuidStr { get; set; }
+        [Key(1)] public List<string> NextChallengeGuidsStr { get; set; }
+        
         [IgnoreMember] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
+        [IgnoreMember] public List<Guid> NextChallengeGuids => NextChallengeGuidsStr.ConvertAll(Guid.Parse);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public CompletedChallengeEventMessage()
+        public CompletedChallengeEventMessagePack()
         {
         }
         
-        public CompletedChallengeEventMessage(Guid completedChallengeGuid)
+        public CompletedChallengeEventMessagePack(ChallengeEvent.CompleteChallengeEventProperty completeProperty)
         {
-            CompletedChallengeGuidStr = completedChallengeGuid.ToString();
+            CompletedChallengeGuidStr = completeProperty.ChallengeTask.ChallengeMasterElement.ChallengeGuid.ToString();
+            NextChallengeGuidsStr = completeProperty.NextChallengeMasterElements.ConvertAll(e => e.ChallengeGuid.ToString());
         }
     }
 }

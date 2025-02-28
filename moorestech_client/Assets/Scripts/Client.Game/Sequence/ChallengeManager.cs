@@ -25,13 +25,11 @@ namespace Client.Game.Sequence
         
         [SerializeField] private List<ChallengeTextAsset> challengeTextAssets;
         
-        private TutorialManager _tutorialManager;
+        [Inject] private TutorialManager _tutorialManager;
         
         [Inject]
-        public void Construct(InitialHandshakeResponse initialHandshakeResponse, TutorialManager tutorialManager)
+        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
         {
-            _tutorialManager = tutorialManager;
-            
             //TODO 複数のチャレンジを表示する
             if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
             {
@@ -48,7 +46,7 @@ namespace Client.Game.Sequence
         
         private void OnCompletedChallenge(byte[] packet)
         {
-            var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessage>(packet);
+            var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
             var challengeInfo = MasterHolder.ChallengeMaster.GetChallenge(message.CompletedChallengeGuid);
             var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(challengeInfo.ChallengeGuid);
             

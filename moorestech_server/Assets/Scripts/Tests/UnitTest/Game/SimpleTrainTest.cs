@@ -749,9 +749,9 @@ namespace Tests.UnitTest.Game
                 {
                     if (DEBUG_LOG_FLAG)
                     {
-                        Debug.Log("" + i + "フレームでつきました。約" + (i / 60) + "秒");
-                        Debug.Log("実装距離(int)" + totaldist + "");
-                        Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
+                        //Debug.Log("" + i + "フレームでつきました。約" + (i / 60) + "秒");
+                        //Debug.Log("実装距離(int)" + totaldist + "");
+                        //Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
                     }
                     break;
                 }
@@ -759,8 +759,11 @@ namespace Tests.UnitTest.Game
             
             Assert.AreEqual(nodeA, trainUnit._railPosition.GetNodeApproaching());
             Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
-            if (DEBUG_LOG_FLAG)
-                Debug.Log("列車編成が無事目的地につきました");
+            if (DEBUG_LOG_FLAG) 
+            {
+                //Debug.Log("列車編成が無事目的地につきました");
+            }
+
         }
 
 

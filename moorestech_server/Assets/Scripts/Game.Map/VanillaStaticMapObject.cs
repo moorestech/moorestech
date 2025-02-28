@@ -64,8 +64,21 @@ namespace Game.Map
             {
                 var id = item.Id;
                 var count = item.Count * earnedCount;
+                var maxStack = MasterHolder.ItemMaster.GetItemMaster(id).MaxStack;
                 
-                earnedItems.Add(ServerContext.ItemStackFactory.Create(id, count));
+                // 最大のアイテムスタック数のアイテムを追加する
+                var fullItemCount = count / maxStack;
+                for (int i = 0; i < fullItemCount; i++)
+                {
+                    earnedItems.Add(ServerContext.ItemStackFactory.Create(id, maxStack));
+                }
+                
+                // あまりを追加する
+                var remainCount = count % maxStack;
+                if (remainCount != 0)
+                {
+                    earnedItems.Add(ServerContext.ItemStackFactory.Create(id, remainCount));
+                }
             }
             
             return earnedItems;

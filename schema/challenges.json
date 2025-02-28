@@ -73,7 +73,6 @@
             ]
           },
 
-
           "taskCompletionType": {
             "type": "string",
             "default": "createItem",
@@ -115,7 +114,7 @@
                     },
                     "itemCount": {
                       "type": "integer",
-                        "default": 1
+                      "default": 1
                     }
                   }
                 }
@@ -137,7 +136,7 @@
                     },
                     "itemCount": {
                       "type": "integer",
-                        "default": 1
+                      "default": 1
                     }
 
                   }
@@ -227,6 +226,119 @@
                 }
               }
             }
+          },
+
+          "clearedActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+
+                "clearedActionType": {
+                  "type": "string",
+                  "enum": ["unlockCraftRecipe", "unlockItemRecipeView"]
+                },
+
+                "clearedActionParam": {
+                  "oneOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "clearedActionType": { "const": "unlockCraftRecipe" }
+                        }
+                      },
+                      "then": {
+                        "type": "object",
+                        "properties": {
+                          "unlockRecipeGuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "foreignKey": "craftRecipes:craftRecipeGuid:craftRecipeGuid"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "clearedActionType": { "const": "unlockItemRecipeView" }
+                        }
+                      },
+                      "then": {
+                        "type": "object",
+                        "properties": {
+                          "unlockItemGuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "foreignKey": "items:itemGuid:name"
+                          }
+                        }
+                      }
+                    }
+
+                  ]
+                }
+              }
+            }
+          },
+
+          "displayListType" :{
+            "type": "string",
+            "default": "createItem",
+            "enum": ["NotDisplay", "Display"],
+
+            "$memo": "ここはbooleanにしたいけど、コード生成側の都合で出来ないのでいったんstringにしている"
+          },
+
+          "displayListParam": {
+            "oneOf": [
+              {
+                "if": {
+                  "properties": {
+                    "displayListType": { "const": "Display" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                    "UIPosition": {
+                      "type": "array",
+                      "pattern": "@vector2",
+                      "items": {
+                        "type": "number"
+                      },
+                      "default": [0,0],
+
+                      "overrideCodeGeneratePropertyName": "DisplayInChallengeListPosition"
+                    },
+
+                    "IconItem": {
+                      "type": "string",
+                      "format": "uuid",
+                      "foreignKey": "items:itemGuid:name",
+                      "optional": true,
+
+                      "overrideCodeGeneratePropertyName": "DisplayInChallengeListIconItemGuid"
+                    }
+
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "displayListType": { "const": "NotDisplay" }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+
+                  }
+                }
+              }
+            ]
           }
         }
       }

@@ -6,6 +6,7 @@ using Core.Update;
 using Game.Challenge.Task;
 using Game.Challenge.Task.Factory;
 using Game.Context;
+using Game.UnlockState;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 
@@ -13,11 +14,16 @@ namespace Game.Challenge
 {
     public class ChallengeDatastore
     {
+        private readonly IGameUnlockStateDataController gameUnlockStateDataController;
+        private ChallengeEvent _challengeEvent;
+        
         private readonly Dictionary<int, PlayerChallengeInfo> _playerChallengeInfos = new();
         private readonly ChallengeFactory _challengeFactory = new();
         
-        public ChallengeDatastore()
+        public ChallengeDatastore(IGameUnlockStateDataController gameUnlockStateDataController, ChallengeEvent challengeEvent)
         {
+            this.gameUnlockStateDataController = gameUnlockStateDataController;
+            _challengeEvent = challengeEvent;
             GameUpdater.UpdateObservable.Subscribe(Update);
         }
         
@@ -57,6 +63,55 @@ namespace Game.Challenge
             
             #endregion
         }
+        
+        
+        private IChallengeTask CreateChallenge(int playerId, ChallengeMasterElement challengeElement)
+        {
+            var challenge = _challengeFactory.CreateChallengeTask(playerId, challengeElement);
+            challenge.OnChallengeComplete.Subscribe(CompletedChallenge);
+            return challenge;
+        }
+        
+        private void CompletedChallenge(IChallengeTask currentChallenge)
+        {
+            var playerId = currentChallenge.PlayerId;
+            var challengeInfo = _playerChallengeInfos[playerId];
+            
+            // クリアしたチャレンジを削除
+            // Remove the cleared challenge
+            challengeInfo.CurrentChallenges.Remove(currentChallenge);
+            challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            
+            // 次のチャレンジを登録
+            // Register the next challenge
+            var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            foreach (var nextChallengeMaster in nextChallenges)
+            {
+                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
+                
+                var nextChallenge = CreateChallenge(playerId, challengeElement);
+                challengeInfo.CurrentChallenges.Add(nextChallenge);
+            }
+            
+            // イベントを発行
+            // Issue an event
+            _challengeEvent.InvokeCompleteChallenge(currentChallenge, nextChallenges);
+            
+            // クリア時のアクションを実行
+            // Perform the action when cleared
+            foreach (var action in currentChallenge.ChallengeMasterElement.ClearedActions)
+            {
+                switch (action.ClearedActionType)
+                {
+                    case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
+                        var param = (UnlockCraftRecipeClearedActionParam) action.ClearedActionParam;
+                        gameUnlockStateDataController.UnlockCraftRecipe(param.UnlockRecipeGuid);
+                        break;
+                }
+            }
+        }
+        
+        #region SaveLoad
         
         public void LoadChallenge(List<ChallengeJsonObject> challengeJsonObjects)
         {
@@ -98,34 +153,6 @@ namespace Game.Challenge
             }
         }
         
-        private IChallengeTask CreateChallenge(int playerId, ChallengeMasterElement challengeElement)
-        {
-            var challenge = _challengeFactory.CreateChallengeTask(playerId, challengeElement);
-            challenge.OnChallengeComplete.Subscribe(CompletedChallenge);
-            return challenge;
-        }
-        
-        private void CompletedChallenge(IChallengeTask currentChallenge)
-        {
-            var playerId = currentChallenge.PlayerId;
-            var challengeInfo = _playerChallengeInfos[playerId];
-            
-            challengeInfo.CurrentChallenges.Remove(currentChallenge);
-            challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
-            
-            var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeMasterElement.ChallengeGuid);
-            foreach (var nextChallengeMaster in nextChallenges)
-            {
-                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
-                
-                var nextChallenge = CreateChallenge(playerId, challengeElement);
-                challengeInfo.CurrentChallenges.Add(nextChallenge);
-            }
-            
-            ServerContext.GetService<ChallengeEvent>().InvokeCompleteChallenge(currentChallenge);
-        }
-
-        
         public List<ChallengeJsonObject> GetSaveJsonObject()
         {
             var result = new List<ChallengeJsonObject>();
@@ -143,6 +170,8 @@ namespace Game.Challenge
             
             return result;
         }
+        
+        #endregion
     }
     
     public class PlayerChallengeInfo

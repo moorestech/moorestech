@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -30,47 +31,18 @@ namespace Client.Network.API
         {
             //最初のハンドシェイクを行う
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
-            var response = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
-            
-            List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> mapObjects = null;
-            WorldDataResponse worldData = null;
-            PlayerInventoryResponse inventory = null;
-            ChallengeResponse challenge = null;
-            List<BlockStateMessagePack> blockStates = null;
+            var initialHandShake = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
             
             //必要なデータを取得する
-            await UniTask.WhenAll(GetMapObjects(), GetWorld(), GetInventory(), GetChallenge(), GetBlockStates());
+            var responses = await UniTask.WhenAll(
+                GetMapObjectInfo(ct), 
+                GetWorldData(ct), 
+                GetPlayerInventory(playerId, ct), 
+                GetChallengeResponse(playerId, ct), 
+                GetAllBlockState(ct),
+                GetUnlockCraftRecipeState(ct));
             
-            return new InitialHandshakeResponse(response, worldData, mapObjects, inventory, challenge, blockStates);
-            
-            #region Internal
-            
-            async UniTask GetMapObjects()
-            {
-                mapObjects = await GetMapObjectInfo(ct);
-            }
-            
-            async UniTask GetWorld()
-            {
-                worldData = await GetWorldData(ct);
-            }
-            
-            async UniTask GetInventory()
-            {
-                inventory = await GetPlayerInventory(playerId, ct);
-            }
-            
-            async UniTask GetChallenge()
-            {
-                challenge = await GetChallengeResponse(playerId, ct);
-            }
-            
-            async UniTask GetBlockStates()
-            {
-                blockStates = await GetAllBlockState(ct);
-            }
-            
-            #endregion
+            return new InitialHandshakeResponse(initialHandShake, responses);
         }
         
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
@@ -166,6 +138,14 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<BlockStateProtocol.ResponseBlockStateProtocolMessagePack>(request, ct);
             
             return response.State;
+        }
+        
+        public async UniTask<UnlockCraftRecipeStateResponse> GetUnlockCraftRecipeState(CancellationToken ct)
+        {
+            var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
+            
+            return new UnlockCraftRecipeStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids);
         }
     }
 }

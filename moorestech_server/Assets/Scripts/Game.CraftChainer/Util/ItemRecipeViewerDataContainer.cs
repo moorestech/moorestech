@@ -1,17 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.UnlockState;
 using Mooresmaster.Model.CraftRecipesModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.CraftChainer.Util
 {
-    // TODO クラフトレシピ改善時にこれを使う
+    /// <summary>
+    /// アイテムID → 全てのレシピ を管理するためのクラス 
+    /// </summary>
     public class ItemRecipeViewerDataContainer
     {
         private readonly Dictionary<ItemId, RecipeViewerItemRecipes> _recipeViewerElements = new();
         
-        public ItemRecipeViewerDataContainer()
+        public ItemRecipeViewerDataContainer(IGameUnlockStateDataController gameUnlockStateDataController)
         {
             // そのアイテムを作成するための機械のレシピを取得
             // Get the recipe of the machine to create the item
@@ -55,7 +58,7 @@ namespace Game.CraftChainer.Util
                     }
                 }
                 
-                _recipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes, itemId));
+                _recipeViewerElements.Add(itemId, new RecipeViewerItemRecipes(resultCraftRecipes, resultMachineRecipes, itemId, gameUnlockStateDataController));
             }
             
             // レシピが存在しないアイテムを除外する
@@ -66,7 +69,7 @@ namespace Game.CraftChainer.Util
                 var itemId = kv.Key;
                 var recipe = kv.Value;
                 
-                if (recipe.CraftRecipes.Count == 0 && recipe.MachineRecipes.Count == 0)
+                if (recipe.AllCraftRecipes.Count == 0 && recipe.MachineRecipes.Count == 0)
                 {
                     removeList.Add(itemId);
                 }
@@ -88,14 +91,26 @@ namespace Game.CraftChainer.Util
         public readonly ItemId ResultItemId;
         
         //TODO 他のmodの他のレシピにも対応できるようの柔軟性をもたせた設計を考える
-        public readonly List<CraftRecipeMasterElement> CraftRecipes;
         public readonly Dictionary<BlockId, List<MachineRecipeMasterElement>> MachineRecipes;
+        public readonly List<CraftRecipeMasterElement> AllCraftRecipes;
         
-        public RecipeViewerItemRecipes(List<CraftRecipeMasterElement> craftRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> machineRecipes, ItemId resultItemId)
+        private readonly IGameUnlockStateData gameUnlockStateData;
+        
+        public RecipeViewerItemRecipes(List<CraftRecipeMasterElement> craftRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> machineRecipes, ItemId resultItemId, IGameUnlockStateDataController gameUnlockStateDataController)
         {
-            CraftRecipes = craftRecipes;
+            AllCraftRecipes = craftRecipes;
             MachineRecipes = machineRecipes;
             ResultItemId = resultItemId;
+            gameUnlockStateData = gameUnlockStateDataController;
+        }
+        
+        /// <summary>
+        /// アンロック済みのクラフトレシピを取得
+        /// </summary>
+        public List<CraftRecipeMasterElement> UnlockedCraftRecipes()
+        {
+            var infos = gameUnlockStateData.CraftRecipeUnlockStateInfos;
+            return AllCraftRecipes.Where(c => infos[c.CraftRecipeGuid].IsUnlocked).ToList();
         }
     }
 }

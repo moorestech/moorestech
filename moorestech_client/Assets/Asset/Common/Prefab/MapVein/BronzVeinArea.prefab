@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 575350936923522541}
   - component: {fileID: 6917010097078680076}
   m_Layer: 0
-  m_Name: BronzeVeinArea
+  m_Name: BronzVeinArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94484c2fa6f84337969a1626b361fbd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  veinItemGuid: 94f7b602-d72f-4e28-b18a-202bf73ef488
+  veinItemGuid: ee291e43-d40d-42ae-b580-fb3d34102f3a
   bounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 1, y: 1, z: 1}

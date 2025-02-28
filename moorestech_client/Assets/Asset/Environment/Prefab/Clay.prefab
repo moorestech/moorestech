@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   outlineObject: {fileID: 0}
   instanceId: 147
-  mapObjectGuid: 0ea1f1d6-4921-42a7-a7a6-bbb674e29089
+  mapObjectGuid: 806c3cfe-d036-4b10-9837-2eb24377fe88
 --- !u!65 &7988004413800520227
 BoxCollider:
   m_ObjectHideFlags: 0

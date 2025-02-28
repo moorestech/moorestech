@@ -4,8 +4,11 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UnlockState;
 using Core.Master;
 using Game.CraftChainer.Util;
+using Game.UnlockState;
+using Mooresmaster.Model.ItemsModule;
 using UniRx;
 using UnityEngine;
 using VContainer;
@@ -18,24 +21,51 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemListParent;
+        [Inject] private ILocalPlayerInventory _localPlayerInventory;
+        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        [Inject] private IGameUnlockStateData iiGameUnlockStateData;
+        private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
         private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
         
-        private ILocalPlayerInventory _localPlayerInventory;
-        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        private readonly List<ItemSlotObject> _itemListObjects = new();
         
         [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
+        public void Construct()
         {
-            _localPlayerInventory = localPlayerInventory;
-            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
-            
             _localPlayerInventory.OnItemChange.Subscribe(OnInventoryItemChange);
-            
+        }
+        
+        /// <summary>
+        /// OnEnableじゃなくて、ちゃんと制御されたところから呼び出したいとは思っている
+        /// </summary>
+        private void OnEnable()
+        {
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
+                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceHide)
+                {
+                    continue;
+                }
+                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceShow)
+                {
+                    // 強制表示の場合は表示する
+                    // If it is a forced display, display it
+                }
+                else if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
+                {
+                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
+                    if (unlockRecipes.Count == 0)
+                    {
+                        // クラフトレシピがない場合は表示しない
+                        // Do not display if there is no craft recipe
+                        continue;
+                    }
+                }
+                
+                
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                 
                 // アイテムリストを設定
@@ -48,7 +78,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 // ハイライトオブジェクトを設定
                 // Set the highlight object
                 var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
                 target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.Name));
             }
         }

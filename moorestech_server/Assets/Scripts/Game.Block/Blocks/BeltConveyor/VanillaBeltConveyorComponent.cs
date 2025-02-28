@@ -170,7 +170,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 
                 if (item.ItemInstanceId.AsPrimitive() != 0)
                 {
-                    UnityEngine.Debug.Log($"Belt Last:{last:F3} Current:{current:F3} Diff:{diff:F3} {item.ItemInstanceId}");
+                    //UnityEngine.Debug.Log($"Belt Last:{last:F3} Current:{current:F3} Diff:{diff:F3} {item.ItemInstanceId}");
                 }
             }
         }
