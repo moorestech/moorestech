@@ -32,6 +32,16 @@
             "attackHp": 10,
             "miningTime": 5,
             "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 7,
+            "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 7,
+            "mapObjectGuid": "dd67a4d9-3232-47c3-b071-2ad36c285d26"
           }
         ],
         "gear": {
