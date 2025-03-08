@@ -292,6 +292,27 @@
       "name": "鉄亜鉛合金",
       "itemGuid": "796c8625-4018-45cf-9602-f53a86063353",
       "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "石の粉砕機",
+      "itemGuid": "2895b52f-8285-41a8-82d2-4fbd43786a65"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "歯車ベルトコンベア",
+      "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "シューター",
+      "itemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0"
     }
   ]
 }
