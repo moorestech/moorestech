@@ -304,15 +304,48 @@
       "initialUnlocked": true,
       "sortPriority": 470,
       "maxStack": 100,
-      "name": "歯車ベルトコンベア",
+      "name": "直進歯車ベルトコンベア",
       "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "上り歯車ベルトコンベア",
+      "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "下り歯車ベルトコンベア",
+      "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 480,
       "maxStack": 100,
-      "name": "シューター",
+      "name": "直進シューター",
       "itemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "上りシューター",
+      "itemGuid": "cc3dffdc-0fac-43ec-8772-7c9a51baa161"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "下りシューター",
+      "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74"
     }
   ]
 }
