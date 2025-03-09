@@ -307,14 +307,16 @@
       "sortPriority": 460,
       "maxStack": 100,
       "name": "石の粉砕機",
-      "itemGuid": "2895b52f-8285-41a8-82d2-4fbd43786a65"
+      "itemGuid": "2895b52f-8285-41a8-82d2-4fbd43786a65",
+      "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 470,
       "maxStack": 100,
       "name": "直進歯車ベルトコンベア",
-      "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f"
+      "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
+      "recipeViewType": "ForceShow"
     },
     {
       "blockSize": [
@@ -326,35 +328,40 @@
       "sortPriority": 100,
       "maxStack": 100,
       "name": "上り歯車ベルトコンベア",
-      "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41"
+      "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
+      "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
       "name": "下り歯車ベルトコンベア",
-      "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec"
+      "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
+      "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 480,
       "maxStack": 100,
       "name": "直進シューター",
-      "itemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0"
+      "itemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0",
+      "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
       "name": "上りシューター",
-      "itemGuid": "cc3dffdc-0fac-43ec-8772-7c9a51baa161"
+      "itemGuid": "cc3dffdc-0fac-43ec-8772-7c9a51baa161",
+      "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
       "name": "下りシューター",
-      "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74"
+      "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74",
+      "recipeViewType": "ForceShow"
     }
   ]
 }
