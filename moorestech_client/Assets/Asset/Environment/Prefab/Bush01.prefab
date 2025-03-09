@@ -209,7 +209,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   outlineObject: {fileID: 6020616332273926851}
   instanceId: 0
-  mapObjectGuid: dd67a4d9-3232-47c3-b071-2ad36c285d26
+  mapObjectGuid: ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf
 --- !u!4 &8965808723017796102 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 365312301281907717, guid: 14babb438b254654495b18071dceadf6, type: 3}
