@@ -52,7 +52,8 @@
       "sortPriority": 100,
       "maxStack": 100,
       "name": "麻布",
-      "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e"
+      "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e",
+      "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,

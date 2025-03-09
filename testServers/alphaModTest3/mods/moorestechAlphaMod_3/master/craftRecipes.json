@@ -312,7 +312,8 @@
       "craftResultItemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "requiredItems": [
         {
-          "count": 2
+          "count": 2,
+          "itemGuid": "796c8625-4018-45cf-9602-f53a86063353"
         }
       ],
       "craftRecipeGuid": "b5b8e667-3df3-4c85-a620-de0dc3448ea8"

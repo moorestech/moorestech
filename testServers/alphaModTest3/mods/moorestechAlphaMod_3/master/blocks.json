@@ -113,7 +113,44 @@
         "requireTorque": 1,
         "generateTorque": 1,
         "generateRpm": 5,
-        "teethCount": 10
+        "teethCount": 10,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
       },
       "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6"
