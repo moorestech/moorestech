@@ -47,6 +47,15 @@
     },
     {
       "initialUnlocked": true,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "麻布",
+      "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e"
+    },
+    {
+      "initialUnlocked": true,
       "sortPriority": 150,
       "maxStack": 100,
       "name": "石器ハンマー",
