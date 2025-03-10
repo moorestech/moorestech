@@ -32,6 +32,16 @@
             "attackHp": 10,
             "miningTime": 5,
             "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 7,
+            "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 7,
+            "mapObjectGuid": "dd67a4d9-3232-47c3-b071-2ad36c285d26"
           }
         ],
         "gear": {
@@ -358,7 +368,7 @@
       "blockParam": {
         "acceleration": -0.2,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -440,7 +450,7 @@
       "blockParam": {
         "acceleration": 0.7,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -502,7 +512,7 @@
       "blockParam": {
         "acceleration": -0.9,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -1204,7 +1214,7 @@
       "blockParam": {
         "requiredPower": 0,
         "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "inputSlotCount": 3,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
@@ -1339,6 +1349,152 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "name": "ブロンズ粉砕機​",
       "blockGuid": "1fd14fe9-0ce8-47a2-b5f5-a7ba12844b25"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "33986ca9-a52d-4ac3-a304-eb71d6deef66",
+      "name": "原始的なブロンズ採掘機",
+      "blockType": "GearMapObjectMiner",
+      "blockParam": {
+        "requiredPower": 5,
+        "itemSlotCount": 5,
+        "requireTorque": 2,
+        "outputItemSlotCount": 3,
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "miningAreaRange": [
+          5,
+          1,
+          5
+        ],
+        "miningAreaOffset": [
+          1,
+          1,
+          1
+        ],
+        "mapObjectMineSettings": [
+          {
+            "attackHp": 10,
+            "miningTime": 10,
+            "mapObjectGuid": "dd3f771d-848c-4ca4-8b48-388ecd8321a5"
+          }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      },
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_bronze_miner Variant",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
+      "blockGuid": "30a86af6-7f9f-4907-8f63-a2be5e776a20"
     }
   ]
 }

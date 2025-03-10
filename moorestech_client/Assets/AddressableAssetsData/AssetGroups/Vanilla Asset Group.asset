@@ -417,6 +417,21 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4aaaab3f7c9ac4027b6ee14114bb2b87
+    m_Address: Vanilla/Block/bronze_bronze_miner Variant
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f486c00f78cea854cbe8bdf0fde2c47a
+    m_Address: Vanilla/Block/Sieve
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 06ec40813bb3d214c95767bf9c4f9999
+    m_Address: Vanilla/Block/press machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:

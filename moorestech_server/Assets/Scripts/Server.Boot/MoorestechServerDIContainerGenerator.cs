@@ -11,7 +11,6 @@ using Game.Block.Interface.Event;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftChainer;
-using Game.CraftChainer.Util;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
 using Game.Entity;
@@ -98,8 +97,6 @@ namespace Server.Boot
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
-
-            services.AddSingleton<ItemRecipeViewerDataContainer>();
 
             services.AddSingleton(configJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();

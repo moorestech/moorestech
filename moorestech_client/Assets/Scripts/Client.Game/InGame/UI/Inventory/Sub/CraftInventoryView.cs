@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
 using Core.Master;
-using Game.CraftChainer.Util;
 using Mooresmaster.Model.CraftRecipesModule;
 using TMPro;
 using UniRx;
@@ -38,7 +38,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
-        private int CraftRecipeCount => _currentItemRecipes.UnlockedCraftRecipes().Count;
+        private int CraftRecipeCount => _currentItemRecipes?.UnlockedCraftRecipes().Count ?? 0;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private int _currentIndex;
         

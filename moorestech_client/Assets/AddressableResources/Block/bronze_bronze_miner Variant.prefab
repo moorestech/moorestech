@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &2711219703088143807
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 270462852063046140, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bc2e7357ae2b24bbebc42af638b3d66a, type: 2}
+    - target: {fileID: 980886202205027127, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bc2e7357ae2b24bbebc42af638b3d66a, type: 2}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 233.9403
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0009765625
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 109.03953
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864312415366314551, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5373486146457671136, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bc2e7357ae2b24bbebc42af638b3d66a, type: 2}
+    - target: {fileID: 6650428553740698591, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Name
+      value: bronze_bronze_miner Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 7617829941134796926, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bc2e7357ae2b24bbebc42af638b3d66a, type: 2}
+    - target: {fileID: 9064621406026503515, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bc2e7357ae2b24bbebc42af638b3d66a, type: 2}
+    - target: {fileID: 9185487780700325956, guid: 56313327b02a04da896fffcd4b389621, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bc2e7357ae2b24bbebc42af638b3d66a, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 56313327b02a04da896fffcd4b389621, type: 3}

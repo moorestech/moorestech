@@ -112,7 +112,7 @@
         30,
         40
       ],
-      "hp": 50,
+      "hp": 20,
       "mapObjectName": "Bronze",
       "time": 1,
       "blockSize": [
@@ -139,6 +139,80 @@
         ]
       },
       "mapObjectGuid": "dd3f771d-848c-4ca4-8b48-388ecd8321a5"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "earnItemHps": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110,
+        120,
+        130,
+        140
+      ],
+      "hp": 150,
+      "mapObjectName": "BigTree",
+      "soundEffectType": "tree",
+      "miningType": "Mining",
+      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 6,
+            "damage": 10,
+            "toolItemGuid": "56cbe645-1f29-494e-997b-6eb17e156ac3"
+          }
+        ]
+      },
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 2,
+          "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+        }
+      ]
+    },
+    {
+      "earnItemHps": [
+        0,
+        10,
+        20,
+        30
+      ],
+      "hp": 100,
+      "mapObjectName": "Bush",
+      "soundEffectType": "tree",
+      "miningType": "Mining",
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 2,
+          "itemGuid": "b7fa352e-da68-45fe-b173-47d8c173047e"
+        }
+      ],
+      "miningParam": {
+        "miningTools": [
+          {
+            "attackSpeed": 5,
+            "damage": 10,
+            "toolItemGuid": "56cbe645-1f29-494e-997b-6eb17e156ac3"
+          }
+        ]
+      },
+      "mapObjectGuid": "dd67a4d9-3232-47c3-b071-2ad36c285d26"
     }
   ]
 }

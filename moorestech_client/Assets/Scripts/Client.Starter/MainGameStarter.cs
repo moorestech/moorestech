@@ -28,7 +28,7 @@ using Client.Game.Sequence;
 using Client.Game.Skit;
 using Client.Game.Skit.Starter;
 using Client.Network.API;
-using Game.CraftChainer.Util;
+using Game.UnlockState;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -139,7 +139,7 @@ namespace Client.Starter
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
-            builder.Register<ClientGameIiGameUnlockStateData>(Lifetime.Singleton);
+            builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             
             
             //Hierarchy上にあるcomponent

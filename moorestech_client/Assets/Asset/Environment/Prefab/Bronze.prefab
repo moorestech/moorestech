@@ -154,7 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   outlineObject: {fileID: 0}
   instanceId: 0
-  mapObjectGuid: dd3f771d-848c-4ca4-8b48-388ecd8321a5
+  mapObjectGuid: 20eb0c7e-51d3-4f4a-ba28-c974bc96e165
 --- !u!135 &6371330499372519458
 SphereCollider:
   m_ObjectHideFlags: 0

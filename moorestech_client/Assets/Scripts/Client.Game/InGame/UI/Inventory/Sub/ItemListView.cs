@@ -4,9 +4,9 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
 using Core.Master;
-using Game.CraftChainer.Util;
 using Game.UnlockState;
 using Mooresmaster.Model.ItemsModule;
 using UniRx;
@@ -41,6 +41,16 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         /// </summary>
         private void OnEnable()
         {
+            // アイテムリストの削除
+            // Delete the item list
+            foreach (var item in _itemListObjects)
+            {
+                Destroy(item.gameObject);
+            }
+            _itemListObjects.Clear();
+            
+            // アイテムリストの設定
+            // Set the item list
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
@@ -60,6 +70,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 // Set the highlight object
                 var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
                 target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.Name));
+                
+                _itemListObjects.Add(itemSlotObject);
             }
             
             #region Internal

@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94484c2fa6f84337969a1626b361fbd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  veinItemGuid: ee291e43-d40d-42ae-b580-fb3d34102f3a
+  veinItemGuid: b3a8a7af-8612-42bf-9c94-0e95d3bebf70
   bounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 1, y: 1, z: 1}
