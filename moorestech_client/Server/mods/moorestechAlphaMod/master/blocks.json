@@ -1,28 +1,159 @@
 {
   "data": [
     {
+      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
         1,
         1
       ],
-      "itemGuid": "de89dc5c-b9d1-40f4-97ef-6b0bdcdd9379",
-      "blockType": "ElectricMachine",
+      "name": "原始的な伐採機",
+      "blockType": "GearMapObjectMiner",
       "blockParam": {
-        "requiredPower": 0,
-        "outputItemSlotCount": 1,
-        "outputSlotCount": 3,
-        "inputSlotCount": 3,
+        "requiredPower": 5,
+        "itemSlotCount": 5,
+        "requireTorque": 2,
+        "outputItemSlotCount": 3,
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "miningAreaRange": [
+          5,
+          1,
+          5
+        ],
+        "miningAreaOffset": [
+          1,
+          1,
+          1
+        ],
+        "mapObjectMineSettings": [
+          {
+            "attackHp": 10,
+            "miningTime": 5,
+            "mapObjectGuid": "6c5b31e2-4b26-4a89-b4e5-6f9a4aeaa6b7"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 7,
+            "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 7,
+            "mapObjectGuid": "dd67a4d9-3232-47c3-b071-2ad36c285d26"
+          }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        },
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
         }
       },
-      "name": "原始的な溶鉱炉",
-      "blockGuid": "a6f37336-8392-458a-b486-10d5b63c6e1a",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Blast_Furnace"
+      "itemGuid": "7b7f1b37-b5b1-484a-8ff7-dfb35bfb2273",
+      "blockGuid": "fa14b435-577a-4512-a2bf-efc3e9429f99",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive logging machine",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory"
     },
     {
       "maxStack": 100,
@@ -31,7 +162,7 @@
         5,
         2
       ],
-      "itemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8",
+      "itemGuid": "f427ef68-21b3-4454-b576-115b854694fe",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
         "requireTorque": 0,
@@ -89,7 +220,7 @@
         1,
         1
       ],
-      "itemGuid": "0559e1c6-5a63-40bc-92d8-64167fa6c3ba",
+      "itemGuid": "38a61e64-9587-45f3-886c-9445c0783f4d",
       "blockType": "Shaft",
       "blockParam": {
         "requireTorque": 0,
@@ -119,20 +250,27 @@
               ]
             }
           ]
-        }
+        },
+        "beltConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "requiredRpm": 5,
+        "inputSlotCount": 1,
+        "teethCount": 10,
+        "outputSlotCount": 1
       },
       "blockGuid": "30c41beb-e95b-4514-9e3c-75a066571d49",
       "name": "原始的なシャフト",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft"
     },
     {
-      "maxStack": 100,
       "blockSize": [
         3,
         2,
         3
       ],
-      "name": "ブロンズ製材機",
+      "name": "原始的な製材機",
+      "itemGuid": "59c2796b-203e-44e9-9f57-0277f3cadf4f",
+      "blockGuid": "1d5302fa-9ccc-4641-881a-f11e05db7181",
       "blockType": "GearMachine",
       "blockParam": {
         "requiredRpm": 30,
@@ -216,113 +354,8 @@
           ]
         }
       },
-      "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
-      "blockGuid": "1a61abfd-3531-43ff-96df-6b16c3436257",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_sawmill"
-    },
-    {
-      "blockSize": [
-        3,
-        3,
-        7
-      ],
-      "name": "レンガ作りの精錬炉",
-      "blockType": "GearMachine",
-      "blockParam": {
-        "requiredRpm": 5,
-        "requireTorque": 1,
-        "teethCount": 10,
-        "outputSlotCount": 1,
-        "inputSlotCount": 1,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        },
-        "gear": {
-          "gearConnects": []
-        }
-      },
-      "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311",
-      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "原始的な木の歯車",
-      "itemGuid": "0c17174c-bfb2-43a8-ab99-bb4274cb3927",
-      "blockType": "Gear",
-      "blockParam": {
-        "requireTorque": 1,
-        "teethCount": 10,
-        "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  1,
-                  0
-                ],
-                [
-                  0,
-                  -1,
-                  0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              }
-            }
-          ]
-        }
-      },
-      "blockGuid": "33dffd6d-b2d7-4f4d-b271-70851dada0ad",
-      "blockPrefabAddressablesPath": "Vanilla/Block/SmallGear"
     },
     {
       "blockSize": [
@@ -335,7 +368,7 @@
       "blockParam": {
         "acceleration": -0.2,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -397,7 +430,7 @@
         },
         "slopeType": "Straight"
       },
-      "itemGuid": "3568d0bf-c71e-4f5a-beab-d7239da99829",
+      "itemGuid": "a928fcd3-21af-456b-8fc4-71fc8e9cbb32",
       "blockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
       "overrideVerticalBlock": {
         "upBlockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539",
@@ -417,7 +450,7 @@
       "blockParam": {
         "acceleration": 0.7,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -464,7 +497,7 @@
         },
         "slopeType": "Down"
       },
-      "itemGuid": "6690cf85-672a-46c0-97b2-45da0b6c954e",
+      "itemGuid": "d3a2ec32-0fc7-4fc9-858c-42f8f1a3a441",
       "blockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115",
       "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter down"
     },
@@ -479,7 +512,7 @@
       "blockParam": {
         "acceleration": -0.9,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 1,
+        "initialShootSpeed": 0.5,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -526,132 +559,17 @@
         },
         "slopeType": "Up"
       },
-      "itemGuid": "91886efb-6f26-4ff5-80d8-5c5a1966b264",
+      "itemGuid": "4d505cb6-c330-4e18-b913-71f39587e61e",
       "blockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539",
       "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter up"
     },
     {
       "blockSize": [
-        3,
-        3,
-        1
-      ],
-      "name": "BigTestGear",
-      "blockType": "Gear",
-      "blockParam": {
-        "requireTorque": 0,
-        "teethCount": 20,
-        "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                1,
-                1,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ]
-              ]
-            },
-            {
-              "offset": [
-                0,
-                1,
-                0
-              ],
-              "directions": [
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              }
-            },
-            {
-              "offset": [
-                2,
-                1,
-                0
-              ],
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              }
-            },
-            {
-              "offset": [
-                1,
-                2,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              },
-              "directions": [
-                [
-                  0,
-                  1,
-                  0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                1,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  -1,
-                  0
-                ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              }
-            }
-          ]
-        }
-      },
-      "itemGuid": "6e05a18a-8e6a-4ba5-9191-a778ed105ae4",
-      "blockGuid": "b5c27dad-d803-41ee-abc9-404c2d1f9bea",
-      "blockPrefabAddressablesPath": "Vanilla/Block/BigGear"
-    },
-    {
-      "blockSize": [
         1,
         1,
         1
       ],
-      "name": "StraightGearBeltConveyor",
+      "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "requireTorque": 1,
@@ -784,7 +702,7 @@
         },
         "slopeType": "Straight"
       },
-      "itemGuid": "a094cb43-422b-42d0-bb44-ee5bf6d0321b",
+      "itemGuid": "b648e067-7cee-48ab-9b95-2d8c24ee3262",
       "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
       "overrideVerticalBlock": {
         "upBlockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
@@ -799,7 +717,7 @@
         1,
         1
       ],
-      "name": "UpGearBeltConveyor",
+      "name": "上り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "requireTorque": 1,
@@ -882,7 +800,7 @@
         },
         "slopeType": "Up"
       },
-      "itemGuid": "bb6170ae-27f8-41a9-90b2-b3b272b05dc2",
+      "itemGuid": "0cbecd51-6053-4f3e-ad45-4c09154d755a",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up"
     },
@@ -892,7 +810,7 @@
         1,
         1
       ],
-      "name": "DownGearBeltConveyor",
+      "name": "下り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "requireTorque": 1,
@@ -975,151 +893,9 @@
         },
         "slopeType": "Down"
       },
-      "itemGuid": "8f13936b-8c95-4091-a34a-3739187dca82",
+      "itemGuid": "4dc76a6f-1322-440d-a985-5b13b2c8a5d4",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down"
-    },
-    {
-      "blockSize": [
-        2,
-        1,
-        2
-      ],
-      "itemGuid": "42ad9e08-907b-4540-ad64-1393e4dc401f",
-      "blockGuid": "01f95c9e-3b6c-425d-8632-b4f33f00a558",
-      "blockType": "GearMiner",
-      "blockParam": {
-        "inputItemSlotCount": 1,
-        "requiredPower": 5,
-        "outputItemSlotCount": 2,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        },
-        "mineSettings": [
-          {
-            "time": 5,
-            "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
-          }
-        ],
-        "teethCount": 10,
-        "requiredRpm": 30,
-        "requireTorque": 1,
-        "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                1,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ]
-              ]
-            }
-          ]
-        }
-      },
-      "name": "ブロンズ採掘機Mk2",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/TmpBlock"
-    },
-    {
-      "blockSize": [
-        2,
-        1,
-        2
-      ],
-      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2",
-      "blockGuid": "e23ff71a-c01f-439e-a0c2-697032bd941e",
-      "blockType": "GearMiner",
-      "blockParam": {
-        "inputItemSlotCount": 1,
-        "requiredPower": 5,
-        "outputItemSlotCount": 2,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        },
-        "mineSettings": [
-          {
-            "time": 15,
-            "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488"
-          }
-        ],
-        "teethCount": 10,
-        "requiredRpm": 30,
-        "requireTorque": 1,
-        "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                1,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
-              },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ]
-              ]
-            }
-          ]
-        }
-      },
-      "name": "ブロンズ採掘機",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/TmpBlock"
     },
     {
       "maxStack": 100,
@@ -1130,7 +906,7 @@
       ],
       "blockType": "Shaft",
       "blockParam": {
-        "requireTorque": 1,
+        "requireTorque": 0,
         "gear": {
           "gearConnects": [
             {
@@ -1159,18 +935,12 @@
           ]
         }
       },
-      "itemGuid": "b8986659-052f-4208-a847-dbd975990d3c",
+      "itemGuid": "caed8faf-6c19-4730-9d05-f78de82b0014",
       "name": "直進歯車ベルトコンベアシャフト",
       "blockGuid": "a8ffee44-fb20-42a2-925f-de594ba79803",
       "blockPrefabAddressablesPath": "Vanilla/Block/GearBeltConveyor Shaft"
     },
     {
-      "maxStack": 100,
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
       "craftTime": 3,
       "craftResultCount": 1,
       "blockSize": [
@@ -1250,44 +1020,38 @@
           ]
         }
       },
-      "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de",
-      "name": "原始的なチェスト",
-      "blockGuid": "f3443d58-ca2b-4494-aad1-0298983ceeed",
+      "itemGuid": "f513ae31-ef58-4a05-a0c4-3bd8a4418ec5",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest",
       "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest"
+      "blockGuid": "b0d0e7c2-e5c0-4e0f-b30c-ae8d7f4a8322",
+      "name": "チェスト"
     },
     {
+      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
         1,
         1
       ],
-      "blockType": "CraftChainerTransporter",
+      "name": "小さな歯車",
+      "blockType": "Gear",
       "blockParam": {
-        "timeOfItemEnterToExit": 0.5,
-        "transporterConveyorItemCount": 5,
-        "slopeType": "Straight",
-        "inventoryConnectors": {
-          "inputConnects": [
+        "requireTorque": 1,
+        "teethCount": 10,
+        "gear": {
+          "gearConnects": [
             {
               "offset": [
                 0,
                 0,
                 0
               ],
-              "connectType": "Inventory",
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
               "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  -1,
-                  -1
-                ],
                 [
                   1,
                   0,
@@ -1297,347 +1061,65 @@
                   -1,
                   0,
                   0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
                 ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "outputConnects": [
+              ]
+            },
             {
               "offset": [
                 0,
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
                 [
                   0,
                   0,
                   1
-                ],
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
                 ]
               ],
-              "connectOption": {}
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
             }
           ]
         }
       },
-      "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006",
-      "blockGuid": "6dc01756-f220-4cbf-9730-1d967388aeb0",
-      "name": "CraftChainerTransporter",
-      "blockPrefabAddressablesPath": "Vanilla/Block/SF_T_BeltConveyor"
+      "itemGuid": "f39963d5-ce6f-4362-b26f-d3028c030421",
+      "blockPrefabAddressablesPath": "Vanilla/Block/SmallGear",
+      "blockGuid": "a4845cf5-83f6-41ad-b17b-1849d43cc895"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "CraftChainerCrafter",
-      "blockType": "CraftChainerCrafter",
-      "blockParam": {
-        "itemSlotCount": 5,
-        "inventoryConnectors": {
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
-      "blockGuid": "a68875a7-6af2-4d6f-931e-54d443e8d10d",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerCrafterInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "CraftChainerProviderChest",
-      "blockType": "CraftChainerProviderChest",
-      "blockParam": {
-        "itemSlotCount": 5,
-        "inventoryConnectors": {
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "blockGuid": "367a5e2d-8ebb-4835-af31-15d0f317f7cf",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "CraftChainerMainComputer",
-      "blockType": "CraftChainerMainComputer",
-      "blockParam": {
-        "itemSlotCount": 5,
-        "inventoryConnectors": {
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "blockGuid": "5cef8365-31fb-4db6-844e-b2a346d42e7f",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerMainComputerInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest"
-    },
-    {
+      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
+        2,
         1,
-        1,
-        1
+        2
       ],
-      "blockType": "BeltConveyor",
+      "itemGuid": "ee133d2f-ee80-4b45-b6db-5c26294e2b3a",
+      "blockType": "GearMiner",
       "blockParam": {
-        "requiredPower": 5,
-        "outputItemSlotCount": 1,
         "inputItemSlotCount": 1,
-        "timeOfItemEnterToExit": 1,
-        "beltConveyorItemCount": 5,
-        "slopeType": "Straight",
+        "requiredPower": 5,
+        "outputItemSlotCount": 2,
         "inventoryConnectors": {
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  -1,
-                  -1
-                ],
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
+          "inputConnects": [],
           "outputConnects": [
             {
               "offset": [
@@ -1650,493 +1132,163 @@
                 [
                   0,
                   0,
-                  1
+                  -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
-      },
-      "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
-      "name": "CraftChainerBeltConveyor",
-      "blockGuid": "f37f87a5-1b5f-4261-9fd6-6bd03c98f2a9",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Modern_Straight_ItemShooter"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856",
-      "name": "CraftChainerMachine1",
-      "blockType": "ElectricMachine",
-      "blockParam": {
-        "chestItemSlotCount": 5,
-        "requiredPower": 0,
-        "outputSlotCount": 3,
-        "inputSlotCount": 3,
-        "inventoryConnectors": {
-          "outputConnects": [
+        },
+        "mineSettings": [
+          {
+            "time": 15,
+            "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f"
+          },
+          {
+            "time": 15,
+            "itemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a"
+          }
+        ],
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "requireTorque": 1,
+        "gear": {
+          "gearConnects": [
             {
               "offset": [
                 0,
                 0,
                 0
               ],
-              "connectType": "Inventory",
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
               "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
                 [
                   -1,
                   0,
                   0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
                 ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
+              ]
+            },
             {
               "offset": [
-                0,
+                1,
                 0,
                 0
               ],
-              "connectType": "Inventory",
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
               "directions": [
                 [
                   1,
                   0,
                   0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
                 ]
-              ],
-              "connectOption": {}
+              ]
             }
           ]
         }
       },
-      "blockGuid": "ea0a407f-f9a5-4d5e-9c3e-69d6df2d383a",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Old/miner"
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
+      "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
+      "name": "原始的な採掘機"
     },
     {
+      "sortPriority": 100,
       "maxStack": 100,
+      "craftTime": 3,
+      "craftResultCount": 1,
       "blockSize": [
+        3,
         1,
-        1,
-        1
+        3
       ],
-      "name": "CraftChainerMachine2",
       "blockType": "ElectricMachine",
       "blockParam": {
         "requiredPower": 0,
-        "outputSlotCount": 3,
-        "inputSlotCount": 3,
-        "inventoryConnectors": {
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
-      "blockGuid": "87aa9a75-906a-47db-92a5-876afe8a1691",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Old/miner"
-    },
-    {
-      "maxStack": 100,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "ベルトコンベア",
-      "blockType": "BeltConveyor",
-      "blockParam": {
-        "timeOfItemEnterToExit": 1,
-        "beltConveyorItemCount": 1,
-        "slopeType": "Straight",
-        "inventoryConnectors": {
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  -1,
-                  -1
-                ],
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  -1,
-                  0
-                ],
-                [
-                  1,
-                  -1,
-                  0
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  -1,
-                  1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "itemGuid": "edfa387f-183a-47dc-a548-5d2f14e315d7",
-      "blockGuid": "67e34538-d9a2-4c1e-89cd-0a6caca40952",
-      "blockPrefabAddressablesPath": "Vanilla/Block/BeltConveyor_Straight"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/BeltConveyor_Up",
-      "blockGuid": "468fdcdd-65e7-433b-a13f-81194c13baa5",
-      "name": "上りベルトコンベア",
-      "blockType": "BeltConveyor",
-      "blockParam": {
-        "beltConveyorItemCount": 1,
-        "timeOfItemEnterToExit": 1,
-        "slopeType": "Up",
-        "inventoryConnectors": {
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  1,
-                  1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  -1,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "itemGuid": "26b38ec5-a2ce-432c-9211-530f2f86d435"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "itemGuid": "3f1b7698-db08-490d-bd0d-b4a3e0fb2f9c",
-      "name": "下りベルトコンベア",
-      "blockPrefabAddressablesPath": "Vanilla/Block/BeltConveyor_Down",
-      "blockType": "BeltConveyor",
-      "blockParam": {
-        "timeOfItemEnterToExit": 1,
-        "beltConveyorItemCount": 1,
-        "slopeType": "Down",
-        "inventoryConnectors": {
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  -1,
-                  1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ],
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  0,
-                  1,
-                  -1
-                ]
-              ],
-              "connectOption": {}
-            }
-          ]
-        }
-      },
-      "blockGuid": "e1687fd0-43e8-48f7-b509-426274ccb462"
-    },
-    {
-      "maxStack": 100,
-      "blockSize": [
-        5,
-        5,
-        4
-      ],
-      "name": "溶接加工機械",
-      "blockType": "ElectricMachine",
-      "blockParam": {
-        "outputItemSlotCount": 3,
-        "requiredPower": 0,
-        "outputSlotCount": 3,
+        "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
         }
       },
-      "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c",
-      "blockPrefabAddressablesPath": "Vanilla/Block/WeldingProcessingMachine",
+      "itemGuid": "13f46fe4-bb42-4354-94c4-ae1e1b28415b",
+      "name": "キャンプファイア",
+      "blockPrefabAddressablesPath": "Vanilla/Block/campfier",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockGuid": "49ff4f43-42a3-4dcc-9e78-fa6a7c4944e0"
+      "blockGuid": "d156cddf-8142-49d2-ae91-2e2e7db8ce15"
     },
     {
+      "craftTime": 3,
+      "craftResultCount": 1,
       "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
-        3,
-        7,
-        9
+        2,
+        2,
+        2
       ],
-      "name": "油井",
-      "blockType": "Block",
-      "itemGuid": "4a35c49b-f662-4a0e-b224-8f43bddd5b30",
-      "blockPrefabAddressablesPath": "Vanilla/Block/OilWell",
-      "blockGuid": "945b1af8-3963-4726-9e2b-0f59baccbb8f",
+      "itemGuid": "0cd840e7-0518-43de-bf7f-f6973cf60732",
+      "blockType": "ElectricMachine",
       "blockParam": {
-        "beltConveyorItemCount": 1,
-        "timeOfItemEnterToExit": 1,
-        "inputSlotCount": 2,
-        "requiredPower": 5,
-        "outputSlotCount": 1
-      }
+        "requiredPower": 0,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "name": "原始的な​窯​",
+      "blockPrefabAddressablesPath": "Vanilla/Block/TmpBlock",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "blockGuid": "809d35b3-f1a4-4b38-b117-7707f4f56b4e"
     },
     {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockSize": [
-        9,
-        7,
-        8
-      ],
-      "name": "液体タンク",
-      "blockType": "Block",
-      "itemGuid": "0a665a5a-3499-4ad5-a36c-6f52b4a643ec",
-      "blockPrefabAddressablesPath": "Vanilla/Block/OilTank",
-      "blockGuid": "d4afcd6b-46c2-4f71-bde1-2baf04794dd6",
-      "blockParam": {}
-    },
-    {
-      "sortPriority": 100,
-      "maxStack": 100,
+      "time": 1,
+      "craftTime": 3,
+      "craftResultCount": 1,
       "blockSize": [
         1,
         1,
         1
       ],
-      "itemGuid": "fd1bc661-61d5-4d53-b7e3-0d84d18e8f5d",
-      "blockType": "Block",
-      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraight",
-      "name": "パイプ",
-      "blockGuid": "08efcc86-a099-4ee6-bcab-84aae6a796a3",
-      "blockParam": {}
-    },
-    {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "itemGuid": "caa17dec-8e5e-477b-9b1f-03cdfaa4df08",
-      "blockType": "Chest",
+      "itemGuid": "04c369f3-62b5-4db9-af99-bdbdf821e9d0",
+      "blockType": "GearMachine",
       "blockParam": {
-        "itemSlotCount": 5,
+        "requiredRpm": 30,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
         "inventoryConnectors": {
           "inputConnects": [
             {
               "offset": [
-                0,
+                1,
                 0,
                 0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
               ],
               "connectType": "Inventory",
               "directions": [
@@ -2144,12 +1296,109 @@
                   0,
                   0,
                   1
-                ],
+                ]
+              ],
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
                 [
+                  -1,
                   0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
                   0,
-                  -1
-                ],
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        }
+      },
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_crasher",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "name": "ブロンズ粉砕機​",
+      "blockGuid": "1fd14fe9-0ce8-47a2-b5f5-a7ba12844b25"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "33986ca9-a52d-4ac3-a304-eb71d6deef66",
+      "name": "原始的なブロンズ採掘機",
+      "blockType": "GearMapObjectMiner",
+      "blockParam": {
+        "requiredPower": 5,
+        "itemSlotCount": 5,
+        "requireTorque": 2,
+        "outputItemSlotCount": 3,
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "miningAreaRange": [
+          5,
+          1,
+          5
+        ],
+        "miningAreaOffset": [
+          1,
+          1,
+          1
+        ],
+        "mapObjectMineSettings": [
+          {
+            "attackHp": 10,
+            "miningTime": 10,
+            "mapObjectGuid": "dd3f771d-848c-4ca4-8b48-388ecd8321a5"
+          }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
                 [
                   1,
                   0,
@@ -2159,11 +1408,22 @@
                   -1,
                   0,
                   0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
-              ],
-              "connectOption": {}
+              ]
             }
-          ],
+          ]
+        },
+        "inventoryConnectors": {
           "outputConnects": [
             {
               "offset": [
@@ -2174,6 +1434,16 @@
               "connectType": "Inventory",
               "directions": [
                 [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
                   0,
                   0,
                   1
@@ -2182,7 +1452,20 @@
                   0,
                   0,
                   -1
-                ],
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
                 [
                   1,
                   0,
@@ -2192,6 +1475,16 @@
                   -1,
                   0,
                   0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
               ],
               "connectOption": {}
@@ -2199,47 +1492,9 @@
           ]
         }
       },
-      "name": "分岐ベルトコンベア",
-      "blockPrefabAddressablesPath": "Vanilla/Block/ConveyorSplitter",
-      "blockGuid": "d2f17d1f-74ed-4449-8f06-b22cfaed4c25"
-    },
-    {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockSize": [
-        7,
-        15,
-        10
-      ],
-      "blockType": "Block",
-      "blockParam": {
-        "requiredPower": 5,
-        "outputSlotCount": 1,
-        "inputSlotCount": 1,
-        "outputItemSlotCount": 3
-      },
-      "name": "精製施設",
-      "itemGuid": "96f845c8-6365-47e6-b78a-e2853a6ebae7",
-      "blockPrefabAddressablesPath": "Vanilla/Block/OilRefinery",
-      "blockGuid": "4b6fe78b-a99e-41ca-b11f-03f0aa9cb608"
-    },
-    {
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockSize": [
-        5,
-        2,
-        5
-      ],
-      "itemGuid": "27218416-d4d8-4583-b8d8-911cc778e95e",
-      "blockType": "Block",
-      "blockPrefabAddressablesPath": "Vanilla/Block/WoodenFoundation",
-      "blockGuid": "4c7b140d-518a-497f-ae33-9d974b49a77f",
-      "name": "木の土台",
-      "blockParam": {
-        "timeOfItemEnterToExit": 1,
-        "beltConveyorItemCount": 1
-      }
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_bronze_miner Variant",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
+      "blockGuid": "30a86af6-7f9f-4907-8f63-a2be5e776a20"
     }
   ]
 }

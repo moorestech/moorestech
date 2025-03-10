@@ -1,232 +1,104 @@
 {
   "data": [
     {
+      "sortPriority": 100,
       "maxStack": 100,
       "name": "石",
-      "itemGuid": "f92c51ab-1979-4a44-8c35-e86a51b33e61",
-      "imagePath": "assets/item/石.png",
-      "sortPriority": 100
+      "initialUnlocked": true,
+      "itemGuid": "3fd98d76-4017-4a87-ba03-8f1e5179b670",
+      "recipeViewType": "ForceShow"
     },
     {
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
-      "maxStack": 100,
-      "name": "麻",
-      "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d",
-      "imagePath": "assets/item/麻.png",
-      "sortPriority": 110
-    },
-    {
-      "maxStack": 100,
-      "earnItemHps": [
-        0
-      ],
-      "hp": 100,
-      "mapObjectName": "mapObjectName",
-      "resultItem": {
-        "count": 1,
-        "itemGuid": "19a3b0bc-10de-4e96-8a41-99f39675556d"
-      },
-      "name": "麻紐",
-      "itemGuid": "d382f613-8dec-4c87-b72c-c75f8d18ce73",
-      "imagePath": "assets/item/麻縄.jpg",
-      "sortPriority": 120
-    },
-    {
-      "maxStack": 100,
-      "name": "原木",
-      "itemGuid": "94f7b602-d72f-4e28-b18a-202bf73ef488",
-      "imagePath": "assets/item/原木.png",
-      "sortPriority": 130
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズ鉱石",
-      "itemGuid": "6b22a093-0c83-4543-9985-aad0ceb5f8b0",
-      "imagePath": "assets/item/ブロンズ鉱石.png",
-      "sortPriority": 140
-    },
-    {
-      "maxStack": 100,
-      "name": "加工した原木",
-      "itemGuid": "32305de4-de08-42dd-8cef-1a5815c0c8f5",
-      "sortPriority": 150
-    },
-    {
-      "maxStack": 100,
-      "name": "石の斧",
-      "itemGuid": "433735a5-8e53-4942-8c0f-6b19f8c70dfa",
-      "sortPriority": 160
-    },
-    {
-      "maxStack": 100,
-      "name": "原始的な溶鉱炉",
-      "itemGuid": "de89dc5c-b9d1-40f4-97ef-6b0bdcdd9379",
-      "sortPriority": 170
-    },
-    {
-      "maxStack": 100,
-      "name": "低品質なブロンズの塊",
-      "itemGuid": "693312d3-7e3a-4489-8746-4eebbc8dbd67",
-      "sortPriority": 180
-    },
-    {
-      "maxStack": 100,
-      "name": "粘土",
-      "itemGuid": "0a706c5c-eb74-4bb1-b13c-1319f38ac154",
-      "sortPriority": 190
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズハンマーヘッドの型",
-      "itemGuid": "6b54897e-e7cb-4df7-807e-1597c2a859da",
-      "sortPriority": 200
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズハンマーヘッド",
-      "itemGuid": "92fe1a42-ad46-4ff3-aa9a-83a9262c34d6",
-      "sortPriority": 210
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズハンマー",
-      "itemGuid": "90efdad3-1edf-41a1-bc3e-615e692e2d6e",
-      "sortPriority": 220
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズカッターの型",
-      "itemGuid": "99c95d35-9ba8-4027-9d88-48174a7322fa",
-      "sortPriority": 230
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズカッター",
-      "itemGuid": "ee7c1edf-32ba-4bd2-962c-d29ee1309730",
-      "sortPriority": 240
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズ製材機",
-      "itemGuid": "067f2b59-a088-4fac-98cf-68060c6e9927",
-      "sortPriority": 250
-    },
-    {
-      "maxStack": 100,
-      "name": "原始的な風車",
-      "itemGuid": "b7068d1c-f5cb-4af5-94e1-4ed9c9577ca8",
-      "sortPriority": 260
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズドリルの型",
-      "itemGuid": "c82061f7-f4b2-45bc-8323-40f76dece8f2",
-      "sortPriority": 270
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズドリル",
-      "itemGuid": "96e59fa9-8468-4315-b8b8-8e087a146dbb",
-      "sortPriority": 280
-    },
-    {
-      "maxStack": 100,
-      "name": "ブロンズ採掘機",
-      "itemGuid": "17d94f6e-9f34-4d4b-8068-4be4c7dbfbb2",
-      "sortPriority": 290
-    },
-    {
-      "maxStack": 100,
-      "name": "レンガ",
-      "itemGuid": "975384df-a166-48a6-a5cf-d631f48715c0",
-      "sortPriority": 300
-    },
-    {
-      "maxStack": 100,
-      "name": "レンガ作りの精錬炉",
-      "itemGuid": "6f8e7dcb-e7d7-44c0-a63e-ffba1cd5e311",
-      "sortPriority": 310
-    },
-    {
-      "maxStack": 100,
-      "name": "原始的な木の歯車",
-      "itemGuid": "0c17174c-bfb2-43a8-ab99-bb4274cb3927",
-      "sortPriority": 320
-    },
-    {
-      "maxStack": 100,
-      "name": "原始的な木のシャフト",
-      "itemGuid": "0559e1c6-5a63-40bc-92d8-64167fa6c3ba",
-      "sortPriority": 330
-    },
-    {
-      "maxStack": 100,
+      "time": 1,
       "blockSize": [
         1,
         1,
         1
       ],
+      "sortPriority": 110,
+      "maxStack": 100,
       "craftTime": 3,
       "craftResultCount": 1,
       "name": "石器",
-      "itemGuid": "f3934127-877a-4692-b9a0-cdaaca3d1b90",
-      "sortPriority": 340
+      "itemGuid": "ea61676a-74e8-436b-bc17-8bf2b56016b4",
+      "recipeViewType": "ForceShow"
     },
     {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
+      "sortPriority": 120,
+      "maxStack": 5,
+      "name": "原木",
+      "itemGuid": "3d2bf958-05a1-46cd-b955-88204dc2888f",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 130,
+      "maxStack": 100,
+      "name": "石の斧",
+      "itemGuid": "56cbe645-1f29-494e-997b-6eb17e156ac3",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 140,
+      "maxStack": 100,
+      "name": "原始的な伐採期",
+      "itemGuid": "7b7f1b37-b5b1-484a-8ff7-dfb35bfb2273",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 150,
+      "maxStack": 100,
+      "name": "原始的な風車",
+      "itemGuid": "f427ef68-21b3-4454-b576-115b854694fe",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 160,
+      "maxStack": 20,
+      "name": "加工した原木",
+      "itemGuid": "126acbd8-715b-4d52-9a58-2eeb94228a35",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 170,
+      "maxStack": 100,
+      "name": "シャフト",
+      "itemGuid": "38a61e64-9587-45f3-886c-9445c0783f4d",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 180,
+      "maxStack": 100,
+      "name": "原始的な製材機",
+      "itemGuid": "59c2796b-203e-44e9-9f57-0277f3cadf4f",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 190,
       "maxStack": 100,
       "name": "直進アイテムシューター",
-      "itemGuid": "3568d0bf-c71e-4f5a-beab-d7239da99829",
-      "sortPriority": 350
+      "itemGuid": "a928fcd3-21af-456b-8fc4-71fc8e9cbb32",
+      "recipeViewType": "ForceShow"
     },
     {
+      "sortPriority": 200,
       "maxStack": 100,
-      "name": "上りアイテムシューター",
-      "itemGuid": "91886efb-6f26-4ff5-80d8-5c5a1966b264",
-      "sortPriority": 360
+      "name": "麻",
+      "itemGuid": "b7fa352e-da68-45fe-b173-47d8c173047e",
+      "recipeViewType": "ForceShow"
     },
     {
+      "sortPriority": 210,
       "maxStack": 100,
-      "name": "下りアイテムシューター",
-      "itemGuid": "6690cf85-672a-46c0-97b2-45da0b6c954e",
-      "sortPriority": 370
+      "name": "麻布",
+      "itemGuid": "715a31a4-aa08-41ee-b20a-1ede6212584e",
+      "recipeViewType": "ForceShow"
     },
     {
-      "maxStack": 100,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "原始的な大きな歯車",
-      "itemGuid": "6e05a18a-8e6a-4ba5-9191-a778ed105ae4",
-      "sortPriority": 380
-    },
-    {
+      "sortPriority": 220,
       "maxStack": 100,
       "name": "直進歯車ベルトコンベア",
-      "itemGuid": "a094cb43-422b-42d0-bb44-ee5bf6d0321b",
-      "sortPriority": 390
-    },
-    {
-      "maxStack": 100,
-      "name": "上り歯車ベルトコンベア",
-      "itemGuid": "bb6170ae-27f8-41a9-90b2-b3b272b05dc2",
-      "sortPriority": 400
-    },
-    {
-      "maxStack": 100,
-      "name": "下り歯車ベルトコンベア",
-      "itemGuid": "8f13936b-8c95-4091-a34a-3739187dca82",
-      "sortPriority": 410
+      "itemGuid": "b648e067-7cee-48ab-9b95-2d8c24ee3262",
+      "recipeViewType": "ForceShow"
     },
     {
       "blockSize": [
@@ -234,101 +106,97 @@
         1,
         1
       ],
+      "sortPriority": 191,
       "maxStack": 100,
-      "name": "ブロンズ採掘機Mk2",
-      "itemGuid": "42ad9e08-907b-4540-ad64-1393e4dc401f",
-      "sortPriority": 420
+      "name": "上りアイテムシューター",
+      "itemGuid": "4d505cb6-c330-4e18-b913-71f39587e61e",
+      "recipeViewType": "ForceShow"
     },
     {
-      "time": 1,
-      "craftTime": 3,
-      "craftResultCount": 1,
+      "sortPriority": 192,
+      "maxStack": 100,
+      "name": "下りアイテムシューター",
+      "itemGuid": "d3a2ec32-0fc7-4fc9-858c-42f8f1a3a441",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 221,
+      "maxStack": 100,
+      "name": "上り歯車ベルトコンベア",
+      "itemGuid": "0cbecd51-6053-4f3e-ad45-4c09154d755a",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 222,
+      "maxStack": 100,
+      "name": "下り歯車ベルトコンベア",
+      "itemGuid": "4dc76a6f-1322-440d-a985-5b13b2c8a5d4",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 223,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "直進歯車ベルトコンベアシャフト",
+      "itemGuid": "caed8faf-6c19-4730-9d05-f78de82b0014",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 125,
+      "maxStack": 100,
+      "name": "作業台",
+      "itemGuid": "75eb8add-b6b9-435e-b1a9-4df95989d9a1",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "sortPriority": 155,
+      "maxStack": 100,
+      "name": "加工原木用 作業台(これ作って加工原木作る",
+      "itemGuid": "08e273a2-7fab-4162-b32c-85a0cc4919c0",
+      "recipeViewType": "ForceShow"
+    },
+    {
       "earnItemHps": [
         0
       ],
       "hp": 100,
       "mapObjectName": "mapObjectName",
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 165,
       "maxStack": 100,
-      "name": "直進歯車ベルトコンベアシャフト",
-      "itemGuid": "b8986659-052f-4208-a847-dbd975990d3c",
-      "sortPriority": 430
+      "name": "加工した原木50個​収集",
+      "itemGuid": "1f60177f-1b6f-458b-b26c-050c0f4b6a81",
+      "recipeViewType": "ForceShow"
     },
     {
+      "craftTime": 3,
+      "craftResultCount": 1,
       "time": 1,
       "blockSize": [
         1,
         1,
         1
       ],
+      "sortPriority": 185,
       "maxStack": 100,
-      "name": "原始的なチェスト",
-      "itemGuid": "18e297cc-6c50-41dd-8352-8877af1b37de",
-      "sortPriority": 440
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerTransporter",
-      "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006",
-      "sortPriority": 450
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerCrafter",
-      "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
-      "sortPriority": 460
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerProviderChest",
-      "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "sortPriority": 470
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerMainComputer",
-      "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "sortPriority": 480
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerBeltConveyor",
-      "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
-      "sortPriority": 490
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerMachine1",
-      "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856",
-      "sortPriority": 500
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerMachine2",
-      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
-      "sortPriority": 510
-    },
-    {
-      "maxStack": 100,
-      "name": "Chainer - A",
-      "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff",
-      "sortPriority": 520
-    },
-    {
-      "maxStack": 100,
-      "name": "Chainer - B",
-      "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5",
-      "sortPriority": 530
-    },
-    {
-      "maxStack": 100,
-      "name": "Chainer - C",
-      "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627",
-      "sortPriority": 540
+      "name": "チェスト",
+      "itemGuid": "f513ae31-ef58-4a05-a0c4-3bd8a4418ec5",
+      "recipeViewType": "ForceShow"
     },
     {
       "blockSize": [
@@ -336,22 +204,146 @@
         1,
         1
       ],
+      "sortPriority": 175,
       "maxStack": 100,
-      "name": "ベルトコンベア",
-      "itemGuid": "edfa387f-183a-47dc-a548-5d2f14e315d7",
-      "sortPriority": 550
+      "name": "小さな歯車",
+      "itemGuid": "f39963d5-ce6f-4362-b26f-d3028c030421",
+      "recipeViewType": "ForceShow"
     },
     {
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "sortPriority": 186,
       "maxStack": 100,
-      "name": "上りベルトコンベア",
-      "itemGuid": "26b38ec5-a2ce-432c-9211-530f2f86d435",
-      "sortPriority": 560
+      "name": "原始的な採掘機",
+      "itemGuid": "ee133d2f-ee80-4b45-b6db-5c26294e2b3a",
+      "recipeViewType": "ForceShow"
     },
     {
+      "sortPriority": 250,
       "maxStack": 100,
-      "name": "下りベルトコンベア",
-      "itemGuid": "3f1b7698-db08-490d-bd0d-b4a3e0fb2f9c",
-      "sortPriority": 570
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ブロンズ鉱石",
+      "itemGuid": "ee291e43-d40d-42ae-b580-fb3d34102f3a",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 240,
+      "maxStack": 100,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "name": "キャンプファイア",
+      "itemGuid": "13f46fe4-bb42-4354-94c4-ae1e1b28415b",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 260,
+      "maxStack": 100,
+      "name": "低品質なブロンズの塊",
+      "itemGuid": "18e84450-24fc-4d52-927a-c6dd2861f439",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 270,
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッド",
+      "itemGuid": "321f37ad-b204-49c5-af8b-9c977298ddbd",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 275,
+      "maxStack": 100,
+      "name": "ブロンズハンマーヘッドの型",
+      "itemGuid": "e9aeabf1-bffc-4f99-bb46-8d4f6d04cbc2",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 280,
+      "maxStack": 100,
+      "name": "ブロンズハンマー",
+      "itemGuid": "c5c5cc63-da1a-4a2f-b7da-23b82ef5ecb3",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 290,
+      "maxStack": 100,
+      "name": "粘土",
+      "itemGuid": "b9d207ab-2229-4dde-8cd5-32653980902d",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 300,
+      "maxStack": 100,
+      "name": "レンガ",
+      "itemGuid": "fc58f13e-a083-418d-ae01-58ea1d7c7540",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 310,
+      "maxStack": 100,
+      "name": "精錬炉",
+      "itemGuid": "f7b0c1d3-0803-40cb-88d8-3061dee22e38",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 320,
+      "maxStack": 100,
+      "name": "原始的な​窯",
+      "itemGuid": "0cd840e7-0518-43de-bf7f-f6973cf60732",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 325,
+      "maxStack": 100,
+      "name": "ブロンズドリルの型",
+      "itemGuid": "64c06bce-24f0-48a4-bb49-cec379335a76",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 330,
+      "maxStack": 100,
+      "name": "ブロンズドリル",
+      "itemGuid": "f83666d2-5a65-4f22-8fc5-1e0255dc1eff",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 340,
+      "maxStack": 100,
+      "name": "ブロンズ粉砕機",
+      "itemGuid": "04c369f3-62b5-4db9-af99-bdbdf821e9d0",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 350,
+      "maxStack": 100,
+      "name": "木炭",
+      "itemGuid": "49e21d34-5ba8-465c-83f5-12883ea4b77e",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 360,
+      "maxStack": 100,
+      "name": "木炭粉",
+      "itemGuid": "e817d5ee-0cdf-4f7d-a07b-300d45311507",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 370,
+      "maxStack": 100,
+      "name": "低品質なブロンズの粉末",
+      "itemGuid": "fdd4ebbd-9f77-45a0-8685-d118958f7c02",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "sortPriority": 380,
+      "maxStack": 100,
+      "name": "中品質​なブロンズの塊",
+      "itemGuid": "fba661a3-f6a8-4f3a-87ab-2277f1fc19b2",
+      "recipeViewType": "ForceShow"
     },
     {
       "blockSize": [
@@ -359,77 +351,12 @@
         1,
         1
       ],
+      "initialUnlocked": false,
+      "sortPriority": 193,
       "maxStack": 100,
-      "name": "溶接加工機械",
-      "itemGuid": "cc26c622-c212-47c6-88a5-931329a0509c",
-      "sortPriority": 580
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "sortPriority": 590,
-      "maxStack": 100,
-      "name": "油井",
-      "itemGuid": "4a35c49b-f662-4a0e-b224-8f43bddd5b30"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "sortPriority": 600,
-      "maxStack": 100,
-      "name": "液体タンク",
-      "itemGuid": "0a665a5a-3499-4ad5-a36c-6f52b4a643ec"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraight",
-      "sortPriority": 610,
-      "maxStack": 100,
-      "name": "パイプ",
-      "itemGuid": "fd1bc661-61d5-4d53-b7e3-0d84d18e8f5d"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "sortPriority": 575,
-      "maxStack": 100,
-      "name": "分岐ベルトコンベア",
-      "itemGuid": "caa17dec-8e5e-477b-9b1f-03cdfaa4df08"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "sortPriority": 620,
-      "maxStack": 100,
-      "name": "精製施設",
-      "itemGuid": "96f845c8-6365-47e6-b78a-e2853a6ebae7"
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "sortPriority": 445,
-      "maxStack": 100,
-      "name": "木の土台",
-      "itemGuid": "27218416-d4d8-4583-b8d8-911cc778e95e"
+      "name": "原始的なブロンズ採掘機",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "33986ca9-a52d-4ac3-a304-eb71d6deef66"
     }
   ]
 }
