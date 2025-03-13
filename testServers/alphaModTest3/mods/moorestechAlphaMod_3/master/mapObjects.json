@@ -37,8 +37,8 @@
           "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
         },
         {
-          "maxCount": 3,
-          "minCount": 1,
+          "maxCount": 5,
+          "minCount": 3,
           "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
         }
       ],

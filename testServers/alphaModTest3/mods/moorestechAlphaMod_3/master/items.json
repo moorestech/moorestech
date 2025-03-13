@@ -85,7 +85,7 @@
       "maxStack": 100,
       "name": "皮を剥いだ原木",
       "itemGuid": "9d1eb0f2-f92d-4e6c-981a-3c70958d5967",
-      "recipeViewType": "ForceShow"
+      "recipeViewType": "ForceHide"
     },
     {
       "initialUnlocked": true,
