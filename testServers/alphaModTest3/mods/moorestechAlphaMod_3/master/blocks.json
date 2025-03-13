@@ -568,7 +568,8 @@
             }
           ]
         }
-      }
+      },
+      "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher"
     },
     {
       "blockSize": [
