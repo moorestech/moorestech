@@ -40,8 +40,6 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
-            
-            //TODO コンポーネント化する
         }
         
         public VanillaMachineProcessorComponent(

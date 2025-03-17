@@ -96,8 +96,7 @@ public class GearStateChangeProcessorInspector : Editor
             }
         }
         
-        
-  #endregion
+        #endregion
     }
 
     private void OnEditorUpdate()
@@ -120,7 +119,7 @@ public class GearStateChangeProcessorInspector : Editor
 
     private void Rotate(GearStateChangeProcessor processor)
     {
-        var state = new GearStateDetail(simulateRpm, simulateIsClockwise);
+        var state = new GearStateDetail(simulateIsClockwise, simulateRpm, 0);
         processor.Rotate(state);
     }
     

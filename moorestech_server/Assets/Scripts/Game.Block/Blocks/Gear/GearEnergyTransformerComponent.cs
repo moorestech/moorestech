@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable, IBlockStateDetail
+    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable
     {
         public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
