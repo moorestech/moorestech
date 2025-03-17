@@ -38,7 +38,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var i = 0; i < outputCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             

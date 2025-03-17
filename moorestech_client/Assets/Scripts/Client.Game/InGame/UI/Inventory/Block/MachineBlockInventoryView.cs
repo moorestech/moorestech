@@ -37,14 +37,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var i = 0; i < param.InputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
             for (var i = 0; i < param.OutputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
