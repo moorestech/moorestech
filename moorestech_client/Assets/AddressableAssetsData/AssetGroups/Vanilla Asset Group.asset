@@ -443,7 +443,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f652861d52dde4fb1b65387a76966fd4
-    m_Address: Vanilla/Block/Primitive Centrifuge Variant
+    m_Address: Vanilla/Block/Primitive Centrifuge
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

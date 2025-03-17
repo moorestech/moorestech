@@ -15,14 +15,18 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             // ここが重かったら検討
             var processor = (GearStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as GearStateChangeProcessor);
-            if (processor == null) return;
+            if (processor == null)
+            {
+                Debug.LogError("GearStateChangeProcessorがアタッチされていません。");
+                return;
+            }
             
             var masterParam = (GearMachineBlockParam)BlockGameObject.BlockMasterElement.BlockParam;
             var requireTorque = masterParam.RequireTorque;
             var requireRpm = masterParam.RequiredRpm;
             
-            var currentTorque = processor.CurrentGearState.CurrentTorque;
-            var currentRpm = processor.CurrentGearState.CurrentRpm;
+            var currentTorque = processor.CurrentGearState?.CurrentTorque ?? 0;
+            var currentRpm = processor.CurrentGearState?.CurrentRpm ?? 0;
             
             torque.text = $"トルク: {currentTorque} / {requireTorque}";
             if (currentTorque < requireTorque)

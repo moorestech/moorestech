@@ -10,7 +10,7 @@ namespace Game.Gear.Common
         
         [Key(0)] public bool IsClockwise { get; set; }
         [Key(1)] public float CurrentRpm { get; set; }
-        [Key(1)] public float CurrentTorque { get; set; }
+        [Key(2)] public float CurrentTorque { get; set; }
         
         public GearStateDetail(bool isClockwise, float currentRpm, float currentTorque)
         {

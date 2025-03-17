@@ -252,7 +252,7 @@
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
       "blockPrefabAddressablesPath": "Vanilla/Block/Sieve",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -347,7 +347,7 @@
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive Centrifuge",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -573,7 +573,7 @@
       "name": "プレス機",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
       "blockPrefabAddressablesPath": "Vanilla/Block/press machine",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -668,7 +668,7 @@
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
