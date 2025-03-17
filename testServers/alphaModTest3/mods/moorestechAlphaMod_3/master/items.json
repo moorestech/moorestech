@@ -256,6 +256,19 @@
       "recipeViewType": "ForceShow"
     },
     {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "initialUnlocked": true,
+      "sortPriority": 405,
+      "maxStack": 100,
+      "name": "遠心分離機",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
+    },
+    {
       "initialUnlocked": true,
       "sortPriority": 410,
       "maxStack": 100,

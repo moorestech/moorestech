@@ -46,7 +46,7 @@
         },
         {
           "percent": 0.5,
-          "count": 1,
+          "count": 3,
           "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
         }
       ],
@@ -70,7 +70,7 @@
       ],
       "inputFluids": [],
       "machineRecipeGuid": "f9282a46-e988-40ff-b5d1-dc87dd05a1d1",
-      "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f"
+      "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506"
     },
     {
       "time": 1,

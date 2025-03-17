@@ -171,7 +171,7 @@
         "requiredRpm": 5,
         "requireTorque": 1,
         "teethCount": 10,
-        "outputSlotCount": 1,
+        "outputSlotCount": 4,
         "inputSlotCount": 1,
         "inventoryConnectors": {
           "inputConnects": [
@@ -252,6 +252,101 @@
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
       "blockPrefabAddressablesPath": "Vanilla/Block/Sieve",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "遠心分離機",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 10,
+        "requireTorque": 0.25,
+        "teethCount": 10,
+        "outputSlotCount": 4,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        }
+      },
+      "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
+      "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive Centrifuge",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
@@ -494,7 +589,7 @@
         "requiredRpm": 30,
         "requireTorque": 1,
         "teethCount": 10,
-        "outputSlotCount": 1,
+        "outputSlotCount": 4,
         "inputSlotCount": 1,
         "inventoryConnectors": {
           "inputConnects": [
