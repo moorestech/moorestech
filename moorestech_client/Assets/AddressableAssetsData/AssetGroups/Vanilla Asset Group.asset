@@ -432,6 +432,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd09f2fef40b549f58b0c29a968536c4
+    m_Address: Vanilla/UI/Block/GearMachineBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dc33f279c282b408c95ad24d4e73f5af
     m_Address: Vanilla/Block/stone crasher
     m_ReadOnly: 0
