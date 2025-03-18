@@ -525,6 +525,25 @@
         }
       ],
       "craftRecipeGuid": "23764ef4-696e-495b-bc1c-5bc0cac75161"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "craftResultItemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed",
+      "requiredItems": [
+        {
+          "count": 1,
+          "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99"
+        },
+        {
+          "count": 4,
+          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
+        }
+      ],
+      "craftRecipeGuid": "f02d6821-dd4d-47b1-b746-5e4df7a9c93c"
     }
   ]
 }

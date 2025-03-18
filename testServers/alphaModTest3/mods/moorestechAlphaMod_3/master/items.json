@@ -376,6 +376,14 @@
       "name": "下りシューター",
       "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74",
       "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 335,
+      "maxStack": 100,
+      "name": "大きな歯車",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
     }
   ]
 }
