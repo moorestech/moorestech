@@ -366,8 +366,7 @@
               "connectOption": {}
             }
           ],
-          "inputConnects": [
-          ]
+          "inputConnects": []
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000006",
@@ -2338,8 +2337,7 @@
               "connectOption": {}
             }
           ],
-          "inputConnects": [
-          ]
+          "inputConnects": []
         },
         "requiredRpm": 10,
         "teethCount": 10,
@@ -2949,7 +2947,11 @@
       "itemGuid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
       "blockType": "TrainStation",
       "blockParam": {
-        "stationDistance": 22
+        "stationDistance": 22,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025"
@@ -2966,7 +2968,11 @@
         "loadingSpeed": 20,
         "outputSlotCount": 10,
         "inputSlotCount": 10,
-        "platformDistance": 11
+        "platformDistance": 11,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       },
       "name": "TestTrainCargoPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026"
