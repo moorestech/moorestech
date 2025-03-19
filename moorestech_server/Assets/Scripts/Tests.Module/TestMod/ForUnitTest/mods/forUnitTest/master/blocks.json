@@ -366,8 +366,7 @@
               "connectOption": {}
             }
           ],
-          "inputConnects": [
-          ]
+          "inputConnects": []
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000006",
@@ -1246,7 +1245,7 @@
       "name": "TestSimpleGearGenerator",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 0.1,
+        "requireTorque": 0,
         "generateTorque": 3,
         "generateRpm": 10,
         "teethCount": 10,
@@ -1317,7 +1316,7 @@
       "name": "TestFastSimpleGearGenerator",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 0.1,
+        "requireTorque": 0,
         "beltConveyorSpeed": 2,
         "beltConveyorItemCount": 4,
         "generateTorque": 1,
@@ -2338,8 +2337,7 @@
               "connectOption": {}
             }
           ],
-          "inputConnects": [
-          ]
+          "inputConnects": []
         },
         "requiredRpm": 10,
         "teethCount": 10,
