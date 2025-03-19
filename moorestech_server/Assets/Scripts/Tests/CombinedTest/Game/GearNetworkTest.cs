@@ -375,9 +375,6 @@ namespace Tests.CombinedTest.Game
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
-            // 不要なトルク消費が行われないように必要トルクを0に設定
-            // Set the required torque to 0 so that unnecessary torque consumption is not performed
-            typeof(GearEnergyTransformer).GetField("_requiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(generator, new Torque(0));
             
             
             var gearPosition1 = new Vector3Int(0, 0, 1);
@@ -387,6 +384,8 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
             
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            // テストしたいGear2で不要なトルク消費が行われないように必要トルクを0に設定
+            // Set the required torque to 0 so that unnecessary torque consumption is not performed in Gear2 to be tested
             typeof(GearEnergyTransformer).GetField("_requiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(gear1, new Torque(0));
             
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
