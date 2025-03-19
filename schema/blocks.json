@@ -718,6 +718,9 @@
                     "stationDistance": {
                       "type": "integer",
                       "default": 5
+                    },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
@@ -748,6 +751,9 @@
                     "loadingSpeed": {
                       "type": "number",
                       "default": 20
+                    },
+                    "inventoryConnectors": {
+                      "$ref": "inventoryConnects"
                     }
                   }
                 }
