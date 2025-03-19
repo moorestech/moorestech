@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -360,6 +361,44 @@ namespace Tests.CombinedTest.Game
             
             Assert.AreEqual(20, gear6.CurrentRpm.AsPrimitive());
             Assert.AreEqual(0.125f, gear6.CurrentTorque.AsPrimitive());
+        }
+        
+        
+        [Test]
+        // RPMが1/2になると供給されるトルクが倍になるテスト
+        public void TorqueHalfTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
+            var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
+            // 不要なトルク消費が行われないように必要トルクを0に設定
+            // Set the required torque to 0 so that unnecessary torque consumption is not performed
+            typeof(GearEnergyTransformer).GetField("_requiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(generator, new Torque(0));
+            
+            
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            
+            var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            typeof(GearEnergyTransformer).GetField("_requiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(gear1, new Torque(0));
+            
+            var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
+            gearNetwork.ManualUpdate();
+            
+            Assert.AreEqual(10, gear1.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(20, gear2.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0, gear1.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(1.5f, gear2.CurrentTorque.AsPrimitive());
         }
         
         [Test]
