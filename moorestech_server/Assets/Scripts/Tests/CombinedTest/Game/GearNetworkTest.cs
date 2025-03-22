@@ -347,20 +347,20 @@ namespace Tests.CombinedTest.Game
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(5, gear1.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(5, gear2.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.5f, gear1.CurrentTorque.AsPrimitive());
-            Assert.AreEqual(0.5f, gear2.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(2.5, gear1.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(2.5, gear2.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.25f, gear1.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.25f, gear2.CurrentTorque.AsPrimitive());
             
-            Assert.AreEqual(10, gear3.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(10, gear4.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(10, gear5.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(5, gear3.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(5, gear4.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(5, gear5.CurrentRpm.AsPrimitive());
             Assert.AreEqual(0.25f, gear3.CurrentTorque.AsPrimitive());
             Assert.AreEqual(0.25f, gear4.CurrentTorque.AsPrimitive());
             Assert.AreEqual(0.25f, gear5.CurrentTorque.AsPrimitive());
             
-            Assert.AreEqual(20, gear6.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.125f, gear6.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(10, gear6.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0.25f, gear6.CurrentTorque.AsPrimitive());
         }
         
         
@@ -375,6 +375,9 @@ namespace Tests.CombinedTest.Game
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
+            // 生成するトルクを1に設定する
+            // Set the generated torque to 1
+            SetGenerateTorque(generator);
             
             
             var gearPosition1 = new Vector3Int(0, 0, 1);
@@ -394,10 +397,22 @@ namespace Tests.CombinedTest.Game
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(10, gear1.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(20, gear2.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(5, gear1.CurrentRpm.AsPrimitive());
+            Assert.AreEqual(10, gear2.CurrentRpm.AsPrimitive());
             Assert.AreEqual(0, gear1.CurrentTorque.AsPrimitive());
-            Assert.AreEqual(1.5f, gear2.CurrentTorque.AsPrimitive());
+            Assert.AreEqual(0.5f, gear2.CurrentTorque.AsPrimitive());
+        }
+        
+        
+        private void SetGenerateTorque(SimpleGearGeneratorComponent component)
+        {
+            var value = new Torque(1);
+            
+            var type = typeof(SimpleGearGeneratorComponent);
+            var property = type.GetProperty("GenerateTorque", BindingFlags.Public | BindingFlags.Instance);
+            var backingFieldName = $"<{property.Name}>k__BackingField";
+            var backingField = type.GetField(backingFieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            backingField.SetValue(component, value);
         }
         
         [Test]
