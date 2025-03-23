@@ -97,10 +97,6 @@
       "craftResultItemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544",
       "requiredItems": [
         {
-          "count": 5,
-          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
-        },
-        {
           "count": 3,
           "itemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
         },
@@ -304,12 +300,8 @@
       "craftResultItemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "requiredItems": [
         {
-          "count": 1,
+          "count": 5,
           "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73"
-        },
-        {
-          "count": 4,
-          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
         }
       ],
       "craftRecipeGuid": "c94760b6-91e7-4eba-a948-39657160271a"
@@ -321,12 +313,8 @@
       "craftResultItemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
       "requiredItems": [
         {
-          "count": 1,
-          "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73"
-        },
-        {
           "count": 5,
-          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
+          "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73"
         },
         {
           "count": 5,
@@ -348,10 +336,6 @@
         {
           "count": 3,
           "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
-        },
-        {
-          "count": 5,
-          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
         }
       ],
       "craftRecipeGuid": "ea83d56a-8b75-4ff8-95c5-711f5f605774"
@@ -386,10 +370,6 @@
         {
           "count": 3,
           "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99"
-        },
-        {
-          "count": 5,
-          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
         }
       ],
       "craftRecipeGuid": "1a191957-c27a-414b-bb12-91ab3a79a7cd"
@@ -421,10 +401,6 @@
       "craftResultCount": 1,
       "craftResultItemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0",
       "requiredItems": [
-        {
-          "count": 4,
-          "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1"
-        },
         {
           "count": 1,
           "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f"
