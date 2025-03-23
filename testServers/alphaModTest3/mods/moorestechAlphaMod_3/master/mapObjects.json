@@ -136,13 +136,7 @@
       ],
       "hp": 30,
       "mapObjectName": "軽石凝灰岩",
-      "earnItems": [
-        {
-          "maxCount": 1,
-          "minCount": 1,
-          "itemGuid": "f181d6be-0801-4658-88d1-e3cbaac39a05"
-        }
-      ],
+      "earnItems": [],
       "miningType": "Mining",
       "miningParam": {
         "miningTools": [

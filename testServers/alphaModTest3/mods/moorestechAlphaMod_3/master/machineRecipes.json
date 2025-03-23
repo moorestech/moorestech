@@ -43,11 +43,6 @@
           "percent": 0.5,
           "count": 1,
           "itemGuid": "9245960f-5ab9-490d-b940-dac6b9994695"
-        },
-        {
-          "percent": 0.5,
-          "count": 3,
-          "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
         }
       ],
       "inputFluids": [],
@@ -193,6 +188,33 @@
       ],
       "inputFluids": [],
       "machineRecipeGuid": "ba768744-da46-40eb-81c2-b9e823ccb301"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "time": 1,
+      "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "98383d78-6da1-47ca-bc94-f5e12f50c140"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 3,
+          "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
+        }
+      ],
+      "machineRecipeGuid": "8c6ca5c7-a94e-474d-9509-a80b524e81ad",
+      "inputFluids": []
     }
   ]
 }

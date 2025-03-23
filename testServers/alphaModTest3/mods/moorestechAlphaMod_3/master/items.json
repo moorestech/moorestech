@@ -97,14 +97,6 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 210,
-      "maxStack": 100,
-      "name": "棒材",
-      "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
       "sortPriority": 220,
       "maxStack": 100,
       "name": "石のツルハシ",
@@ -173,22 +165,6 @@
       "maxStack": 100,
       "name": "レンガ",
       "itemGuid": "dfd0ae76-ae7d-46cd-8abc-0c69407645a2",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
-      "sortPriority": 310,
-      "maxStack": 100,
-      "name": "軽石凝灰岩",
-      "itemGuid": "f181d6be-0801-4658-88d1-e3cbaac39a05",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
-      "sortPriority": 320,
-      "maxStack": 100,
-      "name": "軽石凝灰岩のロッド",
-      "itemGuid": "a3122da5-bc03-4af3-bf6c-e5b46623a4e4",
       "recipeViewType": "ForceShow"
     },
     {
