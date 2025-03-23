@@ -1,6 +1,6 @@
 id: mapObjectMineSettings
 type: array
-overrideCodeGeneratePropertyName: MapObjecetMineSettingsMasterElement
+overrideCodeGeneratePropertyName: MapObjectMineSettingsMasterElement
 items:
   type: object
   properties:
