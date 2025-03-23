@@ -28,6 +28,16 @@ properties:
         - key: count
           type: integer
           default: 1
+    - key: inputFluids
+      type: array
+      items:
+        type: object
+        properties:
+        - key: fluidGuid
+          type: uuid
+          foreignKey: fluids:fluidGuid:name
+        - key: amount
+          type: number
     - key: outputItems
       type: array
       items:

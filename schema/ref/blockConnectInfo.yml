@@ -9,6 +9,7 @@ items:
     enum:
     - Inventory
     - Gear
+    - Fluid
     description: TODO これは後々外部（上位スキーマ？）から設定できるようにする
   - key: offset
     type: vector3Int
@@ -59,3 +60,8 @@ items:
       - key: isReverse
         type: boolean
         default: true
+    - when: Fluid
+      type: object
+      properties:
+      - key: flowCapacity
+        type: number

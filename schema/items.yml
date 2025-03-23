@@ -25,3 +25,16 @@ properties:
       type: number
       default: 100
       optional: true
+    - key: initialUnlocked
+      type: boolean
+      default: true
+      optional: true
+    - key: recipeViewType
+      type: string
+      default: 100
+      enum:
+      - Default
+      - IsUnlocked
+      - IsCraftRecipeExist
+      - ForceShow
+      - ForceHide
