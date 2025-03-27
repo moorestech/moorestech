@@ -25,8 +25,8 @@ properties:
     - key: name
       type: string
     - key: blockType
-      type: string
-      enum:
+      type: enum
+      options:
       - Block
       - BeltConveyor
       - Chest
@@ -52,7 +52,15 @@ properties:
       - FluidPipe
     - key: itemGuid
       type: uuid
-      foreignKey: items:itemGuid:name
+      foreignKey: 
+        schemaId: items
+        # [*] はドロップダウンになるため不明になる要素。複数は現状サポートしなくてもいいけど、サポートするんだったら
+        # アイテムA > サブ要素1
+        # アイテムA > サブ要素2
+        # アイテムB > サブ要素1
+        # みたいにドロップダウンで表示するのが良いかも
+        foreignKeyIdPath: "/data/[*]/itemGuid"
+        displayElementPath: "/data/[*]/name"
     - key: blockSize
       type: vector3Int
       default:
@@ -66,7 +74,7 @@ properties:
       type: string
       optional: true
     - key: blockParam
-      switch: blockType
+      switch: "./blockType"
       cases:
       - when: Block
         type: object
@@ -81,8 +89,8 @@ properties:
           type: number
           default: 1
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -143,7 +151,10 @@ properties:
             properties:
             - key: itemGuid
               type: uuid
-              foreignKey: items:itemGuid:name
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: "/data/[*]/itemGuid"
+                displayElementPath: "/data/[*]/name"
             - key: time
               type: number
               default: 1
@@ -238,8 +249,8 @@ properties:
           type: number
           default: 2
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -263,8 +274,8 @@ properties:
           type: number
           default: 1
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -328,8 +339,8 @@ properties:
           type: number
           default: 1
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -405,10 +416,19 @@ properties:
       properties:
       - key: upBlockGuid
         type: uuid
-        foreignKey: blocks:blockGuid:name
+        foreignKey:
+          schemaId: blocks
+          foreignKeyIdPath: "/data/[*]/blockGuid"
+          displayElementPath: "/data/[*]/name"
       - key: horizontalBlockGuid
         type: uuid
-        foreignKey: blocks:blockGuid:name
+        foreignKey:
+          schemaId: blocks
+          foreignKeyIdPath: "/data/[*]/blockGuid"
+          displayElementPath: "/data/[*]/name"
       - key: downBlockGuid
         type: uuid
-        foreignKey: blocks:blockGuid:name
+        foreignKey:
+          schemaId: blocks
+          foreignKeyIdPath: "/data/[*]/blockGuid"
+          displayElementPath: "/data/[*]/name"

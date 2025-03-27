@@ -30,9 +30,9 @@ properties:
       default: true
       optional: true
     - key: recipeViewType
-      type: string
+      type: enum
       default: 100
-      enum:
+      options:
       - Default
       - IsUnlocked
       - IsCraftRecipeExist
