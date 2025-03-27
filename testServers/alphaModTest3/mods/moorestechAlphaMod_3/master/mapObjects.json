@@ -135,8 +135,14 @@
         20
       ],
       "hp": 30,
-      "mapObjectName": "軽石凝灰岩",
-      "earnItems": [],
+      "mapObjectName": "clay",
+      "earnItems": [
+        {
+          "maxCount": 3,
+          "minCount": 1,
+          "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
+        }
+      ],
       "miningType": "Mining",
       "miningParam": {
         "miningTools": [
@@ -148,7 +154,7 @@
         ]
       },
       "mapObjectGuid": "e76e6b65-88db-4ee7-a806-8e65ba859556",
-      "soundEffectType": "tree"
+      "soundEffectType": "stone"
     }
   ]
 }

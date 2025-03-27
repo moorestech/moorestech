@@ -107,7 +107,7 @@
       "initialUnlocked": true,
       "sortPriority": 230,
       "maxStack": 100,
-      "name": "砂利",
+      "name": "砕石",
       "itemGuid": "619638d5-13f0-4c04-b4e6-5113e946be7e",
       "recipeViewType": "ForceShow"
     },
@@ -115,7 +115,7 @@
       "initialUnlocked": true,
       "sortPriority": 240,
       "maxStack": 100,
-      "name": "砂",
+      "name": "砂利",
       "itemGuid": "98383d78-6da1-47ca-bc94-f5e12f50c140",
       "recipeViewType": "ForceShow"
     },
@@ -123,7 +123,7 @@
       "initialUnlocked": true,
       "sortPriority": 250,
       "maxStack": 100,
-      "name": "ダスト",
+      "name": "砂",
       "itemGuid": "fa4e84ee-482d-414f-ad0e-8f167d178342",
       "recipeViewType": "ForceShow"
     },
