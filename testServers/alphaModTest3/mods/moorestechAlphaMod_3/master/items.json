@@ -137,14 +137,6 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 270,
-      "maxStack": 100,
-      "name": "水バケツ",
-      "itemGuid": "5378f322-6159-4c59-8786-9f3552445eda",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
       "sortPriority": 280,
       "maxStack": 100,
       "name": "粘土",
