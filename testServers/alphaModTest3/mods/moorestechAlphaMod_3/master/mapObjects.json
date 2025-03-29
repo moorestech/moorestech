@@ -82,7 +82,7 @@
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 5,
+            "attackSpeed": 6,
             "damage": 10,
             "toolItemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
           },

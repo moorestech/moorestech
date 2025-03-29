@@ -237,6 +237,10 @@
         {
           "count": 1,
           "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e"
+        },
+        {
+          "count": 1,
+          "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99"
         }
       ],
       "craftResultItemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
@@ -249,7 +253,7 @@
       "craftResultItemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "requiredItems": [
         {
-          "count": 4,
+          "count": 6,
           "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
         },
         {
@@ -267,23 +271,10 @@
       "requiredItems": [
         {
           "count": 2,
-          "itemGuid": "796c8625-4018-45cf-9602-f53a86063353"
+          "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
         }
       ],
       "craftRecipeGuid": "b5b8e667-3df3-4c85-a620-de0dc3448ea8"
-    },
-    {
-      "initialUnlocked": true,
-      "craftTime": 3,
-      "craftResultCount": 1,
-      "craftResultItemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
-      "requiredItems": [
-        {
-          "count": 5,
-          "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73"
-        }
-      ],
-      "craftRecipeGuid": "c94760b6-91e7-4eba-a948-39657160271a"
     },
     {
       "initialUnlocked": true,
@@ -314,7 +305,7 @@
         },
         {
           "count": 3,
-          "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
+          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f"
         }
       ],
       "craftRecipeGuid": "ea83d56a-8b75-4ff8-95c5-711f5f605774"
@@ -369,7 +360,7 @@
         },
         {
           "count": 4,
-          "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+          "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
         }
       ],
       "craftRecipeGuid": "83470d02-7324-4795-b3ec-ed103a85e18e"
@@ -395,7 +386,7 @@
       "craftResultItemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3",
       "requiredItems": [
         {
-          "count": 3,
+          "count": 10,
           "itemGuid": "dfd0ae76-ae7d-46cd-8abc-0c69407645a2"
         }
       ],
@@ -460,8 +451,12 @@
           "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99"
         },
         {
+          "count": 1,
+          "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73"
+        },
+        {
           "count": 4,
-          "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+          "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
         }
       ],
       "craftRecipeGuid": "f02d6821-dd4d-47b1-b746-5e4df7a9c93c"

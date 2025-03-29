@@ -485,8 +485,8 @@
       "itemGuid": "4abdae31-6e3b-42c5-a097-4cf6021751ca",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 30,
-        "requireTorque": 1,
+        "requiredRpm": 1,
+        "requireTorque": 4,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
@@ -542,26 +542,23 @@
                   -1,
                   0,
                   0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                2,
-                0,
-                0
-              ],
-              "directions": [
+                ],
                 [
                   1,
                   0,
                   0
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
                 ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              }
+              ]
             }
           ]
         }
