@@ -11,8 +11,9 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private TMP_Text torque;
         [SerializeField] private TMP_Text rpm;
         
-        private void Update()
+        private new void Update()
         {
+            base.Update();
             // ここが重かったら検討
             var processor = (GearStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as GearStateChangeProcessor);
             if (processor == null)
