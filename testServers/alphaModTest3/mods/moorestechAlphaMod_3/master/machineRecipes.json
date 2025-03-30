@@ -238,6 +238,80 @@
       "machineRecipeGuid": "2334c319-320a-4fda-aa0c-685d6c818749",
       "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
       "inputFluids": []
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "time": 5,
+      "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db"
+        }
+      ],
+      "machineRecipeGuid": "ee1aa447-ea28-47dd-979f-bc5fe8d8ac70"
+    },
+    {
+      "time": 8,
+      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db"
+        },
+        {
+          "count": 1,
+          "itemGuid": "5c5b7ee0-d1ea-420e-951e-2b2b49fee81b"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa"
+        }
+      ],
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "machineRecipeGuid": "172400d3-9768-42c4-8e3f-b5656ba7f234"
+    },
+    {
+      "time": 5,
+      "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d"
+        }
+      ],
+      "machineRecipeGuid": "25297e2b-c69f-4b44-8cf9-03209f514400"
     }
   ]
 }

@@ -169,6 +169,14 @@
     },
     {
       "initialUnlocked": true,
+      "sortPriority": 335,
+      "maxStack": 100,
+      "name": "大きな歯車",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
+    },
+    {
+      "initialUnlocked": true,
       "sortPriority": 340,
       "maxStack": 100,
       "name": "クランク",
@@ -346,12 +354,105 @@
       "recipeViewType": "ForceShow"
     },
     {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
       "initialUnlocked": true,
-      "sortPriority": 335,
+      "sortPriority": 100,
       "maxStack": 100,
-      "name": "大きな歯車",
+      "name": "石炭粉",
       "recipeViewType": "ForceShow",
-      "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
+      "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "鉄塊",
+      "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "鉄板",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "鉄ローラー",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "4a8b6001-3081-4885-89b5-9300424db13f"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
+      "name": "圧延機",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "鉄のロッド",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "844f3264-e055-4d41-bd54-e46570a15ba5"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "鉄のリベット",
+      "itemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "鉄製フレーム",
+      "itemGuid": "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "ふいご",
+      "itemGuid": "49573e16-be8a-46aa-859c-67fae3f928f9",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "ふいご付き精錬炉",
+      "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "原始的な採掘機",
+      "itemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "原木加工機",
+      "itemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
+      "recipeViewType": "ForceShow"
     }
   ]
 }

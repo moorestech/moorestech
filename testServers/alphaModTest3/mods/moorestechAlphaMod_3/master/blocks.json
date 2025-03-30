@@ -579,8 +579,8 @@
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 30,
-        "requireTorque": 1,
+        "requiredRpm": 5,
+        "requireTorque": 2,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -636,26 +636,23 @@
                   -1,
                   0,
                   0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                2,
-                0,
-                0
-              ],
-              "directions": [
+                ],
                 [
                   1,
                   0,
                   0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              }
+              ]
             }
           ]
         }
@@ -1319,6 +1316,136 @@
       "blockGuid": "7c8e82c2-cdb5-421a-8ce4-6f58104141b5",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "blockPrefabAddressablesPath": "Vanilla/Block/BigGear"
+    },
+    {
+      "time": 1,
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "原始的な採掘機",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
+      "blockType": "GearMiner",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "requiredRpm": 20,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "mineSettings": [
+          {
+            "time": 7,
+            "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "blockGuid": "86388349-eec5-42de-8783-48a51853ed13"
     }
   ]
 }
