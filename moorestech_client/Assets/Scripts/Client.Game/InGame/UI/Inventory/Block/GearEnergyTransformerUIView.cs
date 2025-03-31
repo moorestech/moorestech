@@ -16,6 +16,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private TMP_Text blockNameText;
         [SerializeField] private TMP_Text torque;
         [SerializeField] private TMP_Text rpm;
+        [SerializeField] private TMP_Text networkInfo;
         
         private BlockGameObject _blockGameObject;
         
@@ -40,6 +41,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             torque.text = $"トルク: {currentTorque}";
             rpm.text = $"回転数: {currentRpm}";
+            
+            var rate = processor.CurrentGearState?.GearNetworkOperatingRate ?? 0;
+            var requiredPower = processor.CurrentGearState?.GearNetworkTotalRequiredPower ?? 0;
+            var generatePower = processor.CurrentGearState?.GearNetworkTotalGeneratePower ?? 0;
+            networkInfo.text = $"歯車ネットワーク情報 稼働率: {rate * 100:F2}% 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
         }
         
         

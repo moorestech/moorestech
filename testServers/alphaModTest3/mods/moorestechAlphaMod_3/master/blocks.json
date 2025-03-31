@@ -161,7 +161,8 @@
       },
       "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill"
+      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -1359,12 +1360,12 @@
         },
         "mineSettings": [
           {
-            "time": 10,
+            "time": 15,
             "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
           }
         ],
         "teethCount": 10,
-        "requiredRpm": 30,
+        "requiredRpm": 40,
         "requireTorque": 1,
         "gear": {
           "gearConnects": [
