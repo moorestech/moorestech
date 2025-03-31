@@ -74,7 +74,7 @@ namespace Client.Game.InGame.Block
             
             // カメラ背景をアルファ付き透明に設定
             blockImageCamera.clearFlags = CameraClearFlags.SolidColor;
-            blockImageCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            blockImageCamera.backgroundColor = Color.white;
             
             await UniTask.Yield(PlayerLoopTiming.Update);
             
