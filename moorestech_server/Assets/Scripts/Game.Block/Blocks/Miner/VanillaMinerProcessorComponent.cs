@@ -198,12 +198,12 @@ namespace Game.Block.Blocks.Miner
         }
         
         
-        public BlockStateDetail GetBlockStateDetail()
+        public BlockStateDetail[] GetBlockStateDetails()
         {
             var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
             var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
             var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
-            return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
+            return new []{  new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes) };
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)

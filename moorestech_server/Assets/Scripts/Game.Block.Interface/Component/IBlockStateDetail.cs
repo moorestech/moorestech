@@ -9,7 +9,7 @@ namespace Game.Block.Interface.Component
         /// TODO It may be better to use Convert.ChangeType.
         /// </summary>
         /// <returns></returns>
-        public BlockStateDetail GetBlockStateDetail();
+        public BlockStateDetail[] GetBlockStateDetails();
     }
     
     public struct BlockStateDetail

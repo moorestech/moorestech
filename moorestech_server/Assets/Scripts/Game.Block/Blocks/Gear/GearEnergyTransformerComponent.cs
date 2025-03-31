@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.State;
 using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
@@ -40,9 +39,9 @@ namespace Game.Block.Blocks.Gear
             GearNetworkDatastore.AddGear(this);
         }
         
-        public BlockStateDetail GetBlockStateDetail()
+        public BlockStateDetail[] GetBlockStateDetails()
         {
-            return _simpleGearService.GetBlockStateDetail();
+            return new []{ _simpleGearService.GetBlockStateDetail() };
         }
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
