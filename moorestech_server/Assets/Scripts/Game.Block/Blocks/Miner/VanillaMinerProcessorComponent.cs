@@ -200,10 +200,32 @@ namespace Game.Block.Blocks.Miner
         
         public BlockStateDetail[] GetBlockStateDetails()
         {
-            var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
-            var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
-            var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
-            return new []{  new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes) };
+            BlockException.CheckDestroy(this);
+            
+            return new []
+            {
+                GetMachineBlockStateDetail(),
+                GetMinerBlockStateDetail(),
+            };
+            
+            #region Internal
+            
+            BlockStateDetail GetMachineBlockStateDetail()
+            {
+                var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
+                var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
+                var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
+                return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
+            }
+            
+            BlockStateDetail GetMinerBlockStateDetail()
+            {
+                var stateDetail = new CommonMinerBlockStateDetail(_miningItems);
+                var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
+                return new BlockStateDetail(CommonMinerBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
+            }
+            
+  #endregion
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)

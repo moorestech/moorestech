@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
 
@@ -16,12 +18,25 @@ namespace Game.Block.Interface.State
         /// <summary>
         ///     採掘中のアイテムID
         /// </summary>
-        [Key(0)] public int CurrentMiningItemIdInt;
-        public ItemId CurrentMiningItemId => (ItemId) CurrentMiningItemIdInt;
+        [Key(0)] public int[] CurrentMiningItemIdInts;
         
-        public CommonMinerBlockStateDetail(ItemId miningItemId)
+        public List<ItemId> GetCurrentMiningItemIds()
         {
-            CurrentMiningItemIdInt = (int) miningItemId;
+            var miningItemIds = new List<ItemId>();
+            foreach (var itemIdInt in CurrentMiningItemIdInts)
+            {
+                miningItemIds.Add(new ItemId(itemIdInt));
+            }
+            return miningItemIds;
+        }
+        
+        public CommonMinerBlockStateDetail(List<IItemStack> miningItemIds)
+        {
+            CurrentMiningItemIdInts = new int[miningItemIds.Count];
+            for (var i = 0; i < miningItemIds.Count; i++)
+            {
+                CurrentMiningItemIdInts[i] = miningItemIds[i].Id.AsPrimitive();
+            }
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
