@@ -1331,52 +1331,11 @@
       "itemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
       "blockType": "GearMiner",
       "blockParam": {
-        "outputItemSlotCount": 3,
-        "requiredRpm": 20,
-        "requireTorque": 1,
-        "teethCount": 10,
-        "mineSettings": [
-          {
-            "time": 7,
-            "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
-          }
-        ],
+        "inputItemSlotCount": 1,
+        "requiredPower": 5,
+        "outputItemSlotCount": 2,
         "inventoryConnectors": {
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Inventory",
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
-            }
-          ],
+          "inputConnects": [],
           "outputConnects": [
             {
               "offset": [
@@ -1387,21 +1346,6 @@
               "connectType": "Inventory",
               "directions": [
                 [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
                   0,
                   0,
                   -1
@@ -1409,6 +1353,111 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "mineSettings": [
+          {
+            "time": 15,
+            "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          }
+        ],
+        "teethCount": 10,
+        "requiredRpm": 30,
+        "requireTorque": 1,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": true
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "blockGuid": "86388349-eec5-42de-8783-48a51853ed13",
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "time": 1,
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 1,
+        "requireTorque": 4,
+        "teethCount": 10,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": true
               }
             }
           ]
@@ -1427,31 +1476,152 @@
               },
               "directions": [
                 [
-                  1,
-                  0,
-                  0
-                ],
-                [
                   -1,
                   0,
                   0
                 ],
                 [
+                  1,
                   0,
-                  0,
-                  1
+                  0
                 ],
                 [
                   0,
                   0,
                   -1
+                ],
+                [
+                  0,
+                  0,
+                  1
                 ]
               ]
             }
           ]
         }
       },
-      "blockGuid": "86388349-eec5-42de-8783-48a51853ed13"
+      "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
+      "name": "圧延機",
+      "blockPrefabAddressablesPath": "Vanilla/Block/rolling mill",
+      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_sawmill",
+      "name": "原木加工機",
+      "blockGuid": "4b1808f2-0a5b-41bf-aced-645e4a76b870",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 1,
+        "requireTorque": 4,
+        "teethCount": 10,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": true
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockSize": [
+        3,
+        3,
+        7
+      ],
+      "name": "ふいご付き精錬炉",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 5,
+        "requireTorque": 1,
+        "teethCount": 10,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "gear": {
+          "gearConnects": []
+        }
+      },
+      "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
+      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows"
     }
   ]
 }
