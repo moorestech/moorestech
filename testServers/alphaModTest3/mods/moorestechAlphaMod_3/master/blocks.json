@@ -1321,15 +1321,12 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/BigGear"
     },
     {
-      "time": 1,
-      "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
-      "name": "原始的な採掘機",
       "blockSize": [
+        2,
         1,
-        1,
-        1
+        2
       ],
       "itemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
       "blockType": "GearMiner",
@@ -1410,8 +1407,10 @@
           ]
         }
       },
-      "blockGuid": "86388349-eec5-42de-8783-48a51853ed13",
-      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner"
+      "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
+      "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
+      "name": "原始的な採掘機"
     },
     {
       "initialUnlocked": true,
