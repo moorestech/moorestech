@@ -263,7 +263,8 @@
           "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db"
         }
       ],
-      "machineRecipeGuid": "ee1aa447-ea28-47dd-979f-bc5fe8d8ac70"
+      "machineRecipeGuid": "ee1aa447-ea28-47dd-979f-bc5fe8d8ac70",
+      "inputFluids": []
     },
     {
       "time": 8,
@@ -293,7 +294,8 @@
         1,
         1
       ],
-      "machineRecipeGuid": "172400d3-9768-42c4-8e3f-b5656ba7f234"
+      "machineRecipeGuid": "172400d3-9768-42c4-8e3f-b5656ba7f234",
+      "inputFluids": []
     },
     {
       "time": 5,
@@ -311,7 +313,8 @@
           "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d"
         }
       ],
-      "machineRecipeGuid": "25297e2b-c69f-4b44-8cf9-03209f514400"
+      "machineRecipeGuid": "25297e2b-c69f-4b44-8cf9-03209f514400",
+      "inputFluids": []
     }
   ]
 }

@@ -1371,7 +1371,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -1403,7 +1406,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
