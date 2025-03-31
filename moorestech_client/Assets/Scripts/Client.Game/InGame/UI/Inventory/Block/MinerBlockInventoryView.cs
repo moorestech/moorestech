@@ -45,7 +45,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             UpdateItemList(itemList);
         }
         
-        private void Update()
+        protected void Update()
         {
             // ここが重かったら検討
             var commonProcessor = (CommonMachineBlockStateChangeProcessor)_blockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
