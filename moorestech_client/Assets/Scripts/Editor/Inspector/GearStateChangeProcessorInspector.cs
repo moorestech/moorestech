@@ -119,7 +119,7 @@ public class GearStateChangeProcessorInspector : Editor
 
     private void Rotate(GearStateChangeProcessor processor)
     {
-        var state = new GearStateDetail(simulateIsClockwise, simulateRpm, 0);
+        var state = new GearStateDetail(simulateIsClockwise, simulateRpm, 0, GearNetworkInfo.CreateEmpty());
         processor.Rotate(state);
     }
     
