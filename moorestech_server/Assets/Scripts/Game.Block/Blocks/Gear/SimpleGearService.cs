@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
@@ -9,17 +10,24 @@ namespace Game.Block.Blocks.Gear
 {
     public class SimpleGearService
     {
-        private string _currentState = IGearEnergyTransformer.WorkingStateName;
+        public RPM CurrentRpm { get; private set; }
+        public Torque CurrentTorque { get; private set; }
+        public bool IsCurrentClockwise { get; private set; }
+        public bool IsRocked { get; private set; }
+        
         public IObservable<Unit> BlockStateChange => _onBlockStateChange;
         private readonly Subject<Unit> _onBlockStateChange = new();
         
         public IObservable<GearUpdateType> OnGearUpdate => _onGearUpdate;
         private readonly Subject<GearUpdateType> _onGearUpdate = new();
+        private readonly BlockInstanceId _blockInstanceId;
         
-        public RPM CurrentRpm { get; private set; }
-        public Torque CurrentTorque { get; private set; }
-        public bool IsCurrentClockwise { get; private set; }
-        public bool IsRocked { get; private set; }
+        private string _currentState = IGearEnergyTransformer.WorkingStateName;
+        
+        public SimpleGearService(BlockInstanceId blockInstanceId)
+        {
+            _blockInstanceId = blockInstanceId;
+        }
         
         public void Rocked()
         {
@@ -34,8 +42,11 @@ namespace Game.Block.Blocks.Gear
         
         public BlockStateDetail GetBlockStateDetail()
         {
-            var stateData = MessagePackSerializer.Serialize(new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive()));
-            return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, stateData);
+            var network = GearNetworkDatastore.GetGearNetwork(_blockInstanceId);
+            var info = network.CurrentGearNetworkInfo;
+            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), info);
+            
+            return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         }
         
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)

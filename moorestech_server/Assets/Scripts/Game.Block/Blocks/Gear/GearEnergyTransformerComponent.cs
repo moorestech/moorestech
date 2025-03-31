@@ -34,7 +34,7 @@ namespace Game.Block.Blocks.Gear
             _requiredTorque = requiredTorque;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _simpleGearService = new SimpleGearService();
+            _simpleGearService = new SimpleGearService(blockInstanceId);
             
             GearNetworkDatastore.AddGear(this);
         }

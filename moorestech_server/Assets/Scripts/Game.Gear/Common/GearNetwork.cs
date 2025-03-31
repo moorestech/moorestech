@@ -10,6 +10,8 @@ namespace Game.Gear.Common
         public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
         public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         
+        public GearNetworkInfo CurrentGearNetworkInfo { get; private set; }
+        
         private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
@@ -64,6 +66,7 @@ namespace Game.Gear.Common
             if (fastestOriginGenerator == null)
             {
                 //ジェネレーターがない場合はすべてにゼロを供給して終了
+                CurrentGearNetworkInfo = GearNetworkInfo.CreateEmpty();
                 foreach (var transformer in GearTransformers) transformer.SupplyPower(new RPM(0), new Torque(0), true);
                 return;
             }
@@ -171,13 +174,13 @@ namespace Game.Gear.Common
                 var totalGeneratePower = 0f;
                 foreach (var generator in GearGenerators)
                 {
-                    var info = _checkedGearComponents[generator.BlockInstanceId];
-                    
-                    totalGeneratePower += generator.GenerateTorque.AsPrimitive() * info.Rpm.AsPrimitive();
+                    totalGeneratePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateTorque.AsPrimitive();
                 }
                 
                 // 要求されたトルクの量が供給量を上回ってるとき、その量に応じてRPMを減速させる
                 var rpmRate = Mathf.Min(1, totalGeneratePower / totalRequiredGearPower);
+                
+                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, rpmRate);
                 
                 // 生成されるギアパワーを各歯車コンポーネントに供給する
                 foreach (var transformer in GearTransformers)
