@@ -23,14 +23,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         [SerializeField] private ProgressArrowView minerProgressArrow;
         
-        private BlockGameObject _blockGameObject;
+        protected BlockGameObject BlockGameObject;
         private CancellationToken _gameObjectCancellationToken;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
-            _blockGameObject = blockGameObject;
+            BlockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
             var param = blockGameObject.BlockMasterElement.BlockParam;
@@ -74,7 +74,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             void UpdateMinerProgressArrow()
             {
                 // ここが重かったら検討
-                var commonProcessor = (CommonMachineBlockStateChangeProcessor)_blockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
+                var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
                 if (commonProcessor == null) return;
                 
                 minerProgressArrow.SetProgress(commonProcessor.CurrentMachineState?.ProcessingRate ?? 0.0f);
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         private async UniTask SetMiningItem()
         {
             // 採掘中のアイテムを取得
-            var pos = _blockGameObject.BlockPosInfo.OriginalPos;
+            var pos = BlockGameObject.BlockPosInfo.OriginalPos;
             var blockStates = await ClientContext.VanillaApi.Response.GetBlockState(pos, _gameObjectCancellationToken);
             if (blockStates == null)
             {

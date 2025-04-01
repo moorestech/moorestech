@@ -1409,7 +1409,7 @@
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
       "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
       "name": "原始的な採掘機"
     },

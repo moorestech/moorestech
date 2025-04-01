@@ -457,6 +457,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16c979552fd5a4ef1b4af5e1b6f01f5d
+    m_Address: Vanilla/UI/Block/GearMinerBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
