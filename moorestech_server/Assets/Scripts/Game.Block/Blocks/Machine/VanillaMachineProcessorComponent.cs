@@ -26,6 +26,9 @@ namespace Game.Block.Blocks.Machine
         
         public readonly ElectricPower RequestPower;
         
+        // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
+        // Use this flag because you want to keep _currentPower until the next energy supply or update
+        private bool _usedPower;
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
@@ -72,12 +75,25 @@ namespace Game.Block.Blocks.Machine
         public void SupplyPower(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
+            _usedPower = false;
             _currentPower = power;
+            
+            // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
+            // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
+            if (CurrentState == ProcessState.Idle)
+            {
+                _changeState.OnNext(Unit.Default);
+            }
         }
         
         public void Update()
         {
             BlockException.CheckDestroy(this);
+            if (_usedPower)
+            {
+                _usedPower = false;
+                _currentPower = new ElectricPower(0);
+            }
             
             switch (CurrentState)
             {
@@ -123,7 +139,7 @@ namespace Game.Block.Blocks.Machine
             }
             
             //電力を消費する
-            _currentPower = new ElectricPower(0);
+            _usedPower = true;
         }
         
         public bool IsDestroy { get; private set; }

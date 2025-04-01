@@ -37,6 +37,9 @@ namespace Game.Block.Blocks.Miner
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
         private readonly BlockInstanceId _blockInstanceId;
         
+        // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
+        // Use this flag because you want to keep _currentPower until the next energy supply or update
+        private bool _usedPower;
         private ElectricPower _currentPower;
         
         private float _defaultMiningTime = float.MaxValue;
@@ -96,7 +99,14 @@ namespace Game.Block.Blocks.Miner
         {
             BlockException.CheckDestroy(this);
             
+            _usedPower = false;
             _currentPower = power;
+            // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
+            // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
+            if (_currentState == VanillaMinerState.Idle)
+            {
+                _blockStateChangeSubject.OnNext(Unit.Default);
+            }
         }
         
         public string SaveKey { get; } = typeof(VanillaMinerProcessorComponent).FullName;
@@ -117,6 +127,12 @@ namespace Game.Block.Blocks.Miner
         public void Update()
         {
             BlockException.CheckDestroy(this);
+            
+            if (_usedPower)
+            {
+                _usedPower = false;
+                _currentPower = new ElectricPower(0);
+            }
             
             MinerProgressUpdate();
             InsertConnectInventory();
@@ -154,7 +170,7 @@ namespace Game.Block.Blocks.Miner
                     _openableInventoryItemDataStoreService.InsertItem(_miningItems);
                 }
                 
-                _currentPower = new ElectricPower(0);
+                _usedPower = true;
             }
             
             void CheckStateAndInvokeEventUpdate()
