@@ -10,6 +10,7 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
+using TMPro;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -21,6 +22,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform miningItemSlotParent;
         [SerializeField] private RectTransform minerResultsParent;
         
+        [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView minerProgressArrow;
         
         protected BlockGameObject BlockGameObject;
@@ -75,9 +77,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
             {
                 // ここが重かったら検討
                 var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
-                if (commonProcessor == null) return;
+                if (commonProcessor == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateChangeProcessorがアタッチされていません。");
+                    return;
+                }
                 
-                minerProgressArrow.SetProgress(commonProcessor.CurrentMachineState?.ProcessingRate ?? 0.0f);
+                var state = commonProcessor.CurrentMachineState;
+                minerProgressArrow.SetProgress(state?.ProcessingRate ?? 0.0f);
+                powerRateText.text = $"エネルギー充足率 {state?.PowerRate ?? 0.0f}";
+                
+                if (state == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
+                }
             }
             
   #endregion
