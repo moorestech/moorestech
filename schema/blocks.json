@@ -17,6 +17,12 @@
               },
               "outputFluidSlotCount": {
                   "type": "integer"
+              },
+              "fluidContainerCapacity": {
+                  "type": "number"
+              },
+              "fluidContainerCount": {
+                  "type": "integer"
               }
           }
       },

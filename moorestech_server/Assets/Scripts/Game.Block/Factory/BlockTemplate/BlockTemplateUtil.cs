@@ -36,8 +36,13 @@ namespace Game.Block.Factory.BlockTemplate
             var fluidOutputSlotCount = machineParam.OutputFluidSlotCount;
             
             var input = new VanillaMachineInputInventory(
-                blockId, inputSlotCount,
-                blockInventoryUpdateEvent, blockInstanceId);
+                blockId,
+                inputSlotCount,
+                machineParam.FluidContainerCount,
+                machineParam.FluidContainerCapacity,
+                blockInventoryUpdateEvent,
+                blockInstanceId
+            );
             
             var output = new VanillaMachineOutputInventory(
                 outputSlotCount, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
