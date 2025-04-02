@@ -30,6 +30,8 @@
         "requiredPower": 100,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -1120,6 +1122,8 @@
         "teethCount": 10,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "gear": {
           "gearConnects": [
             {
@@ -1994,6 +1998,8 @@
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2096,6 +2102,8 @@
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2198,6 +2206,8 @@
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2769,6 +2779,8 @@
         "requiredPower": 0,
         "outputSlotCount": 3,
         "inputSlotCount": 3,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2853,6 +2865,8 @@
         "requiredPower": 0,
         "outputSlotCount": 3,
         "inputSlotCount": 3,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
