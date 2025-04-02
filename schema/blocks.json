@@ -11,6 +11,12 @@
               },
               "outputSlotCount": {
                   "type": "integer"
+              },
+              "inputFluidSlotCount": {
+                  "type": "integer"
+              },
+              "outputFluidSlotCount": {
+                  "type": "integer"
               }
           }
       },
@@ -556,7 +562,7 @@
                     "teethCount": {"type": "integer", "default": 10},
                     "requireTorque": {"type": "number", "default": 1},
                     "requiredRpm": {"type": "number", "default": 5},
-                    
+
                     "itemSlotCount": {"type": "integer", "default": 3},
 
                     "miningAreaRange": {
@@ -675,7 +681,7 @@
                 },
                 "then": {
                   "type": "object",
-                  
+
                   "implementationInterface": [
                     "IChestParam"
                   ],
