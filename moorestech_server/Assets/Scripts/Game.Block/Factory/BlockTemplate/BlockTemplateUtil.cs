@@ -24,7 +24,7 @@ namespace Game.Block.Factory.BlockTemplate
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
-        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineFluidInputInventory, VanillaMachineFluidOutputInventory) GetMachineIOInventory(
+        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
@@ -43,19 +43,7 @@ namespace Game.Block.Factory.BlockTemplate
                 outputSlotCount, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
             
-            var fluidInput = new VanillaMachineFluidInputInventory(
-                blockId,
-                blockInstanceId,
-                inputSlotCount
-            );
-            
-            var fluidOutput = new VanillaMachineFluidOutputInventory(
-                blockId,
-                blockInstanceId,
-                outputSlotCount
-            );
-            
-            return (input, output, fluidInput, fluidOutput);
+            return (input, output);
         }
         
         public static VanillaMachineProcessorComponent MachineLoadState(

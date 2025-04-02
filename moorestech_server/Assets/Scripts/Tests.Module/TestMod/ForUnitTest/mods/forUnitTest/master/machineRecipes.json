@@ -225,6 +225,21 @@
       "outputFluids": [],
       "machineRecipeGuid": "38dfacce-beea-4612-8c7c-29112c12409a",
       "blockGuid": "00000000-0000-0000-0000-000000000023"
+    },
+    {
+      "time": 1,
+      "inputItems": [],
+      "outputItems": [],
+      "inputFluids": [
+        {
+          "amount": 1,
+          "fluidGuid": "00000000-0000-0000-1234-000000000001"
+        },
+        {
+          "amount": 2,
+          "fluidGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ]
     }
   ]
 }

@@ -14,8 +14,6 @@ namespace Game.Block.Blocks.Machine
     public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
         private readonly Subject<Unit> _changeState = new();
-        private readonly VanillaMachineFluidInputInventory _vanillaMachineFluidInputInventory;
-        private readonly VanillaMachineFluidOutputInventory _vanillaMachineFluidOutputInventory;
         
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -30,14 +28,10 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            VanillaMachineFluidInputInventory vanillaMachineFluidInputInventory,
-            VanillaMachineFluidOutputInventory vanillaMachineFluidOutputInventory,
             MachineRecipeMasterElement machineRecipe, ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            _vanillaMachineFluidInputInventory = vanillaMachineFluidInputInventory;
-            _vanillaMachineFluidOutputInventory = vanillaMachineFluidOutputInventory;
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
             

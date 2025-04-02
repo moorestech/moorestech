@@ -39,7 +39,7 @@ namespace Game.Block.Factory.BlockTemplate
             BlockConnectorComponent<IBlockInventory> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output, fluidInput, fluidOutput) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
@@ -50,7 +50,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
-            var processor = componentStates == null ? new VanillaMachineProcessorComponent(input, output, fluidInput, fluidOutput, null, requirePower) : BlockTemplateUtil.MachineLoadState(componentStates, input, output, requirePower);
+            var processor = componentStates == null ? new VanillaMachineProcessorComponent(input, output, null, requirePower) : BlockTemplateUtil.MachineLoadState(componentStates, input, output, requirePower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);

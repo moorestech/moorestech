@@ -6,6 +6,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.Inventory
@@ -17,9 +18,11 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineInputInventory
     {
         private readonly BlockId _blockId;
+        private readonly BlockInstanceId _blockInstanceId;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly BlockInstanceId _blockInstanceId;
+        //TODO: ↑のようにする
+        private readonly List<FluidContainer> _fluidContainers;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
         public VanillaMachineInputInventory(BlockId blockId, int inputSlot, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
@@ -31,6 +34,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
         
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
+        public IReadOnlyList<FluidContainer> FluidInputSlot => _fluidContainers;
         
         public bool IsAllowedToStartProcess()
         {
@@ -38,7 +42,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             if (TryGetRecipeElement(out var recipe))
             {
                 //実行できるレシピかどうか
-                return recipe.RecipeConfirmation(_blockId, InputSlot);
+                return recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot);
             }
             return false;
         }
@@ -55,7 +59,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public bool TryGetRecipeElement(out MachineRecipeMasterElement recipe)
         {
-            return MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, out recipe);
+            return MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, FluidInputSlot, out recipe);
         }
         
         public void ReduceInputSlot(MachineRecipeMasterElement recipe)

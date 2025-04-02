@@ -28,9 +28,9 @@ namespace Game.Block.Factory.BlockTemplate
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output, fluidInput, fluidOutput) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
-            var processor = new VanillaMachineProcessorComponent(input, output, fluidInput, fluidOutput, null, new ElectricPower(machineParam.RequiredPower));
+            var processor = new VanillaMachineProcessorComponent(input, output, null, new ElectricPower(machineParam.RequiredPower));
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
@@ -54,7 +54,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output, fluidInput, fluidOutput) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, new ElectricPower(machineParam.RequiredPower));
             
