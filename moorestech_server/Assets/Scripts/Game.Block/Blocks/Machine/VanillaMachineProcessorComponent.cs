@@ -13,13 +13,9 @@ namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
-        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-        
-        public double RemainingSecond { get; private set; }
-        
-        public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
-        public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
+        private readonly VanillaMachineFluidInputInventory _vanillaMachineFluidInputInventory;
+        private readonly VanillaMachineFluidOutputInventory _vanillaMachineFluidOutputInventory;
         
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -34,10 +30,14 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            VanillaMachineFluidInputInventory vanillaMachineFluidInputInventory,
+            VanillaMachineFluidOutputInventory vanillaMachineFluidOutputInventory,
             MachineRecipeMasterElement machineRecipe, ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
+            _vanillaMachineFluidInputInventory = vanillaMachineFluidInputInventory;
+            _vanillaMachineFluidOutputInventory = vanillaMachineFluidOutputInventory;
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
             
@@ -59,6 +59,12 @@ namespace Game.Block.Blocks.Machine
             
             CurrentState = currentState;
         }
+        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
+        
+        public double RemainingSecond { get; private set; }
+        
+        public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
+        public IObservable<Unit> OnChangeBlockState => _changeState;
         
         
         public BlockStateDetail GetBlockStateDetail()
@@ -71,10 +77,10 @@ namespace Game.Block.Blocks.Machine
             return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, currentState);
         }
         
-        public void SupplyPower(ElectricPower power)
+        public bool IsDestroy { get; private set; }
+        public void Destroy()
         {
-            BlockException.CheckDestroy(this);
-            _currentPower = power;
+            IsDestroy = true;
         }
         
         public void Update()
@@ -99,12 +105,18 @@ namespace Game.Block.Blocks.Machine
             }
         }
         
+        public void SupplyPower(ElectricPower power)
+        {
+            BlockException.CheckDestroy(this);
+            _currentPower = power;
+        }
+        
         private void Idle()
         {
             var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
             var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
-                   _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
-                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+                                 _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
+                                 _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
             
             if (isStartProcess)
             {
@@ -126,12 +138,6 @@ namespace Game.Block.Blocks.Machine
             
             //電力を消費する
             _currentPower = new ElectricPower(0);
-        }
-        
-        public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
         }
     }
     
