@@ -190,6 +190,12 @@
                       "type": "integer",
                       "default": 1
                     },
+                    "inputFluidSlotCount": {
+                      "type": "integer"
+                    },
+                    "outputFluidSlotCount": {
+                      "type": "integer"
+                    },
                     "requiredPower": {
                       "type": "number",
                       "default": 5
@@ -368,6 +374,12 @@
                     "outputSlotCount": {
                       "type": "integer",
                       "default": 1
+                    },
+                    "inputFluidSlotCount": {
+                      "type": "integer"
+                    },
+                    "outputFluidSlotCount": {
+                      "type": "integer"
                     },
                     "teethCount": {
                       "type": "integer",
