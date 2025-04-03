@@ -23,9 +23,9 @@ properties:
       - 0
       items:
         type: integer
-    - key: soundEffectType
-      type: string
-      enum:
+    - key: soundEffectTyp
+      type: enum
+      options:
       - tree
       - stone
     - key: earnItems
@@ -35,7 +35,10 @@ properties:
         properties:
         - key: itemGuid
           type: uuid
-          foreignKey: items:itemGuid:name
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: "/data/[*]/itemGuid"
+            displayElementPath: "/data/[*]/name"
         - key: minCount
           type: integer
           default: 1
@@ -43,8 +46,8 @@ properties:
           type: integer
           default: 3
     - key: miningType
-      type: string
-      enum:
+      type: enum
+      options:
       - PickUp
       - Mining
     - key: miningParam
@@ -64,7 +67,10 @@ properties:
             properties:
             - key: toolItemGuid
               type: uuid
-              foreignKey: items:itemGuid:name
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: "/data/[*]/itemGuid"
+                displayElementPath: "/data/[*]/name"
             - key: damage
               type: integer
               default: 10
