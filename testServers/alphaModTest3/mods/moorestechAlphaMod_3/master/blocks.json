@@ -111,7 +111,7 @@
         5,
         2
       ],
-      "name": "クランク",
+      "name": "木の風車",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
         "requireTorque": 0,
@@ -432,8 +432,8 @@
       "blockType": "SimpleGearGenerator",
       "blockParam": {
         "requireTorque": 0,
-        "generateTorque": 1,
-        "generateRpm": 30,
+        "generateTorque": 16,
+        "generateRpm": 5,
         "teethCount": 10,
         "gear": {
           "gearConnects": [
@@ -478,7 +478,7 @@
       },
       "itemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
       "blockGuid": "6fc49eb9-d2d7-4ab9-ba0e-17a210719a28",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill"
+      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill blue"
     },
     {
       "blockSize": [
@@ -592,36 +592,72 @@
           "inputConnects": [
             {
               "offset": [
-                1,
+                0,
                 0,
                 0
               ],
               "connectType": "Inventory",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
             }
           ],
           "outputConnects": [
             {
               "offset": [
-                1,
                 0,
-                2
+                0,
+                0
               ],
               "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true
+              },
               "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
                 [
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
-              ],
-              "connectOption": {
-                "isReverse": true
-              }
-            }
-          ]
+              ]
+            }]
         },
         "gear": {
           "gearConnects": [
@@ -1009,7 +1045,7 @@
       "blockParam": {
         "acceleration": -0.2,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 0.5,
+        "initialShootSpeed": 0.7,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [

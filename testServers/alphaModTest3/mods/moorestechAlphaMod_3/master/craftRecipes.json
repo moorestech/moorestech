@@ -283,11 +283,11 @@
       "craftResultItemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
       "requiredItems": [
         {
-          "count": 5,
-          "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73"
+          "count": 15,
+          "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
         },
         {
-          "count": 5,
+          "count": 20,
           "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
         }
       ],
