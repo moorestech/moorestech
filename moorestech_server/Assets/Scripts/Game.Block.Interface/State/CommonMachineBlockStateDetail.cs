@@ -23,22 +23,29 @@ namespace Game.Block.Interface.State
         [Key(1)] public string PreviousStateType;
         
         /// <summary>
+        /// 電力、歯車力などの値
+        /// </summary>
+        [Key(2)] public float CurrentPower;
+        [Key(3)] public float RequestPower;
+        
+        /// <summary>
         ///     必要な電力に対してどの程度電力が来ているかを表す
         ///     アニメーションを再生する速度に利用する
         /// </summary>
-        [Key(2)] public float PowerRate;
+        [IgnoreMember] public float PowerRate => RequestPower == 0 ? 1.0f : CurrentPower / RequestPower;
         
         /// <summary>
         ///     アイテムの作成がどれくらい進んでいるかを表す
         /// </summary>
-        [Key(3)] public float ProcessingRate;
+        [Key(5)] public float ProcessingRate;
         
         public CommonMachineBlockStateDetail(float currentPower, float requestPower, float processingRate, string currentStateType, string previousStateType)
         {
-            PowerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
-            ProcessingRate = processingRate;
             CurrentStateType = currentStateType;
             PreviousStateType = previousStateType;
+            CurrentPower = currentPower;
+            RequestPower = requestPower;
+            ProcessingRate = processingRate;
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

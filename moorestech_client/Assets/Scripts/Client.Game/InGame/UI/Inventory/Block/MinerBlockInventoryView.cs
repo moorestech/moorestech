@@ -84,8 +84,17 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 }
                 
                 var state = commonProcessor.CurrentMachineState;
-                minerProgressArrow.SetProgress(state?.ProcessingRate ?? 0.0f);
-                powerRateText.text = $"エネルギー充足率 {state?.PowerRate ?? 0.0f}";
+                var rate = state?.ProcessingRate ?? 0.0f;
+                minerProgressArrow.SetProgress(rate);
+                
+                var powerRate = state?.PowerRate ?? 0.0f;
+                var requiredPower = state?.RequestPower ?? 0.0f;
+                var currentPower = state?.CurrentPower ?? 0.0f;
+                
+                var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
+                var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
+                
+                powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
                 
                 if (state == null)
                 {
