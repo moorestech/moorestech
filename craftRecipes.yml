@@ -20,6 +20,10 @@ properties:
     - key: craftTime
       type: number
       default: 3
+    - key: initialUnlocked
+      type: boolean
+      default: true
+      optional: true
     - key: requiredItems
       type: array
       items:
