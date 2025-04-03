@@ -174,7 +174,7 @@ namespace Game.Gear.Common
                 var totalGeneratePower = 0f;
                 foreach (var generator in GearGenerators)
                 {
-                    totalGeneratePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateTorque.AsPrimitive();
+                    totalGeneratePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
                 }
                 
                 // 要求されたトルクの量が供給量を上回ってるとき、その量に応じてRPMを減速させる
