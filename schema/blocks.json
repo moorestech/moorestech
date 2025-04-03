@@ -21,6 +21,19 @@
                   "type": "integer"
               }
           }
+      },
+      {
+          "interfaceName": "IGearMachineParam",
+          "properties": {
+            "requireTorque": {
+              "type": "number",
+              "default": 1
+            },
+            "requiredRpm": {
+              "type": "number",
+              "default": 5
+            }
+          }
       }
   ],
   "properties": {
@@ -351,7 +364,8 @@
                 },
                 "then": {
                   "implementationInterface": [
-                    "IMachineParam"
+                    "IMachineParam",
+                    "IGearMachineParam"
                   ],
                   "type": "object",
                   "properties": {
@@ -507,6 +521,9 @@
                   }
                 },
                 "then": {
+                  "implementationInterface": [
+                    "IGearMachineParam"
+                  ],
                   "type": "object",
                   "properties": {
                     "teethCount": {
@@ -549,7 +566,8 @@
                   "type": "object",
 
                   "implementationInterface": [
-                    "IChestParam"
+                    "IChestParam",
+                    "IGearMachineParam"
                   ],
 
                   "properties": {

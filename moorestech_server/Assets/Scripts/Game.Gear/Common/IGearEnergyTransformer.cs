@@ -40,4 +40,23 @@ namespace Game.Gear.Common
             Target = target;
         }
     }
+    
+    public readonly struct GearNetworkInfo
+    {
+        public readonly float TotalRequiredGearPower;
+        public readonly float TotalGenerateGearPower;
+        public readonly float OperatingRate;
+        
+        public GearNetworkInfo(float totalRequiredGearPower, float totalGenerateGearPower, float operatingRate)
+        {
+            TotalRequiredGearPower = totalRequiredGearPower;
+            TotalGenerateGearPower = totalGenerateGearPower;
+            OperatingRate = operatingRate;
+        }
+        
+        public static GearNetworkInfo CreateEmpty()
+        {
+            return new GearNetworkInfo(0, 0, 0);
+        }
+    }
 }
