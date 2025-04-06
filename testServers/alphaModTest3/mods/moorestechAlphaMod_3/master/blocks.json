@@ -274,29 +274,66 @@
           "inputConnects": [
             {
               "offset": [
-                1,
+                0,
                 0,
                 0
               ],
               "connectType": "Inventory",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
             }
           ],
           "outputConnects": [
             {
               "offset": [
-                1,
                 0,
-                2
+                0,
+                0
               ],
               "connectType": "Inventory",
               "directions": [
                 [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
               ],
               "connectOption": {
@@ -657,7 +694,8 @@
                   -1
                 ]
               ]
-            }]
+            }
+          ]
         },
         "gear": {
           "gearConnects": [
@@ -1246,7 +1284,7 @@
         3,
         1
       ],
-      "name": "BigTestGear",
+      "name": "大きな歯車",
       "blockType": "Gear",
       "blockParam": {
         "requireTorque": 0,

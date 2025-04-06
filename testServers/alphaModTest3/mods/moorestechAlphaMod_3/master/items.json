@@ -370,7 +370,7 @@
       "initialUnlocked": true,
       "sortPriority": 530,
       "maxStack": 100,
-      "name": "鉄塊",
+      "name": "鉄インゴット",
       "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
       "recipeViewType": "ForceShow"
     },
