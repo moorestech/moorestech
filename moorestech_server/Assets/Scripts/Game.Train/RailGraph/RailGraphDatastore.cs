@@ -26,7 +26,9 @@ namespace Game.Train.RailGraph
         private List<RailNode> railNodes;
         private MinHeap<int> nextidQueue;//railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
         private List<List<(int, int)>> connectNodes;
-        private Dictionary<int, ConnectionDestination> railIdToComponentId;//Nodeに対応するRailComponentIDとをその表裏を保存する。セーブ・ロード用のみ
+        private Dictionary<int, ConnectionDestination> railIdToComponentId;//RailNodeに対応するRailComponentIDを記憶する。セーブ・ロード用のみ。接続情報をセーブするとき(座標,表裏)→(座標,表裏)という形式にしたいため。
+
+
 
         // コンストラクタは private にして外部から new を禁止
         // →やっぱDIが使用できるよう、コンストラクタをpublicに変更

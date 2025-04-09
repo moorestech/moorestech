@@ -8,6 +8,7 @@ using Mooresmaster.Model.BlocksModule;
 using Game.Train.RailGraph;
 using Newtonsoft.Json;
 using Game.Context;
+using Game.Block.Blocks.Chest;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -72,7 +73,7 @@ namespace Game.Block.Factory.BlockTemplate
             BlockPositionInfo blockPositionInfo)
         {
             // セーブデータ(JSON)を取得・復元
-            string json = componentStates["RailSaverComponent"];
+            string json = componentStates[typeof(RailSaverComponent).FullName];
             var railSaverData = JsonConvert.DeserializeObject<RailSaverData>(json);
             
             int count = railSaverData.Values.Count;

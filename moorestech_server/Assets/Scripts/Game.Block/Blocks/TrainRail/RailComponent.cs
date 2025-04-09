@@ -19,13 +19,13 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
 
-        private BlockPositionInfo componentPositionInfo;
+        private BlockPositionInfo componentPositionInfo;//ブロック座標ではなくコンポーネントの理論座標。つまり本当のレールの位置に対応。型はBlockだけど注意
         private float bezierStrength = 0.5f;
 
         public RailControlPoint FrontRailControlPoint { get; }
         public RailControlPoint BackRailControlPoint { get; }
 
-        // RailSaverComponent からみた自分の通し番号を含む識別子
+        // ブロック座標とIDが格納されている
         public RailComponentID RailComponentID { get; }
 
         /// <summary>
