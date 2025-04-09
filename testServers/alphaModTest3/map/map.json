@@ -2012,13 +2012,13 @@
   ],
   "mapVeins": [
     {
-      "veinItemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
-      "minX": 7,
-      "minY": 3,
-      "minZ": -17,
-      "maxX": 10,
-      "maxY": 4,
-      "maxZ": -14
+      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+      "minX": 3,
+      "minY": 2,
+      "minZ": -23,
+      "maxX": 6,
+      "maxY": 3,
+      "maxZ": -20
     },
     {
       "veinItemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d",
@@ -2030,13 +2030,13 @@
       "maxZ": -49
     },
     {
-      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
-      "minX": 3,
-      "minY": -1,
-      "minZ": -26,
-      "maxX": 6,
-      "maxY": 1,
-      "maxZ": -23
+      "veinItemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+      "minX": -8,
+      "minY": 3,
+      "minZ": -13,
+      "maxX": -5,
+      "maxY": 4,
+      "maxZ": -10
     }
   ]
 }

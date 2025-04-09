@@ -182,29 +182,66 @@
           "inputConnects": [
             {
               "offset": [
-                1,
+                0,
                 0,
                 0
               ],
               "connectType": "Inventory",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
             }
           ],
           "outputConnects": [
             {
               "offset": [
-                1,
                 0,
-                2
+                0,
+                0
               ],
               "connectType": "Inventory",
               "directions": [
                 [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
               ],
               "connectOption": {
@@ -747,7 +784,7 @@
       "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 1,
+        "requireTorque": 0.2,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -764,43 +801,13 @@
               },
               "directions": [
                 [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  -1,
-                  -1
-                ],
-                [
-                  0,
-                  -1,
-                  1
-                ],
-                [
                   1,
                   0,
                   0
                 ],
                 [
                   -1,
-                  -1,
-                  0
-                ],
-                [
-                  1,
-                  -1,
+                  0,
                   0
                 ]
               ]
@@ -884,7 +891,8 @@
         "downBlockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
         "horizontalBlockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
       },
-      "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor"
+      "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -895,7 +903,7 @@
       "name": "上り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 1,
+        "requireTorque": 0.2,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -977,7 +985,8 @@
       },
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
-      "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up"
+      "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -988,7 +997,7 @@
       "name": "下り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 1,
+        "requireTorque": 0.2,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1070,7 +1079,8 @@
       },
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
-      "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down"
+      "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -1083,7 +1093,7 @@
       "blockParam": {
         "acceleration": -0.2,
         "itemShootSpeed": 1,
-        "initialShootSpeed": 0.7,
+        "initialShootSpeed": 0.4,
         "inventoryItemNum": 4,
         "inventoryConnectors": {
           "outputConnects": [
@@ -1699,6 +1709,115 @@
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "Shaft",
+      "blockParam": {
+        "requireTorque": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
+      "name": "縦シャフト",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Vertical",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "blockGuid": "0ab4b8c3-6f23-47bc-9b58-bb90def565fe"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "itemGuid": "6713e841-9756-497c-a60d-327ed1e1edc8",
+      "name": "シャフトボックス",
+      "blockType": "Shaft",
+      "blockParam": {
+        "requireTorque": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box"
     }
   ]
 }
