@@ -1,4 +1,48 @@
 {
   "data": [
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "summary": "小石を2個拾う",
+      "title": "小石を2個拾う",
+      "displayListType": "Display",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "IconItem": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+      },
+      "playSkitType": "None",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 2,
+        "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+      },
+      "tutorials": [
+        {
+          "tutorialType": "mapObjectPin",
+          "tutorialParam": {
+            "pinText": "左クリックで拾う",
+            "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871"
+          }
+        }
+      ],
+      "clearedActions": [
+        {
+          "clearedActionType": "unlockItemRecipeView",
+          "clearedActionParam": {
+            "unlockItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+          }
+        }
+      ],
+      "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583"
+    }
   ]
 }
