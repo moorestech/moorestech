@@ -49,6 +49,34 @@
         }
       ],
       "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583"
+    },
+    {
+      "summary": "石器を作る",
+      "title": "石器を作る",
+      "playSkitType": "None",
+      "taskCompletionType": "createItem",
+      "displayListType": "Display",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ]
+      },
+      "prevChallengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
+      "clearedActions": [],
+      "taskParam": {
+        "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+      },
+      "tutorials": [
+        {
+          "tutorialType": "keyControl",
+          "tutorialParam": {
+            "controlText": "Tabを押してインベントリを開く",
+            "uiState": "GameScreen"
+          }
+        }
+      ],
+      "challengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc"
     }
   ]
 }
