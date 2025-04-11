@@ -9,8 +9,6 @@ using Newtonsoft.Json;
 using Game.Context;
 using Game.Block.Interface.Extension;
 using UnityEngine;
-using Game.Block.Blocks.Chest;
-using Game.Block.Blocks.Service;
 
 namespace Game.Block.Factory.BlockTemplate
 {

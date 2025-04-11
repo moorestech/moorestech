@@ -4,17 +4,17 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
-using Game.Context;
 using Game.Train.RailGraph;
 using Newtonsoft.Json;
+using Game.Context;
+using Game.Block.Interface.Extension;
 using UnityEngine;
+
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaTrainCargoTemplate : IBlockTemplate
     {
-
-
         /// <summary>
         /// 新規にブロック（および対応するRailComponent等）を生成する
         /// </summary>
@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             }
 
             var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
-            var station = new StationComponent(stationParam.PlatformDistance, "test", 1);
+            var station = new CargoplatformComponent(stationParam.PlatformDistance, stationParam.InputSlotCount, stationParam.OutputSlotCount);
 
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -57,8 +57,8 @@ namespace Game.Block.Factory.BlockTemplate
             // 復元したRailComponentを管理するRailSaverComponentを作成
             var railSaverComponent = new RailSaverComponent(railComponents);
 
-            var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            var station = new StationComponent(stationParam.StationDistance, "test", 1);
+            var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
+            var station = new CargoplatformComponent(stationParam.PlatformDistance, stationParam.InputSlotCount, stationParam.OutputSlotCount);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
