@@ -155,7 +155,7 @@
                 "tutorialType": {
                   "type": "string",
                   "default": "uiHighLight",
-                  "enum": ["mapObjectPin", "keyControl", "uiHighLight"]
+                  "enum": ["mapObjectPin", "keyControl", "uiHighLight","itemViewHighLight"]
                 },
 
                 "tutorialParam": {
@@ -214,6 +214,27 @@
                           "highLightUIObjectId": {
                             "type": "string",
                             "default": "ui object id"
+                          },
+                          "highLightText": {
+                            "type": "string",
+                            "default": "highlight text"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "tutorialType": { "const": "itemViewHighLight" }
+                        }
+                      },
+                      "then": {
+                        "type": "object",
+                        "properties": {
+                          "highLightItemGuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "foreignKey": "items:itemGuid:name"
                           },
                           "highLightText": {
                             "type": "string",
