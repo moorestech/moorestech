@@ -1022,16 +1022,27 @@ namespace Tests.UnitTest.Game
                 //trainUnit.UpdateTrainByDistance(3601237);//ここでエラーがでた
             }
 
-
         }
 
 
 
+        [Test]
+
+        public void StationDirection()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            // 1) 駅をつくってrailcomponentの座標を確認
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
+
+            // RailComponent を取得
+            var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
+            var railComponentA = railcompos.RailComponents[0];
+            var railComponentB = railcompos.RailComponents[1];
 
 
 
-
-
+        }
 
     }
 }
