@@ -8,7 +8,7 @@ using Mooresmaster.Model.BlocksModule;
 using Game.Train.RailGraph;
 using Newtonsoft.Json;
 using Game.Context;
-using Game.Block.Blocks.Chest;
+using UnityEngine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             for (int i = 0; i < railComponents.Length; i++)
             {
                 var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, i);
-                railComponents[i] = new RailComponent(blockPositionInfo, railComponentId);
+                railComponents[i] = new RailComponent(new Vector3(0.5f, 0.5f, 0.5f) + blockPositionInfo.OriginalPos, blockPositionInfo.BlockDirection, railComponentId);
             }
 
             // コンポーネントをまとめてブロックに登録
@@ -83,7 +83,7 @@ namespace Game.Block.Factory.BlockTemplate
             for (int i = 0; i < count; i++)
             {
                 var info = railSaverData.Values[i];
-                railComponents[i] = new RailComponent(blockPositionInfo, info.MyID);
+                railComponents[i] = new RailComponent(new Vector3(0.5f, 0.5f, 0.5f) + blockPositionInfo.OriginalPos, blockPositionInfo.BlockDirection, info.MyID);
                 // ベジェ強度などを設定
                 railComponents[i].ChangeBezierStrength(info.BezierStrength);
             }

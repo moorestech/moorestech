@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
 
-        private BlockPositionInfo componentPositionInfo;//ブロック座標ではなくコンポーネントの理論座標。つまり本当のレールの位置に対応。型はBlockだけど注意
+        
         private float bezierStrength = 0.5f;
 
         public RailControlPoint FrontRailControlPoint { get; }
@@ -27,18 +27,21 @@ namespace Game.Block.Blocks.TrainRail
 
         // ブロック座標とIDが格納されている
         public RailComponentID RailComponentID { get; }
+        private BlockDirection blockDirection;
+        private Vector3 componentPosition;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public RailComponent(BlockPositionInfo positionInfo, RailComponentID railComponentID = null)
+        public RailComponent(Vector3 myComponentPosition, BlockDirection blockDirection_, RailComponentID railComponentID = null)
         {
+            componentPosition = myComponentPosition;
+            blockDirection = blockDirection_;
             RailComponentID = railComponentID;
-            componentPositionInfo = positionInfo;
-
+            
             // ベジェ曲線の制御点
-            FrontRailControlPoint = new RailControlPoint(positionInfo.OriginalPos, GetControlPoint(true));
-            BackRailControlPoint = new RailControlPoint(positionInfo.OriginalPos, GetControlPoint(false));
+            FrontRailControlPoint = new RailControlPoint(myComponentPosition, GetControlPoint(true));
+            BackRailControlPoint = new RailControlPoint(myComponentPosition, GetControlPoint(false));
 
             // RailNode を作成して RailGraph に登録
             FrontNode = new RailNode();
@@ -152,7 +155,6 @@ namespace Game.Block.Blocks.TrainRail
             var myControlPoint = isFrontThis ? FrontRailControlPoint : BackRailControlPoint;
             var targetControlPoint = isFrontTarget ? targetRail.BackRailControlPoint : targetRail.FrontRailControlPoint;
 
-            // 実際にはスケーリング等の係数をかけて距離に変換
             float rawLength = BezierUtility.GetBezierCurveLength(myControlPoint, targetControlPoint);
             float scaled = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
             return (int)(scaled + 0.5f);
@@ -164,7 +166,7 @@ namespace Game.Block.Blocks.TrainRail
         private Vector3 GetControlPoint(bool isFront)
         {
             // 想定：dirは North, East, South, West のみ
-            var dir = componentPositionInfo.BlockDirection;
+            var dir = blockDirection;
             Vector3 direction = Vector3.zero;
 
             switch (dir)

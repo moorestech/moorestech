@@ -8,24 +8,12 @@ using Game.Train.RailGraph;
 using Newtonsoft.Json;
 using Game.Context;
 using Game.Block.Interface.Extension;
-
+using UnityEngine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaTrainStationTemplate : IBlockTemplate
     {
-        /*
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
-        {
-            var transformer = new RailComponent(blockPositionInfo);
-            var components = new List<IBlockComponent>
-            {
-                transformer,
-            };
-
-            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
-        }
-        */
         /// <summary>
         /// 新規にブロック（と対応するRailComponent等）を生成
         /// </summary>
@@ -37,12 +25,12 @@ namespace Game.Block.Factory.BlockTemplate
             // stationは常にRailComponentが2つ
             var railComponents = new RailComponent[2];
             var railSaver = new RailSaverComponent(railComponents);
-
-            // RailComponentを生成
+            var railComponentVec3pos = CalcRailComponentVec3pos(blockPositionInfo);
+            // RailComponentを生成。場所の計算は↑
             for (int i = 0; i < railComponents.Length; i++)
             {
-                var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, i);///////////////要修正 TODO
-                railComponents[i] = new RailComponent(blockPositionInfo, railComponentId);
+                var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, i);
+                railComponents[i] = new RailComponent(railComponentVec3pos[i], blockPositionInfo.BlockDirection, railComponentId);
             }
 
             // コンポーネントをまとめてブロックに登録
@@ -52,17 +40,6 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
-        /*
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
-        {
-            var transformer = new RailComponent(blockPositionInfo);
-            var components = new List<IBlockComponent>
-            {
-                transformer,
-            };
-
-            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
-        }*/
         public IBlock Load(
         Dictionary<string, string> componentStates,
         BlockMasterElement blockMasterElement,
@@ -71,7 +48,6 @@ namespace Game.Block.Factory.BlockTemplate
         {
             // RailComponent群を復元
             var railComponents = LoadRailComponents(componentStates, blockPositionInfo);
-
             // 生成したRailComponentをまとめるRailSaverComponentを作成
             var railSaver = new RailSaverComponent(railComponents);
 
@@ -83,25 +59,29 @@ namespace Game.Block.Factory.BlockTemplate
         }
 
 
+
+
         /// <summary>
         /// RailSaverComponentに相当するJSON文字列をもとにRailComponent配列を復元する
+        /// TODO? VanillaTrainRailTemplateと同じなので共通化したい
         /// </summary>
         private RailComponent[] LoadRailComponents(
             Dictionary<string, string> componentStates,
             BlockPositionInfo blockPositionInfo)
         {
             // セーブデータ(JSON)を取得・復元
-            string json = componentStates["RailSaverComponent"];
+            string json = componentStates[typeof(RailSaverComponent).FullName];
             var railSaverData = JsonConvert.DeserializeObject<RailSaverData>(json);
 
             int count = railSaverData.Values.Count;
             var railComponents = new RailComponent[count];
+            var railComponentVec3pos = CalcRailComponentVec3pos(blockPositionInfo);
 
             // まずRailComponent自体を生成
             for (int i = 0; i < count; i++)
             {
                 var info = railSaverData.Values[i];
-                railComponents[i] = new RailComponent(blockPositionInfo, info.MyID);
+                railComponents[i] = new RailComponent(railComponentVec3pos[i], blockPositionInfo.BlockDirection, info.MyID);
                 // ベジェ強度などを設定
                 railComponents[i].ChangeBezierStrength(info.BezierStrength);
             }
@@ -123,12 +103,13 @@ namespace Game.Block.Factory.BlockTemplate
                     TryConnect(railComponent, connDest, isFrontThis: false);
                 }
             }
-
             return railComponents;
         }
 
+
         /// <summary>
         /// 実際にRailComponentの接続を行うヘルパーメソッド
+        /// TODO? VanillaTrainRailTemplateと同じなので共通化したい
         /// </summary>
         private void TryConnect(RailComponent fromRail, ConnectionDestination connDest, bool isFrontThis)
         {
@@ -156,110 +137,24 @@ namespace Game.Block.Factory.BlockTemplate
             fromRail.ConnectRailComponent(targetRail, isFrontThis, isFrontTarget);
         }
 
-
+        private Vector3[] CalcRailComponentVec3pos(BlockPositionInfo blockPositionInfo) 
+        {
+            var blockDirection = blockPositionInfo.BlockDirection;
+            Vector3 blockBaseOriginPos = blockDirection.GetBlockBaseOriginPos(blockPositionInfo);
+            var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
+            Vector3Int blocksize = blockPositionInfo.BlockSize;
+            Vector3 point0 = blockPosConvertAction(new Vector3Int(0, 0, 0));
+            Vector3 point1 = blockPosConvertAction(new Vector3Int(0, 0, blocksize.z));
+            Vector3 point2 = blockPosConvertAction(new Vector3Int(blocksize.x, 0, 0));
+            Vector3 point3 = blockPosConvertAction(new Vector3Int(blocksize.x, 0, blocksize.z));
+            Vector3[] railComponentVec3pos = new Vector3[2];
+            railComponentVec3pos[0] = (point0 + point1) * 0.5f + blockBaseOriginPos;
+            railComponentVec3pos[1] = (point2 + point3) * 0.5f + blockBaseOriginPos;
+            Debug.Log($"railComponentVec3pos[0]: {railComponentVec3pos[0]}");
+            Debug.Log($"railComponentVec3pos[1]: {railComponentVec3pos[1]}");
+            return railComponentVec3pos;
+        }
 
     }
 }
 
-
-/*
-using System.Collections.Generic;
-using Game.Block.Blocks;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlocksModule;
-using Game.Block.Blocks.TrainRail;
-using System.Collections.Generic;
-using Game.Block.Blocks;
-using Game.Block.Blocks.TrainRail;
-using Game.Block.Component;
-using Game.Block.Event;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Context;
-using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json;
-
-namespace Game.Block.Factory.BlockTemplate
-{
-    public class VanillaTrainStationTemplate : IBlockTemplate
-    {
-        private readonly BlockOpenableInventoryUpdateEvent _openableInventoryUpdateEvent;
-
-        public VanillaTrainStationTemplate(BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
-        {
-            _openableInventoryUpdateEvent = openableInventoryUpdateEvent;
-        }
-
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
-        {
-            // 駅ブロックが持つインベントリスロット数などを Param から取得
-            var param = blockMasterElement.BlockParam as TrainStationBlockParam;
-            var stationLength = param.StationLength;
-            var inventorySlotCount = param.ItemSlotCount;
-
-            // インベントリ接続用コンポーネントを作成
-            var connector = new BlockConnectorComponent<IBlockInventory>(
-                param.InventoryConnectors.InputConnects,
-                param.InventoryConnectors.OutputConnects,
-                blockPositionInfo
-            );
-
-            // 駅コンポーネントを作成
-            var stationComponent = new StationComponent(
-                blockInstanceId,
-                stationLength,
-                "MyTrainStation",
-                inventorySlotCount,
-                _openableInventoryUpdateEvent
-            );
-
-            // コンポーネントをまとめて返す
-            var components = new List<IBlockComponent>
-            {
-                stationComponent,
-                connector // ベルトコンベア等と繋がる
-            };
-            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
-        }
-
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement,
-            BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
-        {
-            var param = blockMasterElement.BlockParam as TrainStationBlockParam;
-            var stationLength = param.StationLength;
-            var inventorySlotCount = param.ItemSlotCount;
-
-            // インベントリ接続用コンポーネント
-            var connector = new BlockConnectorComponent<IBlockInventory>(
-                param.InventoryConnectors.InputConnects,
-                param.InventoryConnectors.OutputConnects,
-                blockPositionInfo
-            );
-
-            // 駅コンポーネントを作成
-            var stationComponent = new StationComponent(
-                blockInstanceId,
-                stationLength,
-                "MyTrainStation",
-                inventorySlotCount,
-                _openableInventoryUpdateEvent
-            );
-
-            // セーブ文字列を読み込む (あれば)
-            if (componentStates.TryGetValue(stationComponent.SaveKey, out var savedJson))
-            {
-                stationComponent.LoadFromJsonString(savedJson);
-            }
-
-            var components = new List<IBlockComponent>
-            {
-                stationComponent,
-                connector
-            };
-            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
-        }
-    }
-}
-
-*/

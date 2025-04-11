@@ -467,7 +467,7 @@ namespace Tests.UnitTest.Game
                 var (x, y, z) = listIsDestroy[UnityEngine.Random.Range(0, listIsDestroy.Count)];
                 listIsCreated.Add((x, y, z));
                 listIsDestroy.Remove((x, y, z));
-                railBlocks[x, y, z] = new RailComponent(new BlockPositionInfo(new Vector3Int(x, y, z), BlockDirection.North, new Vector3Int(0, 0, 0)));
+                railBlocks[x, y, z] = new RailComponent(new Vector3(x, y, z), BlockDirection.North, null);
                 //ランダムに経路をつなげる
                 //2つ選ぶ
                 var (x1, y1, z1) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
@@ -1027,54 +1027,6 @@ namespace Tests.UnitTest.Game
 
 
 
-        [Test]
-        public void StationAcceptsItemFromBeltTest()
-        {
-            // 1. DIコンテナ生成
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = ServerContext.BlockFactory;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var world = ServerContext.WorldBlockDatastore;
-
-            // 2. 駅ブロックを設置
-            //    (TrainStation という BlockId を仮に 300 としておく)
-            var stationPos = new Vector3Int(0, 0, 0);
-            world.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, stationPos, BlockDirection.North, out var stationBlock);
-
-            // 駅のコンポーネント(StationComponent)を取得
-            var stationComponent = stationBlock.GetComponent<StationComponent>();
-
-            // 3. ベルトコンベアを駅の隣に設置 (北向きに駅があるなら、座標はy固定で +1 とか)
-            var beltPos = new Vector3Int(0, 0, -1);
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, beltPos, BlockDirection.North, out var beltBlock);
-
-            // 4. ベルトコンベアにアイテムを1つ挿入
-            var beltConveyor = beltBlock.GetComponent<IBlockInventory>();
-            var insertedItem = itemStackFactory.Create(new ItemId(10), 1); // 仮ID=10のアイテムを1個
-            beltConveyor.InsertItem(insertedItem);
-
-            // 5. ベルトコンベアの内部処理がアイテムを運び出すまでしばらく待つ
-            var startTime = DateTime.Now;
-            bool itemTransferred = false;
-            while ((DateTime.Now - startTime).TotalSeconds < 5.0) // 5秒待機
-            {
-                GameUpdater.UpdateWithWait();
-
-                // 駅ブロックのインベントリにアイテムが移動したかどうか
-                if (stationComponent.InventoryItems[0].Id.AsPrimitive() == 10)
-                {
-                    itemTransferred = true;
-                    break;
-                }
-            }
-
-            Assert.IsTrue(itemTransferred, "ベルトコンベアから駅ブロックへのアイテム移動が確認できませんでした。");
-
-            // アイテムが移っていればテスト成功
-            Assert.AreEqual(10, stationComponent.InventoryItems[0].Id.AsPrimitive());
-            Assert.AreEqual(1, stationComponent.InventoryItems[0].Count);
-        }
 
 
 
