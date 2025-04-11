@@ -36,7 +36,7 @@ namespace Client.Game.InGame.UI.Challenge
             
             void SetUI()
             {
-                var param = (DisplayDisplayListParam)challengeMasterElement.DisplayListParam;
+                var param = challengeMasterElement.DisplayListParam;
                 // 位置の指定
                 // Position specification
                 rectTransform.anchoredPosition = param.UIPosition;
