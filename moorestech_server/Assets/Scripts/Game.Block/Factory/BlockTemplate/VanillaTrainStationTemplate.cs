@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class TrainStationBlockTemplate : IBlockTemplate
+    public class VanillaTrainStationTemplate : IBlockTemplate
     {
         /// <summary>
         /// 新規にブロック（および対応するRailComponent等）を生成する
@@ -147,8 +147,6 @@ namespace Game.Block.Factory.BlockTemplate
             Vector3[] componentPositions = new Vector3[2];
             componentPositions[0] = (corner0 + corner1) * 0.5f + baseOriginPosition;
             componentPositions[1] = (corner2 + corner3) * 0.5f + baseOriginPosition;
-            Debug.Log($"RailComponent position 0: {componentPositions[0]}");
-            Debug.Log($"RailComponent position 1: {componentPositions[1]}");
             return componentPositions;
         }
     }

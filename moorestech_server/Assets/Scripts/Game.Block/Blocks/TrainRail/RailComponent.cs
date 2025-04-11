@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.TrainRail
         // ブロック座標とIDが格納されている
         public RailComponentID ComponentID { get; }
         private BlockDirection railBlockDirection;
-        public Vector3 Position { get; }
+        public Vector3 Position { get; }//ブロックではなくレールのつなぎ目としてのこのcomponentの位置
 
         /// <summary>
         /// コンストラクタ

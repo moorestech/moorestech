@@ -85,7 +85,7 @@ namespace Game.Block.Factory.BlockTemplate
                 var info = railSaverData.Values[i];
                 railComponents[i] = new RailComponent(new Vector3(0.5f, 0.5f, 0.5f) + blockPositionInfo.OriginalPos, blockPositionInfo.BlockDirection, info.MyID);
                 // ベジェ強度などを設定
-                railComponents[i].ChangeBezierStrength(info.BezierStrength);
+                railComponents[i].UpdateControlPointStrength(info.BezierStrength);
             }
 
             // 接続情報を復元（Front/Back）
