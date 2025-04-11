@@ -63,10 +63,10 @@ namespace Client.Game.InGame.UI.Challenge
                     {
                         case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe :
                             var recipeGuids = ((UnlockCraftRecipeClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockRecipeGuids;
+                            var unlockRecipeText = "レシピ解放: \n\t";
                             foreach (var guid in recipeGuids)
                             {
                                 var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(guid);
-                                var unlockRecipeText = "レシピ解放: \n\t";
                                 foreach (var requiredItem in recipe.RequiredItems)
                                 {
                                     var requiredItemMaster = MasterHolder.ItemMaster.GetItemMaster(requiredItem.ItemGuid);
@@ -76,6 +76,15 @@ namespace Client.Game.InGame.UI.Challenge
                                 unlockRecipeText += $"\n\t=> {resultItemMaster.Name}x{recipe.CraftResultCount}";
                                 
                                 clearedActionsTest += unlockRecipeText;
+                            }
+                            break;
+                        case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView :
+                            var itemGuids = ((UnlockItemRecipeViewClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockItemGuids;
+                            clearedActionsTest += $"アイテム解放: ";
+                            foreach (var guid in itemGuids)
+                            {
+                                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(guid);
+                                clearedActionsTest += $"\n\t{itemMaster.Name}";
                             }
                             break;
                     }

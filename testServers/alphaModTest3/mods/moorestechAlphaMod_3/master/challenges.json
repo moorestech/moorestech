@@ -38,17 +38,14 @@
         {
           "clearedActionType": "unlockItemRecipeView",
           "clearedActionParam": {
-            "0": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
-            "1": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
             "unlockItemGuids": [
-              "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
-              "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
               "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
             ]
           }
         }
       ],
-      "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583"
+      "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
+      "playSkitParam": {}
     },
     {
       "summary": "石器を作る",
@@ -58,12 +55,23 @@
       "displayListType": "Display",
       "displayListParam": {
         "UIPosition": [
-          0,
+          300,
           0
-        ]
+        ],
+        "IconItem": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
       },
       "prevChallengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
-      "clearedActions": [],
+      "clearedActions": [
+        {
+          "clearedActionType": "unlockItemRecipeView",
+          "clearedActionParam": {
+            "unlockItemGuids": [
+              "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+              "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+            ]
+          }
+        }
+      ],
       "taskParam": {
         "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
       },
@@ -74,9 +82,85 @@
             "controlText": "Tabを押してインベントリを開く",
             "uiState": "GameScreen"
           }
+        },
+        {
+          "tutorialType": "itemViewHighLight",
+          "tutorialParam": {
+            "highLightText": "アイテムを選択",
+            "highLightItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+          }
         }
       ],
-      "challengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc"
+      "challengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc",
+      "playSkitParam": {}
+    },
+    {
+      "initialUnlocked": true,
+      "craftTime": 3,
+      "craftResultCount": 1,
+      "summary": "ブッシュを伐採する",
+      "title": "ブッシュを伐採する",
+      "sortPriority": 100,
+      "maxStack": 100,
+      "prevChallengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc",
+      "playSkitType": "None",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 1,
+        "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
+      },
+      "displayListType": "Display",
+      "displayListParam": {
+        "UIPosition": [
+          600,
+          0
+        ],
+        "IconItem": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+      },
+      "tutorials": [
+        {
+          "tutorialType": "mapObjectPin",
+          "tutorialParam": {
+            "pinText": "ブッシュを伐採する",
+            "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf"
+          }
+        }
+      ],
+      "clearedActions": [
+        {
+          "clearedActionType": "unlockItemRecipeView",
+          "clearedActionParam": {
+            "unlockItemGuids": [
+              "5def2be9-1bfa-4d6b-b827-8d82712bf70b",
+              "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+            ]
+          }
+        }
+      ],
+      "challengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
+      "playSkitParam": {}
+    },
+    {
+      "summary": "石器のハンマーを作る",
+      "title": "石器のハンマーを作る",
+      "prevChallengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
+      "taskCompletionType": "createItem",
+      "taskParam": {
+        "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+      },
+      "challengeGuid": "8fb53727-935e-4d44-bcfc-064123f15a0a",
+      "displayListType": "Display",
+      "displayListParam": {
+        "UIPosition": [
+          900,
+          0
+        ],
+        "IconItem": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+      },
+      "playSkitParam": {},
+      "playSkitType": "None",
+      "tutorials": [],
+      "clearedActions": []
     }
   ]
 }
