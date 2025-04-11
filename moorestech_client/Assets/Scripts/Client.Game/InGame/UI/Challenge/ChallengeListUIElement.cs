@@ -62,18 +62,21 @@ namespace Client.Game.InGame.UI.Challenge
                     switch (clearedActionsElement.ClearedActionType)
                     {
                         case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe :
-                            var recipeGuid = ((UnlockCraftRecipeClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockRecipeGuid;
-                            var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(recipeGuid);
-                            var unlockRecipeText = "レシピ解放: \n\t";
-                            foreach (var requiredItem in recipe.RequiredItems)
+                            var recipeGuids = ((UnlockCraftRecipeClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockRecipeGuids;
+                            foreach (var guid in recipeGuids)
                             {
-                                var requiredItemMaster = MasterHolder.ItemMaster.GetItemMaster(requiredItem.ItemGuid);
-                                unlockRecipeText += $"{requiredItemMaster.Name}x{requiredItem.Count} ";
+                                var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(guid);
+                                var unlockRecipeText = "レシピ解放: \n\t";
+                                foreach (var requiredItem in recipe.RequiredItems)
+                                {
+                                    var requiredItemMaster = MasterHolder.ItemMaster.GetItemMaster(requiredItem.ItemGuid);
+                                    unlockRecipeText += $"{requiredItemMaster.Name}x{requiredItem.Count} ";
+                                }
+                                var resultItemMaster = MasterHolder.ItemMaster.GetItemMaster(recipe.CraftResultItemGuid);
+                                unlockRecipeText += $"\n\t=> {resultItemMaster.Name}x{recipe.CraftResultCount}";
+                                
+                                clearedActionsTest += unlockRecipeText;
                             }
-                            var resultItemMaster = MasterHolder.ItemMaster.GetItemMaster(recipe.CraftResultItemGuid);
-                            unlockRecipeText += $"\n\t=> {resultItemMaster.Name}x{recipe.CraftResultCount}";
-                            
-                            clearedActionsTest += unlockRecipeText;
                             break;
                     }
                 }

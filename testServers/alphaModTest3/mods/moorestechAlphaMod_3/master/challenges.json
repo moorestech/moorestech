@@ -38,7 +38,13 @@
         {
           "clearedActionType": "unlockItemRecipeView",
           "clearedActionParam": {
-            "unlockItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+            "0": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
+            "1": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+            "unlockItemGuids": [
+              "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
+              "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+              "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+            ]
           }
         }
       ],
