@@ -4,18 +4,17 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
+using Game.Context;
 using Game.Train.RailGraph;
 using Newtonsoft.Json;
-using Game.Context;
-using Game.Block.Interface.Extension;
 using UnityEngine;
-using Game.Block.Blocks.Chest;
-using Game.Block.Blocks.Service;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class VanillaTrainStationTemplate : IBlockTemplate
+    public class VanillaTrainCargoTemplate : IBlockTemplate
     {
+
+
         /// <summary>
         /// 新規にブロック（および対応するRailComponent等）を生成する
         /// </summary>
@@ -36,8 +35,8 @@ namespace Game.Block.Factory.BlockTemplate
                 railComponents[i] = new RailComponent(railComponentPositions[i], positionInfo.BlockDirection, componentId);
             }
 
-            var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            var station = new StationComponent(stationParam.StationDistance, "test", 1);
+            var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
+            var station = new StationComponent(stationParam.PlatformDistance, "test", 1);
 
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -164,4 +163,11 @@ namespace Game.Block.Factory.BlockTemplate
             return componentPositions;
         }
     }
+
+
+
+
+
+
+}
 }
