@@ -250,10 +250,16 @@
                       "then": {
                         "type": "object",
                         "properties": {
-                          "unlockRecipeGuid": {
-                            "type": "string",
-                            "format": "uuid",
-                            "foreignKey": "craftRecipes:craftRecipeGuid:craftRecipeGuid"
+                          
+                          "unlockRecipeGuids": {
+
+                            "type": "array",
+
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "foreignKey": "craftRecipes:craftRecipeGuid:craftRecipeGuid"
+                            }
                           }
                         }
                       }
@@ -267,11 +273,18 @@
                       "then": {
                         "type": "object",
                         "properties": {
-                          "unlockItemGuid": {
-                            "type": "string",
-                            "format": "uuid",
-                            "foreignKey": "items:itemGuid:name"
+
+                          "unlockItemGuids": {
+
+                            "type": "array",
+
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "foreignKey": "items:itemGuid:name"
+                            }
                           }
+
                         }
                       }
                     }
