@@ -13,8 +13,6 @@ namespace Client.Game.InGame.Tutorial
 {
     public class MapObjectPin : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
-        public const string TutorialType = "mapObjectPin";
-        
         [SerializeField] private TMP_Text pinText;
         
         private InGameCameraController _inGameCameraController;
