@@ -257,7 +257,7 @@
 
                 "clearedActionType": {
                   "type": "string",
-                  "enum": ["unlockCraftRecipe", "unlockItemRecipeView"]
+                  "enum": ["unlockCraftRecipe", "unlockItemRecipeView", "unlockChallenge"]
                 },
 
                 "clearedActionParam": {
@@ -308,6 +308,30 @@
 
                         }
                       }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "clearedActionType": { "const": "unlockChallenge" }
+                        }
+                      },
+                      "then": {
+                        "type": "object",
+                        "properties": {
+
+                          "unlockItemGuids": {
+
+                            "type": "array",
+
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "foreignKey": "challenges:challengeGuid:title"
+                            }
+                          }
+
+                        }
+                      }
                     }
 
                   ]
@@ -319,60 +343,48 @@
           "displayListType" :{
             "type": "string",
             "default": "createItem",
-            "enum": ["NotDisplay", "Display"],
+            "enum": ["IsUnlocked", "ForceShow", "ForceHide"],
 
             "$memo": "ここはbooleanにしたいけど、コード生成側の都合で出来ないのでいったんstringにしている"
           },
 
           "displayListParam": {
-            "oneOf": [
-              {
-                "if": {
-                  "properties": {
-                    "displayListType": { "const": "Display" }
-                  }
+            "type": "object",
+            "properties": {
+
+              "UIPosition": {
+                "type": "array",
+                "pattern": "@vector2",
+                "items": {
+                  "type": "number"
                 },
-                "then": {
-                  "type": "object",
-                  "properties": {
+                "default": [0,0],
 
-                    "UIPosition": {
-                      "type": "array",
-                      "pattern": "@vector2",
-                      "items": {
-                        "type": "number"
-                      },
-                      "default": [0,0],
-
-                      "overrideCodeGeneratePropertyName": "DisplayInChallengeListPosition"
-                    },
-
-                    "IconItem": {
-                      "type": "string",
-                      "format": "uuid",
-                      "foreignKey": "items:itemGuid:name",
-                      "optional": true,
-
-                      "overrideCodeGeneratePropertyName": "DisplayInChallengeListIconItemGuid"
-                    }
-
-                  }
-                }
+                "overrideCodeGeneratePropertyName": "DisplayInChallengeListPosition"
               },
-              {
-                "if": {
-                  "properties": {
-                    "displayListType": { "const": "NotDisplay" }
-                  }
-                },
-                "then": {
-                  "type": "object",
-                  "properties": {
 
-                  }
-                }
+              "UIScale": {
+                "type": "array",
+                "pattern": "@vector3",
+                "items": {
+                  "type": "number"
+                },
+                "default": [0,0,0],
+
+                "overrideCodeGeneratePropertyName": "DisplayInChallengeListScale"
+              },
+
+              "IconItem": {
+                "type": "string",
+                "format": "uuid",
+                "foreignKey": "items:itemGuid:name",
+                "optional": true,
+
+                "overrideCodeGeneratePropertyName": "DisplayInChallengeListIconItemGuid"
               }
-            ]
+
+            }
+
           }
         }
       }
