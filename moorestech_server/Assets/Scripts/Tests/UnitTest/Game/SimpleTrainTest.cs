@@ -1057,9 +1057,9 @@ namespace Tests.UnitTest.Game
 
             for (int i = 0; i < 4; i++)
             {
-                var direction = (BlockDirection)i + 4;
+                var direction = (BlockDirection)4 + i;
                 // 1) 駅をつくってrailcomponentの座標を確認
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), direction, out var stationBlockA);
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 5 * i, 0), direction, out var stationBlockA);
                 // RailComponent を取得
                 var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
                 //2つあるかassert

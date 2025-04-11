@@ -141,12 +141,16 @@ namespace Game.Block.Factory.BlockTemplate
             var coordinateConverter = blockDirection.GetCoordinateConvertAction();
             Vector3Int blockSize = positionInfo.BlockSize;
             Vector3 corner0 = coordinateConverter(new Vector3Int(0, 0, 0));
-            Vector3 corner1 = coordinateConverter(new Vector3Int(0, 0, blockSize.z));
-            Vector3 corner2 = coordinateConverter(new Vector3Int(blockSize.x, 0, 0));
-            Vector3 corner3 = coordinateConverter(new Vector3Int(blockSize.x, 0, blockSize.z));
+            Vector3 corner1 = coordinateConverter(new Vector3Int(0, 0, blockSize.z - 1));
+            Vector3 corner2 = coordinateConverter(new Vector3Int(-1, 0, 0));
+            Vector3 corner3 = coordinateConverter(new Vector3Int(-1, 0, blockSize.z - 1));
+            Vector3 corner4 = coordinateConverter(new Vector3Int(blockSize.x - 1, 0, 0));
+            Vector3 corner5 = coordinateConverter(new Vector3Int(blockSize.x - 1, 0, blockSize.z - 1));
+            Vector3 corner6 = coordinateConverter(new Vector3Int(blockSize.x, 0, 0));
+            Vector3 corner7 = coordinateConverter(new Vector3Int(blockSize.x, 0, blockSize.z - 1));
             Vector3[] componentPositions = new Vector3[2];
-            componentPositions[0] = (corner0 + corner1) * 0.5f + baseOriginPosition;
-            componentPositions[1] = (corner2 + corner3) * 0.5f + baseOriginPosition;
+            componentPositions[0] = (corner0 + corner1 + corner2 + corner3) * 0.25f + baseOriginPosition + new Vector3(0.5f, 0.5f, 0.5f);
+            componentPositions[1] = (corner4 + corner5 + corner6 + corner7) * 0.25f + baseOriginPosition + new Vector3(0.5f, 0.5f, 0.5f);
             return componentPositions;
         }
     }
