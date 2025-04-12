@@ -201,7 +201,8 @@
         "UIPosition": [
           1000,
           150
-        ]
+        ],
+        "IconItem": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
       },
       "summary": "木を採掘する",
       "title": "木を採掘する",
@@ -231,7 +232,8 @@
         "UIPosition": [
           1000,
           -150
-        ]
+        ],
+        "IconItem": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
       },
       "summary": "石を採掘",
       "title": "石を採掘",
@@ -260,7 +262,8 @@
         "UIPosition": [
           1300,
           0
-        ]
+        ],
+        "IconItem": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
       },
       "summary": "石のツルハシを作る",
       "title": "石のツルハシを作る",
