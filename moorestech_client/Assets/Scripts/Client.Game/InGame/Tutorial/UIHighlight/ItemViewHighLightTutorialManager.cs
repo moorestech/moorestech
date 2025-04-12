@@ -14,20 +14,11 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             var highlightParam = (ItemViewHighLightTutorialParam)param;
             
             // アイテムリストのハイライトオブジェクトIDを取得
+            // Get the item list highlight object ID
             var itemViewObjectId = string.Format(ItemListView.ItemRecipeListHighlightKey, highlightParam.HighLightItemGuid);
             
-            // ハイライトを設定
-            var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
-            foreach (var targetObject in highlightTargetObjects)
-            {
-                if (targetObject.HighlightObjectId != itemViewObjectId) continue;
-                
-                var highlightView = Instantiate(highlightTutorialViewPrefab, transform);
-                highlightView.SetTargetObject(targetObject, highlightParam.HighLightText);
-                return highlightView;
-            }
-            
-            return null;
+            var text = highlightParam.HighLightText;
+            return UIHighlightTutorialManager.SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, itemViewObjectId, text);
         }
     }
 }
