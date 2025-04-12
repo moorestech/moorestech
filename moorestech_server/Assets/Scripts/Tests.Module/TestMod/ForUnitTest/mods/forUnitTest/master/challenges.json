@@ -123,7 +123,40 @@
           0
         ],
         "IconItem": "00000000-0000-0000-1234-000000000001"
-      }
+      },
+      "prevChallengeGuids": [
+        "00000000-0000-0000-4567-000000000001"
+      ]
+    },
+    {
+      "displayListParam": {
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "UIPosition": [
+          0,
+          0
+        ]
+      },
+      "summary": "テスト3、テスト4をクリアしたら始まるチャレンジ",
+      "title": "テスト5",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": [],
+      "clearedActions": [],
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 1,
+        "itemGuid": "00000000-0000-0000-1234-000000000005"
+      },
+      "displayListType": "IsUnlocked",
+      "prevChallengeGuids": [
+        "00000000-0000-0000-4567-000000000004",
+        "00000000-0000-0000-4567-000000000001"
+      ],
+      "challengeGuid": "00000000-0000-0000-4567-000000000005"
     }
   ]
 }

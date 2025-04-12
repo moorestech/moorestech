@@ -87,8 +87,14 @@ namespace Game.Challenge
             var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             foreach (var nextChallengeMaster in nextChallenges)
             {
-                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
+                // 先行チャレンジが全て完了しているかチェック
+                var prevChallenges = nextChallengeMaster.PrevChallengeGuids;
+                if (prevChallenges == null || !prevChallenges.All(prevGuid => challengeInfo.CompletedChallengeGuids.Contains(prevGuid))) continue;
                 
+                // 既にCurrentChallengeに含まれていないかチェック (重複追加防止)
+                if (challengeInfo.CurrentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == nextChallengeMaster.ChallengeGuid)) continue;
+                
+                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
                 var nextChallenge = CreateChallenge(playerId, challengeElement);
                 challengeInfo.CurrentChallenges.Add(nextChallenge);
             }
@@ -151,7 +157,15 @@ namespace Game.Challenge
                     var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(Guid.Parse(completedId));
                     foreach (var nextChallenge in nextChallenges)
                     {
-                        if (challengeJsonObject.CompletedGuids.Contains(nextChallenge.ToString())) continue;
+                        // 既に完了済みならスキップ
+                        if (challengeJsonObject.CompletedGuids.Contains(nextChallenge.ChallengeGuid.ToString())) continue;
+
+                        // 先行チャレンジが全て完了しているかチェック
+                        var prevChallenges = nextChallenge.PrevChallengeGuids;
+                        if (prevChallenges == null || !prevChallenges.All(prevGuid => challengeJsonObject.CompletedGuids.Contains(prevGuid.ToString()))) continue;
+                        
+                        // 既にcurrentChallengesに含まれていないかチェック (重複追加防止)
+                        if (currentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == nextChallenge.ChallengeGuid)) continue;
                         
                         var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
                         var initialChallenge = CreateChallenge(playerId, challengeElement);
