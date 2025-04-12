@@ -89,8 +89,13 @@ namespace Game.Challenge
             {
                 var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
                 
-                var nextChallenge = CreateChallenge(playerId, challengeElement);
-                challengeInfo.CurrentChallenges.Add(nextChallenge);
+                // 前提条件となるチャレンジがすべてクリア済みかチェック
+                // Check if all prerequisite challenges have been cleared
+                if (IsAllPrevChallengesCompleted(challengeInfo, challengeElement))
+                {
+                    var nextChallenge = CreateChallenge(playerId, challengeElement);
+                    challengeInfo.CurrentChallenges.Add(nextChallenge);
+                }
             }
             
             // イベントを発行
@@ -122,6 +127,26 @@ namespace Game.Challenge
             }
         }
         
+        // 前提条件となるチャレンジがすべてクリア済みかチェックするメソッド
+        // Method to check if all prerequisite challenges have been cleared
+        private bool IsAllPrevChallengesCompleted(PlayerChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
+        {
+            // 前提条件がない場合は常に開始可能
+            // If there are no prerequisites, it can always be started
+            if (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0)
+                return true;
+            
+            // すべての前提条件がクリア済みかチェック
+            // Check if all prerequisites have been cleared
+            foreach (var prevGuid in challengeElement.PrevChallengeGuids)
+            {
+                if (!challengeInfo.CompletedChallengeGuids.Contains(prevGuid))
+                    return false;
+            }
+            
+            return true;
+        }
+        
         #region SaveLoad
         
         public void LoadChallenge(List<ChallengeJsonObject> challengeJsonObjects)
@@ -142,6 +167,10 @@ namespace Game.Challenge
                     currentChallenges.Add(initialChallenge);
                 }
                 
+                // 完了したチャレンジのGUIDリストを作成
+                var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
+                var playerChallengeInfo = new PlayerChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
+                
                 // CurrentChallengeを作成
                 foreach (var completedId in challengeJsonObject.CompletedGuids)
                 {
@@ -154,12 +183,16 @@ namespace Game.Challenge
                         if (challengeJsonObject.CompletedGuids.Contains(nextChallenge.ToString())) continue;
                         
                         var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
-                        var initialChallenge = CreateChallenge(playerId, challengeElement);
-                        currentChallenges.Add(initialChallenge);
+                        
+                        // 前提条件となるチャレンジがすべてクリア済みかチェック
+                        if (IsAllPrevChallengesCompleted(playerChallengeInfo, challengeElement))
+                        {
+                            var initialChallenge = CreateChallenge(playerId, challengeElement);
+                            currentChallenges.Add(initialChallenge);
+                        }
                     }
                 }
                 
-                var completedChallengeIds =  challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
                 _playerChallengeInfos.Add(playerId, new PlayerChallengeInfo(currentChallenges, completedChallengeIds));
             }
         }
