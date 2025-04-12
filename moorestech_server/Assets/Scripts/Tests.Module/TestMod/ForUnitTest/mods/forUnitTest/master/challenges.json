@@ -17,7 +17,13 @@
         "UIPosition": [
           0,
           0
-        ]
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
       }
     },
     {
@@ -36,13 +42,17 @@
         {
           "clearedActionType": "unlockCraftRecipe",
           "clearedActionParam": {
-            "unlockRecipeGuid": "00000010-0000-0000-0000-000000000002"
+            "unlockRecipeGuids": [
+              "00000010-0000-0000-0000-000000000002"
+            ]
           }
         },
         {
           "clearedActionType": "unlockItemRecipeView",
           "clearedActionParam": {
-            "unlockItemGuid": "00000000-0000-0000-1234-000000000003"
+            "unlockItemGuids": [
+              "00000000-0000-0000-1234-000000000003"
+            ]
           }
         }
       ],
@@ -51,7 +61,13 @@
         "UIPosition": [
           0,
           0
-        ]
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
       }
     },
     {
@@ -72,7 +88,13 @@
         "UIPosition": [
           0,
           0
-        ]
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
       }
     },
     {
@@ -94,7 +116,13 @@
         "UIPosition": [
           0,
           0
-        ]
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
       }
     }
   ]

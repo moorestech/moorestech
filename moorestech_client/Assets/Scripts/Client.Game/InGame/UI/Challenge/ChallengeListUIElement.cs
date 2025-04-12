@@ -106,25 +106,38 @@ namespace Client.Game.InGame.UI.Challenge
             
             // 前のチャレンジがある場合、線を引く
             // If there is a previous challenge, draw a line
-            var prev = ChallengeMasterElement.PrevChallengeGuid;
-            if (!prev.HasValue) return;
-            if (!challengeListUIElements.TryGetValue(prev.Value, out var prevChallengeListUIElement)) return;
+            var prevGuids = ChallengeMasterElement.PrevChallengeGuids;
+            foreach (var prev in prevGuids)
+            {
+                if (!challengeListUIElements.TryGetValue(prev, out var prevChallengeListUIElement)) return;
+                
+                // 線を引く
+                // Draw a line
+                CreateLine(prevChallengeListUIElement);
+            }
             
-            // 線の長さと角度を計算して適用
-            // Calculate and apply the length and angle of the line
-            var currentPosition = AnchoredPosition;
-            var targetPosition = prevChallengeListUIElement.AnchoredPosition;
+            #region Internal
             
-            connectLineParent.gameObject.SetActive(true);
-            var distance = Vector2.Distance(currentPosition, targetPosition);
-            connectLineParent.sizeDelta = new Vector2(distance, connectLineParent.sizeDelta.y);
+            void CreateLine(ChallengeListUIElement prevChallengeListUI)
+            {
+                // 線の長さと角度を計算して適用
+                // Calculate and apply the length and angle of the line
+                var currentPosition = AnchoredPosition;
+                var targetPosition = prevChallengeListUI.AnchoredPosition;
+                
+                connectLineParent.gameObject.SetActive(true);
+                var distance = Vector2.Distance(currentPosition, targetPosition);
+                connectLineParent.sizeDelta = new Vector2(distance, connectLineParent.sizeDelta.y);
+                
+                var angle = Mathf.Atan2(targetPosition.y - currentPosition.y, targetPosition.x - currentPosition.x) * Mathf.Rad2Deg;
+                connectLineParent.localEulerAngles = new Vector3(0, 0, angle);
+                
+                // 親の位置を変更
+                // Change the parent's position
+                connectLineParent.SetParent(lineParent);
+            }
             
-            var angle = Mathf.Atan2(targetPosition.y - currentPosition.y, targetPosition.x - currentPosition.x) * Mathf.Rad2Deg;
-            connectLineParent.localEulerAngles = new Vector3(0, 0, angle);
-            
-            // 親の位置を変更
-            // Change the parent's position
-            connectLineParent.SetParent(lineParent);
+  #endregion
         }
         
         public void SetStatus(ChallengeListUIElementState challengeListUIElementState)
