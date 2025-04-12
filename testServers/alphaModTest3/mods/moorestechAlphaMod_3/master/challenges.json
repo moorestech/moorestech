@@ -9,8 +9,8 @@
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
-      "summary": "小石を2個拾う",
-      "title": "小石を2個拾う",
+      "summary": "小石を3個拾う",
+      "title": "小石を3個拾う",
       "displayListType": "ForceShow",
       "displayListParam": {
         "UIPosition": [
@@ -27,7 +27,7 @@
       "playSkitType": "None",
       "taskCompletionType": "inInventoryItem",
       "taskParam": {
-        "itemCount": 2,
+        "itemCount": 3,
         "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
       },
       "tutorials": [
@@ -98,6 +98,13 @@
           "tutorialParam": {
             "highLightText": "アイテムを選択",
             "highLightItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+          }
+        },
+        {
+          "tutorialType": "uiHighLight",
+          "tutorialParam": {
+            "highLightText": "長押しでクラフト",
+            "highLightUIObjectId": "craftButton"
           }
         }
       ],

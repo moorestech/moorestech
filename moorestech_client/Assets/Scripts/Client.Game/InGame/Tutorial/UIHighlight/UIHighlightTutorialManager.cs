@@ -12,13 +12,20 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var highlightParam = (UiHighLightTutorialParam)param;
             
+            var objectId = highlightParam.HighLightUIObjectId;
+            var text = highlightParam.HighLightText;
+            return SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, objectId, text);
+        }
+        
+        public static ITutorialView SetHighLightTargetObject(UIHighlightTutorialView prefab, Transform parent, string targetId, string setText)
+        {
             var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
             foreach (var targetObject in highlightTargetObjects)
             {
-                if (targetObject.HighlightObjectId != highlightParam.HighLightUIObjectId) continue;
+                if (targetObject.HighlightObjectId != targetId) continue;
                 
-                var highlightView = Instantiate(highlightTutorialViewPrefab, transform);
-                highlightView.SetTargetObject(targetObject, highlightParam.HighLightText);
+                var highlightView = Instantiate(prefab, parent);
+                highlightView.SetTargetObject(targetObject, targetId, setText);
                 return highlightView;
             }
             
