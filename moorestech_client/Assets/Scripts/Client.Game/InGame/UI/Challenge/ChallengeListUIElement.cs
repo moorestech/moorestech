@@ -16,7 +16,15 @@ namespace Client.Game.InGame.UI.Challenge
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private ItemSlotObject itemSlotObject;
-        [SerializeField] private GameObject connectLinePrefab; // プレハブとして扱うGameObject
+        [SerializeField] private RectTransform connectLineParent;
+        
+        // 接続線のプレハブ
+        // Connection line prefab
+        [SerializeField] private RectTransform connectLinePrefab;
+        
+        // 生成された接続線のリスト
+        // List of generated connection lines
+        private List<RectTransform> _connectLines = new List<RectTransform>();
         
         [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
@@ -100,6 +108,10 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ChallengeListUIElement> challengeListUIElements)
         {
+            // 既存の接続線をクリア
+            // Clear existing connection lines
+            ClearConnectLines();
+            
             // 前のチャレンジがある場合、線を引く
             // If there is a previous challenge, draw a line
             var prevGuids = ChallengeMasterElement.PrevChallengeGuids;
@@ -109,33 +121,102 @@ namespace Client.Game.InGame.UI.Challenge
             {
                 if (!challengeListUIElements.TryGetValue(prev, out var prevChallengeListUIElement)) continue;
                 
-                // プレハブから線のインスタンスを生成
-                var lineInstance = Instantiate(connectLinePrefab, lineParent);
-                var lineRectTransform = lineInstance.GetComponent<RectTransform>();
-                if (lineRectTransform == null)
-                {
-                    Debug.LogError("Connect line prefab does not have a RectTransform component.");
-                    Destroy(lineInstance); // エラーの場合はインスタンスを破棄
-                    continue;
-                }
-                
+                // 線を引く
+                // Draw a line
+                CreateLine(prevChallengeListUIElement, lineParent);
+            }
+            
+            #region Internal
+            
+            void CreateLine(ChallengeListUIElement prevChallengeListUI, Transform parent)
+            {
                 // 線の長さと角度を計算して適用
+                // Calculate and apply the length and angle of the line
                 var currentPosition = AnchoredPosition;
-                var targetPosition = prevChallengeListUIElement.AnchoredPosition;
+                var targetPosition = prevChallengeListUI.AnchoredPosition;
+                
+                // 接続線を取得または作成
+                // Get or create connection line
+                RectTransform connectLine = GetConnectLine();
+                connectLine.gameObject.SetActive(true);
                 
                 var distance = Vector2.Distance(currentPosition, targetPosition);
-                lineRectTransform.sizeDelta = new Vector2(distance, lineRectTransform.sizeDelta.y);
+                connectLine.sizeDelta = new Vector2(distance, connectLine.sizeDelta.y);
                 
                 var angle = Mathf.Atan2(targetPosition.y - currentPosition.y, targetPosition.x - currentPosition.x) * Mathf.Rad2Deg;
-                lineRectTransform.localEulerAngles = new Vector3(0, 0, angle);
-                lineRectTransform.anchoredPosition = currentPosition; // 線の開始位置を現在の要素に合わせる
+                connectLine.localEulerAngles = new Vector3(0, 0, angle);
+                
+                // 親の位置を変更
+                // Change the parent's position
+                connectLine.SetParent(parent);
+                
+                // 接続線リストに追加
+                // Add to connection line list
+                _connectLines.Add(connectLine);
             }
+            
+            RectTransform GetConnectLine()
+            {
+                // 最初の接続線は既存のものを使用
+                // Use existing connection line for the first one
+                if (_connectLines.Count == 0 && connectLineParent != null)
+                {
+                    return connectLineParent;
+                }
+                
+                // 追加の接続線はプレハブからインスタンス化
+                // Instantiate additional connection lines from prefab
+                RectTransform newLine;
+                if (connectLinePrefab != null)
+                {
+                    newLine = Instantiate(connectLinePrefab, transform);
+                }
+                else
+                {
+                    // プレハブが設定されていない場合は既存の線をコピー
+                    // If prefab is not set, copy the existing line
+                    newLine = Instantiate(connectLineParent, transform);
+                }
+                
+                return newLine;
+            }
+            
+  #endregion
+        }
+        
+        private void ClearConnectLines()
+        {
+            // 最初の接続線（connectLineParent）は非アクティブにする
+            // Deactivate the first connection line (connectLineParent)
+            if (connectLineParent != null)
+            {
+                connectLineParent.gameObject.SetActive(false);
+            }
+            
+            // 追加で生成された接続線を削除
+            // Destroy additionally generated connection lines
+            for (int i = 0; i < _connectLines.Count; i++)
+            {
+                if (_connectLines[i] != connectLineParent && _connectLines[i] != null)
+                {
+                    Destroy(_connectLines[i].gameObject);
+                }
+            }
+            
+            _connectLines.Clear();
         }
         
         public void SetStatus(ChallengeListUIElementState challengeListUIElementState)
         {
             completedObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Completed);
             currentObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Current);
+        }
+        
+        private void OnDestroy()
+        {
+            // 生成された接続線を削除
+            // Destroy generated connection lines
+            ClearConnectLines();
         }
     }
     
