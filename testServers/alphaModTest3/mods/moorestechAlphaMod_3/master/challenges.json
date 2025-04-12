@@ -237,6 +237,37 @@
           0
         ],
         "UIPosition": [
+          1200,
+          150
+        ],
+        "IconItem": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
+      },
+      "summary": "木材を作る",
+      "title": "木材を作る",
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "playSkitType": "None",
+      "taskCompletionType": "createItem",
+      "displayListType": "ForceShow",
+      "prevChallengeGuids": [
+        "87ff05b0-4d10-4a0d-952d-e725f2004fe4"
+      ],
+      "taskParam": {
+        "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
+      },
+      "clearedActions": [],
+      "tutorials": [],
+      "challengeGuid": "5addda6c-aa79-4d88-835c-8fd1a1ce021a"
+    },
+    {
+      "displayListParam": {
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "UIPosition": [
           1000,
           -150
         ],
@@ -292,37 +323,6 @@
       "playSkitParam": {},
       "clearedActions": [],
       "tutorials": []
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          0,
-          0,
-          0
-        ],
-        "UIPosition": [
-          1200,
-          150
-        ],
-        "IconItem": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
-      },
-      "summary": "木材を作る",
-      "title": "木材を作る",
-      "initialUnlocked": true,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "playSkitType": "None",
-      "taskCompletionType": "createItem",
-      "displayListType": "ForceShow",
-      "prevChallengeGuids": [
-        "87ff05b0-4d10-4a0d-952d-e725f2004fe4"
-      ],
-      "taskParam": {
-        "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
-      },
-      "clearedActions": [],
-      "tutorials": [],
-      "challengeGuid": "5addda6c-aa79-4d88-835c-8fd1a1ce021a"
     }
   ]
 }
