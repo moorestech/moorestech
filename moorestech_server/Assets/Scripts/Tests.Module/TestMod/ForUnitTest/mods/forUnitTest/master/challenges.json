@@ -105,8 +105,39 @@
         "itemCount": 3,
         "itemGuid": "00000000-0000-0000-1234-000000000003"
       },
-      "prevChallengeGuid": "00000000-0000-0000-4567-000000000001",
+      "prevChallengeGuids": ["00000000-0000-0000-4567-000000000001"],
       "challengeGuid": "00000000-0000-0000-4567-000000000004",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": [],
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
+      }
+    },
+    {
+      "summary": "テスト1とテスト2の両方をクリアしたら始まるチャレンジ（AND条件）",
+      "title": "テスト5（AND条件）",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 2,
+        "itemGuid": "00000000-0000-0000-1234-000000000001"
+      },
+      "prevChallengeGuids": [
+        "00000000-0000-0000-4567-000000000001",
+        "00000000-0000-0000-4567-000000000002"
+      ],
+      "challengeGuid": "00000000-0000-0000-4567-000000000005",
       "playSkitType": "None",
       "playSkitParam": {},
       "tutorials": [],
