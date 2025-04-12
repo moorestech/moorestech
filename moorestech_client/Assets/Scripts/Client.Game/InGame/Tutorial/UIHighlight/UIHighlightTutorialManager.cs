@@ -14,11 +14,18 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             
             var objectId = highlightParam.HighLightUIObjectId;
             var text = highlightParam.HighLightText;
-            return SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, objectId, text);
+            return SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, objectId, text, false);
         }
         
-        public static ITutorialView SetHighLightTargetObject(UIHighlightTutorialView prefab, Transform parent, string targetId, string setText)
+        public static ITutorialView SetHighLightTargetObject(UIHighlightTutorialView prefab, Transform parent, string targetId, string setText, bool forceCreate)
         {
+            if (forceCreate)
+            {
+                var highlightView = Instantiate(prefab, parent);
+                highlightView.SetTargetObject(null, targetId, setText);
+                return highlightView;
+            }
+            
             var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
             foreach (var targetObject in highlightTargetObjects)
             {
@@ -29,6 +36,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
                 return highlightView;
             }
             
+            Debug.LogError($"ハイライトのターゲットが見つかりませんでした: {targetId}\n本文：{setText}");
             return null;
         }
     }
