@@ -5,7 +5,6 @@ using Core.Master;
 using Core.Update;
 using Game.Challenge.Task;
 using Game.Challenge.Task.Factory;
-using Game.Context;
 using Game.UnlockState;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
@@ -89,9 +88,11 @@ namespace Game.Challenge
             {
                 var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
                 
-                // 前提条件となるチャレンジがすべてクリア済みかチェック
-                // Check if all prerequisite challenges have been cleared
-                if (IsAllPrevChallengesCompleted(challengeInfo, challengeElement))
+                // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
+                // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
+                var isUnlocked = gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
+                var isCompleted = IsChallengesCompleted(challengeInfo, challengeElement);
+                if (isCompleted && isUnlocked)
                 {
                     var nextChallenge = CreateChallenge(playerId, challengeElement);
                     challengeInfo.CurrentChallenges.Add(nextChallenge);
@@ -123,14 +124,26 @@ namespace Game.Challenge
                             gameUnlockStateDataController.UnlockItem(itemId);
                         }
                         break;
+                    case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
+                        var unlockChallengeParam = (UnlockChallengeClearedActionParam) action.ClearedActionParam;
+                        foreach (var guid in unlockChallengeParam.UnlockChallengeGuids)
+                        {
+                            gameUnlockStateDataController.UnlockChallenge(guid);
+                        }
+                        break;
                 }
             }
         }
         
-        // 前提条件となるチャレンジがすべてクリア済みかチェックするメソッド
-        // Method to check if all prerequisite challenges have been cleared
-        private bool IsAllPrevChallengesCompleted(PlayerChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
+        // チャレンジがコンプリートできるかをチェック
+        // Check if the challenge can be completed
+        private bool IsChallengesCompleted(PlayerChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
         {
+            // チャレンジがアンロックされていない場合はクリアできない
+            // If the challenge is not unlocked, it cannot be cleared
+            var isUnlocked = gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
+            if (!isUnlocked) return false;
+            
             // 前提条件がない場合は常に開始可能
             // If there are no prerequisites, it can always be started
             if (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0)
@@ -163,8 +176,14 @@ namespace Game.Challenge
                     if (challengeJsonObject.CompletedGuids.Contains(initialChallengeGuid.ToString())) continue;
                     
                     var challenge = MasterHolder.ChallengeMaster.GetChallenge(initialChallengeGuid);
-                    var initialChallenge = CreateChallenge(playerId, challenge);
-                    currentChallenges.Add(initialChallenge);
+                    // 初期チャレンジもアンロック状態を確認 (通常はアンロックされているはず)
+                    // Check unlock state for initial challenges as well (usually unlocked)
+                    var isUnlocked = gameUnlockStateDataController.ChallengeUnlockStateInfos[challenge.ChallengeGuid].IsUnlocked;
+                    if (isUnlocked)
+                    {
+                        var initialChallenge = CreateChallenge(playerId, challenge);
+                        currentChallenges.Add(initialChallenge);
+                    }
                 }
                 
                 // 完了したチャレンジのGUIDリストを作成
@@ -184,11 +203,16 @@ namespace Game.Challenge
                         
                         var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
                         
-                        // 前提条件となるチャレンジがすべてクリア済みかチェック
-                        if (IsAllPrevChallengesCompleted(playerChallengeInfo, challengeElement))
+                        // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
+                        // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
+                        if (IsChallengesCompleted(playerChallengeInfo, challengeElement))
                         {
                             var initialChallenge = CreateChallenge(playerId, challengeElement);
-                            currentChallenges.Add(initialChallenge);
+                            // 既にcurrentChallengesに含まれていないか確認してから追加
+                            if (currentChallenges.All(c => c.ChallengeMasterElement.ChallengeGuid != initialChallenge.ChallengeMasterElement.ChallengeGuid))
+                            {
+                                currentChallenges.Add(initialChallenge);
+                            }
                         }
                     }
                 }
