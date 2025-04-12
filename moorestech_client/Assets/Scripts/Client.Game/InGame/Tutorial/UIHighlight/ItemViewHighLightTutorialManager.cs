@@ -18,7 +18,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             var itemViewObjectId = string.Format(ItemListView.ItemRecipeListHighlightKey, highlightParam.HighLightItemGuid);
             
             var text = highlightParam.HighLightText;
-            return UIHighlightTutorialManager.SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, itemViewObjectId, text);
+            const bool forceCreate = true; // アイテムビューのオブジェクトは必ずしもチュートリアル実行時に存在するとは限らないため強制作成する
+            return UIHighlightTutorialManager.SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, itemViewObjectId, text, forceCreate);
         }
     }
 }

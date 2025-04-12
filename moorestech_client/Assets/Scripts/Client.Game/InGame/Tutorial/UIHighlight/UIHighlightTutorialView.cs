@@ -28,10 +28,12 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             if (_highlightTutorialTargetObject == null)
             {
+                highlightObject.SetActive(false);
                 _highlightTutorialTargetObject = null;
                 
                 // ハイライトのターゲットを探索
                 // Search for the highlight target
+                // TODO 効率が悪いので改善したい
                 var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
                 foreach (var targetObject in highlightTargetObjects)
                 {
