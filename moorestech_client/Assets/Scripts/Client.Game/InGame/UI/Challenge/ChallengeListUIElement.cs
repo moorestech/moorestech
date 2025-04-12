@@ -16,7 +16,7 @@ namespace Client.Game.InGame.UI.Challenge
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private ItemSlotObject itemSlotObject;
-        [SerializeField] private RectTransform connectLineParent;
+        [SerializeField] private GameObject connectLinePrefab; // プレハブとして扱うGameObject
         
         [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
@@ -100,10 +100,6 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ChallengeListUIElement> challengeListUIElements)
         {
-            // 線のオブジェクトをオフにしておく
-            // Turn off the line object
-            connectLineParent.gameObject.SetActive(false);
-            
             // 前のチャレンジがある場合、線を引く
             // If there is a previous challenge, draw a line
             var prevGuids = ChallengeMasterElement.PrevChallengeGuids;
@@ -113,33 +109,27 @@ namespace Client.Game.InGame.UI.Challenge
             {
                 if (!challengeListUIElements.TryGetValue(prev, out var prevChallengeListUIElement)) continue;
                 
-                // 線を引く
-                // Draw a line
-                CreateLine(prevChallengeListUIElement);
-            }
-            
-            #region Internal
-            
-            void CreateLine(ChallengeListUIElement prevChallengeListUI)
-            {
-                // 線の長さと角度を計算して適用
-                // Calculate and apply the length and angle of the line
-                var currentPosition = AnchoredPosition;
-                var targetPosition = prevChallengeListUI.AnchoredPosition;
+                // プレハブから線のインスタンスを生成
+                var lineInstance = Instantiate(connectLinePrefab, lineParent);
+                var lineRectTransform = lineInstance.GetComponent<RectTransform>();
+                if (lineRectTransform == null)
+                {
+                    Debug.LogError("Connect line prefab does not have a RectTransform component.");
+                    Destroy(lineInstance); // エラーの場合はインスタンスを破棄
+                    continue;
+                }
                 
-                connectLineParent.gameObject.SetActive(true);
+                // 線の長さと角度を計算して適用
+                var currentPosition = AnchoredPosition;
+                var targetPosition = prevChallengeListUIElement.AnchoredPosition;
+                
                 var distance = Vector2.Distance(currentPosition, targetPosition);
-                connectLineParent.sizeDelta = new Vector2(distance, connectLineParent.sizeDelta.y);
+                lineRectTransform.sizeDelta = new Vector2(distance, lineRectTransform.sizeDelta.y);
                 
                 var angle = Mathf.Atan2(targetPosition.y - currentPosition.y, targetPosition.x - currentPosition.x) * Mathf.Rad2Deg;
-                connectLineParent.localEulerAngles = new Vector3(0, 0, angle);
-                
-                // 親の位置を変更
-                // Change the parent's position
-                connectLineParent.SetParent(lineParent);
+                lineRectTransform.localEulerAngles = new Vector3(0, 0, angle);
+                lineRectTransform.anchoredPosition = currentPosition; // 線の開始位置を現在の要素に合わせる
             }
-            
-  #endregion
         }
         
         public void SetStatus(ChallengeListUIElementState challengeListUIElementState)
