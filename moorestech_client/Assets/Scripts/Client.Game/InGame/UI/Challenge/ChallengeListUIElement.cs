@@ -107,9 +107,11 @@ namespace Client.Game.InGame.UI.Challenge
             // 前のチャレンジがある場合、線を引く
             // If there is a previous challenge, draw a line
             var prevGuids = ChallengeMasterElement.PrevChallengeGuids;
+            if (prevGuids == null) return;
+            
             foreach (var prev in prevGuids)
             {
-                if (!challengeListUIElements.TryGetValue(prev, out var prevChallengeListUIElement)) return;
+                if (!challengeListUIElements.TryGetValue(prev, out var prevChallengeListUIElement)) continue;
                 
                 // 線を引く
                 // Draw a line
