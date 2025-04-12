@@ -161,6 +161,52 @@
       "playSkitType": "None",
       "tutorials": [],
       "clearedActions": []
+    },
+    {
+      "displayListParam": {
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "UIPosition": [
+          0,
+          0
+        ]
+      },
+      "summary": "木を採掘する",
+      "title": "木を採掘する",
+      "playSkitType": "None",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 1,
+        "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
+      },
+      "displayListType": "ForceShow",
+      "prevChallengeGuid": "8fb53727-935e-4d44-bcfc-064123f15a0a",
+      "challengeGuid": "87ff05b0-4d10-4a0d-952d-e725f2004fe4"
+    },
+    {
+      "displayListParam": {
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "UIPosition": [
+          0,
+          0
+        ]
+      },
+      "summary": "石を採掘",
+      "title": "石を採掘",
+      "playSkitType": "None",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 1,
+        "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+      },
+      "challengeGuid": "4e406d3a-0b04-429d-b4b2-38c7d4586b3c"
     }
   ]
 }
