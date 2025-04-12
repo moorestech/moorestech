@@ -16,20 +16,15 @@ namespace Client.Game.InGame.UI.Challenge
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private ItemSlotObject itemSlotObject;
-        [SerializeField] private RectTransform connectLineParent;
-        
-        // 接続線のプレハブ
-        // Connection line prefab
         [SerializeField] private RectTransform connectLinePrefab;
-        
-        // 生成された接続線のリスト
-        // List of generated connection lines
-        private List<RectTransform> _connectLines = new List<RectTransform>();
-        
         [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
         
         [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
+        
+        // 生成された接続線のリスト
+        // List of generated connection lines
+        private readonly List<RectTransform> _connectLines = new();
         
         
         public void Initialize(ChallengeMasterElement challengeMasterElement)
@@ -137,7 +132,7 @@ namespace Client.Game.InGame.UI.Challenge
                 
                 // 接続線を取得または作成
                 // Get or create connection line
-                RectTransform connectLine = GetConnectLine();
+                var connectLine = Instantiate(connectLinePrefab, transform);
                 connectLine.gameObject.SetActive(true);
                 
                 var distance = Vector2.Distance(currentPosition, targetPosition);
@@ -155,55 +150,7 @@ namespace Client.Game.InGame.UI.Challenge
                 _connectLines.Add(connectLine);
             }
             
-            RectTransform GetConnectLine()
-            {
-                // 最初の接続線は既存のものを使用
-                // Use existing connection line for the first one
-                if (_connectLines.Count == 0 && connectLineParent != null)
-                {
-                    return connectLineParent;
-                }
-                
-                // 追加の接続線はプレハブからインスタンス化
-                // Instantiate additional connection lines from prefab
-                RectTransform newLine;
-                if (connectLinePrefab != null)
-                {
-                    newLine = Instantiate(connectLinePrefab, transform);
-                }
-                else
-                {
-                    // プレハブが設定されていない場合は既存の線をコピー
-                    // If prefab is not set, copy the existing line
-                    newLine = Instantiate(connectLineParent, transform);
-                }
-                
-                return newLine;
-            }
-            
   #endregion
-        }
-        
-        private void ClearConnectLines()
-        {
-            // 最初の接続線（connectLineParent）は非アクティブにする
-            // Deactivate the first connection line (connectLineParent)
-            if (connectLineParent != null)
-            {
-                connectLineParent.gameObject.SetActive(false);
-            }
-            
-            // 追加で生成された接続線を削除
-            // Destroy additionally generated connection lines
-            for (int i = 0; i < _connectLines.Count; i++)
-            {
-                if (_connectLines[i] != connectLineParent && _connectLines[i] != null)
-                {
-                    Destroy(_connectLines[i].gameObject);
-                }
-            }
-            
-            _connectLines.Clear();
         }
         
         public void SetStatus(ChallengeListUIElementState challengeListUIElementState)
@@ -217,6 +164,21 @@ namespace Client.Game.InGame.UI.Challenge
             // 生成された接続線を削除
             // Destroy generated connection lines
             ClearConnectLines();
+        }
+        
+        private void ClearConnectLines()
+        {
+            // 生成された接続線を削除
+            // Destroy generated connection lines
+            foreach (var line in _connectLines)
+            {
+                if (line != null)
+                {
+                    Destroy(line.gameObject);
+                }
+            }
+            
+            _connectLines.Clear();
         }
     }
     
