@@ -75,9 +75,36 @@ namespace Game.Train.RailGraph
             RailGraphDatastore.DisconnectNode(this, targetNode);
         }
         //自分から入力nodeまでの距離を返す
-        public int GetDistanceToNode(RailNode node)
+        //UseFindPath=falseのとき
+        //隣接しているNodeのみを考慮。距離を返すか見つからなければ-1
+        //UseFindPath=trueのとき
+        //経路探索して接続していれば距離を返す、見つからなければ-1
+        public int GetDistanceToNode(RailNode node,bool UseFindPath = false)
         {
-            return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
+            //見つからなければ-1
+            if (UseFindPath == false)
+            {
+                return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
+            }
+            else 
+            {
+                //経路探索ありver
+                var nodelist = RailGraphDatastore.FindShortestPath(this, node);
+                if (nodelist == null || nodelist.Count < 2)
+                {
+                    return -1;
+                }
+                else
+                {
+                    //最初のノードは自分なので、次のノードまでの距離を返す、ループ
+                    int totalDistance = 0;
+                    for (int i = 0; i < nodelist.Count - 1; i++)
+                    {
+                        totalDistance += RailGraphDatastore.GetDistanceBetweenNodes(nodelist[i], nodelist[i + 1]);
+                    }
+                    return totalDistance;
+                }
+            }
         }
 
 

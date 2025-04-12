@@ -11,12 +11,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
-using UnityEditor.Playables;
 using Game.Train.Utility;
-using System;
-using Core.Master;
-using Core.Update;
-using Game.Block.Interface.Component;
 
 namespace Tests.UnitTest.Game
 {
@@ -1071,5 +1066,180 @@ namespace Tests.UnitTest.Game
             }
         }
 
+        [Test]
+        public void StationConnectionSimple()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
+            var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
+            var railNodeA = railcompos.RailComponents[0].FrontNode;
+            var railNodeB = railcompos.RailComponents[1].FrontNode;
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(22, 0, 0), BlockDirection.North, out var stationBlockB);
+            railcompos = stationBlockB.GetComponent<RailSaverComponent>();
+            var railNodeC = railcompos.RailComponents[0].FrontNode;
+            var railNodeD = railcompos.RailComponents[1].FrontNode;
+
+            Debug.Log(
+                RailGraphDatastore.GetDistanceBetweenNodes(railNodeA, railNodeB)
+            );
+            var length0 = RailGraphDatastore.GetDistanceBetweenNodes(railNodeB, railNodeC);
+            Debug.Log(
+                length0
+            );
+            Assert.AreEqual(0, length0);
+            Debug.Log(
+                RailGraphDatastore.GetDistanceBetweenNodes(railNodeC, railNodeD)
+            );
+        }
+        /// <summary>
+        /// 駅から駅の列車運行テスト
+        /// あとセーブ・ロードでつながったままかチェック
+        /// </summary>
+        [Test]
+        public void StationTrainRun()
+        {
+            const bool DEBUG_LOG_FLAG = true;
+            void RunTrain(TrainUnit trainUnit) 
+            {
+                trainUnit._isUseDestination = true;//factorioでいう自動運転on
+                //走行スタート
+                int totaldist = 0;
+                for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
+                {
+                    int calceddist = 0;
+                    trainUnit.UpdateTrain(1f / 60f, out calceddist);
+                    totaldist += calceddist;
+                    if ((i % 60 == 0) & (DEBUG_LOG_FLAG))
+                    {
+                        Debug.Log("列車速度" + trainUnit._currentSpeed);
+                        Debug.Log("1フレームにすすむ距離int" + calceddist);
+                        Debug.Log("現在向かっているnodeのID");
+                        RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                    }
+                    if (!trainUnit._isUseDestination)
+                    {
+                        if (DEBUG_LOG_FLAG)
+                        {
+                            Debug.Log("" + i + "フレームでつきました。約" + (i / 60) + "秒");
+                            Debug.Log("実装距離(int)" + totaldist + "");
+                            Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
+                        }
+                        break;
+                    }
+                }
+            }
+            /*
+            railComponentAの座標(0.00, 0.50, 2.50)N
+            railComponentBの座標(22.00, 0.50, 2.50)N
+            railComponentAの座標(2.50, 5.50, 22.00)E
+            railComponentBの座標(2.50, 5.50, 0.00)E
+            railComponentAの座標(22.00, 10.50, 2.50)S
+            railComponentBの座標(0.00, 10.50, 2.50)S
+            railComponentAの座標(2.50, 15.50, 0.00)W
+            railComponentBの座標(2.50, 15.50, 22.00)W
+             */
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
+            BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };
+            Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, -1), new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 0, 1) };
+
+            // 1) 駅を4つつくってrailcomponentの座標を確認
+            // 駅1本:TestTrainStation+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainStation
+            // 22+11+11+11+11+22の構成
+            for (int i = 0; i < 4; i++) 
+            {
+                //yで重ならないよう調整、x,zは-1000～1000のランダム
+                var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i * 6 + 3, UnityEngine.Random.Range(-1000, 1000));
+                //気動車に対応する駅1
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], out var stationBlockA);
+                //気動車に対応する駅2
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * 66, blockDirections[i], out var stationBlockB);
+                var railcomposA = stationBlockA.GetComponent<RailSaverComponent>();
+                var railcomposB = stationBlockB.GetComponent<RailSaverComponent>();
+                //中間の貨物駅
+                for (int j = 0; j < 4; j++) 
+                {
+                    var offset11or22 = 22;
+                    if (blockDirections[i] == BlockDirection.East) offset11or22 = 11;
+                    if (blockDirections[i] == BlockDirection.South) offset11or22 = 11;
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + 11 * j), blockDirections[i], out var cargoblock);
+                }
+                Assert.AreEqual(2, railcomposA.RailComponents.Length);
+                Assert.AreEqual(2, railcomposB.RailComponents.Length);
+                var railComponentA = railcomposA.RailComponents[0];
+                var railComponentB = railcomposB.RailComponents[1];
+                railComponentsData[i * 2 + 0] = railComponentA;
+                railComponentsData[i * 2 + 1] = railComponentB;
+            }
+
+            //駅をつなぐポイント 0-1に2点、1-2に1点、2-3に0点とする
+            for (int i = 0; i < 3; i++)
+            {
+                //y=0,1,2で重ならないよう調整は-1000～1000のランダム
+                var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i, UnityEngine.Random.Range(-1000, 1000));
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.West, out var railBlockA);
+                var railComponentA = railBlockA.GetComponent<RailSaverComponent>().RailComponents[0];
+                railComponentsData[8 + i] = railComponentA;
+            }
+
+            railComponentsData[1].ConnectRailComponent(railComponentsData[8], true, true, -1);
+            railComponentsData[8].ConnectRailComponent(railComponentsData[9], true, true, -1);
+            railComponentsData[9].ConnectRailComponent(railComponentsData[2], true, true, -1);
+            railComponentsData[3].ConnectRailComponent(railComponentsData[10], true, true, -1);
+            railComponentsData[10].ConnectRailComponent(railComponentsData[4], true, true, -1);
+            railComponentsData[5].ConnectRailComponent(railComponentsData[6], true, true, -1);
+            //これで駅0→点8→点9→駅1→点10→駅2→駅3の順でつながった
+
+            //ここから列車を走らせる
+            var nodeList = new List<RailNode>();
+            nodeList.Add(railComponentsData[9].FrontNode);
+            nodeList.Add(railComponentsData[8].FrontNode);
+            // 列車の長さは8～9の値しだい。とりあえず1
+            var trainLength = 1;
+            //RailPosition を作って先頭を配置
+            //initialDistanceToNextNode=5あたりから開始する例
+            //nodeListのdeepcopy。これをしないといけないことに注意
+            var nodeList2 = new List<RailNode>(nodeList);
+            var railPosition = new RailPosition(nodeList2, trainLength, 5);
+            // --- TrainUnit を生成 ---
+            var destination = railComponentsData[7].FrontNode;//目的地をセット
+            var cars = new List<TrainCar>
+            {
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
+            };
+            var trainUnit = new TrainUnit(railPosition, destination, cars);
+            //走行スタート 現在地→駅3の終点
+            RunTrain(trainUnit);
+            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching());
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            if (DEBUG_LOG_FLAG)
+            {
+                Debug.Log("列車編成が無事目的地につきました");
+            }
+            
+            //走行スタート 駅3→駅0の終点
+            trainUnit._railPosition.Reverse();
+            trainUnit._destination = railComponentsData[0].BackNode;
+            RunTrain(trainUnit);
+            Assert.AreEqual(railComponentsData[0].BackNode, trainUnit._railPosition.GetNodeApproaching());
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            if (DEBUG_LOG_FLAG)
+            {
+                Debug.Log("列車編成が無事目的地につきました");
+            }
+            //走行スタート 駅0→駅3の終点
+            trainUnit._railPosition.Reverse();
+            trainUnit._destination = railComponentsData[7].FrontNode;
+            RunTrain(trainUnit);
+            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching());
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            if (DEBUG_LOG_FLAG)
+            {
+                Debug.Log("列車編成が無事目的地につきました");
+            }
+        }
     }
 }

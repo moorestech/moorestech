@@ -35,6 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
                 var componentId = new RailComponentID(positionInfo.OriginalPos, i);
                 railComponents[i] = new RailComponent(railComponentPositions[i], positionInfo.BlockDirection, componentId);
             }
+            railComponents[0].ConnectRailComponent(railComponents[1], true, true);
 
             var station = GetStation(masterElement, positionInfo);
             // 生成したコンポーネントをブロックに登録する
@@ -67,9 +68,7 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
         }
 
-
-        //共通処理
-        StationComponent GetStation(BlockMasterElement masterElement, BlockPositionInfo positionInfo)
+        private StationComponent GetStation(BlockMasterElement masterElement, BlockPositionInfo positionInfo)
         {
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             var station = new StationComponent(stationParam.StationDistance, "test", 1);
@@ -94,12 +93,12 @@ namespace Game.Block.Factory.BlockTemplate
             return station;
         }
 
-
+        //共通処理
         /// <summary>
         /// RailSaverComponentのJSONデータからRailComponent配列を復元する
         /// TODO: VanillaTrainRailTemplateと共通化検討
         /// </summary>
-        private RailComponent[] RestoreRailComponents(
+        static public RailComponent[] RestoreRailComponents(
             Dictionary<string, string> componentStates,
             BlockPositionInfo positionInfo)
         {
@@ -144,7 +143,7 @@ namespace Game.Block.Factory.BlockTemplate
         /// RailComponentの接続を実際に行うヘルパーメソッド
         /// TODO: VanillaTrainRailTemplateと共通化検討
         /// </summary>
-        private void EstablishConnection(RailComponent sourceComponent, ConnectionDestination destinationConnection, bool isFrontSideOfComponent)
+        static public void EstablishConnection(RailComponent sourceComponent, ConnectionDestination destinationConnection, bool isFrontSideOfComponent)
         {
             var destinationComponentId = destinationConnection.DestinationID;
             var useFrontSideOfTarget = destinationConnection.IsFront;
@@ -170,7 +169,7 @@ namespace Game.Block.Factory.BlockTemplate
             sourceComponent.ConnectRailComponent(targetComponent, isFrontSideOfComponent, useFrontSideOfTarget);
         }
 
-        private Vector3[] CalculateRailComponentPositions(BlockPositionInfo positionInfo)
+        static public Vector3[] CalculateRailComponentPositions(BlockPositionInfo positionInfo)
         {
             var blockDirection = positionInfo.BlockDirection;
             Vector3 baseOriginPosition = blockDirection.GetBlockBaseOriginPos(positionInfo);
