@@ -3,16 +3,16 @@
     {
       "instanceId": 0,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": 7.91905975,
+      "x": -64.31,
       "y": 0.0,
-      "z": 14.517909
+      "z": 15.88
     },
     {
       "instanceId": 1,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": -64.31,
+      "x": 7.91905975,
       "y": 0.0,
-      "z": 15.88
+      "z": 14.517909
     },
     {
       "instanceId": 2,
@@ -38,16 +38,16 @@
     {
       "instanceId": 5,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": 23.89048,
+      "x": -5.517436,
       "y": 0.0,
-      "z": 3.029808
+      "z": -1.00720072
     },
     {
       "instanceId": 6,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": -5.517436,
+      "x": 23.89048,
       "y": 0.0,
-      "z": -1.00720072
+      "z": 3.029808
     },
     {
       "instanceId": 7,
@@ -1290,49 +1290,49 @@
     },
     {
       "instanceId": 184,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -42.1005745,
       "y": 9.09,
       "z": 21.29
     },
     {
       "instanceId": 185,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -29.9560776,
       "y": 9.09,
       "z": 21.7314911
     },
     {
       "instanceId": 186,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -48.7583961,
       "y": 9.09,
       "z": 21.87339
     },
     {
       "instanceId": 187,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -46.2827835,
       "y": 9.09,
       "z": 26.4827118
     },
     {
       "instanceId": 188,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -37.0176964,
       "y": 9.09,
       "z": 24.909687
     },
     {
       "instanceId": 189,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -57.9448624,
       "y": 9.09,
       "z": 20.7020721
     },
     {
       "instanceId": 190,
-      "mapObjectGuid": "5454a9c4-d516-4bfc-be81-85c0ab56af68",
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
       "x": -55.41111,
       "y": 9.09,
       "z": 29.33152

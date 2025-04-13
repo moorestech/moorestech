@@ -1245,7 +1245,7 @@
       "name": "TestSimpleGearGenerator",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 0.1,
+        "requireTorque": 0,
         "generateTorque": 3,
         "generateRpm": 10,
         "teethCount": 10,
@@ -1316,7 +1316,7 @@
       "name": "TestFastSimpleGearGenerator",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 0.1,
+        "requireTorque": 0,
         "beltConveyorSpeed": 2,
         "beltConveyorItemCount": 4,
         "generateTorque": 1,

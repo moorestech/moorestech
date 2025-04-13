@@ -5,10 +5,11 @@ items:
   type: object
   properties:
   - key: connectType
-    type: string
-    enum:
+    type: enum
+    options:
     - Inventory
     - Gear
+    - Fluid
     description: TODO これは後々外部（上位スキーマ？）から設定できるようにする
   - key: offset
     type: vector3Int
@@ -26,7 +27,7 @@ items:
       - 0
       - 0
   - key: connectOption
-    switch: connectType
+    switch: ./connectType
     cases:
     - when: Inventory
       type: object
@@ -39,8 +40,8 @@ items:
           type: object
           properties:
           - key: inventoryConnectOptionType
-            type: string
-            enum:
+            type: enum
+            options:
             - CraftChainerCrafter
           - key: inventoryConnectOptionParam
             switch: inventoryConnectOptionType
@@ -49,8 +50,8 @@ items:
               type: object
               properties:
               - key: connectType
-                type: string
-                enum:
+                type: enum
+                options:
                 - Network
                 - Factory
     - when: Gear
@@ -59,3 +60,8 @@ items:
       - key: isReverse
         type: boolean
         default: true
+    - when: Fluid
+      type: object
+      properties:
+      - key: flowCapacity
+        type: number

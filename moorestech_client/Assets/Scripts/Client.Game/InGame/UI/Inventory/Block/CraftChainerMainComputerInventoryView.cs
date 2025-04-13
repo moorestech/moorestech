@@ -44,7 +44,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 for (var i = 0; i < param.ItemSlotCount; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
-                    _blockItemSlotObjects.Add(slotObject);
+                    SubInventorySlotObjectsInternal.Add(slotObject);
                     itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
                 }
                 UpdateItemList(itemList);

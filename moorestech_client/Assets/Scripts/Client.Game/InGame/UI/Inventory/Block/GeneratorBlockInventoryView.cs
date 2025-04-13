@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var i = 0; i < generatorParam.FuelItemSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             

@@ -142,5 +142,10 @@ namespace Game.Gear.Common
             foreach (var gearNetwork in _gearNetworks.Values) // TODO パフォーマンスがやばくなったらやめる
                 gearNetwork.ManualUpdate();
         }
+        
+        public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
+        {
+            return _instance._blockEntityToGearNetwork[blockInstanceId];
+        }
     }
 }

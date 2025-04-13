@@ -1,4 +1,3 @@
-# subtree-syncテスト用差分
 id: blocks
 type: object
 isDefaultOpen: true
@@ -8,6 +7,10 @@ defineInterface:
   - key: inputSlotCount
     type: integer
   - key: outputSlotCount
+    type: integer
+- interfaceName: IChestParam
+  properties:
+  - key: itemSlotCount
     type: integer
 properties:
 - key: data
@@ -22,8 +25,8 @@ properties:
     - key: name
       type: string
     - key: blockType
-      type: string
-      enum:
+      type: enum
+      options:
       - Block
       - BeltConveyor
       - Chest
@@ -46,9 +49,18 @@ properties:
       - TrainRail
       - TrainStation
       - TrainCargoPlatform
+      - FluidPipe
     - key: itemGuid
       type: uuid
-      foreignKey: items:itemGuid:name
+      foreignKey: 
+        schemaId: items
+        # [*] はドロップダウンになるため不明になる要素。複数は現状サポートしなくてもいいけど、サポートするんだったら
+        # アイテムA > サブ要素1
+        # アイテムA > サブ要素2
+        # アイテムB > サブ要素1
+        # みたいにドロップダウンで表示するのが良いかも
+        foreignKeyIdPath: "/data/[*]/itemGuid"
+        displayElementPath: "/data/[*]/name"
     - key: blockSize
       type: vector3Int
       default:
@@ -62,7 +74,7 @@ properties:
       type: string
       optional: true
     - key: blockParam
-      switch: blockType
+      switch: "./blockType"
       cases:
       - when: Block
         type: object
@@ -77,8 +89,8 @@ properties:
           type: number
           default: 1
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -86,8 +98,10 @@ properties:
           ref: inventoryConnects
       - when: Chest
         type: object
+        implementationInterface:
+        - IChestParam
         properties:
-        - key: chestItemSlotCount
+        - key: itemSlotCount
           type: integer
           default: 5
         - key: inventoryConnectors
@@ -137,7 +151,10 @@ properties:
             properties:
             - key: itemGuid
               type: uuid
-              foreignKey: items:itemGuid:name
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: "/data/[*]/itemGuid"
+                displayElementPath: "/data/[*]/name"
             - key: time
               type: number
               default: 1
@@ -232,8 +249,8 @@ properties:
           type: number
           default: 2
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -257,8 +274,8 @@ properties:
           type: number
           default: 1
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -287,6 +304,8 @@ properties:
           ref: gear
       - when: GearMapObjectMiner
         type: object
+        implementationInterface:
+        - IChestParam
         properties:
         - key: teethCount
           type: integer
@@ -297,7 +316,7 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
-        - key: outputItemSlotCount
+        - key: itemSlotCount
           type: integer
           default: 3
         - key: miningAreaRange
@@ -320,8 +339,8 @@ properties:
           type: number
           default: 1
         - key: slopeType
-          type: string
-          enum:
+          type: enum
+          options:
           - Straight
           - Up
           - Down
@@ -337,6 +356,8 @@ properties:
           ref: inventoryConnects
       - when: CraftChainerProviderChest
         type: object
+        implementationInterface:
+        - IChestParam
         properties:
         - key: itemSlotCount
           type: integer
@@ -345,6 +366,8 @@ properties:
           ref: inventoryConnects
       - when: CraftChainerMainComputer
         type: object
+        implementationInterface:
+        - IChestParam
         properties:
         - key: itemSlotCount
           type: integer
@@ -360,6 +383,8 @@ properties:
         - key: stationDistance
           type: integer
           default: 5
+        - key: inventoryConnectors
+          ref: inventoryConnects
       - when: TrainCargoPlatform
         type: object
         properties:
@@ -375,16 +400,35 @@ properties:
         - key: loadingSpeed
           type: number
           default: 20
+        - key: inventoryConnectors
+          ref: inventoryConnects
+      - when: FluidPipe
+        type: object
+        properties:
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
+        - key: capacity
+          type: number
+          default: 100
     - key: overrideVerticalBlock
       type: object
       optional: true
       properties:
       - key: upBlockGuid
         type: uuid
-        foreignKey: blocks:blockGuid:name
+        foreignKey:
+          schemaId: blocks
+          foreignKeyIdPath: "/data/[*]/blockGuid"
+          displayElementPath: "/data/[*]/name"
       - key: horizontalBlockGuid
         type: uuid
-        foreignKey: blocks:blockGuid:name
+        foreignKey:
+          schemaId: blocks
+          foreignKeyIdPath: "/data/[*]/blockGuid"
+          displayElementPath: "/data/[*]/name"
       - key: downBlockGuid
         type: uuid
-        foreignKey: blocks:blockGuid:name
+        foreignKey:
+          schemaId: blocks
+          foreignKeyIdPath: "/data/[*]/blockGuid"
+          displayElementPath: "/data/[*]/name"

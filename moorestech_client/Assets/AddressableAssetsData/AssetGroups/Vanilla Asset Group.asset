@@ -432,6 +432,36 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd09f2fef40b549f58b0c29a968536c4
+    m_Address: Vanilla/UI/Block/GearMachineBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dc33f279c282b408c95ad24d4e73f5af
+    m_Address: Vanilla/Block/stone crasher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f652861d52dde4fb1b65387a76966fd4
+    m_Address: Vanilla/Block/Primitive Centrifuge
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
+    m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fd5661b8c9aff4ee48c86639e9ef337d
+    m_Address: Vanilla/Block/rolling mill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16c979552fd5a4ef1b4af5e1b6f01f5d
+    m_Address: Vanilla/UI/Block/GearMinerBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:

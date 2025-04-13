@@ -19,14 +19,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
         
+        [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
         
-        private BlockGameObject _blockGameObject;
+        protected BlockGameObject BlockGameObject;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
-            _blockGameObject = blockGameObject;
+            BlockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
             
@@ -37,14 +38,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var i = 0; i < param.InputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
             for (var i = 0; i < param.OutputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
@@ -52,13 +53,33 @@ namespace Client.Game.InGame.UI.Inventory.Block
             UpdateItemList(itemList);
         }
         
-        private void Update()
+        protected void Update()
         {
-            // ここが重かったら検討
-            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_blockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
-            if (commonProcessor == null) return;
+            UpdateMachineProgressArrow();
             
-            machineProgressArrow.SetProgress(commonProcessor.CurrentMachineState?.ProcessingRate ?? 0.0f);
+            #region Internal
+            
+            void UpdateMachineProgressArrow()
+            {
+                // ここが重かったら検討
+                var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
+                if (commonProcessor == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateChangeProcessorがアタッチされていません。");
+                    return;
+                }
+                
+                var state = commonProcessor.CurrentMachineState;
+                machineProgressArrow.SetProgress(state?.ProcessingRate ?? 0.0f);
+                powerRateText.text = $"エネルギー充足率 {state?.PowerRate ?? 0.0f}";
+                
+                if (state == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
+                }
+            }
+            
+            #endregion
         }
     }
 }

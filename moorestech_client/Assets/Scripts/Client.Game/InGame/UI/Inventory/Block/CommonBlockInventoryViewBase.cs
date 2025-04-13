@@ -15,11 +15,16 @@ namespace Client.Game.InGame.UI.Inventory.Block
     /// </summary>
     public abstract class CommonBlockInventoryViewBase : MonoBehaviour, IBlockInventoryView
     {
-        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
-        public int Count => _blockItemSlotObjects.Count;
-        protected readonly List<ItemSlotObject> _blockItemSlotObjects = new();
+        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => SubInventorySlotObjectsInternal;
+        public int Count => SubInventorySlotObjectsInternal.Count;
         public List<IItemStack> SubInventory { get; } = new();
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; protected set; }
+        
+        /// <summary>
+        /// そのブロックの全てのアイテムスロットを管理するリスト。ここにトロクされているリストはインベントリのスロットとしてみなされます。
+        /// A list that manages all item slots of the block. The list stored here is considered as an inventory slot.
+        /// </summary>
+        protected readonly List<ItemSlotObject> SubInventorySlotObjectsInternal = new();
         
         public virtual void Initialize(BlockGameObject blockGameObject)
         {

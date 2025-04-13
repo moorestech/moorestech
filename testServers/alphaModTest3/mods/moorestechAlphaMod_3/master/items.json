@@ -49,7 +49,7 @@
       "initialUnlocked": true,
       "craftTime": 3,
       "craftResultCount": 1,
-      "sortPriority": 100,
+      "sortPriority": 150,
       "maxStack": 100,
       "name": "麻布",
       "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e",
@@ -57,7 +57,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 150,
+      "sortPriority": 160,
       "maxStack": 100,
       "name": "石器ハンマー",
       "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
@@ -65,7 +65,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 160,
+      "sortPriority": 170,
       "maxStack": 100,
       "name": "原木",
       "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d",
@@ -73,7 +73,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 170,
+      "sortPriority": 180,
       "maxStack": 100,
       "name": "石",
       "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
@@ -81,26 +81,18 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 180,
+      "sortPriority": 190,
       "maxStack": 100,
       "name": "皮を剥いだ原木",
       "itemGuid": "9d1eb0f2-f92d-4e6c-981a-3c70958d5967",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
-      "sortPriority": 190,
-      "maxStack": 100,
-      "name": "木材",
-      "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
-      "recipeViewType": "ForceShow"
+      "recipeViewType": "ForceHide"
     },
     {
       "initialUnlocked": true,
       "sortPriority": 200,
       "maxStack": 100,
-      "name": "棒材",
-      "itemGuid": "34164322-2bd1-4203-acb5-09a8a6d1dfb1",
+      "name": "木材",
+      "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
       "recipeViewType": "ForceShow"
     },
     {
@@ -115,7 +107,7 @@
       "initialUnlocked": true,
       "sortPriority": 220,
       "maxStack": 100,
-      "name": "砂利",
+      "name": "砕石",
       "itemGuid": "619638d5-13f0-4c04-b4e6-5113e946be7e",
       "recipeViewType": "ForceShow"
     },
@@ -123,7 +115,7 @@
       "initialUnlocked": true,
       "sortPriority": 230,
       "maxStack": 100,
-      "name": "砂",
+      "name": "砂利",
       "itemGuid": "98383d78-6da1-47ca-bc94-f5e12f50c140",
       "recipeViewType": "ForceShow"
     },
@@ -131,7 +123,7 @@
       "initialUnlocked": true,
       "sortPriority": 240,
       "maxStack": 100,
-      "name": "ダスト",
+      "name": "砂",
       "itemGuid": "fa4e84ee-482d-414f-ad0e-8f167d178342",
       "recipeViewType": "ForceShow"
     },
@@ -147,21 +139,13 @@
       "initialUnlocked": true,
       "sortPriority": 260,
       "maxStack": 100,
-      "name": "水バケツ",
-      "itemGuid": "5378f322-6159-4c59-8786-9f3552445eda",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
-      "sortPriority": 270,
-      "maxStack": 100,
       "name": "粘土",
       "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063",
       "recipeViewType": "ForceShow"
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 280,
+      "sortPriority": 270,
       "maxStack": 100,
       "name": "キャンプファイア",
       "itemGuid": "8b67462b-227a-465b-8d86-de683b5e98a1",
@@ -169,7 +153,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 290,
+      "sortPriority": 280,
       "maxStack": 100,
       "name": "レンガ",
       "itemGuid": "dfd0ae76-ae7d-46cd-8abc-0c69407645a2",
@@ -177,23 +161,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 300,
-      "maxStack": 100,
-      "name": "軽石凝灰岩",
-      "itemGuid": "f181d6be-0801-4658-88d1-e3cbaac39a05",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
-      "sortPriority": 310,
-      "maxStack": 100,
-      "name": "軽石凝灰岩のロッド",
-      "itemGuid": "a3122da5-bc03-4af3-bf6c-e5b46623a4e4",
-      "recipeViewType": "ForceShow"
-    },
-    {
-      "initialUnlocked": true,
-      "sortPriority": 320,
+      "sortPriority": 290,
       "maxStack": 100,
       "name": "歯車",
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
@@ -201,15 +169,23 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 330,
+      "sortPriority": 300,
       "maxStack": 100,
-      "name": "クランク",
+      "name": "大きな歯車",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 310,
+      "maxStack": 100,
+      "name": "木の風車",
       "recipeViewType": "ForceShow",
       "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587"
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 340,
+      "sortPriority": 320,
       "maxStack": 100,
       "name": "ふるい",
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
@@ -217,7 +193,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 350,
+      "sortPriority": 330,
       "maxStack": 100,
       "name": "亜鉛鉱石",
       "itemGuid": "9245960f-5ab9-490d-b940-dac6b9994695",
@@ -225,7 +201,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 360,
+      "sortPriority": 340,
       "maxStack": 100,
       "name": "石炭",
       "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
@@ -233,7 +209,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 370,
+      "sortPriority": 350,
       "maxStack": 100,
       "name": "砂鉄",
       "itemGuid": "57f116bb-c374-410b-bc00-23b285575d7b",
@@ -241,7 +217,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 380,
+      "sortPriority": 360,
       "maxStack": 100,
       "name": "釜",
       "itemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3",
@@ -249,15 +225,28 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 390,
+      "sortPriority": 370,
       "maxStack": 100,
       "name": "亜鉛",
       "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59",
       "recipeViewType": "ForceShow"
     },
     {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
       "initialUnlocked": true,
-      "sortPriority": 400,
+      "sortPriority": 380,
+      "maxStack": 100,
+      "name": "遠心分離機",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 390,
       "maxStack": 100,
       "name": "低品質鉄塊",
       "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f",
@@ -265,7 +254,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 410,
+      "sortPriority": 400,
       "maxStack": 100,
       "name": "シャフト",
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
@@ -273,7 +262,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 420,
+      "sortPriority": 410,
       "maxStack": 100,
       "name": "水車",
       "itemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
@@ -281,7 +270,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 430,
+      "sortPriority": 420,
       "maxStack": 100,
       "name": "プレス機",
       "itemGuid": "4abdae31-6e3b-42c5-a097-4cf6021751ca",
@@ -289,7 +278,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 440,
+      "sortPriority": 430,
       "maxStack": 100,
       "name": "低品質鉄板",
       "itemGuid": "5c5b7ee0-d1ea-420e-951e-2b2b49fee81b",
@@ -297,7 +286,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 450,
+      "sortPriority": 440,
       "maxStack": 100,
       "name": "鉄亜鉛合金",
       "itemGuid": "796c8625-4018-45cf-9602-f53a86063353",
@@ -305,7 +294,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 460,
+      "sortPriority": 450,
       "maxStack": 100,
       "name": "石の粉砕機",
       "itemGuid": "2895b52f-8285-41a8-82d2-4fbd43786a65",
@@ -313,7 +302,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 470,
+      "sortPriority": 460,
       "maxStack": 100,
       "name": "直進歯車ベルトコンベア",
       "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
@@ -326,7 +315,7 @@
         1
       ],
       "initialUnlocked": true,
-      "sortPriority": 100,
+      "sortPriority": 470,
       "maxStack": 100,
       "name": "上り歯車ベルトコンベア",
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
@@ -334,7 +323,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 100,
+      "sortPriority": 480,
       "maxStack": 100,
       "name": "下り歯車ベルトコンベア",
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
@@ -342,7 +331,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 480,
+      "sortPriority": 490,
       "maxStack": 100,
       "name": "直進シューター",
       "itemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0",
@@ -350,7 +339,7 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 100,
+      "sortPriority": 500,
       "maxStack": 100,
       "name": "上りシューター",
       "itemGuid": "cc3dffdc-0fac-43ec-8772-7c9a51baa161",
@@ -358,10 +347,111 @@
     },
     {
       "initialUnlocked": true,
-      "sortPriority": 100,
+      "sortPriority": 510,
       "maxStack": 100,
       "name": "下りシューター",
       "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "initialUnlocked": true,
+      "sortPriority": 520,
+      "maxStack": 100,
+      "name": "石炭粉",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 530,
+      "maxStack": 100,
+      "name": "鉄塊",
+      "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 540,
+      "maxStack": 100,
+      "name": "鉄板",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 550,
+      "maxStack": 100,
+      "name": "鉄ローラー",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "4a8b6001-3081-4885-89b5-9300424db13f"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 560,
+      "maxStack": 100,
+      "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
+      "name": "圧延機",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 570,
+      "maxStack": 100,
+      "name": "鉄のロッド",
+      "recipeViewType": "ForceShow",
+      "itemGuid": "844f3264-e055-4d41-bd54-e46570a15ba5"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 580,
+      "maxStack": 100,
+      "name": "鉄のリベット",
+      "itemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 590,
+      "maxStack": 100,
+      "name": "鉄製フレーム",
+      "itemGuid": "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 600,
+      "maxStack": 100,
+      "name": "ふいご",
+      "itemGuid": "49573e16-be8a-46aa-859c-67fae3f928f9",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 610,
+      "maxStack": 100,
+      "name": "ふいご付き精錬炉",
+      "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 620,
+      "maxStack": 100,
+      "name": "原始的な採掘機",
+      "itemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
+      "recipeViewType": "ForceShow"
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 630,
+      "maxStack": 100,
+      "name": "原木加工機",
+      "itemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
       "recipeViewType": "ForceShow"
     }
   ]
