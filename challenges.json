@@ -20,7 +20,7 @@
           
           "initialUnlocked": {
             "type": "boolean",
-            "default": true,
+            "default": false,
             "optional": true,
             "$memo": "チャレンジが初期状態でアンロックされているかどうか"
           },
