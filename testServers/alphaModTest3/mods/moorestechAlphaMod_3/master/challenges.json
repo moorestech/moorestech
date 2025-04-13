@@ -115,7 +115,7 @@
       ]
     },
     {
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "craftTime": 3,
       "craftResultCount": 1,
       "summary": "ブッシュを伐採する",
@@ -244,7 +244,7 @@
       },
       "summary": "木材を作る",
       "title": "木材を作る",
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "sortPriority": 100,
       "maxStack": 100,
       "playSkitType": "None",
@@ -306,7 +306,7 @@
       },
       "summary": "石のツルハシを作る",
       "title": "石のツルハシを作る",
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "sortPriority": 100,
       "maxStack": 100,
       "displayListType": "ForceShow",
