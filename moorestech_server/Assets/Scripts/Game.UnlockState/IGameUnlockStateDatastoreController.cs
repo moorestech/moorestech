@@ -21,8 +21,10 @@ namespace Game.UnlockState
     
     /// <summary>
     /// アンロック状態のデータを操作するためのインターフェース
+    /// サーバー限定のインスタンス
     ///
     /// An interface for manipulating unlock state data.
+    /// Server-only instance.
     /// </summary>
     public interface IGameUnlockStateDataController : IGameUnlockStateData
     {
