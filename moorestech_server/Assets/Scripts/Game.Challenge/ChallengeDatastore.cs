@@ -89,13 +89,13 @@ namespace Game.Challenge
             // Register as cleared
             challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             
+            // クリア時のアクションを実行。次のチャレンジを登録する際にチャレンジのアンロックが走るため、先にクリアアクションを実行する
+            // Perform the action when cleared. When registering the next challenge, the challenge unlock will run, so execute the cleared action first
+            ExecuteClearedActions();
+            
             // 次のチャレンジを登録
             // Register the next challenge
             RegisterNextChallenge();
-            
-            // クリア時のアクションを実行
-            // Perform the action when cleared
-            ExecuteClearedActions();
             
             #region Internal
             
@@ -165,6 +165,25 @@ namespace Game.Challenge
                 var currentChallenges = new List<IChallengeTask>();
                 
                 // InitialChallengeの中でクリアしていないのを登録
+                // Register initial challenges that have not been cleared
+                RegisterInitialChallenge(challengeJsonObject, currentChallenges, playerId);
+                
+                // 完了したチャレンジのGUIDリストを作成
+                // Create a list of completed challenge GUIDs
+                var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
+                var playerChallengeInfo = new PlayerChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
+                
+                // CurrentChallengeを作成
+                // create current challenges
+                CreateCurrentChallenge(challengeJsonObject, currentChallenges, playerChallengeInfo, playerId);
+                
+                _playerChallengeInfos.Add(playerId, new PlayerChallengeInfo(currentChallenges, completedChallengeIds));
+            }
+            
+            #region Internal
+            
+            void RegisterInitialChallenge(ChallengeJsonObject challengeJsonObject, List<IChallengeTask> currentChallenges, int playerId)
+            {
                 foreach (var initialChallengeGuid in MasterHolder.ChallengeMaster.InitialChallenge)
                 {
                     // クリア済みならスキップ
@@ -180,12 +199,10 @@ namespace Game.Challenge
                         currentChallenges.Add(initialChallenge);
                     }
                 }
-                
-                // 完了したチャレンジのGUIDリストを作成
-                var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
-                var playerChallengeInfo = new PlayerChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
-                
-                // CurrentChallengeを作成
+            }
+            
+            void CreateCurrentChallenge(ChallengeJsonObject challengeJsonObject, List<IChallengeTask> currentChallenges, PlayerChallengeInfo playerChallengeInfo, int playerId)
+            {
                 foreach (var completedId in challengeJsonObject.CompletedGuids)
                 {
                     // 完了したチャレンジの次のチャレンジがクリア済みでなければ、CurrentChallengeに追加
@@ -208,9 +225,9 @@ namespace Game.Challenge
                         }
                     }
                 }
-                
-                _playerChallengeInfos.Add(playerId, new PlayerChallengeInfo(currentChallenges, completedChallengeIds));
             }
+            
+  #endregion
         }
         
         public List<ChallengeJsonObject> GetSaveJsonObject()
