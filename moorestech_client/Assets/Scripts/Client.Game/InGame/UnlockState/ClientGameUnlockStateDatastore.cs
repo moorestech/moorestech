@@ -60,6 +60,10 @@ namespace Client.Game.InGame.UnlockState
                      var itemId = message.UnlockedItemId;
                      _itemUnlockStateInfos[itemId] = new ItemUnlockStateInfo(itemId, true);
                      break;
+                 case UnlockEventType.Challenge:
+                     var challengeId = message.UnlockedChallengeGuid;
+                     _challengeUnlockStateInfos[challengeId] = new ChallengeUnlockStateInfo(challengeId, true);
+                     break;
                  default:
                      throw new ArgumentOutOfRangeException();
              }
