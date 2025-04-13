@@ -19,9 +19,9 @@
         ],
         "IconItem": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ]
       },
       "playSkitType": "None",
@@ -73,9 +73,9 @@
         ],
         "IconItem": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ]
       },
       "prevChallengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
@@ -86,6 +86,22 @@
             "unlockItemGuids": [
               "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
               "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+            ]
+          }
+        },
+        {
+          "clearedActionType": "unlockChallenge",
+          "clearedActionParam": {
+            "unlockChallengeGuids": [
+              "c78e8e4b-84e6-4859-8541-daa255c09d48"
+            ]
+          }
+        },
+        {
+          "clearedActionType": "unlockChallenge",
+          "clearedActionParam": {
+            "unlockChallengeGuids": [
+              "8fb53727-935e-4d44-bcfc-064123f15a0a"
             ]
           }
         }
@@ -146,9 +162,9 @@
         ],
         "IconItem": "91458a7e-5eaa-47fd-b79e-8390af20bb84",
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ]
       },
       "tutorials": [
@@ -194,9 +210,9 @@
         ],
         "IconItem": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ]
       },
       "playSkitParam": {},
@@ -211,9 +227,9 @@
     {
       "displayListParam": {
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ],
         "UIPosition": [
           1000,
@@ -243,9 +259,9 @@
     {
       "displayListParam": {
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ],
         "UIPosition": [
           1200,
@@ -275,9 +291,9 @@
     {
       "displayListParam": {
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ],
         "UIPosition": [
           1000,
@@ -306,9 +322,9 @@
     {
       "displayListParam": {
         "UIScale": [
-          0,
-          0,
-          0
+          1,
+          1,
+          1
         ],
         "UIPosition": [
           1500,
