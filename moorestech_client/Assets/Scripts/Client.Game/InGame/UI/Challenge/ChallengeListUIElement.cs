@@ -13,12 +13,14 @@ namespace Client.Game.InGame.UI.Challenge
     {
         public Vector2 AnchoredPosition => rectTransform.anchoredPosition;
         public ChallengeMasterElement ChallengeMasterElement { get; private set; }
+        public ChallengeListUIElementState CurrentState { get; private set; }
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private ItemSlotObject itemSlotObject;
         [SerializeField] private RectTransform connectLinePrefab;
         [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
+        [SerializeField] private GameObject lockedObject;
         
         [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
         
@@ -155,8 +157,11 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void SetStatus(ChallengeListUIElementState challengeListUIElementState)
         {
+            CurrentState = challengeListUIElementState;
+            
             completedObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Completed);
             currentObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Current);
+            lockedObject.SetActive(challengeListUIElementState == ChallengeListUIElementState.Locked);
         }
         
         private void OnDestroy()
@@ -186,6 +191,7 @@ namespace Client.Game.InGame.UI.Challenge
     {
         Before,
         Current,
-        Completed
+        Completed,
+        Locked,
     }
 }
