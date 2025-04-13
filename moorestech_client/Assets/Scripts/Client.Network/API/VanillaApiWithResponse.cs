@@ -140,12 +140,12 @@ namespace Client.Network.API
             return response.State;
         }
         
-        public async UniTask<UnlockCraftRecipeStateResponse> GetUnlockCraftRecipeState(CancellationToken ct)
+        public async UniTask<UnlockStateResponse> GetUnlockCraftRecipeState(CancellationToken ct)
         {
             var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
             
-            return new UnlockCraftRecipeStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids, response.LockedItemIds, response.UnlockItemIds);
+            return new UnlockStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids, response.LockedItemIds, response.UnlockItemIds);
         }
     }
 }
