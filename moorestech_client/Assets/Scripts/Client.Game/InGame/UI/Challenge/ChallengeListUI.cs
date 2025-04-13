@@ -99,7 +99,7 @@ namespace Client.Game.InGame.UI.Challenge
                     var guid = challengeListUIElement.ChallengeMasterElement.ChallengeGuid;
                     var isUnlocked = _gameUnlockStateData.ChallengeUnlockStateInfos.TryGetValue(guid, out var state) && state.IsUnlocked;
                     
-                    var uiState = isUnlocked switch
+                    ChallengeListUIElementState? uiState = isUnlocked switch
                     {
                         // アンロックされていて、かつ挑戦中でも完了済みでもない場合のみBefore状態にする
                         // Set to Before state only if unlocked AND not current or completed
@@ -107,9 +107,12 @@ namespace Client.Game.InGame.UI.Challenge
                         // アンロックされていない場合は Locked 状態のまま
                         // If not unlocked, remain in Locked state
                         false => ChallengeListUIElementState.Locked,
-                        _ => ChallengeListUIElementState.Before,
+                        _ => null,
                     };
-                    challengeListUIElement.SetStatus(uiState);
+                    if (uiState.HasValue)
+                    {
+                        challengeListUIElement.SetStatus(uiState.Value);
+                    }
                 }
             }
             
