@@ -21,7 +21,6 @@
           "initialUnlocked": {
             "type": "boolean",
             "default": false,
-            "optional": true,
             "$memo": "チャレンジが初期状態でアンロックされているかどうか"
           },
 
