@@ -13,15 +13,15 @@ namespace Game.Challenge
 {
     public class ChallengeDatastore
     {
-        private readonly IGameUnlockStateDataController gameUnlockStateDataController;
-        private ChallengeEvent _challengeEvent;
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly ChallengeEvent _challengeEvent;
         
         private readonly Dictionary<int, PlayerChallengeInfo> _playerChallengeInfos = new();
         private readonly ChallengeFactory _challengeFactory = new();
         
         public ChallengeDatastore(IGameUnlockStateDataController gameUnlockStateDataController, ChallengeEvent challengeEvent)
         {
-            this.gameUnlockStateDataController = gameUnlockStateDataController;
+            _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
             GameUpdater.UpdateObservable.Subscribe(Update);
         }
@@ -90,7 +90,7 @@ namespace Game.Challenge
                 
                 // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
                 // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
-                var isUnlocked = gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
+                var isUnlocked = _gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
                 var isCompleted = IsChallengesCompleted(challengeInfo, challengeElement);
                 if (isCompleted && isUnlocked)
                 {
@@ -113,7 +113,7 @@ namespace Game.Challenge
                         var unlockRecipeGuids = ((UnlockCraftRecipeClearedActionParam) action.ClearedActionParam).UnlockRecipeGuids;
                         foreach (var guid in unlockRecipeGuids)
                         {
-                            gameUnlockStateDataController.UnlockCraftRecipe(guid);
+                            _gameUnlockStateDataController.UnlockCraftRecipe(guid);
                         }
                         break;
                     case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
@@ -121,14 +121,14 @@ namespace Game.Challenge
                         foreach (var itemGuid in itemGuids)
                         {
                             var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
-                            gameUnlockStateDataController.UnlockItem(itemId);
+                            _gameUnlockStateDataController.UnlockItem(itemId);
                         }
                         break;
                     case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
                         var unlockChallengeParam = (UnlockChallengeClearedActionParam) action.ClearedActionParam;
                         foreach (var guid in unlockChallengeParam.UnlockChallengeGuids)
                         {
-                            gameUnlockStateDataController.UnlockChallenge(guid);
+                            _gameUnlockStateDataController.UnlockChallenge(guid);
                         }
                         break;
                 }
@@ -141,7 +141,7 @@ namespace Game.Challenge
         {
             // チャレンジがアンロックされていない場合はクリアできない
             // If the challenge is not unlocked, it cannot be cleared
-            var isUnlocked = gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
+            var isUnlocked = _gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
             if (!isUnlocked) return false;
             
             // 前提条件がない場合は常に開始可能
@@ -178,7 +178,7 @@ namespace Game.Challenge
                     var challenge = MasterHolder.ChallengeMaster.GetChallenge(initialChallengeGuid);
                     // 初期チャレンジもアンロック状態を確認 (通常はアンロックされているはず)
                     // Check unlock state for initial challenges as well (usually unlocked)
-                    var isUnlocked = gameUnlockStateDataController.ChallengeUnlockStateInfos[challenge.ChallengeGuid].IsUnlocked;
+                    var isUnlocked = _gameUnlockStateDataController.ChallengeUnlockStateInfos[challenge.ChallengeGuid].IsUnlocked;
                     if (isUnlocked)
                     {
                         var initialChallenge = CreateChallenge(playerId, challenge);
