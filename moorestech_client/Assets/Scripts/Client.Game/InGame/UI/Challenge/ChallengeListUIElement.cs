@@ -45,6 +45,7 @@ namespace Client.Game.InGame.UI.Challenge
                 // 位置の指定
                 // Position specification
                 rectTransform.anchoredPosition = param.UIPosition;
+                rectTransform.localScale = param.UIScale;
                 
                 // アイコンの指定
                 // Icon specification
