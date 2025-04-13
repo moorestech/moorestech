@@ -90,6 +90,7 @@
           },
 
           "taskParam": {
+            "isDefaultOpen": true,
             "oneOf": [
               {
                 "if": {
@@ -157,6 +158,7 @@
 
 
           "tutorials": {
+            "isDefaultOpen": true,
             "type": "array",
             "items": {
               "type": "object",
@@ -383,7 +385,7 @@
                 "items": {
                   "type": "number"
                 },
-                "default": [0,0,0],
+                "default": [1,1,1],
 
                 "overrideCodeGeneratePropertyName": "DisplayInChallengeListScale"
               },
