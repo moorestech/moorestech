@@ -44,8 +44,7 @@
 
           "initialUnlocked": {
             "type": "boolean",
-            "default": true,
-            "optional": true
+            "default": true
           },
 
           "recipeViewType": {
