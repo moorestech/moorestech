@@ -40,7 +40,7 @@ namespace Client.Network.API
                 GetPlayerInventory(playerId, ct), 
                 GetChallengeResponse(playerId, ct), 
                 GetAllBlockState(ct),
-                GetUnlockState(ct)); // Renamed method call
+                GetUnlockState(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
