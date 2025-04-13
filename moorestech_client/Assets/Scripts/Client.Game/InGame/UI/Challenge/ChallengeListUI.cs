@@ -61,11 +61,8 @@ namespace Client.Game.InGame.UI.Challenge
                     // アンロック状態に基づいて初期表示を設定
                     // Set initial visibility based on unlock state
                     var isUnlocked = _gameUnlockStateData.ChallengeUnlockStateInfos.TryGetValue(guid, out var state) && state.IsUnlocked;
-                    if (!isUnlocked)
-                    {
-                        // 非表示の場合、状態をNoneなどに設定しておく（必要であれば）
-                        challengeListUIElement.SetStatus(ChallengeListUIElementState.Locked); // Assuming Locked state exists
-                    }
+                    var uiState = isUnlocked ? ChallengeListUIElementState.Before : ChallengeListUIElementState.Locked;
+                    challengeListUIElement.SetStatus(uiState);
                 }
                 
                 foreach (var challengeListUIElement in _challengeListUIElements.Values)

@@ -30,8 +30,8 @@ namespace Client.Network.API
                 WorldDataResponse worldData, 
                 PlayerInventoryResponse inventory, 
                 ChallengeResponse challenge, 
-                List<BlockStateMessagePack> blockStates, 
-                UnlockStateResponse unlockCraftRecipeState) responses)
+                List<BlockStateMessagePack> blockStates,
+                UnlockStateResponse unlockState) responses) // Renamed parameter for clarity
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -39,7 +39,7 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenge = responses.challenge;
             BlockStates = responses.blockStates;
-            UnlockState = responses.unlockCraftRecipeState;
+            UnlockState = responses.unlockState; // Use the renamed parameter
         }
     }
     
@@ -116,13 +116,21 @@ namespace Client.Network.API
         
         public readonly List<ItemId> LockedItemIds;
         public readonly List<ItemId> UnlockedItemIds;
+
+        public readonly List<Guid> LockedChallengeGuids; // Added for challenges
+        public readonly List<Guid> UnlockedChallengeGuids; // Added for challenges
         
-        public UnlockStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids, List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds)
+        public UnlockStateResponse(
+            List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
+            List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
+            List<Guid> lockedChallengeGuids, List<Guid> unlockedChallengeGuids) // Added challenge parameters
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
             LockedItemIds = lockedItemIds;
             UnlockedItemIds = unlockedItemIds;
+            LockedChallengeGuids = lockedChallengeGuids; // Added assignment
+            UnlockedChallengeGuids = unlockedChallengeGuids; // Added assignment
         }
     }
 }
