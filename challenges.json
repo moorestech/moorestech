@@ -280,6 +280,7 @@
                       },
                       "then": {
                         "type": "object",
+                        "isDefaultOpen": true,
                         "properties": {
 
                           "unlockRecipeGuids": {
@@ -303,6 +304,7 @@
                       },
                       "then": {
                         "type": "object",
+                        "isDefaultOpen": true,
                         "properties": {
 
                           "unlockItemGuids": {
@@ -327,6 +329,7 @@
                       },
                       "then": {
                         "type": "object",
+                        "isDefaultOpen": true,
                         "properties": {
 
                           "unlockChallengeGuids": {
