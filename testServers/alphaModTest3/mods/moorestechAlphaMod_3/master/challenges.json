@@ -47,6 +47,14 @@
               "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
             ]
           }
+        },
+        {
+          "clearedActionType": "unlockChallenge",
+          "clearedActionParam": {
+            "unlockChallengeGuids": [
+              "7ac263d8-406a-44e1-9878-9195378e9efc"
+            ]
+          }
         }
       ],
       "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
