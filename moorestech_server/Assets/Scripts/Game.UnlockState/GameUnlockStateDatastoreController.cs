@@ -43,7 +43,7 @@ namespace Game.UnlockState
                 var guid = challenge.ChallengeGuid;
                 if (!ChallengeUnlockStateInfos.ContainsKey(guid))
                 {
-                    _challengeUnlockStateInfos.Add(guid, new ChallengeUnlockStateInfo(guid, challenge.InitialUnlocked ?? true)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
+                    _challengeUnlockStateInfos.Add(guid, new ChallengeUnlockStateInfo(guid, challenge.InitialUnlocked ?? false)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
                 }
             }
         }
