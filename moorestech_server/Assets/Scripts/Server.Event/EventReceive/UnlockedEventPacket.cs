@@ -22,8 +22,9 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             
-            unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(c)));
+            unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe ,c)));
             unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
+            unlockState.OnUnlockChallenge.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Challenge ,c)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -40,26 +41,36 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public UnlockEventType UnlockEventType => (UnlockEventType)UnlockEventTypeInt; 
         [IgnoreMember] public Guid UnlockedCraftRecipeGuid => Guid.Parse(UnlockedCraftRecipeGuidStr);
         [IgnoreMember] public ItemId UnlockedItemId => new(UnlockedItemIdInt);
+        [IgnoreMember] public Guid UnlockedChallengeGuid => Guid.Parse(UnlockedChallengeGuidStr);
         
         [Key(0)] public int UnlockEventTypeInt { get; set; }
         [Key(1)] public string UnlockedCraftRecipeGuidStr { get; set; }
         [Key(2)] public int UnlockedItemIdInt { get; set; } 
+        [Key(3)] public string UnlockedChallengeGuidStr { get; set; }
         
         
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public UnlockEventMessagePack() { }
         
-        public UnlockEventMessagePack(Guid unlockedRecipeGuid)
-        {
-            UnlockEventTypeInt = (int)UnlockEventType.CraftRecipe;
-            UnlockedCraftRecipeGuidStr = unlockedRecipeGuid.ToString();
-        }
-        
         public UnlockEventMessagePack(ItemId itemId)
         {
             UnlockEventTypeInt = (int)UnlockEventType.Item;
             UnlockedItemIdInt = (int)itemId;
+        }
+        
+        public UnlockEventMessagePack(UnlockEventType unlockEventType,Guid unlockedChallengeGuid)
+        {
+            UnlockEventTypeInt = (int)unlockEventType;
+            switch (unlockEventType)
+            {
+                case UnlockEventType.Challenge:
+                    UnlockedChallengeGuidStr = unlockedChallengeGuid.ToString();
+                    break;
+                case UnlockEventType.CraftRecipe:
+                    UnlockedCraftRecipeGuidStr = unlockedChallengeGuid.ToString();
+                    break;
+            }
         }
     }
     
@@ -67,5 +78,6 @@ namespace Server.Event.EventReceive
     {
         CraftRecipe,
         Item,
+        Challenge
     }
 }
