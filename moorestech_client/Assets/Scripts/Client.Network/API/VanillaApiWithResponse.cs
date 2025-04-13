@@ -40,7 +40,7 @@ namespace Client.Network.API
                 GetPlayerInventory(playerId, ct), 
                 GetChallengeResponse(playerId, ct), 
                 GetAllBlockState(ct),
-                GetUnlockCraftRecipeState(ct));
+                GetUnlockState(ct)); // Renamed method call
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -140,12 +140,17 @@ namespace Client.Network.API
             return response.State;
         }
         
-        public async UniTask<UnlockStateResponse> GetUnlockCraftRecipeState(CancellationToken ct)
+        // Renamed method to reflect its broader scope
+        public async UniTask<UnlockStateResponse> GetUnlockState(CancellationToken ct)
         {
             var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
             
-            return new UnlockStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids, response.LockedItemIds, response.UnlockItemIds);
+            // Pass challenge unlock data to the response constructor
+            return new UnlockStateResponse(
+                response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
+                response.LockedItemIds, response.UnlockedItemIds,
+                response.LockedChallengeGuids, response.UnlockedChallengeGuids);
         }
     }
 }

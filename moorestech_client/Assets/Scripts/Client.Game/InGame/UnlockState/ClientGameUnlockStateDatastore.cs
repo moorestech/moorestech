@@ -42,6 +42,14 @@ namespace Client.Game.InGame.UnlockState
                 _itemUnlockStateInfos[unlockedItemId] = new ItemUnlockStateInfo(unlockedItemId, true);
             }
             
+            foreach (var lockedChallengeId in unlockState.LockedChallengeGuids)
+            {
+                _challengeUnlockStateInfos[lockedChallengeId] = new ChallengeUnlockStateInfo(lockedChallengeId, false);
+            }
+            foreach (var unlockedChallengeId in unlockState.UnlockedChallengeGuids)
+            {
+                _challengeUnlockStateInfos[unlockedChallengeId] = new ChallengeUnlockStateInfo(unlockedChallengeId, true);
+            }
             
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
