@@ -21,7 +21,7 @@ namespace Client.Network.API
         public PlayerInventoryResponse Inventory { get; }
         public ChallengeResponse Challenge { get; }
         public List<BlockStateMessagePack> BlockStates { get; }
-        public UnlockCraftRecipeStateResponse UnlockCraftRecipeState { get; }
+        public UnlockStateResponse UnlockState { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -31,7 +31,7 @@ namespace Client.Network.API
                 PlayerInventoryResponse inventory, 
                 ChallengeResponse challenge, 
                 List<BlockStateMessagePack> blockStates, 
-                UnlockCraftRecipeStateResponse unlockCraftRecipeState) responses)
+                UnlockStateResponse unlockCraftRecipeState) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -39,7 +39,7 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenge = responses.challenge;
             BlockStates = responses.blockStates;
-            UnlockCraftRecipeState = responses.unlockCraftRecipeState;
+            UnlockState = responses.unlockCraftRecipeState;
         }
     }
     
@@ -109,7 +109,7 @@ namespace Client.Network.API
         }
     }
     
-    public class UnlockCraftRecipeStateResponse
+    public class UnlockStateResponse
     {
         public readonly List<Guid> LockedCraftRecipeGuids;
         public readonly List<Guid> UnlockedCraftRecipeGuids;
@@ -117,7 +117,7 @@ namespace Client.Network.API
         public readonly List<ItemId> LockedItemIds;
         public readonly List<ItemId> UnlockedItemIds;
         
-        public UnlockCraftRecipeStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids, List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds)
+        public UnlockStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids, List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;

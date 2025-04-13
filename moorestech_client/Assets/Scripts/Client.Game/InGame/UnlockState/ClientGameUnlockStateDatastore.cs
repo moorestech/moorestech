@@ -14,14 +14,16 @@ namespace Client.Game.InGame.UnlockState
     {
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
         public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos => _itemUnlockStateInfos;
+        public IReadOnlyDictionary<Guid, ChallengeUnlockStateInfo> ChallengeUnlockStateInfos => _challengeUnlockStateInfos;
         
         
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
+        private readonly Dictionary<Guid, ChallengeUnlockStateInfo> _challengeUnlockStateInfos = new();
         
         public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
-            var unlockState = initialHandshakeResponse.UnlockCraftRecipeState;
+            var unlockState = initialHandshakeResponse.UnlockState;
             foreach (var lockedGuid in unlockState.LockedCraftRecipeGuids)
             {
                 _recipeUnlockStateInfos[lockedGuid] = new CraftRecipeUnlockStateInfo(lockedGuid, false);
