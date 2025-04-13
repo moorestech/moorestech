@@ -359,6 +359,7 @@
           },
 
           "displayListParam": {
+            "isDefaultOpen": true,
             "type": "object",
             "properties": {
 
