@@ -36,7 +36,7 @@ namespace Game.Block.Interface.State
         public CommonMachineBlockStateDetail(float currentPower, float requestPower, float processingRate, string currentStateType, string previousStateType)
         {
             PowerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
-            this.ProcessingRate = processingRate;
+            ProcessingRate = processingRate;
             CurrentStateType = currentStateType;
             PreviousStateType = previousStateType;
         }

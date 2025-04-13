@@ -37,17 +37,22 @@
           "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
         },
         {
-          "maxCount": 3,
-          "minCount": 1,
+          "maxCount": 5,
+          "minCount": 3,
           "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
         }
       ],
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 3,
+            "attackSpeed": 6,
             "damage": 10,
             "toolItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+          },
+          {
+            "attackSpeed": 2,
+            "damage": 10,
+            "toolItemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
           }
         ]
       },
@@ -77,9 +82,14 @@
       "miningParam": {
         "miningTools": [
           {
-            "attackSpeed": 4,
+            "attackSpeed": 6,
             "damage": 10,
             "toolItemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+          },
+          {
+            "attackSpeed": 2,
+            "damage": 10,
+            "toolItemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
           }
         ]
       },
@@ -125,12 +135,12 @@
         20
       ],
       "hp": 30,
-      "mapObjectName": "軽石凝灰岩",
+      "mapObjectName": "clay",
       "earnItems": [
         {
-          "maxCount": 1,
+          "maxCount": 3,
           "minCount": 1,
-          "itemGuid": "f181d6be-0801-4658-88d1-e3cbaac39a05"
+          "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
         }
       ],
       "miningType": "Mining",
@@ -144,7 +154,7 @@
         ]
       },
       "mapObjectGuid": "e76e6b65-88db-4ee7-a806-8e65ba859556",
-      "soundEffectType": "tree"
+      "soundEffectType": "stone"
     }
   ]
 }

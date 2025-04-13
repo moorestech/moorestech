@@ -122,3 +122,55 @@ properties:
             - key: highLightText
               type: string
               default: highlight text
+    - key: clearedActions
+      type: array
+      items:
+        type: object
+        properties:
+        - key: clearedActionType
+          type: string
+          enum:
+          - unlockCraftRecipe
+          - unlockItemRecipeView
+        - key: clearedActionParam
+          switch: clearedActionType
+          cases:
+          - when: unlockCraftRecipe
+            type: object
+            properties:
+            - key: unlockRecipeGuid
+              type: uuid
+              foreignKey: craftRecipes:craftRecipeGuid:craftRecipeGuid
+          - when: unlockItemRecipeView
+            type: object
+            properties:
+            - key: unlockItemGuid
+              type: uuid
+              foreignKey: items:itemGuid:name
+    - key: displayListType
+      type: string
+      default: createItem
+      enum:
+      - NotDisplay
+      - Display
+      $memo: ここはbooleanにしたいけど、コード生成側の都合で出来ないのでいったんstringにしている
+    - key: displayListParam
+      switch: displayListType
+      cases:
+      - when: Display
+        type: object
+        properties:
+        - key: UIPosition
+          type: vector2
+          default:
+          - 0
+          - 0
+          overrideCodeGeneratePropertyName: DisplayInChallengeListPosition
+        - key: IconItem
+          type: uuid
+          foreignKey: items:itemGuid:name
+          optional: true
+          overrideCodeGeneratePropertyName: DisplayInChallengeListIconItemGuid
+      - when: NotDisplay
+        type: object
+        properties: []
