@@ -248,6 +248,7 @@
       "sortPriority": 100,
       "maxStack": 100,
       "playSkitType": "None",
+      "playSkitParam": {},
       "taskCompletionType": "createItem",
       "displayListType": "ForceShow",
       "prevChallengeGuids": [
