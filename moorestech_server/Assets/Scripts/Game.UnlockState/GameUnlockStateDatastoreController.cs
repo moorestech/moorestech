@@ -22,7 +22,7 @@ namespace Game.UnlockState
                 var guid = recipe.CraftRecipeGuid;
                 if (!CraftRecipeUnlockStateInfos.ContainsKey(guid))
                 {
-                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked ?? true)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
+                    _recipeUnlockStateInfos.Add(guid, new CraftRecipeUnlockStateInfo(guid, recipe.InitialUnlocked));
                 }
             }
             
@@ -33,7 +33,7 @@ namespace Game.UnlockState
                 if (!ItemUnlockStateInfos.ContainsKey(item))
                 {
                     var itemMaster = MasterHolder.ItemMaster.GetItemMaster(item);
-                    _itemUnlockStateInfos.Add(item, new ItemUnlockStateInfo(item, itemMaster.InitialUnlocked ?? true)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
+                    _itemUnlockStateInfos.Add(item, new ItemUnlockStateInfo(item, itemMaster.InitialUnlocked));
                 }
             }
 
@@ -43,7 +43,7 @@ namespace Game.UnlockState
                 var guid = challenge.ChallengeGuid;
                 if (!ChallengeUnlockStateInfos.ContainsKey(guid))
                 {
-                    _challengeUnlockStateInfos.Add(guid, new ChallengeUnlockStateInfo(guid, challenge.InitialUnlocked ?? false)); // TODO mooresmasterでdefaultの値が取れるようになったらそっちに置き換える
+                    _challengeUnlockStateInfos.Add(guid, new ChallengeUnlockStateInfo(guid, challenge.InitialUnlocked));
                 }
             }
         }
