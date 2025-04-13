@@ -148,6 +148,10 @@ namespace Client.Game.InGame.UI.Challenge
                 // Change the parent's position
                 connectLine.SetParent(parent);
                 
+                // 親によってスケールが変わっている可能性があるので戻す
+                // The scale may have changed due to the parent, so revert it
+                connectLine.localScale = Vector3.one;
+                
                 // 接続線リストに追加
                 // Add to connection line list
                 _connectLines.Add(connectLine);
