@@ -120,7 +120,8 @@
       "playSkitParam": {},
       "prevChallengeGuids": [
         "49ab89d7-bbe2-4735-b253-fbc55889c583"
-      ]
+      ],
+      "initialUnlocked": false
     },
     {
       "initialUnlocked": false,
@@ -204,7 +205,8 @@
       "tutorials": [],
       "prevChallengeGuids": [
         "c78e8e4b-84e6-4859-8541-daa255c09d48"
-      ]
+      ],
+      "initialUnlocked": false
     },
     {
       "displayListParam": {
@@ -235,7 +237,8 @@
       "challengeGuid": "87ff05b0-4d10-4a0d-952d-e725f2004fe4",
       "prevChallengeGuids": [
         "8fb53727-935e-4d44-bcfc-064123f15a0a"
-      ]
+      ],
+      "initialUnlocked": false
     },
     {
       "displayListParam": {
@@ -297,7 +300,8 @@
       "displayListType": "ForceShow",
       "prevChallengeGuids": [
         "8fb53727-935e-4d44-bcfc-064123f15a0a"
-      ]
+      ],
+      "initialUnlocked": false
     },
     {
       "displayListParam": {
