@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textKey: 
-  displayEnable: 0
+  displayEnable: 1
   fontSize: 36
 --- !u!1 &8559208820718781957
 GameObject:
