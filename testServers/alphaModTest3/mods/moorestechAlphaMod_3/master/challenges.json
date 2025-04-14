@@ -58,7 +58,8 @@
         }
       ],
       "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
-      "playSkitParam": {}
+      "playSkitParam": {},
+      "prevChallengeGuids": []
     },
     {
       "summary": "石器を作る",
@@ -101,6 +102,8 @@
           "clearedActionType": "unlockChallenge",
           "clearedActionParam": {
             "unlockChallengeGuids": [
+              "c78e8e4b-84e6-4859-8541-daa255c09d48",
+              "a05f88c4-b60a-496a-a2c0-5584ea121456",
               "8fb53727-935e-4d44-bcfc-064123f15a0a"
             ]
           }
@@ -194,6 +197,52 @@
       ]
     },
     {
+      "initialUnlocked": false,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "displayListParam": {
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "UIPosition": [
+          750,
+          0
+        ],
+        "IconItem": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+      },
+      "summary": "麻縄を2個作る",
+      "title": "麻縄を2個作る",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": [
+        {
+          "tutorialType": "itemViewHighLight",
+          "tutorialParam": {
+            "highLightText": "選択して素材を確認しクラフト",
+            "highLightItemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+          }
+        }
+      ],
+      "clearedActions": [],
+      "taskCompletionType": "inInventoryItem",
+      "displayListType": "ForceShow",
+      "taskParam": {
+        "itemCount": 2,
+        "itemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+      },
+      "prevChallengeGuids": [
+        "c78e8e4b-84e6-4859-8541-daa255c09d48"
+      ],
+      "challengeGuid": "a05f88c4-b60a-496a-a2c0-5584ea121456"
+    },
+    {
       "summary": "石器のハンマーを作る",
       "title": "石器のハンマーを作る",
       "prevChallengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
@@ -210,17 +259,46 @@
         ],
         "IconItem": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
         "UIScale": [
-          1,
-          1,
-          1
+          1.5,
+          1.5,
+          1.5
         ]
       },
       "playSkitParam": {},
       "playSkitType": "None",
-      "clearedActions": [],
-      "tutorials": [],
+      "clearedActions": [
+        {
+          "clearedActionType": "unlockChallenge",
+          "clearedActionParam": {
+            "unlockChallengeGuids": [
+              "87ff05b0-4d10-4a0d-952d-e725f2004fe4",
+              "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
+              "4e406d3a-0b04-429d-b4b2-38c7d4586b3c",
+              "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
+            ]
+          }
+        },
+        {
+          "clearedActionType": "unlockItemRecipeView",
+          "clearedActionParam": {
+            "unlockItemGuids": [
+              "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
+              "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
+            ]
+          }
+        }
+      ],
+      "tutorials": [
+        {
+          "tutorialType": "itemViewHighLight",
+          "tutorialParam": {
+            "highLightText": "選択して素材を確認しクラフト",
+            "highLightItemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+          }
+        }
+      ],
       "prevChallengeGuids": [
-        "c78e8e4b-84e6-4859-8541-daa255c09d48"
+        "a05f88c4-b60a-496a-a2c0-5584ea121456"
       ],
       "initialUnlocked": false
     },
@@ -242,7 +320,15 @@
       "playSkitType": "None",
       "playSkitParam": {},
       "clearedActions": [],
-      "tutorials": [],
+      "tutorials": [
+        {
+          "tutorialType": "mapObjectPin",
+          "tutorialParam": {
+            "pinText": "石器ハンマーで木を採掘",
+            "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b"
+          }
+        }
+      ],
       "taskCompletionType": "inInventoryItem",
       "taskParam": {
         "itemCount": 1,
@@ -306,7 +392,15 @@
       "playSkitType": "None",
       "playSkitParam": {},
       "clearedActions": [],
-      "tutorials": [],
+      "tutorials": [
+        {
+          "tutorialType": "mapObjectPin",
+          "tutorialParam": {
+            "pinText": "石器ハンマーで石を採掘",
+            "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165"
+          }
+        }
+      ],
       "taskCompletionType": "inInventoryItem",
       "taskParam": {
         "itemCount": 1,
@@ -322,9 +416,9 @@
     {
       "displayListParam": {
         "UIScale": [
-          1,
-          1,
-          1
+          1.5,
+          1.5,
+          1.5
         ],
         "UIPosition": [
           1500,
