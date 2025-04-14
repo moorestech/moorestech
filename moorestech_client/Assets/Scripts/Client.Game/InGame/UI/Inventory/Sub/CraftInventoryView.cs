@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
+using Client.Mod.Texture;
 using Core.Master;
 using Mooresmaster.Model.CraftRecipesModule;
 using TMPro;
@@ -122,12 +123,27 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
-                    itemSlotObject.SetItem(itemViewData, requiredItem.Count);
+                    var toolTipText = GetMaterialTolTip(itemViewData);
+                    itemSlotObject.SetItem(itemViewData, requiredItem.Count, toolTipText);
                     _craftMaterialSlotList.Add(itemSlotObject);
                     
                     // 原材料をクリックしたときにそのレシピを表示するようにする
                     itemSlotObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
                 }
+            }
+            
+            string GetMaterialTolTip(ItemViewData itemViewData)
+            {
+                var tooltipText = ItemSlotObject.GetToolTipText(itemViewData);
+                var craftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemViewData.ItemId);
+                
+                // レシピがなければそのまま返す
+                if (craftRecipes.Length == 0) return tooltipText;
+                
+                // レシピがあればテキストを追加
+                tooltipText += $"\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
+                
+                return tooltipText;
             }
             
             void SetResultSlot()
