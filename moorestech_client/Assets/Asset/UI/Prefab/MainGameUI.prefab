@@ -1443,7 +1443,7 @@ RectTransform:
   - {fileID: 3970556276642430243}
   - {fileID: 8464965218850578738}
   - {fileID: 9052886010695504023}
-  - {fileID: 4132461011897688966}
+  - {fileID: 2973132823187255212}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3849,6 +3849,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   offSet: {x: 0, y: 0, z: 0}
+  canvasRect: {fileID: 0}
 --- !u!1 &3970524414940526596
 GameObject:
   m_ObjectHideFlags: 0
@@ -4628,6 +4629,42 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &5149184986412861998
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2973132823187255212}
+  m_Layer: 5
+  m_Name: MouseCursorExplainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2973132823187255212
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5149184986412861998}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4132461011897688966}
+  m_Father: {fileID: 1438684973846715379}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5285517169449056812
 GameObject:
   m_ObjectHideFlags: 0
@@ -12924,7 +12961,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1438684973846715379}
+    m_TransformParent: {fileID: 2973132823187255212}
     m_Modifications:
     - target: {fileID: 146561425243795775, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_Pivot.x
@@ -13014,6 +13051,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MouseCursorExplainer
       objectReference: {fileID: 0}
+    - target: {fileID: 2592401394132855011, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
+      propertyPath: canvasRect
+      value: 
+      objectReference: {fileID: 2973132823187255212}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
