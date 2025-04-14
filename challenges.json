@@ -355,14 +355,6 @@
             }
           },
 
-          "displayListType" :{
-            "type": "string",
-            "default": "createItem",
-            "enum": ["IsUnlocked", "ForceShow", "ForceHide"],
-
-            "$memo": "ここはbooleanにしたいけど、コード生成側の都合で出来ないのでいったんstringにしている"
-          },
-
           "displayListParam": {
             "isDefaultOpen": true,
             "type": "object",
