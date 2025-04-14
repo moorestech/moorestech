@@ -295,7 +295,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3981149932147937266}
   - component: {fileID: 4361973891849932592}
-  - component: {fileID: 5324620286866043571}
+  - component: {fileID: 1572297678640883855}
   m_Layer: 5
   m_Name: ChallengeListUIElement
   m_TagString: Untagged
@@ -344,8 +344,8 @@ MonoBehaviour:
   currentObject: {fileID: 3285425888372279607}
   completedObject: {fileID: 3179761363977812132}
   lockedObject: {fileID: 8559208820718781957}
-  uiEnterExplainerController: {fileID: 5324620286866043571}
---- !u!114 &5324620286866043571
+  uiMouseCursorTooltipTarget: {fileID: 1572297678640883855}
+--- !u!114 &1572297678640883855
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -354,12 +354,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7796623449450255547}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a440686df41645adb9da9b20bf656596, type: 3}
+  m_Script: {fileID: 11500000, guid: 54b8202d8d3d54cad8e9693533cb6d92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   textKey: 
-  displayEnable: 1
-  fontSize: 20
+  displayEnable: 0
+  fontSize: 36
 --- !u!1 &8559208820718781957
 GameObject:
   m_ObjectHideFlags: 0

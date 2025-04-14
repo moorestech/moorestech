@@ -6,7 +6,7 @@ namespace Client.Game.InGame.UI.Util
     /// <summary>
     ///     UIにアタッチして、そのUI要素にマウスカーソルが乗ったら文字列を表示するシステム
     /// </summary>
-    public class UIEnterExplainerController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
+    public class UIMouseCursorTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
     {
         /// <summary>
         ///     カーソルに表示するテキスト
@@ -18,7 +18,7 @@ namespace Client.Game.InGame.UI.Util
         /// </summary>
         [SerializeField] private bool displayEnable;
         
-        [SerializeField] private int fontSize = IMouseCursorExplainer.DefaultFontSize;
+        [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
         private bool _isLocalize;
         
         private bool _pointerStay;
@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Util
         public void OnPointerMove(PointerEventData eventData)
         {
             _pointerStay = true;
-            UpdateMouseCursorExplainer();
+            UpdateMouseCursorTooltip();
         }
         
         
@@ -39,18 +39,18 @@ namespace Client.Game.InGame.UI.Util
         /// <summary>
         ///     フラグが変更されたあと表示、非表示設定を行う
         /// </summary>
-        private void UpdateMouseCursorExplainer()
+        private void UpdateMouseCursorTooltip()
         {
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorExplainer.Instance.Show(textKey, fontSize, _isLocalize);
+                MouseCursorTooltip.Instance.Show(textKey, fontSize, _isLocalize);
                 return;
             }
             
             if (!_pointerStay || //ポインターから外れたので非表示
                 _pointerStay && !displayEnable) //ポインターからは外れてないけど非表示設定なったから非表示
-                MouseCursorExplainer.Instance.Hide();
+                MouseCursorTooltip.Instance.Hide();
         }
         
         
@@ -59,31 +59,31 @@ namespace Client.Game.InGame.UI.Util
         public void DisplayEnable(bool enable)
         {
             displayEnable = enable;
-            if (_pointerStay) UpdateMouseCursorExplainer();
+            if (_pointerStay) UpdateMouseCursorTooltip();
         }
         
         public void OnPointerEnter(PointerEventData eventData)
         {
             _pointerStay = true;
-            UpdateMouseCursorExplainer();
+            UpdateMouseCursorTooltip();
         }
         
         public void OnPointerExit(PointerEventData eventData)
         {
             _pointerStay = false;
-            UpdateMouseCursorExplainer();
+            UpdateMouseCursorTooltip();
         }
         
         private void OnDestroy()
         {
             _pointerStay = false;
-            UpdateMouseCursorExplainer();
+            UpdateMouseCursorTooltip();
         }
         
         private void OnDisable()
         {
             _pointerStay = false;
-            UpdateMouseCursorExplainer();
+            UpdateMouseCursorTooltip();
         }
         
         #endregion

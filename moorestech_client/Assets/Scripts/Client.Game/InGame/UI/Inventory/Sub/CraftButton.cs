@@ -99,7 +99,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         {
             if (!_isInteractable)
             {
-                MouseCursorExplainer.Instance.Show("アイテムが足りないためクラフトできません", isLocalize: false);
+                MouseCursorTooltip.Instance.Show("アイテムが足りないためクラフトできません", isLocalize: false);
             }
             
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
@@ -107,7 +107,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public void OnPointerExit(PointerEventData eventData)
         {
-            MouseCursorExplainer.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide();
             if (resetElapsedTimeOnPointerExit) _buttonDownElapsed = 0;
             if (stopElapsedTimeUpdateOnPointerExit) _isCursorStay = false;
         }
@@ -119,7 +119,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void ResetButton()
         {
-            MouseCursorExplainer.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide();
             _buttonDownElapsed = 0;
             _isCursorStay = false;
             _isButtonDown = false;

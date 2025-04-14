@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private GameObject completedObject;
         [SerializeField] private GameObject lockedObject;
         
-        [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
+        [SerializeField] private UIMouseCursorTooltipTarget uiMouseCursorTooltipTarget;
         
         // 生成された接続線のリスト
         // List of generated connection lines
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.UI.Challenge
                 
                 
                 var text = $"<size=30>{challengeMasterElement.Title}</size>\n\t{challengeMasterElement.Summary}\n\n達成報酬\n{clearedActionsTest}";
-                uiEnterExplainerController.SetText(text, false);
+                uiMouseCursorTooltipTarget.SetText(text, false);
             }
             
   #endregion
