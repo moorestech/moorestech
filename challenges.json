@@ -47,7 +47,7 @@
 
           "playSkitType": {
             "type": "string",
-            "default": "createItem",
+            "default": "None",
             "enum": ["None", "BackgroundSkit"]
           },
 
