@@ -126,31 +126,7 @@ namespace Game.Challenge
             {
                 foreach (var action in currentChallenge.ChallengeMasterElement.ClearedActions)
                 {
-                    switch (action.ClearedActionType)
-                    {
-                        case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
-                            var unlockRecipeGuids = ((UnlockCraftRecipeClearedActionParam) action.ClearedActionParam).UnlockRecipeGuids;
-                            foreach (var guid in unlockRecipeGuids)
-                            {
-                                _gameUnlockStateDataController.UnlockCraftRecipe(guid);
-                            }
-                            break;
-                        case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
-                            var itemGuids = ((UnlockItemRecipeViewClearedActionParam) action.ClearedActionParam).UnlockItemGuids;
-                            foreach (var itemGuid in itemGuids)
-                            {
-                                var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
-                                _gameUnlockStateDataController.UnlockItem(itemId);
-                            }
-                            break;
-                        case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
-                            var unlockChallengeParam = (UnlockChallengeClearedActionParam) action.ClearedActionParam;
-                            foreach (var guid in unlockChallengeParam.UnlockChallengeGuids)
-                            {
-                                _gameUnlockStateDataController.UnlockChallenge(guid);
-                            }
-                            break;
-                    }
+                    ExecuteClearedAction(action);
                 }
             }
             
@@ -174,6 +150,10 @@ namespace Game.Challenge
                 // Create a list of completed challenge GUIDs
                 var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
                 var playerChallengeInfo = new PlayerChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
+                
+                // 完了済みのチャレンジに対応するアンロック系クリアアクションを実行
+                // Execute unlock-related clear actions corresponding to completed challenges
+                ExecuteUnlockActionsOnLoad(completedChallengeIds);
                 
                 // CurrentChallengeを作成
                 // create current challenges
@@ -229,7 +209,27 @@ namespace Game.Challenge
                 }
             }
             
-  #endregion
+            void ExecuteUnlockActionsOnLoad(List<Guid> completedChallengeGuids)
+            {
+                foreach (var completedGuid in completedChallengeGuids)
+                {
+                    var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(completedGuid);
+                    
+                    foreach (var action in challengeElement.ClearedActions)
+                    {
+                        switch (action.ClearedActionType)
+                        {
+                            case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
+                            case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
+                            case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
+                                ExecuteClearedAction(action);
+                                break;
+                        }
+                    }
+                }
+            }
+            
+#endregion
         }
         
         public List<ChallengeJsonObject> GetSaveJsonObject()
@@ -279,6 +279,35 @@ namespace Game.Challenge
             }
             
             return true;
+        }
+        
+        private void ExecuteClearedAction(ClearedActionsElement action)
+        {
+            switch (action.ClearedActionType)
+            {
+                case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
+                    var unlockRecipeGuids = ((UnlockCraftRecipeClearedActionParam) action.ClearedActionParam).UnlockRecipeGuids;
+                    foreach (var guid in unlockRecipeGuids)
+                    {
+                        _gameUnlockStateDataController.UnlockCraftRecipe(guid);
+                    }
+                    break;
+                case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
+                    var itemGuids = ((UnlockItemRecipeViewClearedActionParam) action.ClearedActionParam).UnlockItemGuids;
+                    foreach (var itemGuid in itemGuids)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+                        _gameUnlockStateDataController.UnlockItem(itemId);
+                    }
+                    break;
+                case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
+                    var unlockChallengeParam = (UnlockChallengeClearedActionParam) action.ClearedActionParam;
+                    foreach (var guid in unlockChallengeParam.UnlockChallengeGuids)
+                    {
+                        _gameUnlockStateDataController.UnlockChallenge(guid);
+                    }
+                    break;
+            }
         }
     }
     
