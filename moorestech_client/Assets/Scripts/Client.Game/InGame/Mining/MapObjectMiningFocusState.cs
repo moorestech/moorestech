@@ -43,13 +43,13 @@ namespace Client.Game.InGame.Mining
         {
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
-                MouseCursorExplainer.Instance.Hide();
+                MouseCursorTooltip.Instance.Hide();
                 return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject, int.MaxValue);
             }
             
             // 左クリックがされていなければ現状を維持
             // If left click is not pressed, maintain the current state
-            MouseCursorExplainer.Instance.Show("左クリックで取得", isLocalize: false);
+            MouseCursorTooltip.Instance.Show("左クリックで取得", isLocalize: false);
             return this;
         }
         
@@ -95,13 +95,13 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorExplainer.Instance.Show("左クリック長押しで取得", isLocalize: false);
+                MouseCursorTooltip.Instance.Show("左クリック長押しで取得", isLocalize: false);
                 return this;
             }
             
             // マイニング状態に遷移
             // Transition to mining state
-            MouseCursorExplainer.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide();
             return new MapObjectMiningMiningState(usableMiningTool, context.PlayerObjectController);
         }
         
@@ -118,7 +118,7 @@ namespace Client.Game.InGame.Mining
             
             var text = "このアイテムが必要です:" + string.Join(", ",result);
             
-            MouseCursorExplainer.Instance.Show(text, isLocalize: false);
+            MouseCursorTooltip.Instance.Show(text, isLocalize: false);
         }
     }
 }

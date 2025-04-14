@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         [SerializeField] private GameObject noneCrossObject;
         
         [SerializeField] private TMP_Text countText;
-        [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
+        [SerializeField] private UIMouseCursorTooltipTarget uiMouseCursorTooltipTarget;
         
         private ItemSlotObjectBehaviourOption itemSlotObjectBehaviourOption = new();
         private bool _onPointing;
@@ -67,15 +67,15 @@ namespace Client.Game.InGame.UI.Inventory.Element
             {
                 itemImage.gameObject.SetActive(false);
                 
-                uiEnterExplainerController.DisplayEnable(false);
+                uiMouseCursorTooltipTarget.DisplayEnable(false);
             }
             else
             {
                 itemImage.gameObject.SetActive(true);
                 itemImage.sprite = itemView.ItemImage;
                 
-                uiEnterExplainerController.SetText($"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>", false);
-                uiEnterExplainerController.DisplayEnable(itemSlotObjectBehaviourOption.IsShowUIEnterExplain);
+                uiMouseCursorTooltipTarget.SetText($"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>", false);
+                uiMouseCursorTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowUIEnterExplain);
             }
         }
         

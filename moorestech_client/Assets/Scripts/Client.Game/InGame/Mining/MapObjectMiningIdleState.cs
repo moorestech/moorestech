@@ -7,7 +7,7 @@ namespace Client.Game.InGame.Mining
     {
         public MapObjectMiningIdleState()
         {
-            MouseCursorExplainer.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide();
         }
         
         public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)

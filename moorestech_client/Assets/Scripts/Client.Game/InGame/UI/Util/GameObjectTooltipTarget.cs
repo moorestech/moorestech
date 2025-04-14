@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Util
 {
-    public class GameObjectEnterExplainer : MonoBehaviour
+    public class GameObjectTooltipTarget : MonoBehaviour
     {
         /// <summary>
         ///     カーソルに表示するテキストのキー
@@ -14,17 +14,17 @@ namespace Client.Game.InGame.UI.Util
         /// </summary>
         [SerializeField] private bool displayEnable = true;
         
-        [SerializeField] private int fontSize = IMouseCursorExplainer.DefaultFontSize;
+        [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
         
         
         public void OnCursorEnter()
         {
-            if (displayEnable) MouseCursorExplainer.Instance.Show(textKey, fontSize);
+            if (displayEnable) MouseCursorTooltip.Instance.Show(textKey, fontSize);
         }
         
         public void OnCursorExit()
         {
-            MouseCursorExplainer.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide();
         }
     }
 }
