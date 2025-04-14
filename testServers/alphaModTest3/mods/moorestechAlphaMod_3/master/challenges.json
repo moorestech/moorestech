@@ -738,7 +738,7 @@
         ],
         "IconItem": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
       "playSkitType": "None",
       "summary": "砂をふるいにかけ、石炭を入手する",
@@ -792,7 +792,7 @@
         ],
         "IconItem": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
       "playSkitType": "None",
       "summary": "粘土を採掘する",
@@ -823,7 +823,7 @@
         ],
         "IconItem": "8b67462b-227a-465b-8d86-de683b5e98a1"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "createItem",
       "playSkitType": "None",
       "summary": "キャンプファイアを作る",
@@ -853,7 +853,7 @@
         ],
         "IconItem": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
       "playSkitType": "None",
       "summary": "レンガから釜を作る",
@@ -885,7 +885,7 @@
         ],
         "IconItem": "38cfc079-3835-4530-b539-449c5200dd59"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
       "playSkitType": "None",
       "summary": "釜で亜鉛を作る",
@@ -950,7 +950,7 @@
         ],
         "IconItem": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "createItem",
       "playSkitType": "None",
       "summary": "大きな歯車を作る",
@@ -978,7 +978,7 @@
           -150
         ]
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "createItem",
       "playSkitType": "None",
       "summary": "遠心分離機を作る",
@@ -1036,7 +1036,7 @@
         ],
         "IconItem": "44cb69e9-c703-4393-94c4-bad4477da10f"
       },
-      "displayListType": "createItem",
+      "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
       "playSkitType": "None",
       "summary": "釜で砂鉄を精錬する",
