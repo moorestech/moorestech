@@ -83,7 +83,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
                 {
                     // デフォルトはアンロックされていてレシピがあれば表示する
-                    // 
+                    // Default is to display if unlocked and has a recipe
                     var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     var isItemUnlocked = state.IsUnlocked;
                     
@@ -97,7 +97,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)
                 {
                     // アンロックされていれば表示する
-                    //
+                    // Display if unlocked
                     var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     return state.IsUnlocked;
                 }

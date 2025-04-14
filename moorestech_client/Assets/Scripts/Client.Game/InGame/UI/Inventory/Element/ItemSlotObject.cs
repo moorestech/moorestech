@@ -56,7 +56,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         }
         
         
-        public void SetItem(ItemViewData itemView, int count)
+        public void SetItem(ItemViewData itemView, int count, string toolTipText = null)
         {
             ItemViewData = itemView;
             
@@ -74,9 +74,19 @@ namespace Client.Game.InGame.UI.Inventory.Element
                 itemImage.gameObject.SetActive(true);
                 itemImage.sprite = itemView.ItemImage;
                 
-                uiMouseCursorTooltipTarget.SetText($"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>", false);
+                if (string.IsNullOrEmpty(toolTipText))
+                {
+                    toolTipText = GetToolTipText(itemView);
+                }
+                
+                uiMouseCursorTooltipTarget.SetText(toolTipText, false);
                 uiMouseCursorTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowUIEnterExplain);
             }
+        }
+        
+        public static string GetToolTipText(ItemViewData itemView)
+        {
+            return $"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>";
         }
         
         public void SetGrayOut(bool active)
