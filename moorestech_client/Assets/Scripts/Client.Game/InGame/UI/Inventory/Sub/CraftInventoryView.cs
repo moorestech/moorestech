@@ -132,20 +132,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 }
             }
             
-            string GetMaterialTolTip(ItemViewData itemViewData)
-            {
-                var tooltipText = ItemSlotObject.GetToolTipText(itemViewData);
-                var craftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemViewData.ItemId);
-                
-                // レシピがなければそのまま返す
-                if (craftRecipes.Length == 0) return tooltipText;
-                
-                // レシピがあればテキストを追加
-                tooltipText += $"\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
-                
-                return tooltipText;
-            }
-            
             void SetResultSlot()
             {
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftRecipe.CraftResultItemGuid);
@@ -205,6 +191,20 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
+        }
+        
+        public static string GetMaterialTolTip(ItemViewData itemViewData)
+        {
+            var tooltipText = ItemSlotObject.GetToolTipText(itemViewData);
+            var craftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemViewData.ItemId);
+            
+            // レシピがなければそのまま返す
+            if (craftRecipes.Length == 0) return tooltipText;
+            
+            // レシピがあればテキストを追加
+            tooltipText += $"\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
+            
+            return tooltipText;
         }
     }
 }
