@@ -86,7 +86,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         
         public static string GetToolTipText(ItemViewData itemView)
         {
-            return $"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>";
+            return $"{itemView.ItemName}";
         }
         
         public void SetGrayOut(bool active)

@@ -59,17 +59,29 @@ namespace Core.Master
   #endregion
         }
         
+        /// <summary>
+        /// クラフトレシピIDからマスターデータを取得
+        /// Gets the master data from the crafting recipe ID.
+        /// </summary>
         public CraftRecipeMasterElement GetCraftRecipe(Guid guid)
         {
             return Array.Find(CraftRecipes.Data, x => x.CraftRecipeGuid == guid);
         }
         
+        /// <summary>
+        /// 指定したアイテムを作るためのクラフトレシピを取得します。
+        /// Gets the crafting recipe for the specified item.
+        /// </summary>
         public CraftRecipeMasterElement[] GetResultItemCraftRecipes(ItemId itemId)
         {
             var itemGuid = MasterHolder.ItemMaster.GetItemMaster(itemId).ItemGuid;
             return Array.FindAll(CraftRecipes.Data, x => x.CraftResultItemGuid == itemGuid);
         }
         
+        /// <summary>
+        /// すべてのクラフトレシピを取得します。
+        /// Gets all crafting recipes.
+        /// </summary>
         public CraftRecipeMasterElement[] GetAllCraftRecipes()
         {
             return CraftRecipes.Data;
