@@ -97,7 +97,10 @@ namespace Client.Game.InGame.UI.Challenge
                 }
                 
                 
-                var text = $"<size=30>{challengeMasterElement.Title}</size>\n\t{challengeMasterElement.Summary}\n\n達成報酬\n{clearedActionsTest}";
+                var text = @$"<size=30>{challengeMasterElement.Title}</size>
+<size=20>    {challengeMasterElement.Summary}
+達成報酬
+    {clearedActionsTest}</size>";
                 uiMouseCursorTooltipTarget.SetText(text, false);
             }
             
