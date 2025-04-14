@@ -545,7 +545,7 @@
         ],
         "UIPosition": [
           1800,
-          150
+          -150
         ],
         "IconItem": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
       },
@@ -575,8 +575,9 @@
         ],
         "UIPosition": [
           2100,
-          150
-        ]
+          -150
+        ],
+        "IconItem": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
       },
       "displayListType": "ForceShow",
       "taskCompletionType": "blockPlace",
@@ -605,7 +606,7 @@
         ],
         "UIPosition": [
           1800,
-          -150
+          -300
         ],
         "IconItem": "619638d5-13f0-4c04-b4e6-5113e946be7e"
       },
