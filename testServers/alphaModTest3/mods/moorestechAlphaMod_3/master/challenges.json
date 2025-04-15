@@ -1013,7 +1013,7 @@
       "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
       "playSkitType": "None",
-      "summary": "砂を遠心分離する",
+      "summary": "大きな歯車を使って回転速度を早め、砂を遠心分離する",
       "title": "砂鉄を入手する",
       "initialUnlocked": false,
       "prevChallengeGuids": [
