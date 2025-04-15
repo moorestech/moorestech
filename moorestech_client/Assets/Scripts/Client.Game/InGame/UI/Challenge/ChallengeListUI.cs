@@ -118,6 +118,13 @@ namespace Client.Game.InGame.UI.Challenge
             
             void SetScrollContentRectTransform()
             {
+                // スクロールコンテンツの設定を初期化
+                // Initialize scroll content settings
+                scrollContent.anchorMin = new Vector2(0, 0);
+                scrollContent.anchorMax = new Vector2(1, 1);
+                scrollContent.pivot = new Vector2(0.5f, 0.5f);
+                scrollContent.anchoredPosition = Vector2.zero;
+                
                 var min = new Vector2(float.MaxValue, float.MaxValue);
                 var max = new Vector2(float.MinValue, float.MinValue);
                 
@@ -128,8 +135,31 @@ namespace Client.Game.InGame.UI.Challenge
                     max = Vector2.Max(max, position);
                 }
                 
-                var size = max - min + scrollContentPadding;
+                // チャレンジツリーの中心を計算
+                // Calculate the center of the challenge tree
+                var treeCenter = (min + max) * 0.5f;
+                
+                // スクロールコンテンツのサイズを設定
+                // Set the size of the scroll content
+                var size = max - min + scrollContentPadding * 2;
+                
+                // pivotが中央(0.5, 0.5)の場合、サイズの半分だけ位置をずらす必要がある
+                // If pivot is center (0.5, 0.5), need to shift position by half the size
+                var pivotOffset = new Vector2(
+                    (max.x + min.x) * 0.5f,
+                    (max.y + min.y) * 0.5f
+                );
+                
+                // スクロールコンテンツの位置とサイズを設定
+                // Set the position and size of the scroll content
                 scrollContent.sizeDelta = size;
+                scrollContent.anchoredPosition = -pivotOffset;
+                
+                // デバッグログ
+                // Debug log
+                Debug.Log($"Min: {min}, Max: {max}, TreeCenter: {treeCenter}, Size: {size}");
+                Debug.Log($"PivotOffset: {pivotOffset}, AnchoredPosition: {scrollContent.anchoredPosition}");
+                Debug.Log($"ScrollContent Pivot: {scrollContent.pivot}, SizeDelta: {scrollContent.sizeDelta}");
             }
             
   #endregion
