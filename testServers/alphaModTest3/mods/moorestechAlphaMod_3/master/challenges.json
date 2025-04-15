@@ -977,7 +977,8 @@
         "UIPosition": [
           4100,
           -150
-        ]
+        ],
+        "IconItem": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
       },
       "displayListType": "ForceShow",
       "taskCompletionType": "createItem",
@@ -989,7 +990,9 @@
         "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
       },
       "challengeGuid": "c3f25998-ac94-443c-a7a9-e1d2a517f859",
-      "prevChallengeGuids": [],
+      "prevChallengeGuids": [
+        "99fc2d4b-a99c-412d-a79c-e91dba34c21f"
+      ],
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": []
@@ -1004,7 +1007,8 @@
         "UIPosition": [
           4400,
           0
-        ]
+        ],
+        "IconItem": "57f116bb-c374-410b-bc00-23b285575d7b"
       },
       "displayListType": "ForceShow",
       "taskCompletionType": "inInventoryItem",
@@ -1013,7 +1017,8 @@
       "title": "砂鉄を入手する",
       "initialUnlocked": false,
       "prevChallengeGuids": [
-        "c3f25998-ac94-443c-a7a9-e1d2a517f859"
+        "c3f25998-ac94-443c-a7a9-e1d2a517f859",
+        "08cee1c0-cbf3-48ed-80d1-70bf02723bfa"
       ],
       "taskParam": {
         "itemCount": 1,
