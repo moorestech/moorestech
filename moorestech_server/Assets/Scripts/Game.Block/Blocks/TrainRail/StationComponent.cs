@@ -1,59 +1,91 @@
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Train;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+
 namespace Game.Block.Blocks.TrainRail
 {
-    public class StationComponent : IBlockComponent
+    /// <summary>
+    /// 駅(TrainStation)用のコンポーネント。
+    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
+    /// </summary>
+    public class StationComponent : IBlockSaveState
     {
-        public BlockInstanceId BlockInstanceId { get; }
         public string StationName { get; }
 
-        // 駅の長さ（何両分か）
-        private int _stationLength;
-
-        // 現在使用中の列車単位
+        private readonly int _stationLength;
+        // 列車関連
         private TrainUnit _currentTrain;
 
-        // IBlockComponentからのメンバ
+
+        // インベントリスロット数やUI更新のための設定
+        public int InventorySlotCount { get; private set; }
         public bool IsDestroy { get; private set; }
 
-        public StationComponent(BlockInstanceId blockInstanceId, int stationLength, string stationName = "DefaultStation")
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        public StationComponent(
+            int stationLength,
+            string stationName,
+            int inventorySlotCount
+        )
         {
-            BlockInstanceId = blockInstanceId;
             _stationLength = stationLength;
-            _currentTrain = null;
-            IsDestroy = false;
             StationName = stationName;
+            InventorySlotCount = inventorySlotCount;
         }
 
 
-        // 列車が駅に到着したときの処理
+        /// <summary>
+        /// 駅の列車関連機能
+        /// </summary>
         public bool TrainArrived(TrainUnit train)
         {
-            // すでに列車がいる場合は何もしない
-            if (_currentTrain != null)
-            {
-                return false;
-            }
-
-            // 列車が駅に入る
+            if (_currentTrain != null) return false; // 既に停車中ならNG
             _currentTrain = train;
             return true;
         }
-
-        // 列車が駅から出発したときの処理
         public bool TrainDeparted(TrainUnit train)
         {
-            // 列車がいない場合は何もしない
-            if (_currentTrain == null)
-            {
-                return false;
-            }
-
-            // 列車が駅から出る
+            if (_currentTrain == null) return false;
             _currentTrain = null;
             return true;
         }
+
+        /// <summary>
+        /// セーブ機能：ブロックが破壊されたりサーバーを落とすとき用
+        /// </summary>
+        public string SaveKey { get; } = typeof(StationComponent).FullName;
+
+
+        public string GetSaveState()
+        {
+            var stationComponentSaverData = new StationComponentSaverData(StationName);
+            /*foreach (var item in _itemDataStoreService.InventoryItems)
+            {
+                stationComponentSaverData.itemJson.Add(new ItemStackSaveJsonObject(item));
+            }*/
+            return JsonConvert.SerializeObject(stationComponentSaverData);
+        }
+
+        [Serializable]
+        public class StationComponentSaverData
+        {
+            public List<ItemStackSaveJsonObject> itemJson;
+            public string stationName;
+            public StationComponentSaverData(string name)
+            {
+                itemJson = new List<ItemStackSaveJsonObject>();
+                stationName = name;
+            }
+        }
+
+
 
 
         public void Destroy()
