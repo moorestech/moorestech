@@ -136,8 +136,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             var itemName = MasterHolder.ItemMaster.GetItemMaster(element.CraftRecipe.CraftResultItemGuid).Name;
             itemNameText.text = itemName;
             
-            // クラフト時間を設定
-            craftButton.SetCraftTime(element.CraftRecipe.CraftTime);
+            // クラフト時間、ProgressArrowを設定
+            craftButton.SetCraftInfo(element.CraftRecipe.CraftTime, element.ProgressArrowView);
         }
         
         private void UpdateCraftButton()
