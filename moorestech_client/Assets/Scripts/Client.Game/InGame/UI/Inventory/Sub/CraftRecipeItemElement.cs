@@ -18,50 +18,45 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     {
         [SerializeField] private RectTransform materialParent;
         [SerializeField] private RectTransform resultParent;
-        [SerializeField] private Button recipeButton;
+        [SerializeField] private Button recipeSelectButton;
         [SerializeField] private Image backgroundImage;
         [SerializeField] private TMP_Text craftTimeText;
-        [SerializeField] private TMP_Text itemNameText;
-        [SerializeField] private GameObject selectedIndicator;
         [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color selectedColor = new Color(0.9f, 0.9f, 1.0f);
         [SerializeField] private Color disabledColor = new Color(0.7f, 0.7f, 0.7f);
         
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
-        private CraftRecipeMasterElement _craftRecipe;
-        private readonly Subject<CraftRecipeItemElement> _onSelectedSubject = new();
-        private readonly List<ItemSlotObject> _materialSlots = new();
-        private ItemSlotObject _resultSlot;
-        private bool _isCraftable = true;
-        private bool _isSelected = false;
+        public CraftRecipeMasterElement CraftRecipe { get; private set; }
+        public bool IsCraftable { get; private set; }
         
         public IObservable<CraftRecipeItemElement> OnSelected => _onSelectedSubject;
-        public CraftRecipeMasterElement CraftRecipe => _craftRecipe;
-        public bool IsCraftable => _isCraftable;
-        public bool IsSelected => _isSelected;
+        private readonly Subject<CraftRecipeItemElement> _onSelectedSubject = new();
+        
+        private readonly List<ItemSlotObject> _materialSlots = new();
+        private ItemSlotObject _resultSlot;
+        
+        private bool _isSelected = false;
         
         public void Initialize(CraftRecipeMasterElement craftRecipe, bool isCraftable)
         {
-            _craftRecipe = craftRecipe;
-            _isCraftable = isCraftable;
+            CraftRecipe = craftRecipe;
+            IsCraftable = isCraftable;
             
             ClearSlots();
             SetupMaterialSlots();
             SetupResultSlot();
             
             // アイテム名と製作時間を設定
-            var itemName = MasterHolder.ItemMaster.GetItemMaster(craftRecipe.CraftResultItemGuid).Name;
-            itemNameText.text = itemName;
-            craftTimeText.text = $"製作時間: {craftRecipe.CraftTime}秒";
+            craftTimeText.text = $"{craftRecipe.CraftTime}秒";
             
             // クラフト可能かどうかで見た目を変更
             backgroundImage.color = isCraftable ? normalColor : disabledColor;
             
             // ボタンクリック時のイベント
-            recipeButton.onClick.RemoveAllListeners();
-            recipeButton.onClick.AddListener(() => {
-                if (_isCraftable)
+            recipeSelectButton.onClick.RemoveAllListeners();
+            recipeSelectButton.onClick.AddListener(() => {
+                if (IsCraftable)
                 {
                     _onSelectedSubject.OnNext(this);
                 }
@@ -87,7 +82,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void SetupMaterialSlots()
         {
-            foreach (var requiredItem in _craftRecipe.RequiredItems)
+            foreach (var requiredItem in CraftRecipe.RequiredItems)
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
@@ -102,23 +97,22 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void SetupResultSlot()
         {
-            var itemViewData = ClientContext.ItemImageContainer.GetItemView(_craftRecipe.CraftResultItemGuid);
+            var itemViewData = ClientContext.ItemImageContainer.GetItemView(CraftRecipe.CraftResultItemGuid);
             _resultSlot = Instantiate(itemSlotObjectPrefab, resultParent);
-            _resultSlot.SetItem(itemViewData, _craftRecipe.CraftResultCount);
+            _resultSlot.SetItem(itemViewData, CraftRecipe.CraftResultCount);
             _resultSlot.SetFrame(ItemSlotFrameType.Normal);
         }
         
         public void SetSelected(bool selected)
         {
             _isSelected = selected;
-            selectedIndicator.SetActive(selected);
-            backgroundImage.color = selected ? selectedColor : (_isCraftable ? normalColor : disabledColor);
+            backgroundImage.color = selected ? selectedColor : (IsCraftable ? normalColor : disabledColor);
         }
         
         public void UpdateCraftableState(bool isCraftable)
         {
-            _isCraftable = isCraftable;
-            backgroundImage.color = _isSelected ? selectedColor : (_isCraftable ? normalColor : disabledColor);
+            IsCraftable = isCraftable;
+            backgroundImage.color = _isSelected ? selectedColor : (IsCraftable ? normalColor : disabledColor);
         }
         
         private void OnDestroy()
