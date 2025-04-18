@@ -36,11 +36,10 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
             machineRecipeView.SetActive(!isFirstCraft);
-            if (isFirstCraft)
-            {
-                craftInventoryView.DisplayRecipe(0);
-            }
-            else if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
+            
+            // SetRecipesの中で最初のレシピが自動選択されるようになったので
+            // DisplayRecipe(0)の呼び出しは不要
+            if (!isFirstCraft && recipeViewerItemRecipes.MachineRecipes.Count != 0)
             {
                 machineRecipeView.DisplayRecipe(0);
             }
