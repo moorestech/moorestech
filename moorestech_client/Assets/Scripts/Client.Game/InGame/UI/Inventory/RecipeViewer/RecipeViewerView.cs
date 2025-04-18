@@ -36,14 +36,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
             machineRecipeView.SetActive(!isFirstCraft);
-            if (isFirstCraft)
-            {
-                craftInventoryView.DisplayRecipe(0);
-            }
-            else if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
-            {
-                machineRecipeView.DisplayRecipe(0);
-            }
+            // DisplayRecipe呼び出しは不要になったため削除
         }
         
         private void OnClickTab(BlockId? blockId)
