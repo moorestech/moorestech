@@ -258,13 +258,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdbf6b1141e564de7b639d086fbb6724, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  progressArrow: {fileID: 4162807350671578646}
   materialParent: {fileID: 1853822690932065448}
   resultParent: {fileID: 8476816547750590718}
   recipeSelectButton: {fileID: 4157293967678215587}
-  backgroundImage: {fileID: 8178109569084009005}
   craftTimeText: {fileID: 8843446375237151887}
-  itemNameText: {fileID: 0}
-  selectedIndicator: {fileID: 0}
+  backgroundImage: {fileID: 8178109569084009005}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 0.2028302, g: 0.42659706, b: 1, a: 1}
   disabledColor: {r: 0.2830189, g: 0.2830189, b: 0.2830189, a: 1}
@@ -543,3 +542,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8196698827507517094, guid: 95f35fa67cd194ad6aa6984f3ebea5ce, type: 3}
   m_PrefabInstance: {fileID: 5048644570383921830}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4162807350671578646 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9211304098880169136, guid: 95f35fa67cd194ad6aa6984f3ebea5ce, type: 3}
+  m_PrefabInstance: {fileID: 5048644570383921830}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67c6ccf78b894849a6d785fb9a81743f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
