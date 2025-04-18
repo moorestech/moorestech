@@ -19,162 +19,154 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     //TODO CraftITemViewにリネーム
     public class CraftInventoryView : MonoBehaviour
     {
-        // --- 旧UI要素（ページング関連）はコメントアウトまたは削除 ---
-        // [SerializeField] private ItemSlotObject itemSlotObjectPrefab; // RecipeListItem内で使用
-        // [SerializeField] private RectTransform craftMaterialParent; // RecipeListItem内で使用
-        // [SerializeField] private RectTransform craftResultParent; // RecipeListItem内で使用
-        // [SerializeField] private Button nextRecipeButton;
-        // [SerializeField] private Button prevRecipeButton;
-        // [SerializeField] private TMP_Text recipeCountText;
-        // [SerializeField] private TMP_Text itemNameText; // 必要なら選択中レシピ表示に使う
-
+        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
+        
+        [SerializeField] private RectTransform craftMaterialParent;
+        [SerializeField] private RectTransform craftResultParent;
+        
         [SerializeField] private CraftButton craftButton;
-        [SerializeField] private RectTransform recipeListParent; // ScrollViewのContent
-        [SerializeField] private RecipeListItem recipeListItemPrefab; // レシピリスト要素のPrefab
-        [SerializeField] private TMP_Text itemNameText; // 選択中のレシピ名表示用（任意）
-
-        // ItemSlotObjectのPrefabはRecipeListItemから参照するため、ここでは不要
-
-        // --- 削除または変更 ---
-        // public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
-        // private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
-        // private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
-        // private ItemSlotObject _craftResultSlot;
-        // private int CraftRecipeCount => _currentItemRecipes?.UnlockedCraftRecipes().Count ?? 0; // 不要
-        // private RecipeViewerItemRecipes _currentItemRecipes; // 不要
-        // private int _currentIndex; // 不要
-
+        [SerializeField] private Button nextRecipeButton;
+        [SerializeField] private Button prevRecipeButton;
+        
+        [SerializeField] private TMP_Text itemNameText;
+        [SerializeField] private TMP_Text recipeCountText;
+        
+        public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
+        private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
+        
+        private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
+        private ItemSlotObject _craftResultSlot;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
-        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer; // 素材クリック時のレシピ表示に必要なら残す
-
-        private RecipeListItem _selectedRecipeItem; // 現在選択中のレシピリストアイテム
-        private readonly List<RecipeListItem> _currentRecipeListItems = new(); // 表示中のリストアイテム管理用
-
+        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        
+        private int CraftRecipeCount => _currentItemRecipes?.UnlockedCraftRecipes().Count ?? 0;
+        private RecipeViewerItemRecipes _currentItemRecipes;
+        private int _currentIndex;
+        
         [Inject]
         public void Construct()
         {
             _localPlayerInventory.OnItemChange.Subscribe(_ =>
             {
-                // 選択中のレシピがあればクラフトボタンの状態を更新
-                if (_selectedRecipeItem != null)
+                if (_currentItemRecipes != null && _currentIndex < CraftRecipeCount)
                 {
-                    UpdateCraftButton(_selectedRecipeItem.RecipeData);
+                    var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes();
+                    UpdateCraftButton(currentUnlocked[_currentIndex]);
                 }
-            }).AddTo(this);
-
-            // --- ページングボタンのリスナー削除 ---
-            // nextRecipeButton.onClick.AddListener(...)
-            // prevRecipeButton.onClick.AddListener(...)
-
+            });
+            
+            nextRecipeButton.onClick.AddListener(() =>
+            {
+                _currentIndex++;
+                if (CraftRecipeCount <= _currentIndex) _currentIndex = 0;
+                DisplayRecipe(_currentIndex);
+            });
+            
+            prevRecipeButton.onClick.AddListener(() =>
+            {
+                _currentIndex--;
+                if (_currentIndex < 0) _currentIndex = CraftRecipeCount - 1;
+                DisplayRecipe(_currentIndex);
+            });
+            
             craftButton.OnCraftFinish.Subscribe(_ =>
             {
-                // 選択中のレシピがなければ何もしない
-                if (_selectedRecipeItem == null)
+                if (_currentItemRecipes == null || CraftRecipeCount == 0)
                 {
-                    Debug.LogWarning("クラフトするレシピが選択されていません。");
                     return;
                 }
-
-                // 選択中のレシピでクラフトを実行
-                var craftGuid = _selectedRecipeItem.RecipeData.CraftRecipeGuid;
-                ClientContext.VanillaApi.SendOnly.Craft(craftGuid);
+                
+                var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes();
+                var currentCraftGuid = currentUnlocked[_currentIndex].CraftRecipeGuid;
+                ClientContext.VanillaApi.SendOnly.Craft(currentCraftGuid);
             }).AddTo(this);
         }
-
+        
         private void UpdateCraftButton(CraftRecipeMasterElement craftRecipe)
         {
-            if (craftRecipe == null)
-            {
-                craftButton.SetInteractable(false);
-                craftButton.SetCraftTime(0); // クラフト時間もリセット
-                return;
-            }
             craftButton.SetInteractable(IsCraftable(craftRecipe));
-            craftButton.SetCraftTime(craftRecipe.CraftTime);
         }
-
+        
         public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
-            // 古いリストアイテムをクリア
-            foreach (var item in _currentRecipeListItems)
-            {
-                Destroy(item.gameObject);
-            }
-            _currentRecipeListItems.Clear();
-            _selectedRecipeItem = null; // 選択状態もクリア
-            UpdateCraftButton(null); // クラフトボタンもリセット
-            if (itemNameText != null) itemNameText.text = ""; // レシピ名もクリア
-
-
-            if (recipeViewerItemRecipes == null)
-            {
-                // レシピがない場合は何もしない
-                return;
-            }
-
-            var unlockedRecipes = recipeViewerItemRecipes.UnlockedCraftRecipes();
-            if (unlockedRecipes.Count == 0)
-            {
-                // アンロック済みレシピがない場合も何もしない
-                return;
-            }
-
-            // 新しいリストアイテムを作成
-            foreach (var recipeData in unlockedRecipes)
-            {
-                var listItem = Instantiate(recipeListItemPrefab, recipeListParent);
-                listItem.SetRecipe(recipeData);
-                listItem.OnClickItem.Subscribe(HandleRecipeItemClick).AddTo(listItem); // DisposeされるようにAddToする
-                _currentRecipeListItems.Add(listItem);
-            }
-
-            // デフォルトで最初のレシピを選択状態にする（任意）
-            if (_currentRecipeListItems.Count > 0)
-            {
-                HandleRecipeItemClick(_currentRecipeListItems[0]);
-            }
+            _currentItemRecipes = recipeViewerItemRecipes;
+            _currentIndex = 0;
         }
-
-        private void HandleRecipeItemClick(RecipeListItem clickedItem)
+        
+        public void DisplayRecipe(int index)
         {
-            if (_selectedRecipeItem == clickedItem)
+            var currentUnlocked = _currentItemRecipes.UnlockedCraftRecipes();
+            var craftRecipe = currentUnlocked[index];
+            
+            ClearSlotObject();
+            
+            SetMaterialSlot();
+            
+            SetResultSlot();
+            
+            UpdateButtonAndText();
+            
+            #region InternalMethod
+            
+            void ClearSlotObject()
             {
-                // すでに選択されているアイテムをクリックした場合は何もしない（または選択解除のロジック）
-                return;
+                foreach (var materialSlot in _craftMaterialSlotList) Destroy(materialSlot.gameObject);
+                _craftMaterialSlotList.Clear();
+                if (_craftResultSlot != null) Destroy(_craftResultSlot.gameObject);
             }
-
-            // 前に選択されていたアイテムの選択を解除
-            if (_selectedRecipeItem != null)
+            
+            void SetMaterialSlot()
             {
-                _selectedRecipeItem.SetSelected(false);
+                foreach (var requiredItem in craftRecipe.RequiredItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
+                    var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
+                    
+                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
+                    var toolTipText = GetMaterialTolTip(itemViewData);
+                    itemSlotObject.SetItem(itemViewData, requiredItem.Count, toolTipText);
+                    _craftMaterialSlotList.Add(itemSlotObject);
+                    
+                    // 原材料をクリックしたときにそのレシピを表示するようにする
+                    itemSlotObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
+                }
             }
-
-            // 新しいアイテムを選択状態にする
-            _selectedRecipeItem = clickedItem;
-            _selectedRecipeItem.SetSelected(true);
-
-            // クラフトボタンの状態を更新
-            UpdateCraftButton(_selectedRecipeItem.RecipeData);
-
-            // 選択されたレシピ名を表示（任意）
-            if (itemNameText != null)
+            
+            void SetResultSlot()
             {
-                 itemNameText.text = MasterHolder.ItemMaster.GetItemMaster(_selectedRecipeItem.RecipeData.CraftResultItemGuid).Name;
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftRecipe.CraftResultItemGuid);
+                _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
+                _craftResultSlot.SetItem(itemViewData, craftRecipe.CraftResultCount);
             }
+            
+            void UpdateButtonAndText()
+            {
+                prevRecipeButton.interactable = CraftRecipeCount != 1;
+                nextRecipeButton.interactable = CraftRecipeCount != 1;
+                recipeCountText.text = $"{_currentIndex + 1} / {CraftRecipeCount}";
+                craftButton.SetCraftTime(craftRecipe.CraftTime);
+                UpdateCraftButton(craftRecipe);
+                
+                var itemName = MasterHolder.ItemMaster.GetItemMaster(craftRecipe.CraftResultItemGuid).Name;
+                itemNameText.text = itemName;
+            }
+            
+            void OnClickMaterialItem(ItemSlotObject itemSlotObject)
+            {
+                var itemId = itemSlotObject.ItemViewData.ItemId;
+                var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+                _onClickItem.OnNext(itemRecipes);
+            }
+            
+            #endregion
         }
-
-
-        // --- DisplayRecipeメソッドは削除 ---
-        // public void DisplayRecipe(int index) { ... }
-
-
+        
         /// <summary>
         ///     そのレシピがクラフト可能かどうかを返す
+        ///     この処理はある1つのレシピに対してのみ使い、一気にすべてのアイテムがクラフト可能かチェックするには<see cref="IsAllItemCraftable" />を用いる
         /// </summary>
         private bool IsCraftable(CraftRecipeMasterElement craftRecipeMasterElement)
         {
-             if (craftRecipeMasterElement == null) return false; // nullチェック追加
-
             var itemPerCount = new Dictionary<ItemId, int>();
             foreach (var item in _localPlayerInventory)
             {
@@ -184,34 +176,35 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 else
                     itemPerCount.Add(item.Id, item.Count);
             }
-
+            
             foreach (var requiredItem in craftRecipeMasterElement.RequiredItems)
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-
+                
                 if (!itemPerCount.ContainsKey(itemId)) return false;
                 if (itemPerCount[itemId] < requiredItem.Count) return false;
             }
-
+            
             return true;
         }
-
+        
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
-            if (!isActive)
-            {
-                // 非アクティブになったら選択状態をリセットする（任意）
-                if (_selectedRecipeItem != null)
-                {
-                    _selectedRecipeItem.SetSelected(false);
-                    _selectedRecipeItem = null;
-                }
-                UpdateCraftButton(null);
-                 if (itemNameText != null) itemNameText.text = "";
-            }
         }
-
-        // GetMaterialTolTipメソッドはRecipeListItem.csに移動したため削除
+        
+        public static string GetMaterialTolTip(ItemViewData itemViewData)
+        {
+            var tooltipText = ItemSlotObject.GetToolTipText(itemViewData);
+            var craftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemViewData.ItemId);
+            
+            // レシピがなければそのまま返す
+            if (craftRecipes.Length == 0) return tooltipText;
+            
+            // レシピがあればテキストを追加
+            tooltipText += $"\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
+            
+            return tooltipText;
+        }
     }
 }
