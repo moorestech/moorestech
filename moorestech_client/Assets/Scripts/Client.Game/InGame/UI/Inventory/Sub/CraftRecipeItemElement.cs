@@ -16,15 +16,23 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     /// </summary>
     public class CraftRecipeItemElement : MonoBehaviour
     {
+        [Header("矢印")]
+        [SerializeField] private ProgressArrowView progressArrow;
+        public ProgressArrowView ProgressArrowView => progressArrow;
+        
+        [Header("UI部品")]
         [SerializeField] private RectTransform materialParent;
         [SerializeField] private RectTransform resultParent;
         [SerializeField] private Button recipeSelectButton;
-        [SerializeField] private Image backgroundImage;
         [SerializeField] private TMP_Text craftTimeText;
+        [SerializeField] private Image backgroundImage;
+        
+        [Header("UI設定")]
         [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color selectedColor = new Color(0.9f, 0.9f, 1.0f);
         [SerializeField] private Color disabledColor = new Color(0.7f, 0.7f, 0.7f);
         
+        [Header("Prefab")]
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
         public CraftRecipeMasterElement CraftRecipe { get; private set; }
