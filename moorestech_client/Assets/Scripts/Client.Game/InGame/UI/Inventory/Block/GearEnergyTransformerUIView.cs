@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
