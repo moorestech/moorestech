@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ClassLibrary;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Input;
 using Core.Item.Interface;
 using Core.Master;

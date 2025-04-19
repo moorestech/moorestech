@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;

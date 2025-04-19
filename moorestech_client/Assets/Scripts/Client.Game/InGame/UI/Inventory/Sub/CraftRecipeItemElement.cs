@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
 using Mooresmaster.Model.CraftRecipesModule;
 using TMPro;
