@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Inventory.Element;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
+using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.ItemsModule;
@@ -79,6 +80,11 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             bool IsShow(ItemMasterElement itemMaster)
             {
+                if (DebugParameters.GetValueOrDefaultBool(DebugConst.IsItemListViewForceShowKey))
+                {
+                    return true;
+                }
+                
                 var itemId = MasterHolder.ItemMaster.GetItemId(itemMaster.ItemGuid);
                 
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)

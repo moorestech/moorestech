@@ -4,6 +4,7 @@ using UnityDebugSheet.Runtime.Core.Scripts;
 using UnityDebugSheet.Runtime.Extensions.Graphy;
 using UnityDebugSheet.Runtime.Extensions.IngameDebugConsole;
 using UnityEngine;
+using static Client.Game.DebugConst;
 
 namespace Client.DebugSystem
 {
@@ -24,6 +25,7 @@ namespace Client.DebugSystem
             rootPage.AddSwitch(false, "Runtime Hierarchy Inspector", valueChanged: active => runtimeHierarchyInspector.SetActive(active));
             
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
+            rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);
         }
         
         
