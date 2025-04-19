@@ -80,7 +80,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
                 }
                 
                 uiMouseCursorTooltipTarget.SetText(toolTipText, false);
-                uiMouseCursorTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowUIEnterExplain);
+                uiMouseCursorTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowToolTip);
             }
         }
         
@@ -260,6 +260,6 @@ namespace Client.Game.InGame.UI.Inventory.Element
     
     public class ItemSlotObjectBehaviourOption
     {
-        public bool IsShowUIEnterExplain { get; set; } = true;
+        public bool IsShowToolTip { get; set; } = true;
     }
 }

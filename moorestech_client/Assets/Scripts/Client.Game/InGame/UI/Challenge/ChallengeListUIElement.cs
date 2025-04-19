@@ -35,7 +35,7 @@ namespace Client.Game.InGame.UI.Challenge
             
             SetUI();
             
-            SetUIEnterExplain();
+            SetUIEnterTooltip();
             
             #region Internal
             
@@ -56,11 +56,11 @@ namespace Client.Game.InGame.UI.Challenge
                 }
                 itemSlotObject.SetItemSlotObjectOption(new ItemSlotObjectBehaviourOption
                 {
-                    IsShowUIEnterExplain = false,
+                    IsShowToolTip = false,
                 });
             }
             
-            void SetUIEnterExplain()
+            void SetUIEnterTooltip()
             {
                 var clearedActionsTest = string.Empty;
                 foreach (var clearedActionsElement in challengeMasterElement.ClearedActions)
