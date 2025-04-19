@@ -25,12 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private RectTransform resultParent;
         [SerializeField] private Button recipeSelectButton;
         [SerializeField] private TMP_Text craftTimeText;
-        [SerializeField] private Image backgroundImage;
-        
-        [Header("UI設定")]
-        [SerializeField] private Color normalColor = Color.white;
-        [SerializeField] private Color selectedColor = new Color(0.9f, 0.9f, 1.0f);
-        [SerializeField] private Color disabledColor = new Color(0.7f, 0.7f, 0.7f);
+        [SerializeField] private GameObject selectedFrame;
         
         [Header("Prefab")]
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
@@ -41,86 +36,82 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         public IObservable<CraftRecipeItemElement> OnSelected => _onSelectedSubject;
         private readonly Subject<CraftRecipeItemElement> _onSelectedSubject = new();
         
+        public IObservable<ItemSlotObject> OnClickMaterialItem => _onClickMaterialItem;
+        private readonly Subject<ItemSlotObject> _onClickMaterialItem = new();
+        
         private readonly List<ItemSlotObject> _materialSlots = new();
         private ItemSlotObject _resultSlot;
         
-        private bool _isSelected = false;
+        private void Awake()
+        {
+            recipeSelectButton.onClick.AddListener(() => {
+                _onSelectedSubject.OnNext(this);
+            });
+        }
         
         public void Initialize(CraftRecipeMasterElement craftRecipe, bool isCraftable)
         {
             CraftRecipe = craftRecipe;
             IsCraftable = isCraftable;
             
-            ClearSlots();
             SetupMaterialSlots();
             SetupResultSlot();
             
             // アイテム名と製作時間を設定
             craftTimeText.text = $"{craftRecipe.CraftTime}秒";
             
-            // クラフト可能かどうかで見た目を変更
-            backgroundImage.color = isCraftable ? normalColor : disabledColor;
-            
-            // ボタンクリック時のイベント
-            recipeSelectButton.onClick.RemoveAllListeners();
-            recipeSelectButton.onClick.AddListener(() => {
-                if (IsCraftable)
-                {
-                    _onSelectedSubject.OnNext(this);
-                }
-            });
-            
             SetSelected(false);
-        }
-        
-        private void ClearSlots()
-        {
-            foreach (var slot in _materialSlots)
-            {
-                Destroy(slot.gameObject);
-            }
-            _materialSlots.Clear();
+            UpdateCraftableState(isCraftable);
             
-            if (_resultSlot != null)
+            #region Internal
+            
+            
+            void SetupMaterialSlots()
             {
-                Destroy(_resultSlot.gameObject);
-                _resultSlot = null;
+                foreach (var requiredItem in CraftRecipe.RequiredItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
+                    var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
+                    
+                    var slot = Instantiate(itemSlotObjectPrefab, materialParent);
+                    var toolTipText = $"{itemViewData.ItemName}\n必要数: {requiredItem.Count}\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
+                    slot.SetItem(itemViewData, requiredItem.Count, toolTipText);
+                    slot.SetFrame(ItemSlotFrameType.CraftRecipe);
+                    _materialSlots.Add(slot);
+                    
+                    slot.OnLeftClickUp.Subscribe(_ =>
+                    {
+                        _onClickMaterialItem.OnNext(slot);
+                    });
+                }
             }
+            
+            void SetupResultSlot()
+            {
+                var itemViewData = ClientContext.ItemImageContainer.GetItemView(CraftRecipe.CraftResultItemGuid);
+                _resultSlot = Instantiate(itemSlotObjectPrefab, resultParent);
+                _resultSlot.SetItem(itemViewData, CraftRecipe.CraftResultCount);
+                _resultSlot.SetFrame(ItemSlotFrameType.Normal);
+            }
+            
+            #endregion
         }
         
-        private void SetupMaterialSlots()
-        {
-            foreach (var requiredItem in CraftRecipe.RequiredItems)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-                var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
-                
-                var slot = Instantiate(itemSlotObjectPrefab, materialParent);
-                var toolTipText = $"{itemViewData.ItemName}\n必要数: {requiredItem.Count}";
-                slot.SetItem(itemViewData, requiredItem.Count, toolTipText);
-                slot.SetFrame(ItemSlotFrameType.CraftRecipe);
-                _materialSlots.Add(slot);
-            }
-        }
-        
-        private void SetupResultSlot()
-        {
-            var itemViewData = ClientContext.ItemImageContainer.GetItemView(CraftRecipe.CraftResultItemGuid);
-            _resultSlot = Instantiate(itemSlotObjectPrefab, resultParent);
-            _resultSlot.SetItem(itemViewData, CraftRecipe.CraftResultCount);
-            _resultSlot.SetFrame(ItemSlotFrameType.Normal);
-        }
         
         public void SetSelected(bool selected)
         {
-            _isSelected = selected;
-            backgroundImage.color = selected ? selectedColor : (IsCraftable ? normalColor : disabledColor);
+            selectedFrame.SetActive(selected);
         }
         
         public void UpdateCraftableState(bool isCraftable)
         {
+            foreach (var slot in _materialSlots)
+            {
+                slot.SetGrayOut(!isCraftable);
+            }
+            _resultSlot.SetGrayOut(!isCraftable);
+            
             IsCraftable = isCraftable;
-            backgroundImage.color = _isSelected ? selectedColor : (IsCraftable ? normalColor : disabledColor);
         }
         
         private void OnDestroy()

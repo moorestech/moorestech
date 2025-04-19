@@ -31,7 +31,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
-        private int CraftRecipeCount => _currentItemRecipes?.UnlockedCraftRecipes().Count ?? 0;
         private RecipeViewerItemRecipes _currentItemRecipes;
         private CraftRecipeItemElement _selectedRecipeElement;
         private readonly List<CraftRecipeItemElement> _recipeElements = new();
@@ -106,15 +105,22 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 var isCraftable = IsCraftable(recipe);
                 element.Initialize(recipe, isCraftable);
                 
-                element.OnSelected.Subscribe(OnRecipeSelected).AddTo(element);
+                element.OnSelected.Subscribe(SelectRecipe).AddTo(element);
+                element.OnClickMaterialItem.Subscribe(OnClickMaterialItem).AddTo(element);
                 
                 _recipeElements.Add(element);
             }
-        }
-        
-        private void OnRecipeSelected(CraftRecipeItemElement element)
-        {
-            SelectRecipe(element);
+            
+            #region Internal
+            
+            void OnClickMaterialItem(ItemSlotObject itemSlotObject)
+            {
+                var itemId = itemSlotObject.ItemViewData.ItemId;
+                var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
+                _onClickItem.OnNext(itemRecipes);
+            }
+            
+            #endregion
         }
         
         private void SelectRecipe(CraftRecipeItemElement element)
@@ -135,16 +141,16 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             // アイテム名を更新
             var itemName = MasterHolder.ItemMaster.GetItemMaster(element.CraftRecipe.CraftResultItemGuid).Name;
             itemNameText.text = itemName;
-            
-            // クラフト時間、ProgressArrowを設定
-            craftButton.SetCraftInfo(element.CraftRecipe.CraftTime, element.ProgressArrowView);
         }
         
         private void UpdateCraftButton()
         {
-            if (_selectedRecipeElement != null)
+            var element = _selectedRecipeElement;
+            if (element != null)
             {
-                craftButton.SetInteractable(_selectedRecipeElement.IsCraftable);
+                craftButton.SetInteractable(element.IsCraftable);
+                // クラフト時間、ProgressArrowを設定
+                craftButton.SetCraftInfo(element.CraftRecipe.CraftTime, element.ProgressArrowView);
             }
             else
             {
