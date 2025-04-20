@@ -103,6 +103,11 @@
         {
           "count": 5,
           "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+        },
+        {
+          "isRemain": false,
+          "count": 2,
+          "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
         }
       ],
       "craftRecipeGuid": "3280c3b4-667a-4662-bb95-849dbe5f6019"
