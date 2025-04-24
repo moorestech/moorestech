@@ -2956,7 +2956,9 @@
                 0,
                 0
               ],
-              "connectType": "Inventory"
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
             }
           ],
           "outputConnects": [
@@ -2966,7 +2968,9 @@
                 0,
                 0
               ],
-              "connectType": "Inventory"
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
             }
           ]
         }
@@ -2995,7 +2999,9 @@
                 0,
                 0
               ],
-              "connectType": "Inventory"
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
             }
           ],
           "outputConnects": [
@@ -3005,7 +3011,9 @@
                 0,
                 0
               ],
-              "connectType": "Inventory"
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
             }
           ]
         }
