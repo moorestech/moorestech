@@ -27,7 +27,7 @@
       },
       "unlockAllPreviousChallengeComplete": true,
       "prevChallengeGuids": [],
-      "initialUnlocked": false
+      "initialUnlocked": true
     },
     {
       "summary": "テスト2",
@@ -74,7 +74,7 @@
       },
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
-      "initialUnlocked": false
+      "initialUnlocked": true
     },
     {
       "summary": "テスト3",
@@ -103,7 +103,7 @@
         "IconItem": "00000000-0000-0000-1234-000000000001"
       },
       "prevChallengeGuids": [],
-      "initialUnlocked": false,
+      "initialUnlocked": true,
       "unlockAllPreviousChallengeComplete": true
     },
     {
@@ -135,7 +135,7 @@
         ],
         "IconItem": "00000000-0000-0000-1234-000000000001"
       },
-      "initialUnlocked": false,
+      "initialUnlocked": true,
       "unlockAllPreviousChallengeComplete": true
     },
     {
