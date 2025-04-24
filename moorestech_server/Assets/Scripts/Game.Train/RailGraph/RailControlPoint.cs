@@ -12,19 +12,19 @@ using UnityEngine;
 /// →曲線がもとまる
 /// 
 /// また別のメリットとして、表裏で重なっているRailNodeは同じRailControlPointを持つことが考えられる
-/// 無駄に座標情報を持たせる必要がなくなる
+/// 無駄に座標情報の実体を持たせる必要がなくなる
 /// </summary>
 
 namespace Game.Train.RailGraph
 {
     public class RailControlPoint
     {
-        //OriginalPositionはRailComponentのOriginalPosと同じと考えて良い。floatだと16777216以降の座標でバグるので絶対int
-        public Vector3Int OriginalPosition { get; set; }
+        //OriginalPositionはRailComponentが存在するOriginalPosと同じと考えて良い。floatだと16777216以降の座標でバグるので絶対int
+        public Vector3 OriginalPosition { get; set; }
         //一方制御点はintだと表現できないのでfloat
         //制御点の座標はOriginalPositionが0,0,0のときの相対座標
         public Vector3 ControlPointPosition { get; set; }
-        public RailControlPoint(Vector3Int originalPosition, Vector3 controlPointPosition)
+        public RailControlPoint(Vector3 originalPosition, Vector3 controlPointPosition)
         {
             OriginalPosition = originalPosition;
             ControlPointPosition = controlPointPosition;

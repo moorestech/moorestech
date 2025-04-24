@@ -26,8 +26,8 @@ namespace Game.Train.RailGraph
     [Serializable]
     public class RailComponentID
     {
-        public SerializableVector3Int Position;
-        public int ID;
+        public SerializableVector3Int Position;//これはブロックが登録されている座標
+        public int ID;//そこのブロック座標で何番目のRailComponentか
 
         public RailComponentID(Vector3Int pos, int id)
         {

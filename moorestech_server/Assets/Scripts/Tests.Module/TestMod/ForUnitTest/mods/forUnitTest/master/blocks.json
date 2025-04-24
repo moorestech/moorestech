@@ -2949,8 +2949,26 @@
       "blockParam": {
         "stationDistance": 22,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "offset": [
+                4,
+                0,
+                0
+              ],
+              "connectType": "Inventory"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                6,
+                0,
+                0
+              ],
+              "connectType": "Inventory"
+            }
+          ]
         }
       },
       "name": "TestTrainStation",
@@ -2970,8 +2988,26 @@
         "inputSlotCount": 10,
         "platformDistance": 11,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "offset": [
+                4,
+                0,
+                0
+              ],
+              "connectType": "Inventory"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                6,
+                0,
+                0
+              ],
+              "connectType": "Inventory"
+            }
+          ]
         }
       },
       "name": "TestTrainCargoPlatform",
