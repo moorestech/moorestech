@@ -42,13 +42,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
             var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes.ToArray());
             
-            Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft1));
-            Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft2));
+            Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
+            Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft2));
             Assert.True(response.LockedCraftRecipeGuids.Contains(Craft3));
             Assert.True(response.LockedCraftRecipeGuids.Contains(Craft4));
             
-            Assert.True(response.UnlockItemIds.Contains(ItemId1));
-            Assert.True(response.UnlockItemIds.Contains(ItemId2));
+            Assert.True(response.UnlockedItemIds.Contains(ItemId1));
+            Assert.True(response.UnlockedItemIds.Contains(ItemId2));
             Assert.True(response.LockedItemIds.Contains(ItemId3));
             Assert.True(response.LockedItemIds.Contains(ItemId4));
             
@@ -64,14 +64,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
             response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes.ToArray());
             
-            Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft1));
-            Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft2));
-            Assert.True(response.UnlockCraftRecipeGuids.Contains(Craft3));
+            Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
+            Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft2));
+            Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft3));
             Assert.True(response.LockedCraftRecipeGuids.Contains(Craft4));
             
-            Assert.True(response.UnlockItemIds.Contains(ItemId1));
-            Assert.True(response.UnlockItemIds.Contains(ItemId2));
-            Assert.True(response.UnlockItemIds.Contains(ItemId3));
+            Assert.True(response.UnlockedItemIds.Contains(ItemId1));
+            Assert.True(response.UnlockedItemIds.Contains(ItemId2));
+            Assert.True(response.UnlockedItemIds.Contains(ItemId3));
             Assert.True(response.LockedItemIds.Contains(ItemId4));
         }
     }

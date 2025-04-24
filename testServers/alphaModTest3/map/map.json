@@ -73,9 +73,9 @@
     {
       "instanceId": 10,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": 10.2644367,
+      "x": 20.25,
       "y": 0.0,
-      "z": -10.7641735
+      "z": -10.57
     },
     {
       "instanceId": 11,
@@ -101,9 +101,9 @@
     {
       "instanceId": 14,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": 13.031311,
+      "x": 18.91,
       "y": 0.0,
-      "z": -22.01924
+      "z": -23.07
     },
     {
       "instanceId": 15,
@@ -150,9 +150,9 @@
     {
       "instanceId": 21,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": -0.830579758,
+      "x": -5.29,
       "y": 0.0,
-      "z": -20.0627785
+      "z": -32.18
     },
     {
       "instanceId": 22,
@@ -206,16 +206,16 @@
     {
       "instanceId": 29,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": 5.183031,
+      "x": 14.87,
       "y": 0.0,
-      "z": -15.1864538
+      "z": -20.68
     },
     {
       "instanceId": 30,
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "x": 2.560361,
+      "x": 8.15,
       "y": 0.0,
-      "z": -29.020689
+      "z": -31.93
     },
     {
       "instanceId": 31,
@@ -780,9 +780,9 @@
     {
       "instanceId": 111,
       "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165",
-      "x": 0.8003607,
+      "x": -2.23,
       "y": 0.0,
-      "z": -25.4806881
+      "z": -25.74
     },
     {
       "instanceId": 112,
@@ -1249,9 +1249,9 @@
     {
       "instanceId": 178,
       "mapObjectGuid": "e76e6b65-88db-4ee7-a806-8e65ba859556",
-      "x": 5.13,
+      "x": 0.33,
       "y": 0.29,
-      "z": -9.16
+      "z": -11.32
     },
     {
       "instanceId": 179,
@@ -1753,9 +1753,9 @@
     {
       "instanceId": 250,
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
-      "x": 3.93036079,
+      "x": 18.97,
       "y": -0.191,
-      "z": -22.8506889
+      "z": -20.5
     },
     {
       "instanceId": 251,
@@ -2013,21 +2013,30 @@
   "mapVeins": [
     {
       "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
-      "minX": 4,
-      "minY": -1,
-      "minZ": -7,
-      "maxX": 7,
-      "maxY": 1,
-      "maxZ": -4
+      "minX": 3,
+      "minY": 2,
+      "minZ": -23,
+      "maxX": 6,
+      "maxY": 3,
+      "maxZ": -20
     },
     {
       "veinItemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d",
-      "minX": 4,
+      "minX": 5,
       "minY": -1,
-      "minZ": 7,
-      "maxX": 7,
+      "minZ": -52,
+      "maxX": 8,
       "maxY": 2,
-      "maxZ": 10
+      "maxZ": -49
+    },
+    {
+      "veinItemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+      "minX": -8,
+      "minY": 3,
+      "minZ": -13,
+      "maxX": -5,
+      "maxY": 4,
+      "maxZ": -10
     }
   ]
 }

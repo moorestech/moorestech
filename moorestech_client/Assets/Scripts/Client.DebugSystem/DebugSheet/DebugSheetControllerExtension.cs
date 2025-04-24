@@ -17,5 +17,17 @@ namespace Client.DebugSystem
                 valueChangedOrInitialize((TEnum)d);
             });
         }
+        
+        public static void AddBoolWithSave(this DebugPage debugPage, bool defaultValue, string label, string key, Action<bool> valueChangedOrInitialize = null)
+        {
+            var value = DebugParameters.GetValueOrDefaultBool(key, defaultValue);
+            valueChangedOrInitialize?.Invoke(value);
+            
+            debugPage.AddSwitch(value, label, valueChanged: d =>
+            {
+                DebugParameters.SaveBool(key, d);
+                valueChangedOrInitialize?.Invoke(d);
+            });
+        }
     }
 }

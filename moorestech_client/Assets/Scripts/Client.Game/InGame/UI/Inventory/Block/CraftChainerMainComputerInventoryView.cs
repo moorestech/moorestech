@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;

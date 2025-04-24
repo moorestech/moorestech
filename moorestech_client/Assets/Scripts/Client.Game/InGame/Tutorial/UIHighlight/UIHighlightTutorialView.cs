@@ -9,10 +9,12 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         [SerializeField] private RectTransform highlightImage;
         [SerializeField] private TMP_Text highlightText;
         
+        private string _highlightObjectId;
         private UIHighlightTutorialTargetObject _highlightTutorialTargetObject;
         
-        public void SetTargetObject(UIHighlightTutorialTargetObject tutorialTargetObject, string text)
+        public void SetTargetObject(UIHighlightTutorialTargetObject tutorialTargetObject, string highlightObjectId, string text)
         {
+            _highlightObjectId = highlightObjectId;
             _highlightTutorialTargetObject = tutorialTargetObject;
             highlightText.text = text;
         }
@@ -24,6 +26,25 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         
         private void SyncRectTransform()
         {
+            if (_highlightTutorialTargetObject == null)
+            {
+                highlightObject.SetActive(false);
+                _highlightTutorialTargetObject = null;
+                
+                // ハイライトのターゲットを探索
+                // Search for the highlight target
+                // TODO 効率が悪いので改善したい
+                var highlightTargetObjects = FindObjectsOfType<UIHighlightTutorialTargetObject>(true);
+                foreach (var targetObject in highlightTargetObjects)
+                {
+                    if (targetObject.HighlightObjectId != _highlightObjectId) continue;
+                    
+                    _highlightTutorialTargetObject = targetObject;
+                    break;
+                }
+                return;
+            }
+            
             highlightObject.SetActive(_highlightTutorialTargetObject.ActiveSelf);
             
             //一旦親を変更し、また親を戻すことによって、ローカル座標を正しく反映することができる

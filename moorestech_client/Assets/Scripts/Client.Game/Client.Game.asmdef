@@ -55,7 +55,8 @@
         "UniTask.DOTween",
         "Core.Master",
         "Game.CraftChainer",
-        "Game.UnlockState"
+        "Game.UnlockState",
+        "Common.Debug"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

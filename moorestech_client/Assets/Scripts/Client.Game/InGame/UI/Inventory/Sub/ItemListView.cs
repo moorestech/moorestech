@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial.UIHighlight;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
+using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.ItemsModule;
@@ -62,14 +63,15 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 // アイテムリストを設定
                 // Set the item list
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
-                itemSlotObject.SetItem(itemViewData, 0);
+                var toolTipText = CraftInventoryView.GetMaterialTolTip(itemViewData);
+                itemSlotObject.SetItem(itemViewData, 0, toolTipText);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                 _itemListObjects.Add(itemSlotObject);
                 
                 // ハイライトオブジェクトを設定
                 // Set the highlight object
                 var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
-                target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.Name));
+                target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.ItemGuid));
                 
                 _itemListObjects.Add(itemSlotObject);
             }
@@ -78,12 +80,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             bool IsShow(ItemMasterElement itemMaster)
             {
+                if (DebugParameters.GetValueOrDefaultBool(DebugConst.IsItemListViewForceShowKey))
+                {
+                    return true;
+                }
+                
                 var itemId = MasterHolder.ItemMaster.GetItemId(itemMaster.ItemGuid);
                 
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
                 {
                     // デフォルトはアンロックされていてレシピがあれば表示する
-                    // 
+                    // Default is to display if unlocked and has a recipe
                     var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     var isItemUnlocked = state.IsUnlocked;
                     
@@ -97,7 +104,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)
                 {
                     // アンロックされていれば表示する
-                    //
+                    // Display if unlocked
                     var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     return state.IsUnlocked;
                 }

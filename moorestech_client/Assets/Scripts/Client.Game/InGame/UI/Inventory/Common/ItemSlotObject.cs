@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Client.Game.InGame.UI.Inventory.Element
+namespace Client.Game.InGame.UI.Inventory.Common
 {
     public class ItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         [SerializeField] private GameObject noneCrossObject;
         
         [SerializeField] private TMP_Text countText;
-        [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
+        [SerializeField] private UIMouseCursorTooltipTarget uiMouseCursorTooltipTarget;
         
         private ItemSlotObjectBehaviourOption itemSlotObjectBehaviourOption = new();
         private bool _onPointing;
@@ -56,7 +56,7 @@ namespace Client.Game.InGame.UI.Inventory.Element
         }
         
         
-        public void SetItem(ItemViewData itemView, int count)
+        public void SetItem(ItemViewData itemView, int count, string toolTipText = null)
         {
             ItemViewData = itemView;
             
@@ -67,16 +67,26 @@ namespace Client.Game.InGame.UI.Inventory.Element
             {
                 itemImage.gameObject.SetActive(false);
                 
-                uiEnterExplainerController.DisplayEnable(false);
+                uiMouseCursorTooltipTarget.DisplayEnable(false);
             }
             else
             {
                 itemImage.gameObject.SetActive(true);
                 itemImage.sprite = itemView.ItemImage;
                 
-                uiEnterExplainerController.SetText($"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>", false);
-                uiEnterExplainerController.DisplayEnable(itemSlotObjectBehaviourOption.IsShowUIEnterExplain);
+                if (string.IsNullOrEmpty(toolTipText))
+                {
+                    toolTipText = GetToolTipText(itemView);
+                }
+                
+                uiMouseCursorTooltipTarget.SetText(toolTipText, false);
+                uiMouseCursorTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowToolTip);
             }
+        }
+        
+        public static string GetToolTipText(ItemViewData itemView)
+        {
+            return $"{itemView.ItemName}";
         }
         
         public void SetGrayOut(bool active)
@@ -250,6 +260,6 @@ namespace Client.Game.InGame.UI.Inventory.Element
     
     public class ItemSlotObjectBehaviourOption
     {
-        public bool IsShowUIEnterExplain { get; set; } = true;
+        public bool IsShowToolTip { get; set; } = true;
     }
 }

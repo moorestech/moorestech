@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Util
 {
-    public interface IMouseCursorExplainer
+    public interface IMouseCursorTooltip
     {
         public const int DefaultFontSize = 36;
         
@@ -16,21 +16,21 @@ namespace Client.Game.InGame.UI.Util
     /// <summary>
     ///     マウスカーソルのそばにアイテム名やTips、その他文章を表示するシステム
     /// </summary>
-    public class MouseCursorExplainer : MonoBehaviour, IMouseCursorExplainer
+    public class MouseCursorTooltip : MonoBehaviour, IMouseCursorTooltip
     {
         [SerializeField] private GameObject itemNameBar;
         [SerializeField] private TMP_Text itemName;
         [SerializeField] private CanvasGroup canvasGroup;
         
         
-        public static IMouseCursorExplainer Instance { get; private set; }
+        public static IMouseCursorTooltip Instance { get; private set; }
         
         private void Awake()
         {
             Instance = this;
         }
         
-        public void Show(string key, int fontSize = IMouseCursorExplainer.DefaultFontSize, bool isLocalize = true)
+        public void Show(string key, int fontSize = IMouseCursorTooltip.DefaultFontSize, bool isLocalize = true)
         {
             canvasGroup.alpha = 1;
             itemName.text = isLocalize ? Localize.Get(key) : key;

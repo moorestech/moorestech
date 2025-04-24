@@ -42,7 +42,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000005",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -50,7 +51,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000006",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -58,7 +60,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000007",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -66,7 +69,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000008",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -74,7 +78,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000009",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -82,7 +87,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000010",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -90,7 +96,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000011",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -98,7 +105,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000012",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -106,7 +114,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000013",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -114,7 +123,8 @@
       "itemGuid": "00000000-0000-0000-1234-000000000014",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -122,7 +132,8 @@
       "itemGuid": "16000000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -130,7 +141,8 @@
       "itemGuid": "17000000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -138,7 +150,8 @@
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -146,7 +159,8 @@
       "itemGuid": "19000000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -154,7 +168,8 @@
       "itemGuid": "11100000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -162,7 +177,8 @@
       "itemGuid": "11200000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -170,7 +186,8 @@
       "itemGuid": "11300000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -178,7 +195,8 @@
       "itemGuid": "11400000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -186,7 +204,8 @@
       "itemGuid": "11500000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -194,7 +213,8 @@
       "itemGuid": "11600000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -202,7 +222,8 @@
       "itemGuid": "11700000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -210,7 +231,8 @@
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -218,7 +240,8 @@
       "itemGuid": "11900000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -226,7 +249,8 @@
       "itemGuid": "12010000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -234,7 +258,8 @@
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
@@ -242,98 +267,112 @@
       "imagePath": "Test1",
       "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerTransporter",
       "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerCrafter",
       "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerProviderChest",
       "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerMainComputer",
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerBeltConveyor",
       "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerMachine1",
       "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "CraftChainerMachine2",
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "Chainer - A",
       "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "Chainer - B",
       "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "Chainer - C",
       "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "TestTrainRail",
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "TestTrainStation",
       "itemGuid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "TestTrainCargoPlatform",
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "name": "TestGearMapObjectMiner",
@@ -341,21 +380,24 @@
       "imagePath": "",
       "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "FluidPipe",
       "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     },
     {
       "maxStack": 100,
       "name": "OneWayFluidPipe",
       "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
       "sortPriority": 100,
-      "recipeViewType": "ForceView"
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     }
   ]
 }
