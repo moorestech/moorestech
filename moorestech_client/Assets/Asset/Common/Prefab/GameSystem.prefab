@@ -581,6 +581,7 @@ MonoBehaviour:
   mapObjectPin: {fileID: 467412427984320023}
   uiHighlightTutorialManager: {fileID: 3842753579192151890}
   keyControlTutorialManager: {fileID: 6070939093797517548}
+  itemViewHighLightTutorialManager: {fileID: 5778655673289165689}
   blockPlacePreview: {fileID: 5250938589678043889}
   saveButton: {fileID: 773343225977944571}
   backToMainMenu: {fileID: 7635949962361503415}
@@ -2018,6 +2019,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3b8c2b51da64853a42c24ceee8dda38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5778655673289165689 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8396426783594735391, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 2645848407441091686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e0b0108ce75459ebad33a4b09c25ad2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &6070939093797517548 stripped

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Core.Master;
 using Game.Context;
+using Mooresmaster.Model.ChallengesModule;
 
 namespace Client.Game.InGame.Tutorial
 {
@@ -11,11 +12,17 @@ namespace Client.Game.InGame.Tutorial
         private readonly Dictionary<Guid, List<ITutorialView>> _tutorialViews = new();
         private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
         
-        public TutorialManager(MapObjectPin mapObjectPin, UIHighlightTutorialManager uiHighlightTutorialManager, KeyControlTutorialManager keyControlTutorialManager)
+        public TutorialManager(
+            MapObjectPin mapObjectPin, 
+            UIHighlightTutorialManager uiHighlightTutorialManager, 
+            KeyControlTutorialManager keyControlTutorialManager,
+            ItemViewHighLightTutorialManager itemViewHighLightTutorialManager
+            )
         {
-            _tutorialViewManagers.Add(MapObjectPin.TutorialType, mapObjectPin);
-            _tutorialViewManagers.Add(UIHighlightTutorialManager.TutorialType, uiHighlightTutorialManager);
-            _tutorialViewManagers.Add(KeyControlTutorialManager.TutorialType, keyControlTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.mapObjectPin, mapObjectPin);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiHighLight, uiHighlightTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
         }
         
         public void ApplyTutorial(Guid challengeGuid)

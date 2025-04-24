@@ -13,8 +13,6 @@ namespace Client.Game.InGame.Tutorial
 {
     public class MapObjectPin : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
-        public const string TutorialType = "mapObjectPin";
-        
         [SerializeField] private TMP_Text pinText;
         
         private InGameCameraController _inGameCameraController;
@@ -22,7 +20,6 @@ namespace Client.Game.InGame.Tutorial
         private IPlayerObjectController _playerObjectController;
         
         private MapObjectPinTutorialParam _currentTutorialParam;
-        private IDisposable _mapObjectOnDestroy;
         
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore, IPlayerObjectController playerObjectController)
@@ -37,32 +34,33 @@ namespace Client.Game.InGame.Tutorial
             // Y軸を常にカメラに向ける
             transform.LookAt(_inGameCameraController.Position);
             transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+            
+            // 最も近いMapObjectにピンする
+            NearestPinMapObject();
+            
+            #region Internal
+            
+            void NearestPinMapObject()
+            {
+                // 近くのMapObjectを探してピンを表示
+                var playerPos = _playerObjectController.Position;
+                var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
+                
+                if (mapObject == null)
+                {
+                    Debug.LogWarning($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                }
+                
+                transform.position = mapObject.GetPosition();
+            }
+            
+            #endregion
         }
         
         public ITutorialView ApplyTutorial(ITutorialParam param)
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)param;
             
-            _mapObjectOnDestroy?.Dispose();
-            
-            // 近くのMapObjectを探してピンを表示
-            var mapObjects = _mapObjectGameObjectDatastore.CreateMapObjectList(_currentTutorialParam.MapObjectGuid);
-            var playerPos = _playerObjectController.Position;
-            var sortedMapObjects = mapObjects.OrderBy(x => (playerPos - x.GetPosition()).sqrMagnitude).ToList();
-            if (sortedMapObjects.Count == 0)
-            {
-                Debug.LogWarning($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
-                return null;
-            }
-            
-            var nearMapObject = sortedMapObjects.First();
-            transform.position = nearMapObject.GetPosition();
-            
-            // そのMapObjectが破壊されたら別のmapObjectを探す
-            _mapObjectOnDestroy = nearMapObject.OnDestroyMapObject.Subscribe(_ =>
-            {
-                ApplyTutorial(_currentTutorialParam);
-            }).AddTo(this);
             
             // ピンのテキストを設定
             pinText.text = _currentTutorialParam.PinText;

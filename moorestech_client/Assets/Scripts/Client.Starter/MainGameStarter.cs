@@ -71,6 +71,7 @@ namespace Client.Starter
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
+        [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private SaveButton saveButton;
@@ -173,6 +174,7 @@ namespace Client.Starter
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
+            builder.RegisterComponent(itemViewHighLightTutorialManager);
             
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);

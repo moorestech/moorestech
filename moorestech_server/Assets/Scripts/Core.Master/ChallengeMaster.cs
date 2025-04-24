@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Loader.ChallengesModule;
 using Mooresmaster.Model.ChallengesModule;
 using Newtonsoft.Json.Linq;
@@ -23,7 +24,8 @@ namespace Core.Master
                 var next = new List<Guid>();
                 foreach (var checkTarget in Challenges.Data)
                 {
-                    if (challengeElement.ChallengeGuid == checkTarget.PrevChallengeGuid)
+                    var prev = checkTarget.PrevChallengeGuids;
+                    if (prev != null && prev.Contains(challengeElement.ChallengeGuid))
                     {
                         next.Add(checkTarget.ChallengeGuid);
                     }
@@ -35,8 +37,9 @@ namespace Core.Master
             InitialChallenge = new List<Guid>();
             foreach (var challengeElement in Challenges.Data)
             {
-                // prevがnullの場合が初期チャレンジ
-                if (!challengeElement.PrevChallengeGuid.HasValue)
+                // prevがnullか0の場合が初期チャレンジ
+                var prev = challengeElement.PrevChallengeGuids;
+                if (prev == null || prev.Length == 0)
                 {
                     InitialChallenge.Add(challengeElement.ChallengeGuid);
                 }
