@@ -281,6 +281,46 @@ namespace Game.Challenge
             return true;
         }
         
+        private void UnlockAllPreviousChallengeComplete(PlayerChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
+        {
+            // アンロックを行うかをチェック
+            // Check if unlocking is to be performed
+            if (!challengeElement.UnlockAllPreviousChallengeComplete) return;
+            
+            
+            // 前提条件がない場合は常にアンロック
+            // If there are no prerequisites, it can always be started
+            if (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0)
+            {
+                UnlockChallenge();
+                return;
+            }
+            
+            // すべての前提条件がクリア済みかチェック
+            // Check if all prerequisites have been cleared
+            foreach (var prevGuid in challengeElement.PrevChallengeGuids)
+            {
+                if (!challengeInfo.CompletedChallengeGuids.Contains(prevGuid))
+                {
+                    // クリアしてないチャレンジがあったので、アンロックしない
+                    // If there was a challenge that was not cleared, do not unlock
+                    return;
+                }
+            }
+            
+            UnlockChallenge();
+            return;
+            
+            #region Internal
+            
+            void UnlockChallenge()
+            {
+                _gameUnlockStateDataController.UnlockChallenge(challengeElement.ChallengeGuid);
+            }
+            
+            #endregion
+        }
+        
         private void ExecuteClearedAction(ClearedActionsElement action)
         {
             switch (action.ClearedActionType)
