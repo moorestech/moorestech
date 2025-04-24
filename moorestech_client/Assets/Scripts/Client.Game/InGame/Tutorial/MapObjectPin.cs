@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Tutorial
                 transform.position = mapObject.GetPosition();
             }
             
-  #endregion
+            #endregion
         }
         
         public ITutorialView ApplyTutorial(ITutorialParam param)
