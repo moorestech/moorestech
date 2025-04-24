@@ -8,6 +8,7 @@ using Mooresmaster.Model.BlocksModule;
 using Game.Train.RailGraph;
 using Newtonsoft.Json;
 using Game.Context;
+using UnityEngine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -32,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             for (int i = 0; i < railComponents.Length; i++)
             {
                 var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, i);
-                railComponents[i] = new RailComponent(blockPositionInfo, railComponentId);
+                railComponents[i] = new RailComponent(new Vector3(0.5f, 0.5f, 0.5f) + blockPositionInfo.OriginalPos, blockPositionInfo.BlockDirection, railComponentId);
             }
 
             // コンポーネントをまとめてブロックに登録
@@ -72,7 +73,7 @@ namespace Game.Block.Factory.BlockTemplate
             BlockPositionInfo blockPositionInfo)
         {
             // セーブデータ(JSON)を取得・復元
-            string json = componentStates["RailSaverComponent"];
+            string json = componentStates[typeof(RailSaverComponent).FullName];
             var railSaverData = JsonConvert.DeserializeObject<RailSaverData>(json);
             
             int count = railSaverData.Values.Count;
@@ -82,9 +83,9 @@ namespace Game.Block.Factory.BlockTemplate
             for (int i = 0; i < count; i++)
             {
                 var info = railSaverData.Values[i];
-                railComponents[i] = new RailComponent(blockPositionInfo, info.MyID);
+                railComponents[i] = new RailComponent(new Vector3(0.5f, 0.5f, 0.5f) + blockPositionInfo.OriginalPos, blockPositionInfo.BlockDirection, info.MyID);
                 // ベジェ強度などを設定
-                railComponents[i].ChangeBezierStrength(info.BezierStrength);
+                railComponents[i].UpdateControlPointStrength(info.BezierStrength);
             }
 
             // 接続情報を復元（Front/Back）
