@@ -23,6 +23,12 @@
             "default": false,
             "$memo": "チャレンジが初期状態でアンロックされているかどうか"
           },
+          
+          "unlockAllPreviousChallengeComplete": {
+            "type": "boolean",
+            "default": true,
+            "$memo": "前のチャレンジが全て完了になったらアンロックするか"
+          },
 
           "prevChallengeGuids": {
             "type": "array",
