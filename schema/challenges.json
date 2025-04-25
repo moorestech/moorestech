@@ -267,7 +267,7 @@
             }
           },
 
-          "startActions": {
+          "startedActions": {
             "$ref" : "challengeAction"
           },
           "clearedActions": {
