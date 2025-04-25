@@ -27,7 +27,8 @@
       },
       "unlockAllPreviousChallengeComplete": true,
       "prevChallengeGuids": [],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "startedActions": []
     },
     {
       "summary": "テスト2",
@@ -74,7 +75,8 @@
       },
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "startedActions": []
     },
     {
       "summary": "テスト3",
@@ -104,7 +106,8 @@
       },
       "prevChallengeGuids": [],
       "initialUnlocked": true,
-      "unlockAllPreviousChallengeComplete": true
+      "unlockAllPreviousChallengeComplete": true,
+      "startedActions": []
     },
     {
       "summary": "テスト1をクリアしたら始まるチャレンジ",
@@ -136,7 +139,8 @@
         "IconItem": "00000000-0000-0000-1234-000000000001"
       },
       "initialUnlocked": true,
-      "unlockAllPreviousChallengeComplete": true
+      "unlockAllPreviousChallengeComplete": true,
+      "startedActions": []
     },
     {
       "summary": "テスト1とテスト4の両方をクリアしたら始まるチャレンジ（AND条件）",
@@ -169,7 +173,8 @@
         "IconItem": "00000000-0000-0000-1234-000000000001"
       },
       "initialUnlocked": false,
-      "unlockAllPreviousChallengeComplete": true
+      "unlockAllPreviousChallengeComplete": true,
+      "startedActions": []
     }
   ]
 }
