@@ -1,0 +1,95 @@
+{
+    "$id": "challengeAction",
+
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+
+        "clearedActionType": {
+          "type": "string",
+          "enum": ["unlockCraftRecipe", "unlockItemRecipeView", "unlockChallenge"]
+        },
+
+        "clearedActionParam": {
+          "oneOf": [
+            {
+              "if": {
+                "properties": {
+                  "clearedActionType": { "const": "unlockCraftRecipe" }
+                }
+              },
+              "then": {
+                "type": "object",
+                "isDefaultOpen": true,
+                "properties": {
+
+                  "unlockRecipeGuids": {
+
+                    "type": "array",
+
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "foreignKey": "craftRecipes:craftRecipeGuid:craftRecipeGuid"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "clearedActionType": { "const": "unlockItemRecipeView" }
+                }
+              },
+              "then": {
+                "type": "object",
+                "isDefaultOpen": true,
+                "properties": {
+
+                  "unlockItemGuids": {
+
+                    "type": "array",
+
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "foreignKey": "items:itemGuid:name"
+                    }
+                  }
+
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "clearedActionType": { "const": "unlockChallenge" }
+                }
+              },
+              "then": {
+                "type": "object",
+                "isDefaultOpen": true,
+                "properties": {
+
+                  "unlockChallengeGuids": {
+
+                    "type": "array",
+
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "foreignKey": "challenges:challengeGuid:title"
+                    }
+                  }
+
+                }
+              }
+            }
+
+          ]
+        }
+      }
+    }
+}
