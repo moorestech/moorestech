@@ -30,12 +30,6 @@
             "$memo": "前のチャレンジが全て完了になったらアンロックするか"
           },
 
-          "unlockAllPreviousChallengeComplete": {
-            "type": "boolean",
-            "default": true,
-            "$memo": "前のチャレンジが全て完了になったらアンロックするか"
-          },
-
           "prevChallengeGuids": {
             "type": "array",
             "optional": true,
