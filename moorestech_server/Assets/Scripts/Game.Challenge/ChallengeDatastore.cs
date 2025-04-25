@@ -6,6 +6,7 @@ using Core.Update;
 using Game.Challenge.Task;
 using Game.Challenge.Task.Factory;
 using Game.UnlockState;
+using Mooresmaster.Model.ChallengeActionModule;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 
@@ -93,7 +94,7 @@ namespace Game.Challenge
             
             // クリア時のアクションを実行。次のチャレンジを登録する際にチャレンジのアンロックが走るため、先にクリアアクションを実行する
             // Perform the action when cleared. When registering the next challenge, the challenge unlock will run, so execute the cleared action first
-            ExecuteClearedActions();
+            ExecuteChallengeActions(currentChallenge.ChallengeMasterElement.ClearedActions.items);
             
             // 次のチャレンジを登録
             // Register the next challenge
@@ -114,9 +115,14 @@ namespace Game.Challenge
                     var isCompleted = IsChallengesCompleted(challengeInfo, challengeElement);
                     if (!isCompleted) continue;
                     
+                    // 現在のチャレンジとして登録
+                    // Register as a current challenge
                     var nextChallenge = CreateChallenge(playerId, challengeElement);
                     challengeInfo.CurrentChallenges.Add(nextChallenge);
                     addedNextChallenges.Add(nextChallengeMaster);
+                    
+                    // チャレンジスタートのアクションを実行する
+                    ExecuteChallengeActions(nextChallengeMaster.StartedActions.items);
                 }
                 
                 // イベントを発行
@@ -124,9 +130,9 @@ namespace Game.Challenge
                 _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges);
             }
             
-            void ExecuteClearedActions()
+            void ExecuteChallengeActions(ChallengeActionElement[] actions)
             {
-                foreach (var action in currentChallenge.ChallengeMasterElement.ClearedActions)
+                foreach (var action in actions)
                 {
                     ExecuteClearedAction(action);
                 }
@@ -157,8 +163,8 @@ namespace Game.Challenge
                 // Unlock process when the previous challenge is cleared
                 AutoUnlockChallenge(playerChallengeInfo);
                 
-                // 完了済みのチャレンジに対応するアンロック系クリアアクションを実行
-                // Execute unlock-related clear actions corresponding to completed challenges
+                // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
+                // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
                 ExecuteUnlockActionsOnLoad(completedChallengeIds);
                 
                 // CurrentChallengeを作成
@@ -200,29 +206,38 @@ namespace Game.Challenge
             
             void CreateCurrentChallenge(List<Guid> completeChallenges, List<IChallengeTask> currentChallenges, PlayerChallengeInfo playerChallengeInfo, int playerId)
             {
-                // 
+                // 完了済みチャレンジから現在挑戦中のチャレンジを再構築する
                 foreach (var completedId in completeChallenges)
                 {
                     // 完了したチャレンジの次のチャレンジがクリア済みでなければ、CurrentChallengeに追加
                     var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(completedId);
                     foreach (var nextChallenge in nextChallenges)
                     {
+                        // 完了済みかチェック
+                        // Check if it's completed
                         if (completeChallenges.Contains(nextChallenge.ChallengeGuid)) continue;
                         
-                        var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
+                        var nextChallengeMaster = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
                         
                         // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
                         // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
-                        if (!IsChallengesCompleted(playerChallengeInfo, challengeElement)) continue;
+                        if (!IsChallengesCompleted(playerChallengeInfo, nextChallengeMaster)) continue;
                         
-                        var next = CreateChallenge(playerId, challengeElement);
-                        // 既にcurrentChallengesに含まれていないか確認してから追加
-                        if (currentChallenges.All(c => c.ChallengeMasterElement.ChallengeGuid != next.ChallengeMasterElement.ChallengeGuid))
-                        {
-                            currentChallenges.Add(next);
-                        }
+                        // すでに登録済みかを確認
+                        // Check if you're already registered
+                        var next = CreateChallenge(playerId, nextChallengeMaster);
+                        if (currentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == next.ChallengeMasterElement.ChallengeGuid)) continue;
+                        
+                        // 登録
+                        // Registration
+                        currentChallenges.Add(next);
+                        
+                        // 新たにマスタで追加されたチャレンジの可能性もあるため、アンロック系だけ実行しておく
+                        // There may be new challenges added by the master, so only run the unlocking ones.
+                        ExecuteUnlockActions(nextChallengeMaster.StartedActions.items);
                     }
                 }
+                
             }
             
             void ExecuteUnlockActionsOnLoad(List<Guid> completedChallengeGuids)
@@ -230,17 +245,21 @@ namespace Game.Challenge
                 foreach (var completedGuid in completedChallengeGuids)
                 {
                     var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(completedGuid);
-                    
-                    foreach (var action in challengeElement.ClearedActions)
+                    ExecuteUnlockActions(challengeElement.ClearedActions.items);
+                }
+            }
+            
+            void ExecuteUnlockActions(ChallengeActionElement[] actions)
+            {
+                foreach (var action in actions)
+                {
+                    switch (action.ClearedActionType)
                     {
-                        switch (action.ClearedActionType)
-                        {
-                            case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
-                            case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
-                            case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
-                                ExecuteClearedAction(action);
-                                break;
-                        }
+                        case ChallengeActionElement.ClearedActionTypeConst.unlockCraftRecipe:
+                        case ChallengeActionElement.ClearedActionTypeConst.unlockItemRecipeView:
+                        case ChallengeActionElement.ClearedActionTypeConst.unlockChallenge:
+                            ExecuteClearedAction(action);
+                            break;
                     }
                 }
             }
@@ -343,18 +362,18 @@ namespace Game.Challenge
             #endregion
         }
         
-        private void ExecuteClearedAction(ClearedActionsElement action)
+        private void ExecuteClearedAction(ChallengeActionElement action)
         {
             switch (action.ClearedActionType)
             {
-                case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe:
+                case ChallengeActionElement.ClearedActionTypeConst.unlockCraftRecipe:
                     var unlockRecipeGuids = ((UnlockCraftRecipeClearedActionParam) action.ClearedActionParam).UnlockRecipeGuids;
                     foreach (var guid in unlockRecipeGuids)
                     {
                         _gameUnlockStateDataController.UnlockCraftRecipe(guid);
                     }
                     break;
-                case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView:
+                case ChallengeActionElement.ClearedActionTypeConst.unlockItemRecipeView:
                     var itemGuids = ((UnlockItemRecipeViewClearedActionParam) action.ClearedActionParam).UnlockItemGuids;
                     foreach (var itemGuid in itemGuids)
                     {
@@ -362,7 +381,7 @@ namespace Game.Challenge
                         _gameUnlockStateDataController.UnlockItem(itemId);
                     }
                     break;
-                case ClearedActionsElement.ClearedActionTypeConst.unlockChallenge:
+                case ChallengeActionElement.ClearedActionTypeConst.unlockChallenge:
                     var unlockChallengeParam = (UnlockChallengeClearedActionParam) action.ClearedActionParam;
                     foreach (var guid in unlockChallengeParam.UnlockChallengeGuids)
                     {

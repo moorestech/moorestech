@@ -2,6 +2,8 @@
     "$id": "challengeAction",
 
     "type": "array",
+    "overrideCodeGeneratePropertyName": "ChallengeActionElement",
+    
     "items": {
       "type": "object",
       "properties": {
