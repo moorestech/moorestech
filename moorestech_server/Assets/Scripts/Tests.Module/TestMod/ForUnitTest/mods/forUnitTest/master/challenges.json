@@ -44,16 +44,16 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockCraftRecipe",
-          "clearedActionParam": {
+          "challengeActionType": "unlockCraftRecipe",
+          "challengeActionParam": {
             "unlockRecipeGuids": [
               "00000010-0000-0000-0000-000000000002"
             ]
           }
         },
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "00000000-0000-0000-1234-000000000003"
             ]
