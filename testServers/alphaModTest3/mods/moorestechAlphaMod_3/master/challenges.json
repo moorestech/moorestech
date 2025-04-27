@@ -41,16 +41,16 @@
       ],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
             ]
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "7ac263d8-406a-44e1-9878-9195378e9efc"
             ]
@@ -84,8 +84,8 @@
       "prevChallengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
               "91458a7e-5eaa-47fd-b79e-8390af20bb84"
@@ -93,16 +93,16 @@
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "c78e8e4b-84e6-4859-8541-daa255c09d48"
             ]
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "c78e8e4b-84e6-4859-8541-daa255c09d48",
               "a05f88c4-b60a-496a-a2c0-5584ea121456",
@@ -143,7 +143,8 @@
         "49ab89d7-bbe2-4735-b253-fbc55889c583"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "initialUnlocked": false,
@@ -184,8 +185,8 @@
       ],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "5def2be9-1bfa-4d6b-b827-8d82712bf70b",
               "f5f66872-a7a2-4da6-90c0-fc26e904757c"
@@ -198,7 +199,8 @@
       "prevChallengeGuids": [
         "7ac263d8-406a-44e1-9878-9195378e9efc"
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "initialUnlocked": false,
@@ -245,7 +247,8 @@
         "c78e8e4b-84e6-4859-8541-daa255c09d48"
       ],
       "challengeGuid": "a05f88c4-b60a-496a-a2c0-5584ea121456",
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "summary": "石器のハンマーを作る",
@@ -273,8 +276,8 @@
       "playSkitType": "None",
       "clearedActions": [
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "87ff05b0-4d10-4a0d-952d-e725f2004fe4",
               "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
@@ -284,8 +287,8 @@
           }
         },
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
               "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
@@ -306,7 +309,8 @@
         "a05f88c4-b60a-496a-a2c0-5584ea121456"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -347,7 +351,8 @@
         "8fb53727-935e-4d44-bcfc-064123f15a0a"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -380,7 +385,8 @@
       "clearedActions": [],
       "tutorials": [],
       "challengeGuid": "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -420,7 +426,8 @@
         "8fb53727-935e-4d44-bcfc-064123f15a0a"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -455,8 +462,8 @@
       "playSkitParam": {},
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "19fb4202-de45-49f1-a480-3d154309dd99",
               "370b1996-237e-475e-a5e3-a3f4f2a88587",
@@ -466,8 +473,8 @@
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "bf759905-fdc6-48b6-b130-890c0d7f5784",
               "bf759905-fdc6-48b6-b130-890c0d7f5784",
@@ -480,7 +487,8 @@
         }
       ],
       "tutorials": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "recipeViewType": 100,
@@ -515,15 +523,16 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "1f1568c7-f976-4e66-bbb1-2ec1ae6114d0"
             ]
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -555,7 +564,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -586,7 +596,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -618,7 +629,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -650,15 +662,16 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "38cfc079-3835-4530-b539-449c5200dd59"
             ]
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -690,16 +703,16 @@
       ],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "fa4e84ee-482d-414f-ad0e-8f167d178342"
             ]
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "0f859a46-4e21-4f16-9e98-e3b4148290c7",
               "ea4a2fdc-5e3d-4bdb-984b-7615b08159de"
@@ -710,7 +723,8 @@
       "challengeGuid": "5f19ddab-619c-4749-9160-ea86846c055e",
       "playSkitParam": {},
       "tutorials": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -742,15 +756,16 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
             ]
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -783,8 +798,8 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "b6ac41f7-89e1-45c8-8f2d-128105cb5063",
               "8b67462b-227a-465b-8d86-de683b5e98a1",
@@ -794,8 +809,8 @@
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "e3031ec0-7617-4633-a5b5-da484d6c8582",
               "3e53ca96-1eed-4fef-832d-2190230d24e6",
@@ -805,7 +820,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -837,7 +853,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -868,7 +885,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -901,7 +919,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -934,8 +953,8 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
             "unlockItemGuids": [
               "ba3cf978-dc21-47f9-810e-50f1c26015ed",
               "96b45ab2-3345-4fcd-99af-f3dc06605e73",
@@ -947,8 +966,8 @@
           }
         },
         {
-          "clearedActionType": "unlockChallenge",
-          "clearedActionParam": {
+          "challengeActionType": "unlockChallenge",
+          "challengeActionParam": {
             "unlockChallengeGuids": [
               "08cee1c0-cbf3-48ed-80d1-70bf02723bfa",
               "c3f25998-ac94-443c-a7a9-e1d2a517f859",
@@ -958,7 +977,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "blockSize": [
@@ -997,7 +1017,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -1028,7 +1049,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -1061,7 +1083,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -1093,7 +1116,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     }
   ]
 }

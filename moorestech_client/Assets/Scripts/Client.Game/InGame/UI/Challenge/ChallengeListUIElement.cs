@@ -4,6 +4,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Util;
 using Core.Master;
+using Mooresmaster.Model.ChallengeActionModule;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 
@@ -63,12 +64,12 @@ namespace Client.Game.InGame.UI.Challenge
             void SetUIEnterTooltip()
             {
                 var clearedActionsTest = string.Empty;
-                foreach (var clearedActionsElement in challengeMasterElement.ClearedActions)
+                foreach (var clearedActionsElement in challengeMasterElement.ClearedActions.items)
                 {
-                    switch (clearedActionsElement.ClearedActionType)
+                    switch (clearedActionsElement.ChallengeActionType)
                     {
-                        case ClearedActionsElement.ClearedActionTypeConst.unlockCraftRecipe :
-                            var recipeGuids = ((UnlockCraftRecipeClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockRecipeGuids;
+                        case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe :
+                            var recipeGuids = ((UnlockCraftRecipeChallengeActionParam)clearedActionsElement.ChallengeActionParam).UnlockRecipeGuids;
                             var unlockRecipeText = "レシピ解放: \n\t";
                             foreach (var guid in recipeGuids)
                             {
@@ -84,8 +85,8 @@ namespace Client.Game.InGame.UI.Challenge
                                 clearedActionsTest += unlockRecipeText;
                             }
                             break;
-                        case ClearedActionsElement.ClearedActionTypeConst.unlockItemRecipeView :
-                            var itemGuids = ((UnlockItemRecipeViewClearedActionParam)clearedActionsElement.ClearedActionParam).UnlockItemGuids;
+                        case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView :
+                            var itemGuids = ((UnlockItemRecipeViewChallengeActionParam)clearedActionsElement.ChallengeActionParam).UnlockItemGuids;
                             clearedActionsTest += $"アイテム解放: ";
                             foreach (var guid in itemGuids)
                             {

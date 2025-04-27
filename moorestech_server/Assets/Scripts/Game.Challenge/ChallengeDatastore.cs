@@ -253,11 +253,11 @@ namespace Game.Challenge
             {
                 foreach (var action in actions)
                 {
-                    switch (action.ClearedActionType)
+                    switch (action.ChallengeActionType)
                     {
-                        case ChallengeActionElement.ClearedActionTypeConst.unlockCraftRecipe:
-                        case ChallengeActionElement.ClearedActionTypeConst.unlockItemRecipeView:
-                        case ChallengeActionElement.ClearedActionTypeConst.unlockChallenge:
+                        case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
+                        case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
+                        case ChallengeActionElement.ChallengeActionTypeConst.unlockChallenge:
                             ExecuteClearedAction(action);
                             break;
                     }
@@ -364,26 +364,26 @@ namespace Game.Challenge
         
         private void ExecuteClearedAction(ChallengeActionElement action)
         {
-            switch (action.ClearedActionType)
+            switch (action.ChallengeActionType)
             {
-                case ChallengeActionElement.ClearedActionTypeConst.unlockCraftRecipe:
-                    var unlockRecipeGuids = ((UnlockCraftRecipeClearedActionParam) action.ClearedActionParam).UnlockRecipeGuids;
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
+                    var unlockRecipeGuids = ((UnlockCraftRecipeChallengeActionParam) action.ChallengeActionParam).UnlockRecipeGuids;
                     foreach (var guid in unlockRecipeGuids)
                     {
                         _gameUnlockStateDataController.UnlockCraftRecipe(guid);
                     }
                     break;
-                case ChallengeActionElement.ClearedActionTypeConst.unlockItemRecipeView:
-                    var itemGuids = ((UnlockItemRecipeViewClearedActionParam) action.ClearedActionParam).UnlockItemGuids;
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
+                    var itemGuids = ((UnlockItemRecipeViewChallengeActionParam) action.ChallengeActionParam).UnlockItemGuids;
                     foreach (var itemGuid in itemGuids)
                     {
                         var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
                         _gameUnlockStateDataController.UnlockItem(itemId);
                     }
                     break;
-                case ChallengeActionElement.ClearedActionTypeConst.unlockChallenge:
-                    var unlockChallengeParam = (UnlockChallengeClearedActionParam) action.ClearedActionParam;
-                    foreach (var guid in unlockChallengeParam.UnlockChallengeGuids)
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockChallenge:
+                    var challenges = ((UnlockChallengeChallengeActionParam) action.ChallengeActionParam).UnlockChallengeGuids;
+                    foreach (var guid in challenges)
                     {
                         _gameUnlockStateDataController.UnlockChallenge(guid);
                     }
