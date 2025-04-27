@@ -143,7 +143,8 @@
         "49ab89d7-bbe2-4735-b253-fbc55889c583"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "initialUnlocked": false,
@@ -198,7 +199,8 @@
       "prevChallengeGuids": [
         "7ac263d8-406a-44e1-9878-9195378e9efc"
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "initialUnlocked": false,
@@ -245,7 +247,8 @@
         "c78e8e4b-84e6-4859-8541-daa255c09d48"
       ],
       "challengeGuid": "a05f88c4-b60a-496a-a2c0-5584ea121456",
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "summary": "石器のハンマーを作る",
@@ -306,7 +309,8 @@
         "a05f88c4-b60a-496a-a2c0-5584ea121456"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -347,7 +351,8 @@
         "8fb53727-935e-4d44-bcfc-064123f15a0a"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -380,7 +385,8 @@
       "clearedActions": [],
       "tutorials": [],
       "challengeGuid": "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -420,7 +426,8 @@
         "8fb53727-935e-4d44-bcfc-064123f15a0a"
       ],
       "initialUnlocked": false,
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -480,7 +487,8 @@
         }
       ],
       "tutorials": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "recipeViewType": 100,
@@ -523,7 +531,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -555,7 +564,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -586,7 +596,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -618,7 +629,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -658,7 +670,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -710,7 +723,8 @@
       "challengeGuid": "5f19ddab-619c-4749-9160-ea86846c055e",
       "playSkitParam": {},
       "tutorials": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -750,7 +764,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -805,7 +820,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -837,7 +853,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -868,7 +885,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -901,7 +919,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -958,7 +977,8 @@
           }
         }
       ],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "blockSize": [
@@ -997,7 +1017,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -1028,7 +1049,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -1061,7 +1083,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     },
     {
       "displayListParam": {
@@ -1093,7 +1116,8 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [],
-      "startedActions": []
+      "startedActions": [],
+      "unlockAllPreviousChallengeComplete": true
     }
   ]
 }

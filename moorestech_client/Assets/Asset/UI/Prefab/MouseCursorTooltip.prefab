@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2592401394132855011}
   - component: {fileID: 283901889117446245}
   m_Layer: 5
-  m_Name: MouseCursorExplainer
+  m_Name: MouseCursorTooltip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
