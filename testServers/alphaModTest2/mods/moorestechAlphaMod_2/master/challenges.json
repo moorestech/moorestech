@@ -21,8 +21,8 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockCraftRecipe",
-          "clearedActionParam": {
+          "challengeActionType": "unlockCraftRecipe",
+          "challengeActionParam": {
             "unlockRecipeGuid": "6b3f6af9-6144-40b8-adf7-4cae2533bfe7"
           }
         }
@@ -50,8 +50,8 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockCraftRecipe",
-          "clearedActionParam": {
+          "challengeActionType": "unlockCraftRecipe",
+          "challengeActionParam": {
             "unlockRecipeGuid": "c9a15466-d4c6-4847-a6b3-3f584169827a"
           }
         }

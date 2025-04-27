@@ -8,17 +8,17 @@
       "type": "object",
       "properties": {
 
-        "clearedActionType": {
+        "challengeActionType": {
           "type": "string",
           "enum": ["unlockCraftRecipe", "unlockItemRecipeView", "unlockChallenge"]
         },
 
-        "clearedActionParam": {
+        "challengeActionParam": {
           "oneOf": [
             {
               "if": {
                 "properties": {
-                  "clearedActionType": { "const": "unlockCraftRecipe" }
+                  "challengeActionType": { "const": "unlockCraftRecipe" }
                 }
               },
               "then": {
@@ -42,7 +42,7 @@
             {
               "if": {
                 "properties": {
-                  "clearedActionType": { "const": "unlockItemRecipeView" }
+                  "challengeActionType": { "const": "unlockItemRecipeView" }
                 }
               },
               "then": {
@@ -67,7 +67,7 @@
             {
               "if": {
                 "properties": {
-                  "clearedActionType": { "const": "unlockChallenge" }
+                  "challengeActionType": { "const": "unlockChallenge" }
                 }
               },
               "then": {

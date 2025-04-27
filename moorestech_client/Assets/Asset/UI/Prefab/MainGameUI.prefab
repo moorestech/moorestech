@@ -8347,7 +8347,6 @@ MonoBehaviour:
   buttonImage: {fileID: 4674642698650030516}
   interactableColor: {r: 1, g: 1, b: 1, a: 1}
   nonInteractableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  progressArrow: {fileID: 0}
   resetElapsedTimeOnPointerExit: 1
   stopElapsedTimeUpdateOnPointerExit: 1
   restartElapsedTimeUpdateOnPointerEnter: 1
@@ -13929,7 +13928,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 242877195320057483, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_Name
-      value: MouseCursorExplainer
+      value: MouseCursorTooltip
       objectReference: {fileID: 0}
     - target: {fileID: 2592401394132855011, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: canvasRect
