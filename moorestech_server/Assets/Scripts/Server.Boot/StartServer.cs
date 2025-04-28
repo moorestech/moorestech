@@ -15,18 +15,10 @@ namespace Server.Boot
 {
     public static class StartServer
     {
-        public const string DebugServerDirectorySettingKey = "DebugServerDirectory";
-        
-        private static string DebugServerDirectory => Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../moorestech_client/Server"));
-        
         public static (Thread serverUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
             //カレントディレクトリを表示
-#if DEBUG
-            var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,DebugServerDirectory);
-#else
-            var serverDirectory = Path.Combine(Application.dataPath, "../", "game");
-#endif
+            var serverDirectory = ServerDirectory.GetDirectory();
             
             Debug.Log("データをロードします　パス:" + serverDirectory);
             
