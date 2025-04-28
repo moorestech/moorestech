@@ -44,8 +44,7 @@ namespace Client.Starter
         
         private void Start()
         {
-            const string key = StartServer.DebugServerDirectorySettingKey;
-            var serverDirectory = DebugParameters.GetValueOrDefaultString(key, ServerConst.DefaultServerDirectory);
+            var serverDirectory = ServerDirectory.GetDirectory();
             Initialize(serverDirectory).Forget();
         }
         
