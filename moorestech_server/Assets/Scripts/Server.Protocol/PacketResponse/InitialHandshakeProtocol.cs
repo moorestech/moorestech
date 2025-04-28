@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             
             
             //プレイヤーのデータがなかったのでスポーン地点を取得する
-            return new Vector3MessagePack(_worldSettingsDatastore.WorldSpawnPoint);
+            return new Vector3MessagePack(DefaultPlayerPosition);
         }
         
         [MessagePackObject]
