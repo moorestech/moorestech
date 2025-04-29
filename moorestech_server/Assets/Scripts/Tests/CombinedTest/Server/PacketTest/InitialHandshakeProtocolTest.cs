@@ -30,8 +30,10 @@ namespace Tests.CombinedTest.Server.PacketTest
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             
             //今のところ初期スポーンはゼロ固定
-            Assert.AreEqual(0, handShakeResponse.PlayerPos.X);
-            Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
+            var pos = InitialHandshakeProtocol.DefaultPlayerPosition;
+            Assert.AreEqual(pos.x, handShakeResponse.PlayerPos.X);
+            Assert.AreEqual(pos.y, handShakeResponse.PlayerPos.Y);
+            Assert.AreEqual(pos.z, handShakeResponse.PlayerPos.Z);
             
             
             //プレイヤーの座標を変更
