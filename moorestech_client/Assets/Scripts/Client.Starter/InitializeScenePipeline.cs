@@ -56,8 +56,6 @@ namespace Client.Starter
             loadingStopwatch.Start();
             
             // Addressablesのロード
-            Caching.ClearCache();
-            Addressables.CleanBundleCache();
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
             
