@@ -48,7 +48,8 @@ namespace Client.Game.InGame.Tutorial
                 
                 if (mapObject == null)
                 {
-                    Debug.LogWarning($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                    Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                    return;
                 }
                 
                 transform.position = mapObject.GetPosition();

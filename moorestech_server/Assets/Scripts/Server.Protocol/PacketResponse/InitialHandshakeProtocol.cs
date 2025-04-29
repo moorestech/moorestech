@@ -5,12 +5,15 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
     public class InitialHandshakeProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
+        
+        private static readonly Vector3 DefaultPlayerPosition = new(186, 15.7f, -37.401f);
         
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
@@ -42,12 +45,12 @@ namespace Server.Protocol.PacketResponse
                 return new Vector3MessagePack(pos.x, pos.y, pos.z);
             }
             
-            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId);
+            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, DefaultPlayerPosition);
             _entitiesDatastore.Add(playerEntity);
             
             
             //プレイヤーのデータがなかったのでスポーン地点を取得する
-            return new Vector3MessagePack(_worldSettingsDatastore.WorldSpawnPoint);
+            return new Vector3MessagePack(DefaultPlayerPosition);
         }
         
         [MessagePackObject]

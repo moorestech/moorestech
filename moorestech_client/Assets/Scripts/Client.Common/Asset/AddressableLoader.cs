@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -16,7 +17,7 @@ namespace Client.Common.Asset
             }
             
             var handle = Addressables.LoadAssetAsync<T>(address);
-            await handle.Task;
+            await handle.ToUniTask();
             
             return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
         }

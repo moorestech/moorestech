@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Map.MapObject
         public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)
         {
             MapObjectGameObject nearestMapObject = null; 
-            var distance = float.MaxValue;
+            var maxMagnitude = float.MaxValue;
             
             for (var i = 0; i < mapObjects.Count; i++)
             {
@@ -62,11 +62,11 @@ namespace Client.Game.InGame.Map.MapObject
                 if (mapObject.MapObjectGuid != mapObjectGuid || mapObject.IsDestroyed) continue;
                 
                 // 距離をチェック
-                var currentDistance = Vector3.Distance(position, mapObject.GetPosition());
-                if (distance > currentDistance) continue;
+                var magnitude = (position - mapObject.GetPosition()).magnitude;
+                if (maxMagnitude < magnitude) continue;
                 
                 nearestMapObject = mapObject;
-                distance = currentDistance;
+                maxMagnitude = magnitude;
             }
             
             return nearestMapObject;

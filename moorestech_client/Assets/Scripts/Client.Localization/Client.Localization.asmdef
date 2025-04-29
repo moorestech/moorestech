@@ -5,7 +5,8 @@
     "Unity.TextMeshPro",
     "UniRx",
     "Core.Const",
-    "Client.Common"
+    "Client.Common",
+    "Server.Boot"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
