@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Client.Common;
 using CsvHelper;
+using Server.Boot;
 using UniRx;
 using UnityEngine;
 
@@ -36,7 +37,8 @@ namespace Client.Localization
             CurrentLanguageCode = PlayerPrefs.GetString("LanguageCode", DefaultLanguageCode);
             
             // CSVファイルのパス
-            var csvFilePath = Path.Combine(ServerConst.DefaultServerDirectory, "config", "localization.csv");
+            var serverDirectory = ServerDirectory.GetDirectory();
+            var csvFilePath = Path.Combine(serverDirectory, "config", "localization.csv");
             
             var languageCodes = new List<string>();
             var isFirstRow = true;
