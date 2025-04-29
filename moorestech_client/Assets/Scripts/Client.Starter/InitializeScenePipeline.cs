@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
+using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Mod.Texture;
@@ -16,6 +17,7 @@ using Cysharp.Threading.Tasks;
 using Server.Boot;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using BlockObjectInfo = Client.Game.InGame.Context.BlockObjectInfo;
@@ -52,6 +54,17 @@ namespace Client.Starter
         {
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
+            
+            // Addressablesのロード
+            Caching.ClearCache();
+            Addressables.CleanBundleCache();
+            var initializeHandle = Addressables.InitializeAsync();
+            await initializeHandle.ToUniTask();
+            
+            // 理由はわからないが、Addressablesの初期化処理直後に一回何かしらのオブジェクトをロードしないと、他のロードが無限に続いてゲームがスタートできないので実行する
+            var handle = await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
+            handle.Dispose();
+            
             
             _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
             
