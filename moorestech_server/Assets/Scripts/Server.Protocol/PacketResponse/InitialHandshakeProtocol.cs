@@ -13,7 +13,7 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
         
-        private static readonly Vector3 DefaultPlayerPosition = new(186, 15.7f, -37.401f);
+        public static readonly Vector3 DefaultPlayerPosition = new(186, 15.7f, -37.401f);
         
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
