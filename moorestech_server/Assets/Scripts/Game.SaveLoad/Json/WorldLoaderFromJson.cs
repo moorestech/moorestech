@@ -55,7 +55,7 @@ namespace Game.SaveLoad.Json
                 catch (Exception e)
                 {
                     //TODO ログ基盤
-                    Debug.Log("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
+                    Debug.Log("セーブデータが破損していたか古いバージョンでした。削除したら治る可能性があります。\nサポートが必要な場合はDiscordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
                     Debug.Log($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
                     throw new Exception(
                         $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
