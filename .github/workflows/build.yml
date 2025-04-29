@@ -27,7 +27,7 @@ jobs:
             runner: macos-latest
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            runner: ubuntu-latest
+            runner: windows-latest
     
     steps:
       # Checkout
