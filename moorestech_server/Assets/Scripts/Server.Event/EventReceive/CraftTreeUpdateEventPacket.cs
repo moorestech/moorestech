@@ -1,15 +1,22 @@
+using Game.CraftTree.Data;
 using Game.CraftTree.Manager;
+using Game.CraftTree.Network;
 using Game.Context;
 using MessagePack;
-using Server.Event;
+using CraftTreeData = Game.CraftTree.Data.Transfer.CraftTreeData;
 
-namespace Game.CraftTree.Network
+namespace Server.Event.EventReceive
 {
     /// <summary>
     /// クラフトツリー更新イベントをクライアントに送信するクラス
     /// </summary>
-    public class CraftTreeUpdateEventSender
+    public class CraftTreeUpdateEventPacket
     {
+        /// <summary>
+        /// イベント識別タグ
+        /// </summary>
+        public const string EventTag = "va:craftTreeUpdate";
+        
         private readonly CraftTreeManager _craftTreeManager;
         private readonly IClientEventSender _eventSender;
         
@@ -18,7 +25,7 @@ namespace Game.CraftTree.Network
         /// </summary>
         /// <param name="craftTreeManager">クラフトツリーマネージャー</param>
         /// <param name="eventSender">クライアントイベント送信者</param>
-        public CraftTreeUpdateEventSender(CraftTreeManager craftTreeManager, IClientEventSender eventSender)
+        public CraftTreeUpdateEventPacket(CraftTreeManager craftTreeManager, IClientEventSender eventSender)
         {
             _craftTreeManager = craftTreeManager;
             _eventSender = eventSender;
@@ -51,7 +58,7 @@ namespace Game.CraftTree.Network
             if (!updates.IsEmpty())
             {
                 var eventData = new CraftTreeUpdateEventMessagePack(updates);
-                _eventSender.SendEvent(playerId.Value, CraftTreeUpdateEventMessagePack.EventTag, eventData);
+                _eventSender.SendEvent(playerId.Value, EventTag, eventData);
             }
         }
     }
@@ -62,11 +69,6 @@ namespace Game.CraftTree.Network
     [MessagePackObject]
     public class CraftTreeUpdateEventMessagePack : EventMessagePackBase
     {
-        /// <summary>
-        /// イベント識別タグ
-        /// </summary>
-        public const string EventTag = "va:craftTreeUpdate";
-        
         /// <summary>
         /// 目標アイテムリスト
         /// </summary>
@@ -150,7 +152,7 @@ namespace Game.CraftTree.Network
             {
                 foreach (var goalItemPack in GoalItems)
                 {
-                    var goalItem = new Data.GoalItem(
+                    var goalItem = new GoalItem(
                         goalItemPack.ItemId,
                         goalItemPack.RequiredCount,
                         goalItemPack.AvailableCount
@@ -218,7 +220,7 @@ namespace Game.CraftTree.Network
         /// 新しい状態
         /// </summary>
         [Key(1)]
-        public Data.NodeState NewState { get; set; }
+        public NodeState NewState { get; set; }
         
         /// <summary>
         /// 新しい進捗値

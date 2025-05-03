@@ -1,8 +1,6 @@
-using Core.Item;
 using Core.Master;
-using Game.CraftTree.Data;
 
-namespace Game.CraftTree.Network
+namespace Game.CraftTree.Data.Transfer
 {
     /// <summary>
     /// クラフトツリーノードの更新情報を表すクラス

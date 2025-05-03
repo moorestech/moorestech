@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Game.CraftTree.Data;
 
-namespace Game.CraftTree.Network
+namespace Game.CraftTree.Data.Transfer
 {
     /// <summary>
     /// サーバーからクライアントへのクラフトツリー更新情報を表すクラス
