@@ -1,0 +1,18 @@
+{
+    "name": "Client.Game.InGame.CraftTree",
+    "rootNamespace": "",
+    "references": [
+        "GUID:e2ec7f5c6db56fe41b07b13f1531f007",
+        "GUID:560b04d1a97f54a4e82edc0cbbb69285",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
