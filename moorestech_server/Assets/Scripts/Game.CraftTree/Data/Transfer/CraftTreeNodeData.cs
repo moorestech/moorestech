@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using Core.Item;
-using Game.CraftTree.Data;
+using Core.Master;
 
-namespace Game.CraftTree.Network
+namespace Game.CraftTree.Data.Transfer
 {
     /// <summary>
     /// クラフトツリーノードのシリアライズ用データクラス

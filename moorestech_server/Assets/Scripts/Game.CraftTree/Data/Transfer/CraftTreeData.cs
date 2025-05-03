@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Core.Item;
 using Core.Master;
-using Game.CraftTree.Data;
 
-namespace Game.CraftTree.Network
+namespace Game.CraftTree.Data.Transfer
 {
     /// <summary>
     /// クラフトツリー全体のシリアライズ用データクラス
@@ -39,7 +37,7 @@ namespace Game.CraftTree.Network
         /// </summary>
         /// <param name="craftTree">変換元のクラフトツリー</param>
         /// <returns>シリアライズ用データ</returns>
-        public static CraftTreeData FromTree(CraftTree tree)
+        public static CraftTreeData FromTree(Data.CraftTree tree)
         {
             if (tree == null || tree.rootNode == null)
                 return null;

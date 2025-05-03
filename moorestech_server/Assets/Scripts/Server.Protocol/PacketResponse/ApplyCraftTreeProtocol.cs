@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Game.Context;
 using Game.CraftTree.Manager;
+using Game.CraftTree.Network;
 using MessagePack;
-using Server.Protocol;
 
-namespace Game.CraftTree.Network
+namespace Server.Protocol.PacketResponse
 {
     /// <summary>
     /// クライアントからサーバーへのクラフトツリー適用プロトコル
