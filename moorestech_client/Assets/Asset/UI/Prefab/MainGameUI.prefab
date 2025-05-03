@@ -6491,6 +6491,7 @@ GameObject:
   - component: {fileID: 3739902040645628690}
   - component: {fileID: 4717522050000346273}
   - component: {fileID: 6871416098573564947}
+  - component: {fileID: 1331126197316628865}
   m_Layer: 5
   m_Name: ChallengeText
   m_TagString: Untagged
@@ -6614,6 +6615,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1331126197316628865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6181448123592339888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b289402f99e34667b879e2d1fb4a3ff8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  challengeText: {fileID: 6871416098573564947}
 --- !u!1 &6228063310522898710
 GameObject:
   m_ObjectHideFlags: 0
