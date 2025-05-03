@@ -1,5 +1,6 @@
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Input;
 using Client.Skit.Skit;
@@ -16,7 +17,7 @@ namespace Client.Game.Common
         [SerializeField] private PlayerObjectController playerObjectController;
         
         [SerializeField] private HotBarView hotBarView;
-        [SerializeField] private GameObject challengeText;
+        [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         
         private void Awake()
         {
@@ -52,7 +53,7 @@ namespace Client.Game.Common
             playerObjectController.SetActive(true);
             
             hotBarView.SetActive(true);
-            challengeText.SetActive(true);
+            currentChallengeHudView.SetActive(true);
             
             InputManager.MouseCursorVisible(false);
         }
@@ -65,7 +66,7 @@ namespace Client.Game.Common
             playerObjectController.SetActive(false);
             
             hotBarView.SetActive(false);
-            challengeText.SetActive(false);
+            currentChallengeHudView.SetActive(false);
             
             InputManager.MouseCursorVisible(true);
         }
@@ -78,7 +79,7 @@ namespace Client.Game.Common
             playerObjectController.SetActive(false);
             
             hotBarView.SetActive(false);
-            challengeText.SetActive(false);
+            currentChallengeHudView.SetActive(false);
             
             InputManager.MouseCursorVisible(false);
         }
