@@ -21,13 +21,16 @@ jobs:
         platform:
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
-            runner: windows-latest
+            runner: ubuntu-latest
+            customImage: unityci/editor:ubuntu-2022.3.18f1-windows-mono-3
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
+            customImage: ""
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            runner: windows-latest
+            runner: ubuntu-latest
+            customImage: ""
     
     steps:
       # Checkout
@@ -60,6 +63,7 @@ jobs:
           unityVersion: 2022.3.18f1
           buildMethod: ${{ matrix.platform.buildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
+          customImage: ${{ matrix.platform.customImage }}
           allowDirtyBuild: true
           projectPath: moorestech_client/
       
