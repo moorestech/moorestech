@@ -24,7 +24,7 @@ namespace Client.DebugSystem
             rootPage.AddPageLinkButton<GraphyDebugPage>("Graphy", onLoad: x => x.page.Setup(GraphyManager.Instance));
             rootPage.AddSwitch(false, "Runtime Hierarchy Inspector", valueChanged: active => runtimeHierarchyInspector.SetActive(active));
             
-            rootPage.AddEnumPickerWithSave(DebugEnvironmentType.PureNature, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
+            rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);
         }
         
