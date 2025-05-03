@@ -21,15 +21,12 @@ jobs:
         platform:
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
-            targetPlatform: 'windows-mono'
             runner: windows-latest
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
-            targetPlatform: 'linux-mono'
             runner: macos-latest
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            targetPlatform: 'mac-mono'
             runner: windows-latest
     
     steps:
@@ -62,7 +59,7 @@ jobs:
         with:
           unityVersion: 2022.3.18f1
           buildMethod: ${{ matrix.platform.buildMethod }}
-          targetPlatform: ${{ matrix.platform.targetPlatform }}
+          targetPlatform: ${{ matrix.platform.name }}
           allowDirtyBuild: true
           projectPath: moorestech_client/
       
