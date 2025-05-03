@@ -1,0 +1,18 @@
+{
+    "name": "Game.CraftTree",
+    "rootNamespace": "",
+    "references": [
+        "Core.Master",
+        "Core.Item",
+        "Game.PlayerInventory.Interface"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
