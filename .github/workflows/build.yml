@@ -21,16 +21,16 @@ jobs:
         platform:
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
-            runner: windows-latest
-            customImage: unityci/editor:ubuntu-2022.3.18f1-windows-mono-4
+            runner: ubuntu-latest
+            customImage: unityci/editor:ubuntu-2022.3.18f1-windows-mono-3
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
             customImage: ""
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            runner: windows-latest
-            customImage: unityci/editor:ubuntu-2022.3.18f1-linux-mono-4
+            runner: ubuntu-latest
+            customImage: ""
     
     steps:
       # Checkout
