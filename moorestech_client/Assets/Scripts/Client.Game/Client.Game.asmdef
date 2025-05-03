@@ -23,6 +23,7 @@
         "Game.World",
         "Game.World.EventHandler",
         "Game.World.Interface",
+        "Game.CraftTree",
         "Mod.Base",
         "Mod.Config",
         "Mod.Loader",
