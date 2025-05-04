@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.ContextMenu;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
 using Game.CraftTree;
 using TMPro;
 using UniRx;
@@ -24,12 +29,12 @@ namespace Client.Game.InGame.CraftTree.TreeView
         private readonly Subject<Unit> _onUpdateNode = new();
         
         public CraftTreeNode Node { get; private set; }
-        private List<CraftTreeEditorNodeView> _children;
+        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
-        public void Initialize(List<CraftTreeEditorNodeView> children, CraftTreeNode node, int depth)
+        public void Initialize(List<CraftTreeEditorNodeView> children, CraftTreeNode node, int depth, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
         {
             Node = node;
-            _children = children;
+            _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
             
             SetItem();
             SetPosition();
@@ -65,12 +70,62 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void ExpandNode()
         {
+            var targetItem = Node.TargetItemId;
+            var itemRecipes = _itemRecipeViewerDataContainer.GetItem(targetItem);
+            var materialItems = GetMaterialItems(itemRecipes);
             
+            var children = new List<CraftTreeNode>();
+            foreach (var material in materialItems)
+            {
+                var treeNode = new CraftTreeNode(material.Id, material.Count);
+                children.Add(treeNode);
+            }
+            
+            Node.ReplaceChildren(children);
+            
+            _onUpdateNode.OnNext(Unit.Default);
+            
+            
+            #region Internal
+            
+            List<IItemStack> GetMaterialItems(RecipeViewerItemRecipes recipes)
+            {
+                var materialItems = new List<IItemStack>();
+                if (recipes.UnlockedCraftRecipes().Count == 0 && recipes.MachineRecipes.Count != 0)
+                {
+                    var machineRecipe = recipes.MachineRecipes.FirstOrDefault();
+                    foreach (var inputItem in machineRecipe.Value.First().InputItems)
+                    {
+                        var itemStack = ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count);
+                        materialItems.Add(itemStack);
+                    }
+                    
+                    var blockItemId = MasterHolder.BlockMaster.GetItemId(machineRecipe.Key);
+                    var blockItemStack = ServerContext.ItemStackFactory.Create(blockItemId, 1);
+                    materialItems.Add(blockItemStack);
+                    
+                    return materialItems;
+                }
+                
+                foreach (var recipe in recipes.UnlockedCraftRecipes())
+                {
+                    foreach (var item in recipe.RequiredItems)
+                    {
+                        var itemStack = ServerContext.ItemStackFactory.Create(item.ItemGuid, item.Count);
+                        materialItems.Add(itemStack);
+                    }
+                }
+                
+                return materialItems;
+            }
+            
+            #endregion
         }
         
         private void HideChildrenNode()
         {
-            
+            Node.ReplaceChildren(new List<CraftTreeNode>());
+            _onUpdateNode.OnNext(Unit.Default);
         }
     }
 }
