@@ -80,7 +80,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
             var children = new List<CraftTreeNode>();
             foreach (var material in materialItems)
             {
-                var treeNode = new CraftTreeNode(material.Id, material.Count);
+                var count = material.Count * Node.RequiredCount;
+                var treeNode = new CraftTreeNode(material.Id, count);
                 children.Add(treeNode);
             }
             
@@ -93,21 +94,21 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             List<IItemStack> GetMaterialItems(RecipeViewerItemRecipes recipes)
             {
-                var materialItems = new List<IItemStack>();
+                var materials = new List<IItemStack>();
                 if (recipes.UnlockedCraftRecipes().Count == 0 && recipes.MachineRecipes.Count != 0)
                 {
                     var machineRecipe = recipes.MachineRecipes.FirstOrDefault();
                     foreach (var inputItem in machineRecipe.Value.First().InputItems)
                     {
                         var itemStack = ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count);
-                        materialItems.Add(itemStack);
+                        materials.Add(itemStack);
                     }
                     
                     var blockItemId = MasterHolder.BlockMaster.GetItemId(machineRecipe.Key);
                     var blockItemStack = ServerContext.ItemStackFactory.Create(blockItemId, 1);
-                    materialItems.Add(blockItemStack);
+                    materials.Add(blockItemStack);
                     
-                    return materialItems;
+                    return materials;
                 }
                 
                 foreach (var recipe in recipes.UnlockedCraftRecipes())
@@ -115,11 +116,11 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     foreach (var item in recipe.RequiredItems)
                     {
                         var itemStack = ServerContext.ItemStackFactory.Create(item.ItemGuid, item.Count);
-                        materialItems.Add(itemStack);
+                        materials.Add(itemStack);
                     }
                 }
                 
-                return materialItems;
+                return materials;
             }
             
             #endregion
