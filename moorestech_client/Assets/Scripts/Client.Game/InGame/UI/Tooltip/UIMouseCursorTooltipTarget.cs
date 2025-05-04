@@ -1,7 +1,8 @@
+using Client.Game.InGame.UI.Util;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Client.Game.InGame.UI.Util
+namespace Client.Game.InGame.UI.Tooltip
 {
     /// <summary>
     ///     UIにアタッチして、そのUI要素にマウスカーソルが乗ったら文字列を表示するシステム

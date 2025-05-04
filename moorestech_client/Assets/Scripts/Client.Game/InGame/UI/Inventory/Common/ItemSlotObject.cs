@@ -1,4 +1,5 @@
 ﻿using System;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.Util;
 using Client.Mod.Texture;
 using Core.Master;
