@@ -17,7 +17,7 @@ namespace Game.CraftTree
         public int CurrentCount { get; } = 0;
         
         
-        public CraftTreeNode(CraftTreeNode parent, ItemId targetItemId, int requiredCount)
+        public CraftTreeNode(ItemId targetItemId, int requiredCount)
         {
             TargetItemId = targetItemId;
             RequiredCount = requiredCount;

@@ -22,9 +22,10 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemListParent;
+        
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private IGameUnlockStateData gameUnlockStateData;
+        [Inject] private IGameUnlockStateData _gameUnlockStateData;
         private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
@@ -91,7 +92,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 {
                     // デフォルトはアンロックされていてレシピがあれば表示する
                     // Default is to display if unlocked and has a recipe
-                    var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
+                    var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     var isItemUnlocked = state.IsUnlocked;
                     
                     var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
@@ -105,7 +106,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 {
                     // アンロックされていれば表示する
                     // Display if unlocked
-                    var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
+                    var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     return state.IsUnlocked;
                 }
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
