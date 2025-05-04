@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd91a2ad517649f8afd3f3757298ea4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  contextMenuRaycastTarget: {fileID: 2326779929573293314}
   barTitle: {fileID: 909037277831442453}
   itemButton: {fileID: 3699677693318457458}
 --- !u!1 &3889475311455967326
@@ -195,6 +196,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1408269808123535162}
+  - component: {fileID: 2326779929573293314}
   - component: {fileID: 5739464516284270802}
   - component: {fileID: 4938918240066629004}
   - component: {fileID: 3699677693318457458}
@@ -224,6 +226,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0.000030517578, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2326779929573293314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7903807237080224596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde1a6e139594765af4fcc125f8b9f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!222 &5739464516284270802
 CanvasRenderer:
   m_ObjectHideFlags: 0
