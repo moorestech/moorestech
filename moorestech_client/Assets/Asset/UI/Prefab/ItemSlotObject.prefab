@@ -326,7 +326,7 @@ MonoBehaviour:
   normalItemSlotObject: {fileID: 4453128930901351719}
   noneCrossObject: {fileID: 4581972568625986164}
   countText: {fileID: 1014375674738587960}
-  uiMouseCursorTooltipTarget: {fileID: 1186919496023674567}
+  uGuiTooltipTarget: {fileID: 1186919496023674567}
 --- !u!114 &1186919496023674567
 MonoBehaviour:
   m_ObjectHideFlags: 0
