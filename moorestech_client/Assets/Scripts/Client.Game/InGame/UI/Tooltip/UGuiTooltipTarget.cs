@@ -54,7 +54,7 @@ namespace Client.Game.InGame.UI.Tooltip
         }
         
         
-        #region フラグコントローラー
+        #region flagController
         
         public void DisplayEnable(bool enable)
         {
