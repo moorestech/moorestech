@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.CraftTree;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.CraftTree.TreeView
 {
@@ -8,6 +9,10 @@ namespace Client.Game.InGame.CraftTree.TreeView
     {
         [SerializeField] private RectTransform uiTransform;
         [SerializeField] private float depthWidth = 50f;
+        
+        [SerializeField] private Button contextMenuButton;
+        
+        [SerializeField] private GameObject contextMenu;
         
         public CraftTreeNode Node { get; private set; }
         private List<CraftTreeEditorNodeView> _children;
@@ -20,6 +25,12 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             Node = node;
             _children = children;
+            
+            contextMenuButton.onClick.AddListener(OnContextMenuButtonClicked);
+        }
+        
+        private void OnContextMenuButtonClicked()
+        {
         }
     }
 }
