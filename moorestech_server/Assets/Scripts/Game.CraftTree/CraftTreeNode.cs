@@ -23,9 +23,10 @@ namespace Game.CraftTree
             RequiredCount = requiredCount;
         }
         
-        public void AddChildren()
+        public void ReplaceChildren(List<CraftTreeNode> children)
         {
-            
+            _children.Clear();
+            _children.AddRange(children);
         }
     }
 }

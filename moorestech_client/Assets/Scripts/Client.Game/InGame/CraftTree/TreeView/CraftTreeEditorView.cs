@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Game.CraftTree;
 using UniRx;
 using UnityEngine;
@@ -10,7 +11,14 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private CraftTreeEditorNodeView nodePrefab;
         [SerializeField] private RectTransform content;
         
+        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        
         private readonly List<CraftTreeEditorNodeView> _nodes = new();
+        
+        public void Initialize(ItemRecipeViewerDataContainer itemRecipe)
+        {
+            _itemRecipeViewerDataContainer = itemRecipe;
+        }
         
         public void Show(CraftTreeNode craftTreeNode)
         {
@@ -44,7 +52,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     children.Add(CreateNode(child, depth + 1));
                 }
                 
-                nodeView.Initialize(children, node, depth);
+                nodeView.Initialize(children, node, depth, _itemRecipeViewerDataContainer);
                 _nodes.Add(nodeView);
                 return nodeView;
             }

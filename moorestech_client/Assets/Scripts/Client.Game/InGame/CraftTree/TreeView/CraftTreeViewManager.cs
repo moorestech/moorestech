@@ -1,7 +1,9 @@
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Core.Master;
 using Game.CraftTree;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace Client.Game.InGame.CraftTree.TreeView
 {
@@ -10,9 +12,12 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private Button hideButton;
         [SerializeField] private CraftTreeEditorView craftTreeEditorView;
         
+        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        
         private void Awake()
         {
             hideButton.onClick.AddListener(Hide);
+            craftTreeEditorView.Initialize(_itemRecipeViewerDataContainer);
         }
         
         public void Show(ItemId resultItemId)
