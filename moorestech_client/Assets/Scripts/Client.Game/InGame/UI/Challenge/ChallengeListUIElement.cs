@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
-using Client.Game.InGame.UI.Util;
 using Core.Master;
 using Mooresmaster.Model.ChallengeActionModule;
 using Mooresmaster.Model.ChallengesModule;
