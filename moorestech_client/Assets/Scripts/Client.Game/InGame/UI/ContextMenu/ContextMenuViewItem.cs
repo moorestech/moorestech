@@ -6,6 +6,9 @@ namespace Client.Game.InGame.UI.ContextMenu
 {
     public class ContextMenuViewItem : MonoBehaviour
     {
+        public bool PointerStay => contextMenuRaycastTarget.PointerStay;
+        [SerializeField] private ContextMenuRaycastTarget contextMenuRaycastTarget;
+        
         [SerializeField] private TMP_Text barTitle;
         [SerializeField] private Button itemButton;
         

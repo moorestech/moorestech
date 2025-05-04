@@ -12,37 +12,83 @@ namespace Client.Game.InGame.UI.ContextMenu
         
         public static ContextMenuView Instance { get; private set; }
         
+        private readonly List<ContextMenuViewItem> _contextMenuViewItems = new();
         private UICursorFollowControlRootCanvasRect _canvasRectRoot;
-        private List<ContextMenuBarInfo> _currentBars = new();
+        private UGuiContextMenuTarget _contextMenuTarget;
         
         private void Awake()
         {
             Instance = this;
         }
         
-        public void Show(List<ContextMenuBarInfo> contextMenuBars)
+        public void Show(UGuiContextMenuTarget currentTarget, List<ContextMenuBarInfo> contextMenuBars)
         {
+            _contextMenuTarget = currentTarget;
             gameObject.SetActive(true);
             
-            _currentBars = contextMenuBars;
-            foreach (var contextMenuBar in contextMenuBars)
+            SetContextMenu();
+            SetPosition();
+            
+            #region Internal
+            
+            void SetContextMenu()
             {
-                var item = Instantiate(contextMenuViewItemPrefab, menuBarContent);
-                item.Initialize(contextMenuBar);
+                foreach (var item in _contextMenuViewItems)
+                {
+                    Destroy(item.gameObject);
+                }
+                _contextMenuViewItems.Clear();
+                
+                foreach (var contextMenuBar in contextMenuBars)
+                {
+                    var item = Instantiate(contextMenuViewItemPrefab, menuBarContent);
+                    item.Initialize(contextMenuBar);
+                    _contextMenuViewItems.Add(item);
+                }
             }
             
-            if (_canvasRectRoot == null)
+            void SetPosition()
             {
-                _canvasRectRoot = FindObjectOfType<UICursorFollowControlRootCanvasRect>();
-                if (_canvasRectRoot == null) return;
+                if (_canvasRectRoot == null)
+                {
+                    _canvasRectRoot = FindObjectOfType<UICursorFollowControlRootCanvasRect>();
+                    if (_canvasRectRoot == null) return;
+                }
+                
+                menuParent.transform.localPosition = UICursorFollowControl.GetLocalPosition(_canvasRectRoot, transform.localPosition, Vector3.zero);
             }
             
-            menuParent.transform.localPosition = UICursorFollowControl.GetLocalPosition(_canvasRectRoot, transform.localPosition, Vector3.zero);
+            #endregion
         }
         
-        public void Hide()
+        
+        private void Update()
         {
-            gameObject.SetActive(false);
+            if (_contextMenuTarget == null) return;
+            
+            var menuPointerStay = IsContextMenuPointerStay();
+            if (gameObject.activeSelf && !(menuPointerStay || _contextMenuTarget.PointerStay))
+            {
+                gameObject.SetActive(false);
+            }
+            
+            #region Internal
+            
+            bool IsContextMenuPointerStay()
+            {
+                for (var i = 0; i < _contextMenuViewItems.Count; i++)
+                {
+                    var context = _contextMenuViewItems[i];
+                    if (context.PointerStay)
+                    {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            #endregion
         }
     }
 }

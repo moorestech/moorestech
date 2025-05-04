@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Tooltip;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -8,7 +7,7 @@ namespace Client.Game.InGame.UI.ContextMenu
 {
     public class UGuiContextMenuTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IPointerClickHandler
     {
-        private bool _pointerStay;
+        public bool PointerStay { get; private set; }
         
         private List<ContextMenuBarInfo> _contextMenuBars;
         
@@ -19,23 +18,11 @@ namespace Client.Game.InGame.UI.ContextMenu
         
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (!_pointerStay) return;
+            if (!PointerStay) return;
             // 左クリックだったらコンテキストメニューを開く
-            if (eventData.button == PointerEventData.InputButton.Left)
+            if (eventData.button == PointerEventData.InputButton.Right)
             {
-                ContextMenuView.Instance.Show(_contextMenuBars);
-            }
-        }
-        
-        
-        /// <summary>
-        ///     フラグが変更されたあと非表示設定を行う
-        /// </summary>
-        private void UpdateMouseCursorTooltip()
-        {
-            if (!_pointerStay)
-            {
-                ContextMenuView.Instance.Hide();
+                ContextMenuView.Instance.Show(this, _contextMenuBars);
             }
         }
         
@@ -44,32 +31,27 @@ namespace Client.Game.InGame.UI.ContextMenu
         
         public void OnPointerMove(PointerEventData eventData)
         {
-            _pointerStay = true;
-            UpdateMouseCursorTooltip();
+            PointerStay = true;
         }
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _pointerStay = true;
-            UpdateMouseCursorTooltip();
+            PointerStay = true;
         }
         
         public void OnPointerExit(PointerEventData eventData)
         {
-            _pointerStay = false;
-            UpdateMouseCursorTooltip();
+            PointerStay = false;
         }
         
         private void OnDestroy()
         {
-            _pointerStay = false;
-            UpdateMouseCursorTooltip();
+            PointerStay = false;
         }
         
         private void OnDisable()
         {
-            _pointerStay = false;
-            UpdateMouseCursorTooltip();
+            PointerStay = false;
         }
         
         #endregion

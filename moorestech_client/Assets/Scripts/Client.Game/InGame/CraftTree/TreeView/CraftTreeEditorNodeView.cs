@@ -46,6 +46,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(node.TargetItemId);
                 itemNameText.text = $"{itemView.ItemName}  {node.CurrentCount} / {node.RequiredCount}";
+                itemSlotObject.SetItem(itemView, 0);
             }
             
             void SetPosition()
