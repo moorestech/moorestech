@@ -73,6 +73,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
         {
             var targetItem = Node.TargetItemId;
             var itemRecipes = _itemRecipeViewerDataContainer.GetItem(targetItem);
+            if (itemRecipes == null) return;
+            
             var materialItems = GetMaterialItems(itemRecipes);
             
             var children = new List<CraftTreeNode>();
