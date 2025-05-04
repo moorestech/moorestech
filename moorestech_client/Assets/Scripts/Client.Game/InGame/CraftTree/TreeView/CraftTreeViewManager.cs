@@ -12,12 +12,15 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private Button hideButton;
         [SerializeField] private CraftTreeEditorView craftTreeEditorView;
         
-        [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        
         private void Awake()
         {
             hideButton.onClick.AddListener(Hide);
-            craftTreeEditorView.Initialize(_itemRecipeViewerDataContainer);
+        }
+        
+        [Inject]
+        public void Construct(ItemRecipeViewerDataContainer itemRecipe)
+        {
+            craftTreeEditorView.Initialize(itemRecipe);
         }
         
         public void Show(ItemId resultItemId)
