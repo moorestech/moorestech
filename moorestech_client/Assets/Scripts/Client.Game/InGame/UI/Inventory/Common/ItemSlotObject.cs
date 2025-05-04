@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         [SerializeField] private GameObject noneCrossObject;
         
         [SerializeField] private TMP_Text countText;
-        [SerializeField] private UIMouseCursorTooltipTarget uiMouseCursorTooltipTarget;
+        [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
         
         private ItemSlotObjectBehaviourOption itemSlotObjectBehaviourOption = new();
         private bool _onPointing;
@@ -67,7 +67,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             {
                 itemImage.gameObject.SetActive(false);
                 
-                uiMouseCursorTooltipTarget.DisplayEnable(false);
+                uGuiTooltipTarget.DisplayEnable(false);
             }
             else
             {
@@ -79,8 +79,8 @@ namespace Client.Game.InGame.UI.Inventory.Common
                     toolTipText = GetToolTipText(itemView);
                 }
                 
-                uiMouseCursorTooltipTarget.SetText(toolTipText, false);
-                uiMouseCursorTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowToolTip);
+                uGuiTooltipTarget.SetText(toolTipText, false);
+                uGuiTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowToolTip);
             }
         }
         
