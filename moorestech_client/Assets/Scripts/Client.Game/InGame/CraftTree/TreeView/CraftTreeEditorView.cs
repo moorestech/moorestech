@@ -43,7 +43,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 _nodes.Clear();
             }
             
-            CraftTreeEditorNodeView CreateNode(CraftTreeNode node, int depth)
+            void CreateNode(CraftTreeNode node, int depth)
             {
                 var nodeView = Instantiate(nodePrefab, content);
                 nodeView.OnUpdateNode.Subscribe(_ =>
@@ -51,16 +51,13 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     Show(craftTreeNode);
                 });
                 
-                var children = new List<CraftTreeEditorNodeView>();
-                
                 foreach (var child in node.Children)
                 {
-                    children.Add(CreateNode(child, depth + 1));
+                    CreateNode(child, depth + 1);
                 }
                 
-                nodeView.Initialize(children, node, depth, _itemRecipeViewerDataContainer);
+                nodeView.Initialize(node, depth, _itemRecipeViewerDataContainer);
                 _nodes.Add(nodeView);
-                return nodeView;
             }
             
             #endregion

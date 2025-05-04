@@ -38,7 +38,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             expandButton.onClick.AddListener(ExpandNode);
         }
         
-        public void Initialize(List<CraftTreeEditorNodeView> children, CraftTreeNode node, int depth, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
+        public void Initialize(CraftTreeNode node, int depth, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
         {
             Node = node;
             _itemRecipeViewerDataContainer = itemRecipeViewerDataContainer;
