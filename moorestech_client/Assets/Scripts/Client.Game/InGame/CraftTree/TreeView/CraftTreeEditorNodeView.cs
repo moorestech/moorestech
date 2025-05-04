@@ -12,6 +12,7 @@ using Game.CraftTree;
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.CraftTree.TreeView
 {
@@ -24,12 +25,18 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private float depthWidth = 50f;
         
         [SerializeField] private UGuiContextMenuTarget contextMenuTarget;
+        [SerializeField] private Button expandButton;
         
         public IObservable<Unit> OnUpdateNode => _onUpdateNode;
         private readonly Subject<Unit> _onUpdateNode = new();
         
         public CraftTreeNode Node { get; private set; }
         private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        
+        private void Awake()
+        {
+            expandButton.onClick.AddListener(ExpandNode);
+        }
         
         public void Initialize(List<CraftTreeEditorNodeView> children, CraftTreeNode node, int depth, ItemRecipeViewerDataContainer itemRecipeViewerDataContainer)
         {
@@ -60,7 +67,6 @@ namespace Client.Game.InGame.CraftTree.TreeView
             {
                 var contextMenus = new List<ContextMenuBarInfo>
                 {
-                    new("レシピを展開", ExpandNode),
                     new("レシピを非表示", HideChildrenNode),
                 };
                 contextMenuTarget.SetContextMenuBars(contextMenus);
@@ -71,19 +77,15 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void ExpandNode()
         {
+            // すでにレシピが登録されている場合は何もしない
+            // If there are already recipes registered, do nothing
+            if (Node.Children.Count != 0) return;
+            
             var targetItem = Node.TargetItemId;
             var itemRecipes = _itemRecipeViewerDataContainer.GetItem(targetItem);
             if (itemRecipes == null) return;
             
-            var materialItems = GetMaterialItems(itemRecipes);
-            
-            var children = new List<CraftTreeNode>();
-            foreach (var material in materialItems)
-            {
-                var count = material.Count * Node.RequiredCount;
-                var treeNode = new CraftTreeNode(material.Id, count);
-                children.Add(treeNode);
-            }
+            var children = GetMaterialItems(itemRecipes);
             
             Node.ReplaceChildren(children);
             
@@ -92,21 +94,21 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             #region Internal
             
-            List<IItemStack> GetMaterialItems(RecipeViewerItemRecipes recipes)
+            List<CraftTreeNode> GetMaterialItems(RecipeViewerItemRecipes recipes)
             {
-                var materials = new List<IItemStack>();
+                var materials = new List<CraftTreeNode>();
                 if (recipes.UnlockedCraftRecipes().Count == 0 && recipes.MachineRecipes.Count != 0)
                 {
                     var machineRecipe = recipes.MachineRecipes.FirstOrDefault();
                     foreach (var inputItem in machineRecipe.Value.First().InputItems)
                     {
-                        var itemStack = ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count);
-                        materials.Add(itemStack);
+                        var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);
+                        var count = inputItem.Count * Node.RequiredCount;
+                        materials.Add(new CraftTreeNode(itemId, count));
                     }
                     
                     var blockItemId = MasterHolder.BlockMaster.GetItemId(machineRecipe.Key);
-                    var blockItemStack = ServerContext.ItemStackFactory.Create(blockItemId, 1);
-                    materials.Add(blockItemStack);
+                    materials.Add(new CraftTreeNode(blockItemId, Node.RequiredCount));
                     
                     return materials;
                 }
@@ -115,8 +117,9 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 {
                     foreach (var item in recipe.RequiredItems)
                     {
-                        var itemStack = ServerContext.ItemStackFactory.Create(item.ItemGuid, item.Count);
-                        materials.Add(itemStack);
+                        var itemId = MasterHolder.ItemMaster.GetItemId(item.ItemGuid);
+                        var count = item.Count * Node.RequiredCount;
+                        materials.Add(new CraftTreeNode(itemId, count));
                     }
                 }
                 

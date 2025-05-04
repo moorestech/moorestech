@@ -6148,6 +6148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodePrefab: {fileID: 3164820839969724905, guid: 662286bf4e28a450bb63e74ae27083c3, type: 3}
   content: {fileID: 6641278172149320643}
+  layoutGroup: {fileID: 5485263627520691451}
 --- !u!114 &1326221288701057588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11482,7 +11483,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
-  m_VerticalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &9131329953570720154
 GameObject:
   m_ObjectHideFlags: 0
