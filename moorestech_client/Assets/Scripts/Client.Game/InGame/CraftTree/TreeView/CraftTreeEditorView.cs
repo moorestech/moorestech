@@ -3,6 +3,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Game.CraftTree;
 using UniRx;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.CraftTree.TreeView
 {
@@ -10,6 +11,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
     {
         [SerializeField] private CraftTreeEditorNodeView nodePrefab;
         [SerializeField] private RectTransform content;
+        [SerializeField] private VerticalLayoutGroup layoutGroup;
         
         private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
@@ -25,6 +27,10 @@ namespace Client.Game.InGame.CraftTree.TreeView
             DestroyNodes();
             
             CreateNode(craftTreeNode, 0);
+            
+            // reference : https://medium.com/@sakastudio100/the-problem-of-a-missingreferenceexception-occurring-when-a-child-of-verticallayoutgroup-is-deleted-c2153b8ae311
+            layoutGroup.CalculateLayoutInputHorizontal();
+            layoutGroup.CalculateLayoutInputVertical();
             
             #region Internal
             
