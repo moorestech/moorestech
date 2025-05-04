@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.ContextMenu
@@ -43,6 +44,10 @@ namespace Client.Game.InGame.UI.ContextMenu
                 {
                     var item = Instantiate(contextMenuViewItemPrefab, menuBarContent);
                     item.Initialize(contextMenuBar);
+                    item.OnPointerClick.Subscribe(_ =>
+                    {
+                        Hide();
+                    });
                     _contextMenuViewItems.Add(item);
                 }
             }
@@ -69,7 +74,7 @@ namespace Client.Game.InGame.UI.ContextMenu
             var menuPointerStay = IsContextMenuPointerStay();
             if (gameObject.activeSelf && !(menuPointerStay || _contextMenuTarget.PointerStay))
             {
-                gameObject.SetActive(false);
+                Hide();
             }
             
             #region Internal
@@ -89,6 +94,11 @@ namespace Client.Game.InGame.UI.ContextMenu
             }
             
             #endregion
+        }
+        
+        private void Hide()
+        {
+            gameObject.SetActive(false);
         }
     }
 }
