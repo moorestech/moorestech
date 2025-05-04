@@ -23,7 +23,7 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private GameObject completedObject;
         [SerializeField] private GameObject lockedObject;
         
-        [SerializeField] private UIMouseCursorTooltipTarget uiMouseCursorTooltipTarget;
+        [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
         
         // 生成された接続線のリスト
         // List of generated connection lines
@@ -102,7 +102,7 @@ namespace Client.Game.InGame.UI.Challenge
 <size=20>    {challengeMasterElement.Summary}
 達成報酬
     {clearedActionsTest}</size>";
-                uiMouseCursorTooltipTarget.SetText(text, false);
+                uGuiTooltipTarget.SetText(text, false);
             }
             
   #endregion

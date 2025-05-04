@@ -6,7 +6,7 @@ namespace Client.Game.InGame.UI.Tooltip
     /// <summary>
     ///     UIにアタッチして、そのUI要素にマウスカーソルが乗ったら文字列を表示するシステム
     /// </summary>
-    public class UIMouseCursorTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
+    public class UGuiTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
     {
         /// <summary>
         ///     カーソルに表示するテキスト
