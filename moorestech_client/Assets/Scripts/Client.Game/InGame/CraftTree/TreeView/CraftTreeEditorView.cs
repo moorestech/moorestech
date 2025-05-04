@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Game.CraftTree;
 using UniRx;
@@ -49,6 +50,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 nodeView.OnUpdateNode.Subscribe(_ =>
                 {
                     Show(craftTreeNode);
+                    ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(craftTreeNode);
                 });
                 
                 foreach (var child in node.Children)
