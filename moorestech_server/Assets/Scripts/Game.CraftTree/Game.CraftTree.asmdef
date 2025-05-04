@@ -4,7 +4,8 @@
     "references": [
         "Core.Master",
         "Core.Item",
-        "Game.PlayerInventory.Interface"
+        "Game.PlayerInventory.Interface",
+        "MessagePack.Annotations"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

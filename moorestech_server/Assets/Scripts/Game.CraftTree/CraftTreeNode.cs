@@ -12,8 +12,8 @@ namespace Game.CraftTree
         private readonly List<CraftTreeNode> _children = new();
         
         public ItemId TargetItemId { get; }
-        public int RequiredCount { get; }
         
+        public int RequiredCount { get; }
         public int CurrentCount { get; } = 0;
         
         
@@ -21,6 +21,20 @@ namespace Game.CraftTree
         {
             TargetItemId = targetItemId;
             RequiredCount = requiredCount;
+        }
+        
+        public CraftTreeNode(CraftTreeNodeMessagePack messagePack)
+        {
+            NodeId = messagePack.NodeId;
+            TargetItemId = (ItemId)messagePack.TargetItemId;
+            RequiredCount = messagePack.RequiredCount;
+            CurrentCount = messagePack.CurrentCount;
+            
+            foreach (var child in messagePack.Children)
+            {
+                var childNode = new CraftTreeNode(child);
+                _children.Add(childNode);
+            }
         }
         
         public void ReplaceChildren(List<CraftTreeNode> children)
