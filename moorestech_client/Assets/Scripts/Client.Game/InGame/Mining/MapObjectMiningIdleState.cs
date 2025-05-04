@@ -1,6 +1,5 @@
 
 using Client.Game.InGame.UI.Tooltip;
-using Client.Game.InGame.UI.Util;
 
 namespace Client.Game.InGame.Mining
 {
