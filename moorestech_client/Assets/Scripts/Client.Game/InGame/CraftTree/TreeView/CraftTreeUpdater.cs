@@ -4,31 +4,18 @@ using System.Linq;
 using Client.Game.InGame.UI.Inventory.Main;
 using Game.CraftTree;
 using UniRx;
-using UnityEngine;
 
 namespace Client.Game.InGame.CraftTree.TreeView
 {
-    public interface ICraftTreeObservable
+    public class CraftTreeUpdater
     {
-        IObservable<Unit> OnChangeNodeTarget { get; }
-        IObservable<CraftTreeNode> OnUpdateNodeState { get; }
-    }
-    
-    public class CraftTreeUpdater : ICraftTreeObservable
-    {
+        public IObservable<CraftTreeNode> OnUpdateCraftTree => _onUpdateCraftTree;
+        private readonly Subject<CraftTreeNode> _onUpdateCraftTree = new();
+        
         private readonly ILocalPlayerInventory _localPlayerInventory;
         
-        public IObservable<Unit> OnChangeNodeTarget => _onChangeNodeTarget;
-        private readonly Subject<Unit> _onChangeNodeTarget = new();
-        
-        /// <summary>
-        /// value : ステータスが更新されたノード
-        /// </summary>
-        public IObservable<CraftTreeNode> OnUpdateNodeState => _onUpdateNodeState;
-        private readonly Subject<CraftTreeNode> _onUpdateNodeState = new();
-        
         private CraftTreeNode _currentRootNode;
-        private List<(CraftTreeNode node, int startItemCount)> _currentTargetNodes;
+        private List<(CraftTreeNode node, int startItemCount)> _currentTargetNodes = new();
         
         public CraftTreeUpdater(ILocalPlayerInventory localPlayerInventory)
         {
@@ -49,7 +36,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 _currentTargetNodes.Add((targetNode, startItemCount));
             }
             
-            _onChangeNodeTarget.OnNext(Unit.Default);
+            _onUpdateCraftTree.OnNext(node);
         }
         
         private void UpdateNodeState()
@@ -71,12 +58,14 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 
                 node.SetCurrentItemCount(currentItemCount);
                 completedCount += node.IsCompleted ? 1 : 0;
-                
-                // ステータスが更新されたノードを通知
-                _onUpdateNodeState.OnNext(node);
             }
             
-            if (completedCount != _currentTargetNodes.Count) return;
+            // イベントだけ発行して終了
+            if (completedCount != _currentTargetNodes.Count)
+            {
+                _onUpdateCraftTree.OnNext(_currentRootNode);
+                return;
+            }
             
             // 全て完了していた場合目標を変更
             SetRootNode(_currentRootNode);

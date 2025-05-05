@@ -35,7 +35,6 @@ namespace Client.Game.InGame.CraftTree.Target
             // 親ノードがないときはそれがそのまま最後の目標となる
             SetTopTarget(nodes[0]);
             
-            
             #region Internal
             
             
@@ -48,17 +47,6 @@ namespace Client.Game.InGame.CraftTree.Target
             }
             
             #endregion
-
-        }
-        
-        public void SetFinalTarget(CraftTreeNode node)
-        {
-            ClearTarget();
-            
-            // 新しいターゲットをセット
-            var targetItem = Instantiate(targetViewItemsPrefab, itemParent);
-            targetItem.Initialize(node, 0);
-            _targetViewItems.Add(targetItem);
         }
         
         private void ClearTarget()

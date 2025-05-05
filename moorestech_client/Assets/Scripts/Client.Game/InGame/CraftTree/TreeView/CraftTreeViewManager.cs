@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.CraftTree.Target;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Core.Master;
 using Game.CraftTree;
@@ -21,6 +22,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private CraftTreeList craftTreeList;
         
         private readonly List<CraftTreeNode> _craftTreeNodes = new();
+        private CraftTreeUpdater _craftTreeUpdater;
         
         private void Awake()
         {
@@ -38,19 +40,22 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     return;
                 }
                 craftTreeTargetManager.SetCurrentCraftTree(currentRootNode);
+                _craftTreeUpdater.SetRootNode(currentRootNode);
             });
         }
         
         [Inject]
-        public void Construct(ItemRecipeViewerDataContainer itemRecipe)
+        public void Construct(ItemRecipeViewerDataContainer itemRecipe, ILocalPlayerInventory localPlayerInventory)
         {
             craftTreeEditorView.Initialize(itemRecipe);
+            _craftTreeUpdater = new CraftTreeUpdater(localPlayerInventory);
+            craftTreeTargetManager.Initialize(_craftTreeUpdater);
         }
         
         public void CreateNewCraftTree(ItemId resultItemId)
         {
             var rootNode = new CraftTreeNode(resultItemId, 1, null);
-            craftTreeEditorView.Show(rootNode);
+            craftTreeEditorView.SetEditor(rootNode);
             _craftTreeNodes.Add(rootNode);
             craftTreeList.UpdateList(_craftTreeNodes);
             
@@ -60,6 +65,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         private void Show()
         {
             gameObject.SetActive(true);
+            craftTreeEditorView.UpdateEditor();
         }
         
         public void Hide()
@@ -70,7 +76,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void OnNodeSelected(CraftTreeNode craftTreeNode)
         {
-            craftTreeEditorView.Show(craftTreeNode);
+            craftTreeEditorView.SetEditor(craftTreeNode);
         }
         
         private void OnNodeDeleted(CraftTreeNode craftTreeNode)
