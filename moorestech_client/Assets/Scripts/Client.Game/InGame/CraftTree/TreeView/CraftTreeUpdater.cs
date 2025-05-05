@@ -41,6 +41,11 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void UpdateNodeState()
         {
+            if (_currentRootNode == null)
+            {
+                return;
+            }
+            
             var completedCount = 0;
             foreach (var (node, startItemCount) in _currentTargetNodes)
             {
