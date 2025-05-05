@@ -25,9 +25,9 @@ jobs:
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
-          - name: StandaloneLinux64
-            buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            runner: windows-latest
+          # - name: StandaloneLinux64 Linux側はランナーの容量語りなくて落ちるのでコメントアウト
+            # buildMethod: BuildPipeline.LinuxBuildFromGithubAction
+            # runner: windows-latest
     
     steps:
       # Checkout
