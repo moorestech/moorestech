@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
@@ -15,14 +16,16 @@ namespace Client.Game.InGame.UI.UIState
         private readonly RecipeViewerView _recipeViewerView;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
+        private readonly CraftTreeViewManager _craftTreeViewManager;
         
         private CancellationTokenSource _cancellationTokenSource;
         
-        public PlayerInventoryState(RecipeViewerView recipeViewerView,PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, InitialHandshakeResponse handshakeResponse)
+        public PlayerInventoryState(RecipeViewerView recipeViewerView,PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, InitialHandshakeResponse handshakeResponse, CraftTreeViewManager craftTreeViewManager)
         {
             _recipeViewerView = recipeViewerView;
             _playerInventoryViewController = playerInventoryViewController;
             _localPlayerInventoryController = localPlayerInventoryController;
+            _craftTreeViewManager = craftTreeViewManager;
             
             _playerInventoryViewController.SetActive(false); //TODO この辺のオンオフをまとめたい
             _recipeViewerView.SetActive(false);
@@ -63,6 +66,7 @@ namespace Client.Game.InGame.UI.UIState
             
             _recipeViewerView.SetActive(false);
             _playerInventoryViewController.SetActive(false);
+            _craftTreeViewManager.Hide();
         }
         
         /// <summary>

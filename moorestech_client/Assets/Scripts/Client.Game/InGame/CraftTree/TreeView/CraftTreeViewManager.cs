@@ -42,7 +42,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeList.UpdateList(_craftTreeNodes);
         }
         
-        private void Hide()
+        public void Hide()
         {
             gameObject.SetActive(false);
         }
