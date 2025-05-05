@@ -24,7 +24,17 @@ namespace Client.Game.InGame.CraftTree.TreeView
             _itemRecipeViewerDataContainer = itemRecipe;
         }
         
-        public void Show(CraftTreeNode rootNode)
+        public void UpdateEditor()
+        {
+            if (CurrentRootNode == null)
+            {
+                return;
+            }
+            
+            SetEditor(CurrentRootNode);
+        }
+        
+        public void SetEditor(CraftTreeNode rootNode)
         {
             DestroyNodes();
             CreateNode(rootNode, 0);
@@ -42,7 +52,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 var nodeView = Instantiate(nodePrefab, content);
                 nodeView.OnUpdateNode.Subscribe(_ =>
                 {
-                    Show(rootNode);
+                    SetEditor(rootNode);
                     ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(rootNode);
                 });
                 
