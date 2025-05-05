@@ -35,15 +35,6 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             #region Internal
             
-            void DestroyNodes()
-            {
-                foreach (var node in _nodes)
-                {
-                    Destroy(node.gameObject);
-                }
-                _nodes.Clear();
-            }
-            
             void CreateNode(CraftTreeNode node, int depth)
             {
                 var nodeView = Instantiate(nodePrefab, content);
@@ -64,6 +55,15 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             #endregion
             
+        }
+        
+        public void DestroyNodes()
+        {
+            foreach (var node in _nodes)
+            {
+                Destroy(node.gameObject);
+            }
+            _nodes.Clear();
         }
     }
 }

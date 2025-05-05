@@ -57,6 +57,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         {
             _craftTreeNodes.Remove(craftTreeNode);
             craftTreeList.UpdateList(_craftTreeNodes);
+            craftTreeEditorView.DestroyNodes();
         }
 
     }
