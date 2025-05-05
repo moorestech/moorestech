@@ -1,17 +1,17 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Client.Game.InGame.UI.Util
+namespace Client.Game.InGame.UI.Tooltip
 {
     /// <summary>
     ///     UIにアタッチして、そのUI要素にマウスカーソルが乗ったら文字列を表示するシステム
     /// </summary>
-    public class UIMouseCursorTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
+    public class UGuiTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
     {
         /// <summary>
         ///     カーソルに表示するテキスト
         /// </summary>
-        [SerializeField] private string textKey;
+        [SerializeField,Multiline] private string textKey;
         
         /// <summary>
         ///     表示するかどうか
@@ -54,7 +54,7 @@ namespace Client.Game.InGame.UI.Util
         }
         
         
-        #region フラグコントローラー
+        #region flagController
         
         public void DisplayEnable(bool enable)
         {

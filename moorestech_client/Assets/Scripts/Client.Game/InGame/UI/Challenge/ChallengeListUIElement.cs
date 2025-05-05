@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
-using Client.Game.InGame.UI.Util;
+using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Mooresmaster.Model.ChallengeActionModule;
 using Mooresmaster.Model.ChallengesModule;
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private GameObject completedObject;
         [SerializeField] private GameObject lockedObject;
         
-        [SerializeField] private UIMouseCursorTooltipTarget uiMouseCursorTooltipTarget;
+        [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
         
         // 生成された接続線のリスト
         // List of generated connection lines
@@ -102,7 +102,7 @@ namespace Client.Game.InGame.UI.Challenge
 <size=20>    {challengeMasterElement.Summary}
 達成報酬
     {clearedActionsTest}</size>";
-                uiMouseCursorTooltipTarget.SetText(text, false);
+                uGuiTooltipTarget.SetText(text, false);
             }
             
   #endregion

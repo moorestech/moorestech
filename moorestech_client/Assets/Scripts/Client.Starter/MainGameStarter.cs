@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Map.MapObject;
@@ -67,6 +68,7 @@ namespace Client.Starter
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
         [SerializeField] private ChallengeListUI challengeListUI;
+        [SerializeField] private CraftTreeViewManager craftTreeViewManager;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -170,6 +172,7 @@ namespace Client.Starter
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
             builder.RegisterComponent(challengeListUI);
+            builder.RegisterComponent(craftTreeViewManager);
             
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
@@ -195,6 +198,7 @@ namespace Client.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
+            _resolver.Resolve<CraftTreeViewManager>();
             
             return _resolver;
         }

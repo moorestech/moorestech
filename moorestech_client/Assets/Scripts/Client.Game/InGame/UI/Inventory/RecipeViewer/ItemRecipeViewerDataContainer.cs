@@ -14,6 +14,10 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
     {
         private readonly Dictionary<ItemId, RecipeViewerItemRecipes> _recipeViewerElements = new();
         
+        public RecipeViewerItemRecipes GetItem(ItemId itemId)
+        {
+            return _recipeViewerElements.GetValueOrDefault(itemId);
+        }
         
         public ItemRecipeViewerDataContainer(IGameUnlockStateData gameUnlockStateData)
         {
@@ -79,11 +83,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             {
                 _recipeViewerElements.Remove(itemId);
             }
-        }
-        
-        public RecipeViewerItemRecipes GetItem(ItemId itemId)
-        {
-            return _recipeViewerElements.GetValueOrDefault(itemId);
         }
     }
     

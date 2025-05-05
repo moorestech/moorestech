@@ -344,7 +344,7 @@ MonoBehaviour:
   currentObject: {fileID: 3285425888372279607}
   completedObject: {fileID: 3179761363977812132}
   lockedObject: {fileID: 8559208820718781957}
-  uiMouseCursorTooltipTarget: {fileID: 1572297678640883855}
+  uGuiTooltipTarget: {fileID: 1572297678640883855}
 --- !u!114 &1572297678640883855
 MonoBehaviour:
   m_ObjectHideFlags: 0

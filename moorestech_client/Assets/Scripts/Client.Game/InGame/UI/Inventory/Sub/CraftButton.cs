@@ -1,6 +1,6 @@
 ﻿using System;
 using Client.Game.InGame.UI.Inventory.Common;
-using Client.Game.InGame.UI.Util;
+using Client.Game.InGame.UI.Tooltip;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
