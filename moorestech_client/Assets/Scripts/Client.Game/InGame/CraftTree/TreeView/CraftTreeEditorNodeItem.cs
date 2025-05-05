@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace Client.Game.InGame.CraftTree.TreeView
 {
-    public class CraftTreeEditorNodeView : MonoBehaviour
+    public class CraftTreeEditorNodeItem : MonoBehaviour
     {
         [SerializeField] private TMP_Text itemNameText;
         [SerializeField] private ItemSlotObject itemSlotObject;

@@ -34,7 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 {
                     if (_currentRecipe == null) return;
                     
-                    craftTreeViewManager.Show(_currentRecipe.ResultItemId);
+                    craftTreeViewManager.CreateNewCraftTree(_currentRecipe.ResultItemId);
                 });
             }
         }

@@ -10,24 +10,26 @@ namespace Client.Game.InGame.CraftTree.TreeView
 {
     public class CraftTreeEditorView : MonoBehaviour
     {
-        [SerializeField] private CraftTreeEditorNodeView nodePrefab;
+        [SerializeField] private CraftTreeEditorNodeItem nodePrefab;
         [SerializeField] private RectTransform content;
         [SerializeField] private VerticalLayoutGroup layoutGroup;
         
-        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        public CraftTreeNode CurrentRootNode { get; private set; }
         
-        private readonly List<CraftTreeEditorNodeView> _nodes = new();
+        private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
+        private readonly List<CraftTreeEditorNodeItem> _nodes = new();
         
         public void Initialize(ItemRecipeViewerDataContainer itemRecipe)
         {
             _itemRecipeViewerDataContainer = itemRecipe;
         }
         
-        public void Show(CraftTreeNode craftTreeNode)
+        public void Show(CraftTreeNode rootNode)
         {
             DestroyNodes();
+            CreateNode(rootNode, 0);
             
-            CreateNode(craftTreeNode, 0);
+            CurrentRootNode = rootNode;
             
             // reference : https://medium.com/@sakastudio100/the-problem-of-a-missingreferenceexception-occurring-when-a-child-of-verticallayoutgroup-is-deleted-c2153b8ae311
             layoutGroup.CalculateLayoutInputHorizontal();
@@ -40,8 +42,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 var nodeView = Instantiate(nodePrefab, content);
                 nodeView.OnUpdateNode.Subscribe(_ =>
                 {
-                    Show(craftTreeNode);
-                    ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(craftTreeNode);
+                    Show(rootNode);
+                    ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(rootNode);
                 });
                 
                 foreach (var child in node.Children)
@@ -63,6 +65,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             {
                 Destroy(node.gameObject);
             }
+            CurrentRootNode = null;
             _nodes.Clear();
         }
     }

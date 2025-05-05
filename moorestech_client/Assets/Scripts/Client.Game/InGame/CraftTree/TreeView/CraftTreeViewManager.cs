@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using Client.Game.InGame.CraftTree.Target;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Core.Master;
 using Game.CraftTree;
@@ -12,8 +12,11 @@ namespace Client.Game.InGame.CraftTree.TreeView
 {
     public class CraftTreeViewManager : MonoBehaviour
     {
+        [SerializeField] private Button showCraftTreeListButton;
         [SerializeField] private Button hideButton;
+        [SerializeField] private Button setTargetButton;
         
+        [SerializeField] private CraftTreeTargetViewManager craftTreeTargetManager;
         [SerializeField] private CraftTreeEditorView craftTreeEditorView;
         [SerializeField] private CraftTreeList craftTreeList;
         
@@ -21,9 +24,21 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void Awake()
         {
-            hideButton.onClick.AddListener(Hide);
             craftTreeList.OnNodeSelected.Subscribe(OnNodeSelected);
             craftTreeList.OnNodeDeleted.Subscribe(OnNodeDeleted);
+            
+            showCraftTreeListButton.onClick.AddListener(Show);
+            hideButton.onClick.AddListener(Hide);
+            
+            setTargetButton.onClick.AddListener(() =>
+            {
+                var currentRootNode = craftTreeEditorView.CurrentRootNode;
+                if (currentRootNode == null)
+                {
+                    return;
+                }
+                craftTreeTargetManager.SetCurrentCraftTree(currentRootNode);
+            });
         }
         
         [Inject]
@@ -32,14 +47,19 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeEditorView.Initialize(itemRecipe);
         }
         
-        public void Show(ItemId resultItemId)
+        public void CreateNewCraftTree(ItemId resultItemId)
         {
             var rootNode = new CraftTreeNode(resultItemId, 1, null);
             craftTreeEditorView.Show(rootNode);
-            gameObject.SetActive(true);
-            
             _craftTreeNodes.Add(rootNode);
             craftTreeList.UpdateList(_craftTreeNodes);
+            
+            Show();
+        }
+        
+        private void Show()
+        {
+            gameObject.SetActive(true);
         }
         
         public void Hide()
@@ -59,6 +79,10 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeList.UpdateList(_craftTreeNodes);
             craftTreeEditorView.DestroyNodes();
         }
-
+        
+        private void Update()
+        {
+            setTargetButton.interactable = craftTreeEditorView.CurrentRootNode != null;
+        }
     }
 }
