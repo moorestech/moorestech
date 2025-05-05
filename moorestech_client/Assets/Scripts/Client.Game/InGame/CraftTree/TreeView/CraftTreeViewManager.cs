@@ -32,6 +32,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             showCraftTreeListButton.onClick.AddListener(Show);
             hideButton.onClick.AddListener(Hide);
             
+            craftTreeEditorView.OnTreeUpdated.Subscribe(UpdateTreeTarget);
             setTargetButton.onClick.AddListener(() =>
             {
                 var currentRootNode = craftTreeEditorView.CurrentRootNode;
@@ -39,9 +40,18 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 {
                     return;
                 }
-                craftTreeTargetManager.SetCurrentCraftTree(currentRootNode);
-                _craftTreeUpdater.SetRootNode(currentRootNode);
+                UpdateTreeTarget(currentRootNode);
             });
+            
+            #region Internal
+            
+            void UpdateTreeTarget(CraftTreeNode node)
+            {
+                craftTreeTargetManager.SetCurrentCraftTree(node);
+                _craftTreeUpdater.SetRootNode(node);
+            }
+            
+  #endregion
         }
         
         [Inject]

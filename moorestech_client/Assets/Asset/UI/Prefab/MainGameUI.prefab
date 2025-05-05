@@ -8066,7 +8066,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 233.53003, y: -350}
+  m_AnchoredPosition: {x: 233.53003, y: -162}
   m_SizeDelta: {x: 467.0595, y: 199.75293}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4717522050000346273
@@ -17270,10 +17270,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1438684973846715379}
     m_Modifications:
-    - target: {fileID: 355953580522409421, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2367485439280194379, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -17357,34 +17353,6 @@ PrefabInstance:
     - target: {fileID: 4090695761718073063, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
       propertyPath: m_Name
       value: CraftTreeTarget
-      objectReference: {fileID: 0}
-    - target: {fileID: 6083582042925446242, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 6083582042925446242, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 8969995344198305917, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8969995344198305917, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8969995344198305917, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 60
-      objectReference: {fileID: 0}
-    - target: {fileID: 8969995344198305917, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8969995344198305917, guid: a0c5713ee75744be3a613a05d49448e3, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
