@@ -10,10 +10,10 @@ namespace Game.CraftTree
         
         public void ApplyCraftTree(int playerId, CraftTreeNode craftTree)
         {
+            _usingCraftTree[playerId] = craftTree;
             if (!_craftTree.TryGetValue(playerId, out List<CraftTreeNode> currentCraftTrees))
             {
                 _craftTree.Add(playerId, new List<CraftTreeNode> { craftTree });
-                _usingCraftTree[playerId] = craftTree;
                 return;
             }
             
