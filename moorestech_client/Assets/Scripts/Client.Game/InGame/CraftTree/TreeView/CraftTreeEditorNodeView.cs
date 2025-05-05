@@ -102,22 +102,27 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     {
                         var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);
                         var count = inputItem.Count * Node.RequiredCount;
-                        materials.Add(new CraftTreeNode(itemId, count));
+                        materials.Add(new CraftTreeNode(itemId, count, Node));
                     }
                     
                     var blockItemId = MasterHolder.BlockMaster.GetItemId(machineRecipe.Key);
-                    materials.Add(new CraftTreeNode(blockItemId, Node.RequiredCount));
+                    materials.Add(new CraftTreeNode(blockItemId, Node.RequiredCount, Node));
                     
                     return materials;
                 }
                 
                 foreach (var recipe in recipes.UnlockedCraftRecipes())
                 {
-                    foreach (var item in recipe.RequiredItems)
+                    foreach (var recipeItem in recipe.RequiredItems)
                     {
-                        var itemId = MasterHolder.ItemMaster.GetItemId(item.ItemGuid);
-                        var count = item.Count * Node.RequiredCount;
-                        materials.Add(new CraftTreeNode(itemId, count));
+                        var itemId = MasterHolder.ItemMaster.GetItemId(recipeItem.ItemGuid);
+                        
+                        var count = recipeItem.IsRemain ?? false ?
+                            recipeItem.Count :
+                            recipeItem.Count * Node.RequiredCount;
+                        
+                        
+                        materials.Add(new CraftTreeNode(itemId, count, Node));
                     }
                 }
                 

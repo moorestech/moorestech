@@ -8,23 +8,29 @@ namespace Game.CraftTree
     {
         public Guid NodeId { get; } = Guid.NewGuid();
         
+        public CraftTreeNode Parent { get; }
+        
         public IReadOnlyList<CraftTreeNode> Children => _children;
         private readonly List<CraftTreeNode> _children = new();
         
         public ItemId TargetItemId { get; }
         
+        public bool IsCompleted => CurrentCount >= RequiredCount;
+        
         public int RequiredCount { get; }
         public int CurrentCount { get; } = 0;
         
         
-        public CraftTreeNode(ItemId targetItemId, int requiredCount)
+        public CraftTreeNode(ItemId targetItemId, int requiredCount, CraftTreeNode parent)
         {
             TargetItemId = targetItemId;
             RequiredCount = requiredCount;
+            Parent = parent;
         }
         
-        public CraftTreeNode(CraftTreeNodeMessagePack messagePack)
+        public CraftTreeNode(CraftTreeNodeMessagePack messagePack, CraftTreeNode parent)
         {
+            Parent = parent;
             NodeId = messagePack.NodeId;
             TargetItemId = (ItemId)messagePack.TargetItemId;
             RequiredCount = messagePack.RequiredCount;
@@ -32,7 +38,7 @@ namespace Game.CraftTree
             
             foreach (var child in messagePack.Children)
             {
-                var childNode = new CraftTreeNode(child);
+                var childNode = new CraftTreeNode(child, this);
                 _children.Add(childNode);
             }
         }
