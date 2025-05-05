@@ -18,7 +18,7 @@ namespace Game.CraftTree
         public bool IsCompleted => CurrentCount >= RequiredCount;
         
         public int RequiredCount { get; }
-        public int CurrentCount { get; } = 0;
+        public int CurrentCount { get; private set; } = 0;
         
         
         public CraftTreeNode(ItemId targetItemId, int requiredCount, CraftTreeNode parent)
@@ -47,6 +47,10 @@ namespace Game.CraftTree
         {
             _children.Clear();
             _children.AddRange(children);
+        }
+        public void SetCurrentItemCount(int currentItemCount)
+        {
+            CurrentCount = currentItemCount;
         }
     }
 }
