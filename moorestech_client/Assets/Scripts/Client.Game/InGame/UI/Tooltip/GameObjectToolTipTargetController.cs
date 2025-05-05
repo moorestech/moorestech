@@ -2,7 +2,7 @@ using Client.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Client.Game.InGame.UI.Util
+namespace Client.Game.InGame.UI.Tooltip
 {
     /// <summary>
     ///     GameObjectのマウスカーソル説明コンポーネントにマウスカーソルが乗っているかを統合的に管理するシステム

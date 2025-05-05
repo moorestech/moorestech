@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Client.Game.InGame.UnlockState;
 using Client.Mod.Texture;
 using Core.Master;
 using Mooresmaster.Model.CraftRecipesModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
-using UnityEngine.UI;
 using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.Sub

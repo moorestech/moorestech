@@ -15,16 +15,23 @@ namespace Client.Game.InGame.Control
                 if (_canvasRectRoot == null) return;
             }
             
-            var rectSize = _canvasRectRoot.RectTransform.rect.size;
+            transform.localPosition = GetLocalPosition(_canvasRectRoot, transform.localPosition, offSet);
+        }
+        
+        public static Vector3 GetLocalPosition(UICursorFollowControlRootCanvasRect canvasRectRoot, Vector3 currentLocalPosition, Vector3 offset)
+        {
+            
+            var rectSize = canvasRectRoot.RectTransform.rect.size;
             var magnification = rectSize.x / Screen.width;
             
-            var itemPos = new Vector3();
+            var itemPos = new Vector3
+                {
+                    x = UnityEngine.Input.mousePosition.x * magnification - rectSize.x / 2,
+                    y = UnityEngine.Input.mousePosition.y * magnification - rectSize.y / 2,
+                    z = currentLocalPosition.z,
+                };
             
-            itemPos.x = UnityEngine.Input.mousePosition.x * magnification - rectSize.x / 2;
-            itemPos.y = UnityEngine.Input.mousePosition.y * magnification - rectSize.y / 2;
-            itemPos.z = transform.localPosition.z;
-            
-            transform.localPosition = itemPos + offSet;
+            return itemPos + offset;
         }
     }
 }

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Util;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Core.Master;
 using Game.PlayerInventory.Interface;

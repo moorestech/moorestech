@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.Util
+namespace Client.Game.InGame.UI.Tooltip
 {
     public class GameObjectTooltipTarget : MonoBehaviour
     {
