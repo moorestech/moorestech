@@ -18,6 +18,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
     {
         [SerializeField] private TMP_Text itemNameText;
         [SerializeField] private ItemSlotObject itemSlotObject;
+        [SerializeField] private GameObject completedObject;
         
         [SerializeField] private RectTransform offsetUiTransform;
         [SerializeField] private float depthWidth = 50f;
@@ -52,6 +53,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 var itemView = ClientContext.ItemImageContainer.GetItemView(node.TargetItemId);
                 itemNameText.text = $"{itemView.ItemName}  {node.CurrentCount} / {node.RequiredCount}";
                 itemSlotObject.SetItem(itemView, 0);
+                
+                completedObject.SetActive(node.IsCompleted);
             }
             
             void SetPosition()
@@ -66,8 +69,40 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 var contextMenus = new List<ContextMenuBarInfo>
                 {
                     new("レシピを非表示", HideChildrenNode),
+                    new("これより下を完了", () => { ChildrenComplete(Node); }),
+                    new("これより上を未完了に", () => { ParentUnComplete(Node); }),
                 };
                 contextMenuTarget.SetContextMenuBars(contextMenus);
+            }
+            
+            void HideChildrenNode()
+            {
+                Node.ReplaceChildren(new List<CraftTreeNode>());
+                _onUpdateNode.OnNext(Unit.Default);
+            }
+            
+            
+            void ChildrenComplete(CraftTreeNode targetNode)
+            {
+                targetNode.SetCurrentItemCount(targetNode.RequiredCount);
+                foreach (var child in targetNode.Children)
+                {
+                    ChildrenComplete(child);
+                }
+                _onUpdateNode.OnNext(Unit.Default);
+            }
+            
+            void ParentUnComplete(CraftTreeNode treeNode)
+            {
+                treeNode.SetCurrentItemCount(0);
+                var parent = treeNode.Parent;
+                if (parent != null)
+                {
+                    ParentUnComplete(parent);
+                }
+                
+                // ノードの更新イベントを発行
+                _onUpdateNode.OnNext(Unit.Default);
             }
             
             #endregion
@@ -130,12 +165,6 @@ namespace Client.Game.InGame.CraftTree.TreeView
             }
             
             #endregion
-        }
-        
-        private void HideChildrenNode()
-        {
-            Node.ReplaceChildren(new List<CraftTreeNode>());
-            _onUpdateNode.OnNext(Unit.Default);
         }
     }
 }

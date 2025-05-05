@@ -11,7 +11,7 @@ namespace Client.Game.InGame.UI.Tooltip
         /// <summary>
         ///     カーソルに表示するテキスト
         /// </summary>
-        [SerializeField] private string textKey;
+        [SerializeField,Multiline] private string textKey;
         
         /// <summary>
         ///     表示するかどうか
