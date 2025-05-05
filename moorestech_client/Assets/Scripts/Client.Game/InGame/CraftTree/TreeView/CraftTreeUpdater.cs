@@ -87,7 +87,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             }
             
             // ターゲットとなる子ノードを返す
-            return targetNode.Children.ToList();
+            return targetNode.Parent.Children.ToList();
             
             #region Internal
             
