@@ -1,11 +1,11 @@
 name: Build
 
 on:
-  # masterへのPRマージをトリガーとしてワークフローを開始する　NOTE: ずっとビルドが失敗し続けてログが邪魔なのでいったん消しておく
-  #pull_request:
-    #branches:
-      #- master
-    #types: [closed]
+  # masterへのPRマージをトリガーとしてワークフローを開始する
+  pull_request:
+    branches:
+      - master
+    types: [closed]
 
   # 手動実行デバッグ用
   workflow_dispatch: {}
