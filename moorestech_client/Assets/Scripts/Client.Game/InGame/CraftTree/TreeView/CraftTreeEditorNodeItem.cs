@@ -106,7 +106,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     }
                     
                     var blockItemId = MasterHolder.BlockMaster.GetItemId(machineRecipe.Key);
-                    materials.Add(new CraftTreeNode(blockItemId, Node.RequiredCount, Node));
+                    materials.Add(new CraftTreeNode(blockItemId, 1, Node));
                     
                     return materials;
                 }
