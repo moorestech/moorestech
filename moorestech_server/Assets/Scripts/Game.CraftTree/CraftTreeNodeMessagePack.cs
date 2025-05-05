@@ -35,7 +35,7 @@ namespace Game.CraftTree
         
         public CraftTreeNode CreateCraftTreeNode()
         {
-            return new CraftTreeNode(this);
+            return new CraftTreeNode(this, null);
         }
     }
 }

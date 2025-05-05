@@ -34,7 +34,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         public void Show(ItemId resultItemId)
         {
-            var rootNode = new CraftTreeNode(resultItemId, 1);
+            var rootNode = new CraftTreeNode(resultItemId, 1, null);
             craftTreeEditorView.Show(rootNode);
             gameObject.SetActive(true);
             
