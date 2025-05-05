@@ -8,14 +8,14 @@ namespace Client.Game.InGame.CraftTree.TreeView
 {
     public class CraftTreeList : MonoBehaviour
     {
+        [SerializeField] private CraftTreeListItem craftTreeListItemPrefab;
+        [SerializeField] private Transform craftTreeNodeParent;
+        
         public IObservable<CraftTreeNode> OnNodeSelected => _onNodeSelected;
         private readonly Subject<CraftTreeNode> _onNodeSelected = new();
         
         public IObservable<CraftTreeNode> OnNodeDeleted => _onNodeDeleted;
         private readonly Subject<CraftTreeNode> _onNodeDeleted = new();
-        
-        [SerializeField] private CraftTreeListItem craftTreeListItemPrefab;
-        [SerializeField] private Transform craftTreeNodeParent;
         
         private readonly List<CraftTreeListItem> _craftTreeListItems = new();
         
@@ -43,6 +43,15 @@ namespace Client.Game.InGame.CraftTree.TreeView
                     var listItem = Instantiate(craftTreeListItemPrefab, craftTreeNodeParent);
                     listItem.Initialize(node);
                     _craftTreeListItems.Add(listItem);
+                    
+                    listItem.OnNodeSelected.Subscribe(n =>
+                    {
+                        _onNodeSelected.OnNext(n);
+                    });
+                    listItem.OnNodeDeleted.Subscribe(n =>
+                    {
+                        _onNodeDeleted.OnNext(n);
+                    });
                 }
             }
             
