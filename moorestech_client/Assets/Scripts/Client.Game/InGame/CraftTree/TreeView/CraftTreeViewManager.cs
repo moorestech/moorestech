@@ -37,7 +37,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             showCraftTreeListButton.onClick.AddListener(Show);
             hideButton.onClick.AddListener(Hide);
             
-            craftTreeEditorView.OnTreeUpdated.Subscribe(UpdateTreeTarget);
+            craftTreeEditorView.OnTreeUpdated.Subscribe(c => UpdateTreeTarget(c, false));
             setTargetButton.onClick.AddListener(() =>
             {
                 var currentRootNode = craftTreeEditorView.CurrentRootNode;
@@ -45,24 +45,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 {
                     return;
                 }
-                UpdateTreeTarget(currentRootNode);
+                UpdateTreeTarget(currentRootNode, true);
             });
-            
-            #region Internal
-            
-            void UpdateTreeTarget(CraftTreeNode node)
-            {
-                var currentTarget = _craftTreeUpdater.CurrentRootNode;
-                if (currentTarget == null || node.NodeId == currentTarget.NodeId)
-                {
-                    craftTreeTargetManager.SetCurrentCraftTree(node);
-                    _craftTreeUpdater.SetRootNode(node);
-                }
-                
-                ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(_craftTreeUpdater.CurrentRootNode.NodeId, _craftTreeNodes);
-            }
-            
-            #endregion
         }
         
         [Inject]
@@ -112,8 +96,21 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeList.UpdateList(_craftTreeNodes);
             
             Show();
+            UpdateTreeTarget(rootNode, false);
         }
         
+        
+        private void UpdateTreeTarget(CraftTreeNode node, bool setTarget)
+        {
+            var currentTarget = _craftTreeUpdater.CurrentRootNode;
+            if (setTarget || currentTarget == null || node.NodeId == currentTarget.NodeId)
+            {
+                craftTreeTargetManager.SetCurrentCraftTree(node);
+                _craftTreeUpdater.SetRootNode(node);
+            }
+            
+            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(_craftTreeUpdater.CurrentRootNode.NodeId, _craftTreeNodes);
+        }
         private void Show()
         {
             craftTreeRoot.SetActive(true);
