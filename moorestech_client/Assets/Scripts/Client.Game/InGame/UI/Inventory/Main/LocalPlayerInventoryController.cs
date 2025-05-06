@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Core.Item.Interface;
 using Core.Master;
@@ -10,15 +11,15 @@ namespace Client.Game.InGame.UI.Inventory.Main
 {
     public class LocalPlayerInventoryController
     {
-        public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
+        public ILocalPlayerInventory LocalPlayerInventory => _localPlayerInventory;
         public IItemStack GrabInventory { get; private set; }
         
-        private readonly LocalPlayerInventory _mainAndSubCombine;
+        private readonly LocalPlayerInventory _localPlayerInventory;
         private ISubInventory _subInventory;
         
         public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
-            _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
+            _localPlayerInventory = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
             GrabInventory = ServerContext.ItemStackFactory.Create(new ItemId(0), 0);
         }
         
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 switch (to)
                 {
                     case LocalMoveInventoryType.MainOrSub:
-                        _mainAndSubCombine[toSlot] = add.ProcessResultItemStack;
+                        _localPlayerInventory[toSlot] = add.ProcessResultItemStack;
                         break;
                     case LocalMoveInventoryType.Grab:
                         GrabInventory = add.ProcessResultItemStack;
@@ -72,7 +73,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         GrabInventory = fromItem;
                         break;
                     default:
-                        _mainAndSubCombine[fromSlot] = fromItem;
+                        _localPlayerInventory[fromSlot] = fromItem;
                         break;
                 }
             }
@@ -104,13 +105,18 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public void SetMainItem(int slot, IItemStack itemStack)
         {
-            _mainAndSubCombine[slot] = itemStack;
+            _localPlayerInventory[slot] = itemStack;
         }
         
         public void SetSubInventory(ISubInventory subInventory)
         {
-            _mainAndSubCombine.SetSubInventory(subInventory);
+            _localPlayerInventory.SetSubInventory(subInventory);
             _subInventory = subInventory;
+        }
+        
+        public void SetMainInventory(List<IItemStack> inventoryMainInventory)
+        {
+            _localPlayerInventory.SetMainInventory(inventoryMainInventory);
         }
     }
     
