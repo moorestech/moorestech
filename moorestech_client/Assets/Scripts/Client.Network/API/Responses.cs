@@ -22,6 +22,7 @@ namespace Client.Network.API
         public ChallengeResponse Challenge { get; }
         public List<BlockStateMessagePack> BlockStates { get; }
         public UnlockStateResponse UnlockState { get; }
+        public CraftTreeResponse CraftTree { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -31,7 +32,8 @@ namespace Client.Network.API
                 PlayerInventoryResponse inventory, 
                 ChallengeResponse challenge, 
                 List<BlockStateMessagePack> blockStates,
-                UnlockStateResponse unlockState) responses) // Renamed parameter for clarity
+                UnlockStateResponse unlockState,
+                CraftTreeResponse craftTree) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -39,7 +41,8 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenge = responses.challenge;
             BlockStates = responses.blockStates;
-            UnlockState = responses.unlockState; // Use the renamed parameter
+            UnlockState = responses.unlockState;
+            CraftTree = responses.craftTree;
         }
     }
     

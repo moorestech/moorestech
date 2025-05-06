@@ -8,6 +8,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Challenge;
 using Game.Context;
+using Game.CraftTree;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -40,7 +41,8 @@ namespace Client.Network.API
                 GetPlayerInventory(playerId, ct), 
                 GetChallengeResponse(playerId, ct), 
                 GetAllBlockState(ct),
-                GetUnlockState(ct));
+                GetUnlockState(ct), 
+                GetCraftTree(playerId, ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -151,6 +153,34 @@ namespace Client.Network.API
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedChallengeGuids, response.UnlockedChallengeGuids);
+        }
+        
+        public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
+        {
+            var request = new GetCraftTreeProtocol.RequestGetCraftTreeMessagePack(playerId);
+            var response = await _packetExchangeManager.GetPacketResponse<GetCraftTreeProtocol.ResponseGetCraftTreeMessagePack>(request, ct);
+            
+            // レスポンスからCraftTreeNodeのリストを作成
+            var craftTreeNodes = new List<CraftTreeNode>();
+            foreach (var tree in response.CraftTrees)
+            {
+                craftTreeNodes.Add(tree.CreateCraftTreeNode());
+            }
+            
+            return new CraftTreeResponse(craftTreeNodes, response.CurrentTargetNode);
+        }
+    }
+    
+    // AI減点要素 レスポンスをここに書く
+    public class CraftTreeResponse
+    {
+        public List<CraftTreeNode> CraftTrees { get; }
+        public Guid CurrentTargetNode { get; }
+        
+        public CraftTreeResponse(List<CraftTreeNode> craftTrees, Guid currentTargetNode)
+        {
+            CraftTrees = craftTrees;
+            CurrentTargetNode = currentTargetNode;
         }
     }
 }
