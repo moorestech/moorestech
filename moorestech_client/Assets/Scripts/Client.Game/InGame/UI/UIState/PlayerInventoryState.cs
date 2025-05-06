@@ -31,11 +31,7 @@ namespace Client.Game.InGame.UI.UIState
             _recipeViewerView.SetActive(false);
             
             //インベントリの初期設定
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-            {
-                var item = handshakeResponse.Inventory.MainInventory[i];
-                _localPlayerInventoryController.SetMainItem(i, item);
-            }
+            _localPlayerInventoryController.SetMainInventory(handshakeResponse.Inventory.MainInventory);
             
             _localPlayerInventoryController.SetGrabItem(handshakeResponse.Inventory.GrabItem);
         }
@@ -77,11 +73,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             var invResponse = await ClientContext.VanillaApi.Response.GetMyPlayerInventory(ct);
             
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-            {
-                var item = invResponse.MainInventory[i];
-                _localPlayerInventoryController.SetMainItem(i, item);
-            }
+            _localPlayerInventoryController.SetMainInventory(invResponse.MainInventory);
             
             _localPlayerInventoryController.SetGrabItem(invResponse.GrabItem);
         }

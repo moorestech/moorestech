@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.CraftTree;
+using Game.CraftTree.Models;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 

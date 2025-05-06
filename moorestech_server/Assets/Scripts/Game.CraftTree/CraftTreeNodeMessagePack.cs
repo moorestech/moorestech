@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Game.CraftTree.Models;
 using MessagePack;
 
 namespace Game.CraftTree
