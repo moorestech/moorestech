@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using UniRx;
 using UnityEngine;
 

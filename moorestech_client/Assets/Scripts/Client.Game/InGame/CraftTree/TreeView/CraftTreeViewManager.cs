@@ -7,7 +7,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Network.API;
 using Core.Master;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -57,11 +57,13 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeTargetManager.Initialize(_craftTreeUpdater);
             Initialize(initialHandshakeResponse.CraftTree);
             
+            _craftTreeUpdater.OnUpdateCraftTree.Subscribe(c => { SendCraftTreeNode(); });
+            
             #region MyRegion
             
             void Initialize(CraftTreeResponse craftTreeResponse)
             {
-                if (craftTreeResponse == null || craftTreeResponse.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
+                if (craftTreeResponse?.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
                 {
                     return;
                 }
@@ -108,8 +110,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 craftTreeTargetManager.SetCurrentCraftTree(node);
                 _craftTreeUpdater.SetRootNode(node);
             }
-            
-            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(_craftTreeUpdater.CurrentRootNode.NodeId, _craftTreeNodes);
+            SendCraftTreeNode();
         }
         private void Show()
         {
@@ -136,13 +137,18 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeTargetManager.ClearTarget();
             _craftTreeUpdater.SetRootNode(null);
             
-            var currentTarget = _craftTreeUpdater.CurrentRootNode?.NodeId ?? Guid.Empty;
-            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(currentTarget, _craftTreeNodes);
+            SendCraftTreeNode();
         }
         
         private void Update()
         {
             setTargetButton.interactable = craftTreeEditorView.CurrentRootNode != null;
+        }
+        
+        private void SendCraftTreeNode()
+        {
+            var currentTarget = _craftTreeUpdater.CurrentRootNode?.NodeId ?? Guid.Empty;
+            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(currentTarget, _craftTreeNodes);
         }
     }
 }

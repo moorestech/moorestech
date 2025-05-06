@@ -31,7 +31,7 @@ namespace Server.Protocol.PacketResponse
             
             // CraftTreeInfoからレスポンスを作成
             var craftTreeNodes = new List<CraftTreeNodeMessagePack>();
-            foreach (var tree in craftTreeInfo.CraftTreese.Values)
+            foreach (var tree in craftTreeInfo.CraftTrees.Values)
             {
                 craftTreeNodes.Add(new CraftTreeNodeMessagePack(tree));
             }
