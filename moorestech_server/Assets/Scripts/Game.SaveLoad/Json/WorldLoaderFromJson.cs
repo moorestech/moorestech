@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Game.Challenge;
 using Game.Context;
+using Game.CraftTree;
 using Game.Entity.Interface;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
@@ -26,9 +27,11 @@ namespace Game.SaveLoad.Json
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly CraftTreeManager _craftTreeManager;
         
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
+            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -39,6 +42,7 @@ namespace Game.SaveLoad.Json
             _worldSettingsDatastore = worldSettingsDatastore;
             _challengeDatastore = challengeDatastore;
             _gameUnlockStateDataController = gameUnlockStateDataController;
+            _craftTreeManager = craftTreeManager;
         }
         
         public void LoadOrInitialize()
@@ -77,6 +81,7 @@ namespace Game.SaveLoad.Json
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
             _challengeDatastore.LoadChallenge(load.Challenge);
+            _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
         }
         
         public void WorldInitialize()

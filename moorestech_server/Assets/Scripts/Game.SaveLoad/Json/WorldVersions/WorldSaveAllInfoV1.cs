@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Challenge;
+using Game.CraftTree;
 using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
@@ -20,7 +21,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             WorldSettingJsonObject setting,
             List<MapObjectJsonObject> mapObjects, 
             List<ChallengeJsonObject> challenge,
-            GameUnlockStateJsonObject gameUnlockStateJsonObject)
+            GameUnlockStateJsonObject gameUnlockStateJsonObject,
+            Dictionary<int, PlayerCraftTreeInfo> craftTreeInfo)
         {
             World = world;
             Inventory = inventory;
@@ -29,6 +31,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             MapObjects = mapObjects;
             Challenge = challenge;
             GameUnlockStateJsonObject = gameUnlockStateJsonObject;
+            CraftTreeInfo = craftTreeInfo;
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -38,5 +41,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("mapObjects")] public List<MapObjectJsonObject> MapObjects { get; set; }
         [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
         [JsonProperty("gameUnlockState")] public GameUnlockStateJsonObject GameUnlockStateJsonObject { get; set; }
+        [JsonProperty("craftTreeInfo")] public Dictionary<int, PlayerCraftTreeInfo> CraftTreeInfo { get; set; }
     }
 }
