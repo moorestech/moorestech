@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.CraftTree.Target;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -63,61 +65,42 @@ namespace Client.Game.InGame.CraftTree.TreeView
         }
         
         [Inject]
-        public void Construct(ItemRecipeViewerDataContainer itemRecipe, ILocalPlayerInventory localPlayerInventory)
+        public void Construct(InitialHandshakeResponse initialHandshakeResponse, ItemRecipeViewerDataContainer itemRecipe, ILocalPlayerInventory localPlayerInventory)
         {
             craftTreeEditorView.Initialize(itemRecipe);
             _craftTreeUpdater = new CraftTreeUpdater(localPlayerInventory);
             craftTreeTargetManager.Initialize(_craftTreeUpdater);
-        }
-        
-        /// <summary>
-        /// サーバーから取得したクラフトツリーをセットする
-        /// コードは微妙だがやってることは良さそう
-        /// </summary>
-        /// <param name="craftTreeResponse">サーバーから取得したクラフトツリー情報</param>
-        public void SetCraftTreeFromServer(CraftTreeResponse craftTreeResponse)
-        {
-            if (craftTreeResponse == null || craftTreeResponse.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
+            Initialize(initialHandshakeResponse.CraftTree);
+            
+            #region MyRegion
+            
+            void Initialize(CraftTreeResponse craftTreeResponse)
             {
-                return;
-            }
-            
-            // 既存のツリーをクリア
-            _craftTreeNodes.Clear();
-            
-            // サーバーから取得したツリーをセット
-            _craftTreeNodes.AddRange(craftTreeResponse.CraftTrees);
-            
-            // リストを更新
-            craftTreeList.UpdateList(_craftTreeNodes);
-            
-            // ターゲットノードがある場合はそれをアクティブにする
-            if (craftTreeResponse.CurrentTargetNode != Guid.Empty)
-            {
-                // ターゲットノードを検索
-                CraftTreeNode targetNode = null;
-                foreach (var node in _craftTreeNodes)
+                if (craftTreeResponse == null || craftTreeResponse.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
                 {
-                    if (node.NodeId == craftTreeResponse.CurrentTargetNode)
-                    {
-                        targetNode = node;
-                        break;
-                    }
+                    return;
                 }
                 
-                if (targetNode != null)
-                {
-                    // エディターにセット
-                    craftTreeEditorView.SetEditor(targetNode);
-                    
-                    // 目標表示を更新
-                    _craftTreeUpdater.SetRootNode(targetNode);
-                    craftTreeTargetManager.SetCurrentCraftTree(targetNode);
-                    
-                    // 表示
-                    Show();
-                }
+                // サーバーから取得したツリーをセット
+                _craftTreeNodes.AddRange(craftTreeResponse.CraftTrees);
+                craftTreeList.UpdateList(_craftTreeNodes);
+                
+                // ターゲットノードがある場合はそれをアクティブにする
+                if (craftTreeResponse.CurrentTargetNode == Guid.Empty) return;
+                
+                // ターゲットノードを検索
+                var targetNode = _craftTreeNodes.FirstOrDefault(node => node.NodeId == craftTreeResponse.CurrentTargetNode);
+                if (targetNode == null) return;
+                
+                // エディターにセット
+                craftTreeEditorView.SetEditor(targetNode);
+                
+                // 目標表示を更新
+                _craftTreeUpdater.SetRootNode(targetNode);
+                craftTreeTargetManager.SetCurrentCraftTree(targetNode);
             }
+            
+  #endregion
         }
         
         public void CreateNewCraftTree(ItemId resultItemId)

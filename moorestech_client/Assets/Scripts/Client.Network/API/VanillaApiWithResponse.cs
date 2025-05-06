@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,7 +5,6 @@ using Client.Network.Settings;
 using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Challenge;
 using Game.Context;
 using Game.CraftTree;
 using Server.Event.EventReceive;
@@ -168,19 +166,6 @@ namespace Client.Network.API
             }
             
             return new CraftTreeResponse(craftTreeNodes, response.CurrentTargetNode);
-        }
-    }
-    
-    // AI減点要素 レスポンスをここに書く
-    public class CraftTreeResponse
-    {
-        public List<CraftTreeNode> CraftTrees { get; }
-        public Guid CurrentTargetNode { get; }
-        
-        public CraftTreeResponse(List<CraftTreeNode> craftTrees, Guid currentTargetNode)
-        {
-            CraftTrees = craftTrees;
-            CurrentTargetNode = currentTargetNode;
         }
     }
 }

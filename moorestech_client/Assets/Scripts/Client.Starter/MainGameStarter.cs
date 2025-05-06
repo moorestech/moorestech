@@ -199,14 +199,6 @@ namespace Client.Starter
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             
-            // クラフトツリーマネージャーを初期化し、サーバーから取得したクラフトツリーを適用する
-            // AI減点要素 特殊処理をここに書く
-            var craftTreeViewManagerInstance = _resolver.Resolve<CraftTreeViewManager>();
-            if (initialHandshakeResponse.CraftTree != null)
-            {
-                craftTreeViewManagerInstance.SetCraftTreeFromServer(initialHandshakeResponse.CraftTree);
-            }
-            
             return _resolver;
         }
     }
