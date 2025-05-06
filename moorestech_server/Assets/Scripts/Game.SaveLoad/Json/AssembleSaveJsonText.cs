@@ -42,7 +42,7 @@ namespace Game.SaveLoad.Json
                 mapObjectDatastore.GetSaveJsonObject(),
                 _challengeDatastore.GetSaveJsonObject(),
                 _gameUnlockStateDataController.GetSaveJsonObject(),
-                _craftTreeManager.GetAllCraftTreeInfo()
+                _craftTreeManager.GetSaveJsonObject()
             );
             
             return JsonConvert.SerializeObject(saveData);

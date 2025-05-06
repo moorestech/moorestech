@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.Inventory.Main;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using UniRx;
 
 namespace Client.Game.InGame.CraftTree.TreeView

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;

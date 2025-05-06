@@ -1,7 +1,7 @@
 using System;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using TMPro;
 using UniRx;
 using UnityEngine;

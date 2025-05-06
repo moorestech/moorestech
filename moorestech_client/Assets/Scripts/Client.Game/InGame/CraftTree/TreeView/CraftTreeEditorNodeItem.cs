@@ -6,7 +6,7 @@ using Client.Game.InGame.UI.ContextMenu;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Core.Master;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using TMPro;
 using UniRx;
 using UnityEngine;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 
-namespace Game.CraftTree
+namespace Game.CraftTree.Models
 {
     public class CraftTreeNode
     {
