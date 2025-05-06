@@ -58,7 +58,6 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 {
                     _onTreeUpdated.OnNext(node);
                     SetEditor(rootNode);
-                    ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(rootNode);
                 });
                 
                 foreach (var child in node.Children)
