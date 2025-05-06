@@ -11,7 +11,8 @@
     "Game.Block.Interface",
     "Game.Context",
     "Game.Challenge",
-    "Game.UnlockState"
+    "Game.UnlockState",
+    "Game.CraftTree"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
