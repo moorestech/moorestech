@@ -9,12 +9,13 @@ namespace Client.Game.InGame.CraftTree.TreeView
 {
     public class CraftTreeUpdater
     {
+        public CraftTreeNode CurrentRootNode { get; private set; }
+        
         public IObservable<CraftTreeNode> OnUpdateCraftTree => _onUpdateCraftTree;
         private readonly Subject<CraftTreeNode> _onUpdateCraftTree = new();
         
         private readonly ILocalPlayerInventory _localPlayerInventory;
         
-        private CraftTreeNode _currentRootNode;
         private List<(CraftTreeNode node, int startItemCount)> _currentTargetNodes = new();
         
         public CraftTreeUpdater(ILocalPlayerInventory localPlayerInventory)
@@ -25,8 +26,12 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         public void SetRootNode(CraftTreeNode node)
         {
-            _currentRootNode = node;
+            CurrentRootNode = node;
             _currentTargetNodes = new List<(CraftTreeNode node, int startItemCount)>();
+            if (node == null)
+            {
+                return;
+            }
             
             var targetNodes = GetCurrentTarget(node);
             foreach (var targetNode in targetNodes)
@@ -41,7 +46,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void UpdateNodeState()
         {
-            if (_currentRootNode == null)
+            if (CurrentRootNode == null)
             {
                 return;
             }
@@ -68,12 +73,12 @@ namespace Client.Game.InGame.CraftTree.TreeView
             // イベントだけ発行して終了
             if (completedCount != _currentTargetNodes.Count)
             {
-                _onUpdateCraftTree.OnNext(_currentRootNode);
+                _onUpdateCraftTree.OnNext(CurrentRootNode);
                 return;
             }
             
             // 全て完了していた場合目標を変更
-            SetRootNode(_currentRootNode);
+            SetRootNode(CurrentRootNode);
         }
         
         public static List<CraftTreeNode> GetCurrentTarget(CraftTreeNode rootNode)

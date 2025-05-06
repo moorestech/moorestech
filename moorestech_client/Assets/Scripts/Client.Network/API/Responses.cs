@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Challenge;
+using Game.CraftTree;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -22,6 +23,7 @@ namespace Client.Network.API
         public ChallengeResponse Challenge { get; }
         public List<BlockStateMessagePack> BlockStates { get; }
         public UnlockStateResponse UnlockState { get; }
+        public CraftTreeResponse CraftTree { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -31,7 +33,8 @@ namespace Client.Network.API
                 PlayerInventoryResponse inventory, 
                 ChallengeResponse challenge, 
                 List<BlockStateMessagePack> blockStates,
-                UnlockStateResponse unlockState) responses) // Renamed parameter for clarity
+                UnlockStateResponse unlockState,
+                CraftTreeResponse craftTree) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -39,7 +42,8 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenge = responses.challenge;
             BlockStates = responses.blockStates;
-            UnlockState = responses.unlockState; // Use the renamed parameter
+            UnlockState = responses.unlockState;
+            CraftTree = responses.craftTree;
         }
     }
     
@@ -131,6 +135,18 @@ namespace Client.Network.API
             UnlockedItemIds = unlockedItemIds;
             LockedChallengeGuids = lockedChallengeGuids; // Added assignment
             UnlockedChallengeGuids = unlockedChallengeGuids; // Added assignment
+        }
+    }
+    
+    public class CraftTreeResponse
+    {
+        public List<CraftTreeNode> CraftTrees { get; }
+        public Guid CurrentTargetNode { get; }
+        
+        public CraftTreeResponse(List<CraftTreeNode> craftTrees, Guid currentTargetNode)
+        {
+            CraftTrees = craftTrees;
+            CurrentTargetNode = currentTargetNode;
         }
     }
 }

@@ -15,8 +15,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private RectTransform content;
         [SerializeField] private VerticalLayoutGroup layoutGroup;
         
-        public IObservable<CraftTreeNode> OnTreeUpdated => _onTreeUpdated;
-        private readonly Subject<CraftTreeNode> _onTreeUpdated = new();
+        public IObservable<Unit> OnTreeUpdated => _onTreeUpdated;
+        private readonly Subject<Unit> _onTreeUpdated = new();
         
         public CraftTreeNode CurrentRootNode { get; private set; }
         
@@ -56,9 +56,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 var nodeView = Instantiate(nodePrefab, content);
                 nodeView.OnUpdateNode.Subscribe(_ =>
                 {
-                    _onTreeUpdated.OnNext(node);
+                    _onTreeUpdated.OnNext(Unit.Default);
                     SetEditor(rootNode);
-                    ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(rootNode);
                 });
                 
                 foreach (var child in node.Children)

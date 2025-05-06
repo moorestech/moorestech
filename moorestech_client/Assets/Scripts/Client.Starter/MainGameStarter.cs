@@ -198,7 +198,6 @@ namespace Client.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
-            _resolver.Resolve<CraftTreeViewManager>();
             
             return _resolver;
         }
