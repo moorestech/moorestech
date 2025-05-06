@@ -37,7 +37,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             showCraftTreeListButton.onClick.AddListener(Show);
             hideButton.onClick.AddListener(Hide);
             
-            craftTreeEditorView.OnTreeUpdated.Subscribe(c => UpdateTreeTarget(c, false));
+            craftTreeEditorView.OnTreeUpdated.Subscribe(_ => UpdateTreeTarget(craftTreeEditorView.CurrentRootNode, false));
             setTargetButton.onClick.AddListener(() =>
             {
                 var currentRootNode = craftTreeEditorView.CurrentRootNode;
@@ -85,7 +85,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 craftTreeTargetManager.SetCurrentCraftTree(targetNode);
             }
             
-  #endregion
+            #endregion
         }
         
         public void CreateNewCraftTree(ItemId resultItemId)
@@ -133,6 +133,11 @@ namespace Client.Game.InGame.CraftTree.TreeView
             _craftTreeNodes.Remove(craftTreeNode);
             craftTreeList.UpdateList(_craftTreeNodes);
             craftTreeEditorView.DestroyNodes();
+            craftTreeTargetManager.ClearTarget();
+            _craftTreeUpdater.SetRootNode(null);
+            
+            var currentTarget = _craftTreeUpdater.CurrentRootNode?.NodeId ?? Guid.Empty;
+            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(currentTarget, _craftTreeNodes);
         }
         
         private void Update()

@@ -28,6 +28,10 @@ namespace Client.Game.InGame.CraftTree.TreeView
         {
             CurrentRootNode = node;
             _currentTargetNodes = new List<(CraftTreeNode node, int startItemCount)>();
+            if (node == null)
+            {
+                return;
+            }
             
             var targetNodes = GetCurrentTarget(node);
             foreach (var targetNode in targetNodes)
