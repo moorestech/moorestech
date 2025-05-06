@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Game.CraftTree
 {
@@ -12,5 +11,9 @@ namespace Game.CraftTree
             _craftTree[playerId] = playerCraftTreeInfo;
         }
         
+        public PlayerCraftTreeInfo GetCraftTreeInfo(int playerId)
+        {
+            return _craftTree.GetValueOrDefault(playerId);
+        }
     }
 }
