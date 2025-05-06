@@ -4,7 +4,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Challenge;
-using Game.CraftTree;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -23,19 +22,16 @@ namespace Client.Network.API
         public ChallengeResponse Challenge { get; }
         public List<BlockStateMessagePack> BlockStates { get; }
         public UnlockStateResponse UnlockState { get; }
-        public Guid CraftTreeTargetNodeId { get; }
-        public List<CraftTreeNode> CraftTreeNodes { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
             (
-                List<MapObjectsInfoMessagePack> mapObjects,
-                WorldDataResponse worldData,
-                PlayerInventoryResponse inventory,
-                ChallengeResponse challenge,
+                List<MapObjectsInfoMessagePack> mapObjects, 
+                WorldDataResponse worldData, 
+                PlayerInventoryResponse inventory, 
+                ChallengeResponse challenge, 
                 List<BlockStateMessagePack> blockStates,
-                UnlockStateResponse unlockState) responses,
-            (Guid targetNodeId, List<CraftTreeNode> craftTreeNodes) craftTreeInfo)
+                UnlockStateResponse unlockState) responses) // Renamed parameter for clarity
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -43,9 +39,7 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenge = responses.challenge;
             BlockStates = responses.blockStates;
-            UnlockState = responses.unlockState;
-            CraftTreeTargetNodeId = craftTreeInfo.targetNodeId;
-            CraftTreeNodes = craftTreeInfo.craftTreeNodes;
+            UnlockState = responses.unlockState; // Use the renamed parameter
         }
     }
     
