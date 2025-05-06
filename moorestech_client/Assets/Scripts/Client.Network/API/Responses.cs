@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Challenge;
+using Game.CraftTree;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -134,6 +135,18 @@ namespace Client.Network.API
             UnlockedItemIds = unlockedItemIds;
             LockedChallengeGuids = lockedChallengeGuids; // Added assignment
             UnlockedChallengeGuids = unlockedChallengeGuids; // Added assignment
+        }
+    }
+    
+    public class CraftTreeResponse
+    {
+        public List<CraftTreeNode> CraftTrees { get; }
+        public Guid CurrentTargetNode { get; }
+        
+        public CraftTreeResponse(List<CraftTreeNode> craftTrees, Guid currentTargetNode)
+        {
+            CraftTrees = craftTrees;
+            CurrentTargetNode = currentTargetNode;
         }
     }
 }
