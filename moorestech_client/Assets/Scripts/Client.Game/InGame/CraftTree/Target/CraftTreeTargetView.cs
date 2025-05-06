@@ -49,7 +49,7 @@ namespace Client.Game.InGame.CraftTree.Target
             #endregion
         }
         
-        private void ClearTarget()
+        public void ClearTarget()
         {
             // 既存のターゲットを削除
             foreach (var item in _targetViewItems)

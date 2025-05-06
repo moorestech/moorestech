@@ -23,5 +23,11 @@ namespace Client.Game.InGame.CraftTree.Target
             var targetNodes = CraftTreeUpdater.GetCurrentTarget(rootNode);
             targetView.SetTarget(targetNodes);
         }
+        
+        public void ClearTarget()
+        {
+            // 既存のターゲットを削除
+            targetView.ClearTarget();
+        }
     }
 }
