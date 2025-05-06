@@ -49,6 +49,7 @@ namespace Server.Protocol.PacketResponse
             
             public RequestGetCraftTreeMessagePack(int playerId)
             {
+                Tag = ProtocolTag;
                 PlayerId = playerId;
             }
         }
@@ -64,6 +65,7 @@ namespace Server.Protocol.PacketResponse
             
             public ResponseGetCraftTreeMessagePack(List<CraftTreeNodeMessagePack> craftTrees, Guid currentTargetNode)
             {
+                Tag = ProtocolTag;
                 CraftTrees = craftTrees;
                 CurrentTargetNode = currentTargetNode;
             }
