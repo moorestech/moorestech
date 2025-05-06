@@ -737,6 +737,9 @@
                       "type": "integer",
                       "default": 5
                     },
+                    "itemSlotCount": {
+                        "type": "integer"
+                    },
                     "inventoryConnectors": {
                       "$ref": "inventoryConnects"
                     }

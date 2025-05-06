@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
+using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Service;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
@@ -15,7 +17,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaTrainStationTemplate : IBlockTemplate
     {
-        RailComponent[] railComponents;
         /// <summary>
         /// 新規にブロック（および対応するRailComponent等）を生成する
         /// </summary>
@@ -24,8 +25,10 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
+            var stationParam = masterElement.BlockParam as TrainStationBlockParam;
+            
             // 駅ブロックは常に2つのRailComponentを持つ
-            railComponents = new RailComponent[2];
+            var railComponents = new RailComponent[2];
             var railSaverComponent = new RailSaverComponent(railComponents);
             var railComponentPositions = CalculateRailComponentPositions(positionInfo);
 
@@ -37,12 +40,15 @@ namespace Game.Block.Factory.BlockTemplate
             }
             railComponents[0].ConnectRailComponent(railComponents[1], true, true);
 
-            var station = GetStation(masterElement, positionInfo);
+            var station = GetStation(masterElement, positionInfo, railComponents);
+            var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
+            
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.Add(railSaverComponent);
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
+            blockComponents.AddRange(inventoryComponents);
             return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
         }
 
@@ -52,23 +58,27 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
+            var stationParam = masterElement.BlockParam as TrainStationBlockParam;
+            
             // 保存されたRailComponent群を復元
-            railComponents = RestoreRailComponents(componentStates, positionInfo);
+            var railComponents = RestoreRailComponents(componentStates, positionInfo);
             // 復元したRailComponentを管理するRailSaverComponentを作成
             var railSaverComponent = new RailSaverComponent(railComponents);
 
-            var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             var station = new StationComponent(stationParam.StationDistance, "test", 1);
+            
+            var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.Add(railSaverComponent);
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
+            blockComponents.AddRange(inventoryComponents);
             return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
         }
 
-        private StationComponent GetStation(BlockMasterElement masterElement, BlockPositionInfo positionInfo)
+        private StationComponent GetStation(BlockMasterElement masterElement, BlockPositionInfo positionInfo, RailComponent[] railComponents)
         {
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             var station = new StationComponent(stationParam.StationDistance, "test", 1);
@@ -92,6 +102,26 @@ namespace Game.Block.Factory.BlockTemplate
             }
             return station;
         }
+        
+        /// <summary>
+        /// インベントリ関連のコンポーネントを作成する
+        /// </summary>
+        /// <returns></returns>
+        private List<IBlockComponent> CreateInventoryComponents(Dictionary<string, string> componentStates, BlockInstanceId instanceId, TrainStationBlockParam param, BlockPositionInfo blockPositionInfo)
+        {
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            
+            var chestComponent = componentStates == null ?
+                new VanillaChestComponent(instanceId, param.ItemSlotCount, inserter) :
+                new VanillaChestComponent(componentStates, instanceId, param.ItemSlotCount, inserter);
+            
+            return new List<IBlockComponent>
+            {
+                chestComponent,
+                inputConnectorComponent,
+            };
+        } 
 
         //共通処理
         /// <summary>
