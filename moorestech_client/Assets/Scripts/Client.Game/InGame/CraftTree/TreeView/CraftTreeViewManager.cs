@@ -57,6 +57,8 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeTargetManager.Initialize(_craftTreeUpdater);
             Initialize(initialHandshakeResponse.CraftTree);
             
+            _craftTreeUpdater.OnUpdateCraftTree.Subscribe(c => { SendCraftTreeNode(); });
+            
             #region MyRegion
             
             void Initialize(CraftTreeResponse craftTreeResponse)
@@ -108,8 +110,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
                 craftTreeTargetManager.SetCurrentCraftTree(node);
                 _craftTreeUpdater.SetRootNode(node);
             }
-            
-            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(_craftTreeUpdater.CurrentRootNode.NodeId, _craftTreeNodes);
+            SendCraftTreeNode();
         }
         private void Show()
         {
@@ -136,13 +137,18 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeTargetManager.ClearTarget();
             _craftTreeUpdater.SetRootNode(null);
             
-            var currentTarget = _craftTreeUpdater.CurrentRootNode?.NodeId ?? Guid.Empty;
-            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(currentTarget, _craftTreeNodes);
+            SendCraftTreeNode();
         }
         
         private void Update()
         {
             setTargetButton.interactable = craftTreeEditorView.CurrentRootNode != null;
+        }
+        
+        private void SendCraftTreeNode()
+        {
+            var currentTarget = _craftTreeUpdater.CurrentRootNode?.NodeId ?? Guid.Empty;
+            ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(currentTarget, _craftTreeNodes);
         }
     }
 }
