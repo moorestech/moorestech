@@ -49,10 +49,14 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             void UpdateTreeTarget(CraftTreeNode node)
             {
-                craftTreeTargetManager.SetCurrentCraftTree(node);
-                _craftTreeUpdater.SetRootNode(node);
+                var currentTarget = _craftTreeUpdater.CurrentRootNode;
+                if (currentTarget == null || node.NodeId == currentTarget.NodeId)
+                {
+                    craftTreeTargetManager.SetCurrentCraftTree(node);
+                    _craftTreeUpdater.SetRootNode(node);
+                }
                 
-                ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(node);
+                ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(_craftTreeUpdater.CurrentRootNode.NodeId, _craftTreeNodes);
             }
             
             #endregion

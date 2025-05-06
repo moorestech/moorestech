@@ -89,9 +89,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void SendCraftTreeNode(CraftTreeNode node)
+        public void SendCraftTreeNode(Guid target ,List<CraftTreeNode> craftTree)
         {
-            var request = new ApplyCraftTreeProtocol.ApplyCraftProtocolMessagePack(_playerId, node);
+            var request = new ApplyCraftTreeProtocol.ApplyCraftProtocolMessagePack(_playerId, target, craftTree);
             _packetSender.Send(request);
         }
     }
