@@ -47,6 +47,7 @@ namespace Server.Protocol.PacketResponse
             
             public ApplyCraftProtocolMessagePack(int playerId, Guid currentTargetNode, List<CraftTreeNode> craftTrees)
             {
+                Tag = ProtocolTag;
                 PlayerId = playerId;
                 CurrentTargetNode = currentTargetNode;
                 CraftTrees = craftTrees.ConvertAll(tree => new CraftTreeNodeMessagePack(tree));

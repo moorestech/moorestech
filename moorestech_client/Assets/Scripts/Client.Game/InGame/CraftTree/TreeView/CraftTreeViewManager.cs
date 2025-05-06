@@ -20,6 +20,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
         [SerializeField] private Button showCraftTreeListButton;
         [SerializeField] private Button hideButton;
         [SerializeField] private Button setTargetButton;
+        [SerializeField] private GameObject craftTreeRoot;
         
         [SerializeField] private CraftTreeTargetViewManager craftTreeTargetManager;
         [SerializeField] private CraftTreeEditorView craftTreeEditorView;
@@ -115,13 +116,13 @@ namespace Client.Game.InGame.CraftTree.TreeView
         
         private void Show()
         {
-            gameObject.SetActive(true);
+            craftTreeRoot.SetActive(true);
             craftTreeEditorView.UpdateEditor();
         }
         
         public void Hide()
         {
-            gameObject.SetActive(false);
+            craftTreeRoot.SetActive(false);
         }
         
         
