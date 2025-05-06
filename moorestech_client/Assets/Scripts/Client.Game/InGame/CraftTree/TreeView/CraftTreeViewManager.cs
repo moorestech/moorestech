@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.CraftTree.Target;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Network.API;
 using Core.Master;
 using Game.CraftTree;
 using UniRx;
@@ -49,9 +51,11 @@ namespace Client.Game.InGame.CraftTree.TreeView
             {
                 craftTreeTargetManager.SetCurrentCraftTree(node);
                 _craftTreeUpdater.SetRootNode(node);
+                
+                ClientContext.VanillaApi.SendOnly.SendCraftTreeNode(node);
             }
             
-  #endregion
+            #endregion
         }
         
         [Inject]
