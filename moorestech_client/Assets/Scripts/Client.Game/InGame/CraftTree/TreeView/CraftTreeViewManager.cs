@@ -70,6 +70,56 @@ namespace Client.Game.InGame.CraftTree.TreeView
             craftTreeTargetManager.Initialize(_craftTreeUpdater);
         }
         
+        /// <summary>
+        /// サーバーから取得したクラフトツリーをセットする
+        /// コードは微妙だがやってることは良さそう
+        /// </summary>
+        /// <param name="craftTreeResponse">サーバーから取得したクラフトツリー情報</param>
+        public void SetCraftTreeFromServer(CraftTreeResponse craftTreeResponse)
+        {
+            if (craftTreeResponse == null || craftTreeResponse.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
+            {
+                return;
+            }
+            
+            // 既存のツリーをクリア
+            _craftTreeNodes.Clear();
+            
+            // サーバーから取得したツリーをセット
+            _craftTreeNodes.AddRange(craftTreeResponse.CraftTrees);
+            
+            // リストを更新
+            craftTreeList.UpdateList(_craftTreeNodes);
+            
+            // ターゲットノードがある場合はそれをアクティブにする
+            if (craftTreeResponse.CurrentTargetNode != Guid.Empty)
+            {
+                // ターゲットノードを検索
+                CraftTreeNode targetNode = null;
+                foreach (var node in _craftTreeNodes)
+                {
+                    if (node.NodeId == craftTreeResponse.CurrentTargetNode)
+                    {
+                        targetNode = node;
+                        break;
+                    }
+                }
+                
+                if (targetNode != null)
+                {
+                    // エディターにセット
+                    craftTreeEditorView.SetEditor(targetNode);
+                    
+                    // 目標表示を更新
+                    _craftTreeUpdater.SetRootNode(targetNode);
+                    craftTreeTargetManager.SetCurrentCraftTree(targetNode);
+                    
+                    // 表示
+                    Show();
+                }
+            }
+        }
+        
         public void CreateNewCraftTree(ItemId resultItemId)
         {
             var rootNode = new CraftTreeNode(resultItemId, 1, null);
