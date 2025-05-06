@@ -6,7 +6,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;

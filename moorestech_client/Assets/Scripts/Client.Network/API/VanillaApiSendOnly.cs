@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Network.Settings;
 using Core.Master;
 using Game.CraftChainer.CraftChain;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;

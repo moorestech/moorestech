@@ -7,7 +7,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Network.API;
 using Core.Master;
-using Game.CraftTree;
+using Game.CraftTree.Models;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;

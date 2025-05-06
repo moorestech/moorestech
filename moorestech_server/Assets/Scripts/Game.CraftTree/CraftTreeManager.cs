@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
+using Game.CraftTree.Json;
+using Game.CraftTree.Models;
 
 namespace Game.CraftTree
 {
@@ -16,19 +19,34 @@ namespace Game.CraftTree
             return _craftTree.GetValueOrDefault(playerId);
         }
         
-        public Dictionary<int, PlayerCraftTreeInfo> GetAllCraftTreeInfo()
+        public List<PlayerCraftTreeJsonObject> GetSaveJsonObject()
         {
-            return new Dictionary<int, PlayerCraftTreeInfo>(_craftTree);
+            var jsonObjects = new List<PlayerCraftTreeJsonObject>();
+            
+            foreach (var pair in _craftTree)
+            {
+                var playerId = pair.Key;
+                var craftTreeInfo = pair.Value;
+                
+                if (craftTreeInfo != null)
+                {
+                    jsonObjects.Add(new PlayerCraftTreeJsonObject(playerId, craftTreeInfo));
+                }
+            }
+            
+            return jsonObjects;
         }
         
-        public void LoadCraftTreeInfo(Dictionary<int, PlayerCraftTreeInfo> craftTreeInfo)
+        public void LoadCraftTreeInfo(List<PlayerCraftTreeJsonObject> craftTreeInfoJsonObjects)
         {
-            if (craftTreeInfo == null) return;
+            if (craftTreeInfoJsonObjects == null) return;
             
             _craftTree.Clear();
-            foreach (var pair in craftTreeInfo)
+            foreach (var jsonObject in craftTreeInfoJsonObjects)
             {
-                _craftTree.Add(pair.Key, pair.Value);
+                var playerId = jsonObject.PlayerId;
+                var craftTreeInfo = jsonObject.ToPlayerCraftTreeInfo();
+                _craftTree.Add(playerId, craftTreeInfo);
             }
         }
     }
