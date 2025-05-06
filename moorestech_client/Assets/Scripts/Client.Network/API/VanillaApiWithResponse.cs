@@ -11,6 +11,7 @@ using Game.Context;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
+using Game.CraftTree;
 
 namespace Client.Network.API
 {
@@ -42,7 +43,31 @@ namespace Client.Network.API
                 GetAllBlockState(ct),
                 GetUnlockState(ct));
             
-            return new InitialHandshakeResponse(initialHandShake, responses);
+            // クラフトツリーを取得
+            var craftTreeResponse = await GetCraftTreeInfo(playerId, ct);
+            
+            return new InitialHandshakeResponse(initialHandShake, responses, craftTreeResponse);
+        }
+        
+        public async UniTask<(Guid targetNodeId, List<CraftTreeNode>)> GetCraftTreeInfo(int playerId, CancellationToken ct)
+        {
+            var request = new GetCraftTreeProtocol.RequestGetCraftTreeMessagePack(playerId);
+            var response = await _packetExchangeManager.GetPacketResponse<GetCraftTreeProtocol.ResponseGetCraftTreeMessagePack>(request, ct);
+            
+            if (response == null || response.CraftTrees == null)
+            {
+                return (Guid.Empty, new List<CraftTreeNode>());
+            }
+            
+            // MessagePack形式のクラフトツリーからCraftTreeNodeに変換
+            var craftTreeNodes = new List<CraftTreeNode>();
+            foreach (var treeMessagePack in response.CraftTrees)
+            {
+                var node = treeMessagePack.CreateCraftTreeNode();
+                craftTreeNodes.Add(node);
+            }
+            
+            return (response.CurrentTargetNode, craftTreeNodes);
         }
         
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
