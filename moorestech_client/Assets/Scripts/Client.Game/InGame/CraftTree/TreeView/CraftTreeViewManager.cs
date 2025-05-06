@@ -63,7 +63,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             
             void Initialize(CraftTreeResponse craftTreeResponse)
             {
-                if (craftTreeResponse == null || craftTreeResponse.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
+                if (craftTreeResponse?.CraftTrees == null || craftTreeResponse.CraftTrees.Count == 0)
                 {
                     return;
                 }
