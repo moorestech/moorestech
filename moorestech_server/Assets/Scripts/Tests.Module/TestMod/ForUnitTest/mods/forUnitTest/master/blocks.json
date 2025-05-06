@@ -2973,7 +2973,8 @@
               "connectOption": {}
             }
           ]
-        }
+        },
+        "itemSlotCount": 5
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025"
