@@ -20,8 +20,15 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<ApplyCraftProtocolMessagePack>(payload.ToArray());
             
-            var node = data.TreeNode.CreateCraftTreeNode();
-            _craftTreeManager.ApplyCraftTree(data.PlayerId, node);
+            var craftTreeNodes = new List<CraftTreeNode>();
+            foreach (var tree in data.CraftTrees)
+            {
+                var node = new CraftTreeNode(tree, null);
+                craftTreeNodes.Add(node);
+            }
+            var craftTreeInfo = new PlayerCraftTreeInfo(data.CurrentTargetNode, craftTreeNodes);
+            
+            _craftTreeManager.ApplyCraftTree(data.PlayerId, craftTreeInfo);
             
             return null;
         }
@@ -31,17 +38,18 @@ namespace Server.Protocol.PacketResponse
         public class ApplyCraftProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public CraftTreeNodeMessagePack TreeNode { get; set; }
+            [Key(3)] public Guid CurrentTargetNode { get; set; }
+            [Key(4)] public List<CraftTreeNodeMessagePack> CraftTrees { get; set; }
             
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ApplyCraftProtocolMessagePack() { }
             
-            public ApplyCraftProtocolMessagePack(int playerId, CraftTreeNode treeNode)
+            public ApplyCraftProtocolMessagePack(int playerId, Guid currentTargetNode, List<CraftTreeNode> craftTrees)
             {
-                Tag = ProtocolTag;
                 PlayerId = playerId;
-                TreeNode = new CraftTreeNodeMessagePack(treeNode);
+                CurrentTargetNode = currentTargetNode;
+                CraftTrees = craftTrees.ConvertAll(tree => new CraftTreeNodeMessagePack(tree));
             }
         }
     }
