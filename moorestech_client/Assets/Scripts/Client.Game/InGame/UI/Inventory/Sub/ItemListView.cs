@@ -67,15 +67,18 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 var toolTipText = CraftInventoryView.GetMaterialTolTip(itemViewData);
                 itemSlotObject.SetItem(itemViewData, 0, toolTipText);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
-                _itemListObjects.Add(itemSlotObject);
                 
                 // ハイライトオブジェクトを設定
                 // Set the highlight object
                 var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
                 target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.ItemGuid));
                 
+                // リストに追加（1回だけ）
                 _itemListObjects.Add(itemSlotObject);
             }
+            
+            // 最初のインベントリ状態に基づいてグレーアウト処理を実行
+            OnInventoryItemChange(0);
             
             #region Internal
             
@@ -135,7 +138,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 throw new Exception($"{itemMaster.RecipeViewType}タイプの判定の実装が足りません");
             }
             
-  #endregion
+            #endregion
         }
         
         private void OnClickItemList(ItemSlotObject slot)
