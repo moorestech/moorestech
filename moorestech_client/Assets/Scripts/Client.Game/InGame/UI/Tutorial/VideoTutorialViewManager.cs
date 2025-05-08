@@ -18,9 +18,14 @@ namespace Client.Game.InGame.UI.Tutorial
             var tutorialObject = Instantiate(tutorialObjectPrefab);
             
             var controller = tutorialObject.GetComponent<IMovieTutorialController>();
-            rawImage.texture = controller.MovieRenderTexture;
+            var renderTexture = new RenderTexture(1280, 720, 24);
+            rawImage.texture = renderTexture;
             
-            await controller.PlayMovie();
+            renderTexture.Create();
+            await controller.PlayMovie(renderTexture);
+            renderTexture.Release();
+            
+            controller.DestroyTutorial();
             
             gameObject.SetActive(false);
         }
