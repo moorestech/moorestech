@@ -51,6 +51,13 @@
             "default": "New Challenge summary"
           },
 
+          "movieTutorialAddressablePath": {
+            "type": "string",
+            "default": "movie/path",
+            "optional": true,
+            "$memo": "チャレンジに関連する動画チュートリアルのアドレッサブルパス"
+          },
+
           "playSkitType": {
             "type": "string",
             "default": "None",
