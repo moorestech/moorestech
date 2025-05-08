@@ -6,8 +6,7 @@ namespace Client.MovieTutorial
 {
     public interface IMovieTutorialController
     {
-        public RenderTexture MovieRenderTexture { get; }
-        public UniTask PlayMovie(CancellationToken token = default);
+        public UniTask PlayMovie(RenderTexture renderTexture, CancellationToken token = default);
         
         public void DestroyTutorial();
     }
