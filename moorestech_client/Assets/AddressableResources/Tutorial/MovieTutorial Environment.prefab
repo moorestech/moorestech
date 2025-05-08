@@ -154,6 +154,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movieCamera: {fileID: 1374784932364338204}
   movieRenderTexture: {fileID: 8600000, guid: f538c8ac2280644349889a235300812b, type: 2}
+  tutorialTime: 3
+  animator: {fileID: 0}
 --- !u!1 &2351238061149475974
 GameObject:
   m_ObjectHideFlags: 0

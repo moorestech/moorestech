@@ -61,7 +61,8 @@
       "playSkitParam": {},
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
-      "startedActions": []
+      "startedActions": [],
+      "movieTutorialAddressablePath" : "Vanilla/Tutorial/MovieTutorial Environment"
     },
     {
       "summary": "石器を作る",
