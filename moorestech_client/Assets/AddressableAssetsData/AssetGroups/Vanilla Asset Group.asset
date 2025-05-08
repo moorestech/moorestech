@@ -487,6 +487,21 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 893c7f3d6f5484972aa18b3b0028ab30
+    m_Address: Vanilla/Tutorial/MovieTutorial Environment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5c6ea91a016d14b7e979c6603f626a26
+    m_Address: Vanilla/UI/Block/Debug
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa52abf5b2b57478a87f5d49b4d4a62b
+    m_Address: Vanilla/Block/GameObject_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
