@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Tutorial
 {
-    public class TutorialViewManager : MonoBehaviour
+    public class VideoTutorialViewManager : MonoBehaviour
     {
         [SerializeField] private RawImage rawImage;
         
