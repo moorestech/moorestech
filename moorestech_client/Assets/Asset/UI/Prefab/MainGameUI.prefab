@@ -16692,7 +16692,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 80.275
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -16841,6 +16841,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1438684973846715379}
     m_Modifications:
+    - target: {fileID: 3646352925919819262, guid: 8f632333b824941f29218cee8c98cd01, type: 3}
+      propertyPath: videoTutorialViewManager
+      value: 
+      objectReference: {fileID: 3488449629311399916}
     - target: {fileID: 4348709339645713346, guid: 8f632333b824941f29218cee8c98cd01, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
