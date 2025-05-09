@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Tutorial;
 using Client.Network.API;
 using Core.Master;
 using Game.UnlockState;
@@ -20,8 +19,6 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private Transform challengeListParent;
         [SerializeField] private Transform connectLineParent; // 線は一番下に表示される必要があるため専用の親に格納する
         [SerializeField] private ChallengeListUIElement challengeListUIElementPrefab;
-        
-        [SerializeField] private VideoTutorialViewManager videoTutorialViewManager;
         
         private readonly Dictionary<Guid, ChallengeListUIElement> _challengeListUIElements = new();
         private IGameUnlockStateData _gameUnlockStateData;
@@ -57,7 +54,7 @@ namespace Client.Game.InGame.UI.Challenge
                 {
                     var guid = challenge.ChallengeGuid;
                     var challengeListUIElement = Instantiate(challengeListUIElementPrefab, challengeListParent);
-                    challengeListUIElement.Initialize(challenge, videoTutorialViewManager);
+                    challengeListUIElement.Initialize(challenge);
                     
                     _challengeListUIElements.Add(guid, challengeListUIElement);
 
