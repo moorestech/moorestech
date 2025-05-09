@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5077019358768002098}
+  - component: {fileID: 1735774881859380390}
   m_Layer: 0
   m_Name: TutorialBigGear
   m_TagString: Untagged
@@ -32,6 +33,25 @@ Transform:
   - {fileID: 4777138466886762249}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1735774881859380390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 517488742200388805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 265427ff6c764e3b974eb0d1c1264fbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isClockwise: 0
+  rpm: 20
+  rotationInfos:
+  - rotationAxis: 2
+    rotationTransform: {fileID: 2931674050307497079}
+    isReverse: 0
+    rotationSpeed: 1
 --- !u!1001 &399131807234622948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -40,6 +60,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5077019358768002098}
     m_Modifications:
+    - target: {fileID: 3253118763272804755, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3253118763272804755, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3253118763272804755, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3253118763272804755, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4793429072188369667, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5170640774033062637, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -84,12 +124,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: BigGear
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4793429072188369667, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+--- !u!4 &2931674050307497079 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3253118763272804755, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+  m_PrefabInstance: {fileID: 399131807234622948}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4777138466886762249 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5170640774033062637, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}

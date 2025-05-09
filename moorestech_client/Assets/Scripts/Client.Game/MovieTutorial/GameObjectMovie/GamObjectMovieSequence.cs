@@ -20,7 +20,7 @@ namespace Client.Game.MovieTutorial.GameObjectMovie
         
         public float SpawnTime;
         
-        // TODo このvaluesは変えたい
+        // TODo このvaluesは変えたいなぁ
         public List<string> Parameters;
     }
 }
