@@ -62,7 +62,7 @@
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
       "startedActions": [],
-      "movieTutorialAddressablePath" : "Vanilla/Tutorial/MovieTutorial Environment",
+      "movieTutorialAddressablePath" : "Vanilla/Tutorial/BigGearTutorial/BigGearTutorialPrefab",
       "movieTutorialAddressableSequence" : "Vanilla/Tutorial/MovieTutorial Environment"
     },
     {
