@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.UI.Tutorial;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengeActionModule;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
@@ -29,9 +31,11 @@ namespace Client.Game.InGame.UI.Challenge
         // List of generated connection lines
         private readonly List<RectTransform> _connectLines = new();
         
+        private VideoTutorialViewManager _videoTutorialViewManager;
         
-        public void Initialize(ChallengeMasterElement challengeMasterElement)
+        public void Initialize(ChallengeMasterElement challengeMasterElement, VideoTutorialViewManager videoTutorialViewManager)
         {
+            _videoTutorialViewManager = videoTutorialViewManager;
             ChallengeMasterElement = challengeMasterElement;
             
             SetUI();
@@ -193,6 +197,19 @@ namespace Client.Game.InGame.UI.Challenge
             }
             
             _connectLines.Clear();
+        }
+        
+        private void Update()
+        {
+            if (UnityEngine.Input.GetKeyDown(KeyCode.C) && uGuiTooltipTarget.PointerStay)
+            {
+                var path = ChallengeMasterElement.MovieTutorialAddressablePath;
+                var sequencePath = ChallengeMasterElement.MovieTutorialAddressablePath;
+                if (!string.IsNullOrEmpty(path))
+                {
+                    _videoTutorialViewManager.ShowTutorial(path, sequencePath).Forget();
+                }
+            }
         }
     }
     
