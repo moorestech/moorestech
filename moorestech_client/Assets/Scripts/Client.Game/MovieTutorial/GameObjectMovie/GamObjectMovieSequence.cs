@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
-namespace Client.MovieTutorial.GameObjectMovie
+namespace Client.Game.MovieTutorial.GameObjectMovie
 {
     [CreateAssetMenu(fileName = "GamObjectMovieSequence", menuName = "moorestech/GamObjectMovieSequence", order = 0)]
     public class GamObjectMovieSequence : ScriptableObject

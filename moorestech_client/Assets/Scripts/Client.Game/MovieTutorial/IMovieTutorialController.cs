@@ -1,8 +1,9 @@
 using System.Threading;
+using Client.MovieTutorial;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Client.MovieTutorial
+namespace Client.Game.MovieTutorial
 {
     public interface IMovieTutorialController
     {

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Client.MovieTutorial.GameObjectMovie.Objects;
+using Client.Game.MovieTutorial.GameObjectMovie.Objects;
 using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 
-namespace Client.MovieTutorial.GameObjectMovie
+namespace Client.Game.MovieTutorial.GameObjectMovie
 {
     public class GamObjectMovieTutorialController : MonoBehaviour, IMovieTutorialController
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Client.MovieTutorial.GameObjectMovie.Objects
+namespace Client.Game.MovieTutorial.GameObjectMovie.Objects
 {
     public interface IGameObjectMovieObject
     {
