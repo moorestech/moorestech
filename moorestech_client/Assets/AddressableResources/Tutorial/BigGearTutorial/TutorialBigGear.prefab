@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5077019358768002098}
   - component: {fileID: 1735774881859380390}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: TutorialBigGear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -60,6 +60,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5077019358768002098}
     m_Modifications:
+    - target: {fileID: 1648463612064119101, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 3253118763272804755, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
@@ -76,9 +80,37 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
+    - target: {fileID: 3275088556043162121, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4084518464424207226, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559360898181881501, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4602050919902509649, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4731844410245127559, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4776414731722702616, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 4793429072188369667, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855568091405056994, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 5170640774033062637, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
       propertyPath: m_LocalPosition.x
@@ -120,9 +152,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5535303961436993853, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6362663631200503991, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6387196244657460824, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 6697832017047719167, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
       propertyPath: m_Name
       value: BigGear
+      objectReference: {fileID: 0}
+    - target: {fileID: 6697832017047719167, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7397736660562999078, guid: 0a577e00dc0e74ecd904ee712f7b2606, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

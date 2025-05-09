@@ -15,7 +15,6 @@ namespace Client.Game.InGame.UI.Tutorial
         {
             gameObject.SetActive(true);
             
-            var movieSequence = await AddressableLoader.LoadAsyncDefault<GamObjectMovieSequence>(sequencePath);
             
             var tutorialObjectPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(addressable);
             var tutorialObject = Instantiate(tutorialObjectPrefab);
@@ -24,7 +23,7 @@ namespace Client.Game.InGame.UI.Tutorial
             var renderTexture = new RenderTexture(1280, 720, 24);
             rawImage.texture = renderTexture;
             
-            var parameter = new GameObjectMovieTutorialParameter(movieSequence);
+            var parameter = new GameObjectMovieTutorialParameter(null);
             renderTexture.Create();
             await controller.PlayMovie(parameter, renderTexture);
             renderTexture.Release();

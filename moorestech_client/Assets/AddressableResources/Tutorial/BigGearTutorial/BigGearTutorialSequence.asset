@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BigGearTutorialSequence
   m_EditorClassIdentifier: 
   SequenceInfos:
-  - Prefab: {fileID: 0}
+  - Prefab: {fileID: 4524606954101959686, guid: 13b89d5b239f646ba8ec62d15dba6eb1, type: 3}
     Position: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0}
     Scale: {x: 0, y: 0, z: 0}
