@@ -487,51 +487,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 893c7f3d6f5484972aa18b3b0028ab30
-    m_Address: Vanilla/Tutorial/MovieTutorial Environment
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5c6ea91a016d14b7e979c6603f626a26
-    m_Address: Vanilla/UI/Block/Debug
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cb7db1b9f6e55481db2a48ee8571a780
-    m_Address: Vanilla/Tutorial/BigGearTutorial/BigGearTutorialSequence
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0fea9cdcd0e494a24baafd7ac3533359
-    m_Address: Vanilla/Tutorial/BigGearTutorial/TutorialBigGear
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e13e6c7fc08e84addb688ed97846f610
-    m_Address: Vanilla/Tutorial/BigGearTutorial/TutorialSmallGear
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2885660b562a04fe5a199a0a8bce7b79
-    m_Address: Vanilla/Tutorial/BigGearTutorial/BigGearTutorial
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 972efd5f2ed424089a994e1deda1a488
-    m_Address: Vanilla/Tutorial/BigGearTutorial/BigGearTutorialController
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c12fb9767fef947e1a9f4ee2ea95bbb3
-    m_Address: Vanilla/Tutorial/BigGearTutorial/BigGearTutorialPrefab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 13b89d5b239f646ba8ec62d15dba6eb1
-    m_Address: Vanilla/Tutorial/GameObjectMovieText
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
