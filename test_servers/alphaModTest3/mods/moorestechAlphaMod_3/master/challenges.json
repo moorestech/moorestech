@@ -61,9 +61,7 @@
       "playSkitParam": {},
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
-      "startedActions": [],
-      "movieTutorialAddressablePath" : "Vanilla/Tutorial/BigGearTutorial/BigGearTutorialPrefab",
-      "movieTutorialAddressableSequence" : "Vanilla/Tutorial/MovieTutorial Environment"
+      "startedActions": []
     },
     {
       "summary": "石器を作る",

@@ -57,8 +57,7 @@
         "Core.Master",
         "Game.CraftChainer",
         "Game.UnlockState",
-        "Common.Debug",
-        "Client.MovieTutorial"
+        "Common.Debug"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
