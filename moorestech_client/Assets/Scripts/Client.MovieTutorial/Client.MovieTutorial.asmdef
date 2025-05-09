@@ -2,7 +2,8 @@
     "name": "Client.MovieTutorial",
     "rootNamespace": "",
     "references": [
-        "UniTask"
+        "UniTask",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
