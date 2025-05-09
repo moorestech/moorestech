@@ -8,8 +8,6 @@ namespace Client.Game.InGame.UI.Tooltip
     /// </summary>
     public class UGuiTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
     {
-        public bool PointerStay { get; private set; }
-        
         /// <summary>
         ///     カーソルに表示するテキスト
         /// </summary>
@@ -23,9 +21,11 @@ namespace Client.Game.InGame.UI.Tooltip
         [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
         private bool _isLocalize;
         
+        private bool _pointerStay;
+        
         public void OnPointerMove(PointerEventData eventData)
         {
-            PointerStay = true;
+            _pointerStay = true;
             UpdateMouseCursorTooltip();
         }
         
@@ -42,14 +42,14 @@ namespace Client.Game.InGame.UI.Tooltip
         private void UpdateMouseCursorTooltip()
         {
             //表示する設定で、ポインターが乗ったので表示
-            if (PointerStay && displayEnable)
+            if (_pointerStay && displayEnable)
             {
                 MouseCursorTooltip.Instance.Show(textKey, fontSize, _isLocalize);
                 return;
             }
             
-            if (!PointerStay || //ポインターから外れたので非表示
-                PointerStay && !displayEnable) //ポインターからは外れてないけど非表示設定なったから非表示
+            if (!_pointerStay || //ポインターから外れたので非表示
+                _pointerStay && !displayEnable) //ポインターからは外れてないけど非表示設定なったから非表示
                 MouseCursorTooltip.Instance.Hide();
         }
         
@@ -59,30 +59,30 @@ namespace Client.Game.InGame.UI.Tooltip
         public void DisplayEnable(bool enable)
         {
             displayEnable = enable;
-            if (PointerStay) UpdateMouseCursorTooltip();
+            if (_pointerStay) UpdateMouseCursorTooltip();
         }
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            PointerStay = true;
+            _pointerStay = true;
             UpdateMouseCursorTooltip();
         }
         
         public void OnPointerExit(PointerEventData eventData)
         {
-            PointerStay = false;
+            _pointerStay = false;
             UpdateMouseCursorTooltip();
         }
         
         private void OnDestroy()
         {
-            PointerStay = false;
+            _pointerStay = false;
             UpdateMouseCursorTooltip();
         }
         
         private void OnDisable()
         {
-            PointerStay = false;
+            _pointerStay = false;
             UpdateMouseCursorTooltip();
         }
         
