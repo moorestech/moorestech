@@ -62,7 +62,8 @@
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
       "startedActions": [],
-      "movieTutorialAddressablePath" : "Vanilla/Tutorial/MovieTutorial Environment"
+      "movieTutorialAddressablePath" : "Vanilla/Tutorial/MovieTutorial Environment",
+      "movieTutorialAddressableSequence" : "Vanilla/Tutorial/MovieTutorial Environment"
     },
     {
       "summary": "石器を作る",

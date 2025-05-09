@@ -495,8 +495,9 @@
       "craftResultItemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
       "requiredItems": [
         {
-          "count": 4,
-          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa"
+          "count": 1,
+          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f",
+          "isRemain": false
         },
         {
           "count": 5,

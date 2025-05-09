@@ -204,9 +204,10 @@ namespace Client.Game.InGame.UI.Challenge
             if (UnityEngine.Input.GetKeyDown(KeyCode.C) && uGuiTooltipTarget.PointerStay)
             {
                 var path = ChallengeMasterElement.MovieTutorialAddressablePath;
+                var sequencePath = ChallengeMasterElement.MovieTutorialAddressablePath;
                 if (!string.IsNullOrEmpty(path))
                 {
-                    _videoTutorialViewManager.ShowTutorial(path).Forget();
+                    _videoTutorialViewManager.ShowTutorial(path, sequencePath).Forget();
                 }
             }
         }
