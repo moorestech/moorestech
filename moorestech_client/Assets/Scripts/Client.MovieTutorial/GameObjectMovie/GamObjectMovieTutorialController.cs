@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Client.MovieTutorial.GameObjectMovie.Objects;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -23,10 +24,6 @@ namespace Client.MovieTutorial.GameObjectMovie
             {
                 tasks.Add(PlaySequence(sequenceInfo));
             }
-            foreach (var textInfo in movieParameter.Sequence.SequenceTextInfos)
-            {
-                tasks.Add(PlayTextSequence(textInfo));
-            }
             
             tasks.Add(DelayTime(tutorialTime));
             await UniTask.WhenAll(tasks);
@@ -42,18 +39,8 @@ namespace Client.MovieTutorial.GameObjectMovie
                 sequenceObject.transform.localPosition = sequenceInfo.Position;
                 sequenceObject.transform.localRotation = Quaternion.Euler(sequenceInfo.Rotation);
                 sequenceObject.transform.localScale = sequenceInfo.Scale;
-            }
-            
-            async UniTask PlayTextSequence(MovieSequenceTextInfo textInfo)
-            {
-                await DelayTime(textInfo.SpawnTime);
-                var prefab = movieParameter.Sequence.TextPrefab;
-                var text = Instantiate(prefab.gameObject, transform);
-                text.GetComponent<GameObjectMovieText>().SetText(textInfo.Text);
                 
-                text.transform.localPosition = textInfo.Position;
-                text.transform.localRotation = Quaternion.Euler(textInfo.Rotation);
-                text.transform.localScale = textInfo.Scale;
+                sequenceObject.GetComponent<IGameObjectMovieObject>().SetParameters(sequenceInfo.Parameters);
             }
             
             async UniTask DelayTime(float second)
