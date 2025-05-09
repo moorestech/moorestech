@@ -1,4 +1,4 @@
-namespace Client.MovieTutorial
+namespace Client.Game.MovieTutorial
 {
     public interface IMovieTutorialParameter
     {

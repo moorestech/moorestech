@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-namespace Client.MovieTutorial.GameObjectMovie.Objects
+namespace Client.Game.MovieTutorial.GameObjectMovie.Objects
 {
     public class GameObjectMovieText : MonoBehaviour , IGameObjectMovieObject
     {
