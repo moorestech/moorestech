@@ -1,8 +1,6 @@
 using Client.Common.Asset;
 using Client.Game.MovieTutorial;
 using Client.Game.MovieTutorial.GameObjectMovie;
-using Client.MovieTutorial;
-using Client.MovieTutorial.GameObjectMovie;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
