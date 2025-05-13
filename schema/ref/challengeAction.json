@@ -88,8 +88,25 @@
 
                 }
               }
-            }
+            },
+            {
+              "if": {
+                "properties": {
+                  "challengeActionType": { "const": "playSkit" }
+                }
+              },
+              "then": {
+                "type": "object",
+                "isDefaultOpen": true,
+                "properties": {
 
+                  "skitAddressablePath": {
+
+                    "type": "string"
+                  }
+                }
+              }
+            }
           ]
         }
       }
