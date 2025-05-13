@@ -35,6 +35,7 @@ namespace Server.Event.EventReceive
     {
         [Key(0)] public string CompletedChallengeGuidStr { get; set; }
         [Key(1)] public List<string> NextChallengeGuidsStr { get; set; }
+        [Key(2)] public List<string> PlayedSkitIds { get; set; }
         
         [IgnoreMember] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
         [IgnoreMember] public List<Guid> NextChallengeGuids => NextChallengeGuidsStr.ConvertAll(Guid.Parse);
@@ -48,6 +49,7 @@ namespace Server.Event.EventReceive
         {
             CompletedChallengeGuidStr = completeProperty.ChallengeTask.ChallengeMasterElement.ChallengeGuid.ToString();
             NextChallengeGuidsStr = completeProperty.NextChallengeMasterElements.ConvertAll(e => e.ChallengeGuid.ToString());
+            PlayedSkitIds = completeProperty.PlayedSkitIdsStr;
         }
     }
 }

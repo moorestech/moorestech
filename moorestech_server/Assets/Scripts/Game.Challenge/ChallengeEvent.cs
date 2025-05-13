@@ -11,20 +11,22 @@ namespace Game.Challenge
         private readonly Subject<CompleteChallengeEventProperty> _onCompleteChallenge = new();
         public IObservable<CompleteChallengeEventProperty> OnCompleteChallenge => _onCompleteChallenge;
         
-        public void InvokeCompleteChallenge(IChallengeTask completeTask, List<ChallengeMasterElement> nextChallengeMasterElements)
+        public void InvokeCompleteChallenge(IChallengeTask completeTask, List<ChallengeMasterElement> nextChallengeMasterElements, List<string> playedSkitIdsStr)
         {
-            _onCompleteChallenge.OnNext(new CompleteChallengeEventProperty(completeTask, nextChallengeMasterElements));
+            _onCompleteChallenge.OnNext(new CompleteChallengeEventProperty(completeTask, nextChallengeMasterElements, playedSkitIdsStr));
         }
         
         public class CompleteChallengeEventProperty
         {
             public IChallengeTask ChallengeTask { get; }
             public List<ChallengeMasterElement> NextChallengeMasterElements { get; }
-            
-            public CompleteChallengeEventProperty(IChallengeTask challengeTask, List<ChallengeMasterElement> nextChallengeMasterElements)
+            public List<string> PlayedSkitIdsStr { get; }
+
+            public CompleteChallengeEventProperty(IChallengeTask challengeTask, List<ChallengeMasterElement> nextChallengeMasterElements, List<string> playedSkitIdsStr)
             {
                 ChallengeTask = challengeTask;
                 NextChallengeMasterElements = nextChallengeMasterElements;
+                PlayedSkitIdsStr = playedSkitIdsStr;
             }
         }
     }

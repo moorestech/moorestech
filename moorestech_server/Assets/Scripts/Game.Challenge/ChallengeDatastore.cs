@@ -127,7 +127,7 @@ namespace Game.Challenge
                 
                 // イベントを発行
                 // Issue an event
-                _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges);
+                _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges, challengeInfo.PlayedSkitIds);
             }
             
             void ExecuteChallengeActions(ChallengeActionElement[] actions)
@@ -265,7 +265,8 @@ namespace Game.Challenge
                 {
                     PlayerId = playerId,
                     CompletedGuids = completedIds,
-                    CurrentChallengeGuids = currentChallengeGuids
+                    CurrentChallengeGuids = currentChallengeGuids,
+                    PlayedSkitIds = challengeInfo.Value.PlayedSkitIds
                 });
             }
             
@@ -383,11 +384,13 @@ namespace Game.Challenge
     {
         public List<IChallengeTask> CurrentChallenges { get; }
         public List<Guid> CompletedChallengeGuids { get; }
+        public List<string> PlayedSkitIds { get; }
         
         public PlayerChallengeInfo(List<IChallengeTask> currentChallenges, List<Guid> completedChallengeGuids)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallengeGuids = completedChallengeGuids;
+            PlayedSkitIds = new List<string>();
         }
     }
 }
