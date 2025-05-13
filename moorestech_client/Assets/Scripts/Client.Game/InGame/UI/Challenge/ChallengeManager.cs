@@ -44,7 +44,6 @@ namespace Client.Game.InGame.UI.Challenge
         private void OnCompletedChallenge(byte[] packet)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
-            var challengeInfo = MasterHolder.ChallengeMaster.GetChallenge(message.CompletedChallengeGuid);
             var nextChallenges = message.NextChallengeGuids.Select(c => MasterHolder.ChallengeMaster.GetChallenge(c)).ToList();
             
             // チュートリアルを完了
