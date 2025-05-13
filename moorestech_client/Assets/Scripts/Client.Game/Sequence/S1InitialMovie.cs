@@ -29,7 +29,6 @@ namespace Client.Game.Sequence
         
         private void Start()
         {
-            return;
             if (forcePlay)
             {
                 InitialMovie().Forget();
