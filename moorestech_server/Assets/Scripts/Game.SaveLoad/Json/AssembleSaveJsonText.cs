@@ -43,9 +43,10 @@ namespace Game.SaveLoad.Json
                 _challengeDatastore.GetSaveJsonObject(),
                 _gameUnlockStateDataController.GetSaveJsonObject(),
                 _craftTreeManager.GetSaveJsonObject()
-            );
-            
-            return JsonConvert.SerializeObject(saveData);
+           );
+
+
+           return JsonConvert.SerializeObject(saveData);
         }
     }
 }

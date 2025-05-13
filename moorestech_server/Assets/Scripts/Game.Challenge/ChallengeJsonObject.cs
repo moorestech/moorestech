@@ -7,5 +7,6 @@ namespace Game.Challenge
     {
         [JsonProperty("completedGuids")] public List<string> CompletedGuids;
         [JsonProperty("playerId")] public int PlayerId;
+        [JsonProperty("currentChallengeGuids")] public List<string> CurrentChallengeGuids;
     }
 }
