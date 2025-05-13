@@ -14,6 +14,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Challenge;
@@ -124,6 +125,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
+            builder.RegisterEntryPoint<SkitFireManager>().AsSelf();
             
             
             //UIコントロール

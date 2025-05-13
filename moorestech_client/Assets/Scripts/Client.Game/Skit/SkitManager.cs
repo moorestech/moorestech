@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Common.Asset;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.SkitTrack;
@@ -18,6 +19,18 @@ namespace Client.Game.Skit
         [SerializeField] private VoiceDefine voiceDefine;
         
         public bool IsPlayingSkit { get; private set; }
+        
+        public async UniTask StartSkit(string addressablePath)
+        {
+            var storyCsv = await AddressableLoader.LoadAsyncDefault<TextAsset>(addressablePath);
+            if (!storyCsv)
+            {
+                Debug.LogError($"ストーリーCSVが見つかりません : {addressablePath}");
+                return;
+            }
+            
+            await StartSkit(storyCsv);
+        }
         
         public async UniTask StartSkit(TextAsset storyCsv)
         {

@@ -127,7 +127,7 @@ namespace Game.Challenge
                 
                 // イベントを発行
                 // Issue an event
-                _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges);
+                _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges, challengeInfo.PlayedSkitIds);
             }
             
             void ExecuteChallengeActions(ChallengeActionElement[] actions)
@@ -169,7 +169,7 @@ namespace Game.Challenge
                 
                 // CurrentChallengeを作成
                 // create current challenges
-                CreateCurrentChallenge(completedChallengeIds, currentChallenges, playerChallengeInfo, playerId);
+                CreateCurrentChallenge(currentChallenges, playerId, challengeJsonObject.CurrentChallengeGuids);
                 
                 _playerChallengeInfos.Add(playerId, new PlayerChallengeInfo(currentChallenges, completedChallengeIds));
             }
@@ -204,40 +204,25 @@ namespace Game.Challenge
                 }
             }
             
-            void CreateCurrentChallenge(List<Guid> completeChallenges, List<IChallengeTask> currentChallenges, PlayerChallengeInfo playerChallengeInfo, int playerId)
+            void CreateCurrentChallenge(List<IChallengeTask> currentChallenges, int playerId, List<string> currentChallengeGuidStrings)
             {
-                // 完了済みチャレンジから現在挑戦中のチャレンジを再構築する
-                foreach (var completedId in completeChallenges)
-                {
-                    // 完了したチャレンジの次のチャレンジがクリア済みでなければ、CurrentChallengeに追加
-                    var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(completedId);
-                    foreach (var nextChallenge in nextChallenges)
-                    {
-                        // 完了済みかチェック
-                        // Check if it's completed
-                        if (completeChallenges.Contains(nextChallenge.ChallengeGuid)) continue;
-                        
-                        var nextChallengeMaster = MasterHolder.ChallengeMaster.GetChallenge(nextChallenge.ChallengeGuid);
-                        
-                        // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
-                        // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
-                        if (!IsChallengesCompleted(playerChallengeInfo, nextChallengeMaster)) continue;
-                        
-                        // すでに登録済みかを確認
-                        // Check if you're already registered
-                        var next = CreateChallenge(playerId, nextChallengeMaster);
-                        if (currentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == next.ChallengeMasterElement.ChallengeGuid)) continue;
-                        
-                        // 登録
-                        // Registration
-                        currentChallenges.Add(next);
-                        
-                        // 新たにマスタで追加されたチャレンジの可能性もあるため、アンロック系だけ実行しておく
-                        // There may be new challenges added by the master, so only run the unlocking ones.
-                        ExecuteUnlockActions(nextChallengeMaster.StartedActions.items);
-                    }
-                }
+                // JSONからロードされたCurrentChallengeGuidを元に、現在挑戦中のチャレンジを再構築する
                 
+                var currentChallengeGuids = currentChallengeGuidStrings.ConvertAll(Guid.Parse);
+                foreach (var currentChallenge in currentChallengeGuids)
+                {
+                    var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(currentChallenge);
+                    if (challengeElement == null) continue;
+                    
+                    
+                    var next = CreateChallenge(playerId, challengeElement);
+                    if (currentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == next.ChallengeMasterElement.ChallengeGuid)) continue;
+                    currentChallenges.Add(next);
+                    
+                    // 新たにマスタで追加されたチャレンジの可能性もあるため、アンロック系だけ実行しておく
+                    // There may be new challenges added by the master, so only run the unlocking ones.
+                    ExecuteUnlockActions(next.ChallengeMasterElement.StartedActions.items);
+                }
             }
             
             void ExecuteUnlockActionsOnLoad(List<Guid> completedChallengeGuids)
@@ -274,11 +259,14 @@ namespace Game.Challenge
             {
                 var playerId = challengeInfo.Key;
                 var completedIds = challengeInfo.Value.CompletedChallengeGuids.Select(x => x.ToString()).ToList();
-                
+                var currentChallengeGuids = challengeInfo.Value.CurrentChallenges.Select(x => x.ChallengeMasterElement.ChallengeGuid.ToString()).ToList();
+
                 result.Add(new ChallengeJsonObject
                 {
                     PlayerId = playerId,
-                    CompletedGuids = completedIds
+                    CompletedGuids = completedIds,
+                    CurrentChallengeGuids = currentChallengeGuids,
+                    PlayedSkitIds = challengeInfo.Value.PlayedSkitIds
                 });
             }
             
@@ -396,11 +384,13 @@ namespace Game.Challenge
     {
         public List<IChallengeTask> CurrentChallenges { get; }
         public List<Guid> CompletedChallengeGuids { get; }
+        public List<string> PlayedSkitIds { get; }
         
         public PlayerChallengeInfo(List<IChallengeTask> currentChallenges, List<Guid> completedChallengeGuids)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallengeGuids = completedChallengeGuids;
+            PlayedSkitIds = new List<string>();
         }
     }
 }

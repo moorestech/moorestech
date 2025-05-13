@@ -43,5 +43,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
         [JsonProperty("gameUnlockState")] public GameUnlockStateJsonObject GameUnlockStateJsonObject { get; set; }
         [JsonProperty("craftTreeInfo")] public List<PlayerCraftTreeJsonObject> CraftTreeInfo { get; set; }
+        [JsonProperty("currentlyActiveChallenge")] public ChallengeJsonObject CurrentlyActiveChallenge { get; set; }
     }
 }
