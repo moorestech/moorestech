@@ -46,7 +46,7 @@ namespace Client.Game.InGame.Skit
         {
             foreach (var action in challenge.ClearedActions.items)
             {
-                if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.unlockChallenge) continue;
+                if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;
                 
                 var param = (PlaySkitChallengeActionParam)action.ChallengeActionParam;
                 if (_skitManager.IsPlayingSkit)

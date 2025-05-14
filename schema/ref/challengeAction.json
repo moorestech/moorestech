@@ -10,7 +10,7 @@
 
         "challengeActionType": {
           "type": "string",
-          "enum": ["unlockCraftRecipe", "unlockItemRecipeView", "unlockChallenge"]
+          "enum": ["unlockCraftRecipe", "unlockItemRecipeView", "unlockChallenge", "playSkit"]
         },
 
         "challengeActionParam": {
