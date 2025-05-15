@@ -1,7 +1,6 @@
 id: items
 type: object
 isDefaultOpen: true
-# コメント追加してみる
 properties:
 - key: data
   type: array
