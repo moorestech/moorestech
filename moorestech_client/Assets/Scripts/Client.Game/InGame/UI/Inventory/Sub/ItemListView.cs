@@ -77,6 +77,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 _itemListObjects.Add(itemSlotObject);
             }
             
+            // アイテムリスト生成後にクラフト可能状態に基づいてグレーアウト処理を実行
+            OnInventoryItemChange(0);
+            
             #region Internal
             
             bool IsShow(ItemMasterElement itemMaster)
