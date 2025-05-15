@@ -1,0 +1,3 @@
+[submodule "VanillaSchema"]
+	path = VanillaSchema
+	url = git@github.com:moorestech/VanillaSchema.git
