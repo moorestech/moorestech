@@ -1,8 +1,0 @@
-id: gear
-type: object
-properties:
-- key: gearConnects
-  ref: blockConnectInfo
-  fixedParameter:
-    path: ./connectType
-    value: Gear
