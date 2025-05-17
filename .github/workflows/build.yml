@@ -25,7 +25,7 @@ jobs:
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
-          # - name: StandaloneLinux64 Linux側はランナーの容量語りなくて落ちるのでコメントアウト
+          # - name: StandaloneLinux64 Linux側はランナーの容量が足りなくて落ちるのでコメントアウト
             # buildMethod: BuildPipeline.LinuxBuildFromGithubAction
             # runner: windows-latest
     
@@ -33,6 +33,12 @@ jobs:
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # submodule の履歴も取得できるように
+      - name: Update submodules
+        run: |
+          git submodule sync --recursive # URL 変更を反映
+          git submodule update --init --recursive # 参照先コミットへ更新
       - name: Run git status
         id: status
         run: echo "::set-output name=status::$(git status -s)"
