@@ -6,8 +6,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
-using Game.Train.RailGraph;
-using Game.Train.Utility;
 using Game.Block.Factory.BlockTemplate.Utility;
 
 
@@ -23,24 +21,15 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
+            var railComponents = RailComponentFactory.CreateRailComponents(2, positionInfo);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している
+            var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            var station = StationComponentFactory.CreateAndConnectStationComponent<StationComponent>(
+                masterElement, positionInfo, railComponents
+            );//②stationをつなげて設置した場合に自動でrailComponentを接続するための処理もここでやってる
+
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            
-            // 駅ブロックは常に2つのRailComponentを持つ
-            var railComponents = new RailComponent[2];
-            var railSaverComponent = new RailSaverComponent(railComponents);
-            var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(positionInfo);
-
-            // 各RailComponentを生成
-            for (int i = 0; i < railComponents.Length; i++)
-            {
-                var componentId = new RailComponentID(positionInfo.OriginalPos, i);
-                railComponents[i] = new RailComponent(railComponentPositions[i], positionInfo.BlockDirection, componentId);
-            }
-            railComponents[0].ConnectRailComponent(railComponents[1], true, true);
-
-            var station = GetStation(masterElement, positionInfo, railComponents);
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
-            
+
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.Add(railSaverComponent);
@@ -57,12 +46,9 @@ namespace Game.Block.Factory.BlockTemplate
             BlockPositionInfo positionInfo)
         {
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            
-            // 保存されたRailComponent群を復元
+            // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
             var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
-            // 復元したRailComponentを管理するRailSaverComponentを作成
             var railSaverComponent = new RailSaverComponent(railComponents);
-
             var station = new StationComponent(stationParam.StationDistance, "test", 1);
             
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
@@ -76,35 +62,9 @@ namespace Game.Block.Factory.BlockTemplate
             return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
         }
 
-        private StationComponent GetStation(BlockMasterElement masterElement, BlockPositionInfo positionInfo, RailComponent[] railComponents)
-        {
-            var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            var station = new StationComponent(stationParam.StationDistance, "test", 1);
-            //進行方向チェック
-            var (v3, b) = StationConnectionChecker.IsStationConnectedToFront(positionInfo);
-            if (b == true) 
-            {
-                //自分の1 frontから相手の0 frontに接続する
-                var railComponentId = new RailComponentID(v3, 0);
-                var dst = new ConnectionDestination(railComponentId, true);
-                RailComponentUtility.EstablishConnection(railComponents[1], dst, true);
-            }
-            //逆方向チェック
-            (v3, b) = StationConnectionChecker.IsStationConnectedToBack(positionInfo);
-            if (b == true)
-            {
-                //自分の0 backから相手の1 backに接続する
-                var railComponentId = new RailComponentID(v3, 1);
-                var dst = new ConnectionDestination(railComponentId, false);
-                RailComponentUtility.EstablishConnection(railComponents[0], dst, false);
-            }
-            return station;
-        }
-        
         /// <summary>
         /// インベントリ関連のコンポーネントを作成する
         /// </summary>
-        /// <returns></returns>
         private List<IBlockComponent> CreateInventoryComponents(Dictionary<string, string> componentStates, BlockInstanceId instanceId, TrainStationBlockParam param, BlockPositionInfo blockPositionInfo)
         {
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
