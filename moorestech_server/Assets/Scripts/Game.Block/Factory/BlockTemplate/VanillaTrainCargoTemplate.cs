@@ -6,10 +6,8 @@ using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
-using Newtonsoft.Json;
-using Game.Context;
-using Game.Block.Interface.Extension;
-using UnityEngine;
+using Game.Block.Factory.BlockTemplate.Utility;
+
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -27,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
             // 駅ブロックは常に2つのRailComponentを持つ
             railComponents = new RailComponent[2];
             var railSaverComponent = new RailSaverComponent(railComponents);
-            var railComponentPositions = VanillaTrainStationTemplate.CalculateRailComponentPositions(positionInfo);
+            var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(positionInfo);
 
             // 各RailComponentを生成
             for (int i = 0; i < railComponents.Length; i++)
@@ -53,7 +51,7 @@ namespace Game.Block.Factory.BlockTemplate
             BlockPositionInfo positionInfo)
         {
             // 保存されたRailComponent群を復元
-            railComponents = VanillaTrainStationTemplate.RestoreRailComponents(componentStates, positionInfo);
+            railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
             // 復元したRailComponentを管理するRailSaverComponentを作成
             var railSaverComponent = new RailSaverComponent(railComponents);
 
@@ -79,7 +77,7 @@ namespace Game.Block.Factory.BlockTemplate
                 //自分の1 frontから相手の0 frontに接続する
                 var railComponentId = new RailComponentID(v3, 0);
                 var dst = new ConnectionDestination(railComponentId, true);
-                VanillaTrainStationTemplate.EstablishConnection(railComponents[1], dst, true);
+                RailComponentUtility.EstablishConnection(railComponents[1], dst, true);
             }
             //逆方向チェック
             (v3, b) = StationConnectionChecker.IsStationConnectedToBack(positionInfo);
@@ -88,7 +86,7 @@ namespace Game.Block.Factory.BlockTemplate
                 //自分の0 backから相手の1 backに接続する
                 var railComponentId = new RailComponentID(v3, 1);
                 var dst = new ConnectionDestination(railComponentId, false);
-                VanillaTrainStationTemplate.EstablishConnection(railComponents[0], dst, false);
+                RailComponentUtility.EstablishConnection(railComponents[0], dst, false);
             }
             return station;
         }
