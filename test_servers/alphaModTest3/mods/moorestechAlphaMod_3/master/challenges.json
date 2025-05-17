@@ -61,7 +61,14 @@
       "playSkitParam": {},
       "prevChallengeGuids": [],
       "unlockAllPreviousChallengeComplete": true,
-      "startedActions": []
+      "startedActions": [
+        {
+          "challengeActionType": "playSkit",
+          "challengeActionParam": {
+            "skitAddressablePath": "Vanilla/Skit/test"
+          }
+        }
+      ]
     },
     {
       "summary": "石器を作る",

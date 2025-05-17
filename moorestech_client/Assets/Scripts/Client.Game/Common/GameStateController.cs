@@ -1,9 +1,7 @@
-using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Input;
-using Client.Skit.Skit;
 using UnityEngine;
 
 namespace Client.Game.Common
@@ -11,8 +9,6 @@ namespace Client.Game.Common
     public class GameStateController : MonoBehaviour
     {
         private static GameStateController _instance;
-        [SerializeField] private SkitCamera skitCamera;
-        [SerializeField] private InGameCameraController inGameCameraController;
         
         [SerializeField] private PlayerObjectController playerObjectController;
         
@@ -47,9 +43,6 @@ namespace Client.Game.Common
         
         private void SetInGameState()
         {
-            skitCamera.SetActive(false);
-            inGameCameraController.SetActive(true);
-            
             playerObjectController.SetActive(true);
             
             hotBarView.SetActive(true);
@@ -60,9 +53,6 @@ namespace Client.Game.Common
         
         private void SetSkitState()
         {
-            skitCamera.SetActive(true);
-            inGameCameraController.SetActive(false);
-            
             playerObjectController.SetActive(false);
             
             hotBarView.SetActive(false);
@@ -73,9 +63,6 @@ namespace Client.Game.Common
         
         private void SetCutSceneState()
         {
-            skitCamera.SetActive(false);
-            inGameCameraController.SetActive(false);
-            
             playerObjectController.SetActive(false);
             
             hotBarView.SetActive(false);
