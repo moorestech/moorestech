@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3805122595465063641}
   - component: {fileID: 1721619012054501725}
-  - component: {fileID: 7736524495124498485}
   - component: {fileID: 3483818303739046987}
   m_Layer: 0
   m_Name: SkitManager
@@ -51,20 +50,6 @@ MonoBehaviour:
   skitCamera: {fileID: 366237098242407697}
   characterDefine: {fileID: 11400000, guid: 6ebd59b4837234f869c3f4310dbadad8, type: 2}
   voiceDefine: {fileID: 11400000, guid: 35e15cc239b931343ac758d613d94927, type: 2}
---- !u!114 &7736524495124498485
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5723533682717360178}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 988605cc2e534f68af9d849197d60b4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerSkitStarterDetector: {fileID: 0}
-  skitManager: {fileID: 1721619012054501725}
 --- !u!114 &3483818303739046987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,8 +62,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3888ab099b9f48d797cca0b8483ffc48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  storyCsv: {fileID: 0}
   backgroundSkitUI: {fileID: 0}
+  uiStateControl: {fileID: 0}
   voiceDefine: {fileID: 11400000, guid: 35e15cc239b931343ac758d613d94927, type: 2}
 --- !u!1 &8889034664745369174
 GameObject:
@@ -100,7 +85,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6503156365737348571
 Transform:
   m_ObjectHideFlags: 0
@@ -135,7 +120,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8889034664745369174}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}

@@ -1,19 +1,20 @@
-﻿using System.Threading;
-using Cinemachine;
+﻿using Cinemachine;
+using Client.Common;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Input;
-using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace Client.Game.InGame.Control
 {
-    public class InGameCameraController : MonoBehaviour
+    public class InGameCameraController : MonoBehaviour, IGameCamera, IInitializable
     {
         public Vector3 Position => transform.position;
         public Vector3 CameraEulerAngle => transform.rotation.eulerAngles;
         public float CameraDistance => _cinemachineFraming.m_CameraDistance;
         
+        public Camera MainCamera => mainCamera;
         [SerializeField] private Camera mainCamera;
         
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
@@ -26,6 +27,11 @@ namespace Client.Game.InGame.Control
         private DG.Tweening.Sequence _currentSequence;
         
         private bool _isControllable;
+        
+        public void Initialize()
+        {
+            CameraManager.Instance.RegisterCamera(this);
+        }
         
         private void Awake()
         {
@@ -74,15 +80,16 @@ namespace Client.Game.InGame.Control
             #endregion
         }
         
-        public void SetActive(bool enable)
-        {
-            enabled = enable;
-            mainCamera.gameObject.SetActive(enable);
-        }
-        
         public void SetControllable(bool enable)
         {
             _isControllable = enable;
+        }
+        
+        public void SetEnabled(bool cameraEnabled)
+        {
+            enabled = cameraEnabled;
+            mainCamera.enabled = cameraEnabled;
+            mainCamera.GetComponent<AudioListener>().enabled = cameraEnabled;
         }
         
         public void StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration)

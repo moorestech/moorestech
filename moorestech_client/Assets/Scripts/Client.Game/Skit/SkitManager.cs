@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Common;
 using Client.Common.Asset;
 using Client.Skit.Define;
 using Client.Skit.Skit;
@@ -40,6 +41,8 @@ namespace Client.Game.Skit
             var storyContext = PreProcess();
             var lines = storyCsv.text.Split('\n');
             var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
+            
+            CameraManager.Instance.RegisterCamera(skitCamera);
             
             //トラックの実行処理 Execute track
             for (var i = 0; i < lines.Length; i++)

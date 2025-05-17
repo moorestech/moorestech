@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -108,6 +109,8 @@ namespace Client.Starter
         {
             var builder = new ContainerBuilder();
             
+            CameraManager.Initialize();
+            
             //最初に取得したデータを登録
             // register initial data
             builder.RegisterInstance(initialHandshakeResponse);
@@ -125,7 +128,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
-            builder.RegisterEntryPoint<SkitFireManager>().AsSelf();
+            builder.RegisterEntryPoint<SkitFireManager>();
             
             
             //UIコントロール
@@ -184,7 +187,7 @@ namespace Client.Starter
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);
             
-            builder.RegisterComponent(inGameCameraController);
+            builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
