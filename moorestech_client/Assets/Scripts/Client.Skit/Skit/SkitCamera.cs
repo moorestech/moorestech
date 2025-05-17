@@ -1,3 +1,4 @@
+using Client.Common;
 using DG.Tweening;
 using UnityEngine;
 
@@ -8,12 +9,11 @@ namespace Client.Skit.Skit
         public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing);
         
         public void SetTransform(Vector3 pos, Vector3 rot);
-        
-        public void SetActive(bool enabled);
     }
     
-    public class SkitCamera : MonoBehaviour, ISkitCamera
+    public class SkitCamera : MonoBehaviour, ISkitCamera, IGameCamera
     {
+        public Camera MainCamera => camera;
         [SerializeField] private Camera camera;
         
         public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing)
@@ -30,10 +30,10 @@ namespace Client.Skit.Skit
             camera.transform.position = pos;
             camera.transform.eulerAngles = rot;
         }
-        
-        public void SetActive(bool enabled)
+        public void SetEnabled(bool cameraEnabled)
         {
-            gameObject.SetActive(enabled);
+            camera.enabled = cameraEnabled;
+            camera.GetComponent<AudioListener>().enabled = cameraEnabled;
         }
     }
 }

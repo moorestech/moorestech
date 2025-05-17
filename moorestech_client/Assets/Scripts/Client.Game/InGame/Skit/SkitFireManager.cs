@@ -14,16 +14,22 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.Skit
 {
-    public class SkitFireManager : IInitializable
+    public class SkitFireManager : IPostInitializable
     {
-        private readonly SkitManager _skitManager;
         public List<string> PlayedSkitIds { get; private set; } = new();
+        private readonly SkitManager _skitManager;
+        private InitialHandshakeResponse _initialHandshakeResponse;
         
         public SkitFireManager(SkitManager skitManager, InitialHandshakeResponse initialHandshakeResponse)
         {
             _skitManager = skitManager;
+            _initialHandshakeResponse = initialHandshakeResponse;
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
-            foreach (var challenge in initialHandshakeResponse.Challenge.CurrentChallenges)
+        }
+        
+        public void PostInitialize()
+        {
+            foreach (var challenge in _initialHandshakeResponse.Challenge.CurrentChallenges)
             {
                 PlaySkit(challenge);
             }
@@ -44,7 +50,7 @@ namespace Client.Game.InGame.Skit
         
         private void PlaySkit(ChallengeMasterElement challenge)
         {
-            foreach (var action in challenge.ClearedActions.items)
+            foreach (var action in challenge.StartedActions.items)
             {
                 if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;
                 
@@ -63,7 +69,5 @@ namespace Client.Game.InGame.Skit
                 }
             }
         }
-        
-        public void Initialize() { }
     }
 }

@@ -6,7 +6,8 @@
     "UniTask",
     "Unity.TextMeshPro",
     "UniTask.DOTween",
-    "DOTween.Modules"
+    "DOTween.Modules",
+    "Client.Common"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
