@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
@@ -19,14 +19,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
         
+        [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
         
-        private BlockGameObject _blockGameObject;
+        protected BlockGameObject BlockGameObject;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
-            _blockGameObject = blockGameObject;
+            BlockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
             
@@ -37,14 +38,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var i = 0; i < param.InputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
             for (var i = 0; i < param.OutputSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
@@ -52,13 +53,43 @@ namespace Client.Game.InGame.UI.Inventory.Block
             UpdateItemList(itemList);
         }
         
-        private void Update()
+        protected void Update()
         {
-            // ここが重かったら検討
-            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_blockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
-            if (commonProcessor == null) return;
+            UpdateMachineProgressArrow();
             
-            machineProgressArrow.SetProgress(commonProcessor.CurrentMachineState?.ProcessingRate ?? 0.0f);
+            #region Internal
+            
+            void UpdateMachineProgressArrow()
+            {
+                // ここが重かったら検討
+                var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
+                if (commonProcessor == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateChangeProcessorがアタッチされていません。");
+                    return;
+                }
+                
+                var state = commonProcessor.CurrentMachineState;
+                var rate = state?.ProcessingRate ?? 0.0f;
+                machineProgressArrow.SetProgress(rate);
+                
+                var powerRate = state?.PowerRate ?? 0.0f;
+                var requiredPower = state?.RequestPower ?? 0.0f;
+                var currentPower = state?.CurrentPower ?? 0.0f;
+                
+                var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
+                var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
+                
+                powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
+
+                
+                if (state == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
+                }
+            }
+            
+            #endregion
         }
     }
 }

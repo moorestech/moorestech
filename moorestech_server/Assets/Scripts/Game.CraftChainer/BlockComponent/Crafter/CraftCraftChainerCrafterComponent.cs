@@ -36,10 +36,10 @@ namespace Game.CraftChainer.BlockComponent.Crafter
             IsDestroy = true;
         }
         
-        public BlockStateDetail GetBlockStateDetail()
+        public BlockStateDetail[] GetBlockStateDetails()
         {
             var bytes = MessagePackSerializer.Serialize(new ChainerCrafterComponentSerializeObject(this));
-            return new BlockStateDetail(ChainerCrafterComponentSerializeObject.StateDetailKey, bytes);
+            return new []{ new BlockStateDetail(ChainerCrafterComponentSerializeObject.StateDetailKey, bytes) };
         }
         
         public string SaveKey { get; } = typeof(CraftCraftChainerCrafterComponent).FullName;

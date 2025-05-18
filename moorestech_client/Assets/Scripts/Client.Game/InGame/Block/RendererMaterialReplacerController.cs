@@ -15,6 +15,10 @@ namespace Client.Game.InGame.Block
             
             foreach (var renderer in targetObject.GetComponentsInChildren<Renderer>())
             {
+                // TextMeshProはエラーになるので無視
+                // Ignore TextMeshPro because it causes an error
+                if (renderer.GetComponent<TMPro.TextMeshPro>()) continue;
+                
                 // レンダラーが IgnoreRendererMaterialReplacer の子である場合は無視
                 // Ignore if the renderer is a child of the IgnoreRendererMaterialReplacer
                 var isIgnore = false;

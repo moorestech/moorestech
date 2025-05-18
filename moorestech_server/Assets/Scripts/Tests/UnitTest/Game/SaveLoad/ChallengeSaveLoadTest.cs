@@ -116,5 +116,66 @@ namespace Tests.CombinedTest.Game
                 Assert.AreEqual(challengeInfo.CompletedChallengeGuids[i], loadedChallengeInfo.CompletedChallengeGuids[i]);
             }
         }
+        
+        [Test]
+        public void CurrentChallengeSaveLoadTest()
+        {
+            // AI生成コード
+            // AI generated code
+            
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+
+            // そのプレイヤーIDのチャレンジを作成する
+            // create a challenge for that player ID
+            var challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+
+            // 初期チャレンジが正しく設定されていることを確認する
+            // Check that the initial challenge is set correctly
+            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            Assert.AreEqual(initialChallenge.Count, challengeInfo.CurrentChallenges.Count);
+            foreach (var currentChallenge in challengeInfo.CurrentChallenges)
+            {
+                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
+                Assert.IsNotNull(challenge);
+            }
+
+            // クラフトのチャレンジをクリアする
+            // Clear the craft challenge
+            ChallengeCompletedEventTest.ClearCraftChallenge(packet, serviceProvider);
+
+            // 保存する直前の現在のチャレンジを取得
+            // Get the current challenge just before saving
+            var currentChallenges = challengeInfo.CurrentChallenges.ToList();
+
+            // セーブ
+            // Save
+            var saveJson = assembleSaveJsonText.AssembleSaveJson();
+
+            // ロード
+            // load
+            (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // ロードされたチャレンジ情報を取得
+            // Get the loaded challenge information
+            var loadedChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+
+            // クリア済みのチャレンジが1つ存在することを確認
+            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);
+
+            // 現在のチャレンジが正しくロードされていることを確認
+            // Check that the current challenges are loaded correctly
+            Assert.AreEqual(currentChallenges.Count, loadedChallengeInfo.CurrentChallenges.Count);
+            for (int i = 0; i < currentChallenges.Count; i++)
+            {
+                var beforeChallenge = currentChallenges[i].ChallengeMasterElement.ChallengeGuid;
+                var loadedChallenge = loadedChallengeInfo.CurrentChallenges[i].ChallengeMasterElement.ChallengeGuid;
+                
+                Assert.AreEqual(beforeChallenge, loadedChallenge);
+            }
+        }
     }
 }

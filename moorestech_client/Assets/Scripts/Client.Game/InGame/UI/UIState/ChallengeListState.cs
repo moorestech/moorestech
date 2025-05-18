@@ -15,6 +15,7 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
+            _challengeListUI.UpdateUnlockState();
             _challengeListUI.SetActive(true);
             InputManager.MouseCursorVisible(true);
         }

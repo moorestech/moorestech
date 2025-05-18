@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -40,25 +41,25 @@ namespace Tests.CombinedTest.Game
             //ジェネレーターの供給が正しいか
             //Is the generator supply correct?
             var generatorComponent = generator.GetComponent<IGearGenerator>();
-            Assert.AreEqual(10.0f, generatorComponent.CurrentRpm.AsPrimitive());
+            AreEqual(10.0f, generatorComponent.CurrentRpm);
             Assert.AreEqual(true, generatorComponent.GenerateIsClockwise);
             
             //シャフトの回転は正しいか
             //Is the rotation of the shaft correct?
             var shaftComponent = shaft.GetComponent<GearEnergyTransformer>();
-            Assert.AreEqual(10.0f, shaftComponent.CurrentRpm.AsPrimitive());
+            AreEqual(10.0f, shaftComponent.CurrentRpm);
             Assert.AreEqual(true, shaftComponent.IsCurrentClockwise);
             
             //BigGearの回転は正しいか
             //Is the rotation of BigGear correct?
             var bigGearComponent = bigGear.GetComponent<GearComponent>();
-            Assert.AreEqual(10.0f, bigGearComponent.CurrentRpm.AsPrimitive());
+            AreEqual(10.0f, bigGearComponent.CurrentRpm);
             Assert.AreEqual(true, bigGearComponent.IsCurrentClockwise);
             
             //SmallGearの回転は正しいか
             //Is the rotation of SmallGear correct?
             var smallGearComponent = smallGear.GetComponent<GearComponent>();
-            Assert.AreEqual(20.0f, smallGearComponent.CurrentRpm.AsPrimitive()); // ギア比2:1 Gear ratio 2:1
+            AreEqual(20.0f, smallGearComponent.CurrentRpm); // ギア比2:1 Gear ratio 2:1
             Assert.AreEqual(false, smallGearComponent.IsCurrentClockwise); // 回転が反転する Rotation is reversed
         }
         
@@ -103,23 +104,23 @@ namespace Tests.CombinedTest.Game
             gearNetwork.ManualUpdate();
             
             // Generatorの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, generator.CurrentRpm.AsPrimitive());
+            AreEqual(rpm, generator.CurrentRpm);
             Assert.AreEqual(true, generator.IsCurrentClockwise);
             
             // smallGearAの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearA.CurrentRpm.AsPrimitive());
+            AreEqual(rpm, smallGearA.CurrentRpm);
             Assert.AreEqual(true, smallGearA.IsCurrentClockwise);
             
             // smallGearBの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearB.CurrentRpm.AsPrimitive());
+            AreEqual(rpm, smallGearB.CurrentRpm);
             Assert.AreEqual(false, smallGearB.IsCurrentClockwise);
             
             // smallGearCの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearC.CurrentRpm.AsPrimitive());
+            AreEqual(rpm, smallGearC.CurrentRpm);
             Assert.AreEqual(true, smallGearC.IsCurrentClockwise);
             
             // smallGearDの回転方向とRPMのテスト
-            Assert.AreEqual(rpm, smallGearD.CurrentRpm.AsPrimitive());
+            AreEqual(rpm, smallGearD.CurrentRpm);
             Assert.AreEqual(false, smallGearD.IsCurrentClockwise);
         }
         
@@ -229,10 +230,10 @@ namespace Tests.CombinedTest.Game
             
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(fastGenerator.CurrentRpm.AsPrimitive(), 20f);
-            Assert.AreEqual(smallGearA.CurrentRpm.AsPrimitive(), 20f);
-            Assert.AreEqual(generator.CurrentRpm.AsPrimitive(), 20f);
-            Assert.AreEqual(smallGearB.CurrentRpm.AsPrimitive(), 20f);
+            Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
+            Assert.AreEqual(smallGearA.CurrentRpm, 20f);
+            Assert.AreEqual(generator.CurrentRpm, 20f);
+            Assert.AreEqual(smallGearB.CurrentRpm, 20f);
         }
         
         [Test]
@@ -298,9 +299,9 @@ namespace Tests.CombinedTest.Game
             
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(10, gear1.CurrentPower.AsPrimitive());
-            Assert.AreEqual(10, gear2.CurrentPower.AsPrimitive());
-            Assert.AreEqual(10, gear3.CurrentPower.AsPrimitive());
+            AreEqual(10, gear1.CurrentPower);
+            AreEqual(10, gear2.CurrentPower);
+            AreEqual(10, gear3.CurrentPower);
         }
         
         [Test]
@@ -346,20 +347,75 @@ namespace Tests.CombinedTest.Game
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
             
-            Assert.AreEqual(5, gear1.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(5, gear2.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.5f, gear1.CurrentTorque.AsPrimitive());
-            Assert.AreEqual(0.5f, gear2.CurrentTorque.AsPrimitive());
+            const float baseRpm = 2.5f;
+            const float baseTorque = 0.25f;
             
-            Assert.AreEqual(10, gear3.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(10, gear4.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(10, gear5.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.25f, gear3.CurrentTorque.AsPrimitive());
-            Assert.AreEqual(0.25f, gear4.CurrentTorque.AsPrimitive());
-            Assert.AreEqual(0.25f, gear5.CurrentTorque.AsPrimitive());
+            AreEqual(baseRpm, gear1.CurrentRpm);
+            AreEqual(baseRpm, gear2.CurrentRpm);
+            AreEqual(baseTorque, gear1.CurrentTorque);
+            AreEqual(baseTorque, gear2.CurrentTorque);
             
-            Assert.AreEqual(20, gear6.CurrentRpm.AsPrimitive());
-            Assert.AreEqual(0.125f, gear6.CurrentTorque.AsPrimitive());
+            AreEqual(baseRpm * 2f, gear3.CurrentRpm);
+            AreEqual(baseRpm * 2f, gear4.CurrentRpm);
+            AreEqual(baseRpm * 2f, gear5.CurrentRpm);
+            AreEqual(baseTorque, gear3.CurrentTorque);
+            AreEqual(baseTorque, gear4.CurrentTorque);
+            AreEqual(baseTorque, gear5.CurrentTorque);
+            
+            AreEqual(baseRpm * 4f, gear6.CurrentRpm);
+            AreEqual(baseTorque, gear6.CurrentTorque);
+        }
+        
+        
+        [Test]
+        // RPMが1/2になると供給されるトルクが倍になるテスト
+        public void TorqueHalfTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
+            var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
+            // 生成するトルクを1に設定する
+            // Set the generated torque to 1
+            SetGenerateTorque(generator);
+            
+            
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            
+            var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            // テストしたいGear2で不要なトルク消費が行われないように必要トルクを0に設定
+            // Set the required torque to 0 so that unnecessary torque consumption is not performed in Gear2 to be tested
+            typeof(GearEnergyTransformer).GetField("_requiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(gear1, new Torque(0));
+            
+            var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
+            
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
+            gearNetwork.ManualUpdate();
+            
+            AreEqual(5, gear1.CurrentRpm);
+            AreEqual(10, gear2.CurrentRpm);
+            AreEqual(0, gear1.CurrentTorque);
+            AreEqual(0.5f, gear2.CurrentTorque);
+        }
+        
+        
+        private void SetGenerateTorque(SimpleGearGeneratorComponent component)
+        {
+            var value = new Torque(1);
+            
+            var type = typeof(SimpleGearGeneratorComponent);
+            var property = type.GetProperty("GenerateTorque", BindingFlags.Public | BindingFlags.Instance);
+            var backingFieldName = $"<{property.Name}>k__BackingField";
+            var backingField = type.GetField(backingFieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            backingField.SetValue(component, value);
         }
         
         [Test]
@@ -378,15 +434,15 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North, out _);
-            Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+            AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークをマージ
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out _);
-            Assert.AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
+            AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークの分離のテスト
             ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2);
-            Assert.AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+            AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
         }
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
@@ -403,6 +459,28 @@ namespace Tests.CombinedTest.Game
             
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear1Connector.ConnectedTargets).Add(gear2Transform, gear2Info);
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear2Connector.ConnectedTargets).Add(gear1Transform, gear1Info);
+        }
+        
+        private void AreEqual(float expected, RPM actual)
+        {
+            AreEqual(expected, actual.AsPrimitive());
+        }
+        
+        private void AreEqual(float expected, Torque actual)
+        {
+            AreEqual(expected, actual.AsPrimitive());
+        }
+        
+        private void AreEqual(float expected, GearPower actual)
+        {
+            AreEqual(expected, actual.AsPrimitive());
+        }
+        
+        private void AreEqual(float expected, float actual)
+        {
+            // 0.01fの誤差を許容する
+            // Allow an error of 0.01f
+            Assert.IsTrue(Mathf.Abs(expected - actual) < 0.01f, $"Expected: {expected}, Actual: {actual}");
         }
     }
 }

@@ -23,7 +23,8 @@
     "Game.Challenge.Interface",
     "Game.CraftChainer",
     "Core.Master",
-    "Game.UnlockState"
+    "Game.UnlockState",
+    "Game.CraftTree"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

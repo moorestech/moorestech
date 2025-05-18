@@ -2,8 +2,8 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.MineSettingsModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Miner
 {

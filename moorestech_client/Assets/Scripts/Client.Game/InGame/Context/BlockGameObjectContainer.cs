@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.Common;
@@ -11,6 +12,7 @@ using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+using Object = UnityEngine.Object;
 
 
 namespace Client.Game.InGame.Context
@@ -53,13 +55,14 @@ namespace Client.Game.InGame.Context
         private static async UniTask<BlockObjectInfo> LoadBlockGameObject(BlockId blockId)
         {
             var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (masterElement.BlockPrefabAddressablesPath == null)
+            var path = masterElement.BlockPrefabAddressablesPath;
+            if (string.IsNullOrEmpty(path))
             {
-                Debug.LogWarning($"ブロックのパスの設定がありません。 Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
+                Debug.LogError($"ブロックのパスの設定がありません。 Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
                 return null;
             }
             
-            var blockAsset = await AddressableLoader.LoadAsync<GameObject>(masterElement.BlockPrefabAddressablesPath);
+            var blockAsset = await AddressableLoader.LoadAsync<GameObject>(path);
             if (blockAsset == null)
             {
                 //TODO ログ基盤に入れる

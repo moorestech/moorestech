@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Challenge;
+using Game.CraftTree.Models;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -21,7 +21,8 @@ namespace Client.Network.API
         public PlayerInventoryResponse Inventory { get; }
         public ChallengeResponse Challenge { get; }
         public List<BlockStateMessagePack> BlockStates { get; }
-        public UnlockCraftRecipeStateResponse UnlockCraftRecipeState { get; }
+        public UnlockStateResponse UnlockState { get; }
+        public CraftTreeResponse CraftTree { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -30,8 +31,9 @@ namespace Client.Network.API
                 WorldDataResponse worldData, 
                 PlayerInventoryResponse inventory, 
                 ChallengeResponse challenge, 
-                List<BlockStateMessagePack> blockStates, 
-                UnlockCraftRecipeStateResponse unlockCraftRecipeState) responses)
+                List<BlockStateMessagePack> blockStates,
+                UnlockStateResponse unlockState,
+                CraftTreeResponse craftTree) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -39,7 +41,8 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenge = responses.challenge;
             BlockStates = responses.blockStates;
-            UnlockCraftRecipeState = responses.unlockCraftRecipeState;
+            UnlockState = responses.unlockState;
+            CraftTree = responses.craftTree;
         }
     }
     
@@ -109,20 +112,40 @@ namespace Client.Network.API
         }
     }
     
-    public class UnlockCraftRecipeStateResponse
+    public class UnlockStateResponse
     {
         public readonly List<Guid> LockedCraftRecipeGuids;
         public readonly List<Guid> UnlockedCraftRecipeGuids;
         
         public readonly List<ItemId> LockedItemIds;
         public readonly List<ItemId> UnlockedItemIds;
+
+        public readonly List<Guid> LockedChallengeGuids; // Added for challenges
+        public readonly List<Guid> UnlockedChallengeGuids; // Added for challenges
         
-        public UnlockCraftRecipeStateResponse(List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids, List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds)
+        public UnlockStateResponse(
+            List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
+            List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
+            List<Guid> lockedChallengeGuids, List<Guid> unlockedChallengeGuids) // Added challenge parameters
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
             LockedItemIds = lockedItemIds;
             UnlockedItemIds = unlockedItemIds;
+            LockedChallengeGuids = lockedChallengeGuids; // Added assignment
+            UnlockedChallengeGuids = unlockedChallengeGuids; // Added assignment
+        }
+    }
+    
+    public class CraftTreeResponse
+    {
+        public List<CraftTreeNode> CraftTrees { get; }
+        public Guid CurrentTargetNode { get; }
+        
+        public CraftTreeResponse(List<CraftTreeNode> craftTrees, Guid currentTargetNode)
+        {
+            CraftTrees = craftTrees;
+            CurrentTargetNode = currentTargetNode;
         }
     }
 }

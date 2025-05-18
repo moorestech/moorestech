@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,8 +5,8 @@ using Client.Network.Settings;
 using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Challenge;
 using Game.Context;
+using Game.CraftTree.Models;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -40,7 +39,8 @@ namespace Client.Network.API
                 GetPlayerInventory(playerId, ct), 
                 GetChallengeResponse(playerId, ct), 
                 GetAllBlockState(ct),
-                GetUnlockCraftRecipeState(ct));
+                GetUnlockState(ct), 
+                GetCraftTree(playerId, ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -140,12 +140,32 @@ namespace Client.Network.API
             return response.State;
         }
         
-        public async UniTask<UnlockCraftRecipeStateResponse> GetUnlockCraftRecipeState(CancellationToken ct)
+        // Renamed method to reflect its broader scope
+        public async UniTask<UnlockStateResponse> GetUnlockState(CancellationToken ct)
         {
             var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
             
-            return new UnlockCraftRecipeStateResponse(response.LockedCraftRecipeGuids, response.UnlockCraftRecipeGuids, response.LockedItemIds, response.UnlockItemIds);
+            // Pass challenge unlock data to the response constructor
+            return new UnlockStateResponse(
+                response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
+                response.LockedItemIds, response.UnlockedItemIds,
+                response.LockedChallengeGuids, response.UnlockedChallengeGuids);
+        }
+        
+        public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
+        {
+            var request = new GetCraftTreeProtocol.RequestGetCraftTreeMessagePack(playerId);
+            var response = await _packetExchangeManager.GetPacketResponse<GetCraftTreeProtocol.ResponseGetCraftTreeMessagePack>(request, ct);
+            
+            // レスポンスからCraftTreeNodeのリストを作成
+            var craftTreeNodes = new List<CraftTreeNode>();
+            foreach (var tree in response.CraftTrees)
+            {
+                craftTreeNodes.Add(tree.CreateCraftTreeNode());
+            }
+            
+            return new CraftTreeResponse(craftTreeNodes, response.CurrentTargetNode);
         }
     }
 }

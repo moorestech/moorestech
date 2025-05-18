@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Core
             
             // generatorブロックを作成
             var generatorPosition = new Vector3Int(1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, out var generator);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.East, out var generator);
             
             // testGearブロックを作成
             var testGearPosition = new Vector3Int(2, 0, 0);
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Core
             Assert.True(dummy.IsItemExists);
             
             var now = DateTime.Now;
-            Debug.Log($"{now} {expectedEndTime}\n{(now - startTime).TotalSeconds}\n{(expectedEndTime - now).TotalSeconds}\n{duration}\n{c}");
+            Debug.Log($"{now.Second} {expectedEndTime.Second}\n{(now - startTime).TotalSeconds}\n{(expectedEndTime - now).TotalSeconds}\n{duration}\n{c}");
             Assert.True(now <= expectedEndTime.AddSeconds(0.4));
             Assert.True(expectedEndTime.AddSeconds(-0.4) <= now);
         }

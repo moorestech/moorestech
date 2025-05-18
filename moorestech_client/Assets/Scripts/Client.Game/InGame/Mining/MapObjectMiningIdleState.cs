@@ -1,5 +1,5 @@
 
-using Client.Game.InGame.UI.Util;
+using Client.Game.InGame.UI.Tooltip;
 
 namespace Client.Game.InGame.Mining
 {
@@ -7,7 +7,7 @@ namespace Client.Game.InGame.Mining
     {
         public MapObjectMiningIdleState()
         {
-            MouseCursorExplainer.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide();
         }
         
         public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)

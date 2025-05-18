@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Map.MapObject;
@@ -13,6 +15,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Challenge;
@@ -67,10 +70,12 @@ namespace Client.Starter
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
         [SerializeField] private ChallengeListUI challengeListUI;
+        [SerializeField] private CraftTreeViewManager craftTreeViewManager;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
+        [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private SaveButton saveButton;
@@ -104,6 +109,8 @@ namespace Client.Starter
         {
             var builder = new ContainerBuilder();
             
+            CameraManager.Initialize();
+            
             //最初に取得したデータを登録
             // register initial data
             builder.RegisterInstance(initialHandshakeResponse);
@@ -121,6 +128,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
+            builder.RegisterEntryPoint<SkitFireManager>();
             
             
             //UIコントロール
@@ -169,15 +177,17 @@ namespace Client.Starter
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
             builder.RegisterComponent(challengeListUI);
+            builder.RegisterComponent(craftTreeViewManager);
             
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
+            builder.RegisterComponent(itemViewHighLightTutorialManager);
             
             builder.RegisterComponent(playerSkitStarterDetector);
             builder.RegisterComponent(skitManager);
             
-            builder.RegisterComponent(inGameCameraController);
+            builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);

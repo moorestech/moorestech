@@ -18,7 +18,7 @@ namespace Common.Debug
 
         #region Public Accessors
 
-        public static bool GetValueOrDefaultBool(string key, bool defaultValue)
+        public static bool GetValueOrDefaultBool(string key, bool defaultValue = false)
         {
             Load();
             return BoolDebugParameters.GetValueOrDefault(key, defaultValue);
