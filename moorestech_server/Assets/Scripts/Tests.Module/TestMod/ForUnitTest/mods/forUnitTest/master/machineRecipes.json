@@ -227,6 +227,7 @@
       "blockGuid": "00000000-0000-0000-0000-000000000023"
     },
     {
+      "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
       "time": 1,
       "inputItems": [],
       "outputItems": [],
@@ -239,7 +240,9 @@
           "amount": 2,
           "fluidGuid": "00000000-0000-0000-1234-000000000002"
         }
-      ]
+      ],
+      "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
+      "outputFluids": []
     }
   ]
 }

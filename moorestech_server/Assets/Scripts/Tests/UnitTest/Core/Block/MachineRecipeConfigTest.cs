@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
+using Game.Fluid;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -23,10 +24,11 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var input = new List<IItemStack>();
-            items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
+            var inputItems = new List<IItemStack>();
+            items.ToList().ForEach(i => inputItems.Add(itemStackFactory.Create(new ItemId(i), 1)));
+            var inputFluids = new List<FluidContainer>();
             
-            MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, input, out var ans);
+            MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, inputItems, inputFluids, out var ans);
             
             Assert.AreEqual(output0Id, MasterHolder.ItemMaster.GetItemId(ans.OutputItems[0].ItemGuid).AsPrimitive());
             Assert.AreEqual(output0Percent, ans.OutputItems[0].Percent);
@@ -43,10 +45,11 @@ namespace Tests.UnitTest.Core.Block
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var input = new List<IItemStack>();
-            items.ToList().ForEach(i => input.Add(itemStackFactory.Create(new ItemId(i), 1)));
+            var inputItems = new List<IItemStack>();
+            items.ToList().ForEach(i => inputItems.Add(itemStackFactory.Create(new ItemId(i), 1)));
+            var inputFluids = new List<FluidContainer>();
             
-            var ans = MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, input, out _);
+            var ans = MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)BlocksId, inputItems, inputFluids, out _);
             Assert.AreEqual(outputLength == 1, ans);
         }
         
@@ -71,8 +74,10 @@ namespace Tests.UnitTest.Core.Block
                 var itemId = new ItemId(items[i]);
                 itemStacks.Add(itemStackFactory.Create(itemId, itemcount[i]));
             }
+            var inputFluids = new List<FluidContainer>();
+
             
-            MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)blocksId, itemStacks, out var machineRecipeElement);
+            MachineRecipeMasterUtil.TryGetRecipeElement((BlockId)blocksId, itemStacks, inputFluids, out var machineRecipeElement);
             
             if (!ans && machineRecipeElement == null)
             {
@@ -80,7 +85,7 @@ namespace Tests.UnitTest.Core.Block
                 return;
             }
             
-            var a = machineRecipeElement.RecipeConfirmation((BlockId)blocksId, itemStacks);
+            var a = machineRecipeElement.RecipeConfirmation((BlockId)blocksId, itemStacks, inputFluids);
             Assert.AreEqual(ans, a);
         }
     }
