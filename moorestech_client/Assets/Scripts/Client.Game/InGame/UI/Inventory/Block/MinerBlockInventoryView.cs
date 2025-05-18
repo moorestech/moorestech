@@ -1,11 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
+using TMPro;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -14,17 +19,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
     {
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
-        [SerializeField] private ItemSlotObject minerResourceSlot;
+        [SerializeField] private RectTransform miningItemSlotParent;
         [SerializeField] private RectTransform minerResultsParent;
         
+        [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView minerProgressArrow;
         
-        private BlockGameObject _blockGameObject;
+        protected BlockGameObject BlockGameObject;
+        private CancellationToken _gameObjectCancellationToken;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
-            _blockGameObject = blockGameObject;
+            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
+            BlockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
             var param = blockGameObject.BlockMasterElement.BlockParam;
@@ -35,23 +43,93 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 _ => 0
             };
             
-            for (var i = 0; i < outputCount; i++)
+            // リザルトアイテムスロットを作成
+            CreateResultItemSlot();
+            
+            // アイテムリストを更新
+            UpdateItemList(itemList);
+            
+            // 採掘アイテムスロットを更新
+            SetMiningItem().Forget();
+            
+            #region Internal
+            
+            void CreateResultItemSlot()
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
-                _blockItemSlotObjects.Add(slotObject);
-                itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
+                for (var i = 0; i < outputCount; i++)
+                {
+                    var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
+                    SubInventorySlotObjectsInternal.Add(slotObject);
+                    itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
+                }
             }
             
-            UpdateItemList(itemList);
+  #endregion
         }
         
-        private void Update()
+        protected void Update()
         {
-            // ここが重かったら検討
-            var commonProcessor = (CommonMachineBlockStateChangeProcessor)_blockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
-            if (commonProcessor == null) return;
+            UpdateMinerProgressArrow();
             
-            minerProgressArrow.SetProgress(commonProcessor.CurrentMachineState?.ProcessingRate ?? 0.0f);
+            #region Internal
+            
+            void UpdateMinerProgressArrow()
+            {
+                // ここが重かったら検討
+                var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
+                if (commonProcessor == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateChangeProcessorがアタッチされていません。");
+                    return;
+                }
+                
+                var state = commonProcessor.CurrentMachineState;
+                var rate = state?.ProcessingRate ?? 0.0f;
+                minerProgressArrow.SetProgress(rate);
+                
+                var powerRate = state?.PowerRate ?? 0.0f;
+                var requiredPower = state?.RequestPower ?? 0.0f;
+                var currentPower = state?.CurrentPower ?? 0.0f;
+                
+                var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
+                var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
+                
+                powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
+                
+                if (state == null)
+                {
+                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
+                }
+            }
+            
+  #endregion
         }
+        
+        private async UniTask SetMiningItem()
+        {
+            // 採掘中のアイテムを取得
+            var pos = BlockGameObject.BlockPosInfo.OriginalPos;
+            var blockStates = await ClientContext.VanillaApi.Response.GetBlockState(pos, _gameObjectCancellationToken);
+            if (blockStates == null)
+            {
+                Debug.LogError("ステートが取得できませんでした。");
+                return;
+            }
+            
+            var state = blockStates.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
+            if (state == null)
+            {
+                Debug.LogError("CommonMinerのステートが取得できませんでした。");
+                return;
+            }
+            
+            // 採掘中のアイテムを表示
+            foreach (var itemId in state.GetCurrentMiningItemIds())
+            {
+                var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
+                var slot = Instantiate(itemSlotObjectPrefab, miningItemSlotParent);
+                slot.SetItem(itemView, 0);
+            }
+        } 
     }
 }

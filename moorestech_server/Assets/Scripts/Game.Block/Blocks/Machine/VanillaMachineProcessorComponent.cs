@@ -13,6 +13,12 @@ namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
+        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
+        
+        public double RemainingSecond { get; private set; }
+        
+        public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
+        public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
         
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
@@ -20,6 +26,9 @@ namespace Game.Block.Blocks.Machine
         
         public readonly ElectricPower RequestPower;
         
+        // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
+        // Use this flag because you want to keep _currentPower until the next energy supply or update
+        private bool _usedPower;
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
@@ -34,8 +43,6 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
-            
-            //TODO コンポーネント化する
         }
         
         public VanillaMachineProcessorComponent(
@@ -53,33 +60,40 @@ namespace Game.Block.Blocks.Machine
             
             CurrentState = currentState;
         }
-        public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-        
-        public double RemainingSecond { get; private set; }
-        
-        public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
-        public IObservable<Unit> OnChangeBlockState => _changeState;
         
         
-        public BlockStateDetail GetBlockStateDetail()
+        public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
             
             var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
             var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
             var currentState = MessagePackSerializer.Serialize(stateDetail);
-            return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, currentState);
+            return new []{ new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, currentState) };
         }
         
-        public bool IsDestroy { get; private set; }
-        public void Destroy()
+        public void SupplyPower(ElectricPower power)
         {
-            IsDestroy = true;
+            BlockException.CheckDestroy(this);
+            _usedPower = false;
+            _currentPower = power;
+            
+            // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
+            // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
+            if (CurrentState == ProcessState.Idle)
+            {
+                _changeState.OnNext(Unit.Default);
+            }
         }
         
         public void Update()
         {
             BlockException.CheckDestroy(this);
+            if (_usedPower)
+            {
+                _usedPower = false;
+                _currentPower = new ElectricPower(0);
+            }
             
             switch (CurrentState)
             {
@@ -99,18 +113,12 @@ namespace Game.Block.Blocks.Machine
             }
         }
         
-        public void SupplyPower(ElectricPower power)
-        {
-            BlockException.CheckDestroy(this);
-            _currentPower = power;
-        }
-        
         private void Idle()
         {
             var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
             var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
-                                 _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
-                                 _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+                   _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
+                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
             
             if (isStartProcess)
             {
@@ -131,7 +139,13 @@ namespace Game.Block.Blocks.Machine
             }
             
             //電力を消費する
-            _currentPower = new ElectricPower(0);
+            _usedPower = true;
+        }
+        
+        public bool IsDestroy { get; private set; }
+        public void Destroy()
+        {
+            IsDestroy = true;
         }
     }
     

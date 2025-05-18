@@ -9,8 +9,6 @@ namespace Client.Common
         
         public const int DefaultPlayerId = 1;
         
-        public static readonly string ServerDirName = "Server";
-        public static readonly string DefaultServerDirectory = GetFullPath("./" + ServerDirName);
         
         public static string CreateServerModsDirectory(string serverDirectory)
         {

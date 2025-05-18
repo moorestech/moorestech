@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.State;
 using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
@@ -12,7 +11,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable, IBlockStateDetail
+    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable
     {
         public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
@@ -35,14 +34,14 @@ namespace Game.Block.Blocks.Gear
             _requiredTorque = requiredTorque;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _simpleGearService = new SimpleGearService();
+            _simpleGearService = new SimpleGearService(blockInstanceId);
             
             GearNetworkDatastore.AddGear(this);
         }
         
-        public BlockStateDetail GetBlockStateDetail()
+        public BlockStateDetail[] GetBlockStateDetails()
         {
-            return _simpleGearService.GetBlockStateDetail();
+            return new []{ _simpleGearService.GetBlockStateDetail() };
         }
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)

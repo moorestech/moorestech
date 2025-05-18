@@ -33,7 +33,8 @@
         "Core.Master",
         "Game.CraftChainer",
         "Game.Train",
-        "Game.UnlockState"
+        "Game.UnlockState",
+        "Game.CraftTree"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

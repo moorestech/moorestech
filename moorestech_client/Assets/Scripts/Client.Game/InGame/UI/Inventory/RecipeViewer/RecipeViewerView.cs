@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Core.Master;
 using UniRx;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
@@ -13,12 +16,27 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         [SerializeField] private ItemListView itemListView;
         
+        [SerializeField] private CraftTreeViewManager craftTreeViewManager;
+        [SerializeField] private List<Button> createCraftTreeView;
+        
+        private RecipeViewerItemRecipes _currentRecipe;
+        
         private void Awake()
         {
             itemListView.OnClickItem.Subscribe(SetItemListView);
             craftInventoryView.OnClickItem.Subscribe(SetItemListView);
             machineRecipeView.OnClickItem.Subscribe(SetItemListView);
             recipeTabView.OnClickTab.Subscribe(OnClickTab);
+            
+            foreach (var craftTreeView in createCraftTreeView)
+            {
+                craftTreeView.onClick.AddListener(() =>
+                {
+                    if (_currentRecipe == null) return;
+                    
+                    craftTreeViewManager.CreateNewCraftTree(_currentRecipe.ResultItemId);
+                });
+            }
         }
         
         private void SetItemListView(RecipeViewerItemRecipes recipeViewerItemRecipes)
@@ -28,6 +46,8 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 return;
             }
             
+            _currentRecipe = recipeViewerItemRecipes;
+            
             craftInventoryView.SetRecipes(recipeViewerItemRecipes);
             machineRecipeView.SetRecipes(recipeViewerItemRecipes);
             recipeTabView.SetRecipeTabView(recipeViewerItemRecipes);
@@ -36,11 +56,10 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
             machineRecipeView.SetActive(!isFirstCraft);
-            if (isFirstCraft)
-            {
-                craftInventoryView.DisplayRecipe(0);
-            }
-            else if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
+            
+            // SetRecipesの中で最初のレシピが自動選択されるようになったので
+            // DisplayRecipe(0)の呼び出しは不要
+            if (!isFirstCraft && recipeViewerItemRecipes.MachineRecipes.Count != 0)
             {
                 machineRecipeView.DisplayRecipe(0);
             }

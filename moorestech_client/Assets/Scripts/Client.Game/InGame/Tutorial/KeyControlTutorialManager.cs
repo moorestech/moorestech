@@ -8,8 +8,6 @@ namespace Client.Game.InGame.Tutorial
 {
     public class KeyControlTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
-        public const string TutorialType = "keyControl";
-        
         [SerializeField] private GameObject keyControlUIObject;
         [SerializeField] private TMP_Text keyControlTutorialText;
         

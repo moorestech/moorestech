@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.TrainRail
         /// 1つのブロックに2つのRailComponentを持つ可能性がある(例: 駅, 貨物プラットフォームなど)
         /// </summary>
         public bool IsDestroy { get; private set; }
-        public string SaveKey => "RailSaverComponent";
+        public string SaveKey => typeof(RailSaverComponent).FullName;
 
         public RailComponent[] RailComponents { get; private set; }
 

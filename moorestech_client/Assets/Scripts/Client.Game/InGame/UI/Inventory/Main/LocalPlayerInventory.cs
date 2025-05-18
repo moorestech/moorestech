@@ -104,5 +104,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             _subInventory = subInventory;
         }
+        
+        public void SetMainInventory(List<IItemStack> mainInventoryList)
+        {
+            _mainInventory.Clear();
+            _mainInventory.AddRange(mainInventoryList);
+        }
+        
     }
 }

@@ -17,8 +17,18 @@
         "UIPosition": [
           0,
           0
-        ]
-      }
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
+      },
+      "unlockAllPreviousChallengeComplete": true,
+      "prevChallengeGuids": [],
+      "initialUnlocked": true,
+      "startedActions": []
     },
     {
       "summary": "テスト2",
@@ -34,15 +44,19 @@
       "tutorials": [],
       "clearedActions": [
         {
-          "clearedActionType": "unlockCraftRecipe",
-          "clearedActionParam": {
-            "unlockRecipeGuid": "00000010-0000-0000-0000-000000000002"
+          "challengeActionType": "unlockCraftRecipe",
+          "challengeActionParam": {
+            "unlockRecipeGuids": [
+              "00000010-0000-0000-0000-000000000002"
+            ]
           }
         },
         {
-          "clearedActionType": "unlockItemRecipeView",
-          "clearedActionParam": {
-            "unlockItemGuid": "00000000-0000-0000-1234-000000000003"
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "00000000-0000-0000-1234-000000000003"
+            ]
           }
         }
       ],
@@ -51,8 +65,18 @@
         "UIPosition": [
           0,
           0
-        ]
-      }
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
+      },
+      "prevChallengeGuids": [],
+      "unlockAllPreviousChallengeComplete": true,
+      "initialUnlocked": true,
+      "startedActions": []
     },
     {
       "summary": "テスト3",
@@ -72,8 +96,18 @@
         "UIPosition": [
           0,
           0
-        ]
-      }
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
+      },
+      "prevChallengeGuids": [],
+      "initialUnlocked": true,
+      "unlockAllPreviousChallengeComplete": true,
+      "startedActions": []
     },
     {
       "summary": "テスト1をクリアしたら始まるチャレンジ",
@@ -83,7 +117,9 @@
         "itemCount": 3,
         "itemGuid": "00000000-0000-0000-1234-000000000003"
       },
-      "prevChallengeGuid": "00000000-0000-0000-4567-000000000001",
+      "prevChallengeGuids": [
+        "00000000-0000-0000-4567-000000000001"
+      ],
       "challengeGuid": "00000000-0000-0000-4567-000000000004",
       "playSkitType": "None",
       "playSkitParam": {},
@@ -94,8 +130,51 @@
         "UIPosition": [
           0,
           0
-        ]
-      }
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
+      },
+      "initialUnlocked": true,
+      "unlockAllPreviousChallengeComplete": true,
+      "startedActions": []
+    },
+    {
+      "summary": "テスト1とテスト4の両方をクリアしたら始まるチャレンジ（AND条件）",
+      "title": "テスト5（AND条件）",
+      "taskCompletionType": "inInventoryItem",
+      "taskParam": {
+        "itemCount": 2,
+        "itemGuid": "00000000-0000-0000-1234-000000000001"
+      },
+      "prevChallengeGuids": [
+        "00000000-0000-0000-4567-000000000001",
+        "00000000-0000-0000-4567-000000000004"
+      ],
+      "challengeGuid": "00000000-0000-0000-4567-000000000005",
+      "playSkitType": "None",
+      "playSkitParam": {},
+      "tutorials": [],
+      "clearedActions": [],
+      "displayListType": "NotDisplay",
+      "displayListParam": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          0,
+          0,
+          0
+        ],
+        "IconItem": "00000000-0000-0000-1234-000000000001"
+      },
+      "initialUnlocked": false,
+      "unlockAllPreviousChallengeComplete": true,
+      "startedActions": []
     }
   ]
 }

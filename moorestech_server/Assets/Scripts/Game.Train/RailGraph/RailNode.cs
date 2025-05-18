@@ -10,14 +10,10 @@ namespace Game.Train.RailGraph
 {
     public class RailNode
     {
-        //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
         //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
-
+        //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
         // 自分に対応する裏表のノード
         public RailNode OppositeNode { get; private set; }
-        //public bool isFront { get; private set; } // このノードがRailComponentに対し裏表のどちらか(今はセーブのときしか使わない)
-        // 座標はセーブ時と列車座標を求めるときにRailPositionのRailNode情報から3D座標を復元するために使う。
-        // なくてもレール接続を組むことは可能だがセーブできないし表示できない
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
 
@@ -79,9 +75,36 @@ namespace Game.Train.RailGraph
             RailGraphDatastore.DisconnectNode(this, targetNode);
         }
         //自分から入力nodeまでの距離を返す
-        public int GetDistanceToNode(RailNode node)
+        //UseFindPath=falseのとき
+        //隣接しているNodeのみを考慮。距離を返すか見つからなければ-1
+        //UseFindPath=trueのとき
+        //経路探索して接続していれば距離を返す、見つからなければ-1
+        public int GetDistanceToNode(RailNode node,bool UseFindPath = false)
         {
-            return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
+            //見つからなければ-1
+            if (UseFindPath == false)
+            {
+                return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
+            }
+            else 
+            {
+                //経路探索ありver
+                var nodelist = RailGraphDatastore.FindShortestPath(this, node);
+                if (nodelist == null || nodelist.Count < 2)
+                {
+                    return -1;
+                }
+                else
+                {
+                    //最初のノードは自分なので、次のノードまでの距離を返す、ループ
+                    int totalDistance = 0;
+                    for (int i = 0; i < nodelist.Count - 1; i++)
+                    {
+                        totalDistance += RailGraphDatastore.GetDistanceBetweenNodes(nodelist[i], nodelist[i + 1]);
+                    }
+                    return totalDistance;
+                }
+            }
         }
 
 

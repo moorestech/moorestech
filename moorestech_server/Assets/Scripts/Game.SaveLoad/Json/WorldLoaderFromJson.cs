@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Game.Challenge;
 using Game.Context;
+using Game.CraftTree;
 using Game.Entity.Interface;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
@@ -25,10 +26,12 @@ namespace Game.SaveLoad.Json
         private readonly SaveJsonFileName _saveJsonFileName;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly IGameUnlockStateDataController gameUnlockStateDataController;
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly CraftTreeManager _craftTreeManager;
         
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
+            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -38,7 +41,8 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _challengeDatastore = challengeDatastore;
-            this.gameUnlockStateDataController = gameUnlockStateDataController;
+            _gameUnlockStateDataController = gameUnlockStateDataController;
+            _craftTreeManager = craftTreeManager;
         }
         
         public void LoadOrInitialize()
@@ -55,7 +59,7 @@ namespace Game.SaveLoad.Json
                 catch (Exception e)
                 {
                     //TODO ログ基盤
-                    Debug.Log("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
+                    Debug.Log("セーブデータが破損していたか古いバージョンでした。削除したら治る可能性があります。\nサポートが必要な場合はDiscordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
                     Debug.Log($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
                     throw new Exception(
                         $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
@@ -70,13 +74,14 @@ namespace Game.SaveLoad.Json
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
             
+            _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
             _challengeDatastore.LoadChallenge(load.Challenge);
-            gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
+            _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
         }
         
         public void WorldInitialize()

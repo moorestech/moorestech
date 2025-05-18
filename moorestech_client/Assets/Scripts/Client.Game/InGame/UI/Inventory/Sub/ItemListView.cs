@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial.UIHighlight;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
+using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.ItemsModule;
@@ -21,9 +22,10 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemListParent;
+        
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private IGameUnlockStateData gameUnlockStateData;
+        [Inject] private IGameUnlockStateData _gameUnlockStateData;
         private readonly List<ItemSlotObject> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
@@ -62,29 +64,38 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 // アイテムリストを設定
                 // Set the item list
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
-                itemSlotObject.SetItem(itemViewData, 0);
+                var toolTipText = CraftInventoryView.GetMaterialTolTip(itemViewData);
+                itemSlotObject.SetItem(itemViewData, 0, toolTipText);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                 _itemListObjects.Add(itemSlotObject);
                 
                 // ハイライトオブジェクトを設定
                 // Set the highlight object
                 var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
-                target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.Name));
+                target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.ItemGuid));
                 
                 _itemListObjects.Add(itemSlotObject);
             }
+            
+            // アイテムリスト生成後にクラフト可能状態に基づいてグレーアウト処理を実行
+            OnInventoryItemChange(0);
             
             #region Internal
             
             bool IsShow(ItemMasterElement itemMaster)
             {
+                if (DebugParameters.GetValueOrDefaultBool(DebugConst.IsItemListViewForceShowKey))
+                {
+                    return true;
+                }
+                
                 var itemId = MasterHolder.ItemMaster.GetItemId(itemMaster.ItemGuid);
                 
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
                 {
                     // デフォルトはアンロックされていてレシピがあれば表示する
-                    // 
-                    var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
+                    // Default is to display if unlocked and has a recipe
+                    var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     var isItemUnlocked = state.IsUnlocked;
                     
                     var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
@@ -97,8 +108,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)
                 {
                     // アンロックされていれば表示する
-                    //
-                    var state = gameUnlockStateData.ItemUnlockStateInfos[itemId];
+                    // Display if unlocked
+                    var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     return state.IsUnlocked;
                 }
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)

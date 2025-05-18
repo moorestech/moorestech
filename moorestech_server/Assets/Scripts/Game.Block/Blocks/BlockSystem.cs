@@ -61,8 +61,10 @@ namespace Game.Block.Blocks
             var detailStates = new Dictionary<string, byte[]>();
             foreach (var component in _blockStateDetails)
             {
-                var detailState = component.GetBlockStateDetail();
-                detailStates.Add(detailState.Key, detailState.Value);
+                foreach (var detail in component.GetBlockStateDetails())
+                {
+                    detailStates.Add(detail.Key, detail.Value);
+                }
             }
             
             return new BlockState(detailStates);

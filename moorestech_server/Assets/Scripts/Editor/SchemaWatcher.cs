@@ -18,8 +18,8 @@ public static class SchemaWatcher
     
     static SchemaWatcher()
     {
-        // プロジェクトフォルダ/../schema のパスを取得
-        schemaFolderPath = Path.GetFullPath(Path.Combine(Application.dataPath, "../../schema"));
+        // プロジェクトフォルダ/../VanillaSchema のパスを取得
+        schemaFolderPath = Path.GetFullPath(Path.Combine(Application.dataPath, "../../VanillaSchema"));
         // キャッシュファイルのパスを設定（Libraryフォルダ内）
         cacheFilePath = Path.Combine(Application.dataPath, "../Library/SchemaCache.txt");
         // Core.Masterフォルダのパスを取得（Assets/Core.Master）

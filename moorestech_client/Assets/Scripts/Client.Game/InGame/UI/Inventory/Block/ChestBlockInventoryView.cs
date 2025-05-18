@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var i = 0; i < param.ItemSlotCount; i++)
             {
                 var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
-                _blockItemSlotObjects.Add(slotObject);
+                SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             

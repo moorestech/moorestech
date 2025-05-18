@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Element;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Core.Master;
 using TMPro;

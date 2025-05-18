@@ -1249,7 +1249,7 @@
       "name": "TestSimpleGearGenerator",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 0.1,
+        "requireTorque": 0,
         "generateTorque": 3,
         "generateRpm": 10,
         "teethCount": 10,
@@ -1320,7 +1320,7 @@
       "name": "TestFastSimpleGearGenerator",
       "blockType": "SimpleGearGenerator",
       "blockParam": {
-        "requireTorque": 0.1,
+        "requireTorque": 0,
         "beltConveyorSpeed": 2,
         "beltConveyorItemCount": 4,
         "generateTorque": 1,
@@ -2963,9 +2963,32 @@
       "blockParam": {
         "stationDistance": 22,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        }
+          "inputConnects": [
+            {
+              "offset": [
+                4,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                6,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
+            }
+          ]
+        },
+        "itemSlotCount": 5
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025"
@@ -2984,8 +3007,30 @@
         "inputSlotCount": 10,
         "platformDistance": 11,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "offset": [
+                4,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                6,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [],
+              "connectOption": {}
+            }
+          ]
         }
       },
       "name": "TestTrainCargoPlatform",

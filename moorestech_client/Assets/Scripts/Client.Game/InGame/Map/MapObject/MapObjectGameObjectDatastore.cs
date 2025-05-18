@@ -49,9 +49,27 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
         
-        public List<MapObjectGameObject> CreateMapObjectList(Guid mapObjectGuid)
+        public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)
         {
-            return mapObjects.Where(x => x.MapObjectGuid == mapObjectGuid && !x.IsDestroyed).ToList();
+            MapObjectGameObject nearestMapObject = null; 
+            var maxMagnitude = float.MaxValue;
+            
+            for (var i = 0; i < mapObjects.Count; i++)
+            {
+                var mapObject = mapObjects[i];
+                
+                // 指定されているmapObjectか破壊されていないかチェック
+                if (mapObject.MapObjectGuid != mapObjectGuid || mapObject.IsDestroyed) continue;
+                
+                // 距離をチェック
+                var magnitude = (position - mapObject.GetPosition()).magnitude;
+                if (maxMagnitude < magnitude) continue;
+                
+                nearestMapObject = mapObject;
+                maxMagnitude = magnitude;
+            }
+            
+            return nearestMapObject;
         }
         
 #if UNITY_EDITOR

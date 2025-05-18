@@ -42,7 +42,7 @@ namespace Game.Train.Train
             }
             //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
             //deltaTime次第でかわる
-            _currentSpeed -= _currentSpeed* deltaTime * FRICTION + _currentSpeed* _currentSpeed * deltaTime * AIR_RESISTANCE;
+            _currentSpeed -= _currentSpeed * deltaTime * FRICTION + _currentSpeed * _currentSpeed * deltaTime * AIR_RESISTANCE;
             //速度が0以下にならないようにする
             _currentSpeed = Mathf.Max(0, _currentSpeed);
 
@@ -50,7 +50,8 @@ namespace Game.Train.Train
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
             int distanceToMove = Mathf.FloorToInt(floatDistance + UnityEngine.Random.Range(0f, 0.999f));
-            calceddist = UpdateTrainByDistance(distanceToMove);
+            UpdateTrainByDistance(distanceToMove);
+            calceddist = distanceToMove;
         }
 
         //ゲームは基本こっちの関数を使う

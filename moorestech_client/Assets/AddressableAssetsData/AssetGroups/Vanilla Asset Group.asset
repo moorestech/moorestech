@@ -432,6 +432,66 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd09f2fef40b549f58b0c29a968536c4
+    m_Address: Vanilla/UI/Block/GearMachineBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dc33f279c282b408c95ad24d4e73f5af
+    m_Address: Vanilla/Block/stone crasher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f652861d52dde4fb1b65387a76966fd4
+    m_Address: Vanilla/Block/Primitive Centrifuge
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
+    m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fd5661b8c9aff4ee48c86639e9ef337d
+    m_Address: Vanilla/Block/rolling mill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16c979552fd5a4ef1b4af5e1b6f01f5d
+    m_Address: Vanilla/UI/Block/GearMinerBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f9ae1e03db1ef44cab6a98150fc5bfe4
+    m_Address: Vanilla/Block/Primitive_Windmill blue
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b1d523ce7c92403490cc41115519a02
+    m_Address: Vanilla/Block/Shaft Vertical
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b6b92dfc21fd142d8b92a23c61b5f13a
+    m_Address: Vanilla/Block/Shaft Box
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: addad9320f24544a69ad9f0ca74078b3
+    m_Address: Vanilla/Block/Mining Machine Primitive
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fd2ecb5ff8511444d98665186b558b07
+    m_Address: Vanilla/Block/primitive miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3bad25b0c048c4dbf847950e9479f0bc
+    m_Address: Vanilla/Skit/test
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:
