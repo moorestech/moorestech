@@ -10,6 +10,15 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent
     {
+        private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
+        private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
+        
+        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
+        {
+            _vanillaMachineInputInventory = vanillaMachineInputInventory;
+            _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
+        }
+        
         public IReadOnlyList<IItemStack> InventoryItems
         {
             get
@@ -20,15 +29,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
                 return items;
             }
-        }
-        
-        private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
-        private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        
-        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
-        {
-            _vanillaMachineInputInventory = vanillaMachineInputInventory;
-            _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
         }
         
         public IItemStack ReplaceItem(int slot, ItemId itemId, int count)

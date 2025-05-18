@@ -25,17 +25,24 @@ namespace Game.Block.Factory.BlockTemplate
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
-            BlockId blockId,BlockInstanceId blockInstanceId,
-            IMachineParam machineParam, 
+            BlockId blockId, BlockInstanceId blockInstanceId,
+            IMachineParam machineParam,
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             var inputSlotCount = machineParam.InputSlotCount;
             var outputSlotCount = machineParam.OutputSlotCount;
+            var fluidInputSlotCount = machineParam.InputFluidSlotCount;
+            var fluidOutputSlotCount = machineParam.OutputFluidSlotCount;
             
             var input = new VanillaMachineInputInventory(
-                blockId, inputSlotCount,
-                blockInventoryUpdateEvent, blockInstanceId);
+                blockId,
+                inputSlotCount,
+                machineParam.FluidContainerCount,
+                machineParam.FluidContainerCapacity,
+                blockInventoryUpdateEvent,
+                blockInstanceId
+            );
             
             var output = new VanillaMachineOutputInventory(
                 outputSlotCount, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
@@ -65,9 +72,7 @@ namespace Game.Block.Factory.BlockTemplate
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
             }
             
-            var recipe = jsonObject.RecipeGuid == Guid.Empty ?
-                null :
-                MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
+            var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
             
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,

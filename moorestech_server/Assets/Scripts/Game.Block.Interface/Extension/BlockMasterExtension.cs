@@ -14,17 +14,20 @@ namespace Game.Block.Interface.Extension
                 return blockId;
             }
             
-            if (verticalDirection is BlockVerticalDirection.Up && overrideBlock.UpBlockGuid != Guid.Empty)
+            var up = overrideBlock.UpBlockGuid;
+            if (verticalDirection is BlockVerticalDirection.Up && up.HasValue && up != Guid.Empty)
             {
-                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.UpBlockGuid);
+                return MasterHolder.BlockMaster.GetBlockId(up.Value);
             }
-            if (verticalDirection is BlockVerticalDirection.Horizontal && overrideBlock.HorizontalBlockGuid != Guid.Empty)
+            var down = overrideBlock.DownBlockGuid;
+            if (verticalDirection is BlockVerticalDirection.Horizontal && down.HasValue && down != Guid.Empty)
             {
-                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.HorizontalBlockGuid);
+                return MasterHolder.BlockMaster.GetBlockId(down.Value);
             }
-            if (verticalDirection is  BlockVerticalDirection.Down && overrideBlock.DownBlockGuid != Guid.Empty)
+            var horizontal = overrideBlock.HorizontalBlockGuid;
+            if (verticalDirection is  BlockVerticalDirection.Down && horizontal.HasValue && horizontal != Guid.Empty)
             {
-                return MasterHolder.BlockMaster.GetBlockId(overrideBlock.DownBlockGuid);
+                return MasterHolder.BlockMaster.GetBlockId(horizontal.Value);
             }
             
             return blockId;

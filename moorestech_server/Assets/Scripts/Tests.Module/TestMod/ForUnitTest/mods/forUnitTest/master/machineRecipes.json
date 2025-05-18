@@ -21,6 +21,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -44,6 +45,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -71,6 +73,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000005"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -94,6 +97,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -117,6 +121,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -140,6 +145,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -172,6 +178,7 @@
           "itemGuid": "00000000-0000-0000-1234-000000000002"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
     },
     {
@@ -192,6 +199,7 @@
           "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "76a4be24-66d6-46c6-84d9-e4e865db3e04"
     },
     {
@@ -214,8 +222,27 @@
           "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff"
         }
       ],
+      "outputFluids": [],
       "machineRecipeGuid": "38dfacce-beea-4612-8c7c-29112c12409a",
       "blockGuid": "00000000-0000-0000-0000-000000000023"
+    },
+    {
+      "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
+      "time": 1,
+      "inputItems": [],
+      "outputItems": [],
+      "inputFluids": [
+        {
+          "amount": 1,
+          "fluidGuid": "00000000-0000-0000-1234-000000000001"
+        },
+        {
+          "amount": 2,
+          "fluidGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
+      "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
+      "outputFluids": []
     }
   ]
 }

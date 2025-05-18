@@ -30,6 +30,8 @@
         "requiredPower": 100,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -61,7 +63,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -94,13 +98,18 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
-      "blockGuid": "00000000-0000-0000-0000-000000000001"
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -129,7 +138,8 @@
       "blockType": "Block",
       "itemGuid": "00000000-0000-0000-1234-000000000002",
       "blockGuid": "00000000-0000-0000-0000-000000000002",
-      "blockParam": {}
+      "blockParam": {},
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -190,7 +200,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -208,14 +220,17 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
         "slopeType": "Straight"
       },
       "itemGuid": "00000000-0000-0000-1234-000000000003",
-      "blockGuid": "00000000-0000-0000-0000-000000000003"
+      "blockGuid": "00000000-0000-0000-0000-000000000003",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -247,7 +262,8 @@
         "poleConnectionRange": 7
       },
       "itemGuid": "00000000-0000-0000-1234-000000000004",
-      "blockGuid": "00000000-0000-0000-0000-000000000004"
+      "blockGuid": "00000000-0000-0000-0000-000000000004",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -296,7 +312,8 @@
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
-      "blockGuid": "00000000-0000-0000-0000-000000000005"
+      "blockGuid": "00000000-0000-0000-0000-000000000005",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -363,14 +380,17 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": []
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000006",
-      "blockGuid": "00000000-0000-0000-0000-000000000006"
+      "blockGuid": "00000000-0000-0000-0000-000000000006",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -430,7 +450,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -463,13 +485,16 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000007",
-      "blockGuid": "00000000-0000-0000-0000-000000000007"
+      "blockGuid": "00000000-0000-0000-0000-000000000007",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -535,7 +560,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -568,13 +595,16 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
-      "blockGuid": "00000000-0000-0000-0000-000000000008"
+      "blockGuid": "00000000-0000-0000-0000-000000000008",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -618,7 +648,9 @@
                 0
               ],
               "connectType": "Inventory",
-              "connectOption": {},
+              "connectOption": {
+                "inventoryOptions": []
+              },
               "directions": [
                 [
                   0,
@@ -652,11 +684,14 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
-      }
+      },
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -705,7 +740,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             },
             {
               "offset": [
@@ -721,12 +758,16 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": []
-        }
-      }
+        },
+        "fuelItems": []
+      },
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -790,7 +831,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -802,11 +845,15 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
-      }
+        },
+        "fuelItems": []
+      },
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -898,7 +945,8 @@
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
-      "blockGuid": "00000000-0000-0000-0000-00000000000c"
+      "blockGuid": "00000000-0000-0000-0000-00000000000c",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1029,7 +1077,8 @@
         }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000d"
+      "blockGuid": "00000000-0000-0000-0000-00000000000d",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1087,7 +1136,8 @@
         }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000e"
+      "blockGuid": "00000000-0000-0000-0000-00000000000e",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1120,6 +1170,8 @@
         "teethCount": 10,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "gear": {
           "gearConnects": [
             {
@@ -1178,7 +1230,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1211,13 +1265,18 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000f"
+      "blockGuid": "00000000-0000-0000-0000-00000000000f",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1288,7 +1347,8 @@
         }
       },
       "itemGuid": "19000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000010"
+      "blockGuid": "00000000-0000-0000-0000-000000000010",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1361,7 +1421,8 @@
         }
       },
       "itemGuid": "11100000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000011"
+      "blockGuid": "00000000-0000-0000-0000-000000000011",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1453,7 +1514,8 @@
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
-      "blockGuid": "00000000-0000-0000-0000-000000000012"
+      "blockGuid": "00000000-0000-0000-0000-000000000012",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1545,7 +1607,8 @@
           ]
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000013"
+      "blockGuid": "00000000-0000-0000-0000-000000000013",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1616,7 +1679,8 @@
         }
       },
       "itemGuid": "11400000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000014"
+      "blockGuid": "00000000-0000-0000-0000-000000000014",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1688,7 +1752,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -1706,14 +1772,17 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
         "slopeType": "Straight"
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000015"
+      "blockGuid": "00000000-0000-0000-0000-000000000015",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1766,7 +1835,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1799,14 +1870,17 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
         "slopeType": "Straight"
       },
       "itemGuid": "11500000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000016"
+      "blockGuid": "00000000-0000-0000-0000-000000000016",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1859,7 +1933,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1877,14 +1953,17 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
         "slopeType": "Down"
       },
       "itemGuid": "11600000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000017"
+      "blockGuid": "00000000-0000-0000-0000-000000000017",
+      "overrideVerticalBlock": {}
     },
     {
       "modelTransform": {
@@ -1932,7 +2011,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1955,14 +2036,17 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
         "slopeType": "Up"
       },
       "itemGuid": "11700000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000018"
+      "blockGuid": "00000000-0000-0000-0000-000000000018",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -1994,6 +2078,8 @@
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2025,7 +2111,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2058,13 +2146,18 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCapacity": 0,
+        "fluidContainerCount": 0
       },
       "itemGuid": "11900000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000019"
+      "blockGuid": "00000000-0000-0000-0000-000000000019",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -2096,6 +2189,8 @@
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2127,7 +2222,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2160,13 +2257,18 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCapacity": 0,
+        "fluidContainerCount": 0
       },
       "itemGuid": "12010000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000001a"
+      "blockGuid": "00000000-0000-0000-0000-00000000001a",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -2198,6 +2300,8 @@
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2229,7 +2333,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2262,13 +2368,18 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCapacity": 0,
+        "fluidContainerCount": 0
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000001b"
+      "blockGuid": "00000000-0000-0000-0000-00000000001b",
+      "overrideVerticalBlock": {}
     },
     {
       "name": "GearMiner",
@@ -2334,7 +2445,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": []
@@ -2354,7 +2467,8 @@
         1,
         1
       ],
-      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
+      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -2399,7 +2513,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -2427,14 +2543,17 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006",
       "blockGuid": "00000000-0000-0000-0000-00000000001d",
-      "name": "CraftChainerTransporter"
+      "name": "CraftChainerTransporter",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -2477,7 +2596,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2510,13 +2631,16 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
-      "blockGuid": "00000000-0000-0000-0000-00000000001e"
+      "blockGuid": "00000000-0000-0000-0000-00000000001e",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -2559,7 +2683,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2592,13 +2718,16 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "blockGuid": "00000000-0000-0000-0000-00000000001f"
+      "blockGuid": "00000000-0000-0000-0000-00000000001f",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -2641,7 +2770,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2674,13 +2805,16 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "blockGuid": "00000000-0000-0000-0000-000000000020"
+      "blockGuid": "00000000-0000-0000-0000-000000000020",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -2728,7 +2862,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -2746,14 +2882,17 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
       "name": "CraftChainerBeltConveyor",
-      "blockGuid": "00000000-0000-0000-0000-000000000021"
+      "blockGuid": "00000000-0000-0000-0000-000000000021",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -2769,6 +2908,8 @@
         "requiredPower": 0,
         "outputSlotCount": 3,
         "inputSlotCount": 3,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2800,7 +2941,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2833,12 +2976,17 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000022"
+      "blockGuid": "00000000-0000-0000-0000-000000000022",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -2853,6 +3001,8 @@
         "requiredPower": 0,
         "outputSlotCount": 3,
         "inputSlotCount": 3,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2884,7 +3034,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2917,13 +3069,18 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCapacity": 0,
+        "fluidContainerCount": 0
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
-      "blockGuid": "00000000-0000-0000-0000-000000000023"
+      "blockGuid": "00000000-0000-0000-0000-000000000023",
+      "overrideVerticalBlock": {}
     },
     {
       "maxStack": 100,
@@ -2936,7 +3093,8 @@
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
       "blockParam": {},
       "name": "TestTrainRail",
-      "blockGuid": "00000000-0000-0000-0000-000000000024"
+      "blockGuid": "00000000-0000-0000-0000-000000000024",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -2958,7 +3116,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -2970,14 +3130,17 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
         "itemSlotCount": 5
       },
       "name": "TestTrainStation",
-      "blockGuid": "00000000-0000-0000-0000-000000000025"
+      "blockGuid": "00000000-0000-0000-0000-000000000025",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -3002,7 +3165,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -3014,13 +3179,16 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
       },
       "name": "TestTrainCargoPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000026"
+      "blockGuid": "00000000-0000-0000-0000-000000000026",
+      "overrideVerticalBlock": {}
     },
     {
       "sortPriority": 100,
@@ -3097,7 +3265,8 @@
         }
       },
       "name": "TestGearMapObjectMiner",
-      "blockGuid": "00000000-0000-0000-0000-000000000027"
+      "blockGuid": "00000000-0000-0000-0000-000000000027",
+      "overrideVerticalBlock": {}
     },
     {
       "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
@@ -3203,7 +3372,8 @@
         1,
         1,
         1
-      ]
+      ],
+      "overrideVerticalBlock": {}
     },
     {
       "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
@@ -3259,7 +3429,8 @@
         1,
         1,
         1
-      ]
+      ],
+      "overrideVerticalBlock": {}
     }
   ]
 }
