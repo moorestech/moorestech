@@ -63,7 +63,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -96,10 +98,14 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
       "blockGuid": "00000000-0000-0000-0000-000000000001"
@@ -192,7 +198,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -210,7 +218,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -365,7 +375,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": []
@@ -432,7 +444,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -465,7 +479,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -537,7 +553,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -570,7 +588,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -620,7 +640,9 @@
                 0
               ],
               "connectType": "Inventory",
-              "connectOption": {},
+              "connectOption": {
+                "inventoryOptions": []
+              },
               "directions": [
                 [
                   0,
@@ -654,7 +676,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -707,7 +731,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             },
             {
               "offset": [
@@ -723,11 +749,14 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": []
-        }
+        },
+        "fuelItems": []
       }
     },
     {
@@ -792,7 +821,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -804,10 +835,13 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
-        }
+        },
+        "fuelItems": []
       }
     },
     {
@@ -1182,7 +1216,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1215,7 +1251,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -1692,7 +1730,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -1710,7 +1750,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1770,7 +1812,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1803,7 +1847,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1863,7 +1909,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1881,7 +1929,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1936,7 +1986,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1959,7 +2011,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -2031,7 +2085,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2064,7 +2120,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2135,7 +2193,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2168,7 +2228,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2239,7 +2301,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2272,7 +2336,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2344,7 +2410,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": []
@@ -2409,7 +2477,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -2437,7 +2507,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2487,7 +2559,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2520,7 +2594,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2569,7 +2645,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2602,7 +2680,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2651,7 +2731,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2684,7 +2766,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2738,7 +2822,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -2756,7 +2842,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2812,7 +2900,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2845,7 +2935,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2898,7 +2990,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -2931,7 +3025,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -2972,7 +3068,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -2984,7 +3082,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -3016,7 +3116,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -3028,7 +3130,9 @@
               ],
               "connectType": "Inventory",
               "directions": [],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
