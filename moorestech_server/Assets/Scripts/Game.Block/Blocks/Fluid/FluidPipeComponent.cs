@@ -5,6 +5,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
+using Core.Master;
 using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Blocks.Fluid
@@ -37,7 +38,7 @@ namespace Game.Block.Blocks.Fluid
             var targetContainers = _connectorComponent.ConnectedTargets
                 .Select(kvp => (kvp.Key, kvp.Value, GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value)))
                 .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
-                .Where(kvp => !kvp.Key.FluidContainer.FluidId.HasValue || kvp.Key.FluidContainer.FluidId == FluidContainer.FluidId)
+                .Where(kvp => kvp.Key.FluidContainer.FluidId == FluidMaster.EmptyFluidId || kvp.Key.FluidContainer.FluidId == FluidContainer.FluidId)
                 .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
                 .ToList();
             
@@ -65,7 +66,7 @@ namespace Game.Block.Blocks.Fluid
             }
             
             FluidContainer.PreviousSourceFluidContainers.Clear();
-            if (FluidContainer.Amount <= 0) FluidContainer.FluidId = null;
+            if (FluidContainer.Amount <= 0) FluidContainer.FluidId = FluidMaster.EmptyFluidId;
             
             // ソートする
             // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す
