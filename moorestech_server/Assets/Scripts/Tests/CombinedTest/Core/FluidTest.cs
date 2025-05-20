@@ -221,8 +221,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, fluidPipe0.FluidContainer.Amount, 0.01d);
             Assert.AreEqual(0, oneWayFluidPipe.FluidContainer.Amount, 0.01d);
             Assert.AreEqual(10, fluidPipe1.FluidContainer.Amount, 0.01d);
-            Assert.Null(fluidPipe0.FluidContainer.FluidGuid);
-            Assert.Null(oneWayFluidPipe.FluidContainer.FluidGuid);
+            Assert.Null(fluidPipe0.FluidContainer.FluidId);
+            Assert.Null(oneWayFluidPipe.FluidContainer.FluidId);
         }
         
         /// <summary>
