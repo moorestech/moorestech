@@ -35,10 +35,8 @@
 git clone https://github.com/moorestech/moorestech.git
 cd moorestech
 
-# サブツリーの設定
-git remote add schema git@github.com:moorestech/VanillaSchema.git
-git fetch schema
-git subtree add --prefix=schema --squash schema main
+# サブモジュールの初期化
+git submodule update --init --recursive
 ```
 
 ## 技術的制約

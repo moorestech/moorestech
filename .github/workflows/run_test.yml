@@ -26,10 +26,12 @@ jobs:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.PRIVATE_KEY }}
 
-      # actions/checkout@v2 を利用して作業ディレクトリに
-      # Unity プロジェクトの中身をダウンロードしてくる
+      # リポジトリとサブモジュールをチェックアウト
       - name: Check out my unity project.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
       # GameCI の Test runner を利用して
       # EditMode 及び PlayMode のテストを実行する
