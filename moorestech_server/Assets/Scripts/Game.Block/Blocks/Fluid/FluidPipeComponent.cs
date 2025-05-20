@@ -37,7 +37,7 @@ namespace Game.Block.Blocks.Fluid
             var targetContainers = _connectorComponent.ConnectedTargets
                 .Select(kvp => (kvp.Key, kvp.Value, GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value)))
                 .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
-                .Where(kvp => !kvp.Key.FluidContainer.FluidGuid.HasValue || kvp.Key.FluidContainer.FluidGuid == FluidContainer.FluidGuid)
+                .Where(kvp => !kvp.Key.FluidContainer.FluidId.HasValue || kvp.Key.FluidContainer.FluidId == FluidContainer.FluidId)
                 .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
                 .ToList();
             
@@ -59,13 +59,13 @@ namespace Game.Block.Blocks.Fluid
                     otherContainer.Amount += flowRate;
                     targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
                     
-                    otherContainer.FluidGuid = FluidContainer.FluidGuid;
+                    otherContainer.FluidId = FluidContainer.FluidId;
                     otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
                 }
             }
             
             FluidContainer.PreviousSourceFluidContainers.Clear();
-            if (FluidContainer.Amount <= 0) FluidContainer.FluidGuid = null;
+            if (FluidContainer.Amount <= 0) FluidContainer.FluidId = null;
             
             // ソートする
             // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す

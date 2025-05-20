@@ -32,17 +32,10 @@ namespace Core.Master
                         var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);
                         inputItemIds.Add(itemId);
                     }
-
-                    var fluidInputIds = new List<FluidId>();
-                    foreach (var inputFluid in recipe.InputFluids)
-                    {
-                        var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
-                        fluidInputIds.Add(fluidId);
-                    }
-
+                    
                     var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
                     
-                    var key = GetRecipeElementKey(blockId, inputItemIds, fluidInputIds);
+                    var key = GetRecipeElementKey(blockId, inputItemIds);
                     _machineRecipesByRecipeKey.Add(key, recipe);
                 }
             }
@@ -50,9 +43,9 @@ namespace Core.Master
             #endregion
         }
         
-        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, List<FluidId> fluidInputIds, out MachineRecipeMasterElement recipe)
+        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, out MachineRecipeMasterElement recipe)
         {
-            var key = GetRecipeElementKey(blockId, inputItemIds, fluidInputIds);
+            var key = GetRecipeElementKey(blockId, inputItemIds);
             return _machineRecipesByRecipeKey.TryGetValue(key, out recipe);
         }
         
@@ -61,26 +54,19 @@ namespace Core.Master
             return MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid == machineRecipeGuid);
         }
         
-        private static string GetRecipeElementKey(BlockId blockId, List<ItemId> itemIds, List<FluidId> fluidIds)
+        private static string GetRecipeElementKey(BlockId blockId, List<ItemId> itemIds)
         {
-            StringBuilder key = new StringBuilder();
-            key.Append(blockId);
+            StringBuilder items = new StringBuilder();
+            items.Append(blockId);
             
             itemIds.Sort((a, b) => a.AsPrimitive() - b.AsPrimitive());
             itemIds.ForEach(i =>
             {
-                key.Append('_');
-                key.Append(i.AsPrimitive());
+                items.Append('_');
+                items.Append(i.AsPrimitive());
             });
             
-            fluidIds.Sort((a, b) => a.AsPrimitive() - b.AsPrimitive());
-            fluidIds.ForEach(i =>
-            {
-                key.Append('_');
-                key.Append(i.AsPrimitive());
-            });
-            
-            return key.ToString();
+            return items.ToString();
         }
     }
     
