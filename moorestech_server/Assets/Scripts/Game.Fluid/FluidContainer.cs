@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Master;
 
 namespace Game.Fluid
 {
@@ -14,12 +15,13 @@ namespace Game.Fluid
         public readonly bool IsEmpty;
         public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
         public double Amount;
-        public Guid? FluidId;
+        public FluidId FluidId;
         
         /// <param name="capacity">液体の許容量</param>
         public FluidContainer(double capacity)
         {
             Capacity = capacity;
+            FluidId = FluidMaster.EmptyFluidId;
         }
         
         /// <summary>
@@ -27,7 +29,7 @@ namespace Game.Fluid
         /// </summary>
         private FluidContainer()
         {
-            FluidId = Guid.Empty;
+            FluidId = FluidMaster.EmptyFluidId;
             Capacity = 0;
             IsEmpty = true;
         }
@@ -35,23 +37,26 @@ namespace Game.Fluid
         public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
         {
             // パイプ内の液体IDがセットされていない場合は入ってきた液体のidをセットする
-            FluidId ??= fluidStack.FluidId;
-            
-            if (IsEmpty || fluidStack.FluidId != FluidId)
+            var stackFluidId = MasterHolder.FluidMaster.GetFluidId(fluidStack.FluidId);
+            if (FluidId == FluidMaster.EmptyFluidId)
+                FluidId = stackFluidId;
+
+            if (IsEmpty || stackFluidId != FluidId)
             {
                 remain = fluidStack;
                 return;
             }
-            
+
             if (Capacity - Amount < fluidStack.Amount)
             {
                 var addingAmount = Capacity - Amount;
                 Amount += addingAmount;
                 source.PreviousSourceFluidContainers.Add(this);
-                remain = new FluidStack(fluidStack.Amount - addingAmount, FluidId.Value);
+                var guid = MasterHolder.FluidMaster.GetFluidMaster(FluidId).FluidGuid;
+                remain = new FluidStack(fluidStack.Amount - addingAmount, guid);
                 return;
             }
-            
+
             Amount += fluidStack.Amount;
             source.PreviousSourceFluidContainers.Add(this);
             remain = null;
