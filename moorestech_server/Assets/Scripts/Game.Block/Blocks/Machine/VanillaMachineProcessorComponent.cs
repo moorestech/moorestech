@@ -118,7 +118,8 @@ namespace Game.Block.Blocks.Machine
             var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
             var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
                    _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
-                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe) &&
+                   _vanillaMachineOutputInventory.IsAllowedToOutputFluid(recipe);
             
             if (isStartProcess)
             {
@@ -136,6 +137,7 @@ namespace Game.Block.Blocks.Machine
             {
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
+                _vanillaMachineOutputInventory.InsertOutputFluid(_processingRecipe);
             }
             
             //電力を消費する

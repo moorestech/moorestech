@@ -5,6 +5,7 @@ using Core.Item.Interface;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Fluid;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Machine
@@ -43,6 +44,8 @@ namespace Game.Block.Blocks.Machine
             {
                 InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                InputFluids = _vanillaMachineInputInventory.FluidInputSlot.Select(c => new FluidContainerSaveJsonObject(c)).ToList(),
+                OutputFluids = _vanillaMachineOutputInventory.FluidOutputSlot.Select(c => new FluidContainerSaveJsonObject(c)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
                 RemainingTime = _vanillaMachineProcessorComponent.RemainingSecond,
                 RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
@@ -58,6 +61,10 @@ namespace Game.Block.Blocks.Machine
         public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
         public List<ItemStackSaveJsonObject> OutputSlot;
+        [JsonProperty("inputFluid")]
+        public List<FluidContainerSaveJsonObject> InputFluids;
+        [JsonProperty("outputFluid")]
+        public List<FluidContainerSaveJsonObject> OutputFluids;
         [JsonProperty("recipeGuid")]
         public string RecipeGuidStr;
         [JsonIgnore]
@@ -68,5 +75,31 @@ namespace Game.Block.Blocks.Machine
         
         [JsonProperty("state")]
         public int State;
+    }
+
+    public class FluidContainerSaveJsonObject
+    {
+        [JsonProperty("amount")] public double Amount;
+        [JsonProperty("fluidId")] public string FluidId;
+
+        public FluidContainerSaveJsonObject()
+        {
+        }
+
+        public FluidContainerSaveJsonObject(FluidContainer container)
+        {
+            Amount = container.Amount;
+            FluidId = container.FluidId?.ToString() ?? string.Empty;
+        }
+
+        public FluidContainer ToFluidContainer(float capacity)
+        {
+            var container = new FluidContainer(capacity)
+            {
+                Amount = Amount,
+                FluidId = string.IsNullOrEmpty(FluidId) ? null : Guid.Parse(FluidId)
+            };
+            return container;
+        }
     }
 }

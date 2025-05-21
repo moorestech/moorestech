@@ -23,6 +23,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         //TODO: ↑のようにする
         private readonly FluidContainer[] _fluidContainers;
+        private readonly float _fluidContainerCapacity;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
         public VanillaMachineInputInventory(BlockId blockId, int inputSlot, int fluidContainerCount, float fluidContainerCapacity, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
@@ -31,6 +32,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
             _fluidContainers = new FluidContainer[fluidContainerCount];
+            _fluidContainerCapacity = fluidContainerCapacity;
             for (var i = 0; i < fluidContainerCount; i++)
             {
                 _fluidContainers[i] = new FluidContainer(fluidContainerCapacity);
@@ -41,6 +43,12 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
         public IReadOnlyList<FluidContainer> FluidInputSlot => _fluidContainers;
+        public float FluidContainerCapacity => _fluidContainerCapacity;
+
+        public void InsertFluid(int slot, FluidStack fluidStack)
+        {
+            _fluidContainers[slot].AddLiquid(fluidStack, FluidContainer.Empty, out _);
+        }
         
         public bool IsAllowedToStartProcess()
         {

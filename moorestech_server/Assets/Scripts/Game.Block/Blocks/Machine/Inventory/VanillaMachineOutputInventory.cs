@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
@@ -19,15 +20,20 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineOutputInventory
     {
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
+        public IReadOnlyList<FluidContainer> FluidOutputSlot => _fluidContainers;
+        public float FluidContainerCapacity => _fluidContainerCapacity;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly BlockInstanceId _blockInstanceId;
+        private readonly FluidContainer[] _fluidContainers;
+        private readonly float _fluidContainerCapacity;
         
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
+        public VanillaMachineOutputInventory(int outputSlot, int fluidOutputSlot, float fluidContainerCapacity,
+            IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
@@ -35,6 +41,12 @@ namespace Game.Block.Blocks.Machine.Inventory
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
+            _fluidContainers = new FluidContainer[fluidOutputSlot];
+            _fluidContainerCapacity = fluidContainerCapacity;
+            for (var i = 0; i < fluidOutputSlot; i++)
+            {
+                _fluidContainers[i] = new FluidContainer(fluidContainerCapacity);
+            }
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
@@ -62,7 +74,21 @@ namespace Game.Block.Blocks.Machine.Inventory
             
             return true;
         }
-        
+
+        public bool IsAllowedToOutputFluid(MachineRecipeMasterElement machineRecipe)
+        {
+            if (machineRecipe.OutputFluids == null) return true;
+
+            foreach (var fluid in machineRecipe.OutputFluids)
+            {
+                var container = _fluidContainers[fluid.SlotIndex];
+                if (container.Capacity - container.Amount < fluid.Amount)
+                    return false;
+            }
+
+            return true;
+        }
+
         public void InsertOutputSlot(MachineRecipeMasterElement machineRecipe)
         {
             //アウトプットスロットにアイテムを格納する
@@ -78,6 +104,19 @@ namespace Game.Block.Blocks.Machine.Inventory
                     _itemDataStoreService.SetItem(i, item);
                     break;
                 }
+
+            InsertOutputFluid(machineRecipe);
+        }
+
+        public void InsertOutputFluid(MachineRecipeMasterElement machineRecipe)
+        {
+            if (machineRecipe.OutputFluids == null) return;
+
+            foreach (var fluid in machineRecipe.OutputFluids)
+            {
+                var container = _fluidContainers[fluid.SlotIndex];
+                container.AddLiquid(new FluidStack(fluid.Amount, fluid.FluidGuid), FluidContainer.Empty, out _);
+            }
         }
         
         private void InsertConnectInventory()

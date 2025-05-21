@@ -10,6 +10,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
@@ -45,8 +46,14 @@ namespace Game.Block.Factory.BlockTemplate
             );
             
             var output = new VanillaMachineOutputInventory(
-                outputSlotCount, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
-                inputSlotCount, blockConnectorComponent);
+                outputSlotCount,
+                fluidOutputSlotCount,
+                machineParam.FluidContainerCapacity,
+                ServerContext.ItemStackFactory,
+                blockInventoryUpdateEvent,
+                blockInstanceId,
+                inputSlotCount,
+                blockConnectorComponent);
             
             return (input, output);
         }
@@ -70,6 +77,26 @@ namespace Game.Block.Factory.BlockTemplate
             for (var i = 0; i < outputItems.Count; i++)
             {
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
+            }
+
+            if (jsonObject.InputFluids != null)
+            {
+                for (var i = 0; i < jsonObject.InputFluids.Count && i < vanillaMachineInputInventory.FluidInputSlot.Count; i++)
+                {
+                    var container = jsonObject.InputFluids[i].ToFluidContainer(vanillaMachineInputInventory.FluidContainerCapacity);
+                    vanillaMachineInputInventory.FluidInputSlot[i].Amount = container.Amount;
+                    vanillaMachineInputInventory.FluidInputSlot[i].FluidId = container.FluidId;
+                }
+            }
+
+            if (jsonObject.OutputFluids != null)
+            {
+                for (var i = 0; i < jsonObject.OutputFluids.Count && i < vanillaMachineOutputInventory.FluidOutputSlot.Count; i++)
+                {
+                    var container = jsonObject.OutputFluids[i].ToFluidContainer(vanillaMachineOutputInventory.FluidContainerCapacity);
+                    vanillaMachineOutputInventory.FluidOutputSlot[i].Amount = container.Amount;
+                    vanillaMachineOutputInventory.FluidOutputSlot[i].FluidId = container.FluidId;
+                }
             }
             
             var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
