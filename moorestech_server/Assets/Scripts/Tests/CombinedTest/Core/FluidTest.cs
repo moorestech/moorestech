@@ -20,7 +20,8 @@ namespace Tests.CombinedTest.Core
 {
     public class FluidTest
     {
-        public static readonly Guid FluidId = new("00000000-0000-0000-0000-000000001234");
+        public static readonly Guid FluidGuid = new("00000000-0000-0000-1234-000000000001");
+        public static FluidId FluidId => MasterHolder.FluidMaster.GetFluidId(FluidGuid);
         
         /// <summary>
         ///     与えた量の流体が搬入、搬出されるかのテスト
@@ -221,8 +222,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, fluidPipe0.FluidContainer.Amount, 0.01d);
             Assert.AreEqual(0, oneWayFluidPipe.FluidContainer.Amount, 0.01d);
             Assert.AreEqual(10, fluidPipe1.FluidContainer.Amount, 0.01d);
-            Assert.Null(fluidPipe0.FluidContainer.FluidId);
-            Assert.Null(oneWayFluidPipe.FluidContainer.FluidId);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe0.FluidContainer.FluidId);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, oneWayFluidPipe.FluidContainer.FluidId);
         }
         
         /// <summary>
@@ -377,8 +378,10 @@ namespace Tests.CombinedTest.Core
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             
-            var fluid0 = Guid.Parse("00000000-0000-0000-0000-000000000000");
-            var fluid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var fluid0Guid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+            var fluid0 = MasterHolder.FluidMaster.GetFluidId(fluid0Guid);
+            var fluid1Guid = Guid.Parse("00000000-0000-0000-1234-000000000002");
+            var fluid1 = MasterHolder.FluidMaster.GetFluidId(fluid1Guid);
             
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
@@ -390,9 +393,10 @@ namespace Tests.CombinedTest.Core
             {
                 GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
                 
-                Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
-                Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
+                Debug.Log("i " + i);
             }
+            Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
+            Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
         }
         
         /// <summary>

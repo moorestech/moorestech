@@ -22,6 +22,7 @@ namespace Core.Master
     public class FluidMaster
     {
         public static readonly FluidId EmptyFluidId = new(0);
+        public static readonly Guid MixedFluidGuid = Guid.Parse("00000000-0000-0000-0000-000000000001");
         
         private readonly Dictionary<FluidId, FluidMasterElement> _fluidElementTableById;
         private readonly Dictionary<Guid, FluidId> _fluidGuidToFluidId;
@@ -35,6 +36,9 @@ namespace Core.Master
             var sortedFluidElements = Fluids.Data
                 .OrderBy(e => e.FluidGuid)
                 .ToList();
+            
+            // 予約されている混ざった液体を追加
+            sortedFluidElements.Add(new FluidMasterElement("MixedFluid", MixedFluidGuid));
             
             _fluidElementTableById = new Dictionary<FluidId, FluidMasterElement>();
             _fluidGuidToFluidId = new Dictionary<Guid, FluidId>();
