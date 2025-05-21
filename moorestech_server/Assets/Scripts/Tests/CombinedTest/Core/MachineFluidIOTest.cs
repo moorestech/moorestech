@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -35,9 +36,9 @@ namespace Tests.CombinedTest.Core
             
             var fluidContainers = GetFluidContainers(blockInventory);
             Assert.IsNotNull(fluidContainers, "Fluid containers should not be null");
-            Assert.IsTrue(fluidContainers.Count >= recipe.InputFluids.Count, "Not enough fluid containers for recipe inputs");
+            Assert.IsTrue(fluidContainers.Count >= recipe.InputFluids.Length, "Not enough fluid containers for recipe inputs");
             
-            for (var i = 0; i < recipe.InputFluids.Count; i++)
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 var inputFluid = recipe.InputFluids[i];
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
@@ -60,18 +61,18 @@ namespace Tests.CombinedTest.Core
                 GameUpdater.UpdateWithWait();
             }
             
-            for (var i = 0; i < recipe.InputFluids.Count; i++)
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 Assert.AreEqual(0, fluidContainers[i].Amount, $"Fluid in container {i} should be consumed");
                 Assert.AreEqual(FluidMaster.EmptyFluidId, fluidContainers[i].FluidId, $"Fluid ID in container {i} should be reset to empty");
             }
             
-            if (recipe.OutputItems.Count > 0)
+            if (recipe.OutputItems.Length > 0)
             {
                 var (_, outputSlot) = GetInputOutputSlot(blockInventory);
                 
                 Assert.AreNotEqual(0, outputSlot.Count, "Output slot should not be empty");
-                for (var i = 0; i < recipe.OutputItems.Count; i++)
+                for (var i = 0; i < recipe.OutputItems.Length; i++)
                 {
                     var expectedOutputId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
                     Assert.AreEqual(expectedOutputId, outputSlot[i].Id, $"Output item {i} ID should match");
