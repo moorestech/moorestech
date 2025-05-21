@@ -1,11 +1,19 @@
-﻿using Core.Master;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Core.Master;
+using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.EnergySystem;
+using Game.Fluid;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Core.Update;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -15,10 +23,6 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidProcessingOutputTest()
         {
-            //TODO ここのテストを書く
-            Assert.Pass();
-            return;
-            
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
@@ -28,10 +32,79 @@ namespace Tests.CombinedTest.Core
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
-            foreach (var inputFluid in recipe.InputFluids)
+            
+            var fluidContainers = GetFluidContainers(blockInventory);
+            Assert.IsNotNull(fluidContainers, "Fluid containers should not be null");
+            Assert.IsTrue(fluidContainers.Count >= recipe.InputFluids.Count, "Not enough fluid containers for recipe inputs");
+            
+            for (var i = 0; i < recipe.InputFluids.Count; i++)
             {
-                //blockInventory.InsertItem()
+                var inputFluid = recipe.InputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                var fluidStack = new FluidStack(inputFluid.Amount, fluidId);
+                
+                fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty, out _);
+                
+                Assert.AreEqual(fluidId, fluidContainers[i].FluidId, "Fluid ID should match");
+                Assert.AreEqual(inputFluid.Amount, fluidContainers[i].Amount, "Fluid amount should match");
             }
+            
+            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
+            Assert.IsNotNull(blockMachineComponent, "Machine component should not be null");
+            
+            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
+            
+            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            {
+                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
+                GameUpdater.UpdateWithWait();
+            }
+            
+            for (var i = 0; i < recipe.InputFluids.Count; i++)
+            {
+                Assert.AreEqual(0, fluidContainers[i].Amount, $"Fluid in container {i} should be consumed");
+                Assert.AreEqual(FluidMaster.EmptyFluidId, fluidContainers[i].FluidId, $"Fluid ID in container {i} should be reset to empty");
+            }
+            
+            if (recipe.OutputItems.Count > 0)
+            {
+                var (_, outputSlot) = GetInputOutputSlot(blockInventory);
+                
+                Assert.AreNotEqual(0, outputSlot.Count, "Output slot should not be empty");
+                for (var i = 0; i < recipe.OutputItems.Count; i++)
+                {
+                    var expectedOutputId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
+                    Assert.AreEqual(expectedOutputId, outputSlot[i].Id, $"Output item {i} ID should match");
+                    Assert.AreEqual(recipe.OutputItems[i].Count, outputSlot[i].Count, $"Output item {i} count should match");
+                }
+            }
+        }
+        
+        private IReadOnlyList<FluidContainer> GetFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
+        {
+            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(blockInventory);
+            
+            return vanillaMachineInputInventory.FluidInputSlot;
+        }
+        
+        private (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
+        {
+            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(vanillaMachineInventory);
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(vanillaMachineInventory);
+            
+            var inputSlot = vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
+            inputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
+            
+            var outputSlot = vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
+            outputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
+            
+            return (inputSlot, outputSlot);
         }
     }
 }
