@@ -1,13 +1,14 @@
 ﻿using System;
+using Core.Master;
 
 namespace Game.Fluid
 {
     public readonly struct FluidStack : IEquatable<FluidStack>
     {
         public readonly double Amount;
-        public readonly Guid FluidId;
+        public readonly FluidId FluidId;
         
-        public FluidStack(double amount, Guid fluidId)
+        public FluidStack(double amount, FluidId fluidId)
         {
             Amount = amount;
             FluidId = fluidId;
