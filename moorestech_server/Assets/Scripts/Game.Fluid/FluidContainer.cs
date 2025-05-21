@@ -12,10 +12,11 @@ namespace Game.Fluid
         public static readonly FluidContainer Empty = new();
         public readonly double Capacity;
         
-        public readonly bool IsEmpty;
-        public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
         public double Amount;
         public FluidId FluidId;
+        
+        public readonly bool IsEmpty;
+        public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
         
         /// <param name="capacity">液体の許容量</param>
         public FluidContainer(double capacity)
@@ -37,11 +38,10 @@ namespace Game.Fluid
         public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
         {
             // パイプ内の液体IDがセットされていない場合は入ってきた液体のidをセットする
-            var stackFluidId = MasterHolder.FluidMaster.GetFluidId(fluidStack.FluidId);
             if (FluidId == FluidMaster.EmptyFluidId)
-                FluidId = stackFluidId;
+                FluidId = fluidStack.FluidId;
 
-            if (IsEmpty || stackFluidId != FluidId)
+            if (IsEmpty || fluidStack.FluidId != FluidId)
             {
                 remain = fluidStack;
                 return;
@@ -53,7 +53,7 @@ namespace Game.Fluid
                 Amount += addingAmount;
                 source.PreviousSourceFluidContainers.Add(this);
                 var guid = MasterHolder.FluidMaster.GetFluidMaster(FluidId).FluidGuid;
-                remain = new FluidStack(fluidStack.Amount - addingAmount, guid);
+                remain = new FluidStack(fluidStack.Amount - addingAmount, fluidStack.FluidId);
                 return;
             }
 
