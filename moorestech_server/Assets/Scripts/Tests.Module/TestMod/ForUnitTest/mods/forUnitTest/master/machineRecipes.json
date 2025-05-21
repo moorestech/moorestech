@@ -229,8 +229,19 @@
     {
       "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
       "time": 1,
-      "inputItems": [],
-      "outputItems": [],
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
       "inputFluids": [
         {
           "amount": 1,
@@ -242,7 +253,12 @@
         }
       ],
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
-      "outputFluids": []
+      "outputFluids": [
+        {
+          "fluidGuid": "00000000-0000-0000-1234-000000000003",
+          "amount": 4
+        }
+      ]
     }
   ]
 }
