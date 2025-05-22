@@ -14,6 +14,7 @@ using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -413,6 +414,47 @@ namespace Tests.CombinedTest.Core
             
             Assert.Contains("Water", names.Keys);
             Assert.Contains("Steam", names.Keys);
+        }
+        
+        /// <summary>
+        ///     FluidPipeのIBlockStateObservableの実装のテスト
+        /// </summary>
+        [Test]
+        public void FluidPipeNetworkTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock1);
+            
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            
+            var fluidId = Guid.Parse("00000000-0000-0000-1234-000000000001");
+            var fluid = MasterHolder.FluidMaster.GetFluidId(fluidId);
+            
+            const double fluid0Amount = 10d;
+            const double fluid1Amount = 20d;
+            
+            fluidPipe0.FluidContainer.AddLiquid(new FluidStack(fluid0Amount, fluid), FluidContainer.Empty, out _);
+            fluidPipe1.FluidContainer.AddLiquid(new FluidStack(fluid1Amount, fluid), FluidContainer.Empty, out _);
+            
+            var callCount = 0;
+            
+            fluidPipe0.OnChangeBlockState.Subscribe(_ =>
+            {
+                callCount++;
+                Debug.Log("callCount " + callCount);
+            });
+            fluidPipe1.OnChangeBlockState.Subscribe(_ => { callCount++; });
+            
+            const int steps = 10;
+            
+            for (var i = 0; i < steps; i++) GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
+            
+            Assert.AreEqual(steps, callCount);
         }
     }
 }
