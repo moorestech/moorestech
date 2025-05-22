@@ -1,18 +1,21 @@
 using System;
 using System.Linq;
+using Core.Master;
 using Core.Update;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Core.Master;
+using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using UniRx;
 
 namespace Game.Block.Blocks.Fluid
 {
-    public class FluidPipeComponent : IUpdatableBlockComponent, IFluidInventory
+    public class FluidPipeComponent : IUpdatableBlockComponent, IFluidInventory, IBlockStateObservable
     {
         private readonly BlockConnectorComponent<IFluidInventory> _connectorComponent;
+        private readonly Subject<Unit> _onChangeBlockState = new();
         private BlockPositionInfo _blockPositionInfo;
         
         public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity)
@@ -22,7 +25,25 @@ namespace Game.Block.Blocks.Fluid
             FluidContainer = new FluidContainer(capacity);
         }
         
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            var fluidStateDetail = GetFluidStateDetail();
+            var blockStateDetail = new BlockStateDetail(
+                FluidStateDetail.FluidStateDetailKey,
+                MessagePackSerializer.Serialize(fluidStateDetail)
+            );
+            
+            return new[] { blockStateDetail };
+        }
+        
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
+        
         public FluidContainer FluidContainer { get; }
+        
+        public void OnContainerChanged()
+        {
+            _onChangeBlockState.OnNext(Unit.Default);
+        }
         
         public bool IsDestroy { get; private set; }
         public void Destroy()
@@ -56,12 +77,15 @@ namespace Game.Block.Blocks.Fluid
                 for (var j = i; j < targetContainers.Count; j++)
                 {
                     FluidContainer.Amount -= flowRate;
-                    var otherContainer = targetContainers[j].Key.FluidContainer;
+                    var otherInventory = targetContainers[j].Key;
+                    var otherContainer = otherInventory.FluidContainer;
                     otherContainer.Amount += flowRate;
                     targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
                     
                     otherContainer.FluidId = FluidContainer.FluidId;
                     otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
+                    
+                    otherInventory.OnContainerChanged();
                 }
             }
             
@@ -73,6 +97,14 @@ namespace Game.Block.Blocks.Fluid
             // 満たされた対象はリストから削除
             // 元のコンテナから液体がなくなったら終了
             // 全ての対象に繰り返す
+        }
+        
+        public FluidStateDetail GetFluidStateDetail()
+        {
+            var fluidId = FluidContainer.FluidId;
+            var amount = FluidContainer.Amount;
+            var capacity = FluidContainer.Capacity;
+            return new FluidStateDetail(fluidId, (float)amount, (float)capacity);
         }
         
         private double GetMaxFlowRate(FluidContainer container, ConnectedInfo connectedInfo)

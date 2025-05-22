@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "Game.Block.Interface",
-        "Core.Master"
+        "Core.Master",
+        "MessagePack",
+        "MessagePack.Annotations"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
