@@ -18,5 +18,9 @@ namespace Game.Block.Blocks.Fluid
                 blockPositionInfo
             );
         }
+        
+        //TODO: FluidContainerの更新用メソッドを追加した場合はそちらでOnNextを呼ぶ
+        public void OnContainerChanged();
+        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain);
     }
 }
