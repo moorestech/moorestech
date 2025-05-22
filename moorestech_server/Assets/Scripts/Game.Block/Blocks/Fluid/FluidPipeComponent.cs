@@ -27,9 +27,9 @@ namespace Game.Block.Blocks.Fluid
         
         public BlockStateDetail[] GetBlockStateDetails()
         {
-            var fluidStateDetail = GetFluidStateDetail();
+            var fluidStateDetail = GetFluidPipeStateDetail();
             var blockStateDetail = new BlockStateDetail(
-                FluidStateDetail.FluidStateDetailKey,
+                FluidPipeStateDetail.FluidPipeStateDetailKey,
                 MessagePackSerializer.Serialize(fluidStateDetail)
             );
             
@@ -99,12 +99,12 @@ namespace Game.Block.Blocks.Fluid
             // 全ての対象に繰り返す
         }
         
-        public FluidStateDetail GetFluidStateDetail()
+        public FluidPipeStateDetail GetFluidPipeStateDetail()
         {
             var fluidId = FluidContainer.FluidId;
             var amount = FluidContainer.Amount;
             var capacity = FluidContainer.Capacity;
-            return new FluidStateDetail(fluidId, (float)amount, (float)capacity);
+            return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
         }
         
         private double GetMaxFlowRate(FluidContainer container, ConnectedInfo connectedInfo)

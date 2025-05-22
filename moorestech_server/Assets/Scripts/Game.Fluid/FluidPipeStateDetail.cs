@@ -4,11 +4,11 @@ using MessagePack;
 namespace Game.Fluid
 {
     [MessagePackObject]
-    public class FluidStateDetail
+    public class FluidPipeStateDetail
     {
-        public const string FluidStateDetailKey = "FluidStateData";
+        public const string FluidPipeStateDetailKey = "FluidPipeStateData";
         
-        public FluidStateDetail(FluidId fluidId, float amount, float capacity)
+        public FluidPipeStateDetail(FluidId fluidId, float amount, float capacity)
         {
             FluidId = fluidId;
             Amount = amount;

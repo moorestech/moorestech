@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.Fluid
             );
         }
         
-        //TODO: FluidContainerに更新用メソッドを追加した場合はそちらでOnNextを呼ぶ
+        //TODO: FluidContainerの更新用メソッドを追加した場合はそちらでOnNextを呼ぶ
         public void OnContainerChanged();
     }
 }
