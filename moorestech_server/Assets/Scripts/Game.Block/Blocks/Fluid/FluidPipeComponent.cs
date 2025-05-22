@@ -45,6 +45,12 @@ namespace Game.Block.Blocks.Fluid
             _onChangeBlockState.OnNext(Unit.Default);
         }
         
+        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
+        {
+            FluidContainer.AddLiquid(fluidStack, source, out remain);
+            _onChangeBlockState.OnNext(Unit.Default);
+        }
+        
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
