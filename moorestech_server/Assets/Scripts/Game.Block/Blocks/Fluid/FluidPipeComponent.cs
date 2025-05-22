@@ -23,6 +23,12 @@ namespace Game.Block.Blocks.Fluid
         }
         
         public FluidContainer FluidContainer { get; }
+
+        public FluidStack InsertFluid(FluidStack stack, FluidContainer insertFromContainer)
+        {
+            FluidContainer.AddLiquid(stack, insertFromContainer, out var remain);
+            return remain ?? new FluidStack(0, FluidMaster.EmptyFluidId);
+        }
         
         public bool IsDestroy { get; private set; }
         public void Destroy()
