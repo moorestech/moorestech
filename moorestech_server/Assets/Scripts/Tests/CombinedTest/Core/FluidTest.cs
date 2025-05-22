@@ -393,10 +393,9 @@ namespace Tests.CombinedTest.Core
             {
                 GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
                 
-                Debug.Log("i " + i);
+                Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
+                Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
             }
-            Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
-            Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
         }
         
         /// <summary>
