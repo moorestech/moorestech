@@ -24,7 +24,10 @@ namespace Game.Block.Factory.BlockTemplate
             var fluidPipeParam = (blockMasterElement.BlockParam as FluidPipeBlockParam)!;
             
             var inventoryConnects = fluidPipeParam.FluidInventoryConnectors;
-            BlockConnectorComponent<IFluidInventory> connectorComponent = IFluidInventory.CreateFluidInventoryConnector(inventoryConnects, blockPositionInfo);
+            BlockConnectorComponent<IFluidInventory> connectorComponent = new BlockConnectorComponent<IFluidInventory>(
+                inventoryConnects.InflowConnects,
+                inventoryConnects.OutflowConnects,
+                blockPositionInfo);
             
             var fluidPipeComponent = new FluidPipeComponent(blockPositionInfo, connectorComponent, fluidPipeParam.Capacity);
             var components = new List<IBlockComponent>

@@ -52,3 +52,6 @@
 - **チャレンジシステムの活用**: プレイヤーに目標を提供し、ゲームの進行を導くチャレンジの設計を決定
 - **システム間の連携の強化**: アンロックシステム、チャレンジシステム、クラフトシステムなど、システム間の連携を強化し、統合的なゲーム体験を提供することを決定
 - **CI改善**: サブモジュールをHTTPSに変更し、GitHub Actionsでのチェックアウトを容易にした
+
+- **Fluid inventory interface refactor**: IFluidInventory now exposes only AddLiquid returning the remainder, and FluidPipeComponent updated accordingly.
+- **FluidPipeComponent compile fix**: Update method adjusted to remove direct FluidContainer access.
