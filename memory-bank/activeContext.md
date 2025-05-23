@@ -51,3 +51,4 @@
 - **チャレンジシステム**: プレイヤーに目標を提供し、ゲームの進行を導くチャレンジの設計
 - **システム間の連携**: アンロックシステム、チャレンジシステム、クラフトシステム、液体システムなど、システム間の連携による統合的なゲーム体験の設計
 - **液体システムのフロー**: 液体は、クラフト連鎖システムによって管理されるレシピに基づいて生成され、パイプを通じて輸送され、`PreviousSourceFluidContainers` を使用して液体の流れを制御し、循環を防ぐ
+- **Fluid inventory refactoring**: Simplified IFluidInventory and adjusted FluidPipeComponent.

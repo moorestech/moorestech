@@ -3,7 +3,6 @@ using System.Linq;
 using Core.Master;
 using Core.Update;
 using Game.Block.Component;
-using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
@@ -40,15 +39,11 @@ namespace Game.Block.Blocks.Fluid
         
         public FluidContainer FluidContainer { get; }
         
-        public void OnContainerChanged()
+        public FluidStack? AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
+            FluidContainer.AddLiquid(fluidStack, source, out var remain);
             _onChangeBlockState.OnNext(Unit.Default);
-        }
-        
-        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
-        {
-            FluidContainer.AddLiquid(fluidStack, source, out remain);
-            _onChangeBlockState.OnNext(Unit.Default);
+            return remain;
         }
         
         public bool IsDestroy { get; private set; }
@@ -84,14 +79,8 @@ namespace Game.Block.Blocks.Fluid
                 {
                     FluidContainer.Amount -= flowRate;
                     var otherInventory = targetContainers[j].Key;
-                    var otherContainer = otherInventory.FluidContainer;
-                    otherContainer.Amount += flowRate;
+                    otherInventory.AddLiquid(new FluidStack(flowRate, FluidContainer.FluidId), FluidContainer);
                     targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
-                    
-                    otherContainer.FluidId = FluidContainer.FluidId;
-                    otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
-                    
-                    otherInventory.OnContainerChanged();
                 }
             }
             
