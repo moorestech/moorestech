@@ -13,11 +13,11 @@ public static class SwitchPathParser
         path = GetTopPathExcludedPath(path, type);
 
         var currentPosition = 0;
-        var (currentChar, nextChar) = GetCurrentAndNextChar(path, currentPosition);
 
-        while (currentChar != '\0')
+        while (true)
         {
-            (currentChar, nextChar) = GetCurrentAndNextChar(path, currentPosition);
+            var (currentChar, nextChar) = GetCurrentAndNextChar(path, currentPosition);
+            if (currentChar == '\0') break;
 
             switch (currentChar)
             {
