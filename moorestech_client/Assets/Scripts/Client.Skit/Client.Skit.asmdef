@@ -1,23 +1,32 @@
 {
-  "name": "Client.Skit",
-  "rootNamespace": "",
-  "references": [
-    "UniRx",
-    "UniTask",
-    "Unity.TextMeshPro",
-    "UniTask.DOTween",
-    "DOTween.Modules",
-    "Client.Common"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": true,
-  "precompiledReferences": [
-    "DOTween.dll"
-  ],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "Client.Skit",
+    "rootNamespace": "",
+    "references": [
+        "UniRx",
+        "UniTask",
+        "Unity.TextMeshPro",
+        "UniTask.DOTween",
+        "DOTween.Modules",
+        "Client.Common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "DOTween.dll",
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENABLE_COMMAND_FORGE_GENERATOR"
+    ],
+    "versionDefines": [
+        {
+            "name": "Unity",
+            "expression": "",
+            "define": "ENABLE_COMMAND_FORGE_GENERATOR"
+        }
+    ],
+    "noEngineReferences": false
 }
