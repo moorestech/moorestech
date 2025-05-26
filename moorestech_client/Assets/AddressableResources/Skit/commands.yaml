@@ -17,23 +17,19 @@ commands:
   - id: characterTransform
     label: キャラ位置設定
     description: キャラクターの座標と回転を即座に設定
-    commandListLabelFormat: "TRANSFORM: {character} → ({PositionX}, {PositionY}, {PositionZ})"
+    commandListLabelFormat: "{character} {Position} {Rotation}"
     properties:
       character:
         type: enum
         options: ["キャラA", "キャラB", "キャラC", "キャラD", "先生", "店員"]
         required: true
-      PositionX: { type: number, default: 0 }
-      PositionY: { type: number, default: 0 }
-      PositionZ: { type: number, default: 0 }
-      RotationX: { type: number, default: 0 }
-      RotationY: { type: number, default: 0 }
-      RotationZ: { type: number, default: 0 }
+      Position: { type: vector3, required: true }
+      Rotation: { type: vector3, required: true }
 
   - id: camerawork
     label: カメラワーク
     description: 指定時間でカメラを補間移動
-    commandListLabelFormat: "CAMERAWORK: {duration}s {easing}"
+    commandListLabelFormat: "カメラワーク:{duration}s {easing}"
     properties:
       duration:
         type: number
@@ -43,18 +39,11 @@ commands:
         type: enum
         default: InOutSine
         options: ["Linear", "InSine", "OutSine", "InOutSine", "InQuad", "OutQuad", "InOutQuad"]
-      StartPositionX: { type: number, default: 0 }
-      StartPositionY: { type: number, default: 0 }
-      StartPositionZ: { type: number, default: 0 }
-      StartRotationX: { type: number, default: 0 }
-      StartRotationY: { type: number, default: 0 }
-      StartRotationZ: { type: number, default: 0 }
-      EndPositionX: { type: number, default: 0 }
-      EndPositionY: { type: number, default: 0 }
-      EndPositionZ: { type: number, default: 0 }
-      EndRotationX: { type: number, default: 0 }
-      EndRotationY: { type: number, default: 0 }
-      EndRotationZ: { type: number, default: 0 }
+      StartPosition: { type: vector3, required: true }
+      StartRotation: { type: vector3, required: true }
+      
+      EndPosition: { type: vector3, required: true }
+      EndRotation: { type: vector3, required: true }
 
   - id: wait
     label: 待機
@@ -70,14 +59,10 @@ commands:
   - id: cameraWarp
     label: カメラワープ
     description: カメラを瞬時に座標移動
-    commandListLabelFormat: "CAMERAWARP: ({PositionX}, {PositionY}, {PositionZ})"
+    commandListLabelFormat: "カメラワープ {Position} {Rotation}"
     properties:
-      PositionX: { type: number, default: 0 }
-      PositionY: { type: number, default: 0 }
-      PositionZ: { type: number, default: 0 }
-      RotationX: { type: number, default: 0 }
-      RotationY: { type: number, default: 0 }
-      RotationZ: { type: number, default: 0 }
+      Position: { type: vector3, required: true }
+      Rotation: { type: vector3, required: true }
 
   - id: text
     label: テキスト
