@@ -48,6 +48,13 @@
       },
       "hash": "aa14664642f2fc99625ceea5e03744a33411e636"
     },
+    "com.moorestech.command-forge-generator-util": {
+      "version": "https://github.com/moorestech/CommandForgeGenerator.git?path=UnityEditorExtension/CommandForgeGeneratorUtil/Assets/Scripts#main",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d9510956f357e9aa555508bcf83fd85b8c259224"
+    },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
       "depth": 0,
