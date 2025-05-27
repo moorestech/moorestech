@@ -12,6 +12,9 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using Game.Train.Utility;
+using Game.Block.Interface.Component;
+using Core.Master;
+using Game.PlayerInventory.Interface;
 
 namespace Tests.UnitTest.Game
 {
@@ -1241,5 +1244,70 @@ namespace Tests.UnitTest.Game
                 Debug.Log("列車編成が無事目的地につきました");
             }
         }
+
+
+
+        [Test]
+        public void TrainStationItemInputOutputTest()
+        {
+            // テスト環境の初期化  
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // 駅ブロックを設置  
+            var stationPosition = new Vector3Int(0, 0, 0);
+            worldBlockDatastore.TryAddBlock(
+                ForUnitTestModBlockId.TestTrainStation,
+                stationPosition,
+                BlockDirection.North,
+                out var stationBlock
+            );
+
+            Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗");
+
+            // StationComponentの取得  
+            var stationComponent = stationBlock.GetComponent<StationComponent>();
+            Assert.IsNotNull(stationComponent, "StationComponentが見つからない");
+
+            // インベントリスロット数の確認  
+            Assert.AreEqual(1, stationComponent.InventorySlotCount, "インベントリスロット数が正しくない");
+
+            // アイテム搬入テスト用のチェストを設置  
+            var inputChestPosition = new Vector3Int(4, 0, 0); // inputConnectのオフセット位置  
+            worldBlockDatastore.TryAddBlock(
+                ForUnitTestModBlockId.ChestId,
+                inputChestPosition,
+                BlockDirection.North
+                , out var inputChest
+            );
+            Assert.IsNotNull(inputChest, "搬入用チェストの設置に失敗");
+
+            // アイテム搬出テスト用のチェストを設置  
+            var outputChestPosition = new Vector3Int(6, 0, 0); // outputConnectのオフセット位置  
+            worldBlockDatastore.TryAddBlock(
+                ForUnitTestModBlockId.ChestId,
+                outputChestPosition,
+                BlockDirection.North,
+                out var outputChest
+            );
+            Assert.IsNotNull(outputChest, "搬出用チェストの設置に失敗");
+
+            var inputInventory = inputChest.GetComponent<IBlockInventory>();
+            // ForUnitTestModItemId.Stoneの代わりに、実際に存在するアイテムIDを使用  
+            var testItem = ServerContext.ItemStackFactory.Create(new ItemId(1), 10); // Test1アイテムを使用  
+
+
+            inputInventory.InsertItem(testItem);
+
+            // アイテム搬入の確認  
+            var insertedItem = inputInventory.GetItem(0);
+            Assert.AreEqual(new ItemId(1), insertedItem.Id, "テストアイテムが正しく挿入されていない");
+            Assert.AreEqual(10, insertedItem.Count, "アイテム数が正しくない");
+
+            // 駅のインベントリ接続の確認  
+            var stationInventory = stationBlock.GetComponent<IBlockInventory>();
+        }
+
     }
 }
