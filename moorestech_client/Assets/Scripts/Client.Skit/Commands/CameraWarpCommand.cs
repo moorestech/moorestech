@@ -1,6 +1,15 @@
-﻿namespace CommandForgeGenerator.Command
+using Client.Skit.SkitTrack;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+
+namespace CommandForgeGenerator.Command
 {
     public partial class CameraWarpCommand
     {
+        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        {
+            storyContext.SkitCamera.SetTransform(Position, Rotation);
+            return null;
+        }
     }
 }
