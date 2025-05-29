@@ -7,7 +7,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class CameraworkCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             storyContext.SkitCamera.TweenCamera(
                 StartPosition,

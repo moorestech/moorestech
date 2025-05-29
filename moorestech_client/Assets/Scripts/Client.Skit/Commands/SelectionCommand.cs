@@ -6,33 +6,33 @@ namespace CommandForgeGenerator.Command
 {
     public partial class SelectionCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             storyContext.SkitUI.ShowSelectionUI(true);
 
-            var jumpTags = new List<string>();
+            var jumpTarget = new List<CommandId>();
             var labels = new List<string>();
 
-            if (!string.IsNullOrEmpty(Option1Label))
+            if (!string.IsNullOrEmpty(Option1Tag))
             {
-                jumpTags.Add(Option1Tag);
-                labels.Add(Option1Label);
+                jumpTarget.Add(Option1JumpTarget);
+                labels.Add(Option1Tag);
             }
-            if (!string.IsNullOrEmpty(Option2Label))
+            if (!string.IsNullOrEmpty(Option2Tag))
             {
-                jumpTags.Add(Option2Tag);
-                labels.Add(Option2Label);
+                jumpTarget.Add(Option2JumpTarget);
+                labels.Add(Option2Tag);
             }
-            if (!string.IsNullOrEmpty(Option3Label))
+            if (!string.IsNullOrEmpty(Option3Tag))
             {
-                jumpTags.Add(Option3Tag);
-                labels.Add(Option3Label);
+                jumpTarget.Add(Option3JumpTarget);
+                labels.Add(Option3Tag);
             }
 
             var index = await storyContext.SkitUI.WaitSelectText(labels);
             storyContext.SkitUI.ShowSelectionUI(false);
-
-            return index < jumpTags.Count ? jumpTags[index] : null;
+            
+            return null; // TODO
         }
     }
 }

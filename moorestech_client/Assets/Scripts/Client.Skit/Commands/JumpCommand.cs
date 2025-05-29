@@ -5,9 +5,12 @@ namespace CommandForgeGenerator.Command
 {
     public partial class JumpCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            return TargetLabel;
+            return new CommandResultContext
+            {
+                JumpTargetCommandId = JumpTargetCommand,
+            };
         }
     }
 }

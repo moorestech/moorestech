@@ -5,7 +5,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class TransitionCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             storyContext.SkitUI.ShowTransition(Enabled, Duration);
             await UniTask.Delay((int)(Duration * 1000));

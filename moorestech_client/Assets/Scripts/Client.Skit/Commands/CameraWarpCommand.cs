@@ -6,7 +6,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class CameraWarpCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             storyContext.SkitCamera.SetTransform(Position, Rotation);
             return null;

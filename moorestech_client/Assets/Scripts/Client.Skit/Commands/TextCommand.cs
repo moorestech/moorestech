@@ -6,7 +6,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class TextCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             storyContext.SkitUI.SetText(Character, Body);
 

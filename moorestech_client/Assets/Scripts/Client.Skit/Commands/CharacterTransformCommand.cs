@@ -6,7 +6,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class CharacterTransformCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var character = storyContext.GetCharacter(Character);
             character.SetTransform(Position, Rotation);
