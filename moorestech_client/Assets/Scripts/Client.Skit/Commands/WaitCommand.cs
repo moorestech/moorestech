@@ -5,7 +5,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class WaitCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             await UniTask.Delay((int)(Seconds * 1000));
             return null;

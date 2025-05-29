@@ -5,7 +5,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class MotionCommand
     {
-        public async UniTask<string> ExecuteAsync(StoryContext storyContext)
+        public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var character = storyContext.GetCharacter(Character);
             character.PlayAnimation(MotionName);
