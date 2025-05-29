@@ -4,7 +4,8 @@ using Client.Skit.Skit;
 using Client.Skit.UI;
 using UnityEngine;
 
-namespace Client.Skit.SkitTrack
+
+namespace CommandForgeGenerator.Command
 {
     public class StoryContext
     {

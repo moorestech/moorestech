@@ -1,4 +1,4 @@
-namespace Client.Skit.SkitTrack
+namespace CommandForgeGenerator.Command
 {
     public enum EmotionType
     {

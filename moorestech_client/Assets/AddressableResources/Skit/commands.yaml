@@ -99,18 +99,18 @@ commands:
     defaultBackgroundColor: "#f9f0ff"
     properties:
       Option1Tag:   { type: string, required: true }
-      Option1Label: { type: string, required: true }
+      Option1JumpTarget: { type: command, required: true }
       Option2Tag:   { type: string }
-      Option2Label: { type: string }
+      Option2JumpTarget: { type: command }
       Option3Tag:   { type: string }
-      Option3Label: { type: string }
+      Option3JumpTarget: { type: command }
 
   - id: jump
     label: ジャンプ
     description: 指定ラベルへジャンプ
     commandListLabelFormat: "JUMP: {targetLabel}"
     properties:
-      targetLabel: { type: string, required: true }
+      jumpTargetCommand: { type: command, required: true }
 
   - id: motion
     label: モーション
