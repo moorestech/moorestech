@@ -3,8 +3,8 @@ using Client.Common;
 using Client.Common.Asset;
 using Client.Skit.Define;
 using Client.Skit.Skit;
-using Client.Skit.SkitTrack;
 using Client.Skit.UI;
+using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -33,49 +33,18 @@ namespace Client.Game.Skit
             await StartSkit(storyCsv);
         }
         
-        public async UniTask StartSkit(TextAsset storyCsv)
+        public async UniTask StartSkit(TextAsset skitJson)
         {
             IsPlayingSkit = true;
+            var commands = CommandForgeLoader.LoadCommands(skitJson.text);
             
             //前処理 Pre process
             var storyContext = PreProcess();
-            var lines = storyCsv.text.Split('\n');
-            var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
-            
             CameraManager.Instance.RegisterCamera(skitCamera);
             
-            //トラックの実行処理 Execute track
-            for (var i = 0; i < lines.Length; i++)
+            foreach (var command in commands)
             {
-                var values = lines[i].Split(',');
-                
-                //トラックの取得と終了判定
-                var trackKey = values[1];
-                if (trackKey == string.Empty) continue; //空行はスキップ
-                if (trackKey == "End") break;
-                
-                var track = StoryTrackDefine.GetStoryTrack(trackKey);
-                if (track == null)
-                {
-                    Debug.LogError($"トラックが見つかりません : {trackKey}\nパラメータ : {string.Join(", ", values)}");
-                    break;
-                }
-                
-                //トラックの実行
-                var parameters = CreateParameter(values);
-                var nextTag = await track.ExecuteTrack(storyContext, parameters);
-                
-                //タグがなかったのでそのまま継続
-                if (nextTag == null) continue;
-                
-                //次のタグにジャンプ
-                if (!tagIndexTable.TryGetValue(nextTag, out var nextIndex))
-                {
-                    Debug.LogError($"次のタグが見つかりません : トラック : {trackKey} 当該タグ : {nextTag}\nパラメータ : {string.Join(", ", values)}");
-                    break;
-                }
-                
-                i = nextIndex - 1;
+                await command.ExecuteAsync(storyContext);
             }
             
             //後処理 Post process
@@ -100,35 +69,6 @@ namespace Client.Game.Skit
                 skitUI.gameObject.SetActive(true);
                 
                 return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
-            }
-            
-            List<string> CreateParameter(string[] values)
-            {
-                var parameters = new List<string>();
-                for (var j = 2; j < values.Length; j++) parameters.Add(values[j]);
-                
-                return parameters;
-            }
-            
-            Dictionary<string, int> CreateTagIndexTable(string[] lines)
-            {
-                var tagIndex = new Dictionary<string, int>();
-                for (var i = 0; i < lines.Length; i++)
-                {
-                    var values = lines[i].Split(',');
-                    var tag = values[0];
-                    if (tag == string.Empty) continue;
-                    
-                    if (tagIndex.ContainsKey(tag))
-                    {
-                        Debug.LogError($"タグが重複しています : {tag} {i}");
-                        break;
-                    }
-                    
-                    tagIndex.Add(tag, i);
-                }
-                
-                return tagIndex;
             }
             
             #endregion
