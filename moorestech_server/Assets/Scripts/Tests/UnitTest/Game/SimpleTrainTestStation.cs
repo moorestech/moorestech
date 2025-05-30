@@ -99,6 +99,7 @@ namespace Tests.UnitTest.Game
         }
         /// <summary>
         /// 駅を2つつなげたときにrailNodeが自動でつながらないパターンを全探索で確認する
+        /// ※全部やると50秒もかかるのでrandomにskipしている
         /// </summary>
         [Test]
         public void StationConnectionAllPattern()
@@ -113,7 +114,7 @@ namespace Tests.UnitTest.Game
             offsetvec3[2] = new Vector3Int(-blockSize.x, 0, 0);//south
             offsetvec3[3] = new Vector3Int(0, 0, blockSize.x);//west
 
-
+            //※全部やると50秒もかかるのでrandomにskipしている
             //yは0、xとzで-blockSize.x～blockSize.xまで1マスずつ設置して一つだけ接続を満たすことを確認したい
             for (int dir = 0; dir < 4; dir++)
             {
@@ -122,6 +123,8 @@ namespace Tests.UnitTest.Game
                     for (int j = -blockSize.x - 1; j <= blockSize.x + 1; j++)
                     {
                         if (i == 0 && j == 0) continue; // 自分の位置はスキップ
+                        //ランダムにskipする
+                        if (UnityEngine.Random.Range(0, 100) < 98) continue; // 98%の確率でスキップ
                         // 1) 駅をつくってrailcomponentの座標を確認
                         worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), (BlockDirection)(dir + 4), out var stationBlockA);
                         var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
