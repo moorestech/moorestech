@@ -35,7 +35,7 @@ public static class CliTestRunner
             else
             {
                 _failCount++;
-                Export($" {icon} {name}\n    {result.Message}\n    {result.StackTrace}");
+                Export($" {icon} {name}\n    {result.Message}\n----------\n{result.Output}\n----------\n    {result.StackTrace}");
             }
         }
 
@@ -102,6 +102,10 @@ public static class CliTestRunner
             list.Add(node.FullName);
     }
 
-    // [CliTest] タグ付きでログ
-    private static void Export(string msg) => Debug.Log($"[CliTest]{msg}");
+    // 全行に [CliTest] をつけて出力 
+    private static void Export(string msg)
+    {
+        var lines = msg.Split('\n');
+        foreach (var line in lines) Debug.Log($"[CliTest] {line}");
+    }
 }
