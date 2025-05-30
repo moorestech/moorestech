@@ -34,12 +34,11 @@ RET=$?
 ###############################################################################
 if [ $RET -eq 2 ] || grep -q "Scripts have compiler errors" "$LOGFILE"; then
   # --- ❶ コンパイルエラー行を抽出 ------------------------------------------
-  echo "[CliTest] ❌ Compile errors detected"
+  echo "❌ Compile errors detected"
   #   Unity が出力する例: Assets/Scripts/Foo.cs(12,18): error CS1002: ; expected
   #   error CS でも error CSxxxx でも取得
-  grep -E "error CS[0-9]{4}:" "$LOGFILE" \
-    | sed 's/^/[CliTest]    /'
-  echo "[CliTest] ❌ Compilation failed — tests were not executed"
+  grep -E "error CS[0-9]{4}:" "$LOGFILE" | sed 's/^/    /'
+  echo "❌ Compilation failed — tests were not executed"
   RET=1        # CI で失敗扱いにしたいので必ず 1
 else
   # --- ❷ [CliTest] 行 (テスト結果) だけ表示 -------------------------------
