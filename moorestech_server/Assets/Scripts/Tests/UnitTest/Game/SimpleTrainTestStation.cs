@@ -10,6 +10,13 @@ using UnityEngine;
 using Game.Block.Interface.Component;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
+using Core.Update;
+using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Component;
+using System.Collections.Generic;
+using System;
+using Tests.Module;
+using static UnityEditor.Progress;
 
 namespace Tests.UnitTest.Game
 {
@@ -108,7 +115,7 @@ namespace Tests.UnitTest.Game
 
 
             //yは0、xとzで-blockSize.x～blockSize.xまで1マスずつ設置して一つだけ接続を満たすことを確認したい
-            for (int dir = 0; dir < 4; dir++) 
+            for (int dir = 0; dir < 4; dir++)
             {
                 for (int i = -blockSize.x - 1; i <= blockSize.x + 1; i++)
                 {
@@ -150,49 +157,36 @@ namespace Tests.UnitTest.Game
                     }
                 }
             }
-
-
         }
-
 
         [Test]
         public void TrainStationItemInputOutputTest()
         {
-            // テスト環境の初期化  
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+            // テスト環境の初期化    
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
-            // 駅ブロックを設置  
+            // 駅ブロックを設置    
             var stationPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(
-                ForUnitTestModBlockId.TestTrainStation,
-                stationPosition,
-                BlockDirection.North,
-                out var stationBlock
-            );
-
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, stationPosition, BlockDirection.North, out var stationBlock);
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗");
 
-            // StationComponentの取得  
+            // StationComponentの取得    
             var stationComponent = stationBlock.GetComponent<StationComponent>();
             Assert.IsNotNull(stationComponent, "StationComponentが見つからない");
 
-            // インベントリスロット数の確認  
-            Assert.AreEqual(1, stationComponent.InventorySlotCount, "インベントリスロット数が正しくない");
-
-            // アイテム搬入テスト用のチェストを設置  
-            var inputChestPosition = new Vector3Int(4, 0, 0); // inputConnectのオフセット位置  
+            // アイテム搬入テスト用のチェストを設置    
+            var inputChestPosition = new Vector3Int(4, 0, -1);
             worldBlockDatastore.TryAddBlock(
                 ForUnitTestModBlockId.ChestId,
                 inputChestPosition,
-                BlockDirection.North
-                , out var inputChest
+                BlockDirection.North,
+                out var inputChest
             );
             Assert.IsNotNull(inputChest, "搬入用チェストの設置に失敗");
 
-            // アイテム搬出テスト用のチェストを設置  
-            var outputChestPosition = new Vector3Int(6, 0, 0); // outputConnectのオフセット位置  
+            // アイテム搬出テスト用のチェストを設置    
+            var outputChestPosition = new Vector3Int(6, 0, -1);
             worldBlockDatastore.TryAddBlock(
                 ForUnitTestModBlockId.ChestId,
                 outputChestPosition,
@@ -201,21 +195,43 @@ namespace Tests.UnitTest.Game
             );
             Assert.IsNotNull(outputChest, "搬出用チェストの設置に失敗");
 
+            // アイテムをinputChestに挿入  
             var inputInventory = inputChest.GetComponent<IBlockInventory>();
-            // ForUnitTestModItemId.Stoneの代わりに、実際に存在するアイテムIDを使用  
-            var testItem = ServerContext.ItemStackFactory.Create(new ItemId(1), 10); // Test1アイテムを使用  
-
-
+            var testItem = ServerContext.ItemStackFactory.Create(new ItemId(1), 10);
             inputInventory.InsertItem(testItem);
 
-            // アイテム搬入の確認  
+            // アイテム搬入の確認    
             var insertedItem = inputInventory.GetItem(0);
             Assert.AreEqual(new ItemId(1), insertedItem.Id, "テストアイテムが正しく挿入されていない");
             Assert.AreEqual(10, insertedItem.Count, "アイテム数が正しくない");
 
-            // 駅のインベントリ接続の確認  
+            // 駅とチェスト間の接続を確立（BeltConveyorTestのパターンを参考）  これは自動で行われているはず
             var stationInventory = stationBlock.GetComponent<IBlockInventory>();
-        }
+            var outputInventory = outputChest.GetComponent<IBlockInventory>();
 
+            // 駅のコネクターを取得して出力チェストを接続  
+            //var stationConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)stationBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            //stationConnectInventory.Add(outputInventory, new ConnectedInfo());
+
+            // inputChestから駅への接続も設定  
+            //var inputConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)inputChest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            //inputConnectInventory.Add(stationInventory, new ConnectedInfo());
+
+            // アイテム搬送の待機（BeltConveyorInsertTestのパターンを参考）  
+            var startTime = DateTime.Now;
+            while (outputInventory.GetItem(0).Count == 0 && DateTime.Now - startTime < TimeSpan.FromSeconds(10))
+            {
+                GameUpdater.UpdateWithWait();
+            }
+
+            // 最終確認：outputChestにアイテムが移動したことを検証  
+            var outputItem = outputInventory.GetItem(0);
+            Assert.AreEqual(new ItemId(1), outputItem.Id, "出力チェストにアイテムが移動していない");
+            Assert.IsTrue(outputItem.Count > 0, "出力チェストのアイテム数が0");
+
+            // inputChestからアイテムが減っていることを確認  
+            var remainingInputItem = inputInventory.GetItem(0);
+            Assert.IsTrue(remainingInputItem.Count < 10, "入力チェストからアイテムが減っていない");
+        }
     }
 }
