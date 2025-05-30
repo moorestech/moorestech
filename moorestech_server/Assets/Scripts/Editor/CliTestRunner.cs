@@ -71,7 +71,7 @@ public static class CliTestRunner
         var regex = new Regex(pattern);
 
         // 2) TestRunnerApi 初期化
-        var api       = ScriptableObject.CreateInstance<TestRunnerApi>();
+        var api = ScriptableObject.CreateInstance<TestRunnerApi>();
         var callbacks = new ResultCallbacks(regex);
         api.RegisterCallbacks(callbacks);
 
@@ -80,6 +80,7 @@ public static class CliTestRunner
             TestMode.EditMode,                       // ← 第 1 引数: テストモード
             testRoot =>                              // ← 第 2 引数: コールバック
             {
+                ExportLog($"🟡 {testRoot.FullName} Collecting tests matching /{pattern}/...");
                 var matched = new List<string>();
                 CollectMatchedTests(testRoot, matched, regex);
 
@@ -104,8 +105,7 @@ public static class CliTestRunner
     }
 
     // 再帰的にテストケース（Suite ではないノード）を収集
-    private static void CollectMatchedTests(
-        ITestAdaptor node, List<string> list, Regex regex)
+    private static void CollectMatchedTests(ITestAdaptor node, List<string> list, Regex regex)
     {
         if (node.IsSuite)
         {
