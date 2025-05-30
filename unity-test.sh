@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# unity_run_tests.sh
-# 使い方: ./unity_run_tests.sh <UnityProjectPath> '<RegexForTests>'
+# unity_run_tests.sh  (ログは [CliTest] 行だけ通す版)
 
 UNITY="/Applications/Unity/Hub/Editor/2022.3.18f1/Unity.app/Contents/MacOS/Unity"
 PROJECT="$1"
@@ -18,17 +17,13 @@ LOGFILE="$(mktemp -t unity_cli_XXXX).log"
   -projectPath "$PROJECT" \
   -executeMethod CliTestRunner.Run \
   -testRegex "$REGEX" \
-  -logFile "$LOGFILE" \
-  -quit
+  -logFile "$LOGFILE"      # ← ★ ここから -quit を削除 ★
 RET=$?
 
 ###############################################################################
-# [CliTest] 行だけ出力し、タグを取り除く
+# [CliTest] 行だけ表示し、タグを外す
 ###############################################################################
-if grep -q '\[CliTest\]' "$LOGFILE"; then
-  # 行頭・行中どこにあっても OK。最初のタグと後続スペースを削除。
-  grep '\[CliTest\]' "$LOGFILE" | sed 's/\[CliTest\][[:space:]]*//'
-fi
+grep '\[CliTest\]' "$LOGFILE" | sed 's/\[CliTest\][[:space:]]*//'
 
 ###############################################################################
 # 成否メッセージ
