@@ -3115,7 +3115,13 @@
                 0
               ],
               "connectType": "Inventory",
-              "directions": [],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
               "connectOption": {
                 "inventoryOptions": []
               }
@@ -3129,7 +3135,13 @@
                 0
               ],
               "connectType": "Inventory",
-              "directions": [],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
               "connectOption": {
                 "inventoryOptions": []
               }
@@ -3164,7 +3176,13 @@
                 0
               ],
               "connectType": "Inventory",
-              "directions": [],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
               "connectOption": {
                 "inventoryOptions": []
               }
@@ -3178,7 +3196,13 @@
                 0
               ],
               "connectType": "Inventory",
-              "directions": [],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
               "connectOption": {
                 "inventoryOptions": []
               }
