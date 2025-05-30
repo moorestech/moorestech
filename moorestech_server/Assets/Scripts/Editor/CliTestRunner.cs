@@ -35,7 +35,7 @@ public static class CliTestRunner
             else
             {
                 _failCount++;
-                Export($" {icon} {name}\n    {result.Message}\n----------\n{result.Output}\n----------\n    {result.StackTrace}");
+                Export($" {icon} {name}\n    {result.Message}\n----- Log output -----\n{result.Output}\n----- Stack trace -----\n    {result.StackTrace}");
             }
         }
 
