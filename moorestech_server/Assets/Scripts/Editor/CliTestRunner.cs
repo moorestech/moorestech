@@ -35,12 +35,12 @@ public static class CliTestRunner
 
             if (passed)
             {
-                Debug.Log($"{icon} {name}");
+                ExportLog($"{icon} {name}");
             }
             else
             {
                 _failCount++;
-                Debug.Log($"{icon} {name}\n    {result.Message}\n    {result.StackTrace}");
+                ExportLog($"{icon} {name}\n    {result.Message}\n    {result.StackTrace}");
             }
         }
 
@@ -56,6 +56,7 @@ public static class CliTestRunner
     // ──────────────────────────────────────────────────────────────────────────
     public static void Run()
     {
+        ExportLog("🟡 Running tests...");
         // 1) コマンドラインから正規表現パターンを取得
         string pattern = ".*";
         var   args     = Environment.GetCommandLineArgs();
@@ -84,7 +85,7 @@ public static class CliTestRunner
 
                 if (matched.Count == 0)
                 {
-                    Debug.Log($"🟡 No tests matched /{pattern}/");
+                    ExportLog($"🟡 No tests matched /{pattern}/");
                     EditorApplication.Exit(0);
                     return;
                 }
@@ -115,5 +116,10 @@ public static class CliTestRunner
         {
             list.Add(node.FullName);
         }
+    }
+    
+    private static void ExportLog(string log)
+    {
+        Debug.Log("[CliTest]" + log);
     }
 }
