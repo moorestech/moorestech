@@ -3,11 +3,36 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
 public static class CliTestRunner
 {
+    // ────────────────────────────────────────────────────────────────────────
+    //  コンパイルエラー監視
+    // ────────────────────────────────────────────────────────────────────────
+    private static int _compileErrors = 0;
+    
+    [InitializeOnLoadMethod]          // ドメインロード時に 1 度だけ登録
+    private static void RegisterCompileCallback()
+    {
+        CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompiled;
+    }
+    
+    private static void OnAssemblyCompiled(string path, CompilerMessage[] msgs)
+    {
+        foreach (var m in msgs)
+        {
+            if (m.type != CompilerMessageType.Error) continue;
+            
+            _compileErrors++;
+            Export($" ❌ Compile error in {System.IO.Path.GetFileName(path)}\n" +
+                   $"    {m.message.Trim()}\n" +
+                   $"    {m.file}:{m.line}");
+        }
+    }
+    
     // ────────────────────────────────────────────────────────────────────────
     //  テスト結果コールバック
     // ────────────────────────────────────────────────────────────────────────
