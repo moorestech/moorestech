@@ -52,7 +52,6 @@ namespace Tests.UnitTest.Game
             //Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
             //Debug.Log("Node1からNode2の距離" + connectedNode.Item2);
 
-            //ダイクストラ法を実行 node000からnode494949までの最短経路を求める
             //表
             var outListPath = RailGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
             // outListPathの長さが0でないことを確認

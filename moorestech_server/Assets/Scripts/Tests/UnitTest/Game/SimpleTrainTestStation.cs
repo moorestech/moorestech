@@ -9,6 +9,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Game.Block.Interface.Component;
 using Core.Master;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Tests.UnitTest.Game
 {
@@ -43,7 +44,6 @@ namespace Tests.UnitTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //以下のを4方向でloopで確認する
-
             for (int i = 0; i < 4; i++)
             {
                 var direction = (BlockDirection)4 + i;
@@ -60,6 +60,9 @@ namespace Tests.UnitTest.Game
             }
         }
 
+        /// <summary>
+        /// 駅を2つつなげたときにrailNodeが自動でつながるか確認する
+        /// </summary>
         [Test]
         public void StationConnectionSimple()
         {
@@ -86,6 +89,69 @@ namespace Tests.UnitTest.Game
             Debug.Log(
                 RailGraphDatastore.GetDistanceBetweenNodes(railNodeC, railNodeD)
             );
+        }
+        /// <summary>
+        /// 駅を2つつなげたときにrailNodeが自動でつながらないパターンを全探索で確認する
+        /// </summary>
+        [Test]
+        public void StationConnectionAllPattern()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            //BlockDirection.Northからの4パターンで移動するx,y,zの量を計算で求める
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
+            Vector3Int[] offsetvec3 = new Vector3Int[4];
+            offsetvec3[0] = new Vector3Int(blockSize.x, 0, 0);//north
+            offsetvec3[1] = new Vector3Int(0, 0, -blockSize.x);//east
+            offsetvec3[2] = new Vector3Int(-blockSize.x, 0, 0);//south
+            offsetvec3[3] = new Vector3Int(0, 0, blockSize.x);//west
+
+
+            //yは0、xとzで-blockSize.x～blockSize.xまで1マスずつ設置して一つだけ接続を満たすことを確認したい
+            for (int dir = 0; dir < 4; dir++) 
+            {
+                for (int i = -blockSize.x - 1; i <= blockSize.x + 1; i++)
+                {
+                    for (int j = -blockSize.x - 1; j <= blockSize.x + 1; j++)
+                    {
+                        if (i == 0 && j == 0) continue; // 自分の位置はスキップ
+                        // 1) 駅をつくってrailcomponentの座標を確認
+                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), (BlockDirection)(dir + 4), out var stationBlockA);
+                        var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
+                        var railComponentA = railcompos.RailComponents[0];
+                        var railComponentB = railcompos.RailComponents[1];
+                        // 2) 駅をつくってrailcomponentの座標を確認
+                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(i, 0, j), (BlockDirection)(dir + 4), out var stationBlockB);
+                        railcompos = stationBlockB.GetComponent<RailSaverComponent>();
+                        var railComponentC = railcompos.RailComponents[0];
+                        var railComponentD = railcompos.RailComponents[1];
+                        //接続されているか確認
+                        var length = RailGraphDatastore.GetDistanceBetweenNodes(railComponentB.FrontNode, railComponentC.FrontNode, false);
+                        if (new Vector3Int(i, 0, j) == offsetvec3[dir])
+                        {
+                            Assert.AreEqual(0, length);
+                        }
+                        else
+                        {
+                            Assert.AreNotEqual(0, length);
+                        }
+                        //接続されているか確認
+                        length = RailGraphDatastore.GetDistanceBetweenNodes(railComponentD.FrontNode, railComponentA.FrontNode, false);
+                        if (new Vector3Int(i, 0, j) == -offsetvec3[dir])
+                        {
+                            Assert.AreEqual(0, length);
+                        }
+                        else
+                        {
+                            Assert.AreNotEqual(0, length);
+                        }
+                        worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 0));
+                        worldBlockDatastore.RemoveBlock(new Vector3Int(i, 0, j));
+                    }
+                }
+            }
+
+
         }
 
 
