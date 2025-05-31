@@ -29,8 +29,6 @@ public class FluidPipeStateChangeProcessorInspector : Editor
         
         GUILayout.BeginVertical("Editor only info", "window");
         
-        EditorGUILayout.LabelField("Simulate Fluid Pipe State", EditorStyles.boldLabel);
-        
         GUILayout.Space(10);
         
         ShowSimulateButton(processor);
