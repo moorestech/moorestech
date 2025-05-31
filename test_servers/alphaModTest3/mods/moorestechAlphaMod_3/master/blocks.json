@@ -18,12 +18,17 @@
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
-        }
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0
       },
       "itemGuid": "8b67462b-227a-465b-8d86-de683b5e98a1",
       "blockGuid": "3d3fdac0-4dce-4bd0-adda-827a3b67feb9",
       "blockPrefabAddressablesPath": "Vanilla/Block/campfier",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {}
     },
     {
       "initialUnlocked": true,
@@ -103,7 +108,8 @@
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "blockGuid": "ce060607-996d-4270-87ec-204073f6e3f7",
       "blockPrefabAddressablesPath": "Vanilla/Block/SmallGear",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -162,7 +168,8 @@
       "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6",
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -188,7 +195,8 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               },
               "directions": [
                 [
@@ -245,7 +253,8 @@
                 ]
               ],
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               }
             }
           ]
@@ -286,12 +295,17 @@
               ]
             }
           ]
-        }
+        },
+        "fluidContainerCapacity": 0,
+        "fluidContainerCount": 0,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0
       },
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
       "blockPrefabAddressablesPath": "Vanilla/Block/Sieve",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -317,7 +331,8 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               },
               "directions": [
                 [
@@ -374,7 +389,8 @@
                 ]
               ],
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               }
             }
           ]
@@ -420,7 +436,8 @@
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive Centrifuge",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -442,7 +459,8 @@
       "itemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3",
       "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
       "blockPrefabAddressablesPath": "Vanilla/Block/Charcoal_Kiln",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {}
     },
     {
       "initialUnlocked": true,
@@ -494,7 +512,8 @@
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "blockGuid": "3dda0801-b12a-4624-b759-2ac3c62969a6",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -552,7 +571,8 @@
       },
       "itemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
       "blockGuid": "6fc49eb9-d2d7-4ab9-ba0e-17a210719a28",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill blue"
+      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill blue",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -578,8 +598,10 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
-              }
+                "isReverse": true,
+                "inventoryOptions": []
+              },
+              "directions": []
             }
           ],
           "outputConnects": [
@@ -598,7 +620,8 @@
                 ]
               ],
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               }
             }
           ]
@@ -644,7 +667,8 @@
       "name": "プレス機",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
       "blockPrefabAddressablesPath": "Vanilla/Block/press machine",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -672,7 +696,8 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               },
               "directions": [
                 [
@@ -707,7 +732,8 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               },
               "directions": [
                 [
@@ -773,7 +799,8 @@
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -885,7 +912,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -908,7 +937,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -984,7 +1015,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1007,7 +1040,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1016,7 +1051,8 @@
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1083,7 +1119,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1101,7 +1139,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1110,7 +1150,8 @@
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1146,7 +1187,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1179,7 +1222,9 @@
                   0
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1228,7 +1273,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1246,7 +1293,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1254,7 +1303,8 @@
       },
       "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74",
       "blockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115",
-      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter down"
+      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter down",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1285,7 +1335,9 @@
                   1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "inputConnects": [
@@ -1308,7 +1360,9 @@
                   -1
                 ]
               ],
-              "connectOption": {}
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1316,7 +1370,8 @@
       },
       "itemGuid": "cc3dffdc-0fac-43ec-8772-7c9a51baa161",
       "blockGuid": "68e7a3bf-f72f-4e64-9004-73bf74f61539",
-      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter up"
+      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter up",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1433,7 +1488,8 @@
       "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed",
       "blockGuid": "7c8e82c2-cdb5-421a-8ce4-6f58104141b5",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "blockPrefabAddressablesPath": "Vanilla/Block/BigGear"
+      "blockPrefabAddressablesPath": "Vanilla/Block/BigGear",
+      "overrideVerticalBlock": {}
     },
     {
       "sortPriority": 100,
@@ -1525,7 +1581,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
       "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
-      "name": "原始的な採掘機"
+      "name": "原始的な採掘機",
+      "overrideVerticalBlock": {}
     },
     {
       "initialUnlocked": true,
@@ -1554,8 +1611,10 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
-              }
+                "isReverse": true,
+                "inventoryOptions": []
+              },
+              "directions": []
             }
           ],
           "outputConnects": [
@@ -1574,7 +1633,8 @@
                 ]
               ],
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               }
             }
           ]
@@ -1620,7 +1680,8 @@
       "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
       "name": "圧延機",
       "blockPrefabAddressablesPath": "Vanilla/Block/rolling mill",
-      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676"
+      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1649,8 +1710,10 @@
               ],
               "connectType": "Inventory",
               "connectOption": {
-                "isReverse": true
-              }
+                "isReverse": true,
+                "inventoryOptions": []
+              },
+              "directions": []
             }
           ],
           "outputConnects": [
@@ -1669,7 +1732,8 @@
                 ]
               ],
               "connectOption": {
-                "isReverse": true
+                "isReverse": true,
+                "inventoryOptions": []
               }
             }
           ]
@@ -1711,7 +1775,8 @@
             }
           ]
         }
-      }
+      },
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1738,7 +1803,8 @@
       "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows"
+      "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows",
+      "overrideVerticalBlock": {}
     },
     {
       "initialUnlocked": true,
@@ -1784,7 +1850,8 @@
       "name": "縦シャフト",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Vertical",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "blockGuid": "0ab4b8c3-6f23-47bc-9b58-bb90def565fe"
+      "blockGuid": "0ab4b8c3-6f23-47bc-9b58-bb90def565fe",
+      "overrideVerticalBlock": {}
     },
     {
       "blockSize": [
@@ -1847,7 +1914,8 @@
         }
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box"
+      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
+      "overrideVerticalBlock": {}
     }
   ]
 }
