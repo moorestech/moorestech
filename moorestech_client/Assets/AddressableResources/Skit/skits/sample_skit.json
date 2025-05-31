@@ -3,14 +3,79 @@
     "title": "sample_skit",
     "version": 1,
     "created": "2025-05-10T12:00:00+09:00",
-    "modified": "2025-05-31T15:20:34.854Z"
+    "modified": "2025-05-31T15:29:57.287Z"
   },
   "commands": [
     {
       "type": "transition",
+      "enabled": true,
+      "duration": 0,
+      "id": 1
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "Position": [
+        -5.89,
+        2.89,
+        4.88
+      ],
+      "Rotation": [
+        0,
+        66.55164,
+        0
+      ],
+      "id": 4
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "Position": [
+        -3.739,
+        2.665,
+        5.118
+      ],
+      "Rotation": [
+        0,
+        260.7105,
+        0
+      ],
+      "id": 5
+    },
+    {
+      "type": "transition",
       "enabled": false,
       "duration": 0.4,
-      "id": 1
+      "id": 6
+    },
+    {
+      "type": "camerawork",
+      "backgroundColor": "#ffffff",
+      "duration": 3,
+      "easing": "InOutSine",
+      "StartPosition": [
+        72.37465,
+        49.14471,
+        -39.22421
+      ],
+      "StartRotation": [
+        359.3479,
+        210.0455,
+        -0.003962046
+      ],
+      "EndPosition": [
+        -2.936376,
+        4.808312,
+        5.703107
+      ],
+      "EndRotation": [
+        2.269774,
+        261.0958,
+        -0.004184746
+      ],
+      "id": 7
     },
     {
       "type": "text",
