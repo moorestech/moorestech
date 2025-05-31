@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Core.Update;
@@ -22,7 +23,7 @@ namespace Game.Block.Blocks.Fluid
         {
             _blockPositionInfo = blockPositionInfo;
             _connectorComponent = connectorComponent;
-            FluidContainer = new FluidContainer(capacity);
+            _fluidContainer = new FluidContainer(capacity);
         }
         
         public BlockStateDetail[] GetBlockStateDetails()
@@ -38,16 +39,12 @@ namespace Game.Block.Blocks.Fluid
         
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
-        public FluidContainer FluidContainer { get; }
-        
-        public void OnContainerChanged()
-        {
-            _onChangeBlockState.OnNext(Unit.Default);
-        }
+        // Private field - tests access via reflection
+        private readonly FluidContainer _fluidContainer;
         
         public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
         {
-            FluidContainer.AddLiquid(fluidStack, source, out remain);
+            _fluidContainer.AddLiquid(fluidStack, source, out remain);
             _onChangeBlockState.OnNext(Unit.Default);
         }
         
@@ -59,44 +56,80 @@ namespace Game.Block.Blocks.Fluid
         
         public void Update()
         {
-            if (FluidContainer.Amount <= 0) return;
+            if (_fluidContainer.Amount <= 0) return;
             
-            // 流入対象のコンテナを列挙する
-            var targetContainers = _connectorComponent.ConnectedTargets
-                .Select(kvp => (kvp.Key, kvp.Value, GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value)))
-                .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
-                .Where(kvp => kvp.Key.FluidContainer.FluidId == FluidMaster.EmptyFluidId || kvp.Key.FluidContainer.FluidId == FluidContainer.FluidId)
-                .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
-                .ToList();
+            // 流入対象を列挙する
+            var targetInventories = new List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)>();
             
-            // 対象のコンテナに向かって流す
-            
-            for (var i = 0; i < targetContainers.Count; i++)
+            foreach (var kvp in _connectorComponent.ConnectedTargets)
             {
-                var (_, _, maxFlowRate) = targetContainers[i];
+                var targetInventory = kvp.Key;
+                var connectedInfo = kvp.Value;
                 
-                var flowPerContainer = FluidContainer.Amount / (targetContainers.Count - i);
+                // FluidPipeComponentの場合のみ、PreviousSourceFluidContainersのチェックを行う
+                if (targetInventory is FluidPipeComponent targetPipe)
+                {
+                    // 自分が前回のソースだった場合はスキップ
+                    if (_fluidContainer.PreviousSourceFluidContainers.Contains(targetPipe._fluidContainer))
+                    {
+                        continue;
+                    }
+                    
+                    // 異なる液体が入っている場合はスキップ
+                    if (targetPipe._fluidContainer.FluidId != FluidMaster.EmptyFluidId && 
+                        targetPipe._fluidContainer.FluidId != _fluidContainer.FluidId)
+                    {
+                        continue;
+                    }
+                    
+                    var maxFlowRate = GetMaxFlowRate(targetPipe._fluidContainer, connectedInfo);
+                    if (maxFlowRate > 0)
+                    {
+                        targetInventories.Add((targetInventory, connectedInfo, maxFlowRate));
+                    }
+                }
+                else
+                {
+                    // FluidPipeComponent以外のIFluidInventoryの場合
+                    // 最大流量は接続情報のみから計算
+                    var maxFlowRate = GetMaxFlowRateFromConnection(connectedInfo);
+                    if (maxFlowRate > 0)
+                    {
+                        targetInventories.Add((targetInventory, connectedInfo, maxFlowRate));
+                    }
+                }
+            }
+            
+            if (targetInventories.Count == 0) return;
+            
+            // 流量でソート
+            targetInventories = targetInventories.OrderBy(t => t.maxFlowRate).ToList();
+            
+            // 対象に向かって流す
+            for (var i = 0; i < targetInventories.Count; i++)
+            {
+                var maxFlowRate = targetInventories[i].maxFlowRate;
+                
+                var flowPerContainer = _fluidContainer.Amount / (targetInventories.Count - i);
                 var flowRate = Math.Min(flowPerContainer, maxFlowRate);
                 
                 if (flowRate <= 0) break;
                 
-                for (var j = i; j < targetContainers.Count; j++)
+                for (var j = i; j < targetInventories.Count; j++)
                 {
-                    FluidContainer.Amount -= flowRate;
-                    var otherInventory = targetContainers[j].Key;
-                    var otherContainer = otherInventory.FluidContainer;
-                    otherContainer.Amount += flowRate;
-                    targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
+                    var targetInventory = targetInventories[j].inventory;
+                    var fluidStack = new FluidStack(flowRate, _fluidContainer.FluidId);
+                    targetInventory.AddLiquid(fluidStack, _fluidContainer, out var remain);
                     
-                    otherContainer.FluidId = FluidContainer.FluidId;
-                    otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
+                    var actualTransferred = flowRate - (remain?.Amount ?? 0);
+                    _fluidContainer.Amount -= actualTransferred;
                     
-                    otherInventory.OnContainerChanged();
+                    targetInventories[j] = (targetInventories[j].inventory, targetInventories[j].info, targetInventories[j].maxFlowRate - actualTransferred);
                 }
             }
             
-            FluidContainer.PreviousSourceFluidContainers.Clear();
-            if (FluidContainer.Amount <= 0) FluidContainer.FluidId = FluidMaster.EmptyFluidId;
+            _fluidContainer.PreviousSourceFluidContainers.Clear();
+            if (_fluidContainer.Amount <= 0) _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
             
             // ソートする
             // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す
@@ -107,9 +140,9 @@ namespace Game.Block.Blocks.Fluid
         
         public FluidPipeStateDetail GetFluidPipeStateDetail()
         {
-            var fluidId = FluidContainer.FluidId;
-            var amount = FluidContainer.Amount;
-            var capacity = FluidContainer.Capacity;
+            var fluidId = _fluidContainer.FluidId;
+            var amount = _fluidContainer.Amount;
+            var capacity = _fluidContainer.Capacity;
             return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
         }
         
@@ -124,6 +157,16 @@ namespace Game.Block.Blocks.Fluid
             flowRate = Math.Min(flowRate, container.Capacity - container.Amount);
             
             return flowRate;
+        }
+        
+        private double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
+        {
+            var selfOption = connectedInfo.SelfOption as FluidConnectOption;
+            var targetOption = connectedInfo.TargetOption as FluidConnectOption;
+            
+            if (selfOption == null || targetOption == null) throw new ArgumentException();
+            
+            return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
         }
     }
 }

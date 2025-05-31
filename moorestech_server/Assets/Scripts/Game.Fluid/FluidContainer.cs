@@ -51,14 +51,14 @@ namespace Game.Fluid
             {
                 var addingAmount = Capacity - Amount;
                 Amount += addingAmount;
-                source.PreviousSourceFluidContainers.Add(this);
+                PreviousSourceFluidContainers.Add(source);
                 var guid = MasterHolder.FluidMaster.GetFluidMaster(FluidId).FluidGuid;
                 remain = new FluidStack(fluidStack.Amount - addingAmount, fluidStack.FluidId);
                 return;
             }
 
             Amount += fluidStack.Amount;
-            source.PreviousSourceFluidContainers.Add(this);
+            PreviousSourceFluidContainers.Add(source);
             remain = null;
         }
     }
