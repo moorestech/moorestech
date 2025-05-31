@@ -54,8 +54,11 @@ public class FluidPipeStateChangeProcessorInspector : Editor
             
             if (GUILayout.Button("Stop Simulating"))
             {
+                processor.UpdateWaterLevel(0);
                 _isSimulating = false;
                 EditorApplication.update -= OnEditorUpdate;
+                
+                Repaint();
             }
         }
         else
@@ -70,7 +73,7 @@ public class FluidPipeStateChangeProcessorInspector : Editor
     
     private void ShowCurrentState(FluidPipeStateChangeProcessor processor)
     {
-        var state = processor.CurrentFluidPipeState ?? _state;
+        var state = processor.CurrentFluidPipeState ?? (_isSimulating ? _state : null);
         
         EditorGUILayout.LabelField(_isSimulating ? "Simulated Fluid Pipe State" : "Current Fluid Pipe State", EditorStyles.boldLabel);
         if (state == null)
@@ -101,7 +104,7 @@ public class FluidPipeStateChangeProcessorInspector : Editor
         if (!processor) return;
         
         _state = new FluidPipeStateDetail(new FluidId(1), _waterLevel, 1);
-        processor.UpdateWaterLevel(_state);
+        processor.UpdateWaterLevel(_state.Amount / _state.Capacity);
         
         Repaint();
     }
