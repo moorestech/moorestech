@@ -65,7 +65,7 @@
         {
           "challengeActionType": "playSkit",
           "challengeActionParam": {
-            "skitAddressablePath": "Vanilla/Skit/test"
+            "skitAddressablePath": "Vanilla/Skit/skits/sample_skit"
           }
         }
       ]
