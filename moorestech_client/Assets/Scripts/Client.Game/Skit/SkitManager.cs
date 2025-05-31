@@ -6,6 +6,8 @@ using Client.Skit.Skit;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Client.Game.Skit
@@ -36,7 +38,8 @@ namespace Client.Game.Skit
         public async UniTask StartSkit(TextAsset skitJson)
         {
             IsPlayingSkit = true;
-            var commands = CommandForgeLoader.LoadCommands(skitJson.text);
+            var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
+            var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
             //前処理 Pre process
             var storyContext = PreProcess();

@@ -3,7 +3,7 @@
     "title": "sample_skit",
     "version": 1,
     "created": "2025-05-10T12:00:00+09:00",
-    "modified": "2025-05-25T08:06:13.723Z"
+    "modified": "2025-05-31T15:20:34.854Z"
   },
   "commands": [
     {
@@ -14,27 +14,16 @@
     },
     {
       "type": "text",
-      "character": "キャラA",
-      "body": "ああ",
-      "id": 2
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "ふわぁ……よく寝た\nんん……ここは一体……？",
+      "id": 3
     },
     {
-      "type": "camerawork",
-      "duration": 2,
-      "easing": "InOutSine",
-      "StartPositionX": 0,
-      "StartPositionY": 0,
-      "StartPositionZ": 0,
-      "StartRotationX": 0,
-      "StartRotationY": 0,
-      "StartRotationZ": 0,
-      "EndPositionX": 0,
-      "EndPositionY": 0,
-      "EndPositionZ": 0,
-      "EndRotationX": 0,
-      "EndRotationY": 0,
-      "EndRotationZ": 0,
-      "id": 3
+      "type": "text",
+      "character": "主人公",
+      "body": "ああ",
+      "id": 2
     }
   ]
 }
