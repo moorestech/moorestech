@@ -35,7 +35,7 @@ namespace Game.Fluid
             IsEmpty = true;
         }
         
-        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
+        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
             // パイプ内の液体IDがセットされていない場合は入ってきた液体のidをセットする
             if (FluidId == FluidMaster.EmptyFluidId)
@@ -43,23 +43,35 @@ namespace Game.Fluid
 
             if (IsEmpty || fluidStack.FluidId != FluidId)
             {
-                remain = fluidStack;
-                return;
+                return fluidStack;
+            }
+            
+            // Prevent immediate backflow within the same update cycle
+            if (source != Empty && PreviousSourceFluidContainers.Contains(source))
+            {
+                return fluidStack;
             }
 
             if (Capacity - Amount < fluidStack.Amount)
             {
                 var addingAmount = Capacity - Amount;
                 Amount += addingAmount;
-                source.PreviousSourceFluidContainers.Add(this);
+                // FluidContainer.Emptyは特別扱い（シングルトンなので追加しない）
+                if (source != Empty)
+                {
+                    PreviousSourceFluidContainers.Add(source);
+                }
                 var guid = MasterHolder.FluidMaster.GetFluidMaster(FluidId).FluidGuid;
-                remain = new FluidStack(fluidStack.Amount - addingAmount, fluidStack.FluidId);
-                return;
+                return new FluidStack(fluidStack.Amount - addingAmount, fluidStack.FluidId);
             }
 
             Amount += fluidStack.Amount;
-            source.PreviousSourceFluidContainers.Add(this);
-            remain = null;
+            // FluidContainer.Emptyは特別扱い（シングルトンなので追加しない）
+            if (source != Empty)
+            {
+                PreviousSourceFluidContainers.Add(source);
+            }
+            return new FluidStack(0, fluidStack.FluidId);
         }
     }
 }
