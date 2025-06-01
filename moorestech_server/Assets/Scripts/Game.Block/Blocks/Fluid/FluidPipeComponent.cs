@@ -102,6 +102,7 @@ namespace Game.Block.Blocks.Fluid
                 
                 // 対象に向かって流す
                 // Instead of trying to equalize, just send up to maxFlowRate to each target
+                var totalTransferred = 0.0;
                 foreach (var target in targetInventories)
                 {
                     if (_fluidContainer.Amount <= 0) break;
@@ -114,6 +115,13 @@ namespace Game.Block.Blocks.Fluid
                     
                     var actualTransferred = flowRate - remain.Amount;
                     _fluidContainer.Amount -= actualTransferred;
+                    totalTransferred += actualTransferred;
+                }
+                
+                // Notify state change if we sent any fluid
+                if (totalTransferred > 0)
+                {
+                    _onChangeBlockState.OnNext(Unit.Default);
                 }
                 }
             } // hasFluid
