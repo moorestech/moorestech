@@ -8,7 +8,7 @@ namespace Game.Block.Blocks.Fluid
 {
     public interface IFluidInventory : IBlockComponent
     {
-        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain);
+        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source);
         
         public static BlockConnectorComponent<IFluidInventory> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
         {
