@@ -66,36 +66,47 @@ namespace Game.Block.Blocks.Fluid
             // 液体がない場合でもUpdate処理を続ける
             var hasFluid = _fluidContainer.Amount > 0;
             
-            // Debug: Update開始
-            // UnityEngine.Debug.Log($"Update Start - Amount: {_fluidContainer.Amount}, PrevSources: {_fluidContainer.PreviousSourceFluidContainers.Count}");
-            
             // Don't send fluid if we received some this update (prevents ping-pong)
             if (hasFluid && !_hasReceivedThisUpdate)
             {
                 // 流入対象を列挙する
-                var targetInventories = new List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)>();
+                var targetInventories = GetTargetInventories();
+                
+                // 流入対象に流す
+                ExecuteFlow(targetInventories);
+            }
+            
+            _fluidContainer.PreviousSourceFluidContainers.Clear();
+            if (_fluidContainer.Amount <= 0) _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
+            
+            // Reset the flag for next update
+            _hasReceivedThisUpdate = false;
+            
+            #region Internal
+            
+            List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)> GetTargetInventories()
+            {
+                
+                var result = new List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)>();
                 foreach (var kvp in _connectorComponent.ConnectedTargets)
                 {
                     var targetInventory = kvp.Key;
                     var connectedInfo = kvp.Value;
                     
-                    try
+                    // 全てのIFluidInventoryに対して同じ処理
+                    var maxFlowRate = GetMaxFlowRateFromConnection(connectedInfo);
+                    if (maxFlowRate > 0)
                     {
-                        // 全てのIFluidInventoryに対して同じ処理
-                        var maxFlowRate = GetMaxFlowRateFromConnection(connectedInfo);
-                        if (maxFlowRate > 0)
-                        {
-                            targetInventories.Add((targetInventory, connectedInfo, maxFlowRate));
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        // Skip this target if there's an error
+                        result.Add((targetInventory, connectedInfo, maxFlowRate));
                     }
                 }
                 
-                if (targetInventories.Count > 0)
-                {
+                return result;
+            }
+            
+            void ExecuteFlow(List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)> targetInventories)
+            {
+                if (targetInventories.Count <= 0) return;
                 
                 // 流量でソート
                 targetInventories = targetInventories.OrderBy(t => t.maxFlowRate).ToList();
@@ -123,23 +134,9 @@ namespace Game.Block.Blocks.Fluid
                 {
                     _onChangeBlockState.OnNext(Unit.Default);
                 }
-                }
-            } // hasFluid
+            }
             
-            // Debug: Update終了前
-            // UnityEngine.Debug.Log($"[{_blockPositionInfo.BlockPos}] Before Clear - PrevSources: {_fluidContainer.PreviousSourceFluidContainers.Count}");
-            
-            _fluidContainer.PreviousSourceFluidContainers.Clear();
-            if (_fluidContainer.Amount <= 0) _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
-            
-            // Reset the flag for next update
-            _hasReceivedThisUpdate = false;
-            
-            // ソートする
-            // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す
-            // 満たされた対象はリストから削除
-            // 元のコンテナから液体がなくなったら終了
-            // 全ての対象に繰り返す
+#endregion
         }
         
         public FluidPipeStateDetail GetFluidPipeStateDetail()
@@ -150,6 +147,10 @@ namespace Game.Block.Blocks.Fluid
             return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
         }
         
+        /// <summary>
+        ///     2つのIFluidInventory間の最大流体搬送速度を取得する
+        ///    搬送速度は、2つのIFluidInventoryの流体搬送能力の最小値に、1ゲームアップデートの時間(秒)を乗じた値
+        /// </summary>
         private double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
         {
             var selfOption = connectedInfo.SelfOption as FluidConnectOption;
