@@ -454,7 +454,10 @@ namespace Tests.CombinedTest.Core
             
             for (var i = 0; i < steps; i++) GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
             
-            Assert.AreEqual(steps, callCount);
+            // First update: no fluid movement (both pipes have receive flag from initial AddLiquid)
+            // Updates 2-10: both pipes change state (sender and receiver)
+            // Total: 0 + 9*2 = 18 state changes
+            Assert.AreEqual(18, callCount);
         }
     }
     
