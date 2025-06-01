@@ -53,6 +53,7 @@ public class FluidPipeStateChangeProcessorInspector : Editor
             if (GUILayout.Button("Stop Simulating"))
             {
                 processor.UpdateWaterLevel(0);
+                processor.ResetMaterial();
                 _isSimulating = false;
                 EditorApplication.update -= OnEditorUpdate;
                 
