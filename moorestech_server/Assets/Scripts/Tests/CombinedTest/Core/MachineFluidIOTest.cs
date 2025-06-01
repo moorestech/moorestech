@@ -24,28 +24,93 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMachineInputTest()
         {
-            // TODO メモ 液体機械のブロックIDは ForUnitTestModBlockId.FluidMachineId で取得可能
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            // TODO パイプを設置
-            // TODO パイプに液体を設定
-            // TODO 機械を設置
+            // パイプを設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock);
+            // 機械を設置 (パイプの隣に設置)
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.right * 1, BlockDirection.North, out var fluidMachineBlock);
             
-            // TODO アップデート
+            var fluidPipe = fluidPipeBlock.GetComponent<Game.Block.Blocks.Fluid.FluidPipeComponent>();
+            var fluidMachineInventory = fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             
-            // TODO パイプが空になり、機械のインプットスロットに液体が入っていることを確認
+            // パイプに液体を設定
+            var fluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(fluidGuid);
+            const double fluidAmount = 50d;
+            var fluidStack = new FluidStack(fluidAmount, fluidId);
+            fluidPipe.AddLiquid(fluidStack, FluidContainer.Empty);
+            
+            // 初期状態の確認
+            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount(), "Initial pipe fluid amount should match");
+            var fluidContainers = GetFluidContainers(fluidMachineInventory);
+            Assert.AreEqual(0, fluidContainers[0].Amount, "Machine fluid container should be empty initially");
+            
+            // アップデート（液体が流れるのを待つ）
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
+            }
+            
+            // パイプが空になり、機械のインプットスロットに液体が入っていることを確認
+            Assert.AreEqual(0d, fluidPipe.GetAmount(), 0.1d, "Pipe should be empty after transfer");
+            Assert.AreEqual(fluidAmount, fluidContainers[0].Amount, 0.1d, "Machine should contain all the fluid");
+            Assert.AreEqual(fluidId, fluidContainers[0].FluidId, "Fluid ID should match in machine");
         }
         
         [Test]
         public void FluidMachineOutputTest()
         {
-            // TODO パイプを設置
-            // TODO 機械を設置
-            // TODO 機械のアウトプットスロットに液体を設定
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            // TODO アップデート
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            // TODO パイプ画からになり、機械のアウトプットスロットに液体が入っていることを確認
+            // 機械を設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.right * 0, BlockDirection.North, out var fluidMachineBlock);
+            // パイプを設置 (機械の隣に設置)
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock);
+            
+            var fluidPipe = fluidPipeBlock.GetComponent<Game.Block.Blocks.Fluid.FluidPipeComponent>();
+            var fluidMachineInventory = fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            
+            // 機械のアウトプットスロットに液体を設定
+            var fluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000002"); // Steam
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(fluidGuid);
+            const double fluidAmount = 40d;
+            var fluidStack = new FluidStack(fluidAmount, fluidId);
+            
+            // リフレクションを使用してアウトプットスロットに液体を設定
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(fluidMachineInventory);
+            
+            var fluidOutputSlot = vanillaMachineOutputInventory.FluidOutputSlot;
+            fluidOutputSlot[0].AddLiquid(fluidStack, FluidContainer.Empty);
+            
+            // 初期状態の確認
+            Assert.AreEqual(0d, fluidPipe.GetAmount(), "Pipe should be empty initially");
+            Assert.AreEqual(fluidAmount, fluidOutputSlot[0].Amount, "Machine output should contain fluid initially");
+            
+            // アップデート（液体が流れるのを待つ）
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
+            }
+            
+            // 機械のアウトプットスロットが空になり、パイプに液体が入っていることを確認
+            Assert.AreEqual(0d, fluidOutputSlot[0].Amount, 0.1d, "Machine output should be empty after transfer");
+            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount(), 0.1d, "Pipe should contain all the fluid");
+            Assert.AreEqual(fluidId, fluidPipe.GetFluidId(), "Fluid ID should match in pipe");
         }
         
         [Test]
@@ -143,6 +208,25 @@ namespace Tests.CombinedTest.Core
             outputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
             
             return (inputSlot, outputSlot);
+        }
+    }
+    
+    public static class FluidPipeExtension
+    {
+        public static FluidContainer GetFluidContainer(this Game.Block.Blocks.Fluid.FluidPipeComponent fluidPipe)
+        {
+            var field = typeof(Game.Block.Blocks.Fluid.FluidPipeComponent).GetField("_fluidContainer", BindingFlags.NonPublic | BindingFlags.Instance);
+            return (FluidContainer)field.GetValue(fluidPipe);
+        }
+        
+        public static double GetAmount(this Game.Block.Blocks.Fluid.FluidPipeComponent fluidPipe)
+        {
+            return fluidPipe.GetFluidContainer().Amount;
+        }
+        
+        public static FluidId GetFluidId(this Game.Block.Blocks.Fluid.FluidPipeComponent fluidPipe)
+        {
+            return fluidPipe.GetFluidContainer().FluidId;
         }
     }
 }
