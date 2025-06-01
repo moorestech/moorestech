@@ -26,6 +26,8 @@ namespace Game.Train.Train
         const float AIR_RESISTANCE = 0.00002f;
 
         private List<TrainCar> _cars;
+        TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
+
 
         public TrainUnit(
             RailPosition initialPosition,
@@ -38,6 +40,7 @@ namespace Game.Train.Train
             _cars = cars;  // 追加
             _currentSpeed = 0.0f; // 仮の初期速度
             _isAutoRun = false;
+            trainUnitStationDocking = new TrainUnitStationDocking();
         }
 
 
@@ -46,7 +49,7 @@ namespace Game.Train.Train
         public int UpdateTrain(float deltaTime) 
         {
             //目的地に近ければ原則したい。自動運行での最大速度を決めておく
-            float maxspeed = MathF.Sqrt(((float)_remainingDistance) * 10000.0f);
+            float maxspeed = MathF.Sqrt(((float)_remainingDistance) * 10000.0f) + 10f;//10fは距離が近すぎても進めるよう
             if (_isAutoRun)//設定している目的地に向かうべきなら
             {
                 //加速する必要がある
