@@ -105,7 +105,11 @@
           ]
         },
         "fluidContainerCount": 0,
-        "fluidContainerCapacity": 0
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
       "blockGuid": "00000000-0000-0000-0000-000000000001",
@@ -1272,7 +1276,11 @@
           ]
         },
         "fluidContainerCount": 0,
-        "fluidContainerCapacity": 0
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
@@ -2153,7 +2161,11 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "11900000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000019",
@@ -2264,7 +2276,11 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "12010000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
@@ -2375,7 +2391,11 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
@@ -2983,7 +3003,11 @@
           ]
         },
         "fluidContainerCount": 0,
-        "fluidContainerCapacity": 0
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000022",
       "overrideVerticalBlock": {}
@@ -3076,7 +3100,11 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "blockGuid": "00000000-0000-0000-0000-000000000023",
@@ -3458,6 +3486,98 @@
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
+        },
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10
+              }
+            }
+          ]
         }
       },
       "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
