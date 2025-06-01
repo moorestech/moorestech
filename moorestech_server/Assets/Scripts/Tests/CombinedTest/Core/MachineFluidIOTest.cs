@@ -22,6 +22,33 @@ namespace Tests.CombinedTest.Core
     public class MachineFluidIOTest
     {
         [Test]
+        public void FluidMachineInputTest()
+        {
+            // TODO メモ 液体機械のブロックIDは ForUnitTestModBlockId.FluidMachineId で取得可能
+            
+            
+            // TODO パイプを設置
+            // TODO パイプに液体を設定
+            // TODO 機械を設置
+            
+            // TODO アップデート
+            
+            // TODO パイプが空になり、機械のインプットスロットに液体が入っていることを確認
+        }
+        
+        [Test]
+        public void FluidMachineOutputTest()
+        {
+            // TODO パイプを設置
+            // TODO 機械を設置
+            // TODO 機械のアウトプットスロットに液体を設定
+            
+            // TODO アップデート
+            
+            // TODO パイプ画からになり、機械のアウトプットスロットに液体が入っていることを確認
+        }
+        
+        [Test]
         public void FluidProcessingOutputTest()
         {
             /* いったんFluid関連の処理を作り終わるまでコメントアウトしておく
