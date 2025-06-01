@@ -207,8 +207,7 @@ namespace Tests.UnitTest.Game
             int totaldist = 0;
             for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
             {
-                int calceddist = 0;
-                trainUnit.UpdateTrain(1f / 60f, out calceddist);
+                int calceddist = trainUnit.UpdateTrain(1f / 60f);
                 totaldist += calceddist;
                 if ((i % 60 == 0) & (DEBUG_LOG_FLAG))
                 {
@@ -468,7 +467,7 @@ namespace Tests.UnitTest.Game
                 {
                     for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
                     {
-                        trainUnit.UpdateTrain(1f / 60f, out _);
+                        trainUnit.UpdateTrain(1f / 60f);
                         if (!trainUnit._isUseDestination)
                             break;
                         if (j == 65534)
@@ -501,8 +500,7 @@ namespace Tests.UnitTest.Game
                 int totaldist = 0;
                 for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
                 {
-                    int calceddist = 0;
-                    trainUnit.UpdateTrain(1f / 60f, out calceddist);
+                    int calceddist = trainUnit.UpdateTrain(1f / 60f);
                     totaldist += calceddist;
                     if ((i % 60 == 0) & (DEBUG_LOG_FLAG))
                     {

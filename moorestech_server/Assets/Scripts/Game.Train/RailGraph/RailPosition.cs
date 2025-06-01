@@ -1,3 +1,4 @@
+using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,27 +39,15 @@ namespace Game.Train.RailGraph
         private void ValidatePosition()
         {
             // 現在のRailNodeリストと距離が列車の長さに収まっているかを確認
-            int totalDistance = CalculateTotalDistance();
+
+            //int totalDistance = CalculateTotalDistance()
+            int totalDistance = RailNodeCalculate.CalculateTotalDistance(_railNodes);
             if (totalDistance + _distanceToNextNode < _trainLength)
             {
                 throw new InvalidOperationException("RailNodeリストと距離が列車の長さに収まっていない");
             }
         }
 
-        private int CalculateTotalDistance()
-        {
-            int totalDistance = 0;
-            for (int i = 0; i < _railNodes.Count - 1; i++) 
-            {
-                totalDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
-            }
-            //万が一int maxを超える場合エラー
-            if (totalDistance < 0) 
-            {
-                throw new InvalidOperationException("列車の長さがintの最大値を超えています。");
-            }   
-            return totalDistance;
-        }
 
         // 距離だけ進むメソッド
         // マイナスの距離がはいることも考慮する
@@ -100,7 +89,7 @@ namespace Game.Train.RailGraph
                 _railNodes[i] = _railNodes[i].OppositeNode; // RailNode自体の反転
             }
             //_distanceToNextNode再計算
-            _distanceToNextNode = CalculateTotalDistance() - _distanceToNextNode - _trainLength;
+            _distanceToNextNode = RailNodeCalculate.CalculateTotalDistance(_railNodes) - _distanceToNextNode - _trainLength;
         }
 
         // 今持っているリストの中でいらない情報を削除する
