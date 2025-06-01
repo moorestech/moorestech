@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game
             //進む
             var remainingDistance = railPosition.MoveForward(6); // 6進む（ノードAに近づく）
             // Assert
-            Assert.AreEqual(0, remainingDistance); // ノードAに到達するまでに残り3
+            Assert.AreEqual(6, remainingDistance); // ノードAに到達するまでに残り3→進んだ距離は6
 
             //地道に全部チェック。ノードEの情報はまだ消えてない
             var list = railPosition.TestGet_railNodes();
@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Game
             remainingDistance = railPosition.MoveForward(4); // 3進んでAで停止、残り1
             // Assert
             Assert.AreEqual(nodeA, railPosition.GetNodeApproaching()); // 
-            Assert.AreEqual(1, remainingDistance); //
+            Assert.AreEqual(3, remainingDistance); //
             Assert.AreEqual(nodeB, railPosition.GetNodeJustPassed()); // 
         }
 
@@ -113,7 +113,7 @@ namespace Tests.UnitTest.Game
                 Assert.AreEqual(15, railPosition.GetDistanceToNextNode());
                 var remainingDistance = railPosition.MoveForward(6); // 6すすむ（ノードEに近づく）
                 Assert.AreEqual(9, railPosition.GetDistanceToNextNode());
-                Assert.AreEqual(0, remainingDistance);
+                Assert.AreEqual(6, remainingDistance);
 
                 list = railPosition.TestGet_railNodes();//後輪が完全にB-C間にいるためノードAの情報は削除される
                 Assert.AreEqual(4, list.Count);

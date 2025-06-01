@@ -49,19 +49,19 @@ namespace Game.Train.RailGraph
         }
 
 
-        // 距離だけ進むメソッド
+        // 距離int進むメソッド。ただし分岐点でとまる
         // マイナスの距離がはいることも考慮する
-        //整数で入力された距離だけ進む。ただしRailNodeを超えそうなときは、一旦RailNodeで停止し残りの進むべき距離を整数で返す
-        //進んだときにリストの経路の中でいらない情報を削除する
+        // 進んだ距離を整数で返す
+        // 進んだときにリストの経路の中でいらない情報を削除する
         public int MoveForward(int distance)
         {
             // 進む距離が負なら反転してfowardで計算しまた反転する
             if (distance < 0) 
             {
                 Reverse();
-                var result = MoveForward(-distance);
+                var result = -MoveForward(-distance);
                 Reverse();
-                return -result;
+                return result;
             }
 
             // あとは進む距離が正のみを考える
@@ -69,14 +69,14 @@ namespace Game.Train.RailGraph
             {
                 _distanceToNextNode -= distance;
                 RemoveUnnecessaryNodes();
-                return 0;
+                return distance;
             }
             else 
             {
-                distance -= _distanceToNextNode;
+                var ret = _distanceToNextNode;
                 _distanceToNextNode = 0;
                 RemoveUnnecessaryNodes();
-                return distance;
+                return ret;
             }
         }
 
