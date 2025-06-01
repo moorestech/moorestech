@@ -29,8 +29,8 @@ namespace Game.Train.Train
 
         public TrainUnit(
             RailPosition initialPosition,
-            RailNode destination,
-            List<TrainCar> cars
+            List<TrainCar> cars,
+            RailNode destination = null
         )
         {
             _railPosition = initialPosition;
@@ -85,26 +85,58 @@ namespace Game.Train.Train
                 int moveLength = _railPosition.MoveForward(distanceToMove);
                 distanceToMove -= moveLength;
                 _remainingDistance -= moveLength;
-                //目的地に到着してたら速度を0にする
-                if (IsArrivedDestination())
+                //自動運転で目的地に到着してたら速度を0にする
+                if (IsArrivedDestination() && _isAutoRun)
                 {
                     _currentSpeed = 0;
                     _isAutoRun = false;
                     break;
                 }
                 if (distanceToMove == 0) break;
-                //distanceToMoveが0以外かつある分岐地点についてる状況
-                var isContinue = CheckAndHandleBranch(distanceToMove);//次の経路をセット
-                if (!isContinue)
+                //----------------------------------------------------------------------------------------
+                //この時点でdistanceToMoveが0以外かつ分岐地点についてる状況
+                RailNode approaching = _railPosition.GetNodeApproaching();
+                if (approaching == null) 
                 {
                     _isAutoRun = false;
                     _currentSpeed = 0;
-                    throw new InvalidOperationException("列車が進行中に目的地までの経路を見失いました。");
+                    throw new InvalidOperationException("列車が進行中に接近しているノードがnullになりました。");
                 }
+                    
+                if (_destinationNode != null)//自動運転なら必ず!=nullだし手動運転でも!=nullなら自動で経路検索していいだろう
+                {
+                    //分岐点で必ず最短経路を再度探す。手動でレールが変更されてるかもしれないので
+                    //最低でも返りlistにはapproaching, _destinationNodeが入っているはず
+                    var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
+                    if (newPath.Count < 2)
+                    {
+                        _isAutoRun = false;
+                        _currentSpeed = 0;
+                        throw new InvalidOperationException("列車が進行中に目的地までの経路をロスト");
+                    }
+                    _railPosition.AddNodeToHead(newPath[1]);
+                    //残りの距離を再更新
+                    _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
+                }
+                else
+                {
+                    //approachingから次のノードをランダムに取得して_railPosition.AddNodeToHeadしたい
+                    var nextNodelist = approaching.ConnectedNodes.ToList();
+                    if (nextNodelist.Count == 0) 
+                    {
+                        _currentSpeed = 0;
+                        break;//もう進めない
+                    }
+                    var nextNode = nextNodelist[UnityEngine.Random.Range(0, nextNodelist.Count)];
+                    _railPosition.AddNodeToHead(nextNode);
+                }
+                //----------------------------------------------------------------------------------------
+
                 loopCount++;
-                if (loopCount > 10000)
+                if (loopCount > 1000000)
                 {
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
+                    break;
                 }
             }
             return distanceToMove;
@@ -126,30 +158,6 @@ namespace Game.Train.Train
             return (float)(totalTraction) / totalWeight;
         }
 
-        // 返り値はtrueならまだ進行するべきである
-        // 分岐点での処理
-        private bool CheckAndHandleBranch(int distanceToMove)
-        {
-            RailNode approaching = _railPosition.GetNodeApproaching();
-            if (approaching == null)
-            {
-                throw new InvalidOperationException("列車が進行中に接近しているノードがnullになりました。");
-                return false;
-            }
-
-            //分岐点で必ず最短経路を再度探す。手動でレールが変更されてるかもしれないので
-            //最低でも返りlistにはapproaching, _destinationNodeが入っているはず
-            var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
-            if (newPath.Count < 2)
-            {
-                throw new InvalidOperationException("列車が進行中に目的地までの経路をロスト");
-                return false;
-            }
-            _railPosition.AddNodeToHead(newPath[1]);
-            //残りの距離を再更新
-            _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
-            return true;
-        }
 
         private bool IsArrivedDestination()
         {
@@ -241,8 +249,9 @@ namespace Game.Train.Train
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(
                 splittedRailPosition,
-                _destinationNode,  // 同じ目的地
-                detachedCars
+                detachedCars,
+                _destinationNode  // 同じ目的地
+                
             );
             // 6) 新しいTrainUnitを返す
             return splittedUnit;
