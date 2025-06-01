@@ -51,8 +51,6 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidProcessingOutputTest()
         {
-            /* いったんFluid関連の処理を作り終わるまでコメントアウトしておく
-             
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
@@ -74,8 +72,7 @@ namespace Tests.CombinedTest.Core
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                 var fluidStack = new FluidStack(inputFluid.Amount, fluidId);
                 
-                // TODO この入れ方は普通に間違っているので、
-                fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty, out _);
+                fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
                 
                 Assert.AreEqual(fluidId, fluidContainers[i].FluidId, "Fluid ID should match");
                 Assert.AreEqual(inputFluid.Amount, fluidContainers[i].Amount, "Fluid amount should match");
@@ -119,8 +116,6 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(expectedOutputId, outputSlot[i].Id, $"Output item {i} ID should match");
                 Assert.AreEqual(recipe.OutputItems[i].Count, outputSlot[i].Count, $"Output item {i} count should match");
             }
-            
-            */
         }
         
         private IReadOnlyList<FluidContainer> GetFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
