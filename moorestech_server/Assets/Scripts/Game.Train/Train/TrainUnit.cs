@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
+using Game.Train.Utility;
 
 namespace Game.Train.Train
 {
@@ -10,8 +11,15 @@ namespace Game.Train.Train
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
         public RailPosition _railPosition;
-        public RailNode _destination; // 目的地（駅ノードなど）
-        public bool _isUseDestination;
+        public RailNode _destinationNode; // 現在の最終目的地（駅ノードなど）
+        // _destinationNodeまでの距離
+        private int _remainingDistance;
+        private bool _isAutoRun;
+        public bool IsAutoRun
+        {
+            get { return _isAutoRun; }
+        }
+
         public float _currentSpeed;   // m/s など適宜
         //摩擦係数、空気抵抗係数などはここに追加する
         const float FRICTION = 0.0002f;
@@ -26,27 +34,36 @@ namespace Game.Train.Train
         )
         {
             _railPosition = initialPosition;
-            _destination = destination;
+            _destinationNode = destination;
             _cars = cars;  // 追加
             _currentSpeed = 0.0f; // 仮の初期速度
-            _isUseDestination = false;
+            _isAutoRun = false;
         }
 
 
         // Updateの時間版
         // 進んだ距離を返す
         public int UpdateTrain(float deltaTime) 
-        { 
-            if (_isUseDestination)//設定している目的地に向かうべきなら
+        {
+            //目的地に近ければ原則したい。自動運行での最大速度を決めておく
+            float maxspeed = MathF.Sqrt(((float)_remainingDistance) * 10000.0f);
+            if (_isAutoRun)//設定している目的地に向かうべきなら
             {
-                var force = UpdateTractionForce(deltaTime);
-                _currentSpeed += force * deltaTime;
+                //加速する必要がある
+                if (maxspeed > _currentSpeed)
+                {
+                    var force = UpdateTractionForce(deltaTime);
+                    _currentSpeed += force * deltaTime;
+                }
             }
             //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
             //deltaTime次第でかわる
             _currentSpeed -= _currentSpeed * deltaTime * FRICTION + _currentSpeed * _currentSpeed * deltaTime * AIR_RESISTANCE;
             //速度が0以下にならないようにする
             _currentSpeed = UnityEngine.Mathf.Max(0, _currentSpeed);
+            //maxspeed制約
+            _currentSpeed = UnityEngine.Mathf.Min(maxspeed, _currentSpeed);
+
 
             float floatDistance = _currentSpeed * deltaTime;
             //floatDistanceが1.5ならランダムで1か2になる
@@ -65,20 +82,22 @@ namespace Game.Train.Train
             int loopCount = 0;
             while (distanceToMove != 0)
             {
-                distanceToMove = _railPosition.MoveForward(distanceToMove);
+                int moveLength = _railPosition.MoveForward(distanceToMove);
+                distanceToMove -= moveLength;
+                _remainingDistance -= moveLength;
                 //目的地に到着してたら速度を0にする
                 if (IsArrivedDestination())
                 {
                     _currentSpeed = 0;
-                    _isUseDestination = false;
+                    _isAutoRun = false;
                     break;
                 }
                 if (distanceToMove == 0) break;
                 //distanceToMoveが0以外かつある分岐地点についてる状況
-                var isContinue = CheckAndHandleBranch();//次の経路をセット
+                var isContinue = CheckAndHandleBranch(distanceToMove);//次の経路をセット
                 if (!isContinue)
                 {
-                    _isUseDestination = false;
+                    _isAutoRun = false;
                     _currentSpeed = 0;
                     throw new InvalidOperationException("列車が進行中に目的地までの経路を見失いました。");
                 }
@@ -109,7 +128,7 @@ namespace Game.Train.Train
 
         // 返り値はtrueならまだ進行するべきである
         // 分岐点での処理
-        private bool CheckAndHandleBranch()
+        private bool CheckAndHandleBranch(int distanceToMove)
         {
             RailNode approaching = _railPosition.GetNodeApproaching();
             if (approaching == null)
@@ -119,21 +138,23 @@ namespace Game.Train.Train
             }
 
             //分岐点で必ず最短経路を再度探す。手動でレールが変更されてるかもしれないので
-            //最低でも返りlistにはapproaching, _destinationが入っているはず
-            var newPath = RailGraphDatastore.FindShortestPath(approaching, _destination);
+            //最低でも返りlistにはapproaching, _destinationNodeが入っているはず
+            var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
             if (newPath.Count < 2)
             {
-                throw new InvalidOperationException("列車が進行中に目的地までの経路が見つかりませんでした。");
+                throw new InvalidOperationException("列車が進行中に目的地までの経路をロスト");
                 return false;
             }
             _railPosition.AddNodeToHead(newPath[1]);
+            //残りの距離を再更新
+            _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
             return true;
         }
 
         private bool IsArrivedDestination()
         {
             var node = _railPosition.GetNodeApproaching();
-            if ((node == _destination) & (_railPosition.GetDistanceToNextNode() == 0))
+            if ((node == _destinationNode) & (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
@@ -143,7 +164,42 @@ namespace Game.Train.Train
 
         public void SetDestination(RailNode destination)
         {
-            _destination = destination;
+            _destinationNode = destination;
+        }
+
+        public void TurnOnAutoRun()
+        {
+            _isAutoRun = true;
+            RailNode approaching = _railPosition.GetNodeApproaching();
+            //経路に到達していたら
+            if (approaching == _destinationNode)
+            {
+                if (_railPosition.GetDistanceToNextNode() == 0)
+                {
+                    _remainingDistance = 0;
+                    _isAutoRun = false;
+                    return;
+                }
+                else
+                {
+                    //経路に到達しているが、まだ次のノードに進んでいない場合は残り距離を更新
+                    _remainingDistance = _railPosition.GetDistanceToNextNode();
+                    return;
+                }
+            }
+
+            var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
+            //経路が見つかった場合，最低でも返りlistにはapproaching, _destinationNodeが入っているはず
+            //経路が見つからない場合とりあえずmaxをいれとく
+            //経路に到達していたらは↑
+            if (newPath.Count < 2)
+            {
+                //経路が見つからない場合とりあえずmaxをいれとく
+                _remainingDistance = int.MaxValue;
+                return;
+            }
+            //残りの距離を更新
+            _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath) - _railPosition.GetDistanceToNextNode();
         }
 
 
@@ -185,7 +241,7 @@ namespace Game.Train.Train
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(
                 splittedRailPosition,
-                _destination,  // 同じ目的地
+                _destinationNode,  // 同じ目的地
                 detachedCars
             );
             // 6) 新しいTrainUnitを返す

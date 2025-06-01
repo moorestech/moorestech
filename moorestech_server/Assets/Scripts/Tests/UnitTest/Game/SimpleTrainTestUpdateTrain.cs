@@ -202,8 +202,7 @@ namespace Tests.UnitTest.Game
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 適当な目的地を A にしておく
             var trainUnit = new TrainUnit(initialRailPosition, destination, cars);
-            trainUnit._isUseDestination = true;//factorioでいう自動運転on
-            //while (trainUnit._isUseDestination) //目的地に到達するまで
+            trainUnit.TurnOnAutoRun();
             int totaldist = 0;
             for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
             {
@@ -215,16 +214,6 @@ namespace Tests.UnitTest.Game
                     Debug.Log("1フレームにすすむ距離int" + calceddist);
                     Debug.Log("現在向かっているnodeのID");
                     RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
-                }
-                if (!trainUnit._isUseDestination)
-                {
-                    if (DEBUG_LOG_FLAG)
-                    {
-                        //Debug.Log("" + i + "フレームでつきました。約" + (i / 60) + "秒");
-                        //Debug.Log("実装距離(int)" + totaldist + "");
-                        //Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
-                    }
-                    break;
                 }
             }
 
@@ -240,8 +229,9 @@ namespace Tests.UnitTest.Game
 
         /// <summary>
         /// ループテスト
+        /// 本来分岐なし経路はダイクストラしないはずだったがすることにしたのでこのTESTは無効
         /// </summary>
-
+        /*
         [Test]
         public void LoopTrainTest()
         {
@@ -332,7 +322,7 @@ namespace Tests.UnitTest.Game
                 Assert.AreEqual(5, railPosition.GetDistanceToNextNode());
             }
         }
-
+        */
         /// <summary>
         /// 複雑テスト
         /// 必ずつながる経路(A)
@@ -460,7 +450,7 @@ namespace Tests.UnitTest.Game
                     new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, destination, cars);
-                trainUnit._isUseDestination = true;//factorioでいう自動運転on
+                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
                 for (int i = 0; i < 100; i++)
@@ -468,7 +458,7 @@ namespace Tests.UnitTest.Game
                     for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
                     {
                         trainUnit.UpdateTrain(1f / 60f);
-                        if (!trainUnit._isUseDestination)
+                        if (!trainUnit.IsAutoRun)
                             break;
                         if (j == 65534)
                             Assert.Fail("列車が目的地に到達しませんでした");
@@ -495,7 +485,7 @@ namespace Tests.UnitTest.Game
             const bool DEBUG_LOG_FLAG = true;
             void RunTrain(TrainUnit trainUnit)
             {
-                trainUnit._isUseDestination = true;//factorioでいう自動運転on
+                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
                 //走行スタート
                 int totaldist = 0;
                 for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
@@ -509,7 +499,7 @@ namespace Tests.UnitTest.Game
                         Debug.Log("現在向かっているnodeのID");
                         RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
                     }
-                    if (!trainUnit._isUseDestination)
+                    if (!trainUnit.IsAutoRun)
                     {
                         if (DEBUG_LOG_FLAG)
                         {
@@ -613,7 +603,7 @@ namespace Tests.UnitTest.Game
 
             //走行スタート 駅3→駅0の終点
             trainUnit._railPosition.Reverse();
-            trainUnit._destination = railComponentsData[0].BackNode;
+            trainUnit._destinationNode = railComponentsData[0].BackNode;
             RunTrain(trainUnit);
             Assert.AreEqual(railComponentsData[0].BackNode, trainUnit._railPosition.GetNodeApproaching());
             Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
@@ -623,7 +613,7 @@ namespace Tests.UnitTest.Game
             }
             //走行スタート 駅0→駅3の終点
             trainUnit._railPosition.Reverse();
-            trainUnit._destination = railComponentsData[7].FrontNode;
+            trainUnit._destinationNode = railComponentsData[7].FrontNode;
             RunTrain(trainUnit);
             Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching());
             Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
