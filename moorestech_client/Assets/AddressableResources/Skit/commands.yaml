@@ -21,7 +21,7 @@ commands:
     properties:
       character:
         type: enum
-        options: ["キャラA", "キャラB", "キャラC", "キャラD", "先生", "店員"]
+        options: ["主人公", "AI", "友人"]
         required: true
       Position: { type: vector3, required: true }
       Rotation: { type: vector3, required: true }
@@ -71,7 +71,7 @@ commands:
     properties:
       character:
         type: enum
-        options: ["キャラA", "キャラB", "キャラC", "キャラD", "先生", "店員"]
+        options: ["主人公", "AI", "友人"]
         required: true
       body:
         type: string
@@ -85,7 +85,7 @@ commands:
     properties:
       character:
         type: enum
-        options: ["キャラA", "キャラB", "キャラC", "キャラD", "先生", "店員"]
+        options: ["主人公", "AI", "友人"]
         required: true
       emotion:
         type: enum
@@ -119,7 +119,7 @@ commands:
     properties:
       character:
         type: enum
-        options: ["キャラA", "キャラB", "キャラC", "キャラD", "先生", "店員"]
+        options: ["主人公", "AI", "友人"]
         required: true
       motionName:
         type: enum
