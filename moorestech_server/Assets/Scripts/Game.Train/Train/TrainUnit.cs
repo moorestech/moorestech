@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
-using UnityEngine;
 
 namespace Game.Train.Train
 {
     public class TrainUnit
     {
-        //そのうちprivateにする
+        public string SaveKey { get; } = typeof(TrainUnit).FullName;
+        
         public RailPosition _railPosition;
         public RailNode _destination; // 目的地（駅ノードなど）
         public bool _isUseDestination;
@@ -33,7 +33,9 @@ namespace Game.Train.Train
         }
 
 
-        public void UpdateTrain(float deltaTime, out int calceddist) 
+        // Updateの時間版
+        // 進んだ距離を返す
+        public int UpdateTrain(float deltaTime) 
         { 
             if (_isUseDestination)//設定している目的地に向かうべきなら
             {
@@ -44,18 +46,18 @@ namespace Game.Train.Train
             //deltaTime次第でかわる
             _currentSpeed -= _currentSpeed * deltaTime * FRICTION + _currentSpeed * _currentSpeed * deltaTime * AIR_RESISTANCE;
             //速度が0以下にならないようにする
-            _currentSpeed = Mathf.Max(0, _currentSpeed);
+            _currentSpeed = UnityEngine.Mathf.Max(0, _currentSpeed);
 
             float floatDistance = _currentSpeed * deltaTime;
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
-            int distanceToMove = Mathf.FloorToInt(floatDistance + UnityEngine.Random.Range(0f, 0.999f));
+            int distanceToMove = UnityEngine.Mathf.FloorToInt(floatDistance + UnityEngine.Random.Range(0f, 0.999f));
             UpdateTrainByDistance(distanceToMove);
-            calceddist = distanceToMove;
+            return distanceToMove;
         }
 
-        //ゲームは基本こっちの関数を使う
-        //distanceToMoveの距離絶対進むが、唯一目的地についたときだけ残りの距離を返す
+        // Updateの距離int版
+        // distanceToMoveの距離絶対進むが、唯一目的地についたときだけ残りの距離を返す
         public int UpdateTrainByDistance(int distanceToMove) 
         {
             //進行メインループ
@@ -79,13 +81,11 @@ namespace Game.Train.Train
                     _isUseDestination = false;
                     _currentSpeed = 0;
                     throw new InvalidOperationException("列車が進行中に目的地までの経路を見失いました。");
-                    break;
                 }
                 loopCount++;
                 if (loopCount > 10000)
                 {
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
-                    break;
                 }
             }
             return distanceToMove;
@@ -107,33 +107,23 @@ namespace Game.Train.Train
             return (float)(totalTraction) / totalWeight;
         }
 
-        //返り値はtrueならまだ進行するべきである
+        // 返り値はtrueならまだ進行するべきである
+        // 分岐点での処理
         private bool CheckAndHandleBranch()
         {
             RailNode approaching = _railPosition.GetNodeApproaching();
             if (approaching == null)
             {
+                throw new InvalidOperationException("列車が進行中に接近しているノードがnullになりました。");
                 return false;
             }
-            //目的地についていたら。これはチェック済み
-            /*if (approaching == _destination)
-            {
-                _currentSpeed = 0;
-                _isUseDestination = false;
-                return false;
-            }*/
 
-            var connectedNodes = approaching.ConnectedNodes.ToList();
-            //分岐先のむこうが1つなのでそのまま進む。経路探索はしない(デメリットは手動で経路をかえたあと、列車が目的地までの経路が存在しないときにとまれないこと)
-            if (connectedNodes.Count < 2)
-            {
-                _railPosition.AddNodeToHead(connectedNodes[0]);
-                return true;
-            }
-            //分岐先が2つ以上ある場合は、最短経路を再度探す。最低でも返りlistにはapproaching, _destinationが入っているはず
+            //分岐点で必ず最短経路を再度探す。手動でレールが変更されてるかもしれないので
+            //最低でも返りlistにはapproaching, _destinationが入っているはず
             var newPath = RailGraphDatastore.FindShortestPath(approaching, _destination);
             if (newPath.Count < 2)
             {
+                throw new InvalidOperationException("列車が進行中に目的地までの経路が見つかりませんでした。");
                 return false;
             }
             _railPosition.AddNodeToHead(newPath[1]);
@@ -150,20 +140,22 @@ namespace Game.Train.Train
             return false;
         }
 
-        public void SetSpeed(float newSpeed)
-        {
-            _currentSpeed = newSpeed;
-        }
 
         public void SetDestination(RailNode destination)
         {
             _destination = destination;
         }
 
+
+        //列車編成を保存する。ブロックとは違うことに注意
+        public string GetSaveState()
+        {
+            return "";
+        }
+
         //============================================================
         // ▼ ここからが「編成を分割する」ための処理例
         //============================================================
-
         /// <summary>
         ///  列車を「後ろから numberOfCars 両」切り離して新しいTrainUnitとして返す
         /// </summary>
@@ -171,23 +163,18 @@ namespace Game.Train.Train
         {
             // 例：10両 → 5両 + 5両など
             // 後ろから 5両を抜き取るケースを想定
-            // (前から分割したいなら別途実装)
-
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach >= _cars.Count)
             {
-                Debug.LogError("SplitTrain: 指定両数が不正です。");
+                UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
                 return null;
             }
-
             // 1) 切り離す車両リストを作成
             //    後ろ側から numberOfCarsToDetach 両を取得
             var detachedCars = _cars
                 .Skip(_cars.Count - numberOfCarsToDetach)
                 .ToList();
-
             // 3) 新しく後ろのTrainUnitを作る
             var splittedRailPosition = CreateSplittedRailPosition(detachedCars);
-
             // 2) 既存のTrainUnitからは そのぶん削除
             _cars.RemoveRange(_cars.Count - numberOfCarsToDetach, numberOfCarsToDetach);
             // _carsの両数に応じて、列車長を算出する
@@ -195,14 +182,12 @@ namespace Game.Train.Train
             foreach (var car in _cars)
                 newTrainLength += car.Length;
             _railPosition.SetTrainLength(newTrainLength);
-
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(
                 splittedRailPosition,
                 _destination,  // 同じ目的地
                 detachedCars
             );
-
             // 6) 新しいTrainUnitを返す
             return splittedUnit;
         }
@@ -229,4 +214,3 @@ namespace Game.Train.Train
     }
 
 }
-
