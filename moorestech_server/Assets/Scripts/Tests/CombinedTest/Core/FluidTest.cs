@@ -44,10 +44,10 @@ namespace Tests.CombinedTest.Core
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             const double addingAmount = 30;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
             // fluidPipeのcapacityは100だから溢れない
-            if (remainAmount.HasValue) Assert.Fail();
+            if (remainAmount.Amount > 0) Assert.Fail();
             
             //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
             var startTime = DateTime.Now;
@@ -87,10 +87,10 @@ namespace Tests.CombinedTest.Core
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             var addingStack = new FluidStack(amount, FluidId);
-            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
             // fluidPipeのcapacityは100だから溢れない
-            if (remainAmount.HasValue) Assert.Fail();
+            if (remainAmount.Amount > 0) Assert.Fail();
             
             //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
             var startTime = DateTime.Now;
@@ -205,9 +205,9 @@ namespace Tests.CombinedTest.Core
             // 10fは1秒間に流れる流体の量
             const double addingAmount = 10d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
-            Assert.Null(remainAmount);
+            Assert.AreEqual(0, remainAmount.Amount);
             
             // fluidPipe0からoneWayFluidPipe、fluidPipe1に流れる
             // oneWayFluidPipeはfluidPipe1方向にしか流れないからfluidPipe0には流れない
@@ -250,9 +250,9 @@ namespace Tests.CombinedTest.Core
             // 10fは1秒間に流れる流体の量
             const double addingAmount = 10d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
-            Assert.Null(remainAmount);
+            Assert.AreEqual(0, remainAmount.Amount);
             
             var totalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
             
@@ -291,7 +291,7 @@ namespace Tests.CombinedTest.Core
             // 20fは1秒間に二つの方向へ流れる流体の量
             const double addingAmount = 20d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe1.AddLiquid(addingStack, FluidContainer.Empty, out _);
+            fluidPipe1.AddLiquid(addingStack, FluidContainer.Empty);
             
             var startTime = DateTime.Now;
             while (true)
@@ -331,7 +331,7 @@ namespace Tests.CombinedTest.Core
             // 10dは1秒間に流れる量
             const double amount = 10d;
             var addingStack = new FluidStack(amount, FluidId);
-            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty, out _);
+            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
             {
                 var startTime = DateTime.Now;
@@ -388,8 +388,8 @@ namespace Tests.CombinedTest.Core
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
             
-            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid0), FluidContainer.Empty, out _);
-            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid1), FluidContainer.Empty, out _);
+            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid0), FluidContainer.Empty);
+            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid1), FluidContainer.Empty);
             
             for (var i = 0; i < 10; i++)
             {
@@ -438,8 +438,8 @@ namespace Tests.CombinedTest.Core
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
             
-            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid), FluidContainer.Empty, out _);
-            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid), FluidContainer.Empty, out _);
+            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid), FluidContainer.Empty);
+            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid), FluidContainer.Empty);
             
             var callCount = 0;
             
