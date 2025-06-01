@@ -3,38 +3,491 @@
     "title": "sample_skit",
     "version": 1,
     "created": "2025-05-10T12:00:00+09:00",
-    "modified": "2025-05-25T08:06:13.723Z"
+    "modified": "2025-05-31T16:08:34.930Z"
   },
   "commands": [
     {
       "type": "transition",
-      "enabled": false,
-      "duration": 0.4,
+      "enabled": true,
+      "duration": 0,
       "id": 1
     },
     {
-      "type": "text",
-      "character": "キャラA",
-      "body": "ああ",
-      "id": 2
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "Position": [
+        -5.89,
+        2.89,
+        4.88
+      ],
+      "Rotation": [
+        0,
+        66.55164,
+        0
+      ],
+      "id": 4
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "Position": [
+        -3.739,
+        2.665,
+        5.118
+      ],
+      "Rotation": [
+        0,
+        260.7105,
+        0
+      ],
+      "id": 5
+    },
+    {
+      "type": "transition",
+      "enabled": false,
+      "duration": 0.4,
+      "id": 6
     },
     {
       "type": "camerawork",
-      "duration": 2,
+      "backgroundColor": "#ffffff",
+      "duration": 3,
       "easing": "InOutSine",
-      "StartPositionX": 0,
-      "StartPositionY": 0,
-      "StartPositionZ": 0,
-      "StartRotationX": 0,
-      "StartRotationY": 0,
-      "StartRotationZ": 0,
-      "EndPositionX": 0,
-      "EndPositionY": 0,
-      "EndPositionZ": 0,
-      "EndRotationX": 0,
-      "EndRotationY": 0,
-      "EndRotationZ": 0,
-      "id": 3
+      "StartPosition": [
+        72.37465,
+        49.14471,
+        -39.22421
+      ],
+      "StartRotation": [
+        359.3479,
+        210.0455,
+        -0.003962046
+      ],
+      "EndPosition": [
+        -2.936376,
+        4.808312,
+        5.703107
+      ],
+      "EndRotation": [
+        2.269774,
+        261.0958,
+        -0.004184746
+      ],
+      "id": 7
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#57e317",
+      "seconds": 4.5,
+      "id": 8
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0.4,
+      "id": 9
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -4.756833,
+        4.798276,
+        5.338621
+      ],
+      "Rotation": [
+        357.8011,
+        260.0647,
+        -0.004176962
+      ],
+      "id": 10
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#57e317",
+      "seconds": 0.5,
+      "id": 11
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 2,
+      "id": 12
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#57e317",
+      "seconds": 1,
+      "id": 13
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "ふわぁ……よく寝た\nんん……ここは一体……？",
+      "id": 14
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -5.00335,
+        4.637611,
+        4.926513
+      ],
+      "Rotation": [
+        359.176,
+        90.92738,
+        -0.00362854
+      ],
+      "id": 15
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "おはようございます、姫さま\nようやくお目覚めになられましたか\nここは惑星Bです\n",
+      "id": 16
+    },
+    {
+      "type": "camerawork",
+      "backgroundColor": "#ffffff",
+      "duration": 10,
+      "easing": "InOutSine",
+      "StartPosition": [
+        -2.700607,
+        4.603382,
+        6.941832
+      ],
+      "StartRotation": [
+        0.2073713,
+        204.6799,
+        -0.003748207
+      ],
+      "EndPosition": [
+        -6.436163,
+        4.605596,
+        6.583441
+      ],
+      "EndRotation": [
+        0.5511456,
+        136.4406,
+        -0.003852391
+      ],
+      "id": 17
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "ちょっと待って……\n私が住んでるのは惑星Aなんだけど……\nあはは……惑星Bってどこ？　冗談、だよね！？",
+      "id": 18
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -5.00335,
+        4.637611,
+        4.926513
+      ],
+      "Rotation": [
+        359.176,
+        90.92738,
+        -0.00362854
+      ],
+      "id": 19
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "姫さまに冗談なんて言いません\nぼくは約束と冗談が大っ嫌いなんです\n惑星Bは惑星Aの隣の隣の隣の……とにかく遠くです\n",
+      "id": 20
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -4.75683335,
+        4.798276,
+        5.338621
+      ],
+      "Rotation": [
+        357.8011,
+        90.92738,
+        -0.004176962
+      ],
+      "id": 21
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "ありがとう。とにかくすっごく遠くまで旅行に\n来ちゃってるってことは分かったよ\nよーし、早く帰ろう！　みんなが心配しちゃう！",
+      "id": 22
+    },
+    {
+      "type": "camerawork",
+      "backgroundColor": "#ffffff",
+      "duration": 10,
+      "easing": "InOutSine",
+      "StartPosition": [
+        7.319243,
+        4.834879,
+        5.6613
+      ],
+      "StartRotation": [
+        7.254797,
+        98.93235,
+        -0.001763715
+      ],
+      "EndPosition": [
+        -6.69689,
+        5.156712,
+        2.460891
+      ],
+      "EndRotation": [
+        15.33349,
+        48.39712,
+        -0.002662944
+      ],
+      "id": 23
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "はぁ？　眠り過ぎてお忘れになったんですか？\n惑星Aで大罪を犯した姫様はあなたの父親ーー\n国王さまに永久追放されたじゃないですか",
+      "id": 24
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "惑星Aに姫様の帰る場所なんてありませんよ\n諦めて下さい",
+      "id": 25
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        4.756833,
+        4.798276,
+        5.338621
+      ],
+      "Rotation": [
+        357.8011,
+        260.0647,
+        -0.004176962
+      ],
+      "id": 26
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "そんな……私が大罪を犯したって……\n一体何をしたの？　きっと何かの間違いだよね？",
+      "id": 27
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -5.00335,
+        4.637611,
+        4.926513
+      ],
+      "Rotation": [
+        359.176,
+        90.92738,
+        -0.00362854
+      ],
+      "id": 28
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "いいえ、これは現実です",
+      "id": 29
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "惑星Aに戻る手段なんて……存在しませんよ",
+      "id": 30
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -4.756833,
+        4.798276,
+        5.338621
+      ],
+      "Rotation": [
+        357.8011,
+        260.0647,
+        -0.004176962
+      ],
+      "id": 31
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "とりあえず、惑星Aに戻ってお父様とお話をーー",
+      "id": 32
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "きゃっ！！！",
+      "id": 33
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0.4,
+      "id": 34
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -5.00335,
+        4.637611,
+        4.926513
+      ],
+      "Rotation": [
+        359.176,
+        90.92738,
+        -0.00362854
+      ],
+      "id": 35
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#57e317",
+      "seconds": 1,
+      "id": 36
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.4,
+      "id": 37
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "大丈夫ですか？\nぼくの腕に捕まって下さい",
+      "id": 38
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -4.756833,
+        4.798276,
+        5.338621
+      ],
+      "Rotation": [
+        357.8011,
+        260.0647,
+        -0.004176962
+      ],
+      "id": 39
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "あ……ありがとう……\nあなた、名前は？",
+      "id": 40
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -5.00335,
+        4.637611,
+        4.926513
+      ],
+      "Rotation": [
+        359.176,
+        90.92738,
+        -0.00362854
+      ],
+      "id": 41
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "ぼくに名前はありません。汎用システムAIです\nそんなフラフラな状態では何も出来ませんよ\nまずはここでの生存の方が重要です",
+      "id": 42
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -4.756833,
+        4.798276,
+        5.338621
+      ],
+      "Rotation": [
+        357.8011,
+        260.0647,
+        -0.004176962
+      ],
+      "id": 43
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "主人公",
+      "body": "う……突然そんなこと言われても……\nどうすれば……",
+      "id": 44
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "Position": [
+        -5.00335,
+        4.637611,
+        4.926513
+      ],
+      "Rotation": [
+        359.176,
+        90.92738,
+        -0.00362854
+      ],
+      "id": 45
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "AI",
+      "body": "大丈夫です\nぼくがしっかりサポートするので\n姫さまは何も心配いりません。さあ、行きますよ",
+      "id": 46
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0.4,
+      "id": 47
     }
   ]
 }

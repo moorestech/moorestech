@@ -24,7 +24,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "150a4c13-bcdc-42eb-8bf7-4e1d3bb6aa2e"
+      "machineRecipeGuid": "150a4c13-bcdc-42eb-8bf7-4e1d3bb6aa2e",
+      "outputFluids": []
     },
     {
       "initialUnlocked": true,
@@ -46,7 +47,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "58439c96-a95c-4248-b703-8aae584ae66f"
+      "machineRecipeGuid": "58439c96-a95c-4248-b703-8aae584ae66f",
+      "outputFluids": []
     },
     {
       "time": 1,
@@ -65,7 +67,8 @@
       ],
       "inputFluids": [],
       "machineRecipeGuid": "f9282a46-e988-40ff-b5d1-dc87dd05a1d1",
-      "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506"
+      "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
+      "outputFluids": []
     },
     {
       "time": 6,
@@ -88,7 +91,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "8ec9d52e-f5af-4218-b63a-b34d340dfe0b"
+      "machineRecipeGuid": "8ec9d52e-f5af-4218-b63a-b34d340dfe0b",
+      "outputFluids": []
     },
     {
       "time": 6,
@@ -111,7 +115,8 @@
       ],
       "inputFluids": [],
       "machineRecipeGuid": "56e10ed4-1924-4ee0-a370-a1c20b659c5c",
-      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945"
+      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
+      "outputFluids": []
     },
     {
       "time": 5,
@@ -130,7 +135,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "cee379fb-1c41-46a4-b538-a10b1cb282f4"
+      "machineRecipeGuid": "cee379fb-1c41-46a4-b538-a10b1cb282f4",
+      "outputFluids": []
     },
     {
       "time": 1,
@@ -149,7 +155,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "19783823-02bc-4552-9cd3-058292f5bc78"
+      "machineRecipeGuid": "19783823-02bc-4552-9cd3-058292f5bc78",
+      "outputFluids": []
     },
     {
       "time": 1,
@@ -168,7 +175,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "57082561-0778-4fae-9d1b-b4aeef7e23d0"
+      "machineRecipeGuid": "57082561-0778-4fae-9d1b-b4aeef7e23d0",
+      "outputFluids": []
     },
     {
       "time": 1,
@@ -187,7 +195,8 @@
         }
       ],
       "inputFluids": [],
-      "machineRecipeGuid": "ba768744-da46-40eb-81c2-b9e823ccb301"
+      "machineRecipeGuid": "ba768744-da46-40eb-81c2-b9e823ccb301",
+      "outputFluids": []
     },
     {
       "blockSize": [
@@ -214,7 +223,8 @@
         }
       ],
       "machineRecipeGuid": "8c6ca5c7-a94e-474d-9509-a80b524e81ad",
-      "inputFluids": []
+      "inputFluids": [],
+      "outputFluids": []
     },
     {
       "time": 6,
@@ -237,7 +247,8 @@
       ],
       "machineRecipeGuid": "2334c319-320a-4fda-aa0c-685d6c818749",
       "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
-      "inputFluids": []
+      "inputFluids": [],
+      "outputFluids": []
     },
     {
       "initialUnlocked": true,
@@ -264,7 +275,8 @@
         }
       ],
       "machineRecipeGuid": "ee1aa447-ea28-47dd-979f-bc5fe8d8ac70",
-      "inputFluids": []
+      "inputFluids": [],
+      "outputFluids": []
     },
     {
       "time": 8,
@@ -295,7 +307,8 @@
         1
       ],
       "machineRecipeGuid": "172400d3-9768-42c4-8e3f-b5656ba7f234",
-      "inputFluids": []
+      "inputFluids": [],
+      "outputFluids": []
     },
     {
       "time": 5,
@@ -314,7 +327,8 @@
         }
       ],
       "machineRecipeGuid": "25297e2b-c69f-4b44-8cf9-03209f514400",
-      "inputFluids": []
+      "inputFluids": [],
+      "outputFluids": []
     }
   ]
 }
