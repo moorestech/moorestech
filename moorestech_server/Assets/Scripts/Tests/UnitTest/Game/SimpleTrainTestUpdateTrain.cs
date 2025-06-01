@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game
 
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 適当な目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, destination, cars);
+            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
 
             // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
             //   5両 → (前3両) + (後ろ2両) に分割
@@ -201,7 +201,7 @@ namespace Tests.UnitTest.Game
 
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 適当な目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, destination, cars);
+            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
             trainUnit.TurnOnAutoRun();
             int totaldist = 0;
             for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
@@ -449,7 +449,7 @@ namespace Tests.UnitTest.Game
                 {
                     new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
                 };
-                var trainUnit = new TrainUnit(railPosition, destination, cars);
+                var trainUnit = new TrainUnit(railPosition, cars, destination);
                 trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
@@ -591,7 +591,7 @@ namespace Tests.UnitTest.Game
             {
                 new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
             };
-            var trainUnit = new TrainUnit(railPosition, destination, cars);
+            var trainUnit = new TrainUnit(railPosition, cars, destination);
             //走行スタート 現在地→駅3の終点
             RunTrain(trainUnit);
             Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching());
