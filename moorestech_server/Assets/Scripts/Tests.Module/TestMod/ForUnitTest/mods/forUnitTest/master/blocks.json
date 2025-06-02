@@ -109,7 +109,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
       "blockGuid": "00000000-0000-0000-0000-000000000001",
@@ -1280,7 +1282,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
@@ -2165,7 +2169,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0
       },
       "itemGuid": "11900000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000019",
@@ -2280,7 +2286,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCount": 0,
+        "innerTankCapacity": 0
       },
       "itemGuid": "12010000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
@@ -2395,7 +2403,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCount": 0,
+        "innerTankCapacity": 0
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
@@ -3007,7 +3017,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0
       },
       "blockGuid": "00000000-0000-0000-0000-000000000022",
       "overrideVerticalBlock": {}
@@ -3104,7 +3116,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "blockGuid": "00000000-0000-0000-0000-000000000023",
@@ -3476,13 +3490,11 @@
       "blockParam": {
         "machineConnectionRange": 5,
         "poleConnectionRange": 5,
-        "fluidContainerCount": 2,
-        "fluidContainerCapacity": 100,
+        "innerTankCount": 2,
+        "innerTankCapacity": 100,
         "requiredPower": 5,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
-        "inputFluidSlotCount": 2,
-        "outputFluidSlotCount": 2,
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
