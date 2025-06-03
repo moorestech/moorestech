@@ -157,11 +157,6 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidProcessingOutputTest()
         {
-            // NOTE: 現在の実装では、VanillaMachineProcessorComponentは液体の消費と生成を
-            // サポートしていません。このテストは将来の実装のためにスキップします。
-            Assert.Pass("Fluid processing is not yet implemented in VanillaMachineProcessorComponent");
-            return;
-            
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var blockFactory = ServerContext.BlockFactory;
@@ -176,17 +171,17 @@ namespace Tests.CombinedTest.Core
             
             // 必要素材を入れる
             // Set up the required materials
-            var fluidContainers = GetInputFluidContainers(blockInventory);
+            var inputFluidContainers = GetInputFluidContainers(blockInventory);
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 var inputFluid = recipe.InputFluids[i];
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                 var fluidStack = new FluidStack(inputFluid.Amount, fluidId);
                 
-                fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+                inputFluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
                 
-                Assert.AreEqual(fluidId, fluidContainers[i].FluidId, "Fluid ID should match");
-                Assert.AreEqual(inputFluid.Amount, fluidContainers[i].Amount, "Fluid amount should match");
+                Assert.AreEqual(fluidId, inputFluidContainers[i].FluidId, "Fluid ID should match");
+                Assert.AreEqual(inputFluid.Amount, inputFluidContainers[i].Amount, "Fluid amount should match");
             }
             
             foreach (var inputItem in recipe.InputItems)
@@ -209,14 +204,16 @@ namespace Tests.CombinedTest.Core
             // Verification
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
-                Assert.AreEqual(0, fluidContainers[i].Amount, $"Fluid in container {i} should be consumed");
-                Assert.AreEqual(FluidMaster.EmptyFluidId, fluidContainers[i].FluidId, $"Fluid ID in container {i} should be reset to empty");
+                Assert.AreEqual(0, inputFluidContainers[i].Amount, $"Fluid in container {i} should be consumed");
+                Assert.AreEqual(FluidMaster.EmptyFluidId, inputFluidContainers[i].FluidId, $"Fluid ID in container {i} should be reset to empty");
             }
+            
+            var outputFluidContainers = GetOutputFluidContainers(blockInventory);
             for (int i = 0; i < recipe.OutputFluids.Length; i++)
             {
                 var expectedFluidId = MasterHolder.FluidMaster.GetFluidId(recipe.OutputFluids[i].FluidGuid);
-                Assert.AreEqual(expectedFluidId, fluidContainers[i].FluidId, $"Output fluid {i} ID should match");
-                Assert.AreEqual(recipe.OutputFluids[i].Amount, fluidContainers[i].Amount, $"Output fluid {i} amount should match");
+                Assert.AreEqual(expectedFluidId, outputFluidContainers[i].FluidId, $"Output fluid {i} ID should match");
+                Assert.AreEqual(recipe.OutputFluids[i].Amount, outputFluidContainers[i].Amount, $"Output fluid {i} amount should match");
             }
             
             var (_, outputSlot) = GetInputOutputSlot(blockInventory);
