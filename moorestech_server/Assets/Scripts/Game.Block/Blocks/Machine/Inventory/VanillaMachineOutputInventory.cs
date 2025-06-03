@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
@@ -19,6 +20,7 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineOutputInventory
     {
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
+        public IReadOnlyList<FluidContainer> FluidOutputSlot => _fluidContainers;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -26,8 +28,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly FluidContainer[] _fluidContainers;
         
-        public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
+        public VanillaMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
@@ -35,6 +38,13 @@ namespace Game.Block.Blocks.Machine.Inventory
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
+            
+            _fluidContainers = new FluidContainer[outputTankCount];
+            for (var i = 0; i < outputTankCount; i++)
+            {
+                _fluidContainers[i] = new FluidContainer(innerTankCapacity);
+            }
+            
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
