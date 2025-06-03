@@ -23,34 +23,52 @@ namespace Tests.CombinedTest.Core
 {
     public class MachineFluidIOTest
     {
-        public static readonly Guid FluidGuid = new("00000000-0000-0000-1234-000000000001");
-        public static FluidId FluidId => MasterHolder.FluidMaster.GetFluidId(FluidGuid);
+        public static FluidId FluidId1 => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000001"));
+        public static FluidId FluidId2 => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000002"));
+        public static FluidId FluidId3 => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000003"));
 
+        /// <summary>
+        /// 機械内部のタンクに個別に液体が入ることをテストする
+        /// 機械の内部タンクは3個、パイプも3個ですべて入る
+        /// </summary>
         [Test]
         public void FluidMachineInputTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            // 機械を設置
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.forward * 1, BlockDirection.North, out var fluidPipeBlock);
             
-            var fluidPipe = fluidPipeBlock.GetComponent<FluidPipeComponent>();
-            var fluidMachineInventory = fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            
-            // パイプの接続状態を確認
-            var fluidPipeConnection = fluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            Assert.AreEqual(1, fluidPipeConnection.ConnectedTargets.Count);
+            // 液体を入れるパイプを設定
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(2, 0, 1), BlockDirection.North, out var fluidPipeBlock2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(4, 0, 1), BlockDirection.North, out var fluidPipeBlock3);
             
             // パイプに液体を設定
-            const double fluidAmount = 50d;
-            var fluidStack = new FluidStack(fluidAmount, FluidId);
-            fluidPipe.AddLiquid(fluidStack, FluidContainer.Empty);
+            const double fluidAmount1 = 50d;
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            fluidPipe1.AddLiquid(new FluidStack(fluidAmount1, FluidId1), FluidContainer.Empty);
+            Assert.AreEqual(fluidAmount1, fluidPipe1.GetAmount());
+            Assert.AreEqual(FluidId1, fluidPipe1.GetFluidId());
             
-            // 初期状態の確認
-            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount());
-            var fluidContainers = GetFluidContainers(fluidMachineInventory);
-            Assert.AreEqual(0, fluidContainers[0].Amount);
+            const double fluidAmount2 = 40d;
+            var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
+            fluidPipe2.AddLiquid(new FluidStack(fluidAmount1, FluidId2), FluidContainer.Empty);
+            Assert.AreEqual(fluidAmount2, fluidPipe2.GetAmount());
+            Assert.AreEqual(FluidId2, fluidPipe2.GetFluidId());
+            
+            const double fluidAmount3 = 30d;
+            var fluidPipe3 = fluidPipeBlock3.GetComponent<FluidPipeComponent>();
+            fluidPipe3.AddLiquid(new FluidStack(fluidAmount3, FluidId3), FluidContainer.Empty);
+            Assert.AreEqual(fluidAmount3, fluidPipe3.GetAmount());
+            Assert.AreEqual(FluidId3, fluidPipe3.GetFluidId());
+            
+            // パイプの接続状態を確認
+            Assert.AreEqual(1, fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>().ConnectedTargets.Count);
+            Assert.AreEqual(1, fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory>>().ConnectedTargets.Count);
+            Assert.AreEqual(1, fluidPipeBlock3.GetComponent<BlockConnectorComponent<IFluidInventory>>().ConnectedTargets.Count);
+            
             
             // アップデート（液体が流れるのを待つ）
             var startTime = DateTime.Now;
@@ -63,39 +81,52 @@ namespace Tests.CombinedTest.Core
             }
             
             // 液体が転送されていることを確認
-            Assert.AreEqual(0, fluidPipe.GetAmount(), 0.01f);
-            Assert.AreEqual(fluidAmount, fluidContainers[0].Amount, 0.01f);
-            Assert.AreEqual(FluidId, fluidContainers[0].FluidId);
+            Assert.AreEqual(0, fluidPipe1.GetAmount(), 0.01f);
+            Assert.AreEqual(0, fluidPipe2.GetAmount(), 0.01f);
+            Assert.AreEqual(0, fluidPipe3.GetAmount(), 0.01f);
+            
+            var fluidContainers = GetInputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
+            Assert.AreEqual(3, fluidContainers.Count);
+            
+            Assert.AreEqual(FluidId1, fluidContainers[0].FluidId);
+            Assert.AreEqual(fluidAmount1, fluidContainers[0].Amount);
+            Assert.AreEqual(FluidId2, fluidContainers[1].FluidId);
+            Assert.AreEqual(fluidAmount2, fluidContainers[1].Amount);
+            Assert.AreEqual(FluidId3, fluidContainers[2].FluidId);
+            Assert.AreEqual(fluidAmount3, fluidContainers[2].Amount);
         }
         
+        
+        /// <summary>
+        /// 機械内部の個別タンクからそれぞれ液体が排出されることをテストする
+        /// 機械の内部タンクは2個、パイプも3個なので全ては排出されない
+        /// </summary>
         [Test]
         public void FluidMachineOutputTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            // 機械を設置
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.forward * -1, BlockDirection.North, out var fluidPipeBlock);
             
-            var fluidPipe = fluidPipeBlock.GetComponent<FluidPipeComponent>();
-            var fluidMachineInventory = fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            // 液体が入るパイプを設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(2, 0, -1), BlockDirection.North, out var fluidPipeBlock2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(4, 0, -1), BlockDirection.North, out var fluidPipeBlock3);
             
-            // パイプの接続状態を確認
-            var fluidPipeConnection = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            Assert.AreEqual(1, fluidPipeConnection.ConnectedTargets.Count);
+            // 機械に液体を設定
+            var fluidContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
+            Assert.AreEqual(2, fluidContainers.Count);
             
-            // 機械のアウトプットスロットに液体を設定
-            const double fluidAmount = 40d;
-            var fluidStack = new FluidStack(fluidAmount, FluidId);
+            const double fluidAmount1 = 40d;
+            const double fluidAmount2 = 50d;
+            fluidContainers[0].AddLiquid(new FluidStack(fluidAmount1, FluidId1), FluidContainer.Empty);
+            fluidContainers[1].AddLiquid(new FluidStack(fluidAmount2, FluidId2), FluidContainer.Empty);
             
-            // 機械のフルードコンテナに液体を設定（出力として扱う）
-            var fluidContainers = GetFluidContainers(fluidMachineInventory);
-            var outputSlotIndex = 1;
-            fluidContainers[outputSlotIndex].AddLiquid(fluidStack, FluidContainer.Empty);
-            
-            // 初期状態の確認
-            Assert.AreEqual(0d, fluidPipe.GetAmount());
-            Assert.AreEqual(fluidAmount, fluidContainers[outputSlotIndex].Amount);
+            // 機械の接続状態を確認
+            var fluidMachineConnector = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            Assert.AreEqual(2, fluidMachineConnector.ConnectedTargets.Count);
             
             // アップデート（液体が流れるのを待つ）
             var startTime = DateTime.Now;
@@ -107,11 +138,21 @@ namespace Tests.CombinedTest.Core
                 if (elapsedTime.TotalSeconds > 10) break; // 10秒待機
             }
             
-            // 機械のアウトプットスロットが空になり、パイプに液体が入っていることを確認
-            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount(), 0.01f);
-            Assert.AreEqual(FluidId, fluidPipe.GetFluidId());
-            Assert.AreEqual(0f, fluidContainers[0].Amount, 0.01f);
+            // 液体がパイプに転送されていることを確認
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
+            var fluidPipe3 = fluidPipeBlock3.GetComponent<FluidPipeComponent>();
+            Assert.AreEqual(FluidId1, fluidPipe1.GetFluidId());
+            Assert.AreEqual(fluidAmount1, fluidPipe1.GetAmount(), 0.01f);
+            Assert.AreEqual(FluidId2, fluidPipe2.GetFluidId());
+            Assert.AreEqual(fluidAmount2, fluidPipe2.GetAmount(), 0.01f);
+            Assert.AreEqual(0, fluidPipe3.GetAmount()); // 接続されてないので0
+            
+            // 液体タンク側が0担っていることを確認
+            Assert.AreEqual(0, fluidContainers[0].Amount, 0.01f);
+            Assert.AreEqual(0, fluidContainers[1].Amount, 0.01f);
         }
+        
         
         [Test]
         public void FluidProcessingOutputTest()
@@ -135,7 +176,7 @@ namespace Tests.CombinedTest.Core
             
             // 必要素材を入れる
             // Set up the required materials
-            var fluidContainers = GetFluidContainers(blockInventory);
+            var fluidContainers = GetInputFluidContainers(blockInventory);
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 var inputFluid = recipe.InputFluids[i];
@@ -189,10 +230,19 @@ namespace Tests.CombinedTest.Core
             }
         }
         
-        private IReadOnlyList<FluidContainer> GetFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
+        private IReadOnlyList<FluidContainer> GetInputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
         {
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(blockInventory);
+            
+            return vanillaMachineInputInventory.FluidInputSlot;
+        }
+        
+        private IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
+        {
+            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(blockInventory);
             
             return vanillaMachineInputInventory.FluidInputSlot;
