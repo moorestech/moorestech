@@ -48,9 +48,9 @@ namespace Tests.CombinedTest.Core
             fluidPipe.AddLiquid(fluidStack, FluidContainer.Empty);
             
             // 初期状態の確認
-            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount(), "Initial pipe fluid amount should match");
+            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount());
             var fluidContainers = GetFluidContainers(fluidMachineInventory);
-            Assert.AreEqual(0, fluidContainers[0].Amount, "Machine fluid container should be empty initially");
+            Assert.AreEqual(0, fluidContainers[0].Amount);
             
             // アップデート（液体が流れるのを待つ）
             var startTime = DateTime.Now;
@@ -63,10 +63,9 @@ namespace Tests.CombinedTest.Core
             }
             
             // 液体が転送されていることを確認
-            // 完全な転送は期待しない（現在の実装では転送速度が遅いため）
-            Assert.Less(fluidPipe.GetAmount(), fluidAmount, "Some fluid should have been transferred from pipe");
-            Assert.Greater(fluidContainers[0].Amount, 0, "Machine should contain some fluid");
-            Assert.AreEqual(FluidId, fluidContainers[0].FluidId, "Fluid ID should match in machine");
+            Assert.AreEqual(0, fluidPipe.GetAmount(), 0.01f);
+            Assert.AreEqual(fluidAmount, fluidContainers[0].Amount, 0.01f);
+            Assert.AreEqual(FluidId, fluidContainers[0].FluidId);
         }
         
         [Test]
@@ -91,15 +90,12 @@ namespace Tests.CombinedTest.Core
             
             // 機械のフルードコンテナに液体を設定（出力として扱う）
             var fluidContainers = GetFluidContainers(fluidMachineInventory);
-            // 出力スロットは入力スロットと同じ配列を使用している
-            // fluidContainerCount = 2で、これは入力と出力の合計
-            // 出力として2番目のコンテナ（インデックス1）を使用
             var outputSlotIndex = 1;
             fluidContainers[outputSlotIndex].AddLiquid(fluidStack, FluidContainer.Empty);
             
             // 初期状態の確認
-            Assert.AreEqual(0d, fluidPipe.GetAmount(), "Pipe should be empty initially");
-            Assert.AreEqual(fluidAmount, fluidContainers[outputSlotIndex].Amount, "Machine output should contain fluid initially");
+            Assert.AreEqual(0d, fluidPipe.GetAmount());
+            Assert.AreEqual(fluidAmount, fluidContainers[outputSlotIndex].Amount);
             
             // アップデート（液体が流れるのを待つ）
             var startTime = DateTime.Now;
@@ -112,9 +108,9 @@ namespace Tests.CombinedTest.Core
             }
             
             // 機械のアウトプットスロットが空になり、パイプに液体が入っていることを確認
-            Assert.AreEqual(0d, fluidContainers[outputSlotIndex].Amount, 0.1d, "Machine output should be empty after transfer");
-            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount(), 0.1d, "Pipe should contain all the fluid");
-            Assert.AreEqual(FluidId, fluidPipe.GetFluidId(), "Fluid ID should match in pipe");
+            Assert.AreEqual(fluidAmount, fluidPipe.GetAmount(), 0.01f);
+            Assert.AreEqual(FluidId, fluidPipe.GetFluidId());
+            Assert.AreEqual(0f, fluidContainers[0].Amount, 0.01f);
         }
         
         [Test]
