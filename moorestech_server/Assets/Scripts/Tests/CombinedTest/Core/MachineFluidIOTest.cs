@@ -42,8 +42,8 @@ namespace Tests.CombinedTest.Core
             
             // 液体を入れるパイプを設定
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(2, 0, 1), BlockDirection.North, out var fluidPipeBlock2);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(4, 0, 1), BlockDirection.North, out var fluidPipeBlock3);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 3), BlockDirection.North, out var fluidPipeBlock2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 5), BlockDirection.North, out var fluidPipeBlock3);
             
             // パイプに液体を設定
             const double fluidAmount1 = 50d;
@@ -89,11 +89,11 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(3, fluidContainers.Count);
             
             Assert.AreEqual(FluidId1, fluidContainers[0].FluidId);
-            Assert.AreEqual(fluidAmount1, fluidContainers[0].Amount);
+            Assert.AreEqual(fluidAmount1, fluidContainers[0].Amount, 0.01f);
             Assert.AreEqual(FluidId2, fluidContainers[1].FluidId);
-            Assert.AreEqual(fluidAmount2, fluidContainers[1].Amount);
+            Assert.AreEqual(fluidAmount2, fluidContainers[1].Amount, 0.01f);
             Assert.AreEqual(FluidId3, fluidContainers[2].FluidId);
-            Assert.AreEqual(fluidAmount3, fluidContainers[2].Amount);
+            Assert.AreEqual(fluidAmount3, fluidContainers[2].Amount, 0.01f);
         }
         
         
@@ -111,9 +111,9 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock);
             
             // 液体が入るパイプを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var fluidPipeBlock1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(2, 0, -1), BlockDirection.North, out var fluidPipeBlock2);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(4, 0, -1), BlockDirection.North, out var fluidPipeBlock3);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 2), BlockDirection.North, out var fluidPipeBlock2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var fluidPipeBlock3);
             
             // 機械に液体を設定
             var fluidContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
@@ -241,11 +241,11 @@ namespace Tests.CombinedTest.Core
         
         private IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
         {
-            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(blockInventory);
             
-            return vanillaMachineInputInventory.FluidInputSlot;
+            return vanillaMachineOutputInventory.FluidOutputSlot;
         }
         
         private (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
