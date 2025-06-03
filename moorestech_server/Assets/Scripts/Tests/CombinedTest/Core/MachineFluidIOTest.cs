@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Core
             
             const double fluidAmount2 = 40d;
             var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
-            fluidPipe2.AddLiquid(new FluidStack(fluidAmount1, FluidId2), FluidContainer.Empty);
+            fluidPipe2.AddLiquid(new FluidStack(fluidAmount2, FluidId2), FluidContainer.Empty);
             Assert.AreEqual(fluidAmount2, fluidPipe2.GetAmount());
             Assert.AreEqual(FluidId2, fluidPipe2.GetFluidId());
             
