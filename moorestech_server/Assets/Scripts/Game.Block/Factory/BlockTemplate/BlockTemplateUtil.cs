@@ -34,26 +34,28 @@ namespace Game.Block.Factory.BlockTemplate
             var outputSlotCount = machineParam.OutputSlotCount;
             
             // ElectricMachineBlockParamから流体関連のパラメータを取得
-            var innerTankCount = 0;
+            var inputTankCount = 0;
+            var outputTankCount = 0;
             var innerTankCapacity = 0f;
             
             if (machineParam is ElectricMachineBlockParam electricMachineParam)
             {
-                innerTankCount = electricMachineParam.InnerTankCount;
+                inputTankCount = electricMachineParam.InputTankCount;
+                outputTankCount = electricMachineParam.OutputTankCount;
                 innerTankCapacity = electricMachineParam.InnerTankCapacity;
             }
             
             var input = new VanillaMachineInputInventory(
                 blockId,
                 inputSlotCount,
-                innerTankCount,
+                inputTankCount,
                 innerTankCapacity,
                 blockInventoryUpdateEvent,
                 blockInstanceId
             );
             
             var output = new VanillaMachineOutputInventory(
-                outputSlotCount, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
+                outputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
             
             return (input, output);
