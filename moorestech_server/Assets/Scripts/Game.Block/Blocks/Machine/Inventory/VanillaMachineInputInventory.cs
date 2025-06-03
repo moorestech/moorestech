@@ -21,22 +21,22 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly BlockInstanceId _blockInstanceId;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        //TODO: ↑のようにする
         private readonly FluidContainer[] _fluidContainers;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public VanillaMachineInputInventory(BlockId blockId, int inputSlot, int fluidContainerCount, float fluidContainerCapacity, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
+        public VanillaMachineInputInventory(BlockId blockId, int inputSlot, int innerTankCount, float innerTankCapacity, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
         {
             _blockId = blockId;
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
-            _fluidContainers = new FluidContainer[fluidContainerCount];
-            for (var i = 0; i < fluidContainerCount; i++)
-            {
-                _fluidContainers[i] = new FluidContainer(fluidContainerCapacity);
-            }
             
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot);
+            
+            _fluidContainers = new FluidContainer[innerTankCount];
+            for (var i = 0; i < innerTankCount; i++)
+            {
+                _fluidContainers[i] = new FluidContainer(innerTankCapacity);
+            }
         }
         
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
