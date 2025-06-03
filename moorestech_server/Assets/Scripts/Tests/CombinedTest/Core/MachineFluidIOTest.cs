@@ -16,6 +16,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
+using Game.Block.Component;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -31,14 +32,15 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            // パイプを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, out var fluidPipeBlock);
-            // 機械を設置 (パイプの隣に設置)
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.right * 1, BlockDirection.North, out var fluidMachineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.forward * 1, BlockDirection.North, out var fluidPipeBlock);
             
             var fluidPipe = fluidPipeBlock.GetComponent<FluidPipeComponent>();
             var fluidMachineInventory = fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            
+            // パイプの接続状態を確認
+            var fluidPipeConnection = fluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            Assert.AreEqual(1, fluidPipeConnection.ConnectedTargets.Count);
             
             // パイプに液体を設定
             const double fluidAmount = 50d;
@@ -73,14 +75,15 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            // 機械を設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.right * 0, BlockDirection.North, out var fluidMachineBlock);
-            // パイプを設置 (機械の隣に設置)
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, out var fluidPipeBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.forward * -1, BlockDirection.North, out var fluidPipeBlock);
             
             var fluidPipe = fluidPipeBlock.GetComponent<FluidPipeComponent>();
             var fluidMachineInventory = fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            
+            // パイプの接続状態を確認
+            var fluidPipeConnection = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            Assert.AreEqual(1, fluidPipeConnection.ConnectedTargets.Count);
             
             // 機械のアウトプットスロットに液体を設定
             const double fluidAmount = 40d;
