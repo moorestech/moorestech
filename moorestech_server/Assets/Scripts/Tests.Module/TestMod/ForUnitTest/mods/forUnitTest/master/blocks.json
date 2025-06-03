@@ -3481,7 +3481,7 @@
       "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
-        1,
+        6,
         1,
         1
       ],
@@ -3516,11 +3516,51 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 1
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                4
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectType": "Fluid",
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 2
               }
             }
           ],
           "outflowConnects": [
+
             {
               "offset": [
                 0,
@@ -3536,11 +3576,33 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 1
               }
             }
           ]
-        }
+        },
+        "outputTankCount": 2,
+        "inputTankCount": 3
       },
       "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
