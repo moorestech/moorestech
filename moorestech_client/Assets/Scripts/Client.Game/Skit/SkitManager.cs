@@ -54,6 +54,7 @@ namespace Client.Game.Skit
             skitUI.gameObject.SetActive(false);
             storyContext.DestroyCharacter();
             IsPlayingSkit = false;
+            CameraManager.Instance.UnRegisterCamera(skitCamera);
             
             #region Internal
             
