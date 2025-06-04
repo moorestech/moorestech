@@ -178,7 +178,10 @@ namespace Tests.CombinedTest.Core
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                 var fluidStack = new FluidStack(inputFluid.Amount, fluidId);
                 
-                inputFluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+                // インサートするインデックスを1個ずらす
+                var insertIndex = i + 1;
+                insertIndex = inputFluidContainers.Count == insertIndex ? 0 : insertIndex; 
+                inputFluidContainers[insertIndex].AddLiquid(fluidStack, FluidContainer.Empty);
                 
                 Assert.AreEqual(fluidId, inputFluidContainers[i].FluidId, "Fluid ID should match");
                 Assert.AreEqual(inputFluid.Amount, inputFluidContainers[i].Amount, "Fluid amount should match");
