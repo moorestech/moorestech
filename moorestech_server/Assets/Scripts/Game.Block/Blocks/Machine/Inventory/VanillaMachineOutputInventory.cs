@@ -70,6 +70,26 @@ namespace Game.Block.Blocks.Machine.Inventory
                 if (!isAllowed) return false;
             }
             
+            // 液体の出力スペースをチェック
+            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            {
+                if (i >= _fluidContainers.Length) return false;
+                
+                var outputFluid = machineRecipe.OutputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                
+                // 既に異なる液体が入っている場合、または容量が不足している場合
+                if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != fluidId)
+                {
+                    return false;
+                }
+                
+                if (_fluidContainers[i].Capacity - _fluidContainers[i].Amount < outputFluid.Amount)
+                {
+                    return false;
+                }
+            }
+            
             return true;
         }
         
@@ -88,6 +108,18 @@ namespace Game.Block.Blocks.Machine.Inventory
                     _itemDataStoreService.SetItem(i, item);
                     break;
                 }
+            
+            //アウトプットスロットに液体を格納する
+            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            {
+                if (i >= _fluidContainers.Length) break;
+                
+                var outputFluid = machineRecipe.OutputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                var fluidStack = new FluidStack(outputFluid.Amount, fluidId);
+                
+                _fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+            }
         }
         
         private void InsertConnectInventory()

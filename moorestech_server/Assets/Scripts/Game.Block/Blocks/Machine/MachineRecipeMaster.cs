@@ -47,7 +47,23 @@ namespace Core.Master
                 okCnt += recipe.InputItems.Count(input => slotGuid == input.ItemGuid && input.Count <= slot.Count);
             }
             
-            return okCnt == recipe.InputItems.Length;
+            if (okCnt != recipe.InputItems.Length) return false;
+            
+            // 液体が十分な数満たされているかチェック
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            {
+                if (i >= fluidInputSlot.Count) return false;
+                
+                var inputFluid = recipe.InputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                
+                if (fluidInputSlot[i].FluidId != fluidId || fluidInputSlot[i].Amount < inputFluid.Amount)
+                {
+                    return false;
+                }
+            }
+            
+            return true;
         }
     }
 }
