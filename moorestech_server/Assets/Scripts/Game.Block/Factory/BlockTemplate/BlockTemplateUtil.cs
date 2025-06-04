@@ -82,6 +82,27 @@ namespace Game.Block.Factory.BlockTemplate
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
             }
             
+            // Load fluid data if present
+            if (jsonObject.InputFluidSlot != null)
+            {
+                for (var i = 0; i < jsonObject.InputFluidSlot.Count && i < vanillaMachineInputInventory.FluidInputSlot.Count; i++)
+                {
+                    var fluidData = jsonObject.InputFluidSlot[i];
+                    vanillaMachineInputInventory.FluidInputSlot[i].FluidId = fluidData.FluidId;
+                    vanillaMachineInputInventory.FluidInputSlot[i].Amount = fluidData.Amount;
+                }
+            }
+            
+            if (jsonObject.OutputFluidSlot != null)
+            {
+                for (var i = 0; i < jsonObject.OutputFluidSlot.Count && i < vanillaMachineOutputInventory.FluidOutputSlot.Count; i++)
+                {
+                    var fluidData = jsonObject.OutputFluidSlot[i];
+                    vanillaMachineOutputInventory.FluidOutputSlot[i].FluidId = fluidData.FluidId;
+                    vanillaMachineOutputInventory.FluidOutputSlot[i].Amount = fluidData.Amount;
+                }
+            }
+            
             var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
             
             var processor = new VanillaMachineProcessorComponent(
