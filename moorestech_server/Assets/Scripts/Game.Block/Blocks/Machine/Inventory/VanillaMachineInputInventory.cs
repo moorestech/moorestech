@@ -81,6 +81,27 @@ namespace Game.Block.Blocks.Machine.Inventory
                     _itemDataStoreService.SetItem(i, InputSlot[i].SubItem(item.Count));
                     break;
                 }
+            
+            //inputスロットから液体を減らす
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            {
+                if (i >= _fluidContainers.Length) break;
+                
+                var inputFluid = recipe.InputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                
+                if (_fluidContainers[i].FluidId == fluidId && _fluidContainers[i].Amount >= inputFluid.Amount)
+                {
+                    _fluidContainers[i].Amount -= inputFluid.Amount;
+                    
+                    // If the container is now empty, reset the fluid ID
+                    if (_fluidContainers[i].Amount <= 0)
+                    {
+                        _fluidContainers[i].Amount = 0;
+                        _fluidContainers[i].FluidId = FluidMaster.EmptyFluidId;
+                    }
+                }
+            }
         }
         
         public void SetItem(int slot, IItemStack itemStack)
