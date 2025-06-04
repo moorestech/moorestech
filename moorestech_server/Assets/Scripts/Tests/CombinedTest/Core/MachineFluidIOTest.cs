@@ -183,8 +183,8 @@ namespace Tests.CombinedTest.Core
                 insertIndex = inputFluidContainers.Count == insertIndex ? 0 : insertIndex; 
                 inputFluidContainers[insertIndex].AddLiquid(fluidStack, FluidContainer.Empty);
                 
-                Assert.AreEqual(fluidId, inputFluidContainers[i].FluidId, "Fluid ID should match");
-                Assert.AreEqual(inputFluid.Amount, inputFluidContainers[i].Amount, "Fluid amount should match");
+                Assert.AreEqual(fluidId, inputFluidContainers[insertIndex].FluidId, "Fluid ID should match");
+                Assert.AreEqual(inputFluid.Amount, inputFluidContainers[insertIndex].Amount, "Fluid amount should match");
             }
             
             foreach (var inputItem in recipe.InputItems)
