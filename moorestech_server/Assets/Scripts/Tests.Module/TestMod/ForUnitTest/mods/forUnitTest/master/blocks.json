@@ -105,7 +105,15 @@
           ]
         },
         "fluidContainerCount": 0,
-        "fluidContainerCapacity": 0
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
       "blockGuid": "00000000-0000-0000-0000-000000000001",
@@ -1272,7 +1280,15 @@
           ]
         },
         "fluidContainerCount": 0,
-        "fluidContainerCapacity": 0
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
@@ -2153,7 +2169,15 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "11900000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000019",
@@ -2264,7 +2288,15 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCount": 0,
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0
       },
       "itemGuid": "12010000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
@@ -2375,7 +2407,15 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCount": 0,
+        "innerTankCapacity": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
@@ -2983,7 +3023,15 @@
           ]
         },
         "fluidContainerCount": 0,
-        "fluidContainerCapacity": 0
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0
       },
       "blockGuid": "00000000-0000-0000-0000-000000000022",
       "overrideVerticalBlock": {}
@@ -3076,7 +3124,15 @@
           ]
         },
         "fluidContainerCapacity": 0,
-        "fluidContainerCount": 0
+        "fluidContainerCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "blockGuid": "00000000-0000-0000-0000-000000000023",
@@ -3316,7 +3372,8 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10
+                "flowCapacity": 10,
+                "connectTankIndex": 0
               }
             }
           ],
@@ -3361,7 +3418,8 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10
+                "flowCapacity": 10,
+                "connectTankIndex": 0
               }
             }
           ]
@@ -3398,7 +3456,8 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10
+                "flowCapacity": 10,
+                "connectTankIndex": 0
               }
             }
           ],
@@ -3418,7 +3477,8 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10
+                "flowCapacity": 10,
+                "connectTankIndex": 0
               }
             }
           ]
@@ -3430,6 +3490,138 @@
         1,
         1
       ],
+      "overrideVerticalBlock": {}
+    },
+    {
+      "time": 1,
+      "recipeViewType": 100,
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        5
+      ],
+      "name": "FluidMachine",
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "machineConnectionRange": 5,
+        "poleConnectionRange": 5,
+        "innerTankCapacity": 100,
+        "requiredPower": 5,
+        "outputSlotCount": 1,
+        "inputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 1
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                4
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectType": "Fluid",
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 2
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 1
+              }
+            }
+          ]
+        },
+        "outputTankCount": 2,
+        "inputTankCount": 3
+      },
+      "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
+      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
       "overrideVerticalBlock": {}
     }
   ]

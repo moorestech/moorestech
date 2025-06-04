@@ -301,10 +301,6 @@ namespace Tests.CombinedTest.Core
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > 1) break;
             }
-            // for (var i = 0; i < 10; i++)
-            // {
-            //     GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
-            // }
             
             // 0と2に流れる
             Assert.AreEqual(10f, fluidPipe0.GetAmount(), 1d);
