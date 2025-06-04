@@ -83,22 +83,24 @@ namespace Game.Block.Blocks.Machine.Inventory
                 }
             
             //inputスロットから液体を減らす
-            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            foreach (var inputFluid in recipe.InputFluids)
             {
-                if (i >= _fluidContainers.Length) break;
-                
-                var inputFluid = recipe.InputFluids[i];
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                 
-                if (_fluidContainers[i].FluidId == fluidId && _fluidContainers[i].Amount >= inputFluid.Amount)
+                // 任意のスロットから必要な液体を減らす
+                for (var i = 0; i < _fluidContainers.Length; i++)
                 {
-                    _fluidContainers[i].Amount -= inputFluid.Amount;
-                    
-                    // If the container is now empty, reset the fluid ID
-                    if (_fluidContainers[i].Amount <= 0)
+                    if (_fluidContainers[i].FluidId == fluidId && _fluidContainers[i].Amount >= inputFluid.Amount)
                     {
-                        _fluidContainers[i].Amount = 0;
-                        _fluidContainers[i].FluidId = FluidMaster.EmptyFluidId;
+                        _fluidContainers[i].Amount -= inputFluid.Amount;
+                        
+                        // If the container is now empty, reset the fluid ID
+                        if (_fluidContainers[i].Amount <= 0)
+                        {
+                            _fluidContainers[i].Amount = 0;
+                            _fluidContainers[i].FluidId = FluidMaster.EmptyFluidId;
+                        }
+                        break; // 一つのスロットから減らしたら次の液体へ
                     }
                 }
             }

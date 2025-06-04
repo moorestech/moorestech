@@ -50,17 +50,22 @@ namespace Core.Master
             if (okCnt != recipe.InputItems.Length) return false;
             
             // 液体が十分な数満たされているかチェック
-            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            foreach (var inputFluid in recipe.InputFluids)
             {
-                if (i >= fluidInputSlot.Count) return false;
-                
-                var inputFluid = recipe.InputFluids[i];
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                var found = false;
                 
-                if (fluidInputSlot[i].FluidId != fluidId || fluidInputSlot[i].Amount < inputFluid.Amount)
+                // 任意のスロットに必要な液体があるかチェック
+                foreach (var fluidContainer in fluidInputSlot)
                 {
-                    return false;
+                    if (fluidContainer.FluidId == fluidId && fluidContainer.Amount >= inputFluid.Amount)
+                    {
+                        found = true;
+                        break;
+                    }
                 }
+                
+                if (!found) return false;
             }
             
             return true;
