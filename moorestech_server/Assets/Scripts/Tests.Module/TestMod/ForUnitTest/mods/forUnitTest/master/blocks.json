@@ -3623,6 +3623,35 @@
       "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "SteamGearGenerator",
+      "blockParam": {
+        "fluidCapacity": 100,
+        "timeToMaxEasing": "EaseInSine",
+        "timeToMax": 10,
+        "generateMaxTorque": 10,
+        "generateMaxRpm": 60,
+        "teethCount": 10,
+        "requiredFluids": [
+          {
+            "consumptionTime": 1,
+            "amount": 1,
+            "fluidGuid": "00000000-0000-0000-1234-000000000002"
+          }
+        ],
+        "gear": {},
+        "fluidInventoryConnectors": {}
+      },
+      "name": "SteamGearGenerator",
+      "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
+      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
+      "overrideVerticalBlock": {}
     }
   ]
 }

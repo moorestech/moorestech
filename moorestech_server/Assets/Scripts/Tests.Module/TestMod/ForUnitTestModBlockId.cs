@@ -63,5 +63,6 @@ namespace Tests.Module.TestMod
         public static BlockId OneWayFluidPipe => GetBlock("BCCD23DE-053E-4A54-9E32-31120B051DCA");
         
         public static BlockId FluidMachineId => GetBlock("9b36e317-b6eb-441a-b5bf-8aa99e9216a0");
+        public static BlockId SteamGearGeneratorId => GetBlock("cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471");
     }
 }
