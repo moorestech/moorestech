@@ -9,6 +9,7 @@ using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Fluid
@@ -19,11 +20,19 @@ namespace Game.Block.Blocks.Fluid
         private readonly Subject<Unit> _onChangeBlockState = new();
         private BlockPositionInfo _blockPositionInfo;
         
-        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity)
+        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity, Dictionary<string, string> componentStates)
         {
             _blockPositionInfo = blockPositionInfo;
             _connectorComponent = connectorComponent;
             _fluidContainer = new FluidContainer(capacity);
+            
+            // セーブデータがある場合はロード
+            if (componentStates != null && componentStates.TryGetValue(FluidPipeSaveComponent.SaveKeyStatic, out var savedState))
+            {
+                var jsonObject = JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(savedState);
+                _fluidContainer.FluidId = jsonObject.FluidId;
+                _fluidContainer.Amount = jsonObject.Amount;
+            }
         }
         
         public BlockStateDetail[] GetBlockStateDetails()
