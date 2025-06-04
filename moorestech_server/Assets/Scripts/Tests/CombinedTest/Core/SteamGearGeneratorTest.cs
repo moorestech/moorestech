@@ -57,7 +57,6 @@ namespace Tests.CombinedTest.Core
             var startTime = DateTime.Now;
             var previousRpm = -10f;
             var previousTorque = -10f;
-            var hasIncreased = false;
             
             // 少し余裕を持たせる
             while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))
@@ -72,13 +71,13 @@ namespace Tests.CombinedTest.Core
                 
                 GameUpdater.UpdateWithWait();
                 
-                var currentRpm = gearGeneratorComponent.CurrentRpm.AsPrimitive();
-                var currentTorque = gearGeneratorComponent.CurrentTorque.AsPrimitive();
+                var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
+                var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
                 
                 // 増加傾向があったことを確認
-                Assert.IsTrue(currentRpm > previousRpm && currentTorque > previousTorque, "RPMまたはトルクが時間経過とともに増加していません");
-                previousRpm = currentRpm;
-                previousTorque = currentTorque;
+                Assert.IsTrue(generateRpm > previousRpm && generateTorque > previousTorque, "RPMまたはトルクが時間経過とともに増加していません");
+                previousRpm = generateRpm;
+                previousTorque = generateTorque;
             }
             
             
