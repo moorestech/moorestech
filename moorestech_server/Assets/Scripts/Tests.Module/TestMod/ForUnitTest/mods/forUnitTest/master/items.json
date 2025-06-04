@@ -398,6 +398,19 @@
       "sortPriority": 100,
       "recipeViewType": "ForceView",
       "initialUnlocked": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "recipeViewType": "Default",
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
+      "name": "FluidMachine"
     }
   ]
 }

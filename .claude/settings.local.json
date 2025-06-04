@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./unity-test.sh:*)",
+      "Bash(find:*)",
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(jq:*)",
+      "Bash(dotnet test:*)"
+    ],
+    "deny": []
+  }
+}
