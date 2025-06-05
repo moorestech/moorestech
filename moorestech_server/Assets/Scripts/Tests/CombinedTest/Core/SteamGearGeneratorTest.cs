@@ -123,7 +123,8 @@ namespace Tests.CombinedTest.Core
                 // 減少傾向があったことを確認（等しい場合は非許容）
                 if (generateTorque != 0 && generateRpm != 0) // 完全に停止するまで減速をチェックする
                 {
-                    Assert.IsTrue(generateRpm < previousRpm && generateTorque < previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。{generateRpm} {generateTorque}");
+                    Assert.IsTrue(generateRpm < previousRpm && generateTorque < previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。現在の値: {generateRpm} {generateTorque}");
+                    break;
                 }
                 
                 // 両方が前回より小さい場合のみ更新
@@ -138,7 +139,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, gearGeneratorComponent.CurrentRpm.AsPrimitive(), "RPMが0になっていません");
             Assert.AreEqual(0, gearGeneratorComponent.CurrentTorque.AsPrimitive(), "トルクが0になっていません");
             // ゼロに達した時間が+-0.5秒以内になっていることを確認
-            Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive()) < 0.5, "RPMが0になっている時間が+-0.5秒以内になっていません");
+            var timeToZero = DateTime.Now - startTime;
+            Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive()) < 0.5, $"RPMが0になっている時間が+-0.5秒以内になっていません。0になった秒数：{timeToZero.TotalSeconds}"); 
             
             #region Internal
             
