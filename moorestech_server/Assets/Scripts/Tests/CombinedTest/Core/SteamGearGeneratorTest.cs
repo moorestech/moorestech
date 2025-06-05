@@ -58,18 +58,20 @@ namespace Tests.CombinedTest.Core
             var previousRpm = -10f;
             var previousTorque = -10f;
             
+            // すべてのパイプに蒸気を充填してアップデートを回しておく
+            ConsumeSteam();
+            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateWithWait();
+
+            
             // 少し余裕を持たせる
             while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))
             {
-                // すべてのパイプに蒸気を充填
-                foreach (var pipeBlock in pipes)
-                {
-                    var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
-                    var steamStack = new FluidStack(1000d, SteamFluidId); // 大量の蒸気を供給
-                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
-                }
-                
+                // アップデート
                 GameUpdater.UpdateWithWait();
+                
+                // すべてのパイプに蒸気を充填
+                ConsumeSteam();
                 
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
@@ -84,6 +86,21 @@ namespace Tests.CombinedTest.Core
             // 最大値に達していることを確認（誤差を考慮）
             Assert.AreEqual(maxRpm, gearGeneratorComponent.CurrentRpm.AsPrimitive(), maxRpm * 0.05, "RPMが最大値に達していません");
             Assert.AreEqual(maxTorque, gearGeneratorComponent.CurrentTorque.AsPrimitive(), maxTorque * 0.05, "トルクが最大値に達していません");
+            
+            #region Internal
+            
+            // 蒸気をパイプに供給
+            void ConsumeSteam()
+            {
+                foreach (var pipeBlock in pipes)
+                {
+                    var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
+                    var steamStack = new FluidStack(1000d, SteamFluidId); // 大量の蒸気を供給
+                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
+                }
+            }
+            
+  #endregion
         }
     }
 }
