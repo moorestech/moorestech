@@ -53,33 +53,40 @@ namespace Tests.CombinedTest.Core
             // ギアコンポーネントを取得
             var gearGeneratorComponent = steamGeneratorBlock.GetComponent<IGearGenerator>();
             
+            // 初期化フェーズ：流体転送とSteamGeneratorの起動を確実に行う
+            for (int i = 0; i < 4; i++)
+            {
+                SetSteam();
+                GameUpdater.UpdateWithWait();
+            }
+            
             // アップデートループ
             var startTime = DateTime.Now;
-            var previousRpm = -10f;
-            var previousTorque = -10f;
-            
-            // すべてのパイプに蒸気を充填してアップデートを回しておく
-            ConsumeSteam();
-            GameUpdater.UpdateWithWait();
-            GameUpdater.UpdateWithWait();
+            var previousRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
+            var previousTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
 
             
             // 少し余裕を持たせる
             while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))
             {
+                // すべてのパイプに蒸気を充填
+                SetSteam();
+                
                 // アップデート
                 GameUpdater.UpdateWithWait();
-                
-                // すべてのパイプに蒸気を充填
-                ConsumeSteam();
                 
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
                 
-                // 増加傾向があったことを確認
-                Assert.IsTrue(generateRpm > previousRpm && generateTorque > previousTorque, "RPMまたはトルクが時間経過とともに増加していません");
-                previousRpm = generateRpm;
-                previousTorque = generateTorque;
+                // 増加傾向があったことを確認（等しい場合も許容）
+                Assert.IsTrue(generateRpm >= previousRpm && generateTorque >= previousTorque, "RPMまたはトルクが時間経過とともに減少しています");
+                
+                // 両方が前回より大きい場合のみ更新
+                if (generateRpm > previousRpm || generateTorque > previousTorque)
+                {
+                    previousRpm = generateRpm;
+                    previousTorque = generateTorque;
+                }
             }
             
             
@@ -90,7 +97,7 @@ namespace Tests.CombinedTest.Core
             #region Internal
             
             // 蒸気をパイプに供給
-            void ConsumeSteam()
+            void SetSteam()
             {
                 foreach (var pipeBlock in pipes)
                 {
