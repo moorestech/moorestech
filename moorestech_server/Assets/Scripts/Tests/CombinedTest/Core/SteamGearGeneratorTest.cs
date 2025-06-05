@@ -80,6 +80,11 @@ namespace Tests.CombinedTest.Core
                 // 増加傾向があったことを確認（等しい場合も許容）
                 Assert.IsTrue(generateRpm >= previousRpm && generateTorque >= previousTorque, "RPMまたはトルクが時間経過とともに減少しています");
                 
+                if (generateRpm >= maxRpm && generateTorque >= maxTorque)
+                {
+                    break;
+                }
+                
                 // 両方が前回より大きい場合のみ更新
                 if (generateRpm > previousRpm || generateTorque > previousTorque)
                 {
@@ -92,6 +97,8 @@ namespace Tests.CombinedTest.Core
             // 最大値に達していることを確認（誤差を考慮）
             Assert.AreEqual(maxRpm, gearGeneratorComponent.CurrentRpm.AsPrimitive(), maxRpm * 0.05, "RPMが最大値に達していません");
             Assert.AreEqual(maxTorque, gearGeneratorComponent.CurrentTorque.AsPrimitive(), maxTorque * 0.05, "トルクが最大値に達していません");
+            // 最大値に達した時間が+-0.5秒以内になっていることを確認
+            Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive() - maxRpm) < 0.5, "RPMが最大値に達している時間が+-0.5秒以内になっていません");
             
             // ------ パイプがなくなった時、徐々に速度が落ちていくことを検証する ------
             
@@ -130,6 +137,8 @@ namespace Tests.CombinedTest.Core
             // ゼロになっていることを確認
             Assert.AreEqual(0, gearGeneratorComponent.CurrentRpm.AsPrimitive(), "RPMが0になっていません");
             Assert.AreEqual(0, gearGeneratorComponent.CurrentTorque.AsPrimitive(), "トルクが0になっていません");
+            // ゼロに達した時間が+-0.5秒以内になっていることを確認
+            Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive()) < 0.5, "RPMが0になっている時間が+-0.5秒以内になっていません");
             
             #region Internal
             
