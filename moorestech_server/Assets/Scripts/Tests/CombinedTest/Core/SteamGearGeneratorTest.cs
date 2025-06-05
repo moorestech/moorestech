@@ -66,8 +66,7 @@ namespace Tests.CombinedTest.Core
             var previousTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
 
             
-            // 少し余裕を持たせる
-            while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))
+            while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))  // 少し余裕を持たせる
             {
                 // すべてのパイプに蒸気を充填
                 SetSteam();
@@ -93,6 +92,44 @@ namespace Tests.CombinedTest.Core
             // 最大値に達していることを確認（誤差を考慮）
             Assert.AreEqual(maxRpm, gearGeneratorComponent.CurrentRpm.AsPrimitive(), maxRpm * 0.05, "RPMが最大値に達していません");
             Assert.AreEqual(maxTorque, gearGeneratorComponent.CurrentTorque.AsPrimitive(), maxTorque * 0.05, "トルクが最大値に達していません");
+            
+            // ------ パイプがなくなった時、徐々に速度が落ちていくことを検証する ------
+            
+            // 全てのパイプを削除する
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock1.BlockPositionInfo.OriginalPos);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock2.BlockPositionInfo.OriginalPos);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock3.BlockPositionInfo.OriginalPos);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock4.BlockPositionInfo.OriginalPos);
+            
+            // まだ前回と同じ値なので1回だけアップデートしておく
+            GameUpdater.UpdateWithWait();
+            
+            startTime = DateTime.Now;
+            while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))  // 少し余裕を持たせる
+            {
+                // アップデート
+                GameUpdater.UpdateWithWait();
+                
+                var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
+                var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
+                
+                // 減少傾向があったことを確認（等しい場合は非許容）
+                if (generateTorque != 0 && generateRpm != 0) // 完全に停止するまで減速をチェックする
+                {
+                    Assert.IsTrue(generateRpm < previousRpm && generateTorque < previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。{generateRpm} {generateTorque}");
+                }
+                
+                // 両方が前回より小さい場合のみ更新
+                if (generateRpm < previousRpm && generateTorque < previousTorque)
+                {
+                    previousRpm = generateRpm;
+                    previousTorque = generateTorque;
+                }
+            }
+            
+            // ゼロになっていることを確認
+            Assert.AreEqual(0, gearGeneratorComponent.CurrentRpm.AsPrimitive(), "RPMが0になっていません");
+            Assert.AreEqual(0, gearGeneratorComponent.CurrentTorque.AsPrimitive(), "トルクが0になっていません");
             
             #region Internal
             
