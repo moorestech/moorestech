@@ -123,7 +123,7 @@ namespace Tests.CombinedTest.Core
                 // 減少傾向があったことを確認（等しい場合は非許容）
                 if (generateTorque != 0 && generateRpm != 0) // 完全に停止するまで減速をチェックする
                 {
-                    Assert.IsTrue(generateRpm < previousRpm && generateTorque < previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。現在の値: {generateRpm} {generateTorque}");
+                    Assert.IsTrue(generateRpm < previousRpm && generateTorque < previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。現在の値: {generateRpm} {generateTorque} 前回の値: {previousRpm} {previousTorque}");
                     break;
                 }
                 
