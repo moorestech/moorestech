@@ -7,7 +7,8 @@
       "Bash(sed:*)",
       "Bash(grep:*)",
       "Bash(jq:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(python3:*)",
     ],
     "deny": []
   }
