@@ -3645,7 +3645,9 @@
             "fluidGuid": "00000000-0000-0000-1234-000000000002"
           }
         ],
-        "gear": {},
+        "gear": {
+          "gearConnects": []
+        },
         "fluidInventoryConnectors": {
           "inflowConnects": [
             {
@@ -3742,7 +3744,7 @@
         }
       },
       "name": "SteamGearGenerator",
-      "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
+      "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
       "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
       "overrideVerticalBlock": {}
     }
