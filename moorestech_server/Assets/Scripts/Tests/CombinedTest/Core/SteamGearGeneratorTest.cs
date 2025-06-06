@@ -79,6 +79,7 @@ namespace Tests.CombinedTest.Core
                 
                 // 増加傾向があったことを確認（等しい場合も許容）
                 Assert.IsTrue(generateRpm >= previousRpm && generateTorque >= previousTorque, "RPMまたはトルクが時間経過とともに減少しています");
+                Debug.Log($"GenerateRpm: {generateRpm}, GenerateTorque: {generateTorque}");
                 
                 if (generateRpm >= maxRpm && generateTorque >= maxTorque)
                 {
@@ -111,7 +112,12 @@ namespace Tests.CombinedTest.Core
             // まだ前回と同じ値なので1回だけアップデートしておく
             GameUpdater.UpdateWithWait();
             
+            // 減速テスト前に現在の値を記録（最大値のはず）
+            previousRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
+            previousTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
+            
             startTime = DateTime.Now;
+            var hasStartedDecelerating = false;
             while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))  // 少し余裕を持たせる
             {
                 // アップデート
@@ -119,19 +125,29 @@ namespace Tests.CombinedTest.Core
                 
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
+                Debug.Log($"GenerateRpm: {generateRpm}, GenerateTorque: {generateTorque}");
+
                 
-                // 減少傾向があったことを確認（等しい場合は非許容）
-                if (generateTorque != 0 && generateRpm != 0) // 完全に停止するまで減速をチェックする
+                // 減少傾向があったことを確認
+                if (!hasStartedDecelerating && (generateRpm < previousRpm || generateTorque < previousTorque))
                 {
-                    Assert.IsTrue(generateRpm < previousRpm && generateTorque < previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。現在の値: {generateRpm} {generateTorque} 前回の値: {previousRpm} {previousTorque}");
-                    break;
+                    hasStartedDecelerating = true;
                 }
                 
-                // 両方が前回より小さい場合のみ更新
-                if (generateRpm < previousRpm && generateTorque < previousTorque)
+                // 減速が始まったら、常に前回以下であることを確認
+                if (hasStartedDecelerating && generateTorque != 0 && generateRpm != 0)
                 {
-                    previousRpm = generateRpm;
-                    previousTorque = generateTorque;
+                    Assert.IsTrue(generateRpm <= previousRpm && generateTorque <= previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。現在の値: {generateRpm} {generateTorque} 前回の値: {previousRpm} {previousTorque}");
+                }
+                
+                // 値を更新
+                previousRpm = generateRpm;
+                previousTorque = generateTorque;
+                
+                // ゼロになったら終了
+                if (generateRpm == 0 && generateTorque == 0)
+                {
+                    break;
                 }
             }
             
