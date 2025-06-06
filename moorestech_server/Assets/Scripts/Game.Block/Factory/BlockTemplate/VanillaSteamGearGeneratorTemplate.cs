@@ -41,8 +41,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             // SteamGearGeneratorFluidComponentの作成
             var fluidComponent = new SteamGearGeneratorFluidComponent(
-                configParam.FluidCapacity,
-                fluidConnector
+                configParam.FluidCapacity
             );
             
             // スチームギアジェネレータコンポーネント
@@ -50,8 +49,7 @@ namespace Game.Block.Factory.BlockTemplate
                 configParam, 
                 blockInstanceId, 
                 gearConnectorComponent,
-                fluidComponent,
-                fluidConnector
+                fluidComponent
             );
             
             var components = new List<IBlockComponent>
