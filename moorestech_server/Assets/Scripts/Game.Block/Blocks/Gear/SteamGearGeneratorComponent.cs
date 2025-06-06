@@ -5,13 +5,16 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
+using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
+using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState
+    
+    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
         public int TeethCount { get; }
         public RPM GenerateRpm { get; private set; }
@@ -28,6 +31,11 @@ namespace Game.Block.Blocks.Gear
         
         // 出力制御（0〜1の範囲）
         private float _steamConsumptionRate = 0f;
+        private float _rateAtDecelerationStart = 0f;  // 減速開始時の消費率を記録
+        
+        // IBlockStateObservable
+        private readonly Subject<Unit> _onChangeBlockState;
+        public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
         private enum GeneratorState
         {
@@ -51,6 +59,7 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = new Torque(0);
             _stateElapsedTime = 0f;
             _nextConsumptionTime = 0f;
+            _onChangeBlockState = new Subject<Unit>();
         }
         
         public SteamGearGeneratorComponent(
@@ -73,6 +82,7 @@ namespace Game.Block.Blocks.Gear
             _stateElapsedTime = saveData.StateElapsedTime;
             _nextConsumptionTime = saveData.NextConsumptionTime;
             _steamConsumptionRate = saveData.SteamConsumptionRate;
+            _rateAtDecelerationStart = saveData.RateAtDecelerationStart;
             
             // 現在の出力を復元
             UpdateOutput();
@@ -107,11 +117,18 @@ namespace Game.Block.Blocks.Gear
                     break;
                     
                 case GeneratorState.Accelerating:
-                    // 消費タイミングで蒸気を消費
-                    TryConsumeSteam();
-                    
+                    // パイプが切断されたら減速開始
+                    if (isPipeDisconnected)
+                    {
+                        TransitionToState(GeneratorState.Decelerating);
+                    }
+                    // 蒸気を消費できなければ減速開始
+                    else if (!TryConsumeSteam())
+                    {
+                        TransitionToState(GeneratorState.Decelerating);
+                    }
                     // 最大出力に達したら稼働状態へ
-                    if (_steamConsumptionRate >= 1.0f)
+                    else if (_steamConsumptionRate >= 1.0f)
                     {
                         TransitionToState(GeneratorState.Running);
                     }
@@ -121,7 +138,6 @@ namespace Game.Block.Blocks.Gear
                     // パイプが切断されたら減速開始
                     if (isPipeDisconnected)
                     {
-                        Debug.Log($"[SteamGenerator] Pipe disconnected - Starting deceleration from rate: {_steamConsumptionRate:F2}");
                         TransitionToState(GeneratorState.Decelerating);
                     }
                     // 蒸気を消費できなければ減速開始
@@ -137,6 +153,11 @@ namespace Game.Block.Blocks.Gear
                     {
                         TransitionToState(GeneratorState.Idle);
                     }
+                    // 蒸気が復活し、パイプが再接続されたら加速を再開
+                    else if (hasSteam && !isPipeDisconnected)
+                    {
+                        TransitionToState(GeneratorState.Accelerating);
+                    }
                     break;
             }
             
@@ -144,8 +165,18 @@ namespace Game.Block.Blocks.Gear
             
             void TransitionToState(GeneratorState newState)
             {
-                _currentState = newState;
-                _stateElapsedTime = 0f;
+                if (_currentState != newState)
+                {
+                    // 減速開始時の消費率を記録
+                    if (newState == GeneratorState.Decelerating)
+                    {
+                        _rateAtDecelerationStart = _steamConsumptionRate;
+                    }
+                    
+                    _currentState = newState;
+                    _stateElapsedTime = 0f;
+                    _onChangeBlockState.OnNext(Unit.Default);
+                }
             }
             
             
@@ -207,6 +238,8 @@ namespace Game.Block.Blocks.Gear
         
         private void UpdateOutput()
         {
+            var prevRate = _steamConsumptionRate;
+            
             switch (_currentState)
             {
                 case GeneratorState.Idle:
@@ -226,16 +259,25 @@ namespace Game.Block.Blocks.Gear
                     
                 case GeneratorState.Decelerating:
                     // 時間経過に基づいて出力を減少
-                    // 最小でも0.01の進行度を確保して、即座に減速が見えるようにする
-                    var decelerationProgress = Mathf.Max(0.01f, Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax));
+                    var decelerationProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
                     var easedProgress = ApplyEasing(decelerationProgress, _param.TimeToMaxEasing);
-                    _steamConsumptionRate = 1f - easedProgress;
+                    // 減速開始時の値から0に向かって減少
+                    _steamConsumptionRate = _rateAtDecelerationStart * (1f - easedProgress);
                     break;
             }
             
             // 消費率に基づいて実際の出力を計算
-            GenerateRpm = new RPM(_param.GenerateMaxRpm * _steamConsumptionRate);
-            GenerateTorque = new Torque(_param.GenerateMaxTorque * _steamConsumptionRate);
+            var newRpm = new RPM(_param.GenerateMaxRpm * _steamConsumptionRate);
+            var newTorque = new Torque(_param.GenerateMaxTorque * _steamConsumptionRate);
+            
+            // 値が変化した場合のみ更新して通知
+            if (Math.Abs(GenerateRpm.AsPrimitive() - newRpm.AsPrimitive()) > 0.001f ||
+                Math.Abs(GenerateTorque.AsPrimitive() - newTorque.AsPrimitive()) > 0.001f)
+            {
+                GenerateRpm = newRpm;
+                GenerateTorque = newTorque;
+                _onChangeBlockState.OnNext(Unit.Default);
+            }
         }
         
         private float ApplyEasing(float t, string easingType)
@@ -285,7 +327,8 @@ namespace Game.Block.Blocks.Gear
                 CurrentState = _currentState.ToString(),
                 StateElapsedTime = _stateElapsedTime,
                 NextConsumptionTime = _nextConsumptionTime,
-                SteamConsumptionRate = _steamConsumptionRate
+                SteamConsumptionRate = _steamConsumptionRate,
+                RateAtDecelerationStart = _rateAtDecelerationStart
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -298,6 +341,30 @@ namespace Game.Block.Blocks.Gear
             public float StateElapsedTime { get; set; }
             public float NextConsumptionTime { get; set; }
             public float SteamConsumptionRate { get; set; }
+            public float RateAtDecelerationStart { get; set; }
+        }
+        
+        #endregion
+        
+        #region IBlockStateDetail
+        
+        public new BlockStateDetail[] GetBlockStateDetails()
+        {
+            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
+            var gearNetworkInfo = network.CurrentGearNetworkInfo;
+            
+            var stateDetail = new SteamGearGeneratorBlockStateDetail(
+                _currentState.ToString(),
+                GenerateRpm,
+                GenerateTorque,
+                GenerateIsClockwise,
+                _steamConsumptionRate,
+                _fluidComponent.SteamTank,
+                gearNetworkInfo
+            );
+            
+            var serializedState = MessagePackSerializer.Serialize(stateDetail);
+            return new[] { new BlockStateDetail(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, serializedState) };
         }
         
         #endregion
