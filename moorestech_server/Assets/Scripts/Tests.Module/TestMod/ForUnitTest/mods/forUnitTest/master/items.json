@@ -411,6 +411,19 @@
       "maxStack": 100,
       "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
       "name": "FluidMachine"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "recipeViewType": "Default",
+      "initialUnlocked": true,
+      "sortPriority": 100,
+      "maxStack": 100,
+      "name": "SimpleGearGenerator",
+      "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26"
     }
   ]
 }

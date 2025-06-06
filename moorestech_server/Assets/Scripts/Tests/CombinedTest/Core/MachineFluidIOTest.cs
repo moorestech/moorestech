@@ -4,8 +4,11 @@ using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -14,9 +17,6 @@ using Game.Fluid;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
-using Core.Update;
-using Game.Block.Blocks.Fluid;
-using Game.Block.Component;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
