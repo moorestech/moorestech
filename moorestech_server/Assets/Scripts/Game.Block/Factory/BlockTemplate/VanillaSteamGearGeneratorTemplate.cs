@@ -20,15 +20,15 @@ namespace Game.Block.Factory.BlockTemplate
         
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateSteamGearGenerator(blockMasterElement, blockInstanceId, blockPositionInfo);
+            return CreateSteamGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateSteamGearGenerator(blockMasterElement, blockInstanceId, blockPositionInfo);
+            return CreateSteamGearGenerator(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateSteamGearGenerator(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateSteamGearGenerator(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = blockMasterElement.BlockParam as SteamGearGeneratorBlockParam;
             
@@ -40,17 +40,30 @@ namespace Game.Block.Factory.BlockTemplate
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(configParam.FluidInventoryConnectors, blockPositionInfo);
             
             // SteamGearGeneratorFluidComponentの作成
-            var fluidComponent = new SteamGearGeneratorFluidComponent(
-                configParam.FluidCapacity
-            );
+            var fluidComponent = componentStates == null
+                ? new SteamGearGeneratorFluidComponent(
+                    configParam.FluidCapacity
+                )
+                : new SteamGearGeneratorFluidComponent(
+                    componentStates,
+                    configParam.FluidCapacity
+                );
             
             // スチームギアジェネレータコンポーネント
-            var steamGearGeneratorComponent = new SteamGearGeneratorComponent(
-                configParam, 
-                blockInstanceId, 
-                gearConnectorComponent,
-                fluidComponent
-            );
+            var steamGearGeneratorComponent = componentStates == null 
+                ? new SteamGearGeneratorComponent(
+                    configParam, 
+                    blockInstanceId, 
+                    gearConnectorComponent,
+                    fluidComponent
+                )
+                : new SteamGearGeneratorComponent(
+                    componentStates,
+                    configParam, 
+                    blockInstanceId, 
+                    gearConnectorComponent,
+                    fluidComponent
+                );
             
             var components = new List<IBlockComponent>
             {
