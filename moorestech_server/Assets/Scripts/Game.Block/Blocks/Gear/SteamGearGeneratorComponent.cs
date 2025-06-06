@@ -1,16 +1,17 @@
 using System;
+using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Fluid;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent
+    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState
     {
         public int TeethCount { get; }
         public RPM GenerateRpm { get; private set; }
@@ -50,6 +51,31 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = new Torque(0);
             _stateElapsedTime = 0f;
             _nextConsumptionTime = 0f;
+        }
+        
+        public SteamGearGeneratorComponent(
+            Dictionary<string, string> componentStates,
+            SteamGearGeneratorBlockParam param,
+            BlockInstanceId blockInstanceId,
+            IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
+            SteamGearGeneratorFluidComponent fluidComponent) 
+            : this(param, blockInstanceId, connectorComponent, fluidComponent)
+        {
+            if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
+            
+            var saveData = JsonConvert.DeserializeObject<SteamGearGeneratorSaveData>(saveState);
+            
+            if (Enum.TryParse<GeneratorState>(saveData.CurrentState, out var state))
+            {
+                _currentState = state;
+            }
+            
+            _stateElapsedTime = saveData.StateElapsedTime;
+            _nextConsumptionTime = saveData.NextConsumptionTime;
+            _steamConsumptionRate = saveData.SteamConsumptionRate;
+            
+            // 現在の出力を復元
+            UpdateOutput();
         }
         
         public void Update()
@@ -247,5 +273,33 @@ namespace Game.Block.Blocks.Gear
                     return t; // デフォルトはLinear
             }
         }
+        
+        #region IBlockSaveState
+        
+        public string SaveKey => "steamGearGenerator";
+        
+        public string GetSaveState()
+        {
+            var saveData = new SteamGearGeneratorSaveData
+            {
+                CurrentState = _currentState.ToString(),
+                StateElapsedTime = _stateElapsedTime,
+                NextConsumptionTime = _nextConsumptionTime,
+                SteamConsumptionRate = _steamConsumptionRate
+            };
+            
+            return JsonConvert.SerializeObject(saveData);
+        }
+        
+        // Save data structure
+        private class SteamGearGeneratorSaveData
+        {
+            public string CurrentState { get; set; }
+            public float StateElapsedTime { get; set; }
+            public float NextConsumptionTime { get; set; }
+            public float SteamConsumptionRate { get; set; }
+        }
+        
+        #endregion
     }
 }
