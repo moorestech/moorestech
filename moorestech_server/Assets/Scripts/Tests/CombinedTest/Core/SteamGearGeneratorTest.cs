@@ -229,7 +229,8 @@ namespace Tests.CombinedTest.Core
                     GameUpdater.UpdateWithWait();
                     var steamTank = fluidComponent.SteamTank;
                     var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
-                    var currentState = MessagePackSerializer.Deserialize<string>(stateDetails[0].Value);
+                    var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(stateDetails[0].Value);
+                    var currentState = stateData.State;
                     
                     Debug.Log($"Fill Update {i}: Amount={steamTank.Amount}, State={currentState}, StateChanges={stateChangeCount}");
                     
@@ -250,7 +251,8 @@ namespace Tests.CombinedTest.Core
                     
                     var steamTank = fluidComponent.SteamTank;
                     var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
-                    var currentState = MessagePackSerializer.Deserialize<string>(stateDetails[0].Value);
+                    var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(stateDetails[0].Value);
+                    var currentState = stateData.State;
                     Debug.Log($"Generator start Update {i}: RPM={steamGeneratorComponent.GenerateRpm.AsPrimitive()}, " +
                              $"Steam Amount={steamTank.Amount}, State={currentState}, State changes={stateChangeCount}");
                     
@@ -401,44 +403,29 @@ namespace Tests.CombinedTest.Core
             void ValidateBlockStateDetails(BlockStateDetail[] details, string expectedState, float expectedRpm, 
                 float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
             {
-                Assert.AreEqual(6, details.Length, "BlockStateDetailsの要素数が正しくありません");
+                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                Assert.AreEqual(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
                 
-                var detailDict = details.ToDictionary(d => d.Key, d => d.Value);
+                // 単一のBlockStateDetailから状態データを取得
+                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
                 
-                Assert.IsTrue(detailDict.ContainsKey("state"), "stateキーが存在しません");
-                Assert.IsTrue(detailDict.ContainsKey("rpm"), "rpmキーが存在しません");
-                Assert.IsTrue(detailDict.ContainsKey("torque"), "torqueキーが存在しません");
-                Assert.IsTrue(detailDict.ContainsKey("steamConsumptionRate"), "steamConsumptionRateキーが存在しません");
-                Assert.IsTrue(detailDict.ContainsKey("steamAmount"), "steamAmountキーが存在しません");
-                Assert.IsTrue(detailDict.ContainsKey("steamFluidId"), "steamFluidIdキーが存在しません");
-                
-                var state = MessagePackSerializer.Deserialize<string>(detailDict["state"]);
-                var rpm = MessagePackSerializer.Deserialize<float>(detailDict["rpm"]);
-                var torque = MessagePackSerializer.Deserialize<float>(detailDict["torque"]);
-                var rate = MessagePackSerializer.Deserialize<float>(detailDict["steamConsumptionRate"]);
-                var steamAmount = MessagePackSerializer.Deserialize<double>(detailDict["steamAmount"]);
-                var fluidId = MessagePackSerializer.Deserialize<int>(detailDict["steamFluidId"]);
-                
-                Assert.AreEqual(expectedState, state, "状態が期待値と一致しません");
-                Assert.AreEqual(expectedRpm, rpm, 0.01f, "RPMが期待値と一致しません");
-                Assert.AreEqual(expectedTorque, torque, 0.01f, "トルクが期待値と一致しません");
-                Assert.AreEqual(expectedRate, rate, 0.01f, "消費率が期待値と一致しません");
-                Assert.AreEqual(expectedSteamAmount, steamAmount, 0.01d, "蒸気量が期待値と一致しません");
-                Assert.AreEqual(expectedFluidId, fluidId, "流体IDが期待値と一致しません");
+                Assert.AreEqual(expectedState, stateData.State, "状態が期待値と一致しません");
+                Assert.AreEqual(expectedRpm, stateData.CurrentRpm, 0.01f, "RPMが期待値と一致しません");
+                Assert.AreEqual(expectedTorque, stateData.CurrentTorque, 0.01f, "トルクが期待値と一致しません");
+                Assert.AreEqual(expectedRate, stateData.SteamConsumptionRate, 0.01f, "消費率が期待値と一致しません");
+                Assert.AreEqual(expectedSteamAmount, stateData.SteamAmount, 0.01d, "蒸気量が期待値と一致しません");
+                Assert.AreEqual(expectedFluidId, stateData.SteamFluidId, "流体IDが期待値と一致しません");
             }
             
             (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
             {
-                var detailDict = details.ToDictionary(d => d.Key, d => d.Value);
+                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
                 
-                var state = MessagePackSerializer.Deserialize<string>(detailDict["state"]);
-                var rpm = MessagePackSerializer.Deserialize<float>(detailDict["rpm"]);
-                var torque = MessagePackSerializer.Deserialize<float>(detailDict["torque"]);
-                var rate = MessagePackSerializer.Deserialize<float>(detailDict["steamConsumptionRate"]);
-                var steamAmount = MessagePackSerializer.Deserialize<double>(detailDict["steamAmount"]);
-                var fluidId = MessagePackSerializer.Deserialize<int>(detailDict["steamFluidId"]);
+                // 単一のBlockStateDetailから状態データを取得
+                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
                 
-                return (state, rpm, torque, rate, steamAmount, fluidId);
+                return (stateData.State, stateData.CurrentRpm, stateData.CurrentTorque, stateData.SteamConsumptionRate, 
+                        stateData.SteamAmount, stateData.SteamFluidId);
             }
             
             #endregion
