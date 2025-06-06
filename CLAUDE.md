@@ -125,3 +125,40 @@ schemaディレクトリ以下のyamlファイルは不要なので、絶対に�
 
 # 気をつけること
 XY問題に気をつけてください、目先の問題にとらわれず、根本的な解決を常に行ってください
+
+# コードの可読性向上のための指針
+複雑なメソッド内でロジックが長くなる場合は、#regionとinternalメソッド（ローカル関数）を活用して、人間がすぐにコードを理解できるようにしてください。
+
+例：
+```csharp
+public void ComplexMethod()
+{
+    // メインの処理フロー
+    var data = ProcessData();
+    var result = CalculateResult(data);
+    
+    #region Internal
+    
+    Data ProcessData()
+    {
+        // データ処理のロジック
+    }
+    
+    Result CalculateResult(Data data)
+    {
+        // 計算ロジック
+    }
+    
+    #endregion
+}
+```
+
+この手法により：
+- メソッドの主要な処理フローが一目で理解できる
+- 詳細な実装はinternalメソッドに隠蔽される
+- コードの意図が明確になり、保守性が向上する
+
+# ソフトウェアデバッグ
+あなたは必要に応じて、テストコードがパスしない時、意図した実装ができないときが発生します。そのようなときは、デバッグログを使用し、原因を究明、修正し、タスクが完了できるように努めてください。
+
+Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions. Explicitly ask the user to confirm the diagnosis before fixing the problem.
