@@ -95,7 +95,7 @@ namespace Game.Block.Blocks.Gear
                     // パイプが切断されたら減速開始
                     if (isPipeDisconnected)
                     {
-                        UnityEngine.Debug.Log($"[SteamGenerator] Pipe disconnected - Starting deceleration from rate: {_steamConsumptionRate:F2}");
+                        Debug.Log($"[SteamGenerator] Pipe disconnected - Starting deceleration from rate: {_steamConsumptionRate:F2}");
                         TransitionToState(GeneratorState.Decelerating);
                     }
                     // 蒸気を消費できなければ減速開始
@@ -113,6 +113,70 @@ namespace Game.Block.Blocks.Gear
                     }
                     break;
             }
+            
+            #region Internal
+            
+            void TransitionToState(GeneratorState newState)
+            {
+                _currentState = newState;
+                _stateElapsedTime = 0f;
+            }
+            
+            
+            bool CheckSteamAvailability()
+            {
+                if (_param.RequiredFluids == null || _param.RequiredFluids.Length == 0)
+                {
+                    return false;
+                }
+                
+                var requiredFluid = _param.RequiredFluids[0];
+                var steamFluidId = MasterHolder.FluidMaster.GetFluidId(requiredFluid.FluidGuid);
+                var requiredAmount = requiredFluid.Amount;
+                
+                // 蒸気タンクから必要量があるかチェック
+                var steamTank = _fluidComponent.SteamTank;
+                return steamTank.FluidId == steamFluidId && steamTank.Amount >= requiredAmount;
+            }
+            
+            bool TryConsumeSteam()
+            {
+                if (_param.RequiredFluids == null || _param.RequiredFluids.Length == 0)
+                {
+                    return false;
+                }
+                
+                var requiredFluid = _param.RequiredFluids[0];
+                var steamFluidId = MasterHolder.FluidMaster.GetFluidId(requiredFluid.FluidGuid);
+                var requiredAmount = requiredFluid.Amount;
+                
+                // 蒸気タンクから必要量があるかチェック
+                var steamTank = _fluidComponent.SteamTank;
+                if (steamTank.FluidId != steamFluidId || steamTank.Amount < requiredAmount)
+                {
+                    return false;
+                }
+                
+                // 消費時間チェック
+                if (_nextConsumptionTime > 0)
+                {
+                    _nextConsumptionTime -= (float)GameUpdater.UpdateSecondTime;
+                    if (_nextConsumptionTime > 0)
+                    {
+                        return true; // まだ消費タイミングではないが、蒸気は十分にある
+                    }
+                }
+                
+                // 蒸気を消費
+                steamTank.Amount -= requiredAmount;
+                
+                // 次の消費時間を設定
+                _nextConsumptionTime = requiredFluid.ConsumptionTime;
+                
+                return true;
+            }
+            
+            #endregion
         }
         
         private void UpdateOutput()
@@ -146,65 +210,6 @@ namespace Game.Block.Blocks.Gear
             // 消費率に基づいて実際の出力を計算
             GenerateRpm = new RPM(_param.GenerateMaxRpm * _steamConsumptionRate);
             GenerateTorque = new Torque(_param.GenerateMaxTorque * _steamConsumptionRate);
-        }
-        
-        private void TransitionToState(GeneratorState newState)
-        {
-            _currentState = newState;
-            _stateElapsedTime = 0f;
-        }
-        
-        private bool CheckSteamAvailability()
-        {
-            if (_param.RequiredFluids == null || _param.RequiredFluids.Length == 0)
-            {
-                return false;
-            }
-            
-            var requiredFluid = _param.RequiredFluids[0];
-            var steamFluidId = MasterHolder.FluidMaster.GetFluidId(requiredFluid.FluidGuid);
-            var requiredAmount = requiredFluid.Amount;
-            
-            // 蒸気タンクから必要量があるかチェック
-            var steamTank = _fluidComponent.SteamTank;
-            return steamTank.FluidId == steamFluidId && steamTank.Amount >= requiredAmount;
-        }
-        
-        private bool TryConsumeSteam()
-        {
-            if (_param.RequiredFluids == null || _param.RequiredFluids.Length == 0)
-            {
-                return false;
-            }
-            
-            var requiredFluid = _param.RequiredFluids[0];
-            var steamFluidId = MasterHolder.FluidMaster.GetFluidId(requiredFluid.FluidGuid);
-            var requiredAmount = requiredFluid.Amount;
-            
-            // 蒸気タンクから必要量があるかチェック
-            var steamTank = _fluidComponent.SteamTank;
-            if (steamTank.FluidId != steamFluidId || steamTank.Amount < requiredAmount)
-            {
-                return false;
-            }
-            
-            // 消費時間チェック
-            if (_nextConsumptionTime > 0)
-            {
-                _nextConsumptionTime -= (float)GameUpdater.UpdateSecondTime;
-                if (_nextConsumptionTime > 0)
-                {
-                    return true; // まだ消費タイミングではないが、蒸気は十分にある
-                }
-            }
-            
-            // 蒸気を消費
-            steamTank.Amount -= requiredAmount;
-            
-            // 次の消費時間を設定
-            _nextConsumptionTime = requiredFluid.ConsumptionTime;
-            
-            return true;
         }
         
         private float ApplyEasing(float t, string easingType)
