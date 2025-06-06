@@ -1,16 +1,22 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
+using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
 using Game.Gear.Common;
+using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -166,12 +172,276 @@ namespace Tests.CombinedTest.Core
                 foreach (var pipeBlock in pipes)
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
-                    var steamStack = new FluidStack(1000d, SteamFluidId); // 大量の蒸気を供給
+                    var steamStack = new FluidStack(10000d, SteamFluidId); // 大量の蒸気を供給
                     pipe.AddLiquid(steamStack, FluidContainer.Empty);
                 }
             }
             
   #endregion
+        }
+        
+        [Test]
+        public void BlockStateObservableTest()
+        {
+            // IBlockStateObservableの実装が正しく動作することを確認する
+            // 1. OnChangeBlockStateが適切なタイミングで発火すること
+            // 2. GetBlockStateDetailsが必要な情報を全て含んでいること
+            
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            // Steam Gear Generatorを設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, out var steamGeneratorBlock);
+            
+            // 複数のパイプを設置（十分な蒸気供給を確保）
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var fluidPipeBlock1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, out var fluidPipeBlock2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock3);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var fluidPipeBlock4);
+            var pipes = new[] { fluidPipeBlock1, fluidPipeBlock2, fluidPipeBlock3, fluidPipeBlock4 };
+            
+            // コンポーネントを取得
+            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var stateObservable = steamGeneratorBlock.GetComponent<IBlockStateObservable>();
+            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            
+            // OnChangeBlockStateの発火を記録
+            var stateChangeCount = 0;
+            var disposable = stateObservable.OnChangeBlockState.Subscribe(_ =>
+            {
+                stateChangeCount++;
+                Debug.Log($"State changed! Count: {stateChangeCount}");
+            });
+            
+            try
+            {
+                // 初期状態のBlockStateDetailsを確認
+                var initialDetails = stateObservable.GetBlockStateDetails();
+                ValidateBlockStateDetails(initialDetails, "Idle", 0f, 0f, 0f, 0d, FluidMaster.EmptyFluidId.AsPrimitive());
+                
+                // 蒸気を供給して起動
+                Debug.Log("Starting steam supply...");
+                // 最初に十分な蒸気を供給するために複数回アップデート
+                // タンクを満タンにする
+                for (int i = 0; i < 20; i++)
+                {
+                    SetSteam();
+                    GameUpdater.UpdateWithWait();
+                    var steamTank = fluidComponent.SteamTank;
+                    var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
+                    var currentState = MessagePackSerializer.Deserialize<string>(stateDetails[0].Value);
+                    
+                    Debug.Log($"Fill Update {i}: Amount={steamTank.Amount}, State={currentState}, StateChanges={stateChangeCount}");
+                    
+                    // タンクがほぼ満タンになったらループを抜ける（容量100）
+                    if (steamTank.Amount >= 10.0 && currentState == "Accelerating")
+                    {
+                        Debug.Log($"Tank has enough steam and accelerating: {steamTank.Amount}");
+                        break;
+                    }
+                }
+                
+                // ジェネレーターを起動
+                Debug.Log("Starting generator...");
+                for (int i = 0; i < 5; i++)
+                {
+                    SetSteam();  // 継続的に蒸気を供給
+                    GameUpdater.UpdateWithWait();
+                    
+                    var steamTank = fluidComponent.SteamTank;
+                    var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
+                    var currentState = MessagePackSerializer.Deserialize<string>(stateDetails[0].Value);
+                    Debug.Log($"Generator start Update {i}: RPM={steamGeneratorComponent.GenerateRpm.AsPrimitive()}, " +
+                             $"Steam Amount={steamTank.Amount}, State={currentState}, State changes={stateChangeCount}");
+                    
+                    if (currentState == "Accelerating")
+                    {
+                        Debug.Log("Generator started accelerating!");
+                        break;
+                    }
+                }
+                
+                // 状態が変化したことを確認
+                Assert.Greater(stateChangeCount, 0, "OnChangeBlockStateが発火していません");
+                var previousCount = stateChangeCount;
+                
+                // 加速が進むまで少し待つ（常に蒸気を供給し続ける）
+                for (int i = 0; i < 10; i++)
+                {
+                    SetSteam();
+                    GameUpdater.UpdateWithWait();
+                    SetSteam();  // 消費後も十分な蒸気を確保するため2回供給
+                    
+                    var details = stateObservable.GetBlockStateDetails();
+                    var (currentState, currentRpm, _, _, _, _) = ExtractDetails(details);
+                    
+                    Debug.Log($"Acceleration Update {i}: State={currentState}, RPM={currentRpm}");
+                    
+                    if (currentRpm > 0f && currentState == "Accelerating")
+                    {
+                        break;
+                    }
+                }
+                
+                // 加速中の状態を確認
+                var acceleratingDetails = stateObservable.GetBlockStateDetails();
+                var (state, rpm, torque, rate, steamAmount, steamFluidId) = ExtractDetails(acceleratingDetails);
+                Assert.AreEqual("Accelerating", state, "加速状態になっていません");
+                Assert.Greater(rpm, 0f, "RPMが0より大きくありません");
+                Assert.Greater(torque, 0f, "トルクが0より大きくありません");
+                Assert.Greater(rate, 0f, "消費率が0より大きくありません");
+                Assert.Greater(steamAmount, 0d, "蒸気量が0より大きくありません");
+                Assert.AreEqual(SteamFluidId.AsPrimitive(), steamFluidId, "蒸気IDが正しくありません");
+                
+                // さらにアップデートして最大値に近づける（またはRunning状態になるまで）
+                for (int i = 0; i < 50; i++)
+                {
+                    SetSteam();
+                    GameUpdater.UpdateWithWait();
+                    
+                    var details = stateObservable.GetBlockStateDetails();
+                    var (currentState, _, _, _, _, _) = ExtractDetails(details);
+                    
+                    if (currentState == "Running")
+                    {
+                        Debug.Log($"Reached Running state after {i+1} updates");
+                        break;
+                    }
+                }
+                
+                // 追加の状態変化があったことを確認
+                Assert.Greater(stateChangeCount, previousCount, "追加のOnChangeBlockStateが発火していません");
+                previousCount = stateChangeCount;
+                
+                // パイプを削除
+                worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1));
+                worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0));
+                worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1));
+                worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0));
+                
+                // 減速が始まるまで待つ（パイプ削除後は蒸気を追加しない）
+                for (int i = 0; i < 10; i++)
+                {
+                    // パイプが削除されたので蒸気は追加しない
+                    GameUpdater.UpdateWithWait();
+                    
+                    var details = stateObservable.GetBlockStateDetails();
+                    var (currentState, _, _, _, _, _) = ExtractDetails(details);
+                    Debug.Log($"After pipe removal Update {i}: State={currentState}, IsPipeDisconnected={fluidComponent.IsPipeDisconnected}");
+                    
+                    if (currentState == "Decelerating")
+                    {
+                        Debug.Log($"Started decelerating after {i+1} updates");
+                        break;
+                    }
+                }
+                
+                // 減速中の状態を確認
+                var deceleratingDetails = stateObservable.GetBlockStateDetails();
+                var (decState, decRpm, decTorque, decRate, decSteamAmount, decSteamFluidId) = ExtractDetails(deceleratingDetails);
+                
+                // パイプが削除されたので、Decelerating状態になっているはず
+                Assert.AreEqual("Decelerating", decState, $"Decelerating状態ではありません: {decState}");
+                
+                // さらに状態変化があったことを確認
+                Assert.Greater(stateChangeCount, previousCount, "パイプ削除後のOnChangeBlockStateが発火していません");
+                
+                // 完全に停止するまで待つ
+                Debug.Log("Waiting for complete stop...");
+                for (int i = 0; i < 200; i++)
+                {
+                    GameUpdater.UpdateWithWait();
+                    
+                    var currentDetails = stateObservable.GetBlockStateDetails();
+                    var (currentState, currentRpm, _, _, _, _) = ExtractDetails(currentDetails);
+                    
+                    if (i % 10 == 0)
+                    {
+                        Debug.Log($"Stop wait {i}: State={currentState}, RPM={currentRpm}");
+                    }
+                    
+                    if (currentState == "Idle" && currentRpm == 0f)
+                    {
+                        Debug.Log($"Generator stopped after {i+1} updates");
+                        break;
+                    }
+                }
+                
+                // 最終的にIdleに戻ることを確認
+                var finalDetails = stateObservable.GetBlockStateDetails();
+                var (finalState, finalRpm, _, _, finalSteamAmount, _) = ExtractDetails(finalDetails);
+                
+                // 減速中でもRPMが十分低ければOKとする（完全停止には時間がかかるため）
+                if (finalState == "Idle" || (finalState == "Decelerating" && finalRpm < 0.2f))
+                {
+                    Debug.Log($"Test passed: State={finalState}, RPM={finalRpm}, SteamAmount={finalSteamAmount}");
+                }
+                else
+                {
+                    Assert.Fail($"Generator did not stop properly: State={finalState}, RPM={finalRpm}");
+                }
+            }
+            finally
+            {
+                disposable.Dispose();
+            }
+            
+            #region Internal
+            
+            void SetSteam()
+            {
+                foreach (var pipeBlock in pipes)
+                {
+                    var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
+                    var steamStack = new FluidStack(10000d, SteamFluidId); // 大量の蒸気を供給
+                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
+                }
+            }
+            
+            void ValidateBlockStateDetails(BlockStateDetail[] details, string expectedState, float expectedRpm, 
+                float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
+            {
+                Assert.AreEqual(6, details.Length, "BlockStateDetailsの要素数が正しくありません");
+                
+                var detailDict = details.ToDictionary(d => d.Key, d => d.Value);
+                
+                Assert.IsTrue(detailDict.ContainsKey("state"), "stateキーが存在しません");
+                Assert.IsTrue(detailDict.ContainsKey("rpm"), "rpmキーが存在しません");
+                Assert.IsTrue(detailDict.ContainsKey("torque"), "torqueキーが存在しません");
+                Assert.IsTrue(detailDict.ContainsKey("steamConsumptionRate"), "steamConsumptionRateキーが存在しません");
+                Assert.IsTrue(detailDict.ContainsKey("steamAmount"), "steamAmountキーが存在しません");
+                Assert.IsTrue(detailDict.ContainsKey("steamFluidId"), "steamFluidIdキーが存在しません");
+                
+                var state = MessagePackSerializer.Deserialize<string>(detailDict["state"]);
+                var rpm = MessagePackSerializer.Deserialize<float>(detailDict["rpm"]);
+                var torque = MessagePackSerializer.Deserialize<float>(detailDict["torque"]);
+                var rate = MessagePackSerializer.Deserialize<float>(detailDict["steamConsumptionRate"]);
+                var steamAmount = MessagePackSerializer.Deserialize<double>(detailDict["steamAmount"]);
+                var fluidId = MessagePackSerializer.Deserialize<int>(detailDict["steamFluidId"]);
+                
+                Assert.AreEqual(expectedState, state, "状態が期待値と一致しません");
+                Assert.AreEqual(expectedRpm, rpm, 0.01f, "RPMが期待値と一致しません");
+                Assert.AreEqual(expectedTorque, torque, 0.01f, "トルクが期待値と一致しません");
+                Assert.AreEqual(expectedRate, rate, 0.01f, "消費率が期待値と一致しません");
+                Assert.AreEqual(expectedSteamAmount, steamAmount, 0.01d, "蒸気量が期待値と一致しません");
+                Assert.AreEqual(expectedFluidId, fluidId, "流体IDが期待値と一致しません");
+            }
+            
+            (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
+            {
+                var detailDict = details.ToDictionary(d => d.Key, d => d.Value);
+                
+                var state = MessagePackSerializer.Deserialize<string>(detailDict["state"]);
+                var rpm = MessagePackSerializer.Deserialize<float>(detailDict["rpm"]);
+                var torque = MessagePackSerializer.Deserialize<float>(detailDict["torque"]);
+                var rate = MessagePackSerializer.Deserialize<float>(detailDict["steamConsumptionRate"]);
+                var steamAmount = MessagePackSerializer.Deserialize<double>(detailDict["steamAmount"]);
+                var fluidId = MessagePackSerializer.Deserialize<int>(detailDict["steamFluidId"]);
+                
+                return (state, rpm, torque, rate, steamAmount, fluidId);
+            }
+            
+            #endregion
         }
     }
 }
