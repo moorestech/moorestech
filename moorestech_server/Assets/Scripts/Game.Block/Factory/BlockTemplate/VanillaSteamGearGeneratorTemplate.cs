@@ -39,14 +39,16 @@ namespace Game.Block.Factory.BlockTemplate
             // 流体接続の設定
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(configParam.FluidInventoryConnectors, blockPositionInfo);
             
-            // SteamGearGeneratorFluidComponentの作成
+            // SteamGearGeneratorFluidComponentの作成（fluidConnectorを渡す）
             var fluidComponent = componentStates == null
                 ? new SteamGearGeneratorFluidComponent(
-                    configParam.FluidCapacity
+                    configParam.FluidCapacity,
+                    fluidConnector
                 )
                 : new SteamGearGeneratorFluidComponent(
                     componentStates,
-                    configParam.FluidCapacity
+                    configParam.FluidCapacity,
+                    fluidConnector
                 );
             
             // スチームギアジェネレータコンポーネント

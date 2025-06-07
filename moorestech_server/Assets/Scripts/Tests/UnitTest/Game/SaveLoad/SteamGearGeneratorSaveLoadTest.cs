@@ -45,19 +45,29 @@ namespace Tests.UnitTest.Game.SaveLoad
             var steamGeneratorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
             var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
             
-            // 初期化フェーズ：流体転送とSteamGeneratorの起動を確実に行う
-            for (int i = 0; i < 4; i++)
+            // タンクに十分な蒸気を溜める
+            for (int i = 0; i < 20; i++)
             {
                 SetSteam();
                 GameUpdater.UpdateWithWait();
+                
+                var tank = fluidComponent.SteamTank;
+                if (tank.Amount >= 10.0)
+                {
+                    break;
+                }
             }
             
-            // 加速中の状態でセーブ
-            // 10回アップデートして、加速中であることを確認
-            for (int i = 0; i < 10; i++)
+            // 加速が始まるまで待つ
+            for (int i = 0; i < 30; i++)
             {
                 SetSteam();
                 GameUpdater.UpdateWithWait();
+                
+                if (steamGeneratorComponent.GenerateRpm.AsPrimitive() > 0)
+                {
+                    break;
+                }
             }
             
             // 加速中の値を記録
@@ -133,7 +143,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 foreach (var pipeBlock in pipes)
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
-                    var steamStack = new FluidStack(1000d, SteamGearGeneratorTest.SteamFluidId);
+                    var steamStack = new FluidStack(10000d, SteamGearGeneratorTest.SteamFluidId);
                     pipe.AddLiquid(steamStack, FluidContainer.Empty);
                 }
             }
@@ -266,7 +276,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 foreach (var pipeBlock in pipes)
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
-                    var steamStack = new FluidStack(1000d, SteamGearGeneratorTest.SteamFluidId);
+                    var steamStack = new FluidStack(10000d, SteamGearGeneratorTest.SteamFluidId);
                     pipe.AddLiquid(steamStack, FluidContainer.Empty);
                 }
             }

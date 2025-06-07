@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.Fluid;
+using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -14,19 +16,22 @@ namespace Game.Block.Blocks.Gear
     public class SteamGearGeneratorFluidComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
     {
         private readonly FluidContainer _steamTank;
+        private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
         private bool _wasRefilledThisUpdate;
         private int _consecutiveUpdatesWithoutRefill;
         private bool _wasEverDisconnected;
         
-        public SteamGearGeneratorFluidComponent(float tankCapacity)
+        public SteamGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
             _steamTank = new FluidContainer(tankCapacity);
+            _fluidConnector = fluidConnector;
             _wasRefilledThisUpdate = false;
             _consecutiveUpdatesWithoutRefill = 0;
             _wasEverDisconnected = false;
         }
         
-        public SteamGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity) : this(tankCapacity)
+        public SteamGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector) 
+            : this(tankCapacity, fluidConnector)
         {
             if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
             
@@ -40,7 +45,7 @@ namespace Game.Block.Blocks.Gear
         }
         
         public FluidContainer SteamTank => _steamTank;
-        public bool IsPipeDisconnected => _wasEverDisconnected || _consecutiveUpdatesWithoutRefill >= 1;
+        public bool IsPipeDisconnected => _consecutiveUpdatesWithoutRefill >= 5;  // 5回連続で補給がない場合に切断とみなす
         
         public void Update()
         {
@@ -60,6 +65,7 @@ namespace Game.Block.Blocks.Gear
                 {
                     _wasEverDisconnected = true;
                 }
+                // Debug.Log($"[FluidComponent] No refill. Consecutive: {_consecutiveUpdatesWithoutRefill}, Disconnected: {IsPipeDisconnected}");
             }
             
             // タンクのPreviousSourceFluidContainersをクリア

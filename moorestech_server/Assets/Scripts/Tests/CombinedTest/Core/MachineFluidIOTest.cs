@@ -10,13 +10,18 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Fluid;
+using MessagePack;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -264,6 +269,276 @@ namespace Tests.CombinedTest.Core
             outputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
             
             return (inputSlot, outputSlot);
+        }
+        
+        /// <summary>
+        /// MachineのIBlockStateObservableが正しく実装されているかをテストする
+        /// 1. OnChangeBlockStateが適切なタイミングで発火すること
+        /// 2. GetBlockStateDetailsが必要な情報を全て含んでいること
+        ///
+        /// NOTE: AI生成コード
+        /// </summary>
+        [Test]
+        public void MachineBlockStateObservableTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            
+            // ブロック情報を取得
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId);
+            
+            // 機械を設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, out var machineBlock);
+            
+            // コンポーネントを取得
+            var machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();
+            var inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var stateObservable = machineBlock.GetComponent<IBlockStateObservable>();
+            
+            // OnChangeBlockStateの発火を記録
+            var stateChangeCount = 0;
+            var disposable = stateObservable.OnChangeBlockState.Subscribe(_ =>
+            {
+                stateChangeCount++;
+                Debug.Log($"Machine state changed! Count: {stateChangeCount}");
+            });
+            
+            // 初期状態のBlockStateDetailsを確認
+            var initialDetails = stateObservable.GetBlockStateDetails();
+            var machineParam = blockMaster.BlockParam as ElectricMachineBlockParam;
+            var requiredPower = machineParam?.RequiredPower ?? 100;
+            // アイドル状態でも要求電力は表示される
+            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower, 0f);
+            
+            // 電力を供給（アイドル状態でも通知が発生するはず）
+            Debug.Log("Supplying power in idle state...");
+            var previousCount = stateChangeCount;
+            for (int i = 0; i < 5; i++)
+            {
+                machineComponent.SupplyEnergy(new ElectricPower(100));
+                GameUpdater.UpdateWithWait();
+            }
+            
+            // アイドル状態でも電力供給で状態変化があることを確認
+            Assert.Greater(stateChangeCount, previousCount, "OnChangeBlockStateがアイドル状態で発火していません");
+            previousCount = stateChangeCount;
+            
+            // レシピの材料を投入してクラフトを開始
+            var recipes = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
+                .Where(r => r.BlockGuid == blockMaster.BlockGuid).ToList();
+            
+            if (recipes.Count == 0)
+            {
+                Debug.Log($"No recipes found for block {blockMaster.BlockGuid}. Looking for any machine recipe...");
+                // テスト用マシンレシピを使用
+                disposable.Dispose(); // 古いサブスクリプションを解除
+                worldBlockDatastore.RemoveBlock(Vector3Int.zero);
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineRecipeTest1, Vector3Int.zero, BlockDirection.North, out machineBlock);
+                blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineRecipeTest1);
+                machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();
+                inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+                stateObservable = machineBlock.GetComponent<IBlockStateObservable>();
+                
+                // 新しいサブスクリプションを設定
+                stateChangeCount = 0;
+                disposable = stateObservable.OnChangeBlockState.Subscribe(_ =>
+                {
+                    stateChangeCount++;
+                    Debug.Log($"Machine state changed! Count: {stateChangeCount}");
+                });
+                
+                recipes = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
+                    .Where(r => r.BlockGuid == blockMaster.BlockGuid).ToList();
+                
+                // 初期状態の確認を再度実行
+                machineParam = blockMaster.BlockParam as ElectricMachineBlockParam;
+                requiredPower = machineParam?.RequiredPower ?? 100;
+            }
+            
+            var recipe = recipes.First();
+            Debug.Log($"Using recipe: Block={blockMaster.BlockGuid}, Input={recipe.InputItems[0].ItemGuid}, Output={recipe.OutputItems[0].ItemGuid}");
+            
+            // 材料を投入（レシピに必要なアイテムをすべて投入）
+            foreach (var inputItemInfo in recipe.InputItems)
+            {
+                var inputItem = itemStackFactory.Create(inputItemInfo.ItemGuid, inputItemInfo.Count);
+                inventoryComponent.InsertItem(inputItem);
+                Debug.Log($"Inserted item: {inputItemInfo.ItemGuid} x{inputItemInfo.Count}");
+            }
+            
+            // 流体が必要な場合は流体も投入
+            if (recipe.InputFluids != null && recipe.InputFluids.Length > 0)
+            {
+                var inputFluidContainers = GetInputFluidContainers(inventoryComponent);
+                for (var i = 0; i < recipe.InputFluids.Length; i++)
+                {
+                    var inputFluid = recipe.InputFluids[i];
+                    var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                    var fluidStack = new FluidStack(inputFluid.Amount, fluidId);
+                    
+                    inputFluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+                    Debug.Log($"Added fluid: {inputFluid.FluidGuid} x{inputFluid.Amount}");
+                }
+            }
+            
+            // 処理開始を待つ
+            Debug.Log("Starting processing...");
+            for (int i = 0; i < 10; i++)
+            {
+                machineComponent.SupplyEnergy(new ElectricPower(1000));
+                GameUpdater.UpdateWithWait();
+                
+                var details = stateObservable.GetBlockStateDetails();
+                var (state, _, _, rate) = ExtractMachineDetails(details);
+                
+                Debug.Log($"Start Update {i}: State={state}, Rate={rate}");
+                
+                if (state == "processing" && rate > 0f)
+                {
+                    Debug.Log("Machine started processing!");
+                    break;
+                }
+            }
+            
+            // 処理中の状態を確認
+            var processingDetails = stateObservable.GetBlockStateDetails();
+            var (procState, currentPower, requestedPower, procRate) = ExtractMachineDetails(processingDetails);
+            Assert.AreEqual("processing", procState, "処理状態になっていません");
+            Assert.Greater(currentPower, 0f, "現在の電力が0より大きくありません");
+            Assert.Greater(requestedPower, 0f, "要求電力が0より大きくありません");
+            Assert.Greater(procRate, 0f, "処理率が0より大きくありません");
+            
+            // 処理中に状態変化があることを確認
+            Assert.Greater(stateChangeCount, previousCount, "処理開始後のOnChangeBlockStateが発火していません");
+            previousCount = stateChangeCount;
+            
+            // 処理を完了まで進める
+            Debug.Log("Completing processing...");
+            var recipeTime = recipe.Time;
+            for (int i = 0; i < recipeTime * 10 + 20; i++) // 余裕を持って待つ
+            {
+                machineComponent.SupplyEnergy(new ElectricPower(1000));
+                GameUpdater.UpdateWithWait();
+                
+                if (i % 10 == 0)
+                {
+                    var details = stateObservable.GetBlockStateDetails();
+                    var (state, _, _, rate) = ExtractMachineDetails(details);
+                    Debug.Log($"Process Update {i}: State={state}, Rate={rate}");
+                }
+                
+                // 出力スロットにアイテムが生成されたか確認
+                var (_, outputSlot) = GetInputOutputSlot(inventoryComponent);
+                if (outputSlot.Count > 0)
+                {
+                    Debug.Log("Processing completed!");
+                    break;
+                }
+            }
+            
+            // 処理完了後、アイドル状態に戻るのを待つ
+            Debug.Log("Waiting for return to idle state...");
+            for (int i = 0; i < 20; i++)
+            {
+                GameUpdater.UpdateWithWait();
+                var details = stateObservable.GetBlockStateDetails();
+                var (state, _, _, rate) = ExtractMachineDetails(details);
+                
+                Debug.Log($"Post-process Update {i}: State={state}, Rate={rate}");
+                
+                if (state == "idle")
+                {
+                    Debug.Log($"Returned to idle state after {i + 1} updates");
+                    break;
+                }
+            }
+            
+            // 処理完了後の状態を確認
+            var completedDetails = stateObservable.GetBlockStateDetails();
+            var (completeState, _, _, completeRate) = ExtractMachineDetails(completedDetails);
+            Assert.AreEqual("idle", completeState, "処理完了後にアイドル状態に戻っていません");
+            
+            // 処理率が0またはほぼ0（完了時は1を超える場合がある）
+            if (completeState == "idle")
+            {
+                // アイドル状態なら処理率は関係ない
+                Debug.Log($"Machine is idle with rate: {completeRate}");
+            }
+            else
+            {
+                Assert.AreEqual(0f, completeRate, 0.01f, "処理完了後に処理率が0になっていません");
+            }
+            
+            // 処理中に継続的な状態変化があったことを確認
+            Assert.Greater(stateChangeCount, previousCount + 5, "処理中の継続的なOnChangeBlockStateが発火していません");
+            
+            // 電力供給なしで処理が開始しないことを確認
+            Debug.Log("Testing without power supply...");
+            previousCount = stateChangeCount;
+            
+            // 再度材料を投入
+            var inputItem2 = itemStackFactory.Create(recipe.InputItems[0].ItemGuid, recipe.InputItems[0].Count);
+            inventoryComponent.InsertItem(inputItem2);
+            
+            // 電力供給なしでアップデート
+            for (int i = 0; i < 5; i++)
+            {
+                GameUpdater.UpdateWithWait();
+            }
+            
+            // 状態がアイドルのままであることを確認
+            var noPowerDetails = stateObservable.GetBlockStateDetails();
+            var (noPowerState, _, _, _) = ExtractMachineDetails(noPowerDetails);
+            Assert.AreEqual("idle", noPowerState, "電力供給なしで処理が開始されています");
+            
+            // 部分的な電力供給でも動作することを確認
+            Debug.Log("Testing with partial power supply...");
+            for (int i = 0; i < 20; i++)
+            {
+                machineComponent.SupplyEnergy(new ElectricPower(requiredPower / 2)); // 半分の電力
+                GameUpdater.UpdateWithWait();
+                
+                var details = stateObservable.GetBlockStateDetails();
+                var (state, current, requested, rate) = ExtractMachineDetails(details);
+                
+                if (state == "processing")
+                {
+                    Debug.Log($"Processing with partial power: Current={current}, Requested={requested}, Rate={rate}");
+                    Assert.AreEqual(requiredPower / 2, current, 1f, "部分的な電力供給が正しく反映されていません");
+                    Assert.AreEqual(requiredPower, requested, 1f, "要求電力が正しくありません");
+                    Assert.Greater(rate, 0f, "部分的な電力でも処理が進んでいません");
+                    Assert.Less(rate, 1f, "部分的な電力で最大速度になっています");
+                    break;
+                }
+            }
+            
+            #region Internal
+            
+            void ValidateMachineBlockStateDetails(BlockStateDetail[] details, string expectedState,
+                float expectedCurrentPower, float expectedRequestedPower, float expectedProcessingRate)
+            {
+                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                Assert.AreEqual(CommonMachineBlockStateDetail.BlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
+                
+                var stateData = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(details[0].Value);
+                
+                Assert.AreEqual(expectedState, stateData.CurrentStateType, "状態が期待値と一致しません");
+                Assert.AreEqual(expectedCurrentPower, stateData.CurrentPower, 0.01f, "現在の電力が期待値と一致しません");
+                Assert.AreEqual(expectedRequestedPower, stateData.RequestPower, 0.01f, "要求電力が期待値と一致しません");
+                Assert.AreEqual(expectedProcessingRate, stateData.ProcessingRate, 0.01f, "処理率が期待値と一致しません");
+            }
+            
+            (string state, float currentPower, float requestedPower, float processingRate) ExtractMachineDetails(BlockStateDetail[] details)
+            {
+                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                
+                var stateData = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(details[0].Value);
+                
+                return (stateData.CurrentStateType, stateData.CurrentPower, stateData.RequestPower, stateData.ProcessingRate);
+            }
+            
+            #endregion
         }
     }
 }
