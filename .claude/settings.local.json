@@ -7,7 +7,8 @@
       "Bash(./unity-compile.sh:*)",
       "Bash(rm:*)",
       "Bash(sed:*)",
-      "Bash(./unity-test.sh:*)"
+      "Bash(./unity-test.sh:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
