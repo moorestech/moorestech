@@ -169,12 +169,12 @@ namespace Tests.UnitTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
-            // 駅ブロックを設置    
+            // 駅ブロックを設置
             var stationPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, stationPosition, BlockDirection.North, out var stationBlock);
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗");
 
-            // StationComponentの取得    
+            // StationComponentの取得
             var stationComponent = stationBlock.GetComponent<StationComponent>();
             Assert.IsNotNull(stationComponent, "StationComponentが見つからない");
 
