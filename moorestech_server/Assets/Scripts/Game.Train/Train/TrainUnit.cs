@@ -48,7 +48,7 @@ namespace Game.Train.Train
         // 進んだ距離を返す
         public int UpdateTrain(float deltaTime) 
         {
-            //目的地に近ければ原則したい。自動運行での最大速度を決めておく
+            //目的地に近ければ減速したい。自動運行での最大速度を決めておく
             float maxspeed = MathF.Sqrt(((float)_remainingDistance) * 10000.0f) + 10f;//10fは距離が近すぎても進めるよう
             if (_isAutoRun)//設定している目的地に向かうべきなら
             {
@@ -83,7 +83,7 @@ namespace Game.Train.Train
             //進行メインループ
             //何かが原因で無限ループになることがあるので、一定回数で強制終了する
             int loopCount = 0;
-            while (distanceToMove != 0)
+            while (true)
             {
                 int moveLength = _railPosition.MoveForward(distanceToMove);
                 distanceToMove -= moveLength;
@@ -97,7 +97,7 @@ namespace Game.Train.Train
                 }
                 if (distanceToMove == 0) break;
                 //----------------------------------------------------------------------------------------
-                //この時点でdistanceToMoveが0以外かつ分岐地点についてる状況
+                //この時点でdistanceToMoveが0以外かつ分岐地点または行き止まりについてる状況
                 RailNode approaching = _railPosition.GetNodeApproaching();
                 if (approaching == null) 
                 {
@@ -105,7 +105,9 @@ namespace Game.Train.Train
                     _currentSpeed = 0;
                     throw new InvalidOperationException("列車が進行中に接近しているノードがnullになりました。");
                 }
-                    
+                
+                //ランダム経路選択をするか否か
+                bool isRandomPathUse = true;
                 if (_destinationNode != null)//自動運転なら必ず!=nullだし手動運転でも!=nullなら自動で経路検索していいだろう
                 {
                     //分岐点で必ず最短経路を再度探す。手動でレールが変更されてるかもしれないので
@@ -113,15 +115,27 @@ namespace Game.Train.Train
                     var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
                     if (newPath.Count < 2)
                     {
-                        _isAutoRun = false;
-                        _currentSpeed = 0;
-                        throw new InvalidOperationException("列車が進行中に目的地までの経路をロスト");
+                        if (_isAutoRun)
+                        {
+                            _isAutoRun = false;
+                            _currentSpeed = 0;
+                            throw new InvalidOperationException("自動運転で目的地までの経路が見つからない");
+                        }
+                        else
+                        {
+                            isRandomPathUse = true; //経路が見つからない手動の場合はランダム経路選択をする
+                        }
                     }
-                    _railPosition.AddNodeToHead(newPath[1]);
-                    //残りの距離を再更新
-                    _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
+                    else//見つかったので一番いいルートを自動選択
+                    {
+                        isRandomPathUse = false;
+                        _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
+                                                                //残りの距離を再更新
+                        _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
+                    }
                 }
-                else
+
+                if (isRandomPathUse)
                 {
                     //approachingから次のノードをランダムに取得して_railPosition.AddNodeToHeadしたい
                     var nextNodelist = approaching.ConnectedNodes.ToList();
