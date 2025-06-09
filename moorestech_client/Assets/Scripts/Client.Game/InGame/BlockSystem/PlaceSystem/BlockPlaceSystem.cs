@@ -31,7 +31,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
-        private readonly PlayerObjectController _playerObjectController;
         private readonly BlockPlacePointCalculator _blockPlacePointCalculator;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
@@ -50,8 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             HotBarView hotBarView,
             IBlockPlacePreview blockPlacePreview,
             ILocalPlayerInventory localPlayerInventory,
-            BlockGameObjectDataStore blockGameObjectDataStore,
-            PlayerObjectController playerObjectController
+            BlockGameObjectDataStore blockGameObjectDataStore
         )
         {
             Instance = this;
@@ -59,7 +57,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
-            _playerObjectController = playerObjectController;
             _blockPlacePointCalculator = new BlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
@@ -72,7 +69,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             if (enable)
             {
                 Instance._clickStartHeightOffset = -1;
-                Instance._baseHeight = Mathf.RoundToInt(Instance._playerObjectController.Position.y);
+                var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
+                Instance._baseHeight = Mathf.RoundToInt(playerObjectController.Position.y);
             }
             else
             {
@@ -199,7 +197,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             bool IsBlockPlaceableDistance(float maxDistance)
             {
                 var placePosition = (Vector3)placePoint;
-                var playerPosition = _playerObjectController.transform.position;
+                var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 
                 return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
             }

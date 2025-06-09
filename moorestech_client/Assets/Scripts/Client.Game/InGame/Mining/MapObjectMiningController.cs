@@ -21,10 +21,10 @@ namespace Client.Game.InGame.Mining
         private MapObjectMiningControllerContext _context;
         
         [Inject]
-        public void Constructor(ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
+        public void Constructor(ILocalPlayerInventory localPlayerInventory)
         {
             _currentState = new MapObjectMiningIdleState();
-            _context = new MapObjectMiningControllerContext(hotBarView, localPlayerInventory, playerObjectController);
+            _context = new MapObjectMiningControllerContext(hotBarView, localPlayerInventory);
         }
         
         
@@ -48,7 +48,7 @@ namespace Client.Game.InGame.Mining
                 if (EventSystem.current.IsPointerOverGameObject()) return null;
                 if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
                 
-                var playerPos = _context.PlayerObjectController.Position;
+                var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObjectPos = mapObject.transform.position;
                 if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
                 

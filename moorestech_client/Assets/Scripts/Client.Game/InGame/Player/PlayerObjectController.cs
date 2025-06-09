@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.BlockSystem;
+﻿using System;
+using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
 using StarterAssets;
 using UnityEngine;
@@ -32,8 +33,7 @@ namespace Client.Game.InGame.Player
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
         
-        [Inject]
-        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
+        public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
         {
             controller.Initialize();
             SetPlayerPosition(initialHandshakeResponse.PlayerPos);

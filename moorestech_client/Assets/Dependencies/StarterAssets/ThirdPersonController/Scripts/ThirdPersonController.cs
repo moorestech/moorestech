@@ -82,7 +82,7 @@ namespace StarterAssets
 		private int _animIDFreeFall;
 		private int _animIDMotionSpeed;
 
-		private Animator _animator;
+		[SerializeField] private Animator _animator;
 		private CharacterController _controller;
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
@@ -93,7 +93,7 @@ namespace StarterAssets
         
         public void Initialize()
         {
-            _hasAnimator = TryGetComponent(out _animator);
+            _hasAnimator = _animator;
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
             
@@ -115,8 +115,6 @@ namespace StarterAssets
 
 		private void Update()
 		{
-			_hasAnimator = TryGetComponent(out _animator);
-			
 			JumpAndGravity();
 			GroundedCheck();
 			Move();

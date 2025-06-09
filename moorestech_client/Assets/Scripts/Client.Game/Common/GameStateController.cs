@@ -10,8 +10,6 @@ namespace Client.Game.Common
     {
         private static GameStateController _instance;
         
-        [SerializeField] private PlayerObjectController playerObjectController;
-        
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         
@@ -43,8 +41,7 @@ namespace Client.Game.Common
         
         private void SetInGameState()
         {
-            playerObjectController.SetActive(true);
-            
+            PlayerSystemContainer.Instance.PlayerObjectController.SetActive(true);
             hotBarView.SetActive(true);
             currentChallengeHudView.SetActive(true);
             
@@ -53,8 +50,7 @@ namespace Client.Game.Common
         
         private void SetSkitState()
         {
-            playerObjectController.SetActive(false);
-            
+            PlayerSystemContainer.Instance.PlayerObjectController.SetActive(false);
             hotBarView.SetActive(false);
             currentChallengeHudView.SetActive(false);
             
@@ -63,8 +59,7 @@ namespace Client.Game.Common
         
         private void SetCutSceneState()
         {
-            playerObjectController.SetActive(false);
-            
+            PlayerSystemContainer.Instance.PlayerObjectController.SetActive(false);
             hotBarView.SetActive(false);
             currentChallengeHudView.SetActive(false);
             

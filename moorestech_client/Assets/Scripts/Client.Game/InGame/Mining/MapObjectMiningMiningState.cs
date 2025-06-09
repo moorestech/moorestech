@@ -11,12 +11,12 @@ namespace Client.Game.InGame.Mining
         
         private float _currentMiningProgressTime;
         
-        public MapObjectMiningMiningState(MiningToolsElement miningToolsElement, IPlayerObjectController playerObjectController)
+        public MapObjectMiningMiningState(MiningToolsElement miningToolsElement)
         {
             _miningToolsElement = miningToolsElement;
             _currentMiningProgressTime = 0;
             
-            playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
+            PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.Axe);
             ProgressBarView.Instance.Show();
         }
         
@@ -26,7 +26,7 @@ namespace Client.Game.InGame.Mining
             var next = GetNextUpdateInternal(context, dt);
             if (next != this)
             {
-                context.PlayerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
+                PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
                 ProgressBarView.Instance.Hide();
             }
             return next;
