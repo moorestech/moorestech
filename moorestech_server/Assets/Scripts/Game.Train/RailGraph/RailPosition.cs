@@ -109,8 +109,8 @@ namespace Game.Train.RailGraph
             for (int i = 0; i < _railNodes.Count - 1; i++)
             {
                 totalListDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
-                //はじめてtotalListDistanceがdistanceFromFrontを超えたら
-                if (totalListDistance > distanceFromFront)
+                //はじめてtotalListDistanceがdistanceFromFront以上なら、そのi + 1のnodeは残してあと削除
+                if (totalListDistance >= distanceFromFront)
                 {
                     if (i + 2 == _railNodes.Count) break;
                     //それ以降の情報はいらない

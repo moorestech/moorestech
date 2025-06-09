@@ -16,6 +16,9 @@ namespace Game.Train.RailGraph
         public RailNode OppositeNode { get; private set; }
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
+        //このノードが駅に対応するときの駅ブロックのworld座標
+        public (Vector3Int, bool) StationBlockWorldPosition { set; get; } //駅ブロックのワールド座標。駅に対応するRailNodeがあるときのみ有効
+
 
         /// なぜ IEnumerable を使うのか？
         //IEnumerable<RailNode> を使う理由には以下があります：
@@ -50,6 +53,14 @@ namespace Game.Train.RailGraph
             RailGraphDatastore.AddNode(this);
             FrontControlPoint = null;
             BackControlPoint = null;
+            StationBlockWorldPosition = (new Vector3Int(0, 0, 0), true);
+        }
+
+        public void SetStationInfo(Vector3Int stationBlockWorldPosition)
+        {
+            //駅に対応するRailNodeがあるときのみ有効
+            //駅ブロックのワールド座標を設定する
+            StationBlockWorldPosition = (stationBlockWorldPosition, true);
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
