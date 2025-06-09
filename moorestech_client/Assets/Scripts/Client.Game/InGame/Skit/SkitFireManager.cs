@@ -50,6 +50,7 @@ namespace Client.Game.InGame.Skit
         
         private void PlaySkit(ChallengeMasterElement challenge)
         {
+            return;
             foreach (var action in challenge.StartedActions.items)
             {
                 if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;

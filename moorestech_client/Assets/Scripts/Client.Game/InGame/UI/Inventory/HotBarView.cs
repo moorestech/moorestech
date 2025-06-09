@@ -17,7 +17,6 @@ namespace Client.Game.InGame.UI.Inventory
     {
         [SerializeField] private List<HotBarItem> hotBarItems;
         [SerializeField] private ItemObjectContainer itemObjectContainer;
-        [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         public event Action<int> OnSelectHotBar;
         
@@ -96,7 +95,7 @@ namespace Client.Game.InGame.UI.Inventory
                 if (itemObjectData != null)
                 {
                     _currentGrabItem = Instantiate(itemObjectData.ItemPrefab);
-                    playerGrabItemManager.SetItem(_currentGrabItem, false, itemObjectData.Position, Quaternion.Euler(itemObjectData.Rotation));
+                    PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false, itemObjectData.Position, Quaternion.Euler(itemObjectData.Rotation));
                 }
             }
             

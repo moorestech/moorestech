@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Client.Common;
-using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -27,9 +26,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
-using Client.Game.Sequence;
 using Client.Game.Skit;
-using Client.Game.Skit.Starter;
 using Client.Network.API;
 using Game.UnlockState;
 using UnityEngine;
@@ -55,8 +52,8 @@ namespace Client.Starter
         
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private HotBarView hotBarView;
-        [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
+        [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
         
@@ -83,7 +80,6 @@ namespace Client.Starter
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
         
-        [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
         [SerializeField] private SkitManager skitManager;
         
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
@@ -184,12 +180,11 @@ namespace Client.Starter
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             
-            builder.RegisterComponent(playerSkitStarterDetector);
+            builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
-            builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
             
             builder.RegisterBuildCallback(objectResolver => { });
@@ -203,6 +198,7 @@ namespace Client.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
+            _resolver.Resolve<PlayerSystemContainer>();
             
             return _resolver;
         }

@@ -17,16 +17,14 @@ namespace Client.Game.InGame.Tutorial
         
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
-        private IPlayerObjectController _playerObjectController;
         
         private MapObjectPinTutorialParam _currentTutorialParam;
         
         [Inject]
-        public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore, IPlayerObjectController playerObjectController)
+        public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
             _inGameCameraController = inGameCameraController;
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
-            _playerObjectController = playerObjectController;
         }
         
         private void Update()
@@ -43,7 +41,7 @@ namespace Client.Game.InGame.Tutorial
             void NearestPinMapObject()
             {
                 // 近くのMapObjectを探してピンを表示
-                var playerPos = _playerObjectController.Position;
+                var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
                 
                 if (mapObject == null)

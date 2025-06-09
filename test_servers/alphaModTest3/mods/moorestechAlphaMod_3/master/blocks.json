@@ -22,7 +22,14 @@
         "fluidContainerCount": 0,
         "fluidContainerCapacity": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "8b67462b-227a-465b-8d86-de683b5e98a1",
       "blockGuid": "3d3fdac0-4dce-4bd0-adda-827a3b67feb9",
@@ -299,7 +306,14 @@
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "inputTankCount": 0,
+        "innerTankCapacity": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
@@ -435,7 +449,14 @@
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "outputTankCount": 0,
+        "inputTankCount": 0,
+        "innerTankCapacity": 0
       },
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
@@ -462,7 +483,14 @@
         "fluidContainerCount": 0,
         "fluidContainerCapacity": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0
       },
       "itemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3",
       "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
@@ -674,7 +702,14 @@
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0
       },
       "name": "プレス機",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
@@ -812,7 +847,14 @@
         "fluidContainerCount": 0,
         "fluidContainerCapacity": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
@@ -1695,7 +1737,14 @@
         "fluidContainerCount": 0,
         "fluidContainerCapacity": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "inputTankCount": 0
       },
       "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
       "name": "圧延機",
@@ -1798,7 +1847,14 @@
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "outputTankCount": 0,
+        "inputTankCount": 0,
+        "innerTankCapacity": 0
       },
       "overrideVerticalBlock": {}
     },
@@ -1826,7 +1882,14 @@
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
-        "outputFluidSlotCount": 0
+        "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0
       },
       "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",

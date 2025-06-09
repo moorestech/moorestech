@@ -1,17 +1,18 @@
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.Skit.Starter
 {
     public class PlayerSkitStarterDetector : MonoBehaviour
     {
-        [SerializeField] private StartSkitUI startSkitUI;
-        
+        public Subject<bool> OnStateChange => _onStateChange;
+        private readonly Subject<bool> _onStateChange = new();
         public bool IsStartReady => CurrentSkitStarterObject != null;
         public SkitStarterObject CurrentSkitStarterObject { get; private set; }
         
         private void OnDisable()
         {
-            startSkitUI.ShowStartStoryUI(false);
+            _onStateChange.OnNext(false);
         }
         
         private void OnTriggerEnter(Collider other)
@@ -19,7 +20,7 @@ namespace Client.Game.Skit.Starter
             if (other.TryGetComponent<SkitStarterObject>(out var storyStarterObject))
             {
                 CurrentSkitStarterObject = storyStarterObject;
-                startSkitUI.ShowStartStoryUI(true);
+                _onStateChange.OnNext(true);
             }
         }
         
@@ -28,7 +29,6 @@ namespace Client.Game.Skit.Starter
             if (other.TryGetComponent<SkitStarterObject>(out var _))
             {
                 CurrentSkitStarterObject = null;
-                startSkitUI.ShowStartStoryUI(false);
             }
         }
     }
