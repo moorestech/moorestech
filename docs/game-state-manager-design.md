@@ -63,8 +63,12 @@ public interface IReadOnlyBlock
     int BlockId { get; }
     Vector3Int Position { get; }
     BlockDirection Direction { get; }
-    IReadOnlyDictionary<string, byte[]> State { get; }  // BlockStateMessagePack
-    指摘：GameStateManager側でシリアライズまでやりたいですね。クライアント側で使ってるところを調査して、シリアライズ方法を検討してください。
+    
+    // ブロックタイプ固有のステートを型安全に取得
+    T GetState<T>(string stateKey) where T : class;
+    
+    // 鮮度管理が必要なデータへの非同期アクセス
+    UniTask<IBlockInventory> GetInventoryAsync();
 }
 
 public interface IPlayerState
@@ -76,8 +80,16 @@ public interface IPlayerState
 
 public interface IEntityRegistry
 {
-    IReadOnlyList<IEntity> GetEntities();
-    指摘：IEntityはサーバー側のEntityを表すインターフェースなので、クライアント側で再定義してください。
+    IReadOnlyList<IClientEntity> GetEntities();
+    IClientEntity GetEntity(long instanceId);
+}
+
+public interface IClientEntity
+{
+    long InstanceId { get; }
+    string EntityType { get; }
+    Vector3 Position { get; }
+    string State { get; }  // エンティティ固有のステート文字列
 }
 
 public interface IGameProgressState
@@ -98,17 +110,26 @@ public interface IMapObjectRegistry
 リクエスト時に取得し、一定期間後に破棄されるデータ：
 
 ```csharp
-public interface IBlock : IReadOnlyBlock
-{
-    // 鮮度管理が必要なデータへの非同期アクセス
-    UniTask<IBlockInventory> GetInventoryAsync();      // BlockInventoryResponseProtocol
-    指摘：これもIReadOnlyBlockの中に入れておいて
-}
-
 public interface IBlockInventory
 {
     IReadOnlyList<ItemStack> Items { get; }
     DateTime LastUpdated { get; }                      // 鮮度情報
+}
+
+// ブロックステートの型安全な定義例
+public class CommonMachineState
+{
+    public float CurrentPower { get; set; }
+    public float RequestPower { get; set; }
+    public float ProcessingRate { get; set; }
+    public string CurrentStateType { get; set; }
+}
+
+public class FluidPipeState
+{
+    public int FluidId { get; set; }
+    public int Amount { get; set; }
+    public int Capacity { get; set; }
 }
 ```
 
@@ -182,8 +203,7 @@ public class BlockInventoryUI
 
 1. **クライアントからのリクエストベース**：インベントリデータが必要な時にクライアントから明示的にリクエスト
 2. **キャッシュによる最適化**：クライアント側で鮮度管理を行い、頻繁なリクエストを抑制
-3. **イベントは全プレイヤーに送信**：`OpenableBlockInventoryUpdateEvent`は全プレイヤーに送信し、クライアント側でフィルタリング
-指摘：OpenableBlockInventoryUpdateEventを廃止し、通常のPacketResponseと同じように新しくプロトコルを作成してください。
+3. **プロトコルの統一**：`OpenableBlockInventoryUpdateEvent`を廃止し、`BlockInventoryUpdateProtocol`として通常のPacketResponseパターンに統一
 
 この変更により、サーバー側の実装がシンプルになり、クライアント側で柔軟なデータ管理が可能になります。
 
@@ -191,8 +211,8 @@ public class BlockInventoryUI
 
 ### フェーズ0: サーバー側の準備（最優先）
 1. `BlockInventoryOpenStateDataStore`の廃止
-2. `BlockInventoryOpenCloseProtocol`の廃止
-3. `OpenableBlockInventoryUpdateEventPacket`を全プレイヤーに送信するよう変更
+2. `BlockInventoryOpenCloseProtocol`の廃止  
+3. `OpenableBlockInventoryUpdateEventPacket`を`BlockInventoryUpdateProtocol`に置き換え
 4. ブロックインベントリのリクエストベースAPI実装
 
 ### フェーズ1: GameStateManager基盤構築
@@ -206,10 +226,37 @@ public class BlockInventoryUI
 3. キャッシュ有効期限の調整
 
 ### フェーズ3: 段階的移行
-1. BlockInventoryUIをGameStateManager経由に移行
-2. その他のUIコンポーネントを順次移行
-3. 旧DataStoreの廃止
-指摘：クライアント側でVanullaApiに依存していたり、現在のBlockStateEventHandlerに依存している部分を全て調査し、載せ替えが必要な部分を洗い出してください。
+
+#### 3.1 VanillaApi依存クラスの移行
+
+**Response依存**:
+- InitializeScenePipeline → GameStateManager初期化に統合
+- WorldDataHandler → GameStateManagerの内部実装に移行
+- BlockInventoryState → IReadOnlyBlock.GetInventoryAsync()を使用
+- CraftTreeViewManager → IGameProgressState.CraftTreeを使用
+- ChallengeManager → IGameProgressState.Challengesを使用
+
+**SendOnly依存**:
+- BlockPlaceSystem → GameStateManager.Actions.PlaceBlock()
+- DeleteBlockState → GameStateManager.Actions.RemoveBlock()
+- LocalPlayerInventoryController → GameStateManager.Actions.MoveItem()
+- CraftInventoryView → GameStateManager.Actions.Craft()
+指摘：SendOnlyは今回のリファクタの対象外なので外しておいてください。
+
+**Event依存**:
+- BlockStateEventHandler → GameStateManager内部に統合
+- NetworkEventInventoryUpdater → GameStateManagerのイベントハンドラに移行
+- ClientGameUnlockStateData → IGameProgressStateの内部実装に移行
+
+#### 3.2 BlockStateEventHandler依存の解消
+- BlockGameObjectDataStoreへの直接アクセスをGameStateManager経由に変更
+- IBlockStateChangeProcessor実装クラスをGameStateManagerのイベントシステムに移行
+
+#### 3.3 旧DataStoreの廃止
+- BlockGameObjectDataStore
+- EntityObjectDatastore  
+- MapObjectGameObjectDatastore
+- ClientGameUnlockStateData
 
 ## 技術的考慮事項
 
@@ -217,6 +264,13 @@ public class BlockInventoryUI
 - **UniTask**: 非同期データ取得メソッドの実装
 - **MessagePack**: 既存のシリアライゼーション形式を維持
 - **DIコンテナ**: GameStateManagerとDataStoreの依存関係管理
+
+## コンパイル確認
+
+各フェーズの実装後には以下のコマンドでコンパイルを確認します：
+
+- サーバー側：`./unity-test.sh moorestech_server 'BlockInventory|GameState'`
+- クライアント側：`./unity-test.sh moorestech_client '^0'`
 
 ## まとめ
 
@@ -226,5 +280,3 @@ public class BlockInventoryUI
 2. **効率的なデータ管理**: 鮮度管理による適切なキャッシュ戦略
 3. **シンプルな実装**: BlockInventoryOpenStateDataStoreの廃止による簡潔化
 4. **段階的移行**: 既存システムからの低リスクな移行パス
-
-指摘：コンパイルが通ることを確認するために、
