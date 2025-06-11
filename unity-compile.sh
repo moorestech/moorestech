@@ -2,7 +2,7 @@
 # unity_compile_mac.sh
 # usage: ./unity_compile_mac.sh /path/to/UnityProject
 
-UNITY="/Applications/Unity/Hub/Editor/2022.3.18f1/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 
 # プロジェクトパス（引数が無ければカレントディレクトリ）
 PROJECT="${1:-$(pwd)}"
