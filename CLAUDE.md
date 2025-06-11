@@ -166,3 +166,9 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
+
+#　サーバー側の開発
+moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は`./unity-test.sh moorestech_server '[regex]'`を実行し、コンパイル、テストが通ることを確認してください。regexの内容はタスクによって変動するので、適宜調整してください。
+
+# クライアント側の開発
+moorestehc_client配下はTDDは行っておりません。そのため、コンパイルエラーをチェックする用途で、`./unity-test.sh moorestech_client '^0'`を実行してください。^0は何にもマッチしないので、コンパイルエラーがあれば出力されます。
