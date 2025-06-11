@@ -2,7 +2,7 @@
 
 ## 概要
 
-moorestechクライアントにおける、サーバーから送信されるゲームデータを一元管理するシングルトンの設計案です。この設計は、既存のインベントリ開閉システムの分析を基に、効率的なメモリ管理とネットワーク通信を実現します。
+moorestechクライアントにおける、サーバーから送信されるゲームデータを一元管理するシングルトンの設計案です。この設計は、データの性質に応じて適切なアクセス方式を提供し、効率的なメモリ管理とネットワーク通信を実現します。
 
 ## 現状分析
 
@@ -37,211 +37,194 @@ public sealed class GameStateManager : MonoBehaviour
     private static GameStateManager _instance;
     public static GameStateManager Instance => _instance;
     
-    // 常時保持データ（Core Data）
-    public ICoreGameState Core { get; private set; }
-    
-    // 条件付きデータ（Active Data）
-    public IActiveDataManager Active { get; private set; }
-    
-    // データ購読管理
-    public IDataSubscriptionManager Subscriptions { get; private set; }
+    // リアルタイムデータへのプロパティアクセス
+    public IBlockRegistry Blocks { get; private set; }
+    public IPlayerState Player { get; private set; }
+    public IEntityRegistry Entities { get; private set; }
+    public IGameProgressState GameProgress { get; private set; }
+    public IMapObjectRegistry MapObjects { get; private set; }
 }
 ```
 
-### 2. データの階層化
+### 2. データアクセス方式の設計
 
-#### 常時保持データ（メモリ常駐）
-```csharp
-public interface ICoreGameState
-{
-    IReadOnlyPlayerState Player { get; }           // プレイヤー基本情報
-    IReadOnlyBlockRegistry Blocks { get; }         // ブロック配置情報（座標のみ）
-    IReadOnlyUnlockState UnlockState { get; }      // アンロック状態
-    IReadOnlyWorldInfo World { get; }              // ワールド基本情報
-}
-```
-
-指摘：上記の具体的なデータについては適切ではないので、 /Users/katsumi.sato/moorestech/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse と /Users/katsumi.sato/moorestech/moorestech_server/Assets/Scripts/Server.Event/EventReceive以下の全てのCSファイルを確認し、どのデータが有るのか網羅的に全てチェックし、このinterfaceの構造を再検討してください。
-
-#### アクティブデータ（必要時のみ保持）
-```csharp
-public interface IActiveDataManager
-{
-    // ブロックの詳細状態（開いているインベントリ等）
-    Task<IBlockDetailedState> ActivateBlockDetails(Vector3Int position);
-    void DeactivateBlockDetails(Vector3Int position);
-    
-    // 範囲内のエンティティ（視界内のみ）
-    Task<IEntityCollection> ActivateEntitiesInRange(Vector3 center, float radius);
-    void DeactivateEntitiesInRange();
-    
-    // 特定のマップオブジェクト詳細
-    Task<IMapObjectDetails> ActivateMapObjectDetails(int objectId);
-    void DeactivateMapObjectDetails(int objectId);
-}
-```
-指摘：思想として、IActiveDataManager、ICoreGameStateというのは持たせず、「ブロック」の概念の中に全てが内包されているイメージにしたいです。そちらのほうが直感的なので。ただし、ここでアクティブデータとしてカテゴライズされているデータは「鮮度」が大事です。なので、一定フレーム後、データを破棄し、再度アクセスして取得できるようにしたいです。
-このとき、データの取得はプロパティ方式（GameStateManager.Instance.Blocks.GetBlock(new Vector3Int(0,0,0)).Inventory)ではなく、メソッド方式（async UniTask GetBlockInventory() ）のようにしたいです。これは、インベントリがほしい側はとりあえずasyncでただけばいい感じにデータが送られてきて、データが有効期限内である場合は即座にオンメモリからデータを返せばいいからです。あ、でもそうなると、Subscribeの概念はもはや不要ですね。そもそも、BlockInventoryOpenStateDataStoreという概念もやめて、純粋にクライアントからブロックインベントリのリクエストがあったときにそのデータを返すようにしましょう。送信データが増える懸念はありますが、それは最適化のときに再度検討することにします。このBlockInventoryOpenStateDataStoreの内容も計画書に書いておいてください。また、この変更は計画の一番最初にやりたいです。
-
-### 3. 購読管理システム
+#### プロパティ方式（リアルタイムデータ）
+常にサーバーからリアルタイムで更新され、常時保持すべきデータ：
 
 ```csharp
-public interface IDataSubscriptionManager
+public interface IBlockRegistry
 {
-    // 条件付き購読
-    IDisposable SubscribeWhen<T>(
-        Func<bool> condition,           // 購読条件
-        Action<T> onData,              // データ受信時の処理
-        string subscriptionTag          // 購読識別子
-    );
-    
-    // 範囲ベースの購読
-    IDisposable SubscribeInRange(
-        Vector3 center,
-        float radius,
-        Action<IEnumerable<EntityUpdate>> onUpdate
-    );
-    
-    // 状態変更の追跡
-    IObservable<DataActivationEvent> OnDataActivated { get; }
-    IObservable<DataDeactivationEvent> OnDataDeactivated { get; }
+    IReadOnlyBlock GetBlock(Vector3Int position);
+    IReadOnlyDictionary<Vector3Int, IReadOnlyBlock> AllBlocks { get; }
+}
+
+public interface IReadOnlyBlock
+{
+    int BlockId { get; }
+    Vector3Int Position { get; }
+    BlockDirection Direction { get; }
+    IReadOnlyDictionary<string, byte[]> State { get; }  // BlockStateMessagePack
+    指摘：GameStateManager側でシリアライズまでやりたいですね。クライアント側で使ってるところを調査して、シリアライズ方法を検討してください。
+}
+
+public interface IPlayerState
+{
+    Vector3 Position { get; }
+    IReadOnlyList<ItemStack> MainInventory { get; }    // MainInventoryUpdateEvent
+    ItemStack GrabItem { get; }                         // GrabInventoryUpdateEvent
+}
+
+public interface IEntityRegistry
+{
+    IReadOnlyList<IEntity> GetEntities();
+    指摘：IEntityはサーバー側のEntityを表すインターフェースなので、クライアント側で再定義してください。
+}
+
+public interface IGameProgressState
+{
+    IReadOnlyUnlockState Unlocks { get; }              // ResponseGameUnlockState
+    IReadOnlyChallengeState Challenges { get; }         // ResponseChallengeInfo
+    IReadOnlyCraftTreeState CraftTree { get; }          // ResponseGetCraftTree
+}
+
+public interface IMapObjectRegistry
+{
+    IReadOnlyMapObject GetMapObject(int instanceId);
+    IReadOnlyDictionary<int, IReadOnlyMapObject> AllMapObjects { get; }
 }
 ```
-指摘：上記指摘の通り、この購読管理システムは不要です。
+
+#### メソッド方式（鮮度管理が必要なデータ）
+リクエスト時に取得し、一定期間後に破棄されるデータ：
+
+```csharp
+public interface IBlock : IReadOnlyBlock
+{
+    // 鮮度管理が必要なデータへの非同期アクセス
+    UniTask<IBlockInventory> GetInventoryAsync();      // BlockInventoryResponseProtocol
+    指摘：これもIReadOnlyBlockの中に入れておいて
+}
+
+public interface IBlockInventory
+{
+    IReadOnlyList<ItemStack> Items { get; }
+    DateTime LastUpdated { get; }                      // 鮮度情報
+}
+```
+
+### 3. 鮮度管理システム
+
+```csharp
+internal class FreshDataCache<TKey, TData>
+{
+    private readonly Dictionary<TKey, CachedData> _cache;
+    private readonly TimeSpan _expiration;
+    
+    internal class CachedData
+    {
+        public TData Data { get; set; }
+        public DateTime CachedAt { get; set; }
+        
+        public bool IsFresh => DateTime.UtcNow - CachedAt < _expiration;
+    }
+    
+    public async UniTask<TData> GetOrFetchAsync(
+        TKey key, 
+        Func<TKey, UniTask<TData>> fetchFunc)
+    {
+        if (_cache.TryGetValue(key, out var cached) && cached.IsFresh)
+        {
+            return cached.Data;
+        }
+        
+        var data = await fetchFunc(key);
+        _cache[key] = new CachedData { Data = data, CachedAt = DateTime.UtcNow };
+        return data;
+    }
+}
+```
 
 ### 4. 実装例：インベントリシステムとの統合
 
 ```csharp
-public class BlockInventoryManager
+public class BlockInventoryUI
 {
-    private IDisposable _inventorySubscription;
-    private IBlockDetailedState _currentBlockDetails;
-    
-    public async Task OpenInventory(Vector3Int blockPos)
+    public async UniTask ShowInventory(Vector3Int blockPos)
     {
-        // アクティブデータとして詳細情報を要求
-        _currentBlockDetails = await GameStateManager.Instance.Active
-            .ActivateBlockDetails(blockPos);
+        // ブロックを取得（プロパティアクセス）
+        var block = GameStateManager.Instance.Blocks.GetBlock(blockPos);
         
-        // 更新の購読開始
-        _inventorySubscription = GameStateManager.Instance.Subscriptions
-            .SubscribeWhen<InventoryUpdateEvent>(
-                condition: () => IsInventoryOpen,
-                onData: (update) => UpdateInventoryUI(update),
-                subscriptionTag: $"BlockInventory_{blockPos}"
-            );
+        // インベントリデータを非同期で取得（メソッドアクセス）
+        var inventory = await block.GetInventoryAsync();
         
-        // サーバーに開いたことを通知
-        await VanillaApi.SendOnly.SetOpenCloseBlock(blockPos, true);
-    }
-    
-    public async Task CloseInventory(Vector3Int blockPos)
-    {
-        // 購読解除
-        _inventorySubscription?.Dispose();
+        // UIに反映
+        UpdateUI(inventory.Items);
         
-        // アクティブデータを解放
-        GameStateManager.Instance.Active.DeactivateBlockDetails(blockPos);
-        
-        // サーバーに閉じたことを通知
-        await VanillaApi.SendOnly.SetOpenCloseBlock(blockPos, false);
-        
-        _currentBlockDetails = null;
+        // イベント購読（リアルタイム更新のみ）
+        VanillaApi.Event.Subscribe<OpenableBlockInventoryUpdateEvent>(
+            tag: "va:event:openableBlockInventoryUpdate",
+            onEvent: (e) => {
+                if (e.Position == blockPos)
+                {
+                    UpdateSlot(e.SlotIndex, e.Item);
+                }
+            }
+        );
     }
 }
 ```
-指摘：このコードもOpenCloseの概念がなくなるので不要です。
 
-### 5. メモリ管理戦略
+### 5. BlockInventoryOpenStateDataStore廃止について
 
-```csharp
-internal class ActiveDataCache
-{
-    private readonly Dictionary<string, CachedData> _cache;
-    private readonly int _maxCacheSize;
-    private readonly TimeSpan _cacheExpiration;
-    
-    #region Internal
-    
-    class CachedData
-    {
-        public object Data { get; set; }
-        public DateTime LastAccessed { get; set; }
-        public int ReferenceCount { get; set; }
-    }
-    
-    void EvictUnusedData()
-    {
-        var now = DateTime.UtcNow;
-        var toEvict = _cache
-            .Where(kvp => kvp.Value.ReferenceCount == 0 && 
-                         now - kvp.Value.LastAccessed > _cacheExpiration)
-            .Select(kvp => kvp.Key)
-            .ToList();
-        
-        foreach (var key in toEvict)
-        {
-            _cache.Remove(key);
-        }
-    }
-    
-    #endregion
-}
-```
-指摘：これは何目的のものですかね？
-いったん不要なので消してください。
+現在のサーバー実装では、`BlockInventoryOpenStateDataStore`がプレイヤーごとにどのブロックのインベントリを開いているかを管理し、開いているプレイヤーにのみ更新を送信する仕組みになっています。
 
-## 主な利点
+新設計では、この仕組みを廃止し、以下のように変更します：
 
-1. **メモリ効率**
-   - 必要なデータのみメモリに保持
-   - 自動的なキャッシュ管理とガベージコレクション
+1. **クライアントからのリクエストベース**：インベントリデータが必要な時にクライアントから明示的にリクエスト
+2. **キャッシュによる最適化**：クライアント側で鮮度管理を行い、頻繁なリクエストを抑制
+3. **イベントは全プレイヤーに送信**：`OpenableBlockInventoryUpdateEvent`は全プレイヤーに送信し、クライアント側でフィルタリング
+指摘：OpenableBlockInventoryUpdateEventを廃止し、通常のPacketResponseと同じように新しくプロトコルを作成してください。
 
-2. **ネットワーク効率**
-   - 条件付き購読により必要な通信のみ実行
-   - サーバーと同期した選択的データ受信
-
-3. **拡張性**
-   - 新しいアクティブデータタイプの追加が容易
-   - 購読条件のカスタマイズが可能
-
-4. **パフォーマンス**
-   - 頻繁にアクセスされるデータは高速アクセス可能
-   - 不要なデータ処理を削減
-
-指摘：純粋な計画書なのでこの項目は不要
+この変更により、サーバー側の実装がシンプルになり、クライアント側で柔軟なデータ管理が可能になります。
 
 ## 移行計画
 
-### フェーズ1: 基盤構築
-1. GameStateManagerの基本構造を実装
-2. 既存のDataStoreをラップするアダプター作成
-3. CoreGameStateの実装
+### フェーズ0: サーバー側の準備（最優先）
+1. `BlockInventoryOpenStateDataStore`の廃止
+2. `BlockInventoryOpenCloseProtocol`の廃止
+3. `OpenableBlockInventoryUpdateEventPacket`を全プレイヤーに送信するよう変更
+4. ブロックインベントリのリクエストベースAPI実装
 
-### フェーズ2: アクティブデータ管理
-1. ActiveDataManagerの実装
-2. メモリキャッシュシステムの構築
-3. インベントリシステムでのパイロット実装
+### フェーズ1: GameStateManager基盤構築
+1. GameStateManagerのシングルトン実装
+2. プロパティアクセス用インターフェース定義
+3. 既存DataStoreのラップ実装
 
-### フェーズ3: 購読システム
-1. DataSubscriptionManagerの実装
-2. 条件付き購読の実装
-3. 既存のイベントシステムとの統合
+### フェーズ2: 鮮度管理システム
+1. `FreshDataCache`の実装
+2. ブロックインベントリの非同期取得実装
+3. キャッシュ有効期限の調整
 
-### フェーズ4: 段階的移行
-1. 既存コンポーネントを新APIに移行
-2. パフォーマンステストと最適化
-3. 古いDataStoreの段階的廃止
-
-指摘：計画変更に合わせて再考してください。
+### フェーズ3: 段階的移行
+1. BlockInventoryUIをGameStateManager経由に移行
+2. その他のUIコンポーネントを順次移行
+3. 旧DataStoreの廃止
+指摘：クライアント側でVanullaApiに依存していたり、現在のBlockStateEventHandlerに依存している部分を全て調査し、載せ替えが必要な部分を洗い出してください。
 
 ## 技術的考慮事項
 
-- UniRxとの統合によるリアクティブプログラミング
-- UniTaskによる非同期処理
-- MessagePackによる効率的なシリアライゼーション
-- DIコンテナとの適切な統合
+- **UniRx**: リアルタイムデータ更新の通知にObservableパターンを活用
+- **UniTask**: 非同期データ取得メソッドの実装
+- **MessagePack**: 既存のシリアライゼーション形式を維持
+- **DIコンテナ**: GameStateManagerとDataStoreの依存関係管理
 
 ## まとめ
 
-この設計により、moorestechクライアントは効率的なデータ管理システムを持つことになり、メモリ使用量の削減、ネットワーク帯域の最適化、そして開発者にとって使いやすいAPIを提供します。
+この設計により、以下が実現されます：
+
+1. **直感的なAPI**: データの性質に応じたアクセス方式（プロパティ/メソッド）
+2. **効率的なデータ管理**: 鮮度管理による適切なキャッシュ戦略
+3. **シンプルな実装**: BlockInventoryOpenStateDataStoreの廃止による簡潔化
+4. **段階的移行**: 既存システムからの低リスクな移行パス
+
+指摘：コンパイルが通ることを確認するために、
