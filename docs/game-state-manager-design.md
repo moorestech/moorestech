@@ -236,12 +236,7 @@ public class BlockInventoryUI
 - CraftTreeViewManager → IGameProgressState.CraftTreeを使用
 - ChallengeManager → IGameProgressState.Challengesを使用
 
-**SendOnly依存**:
-- BlockPlaceSystem → GameStateManager.Actions.PlaceBlock()
-- DeleteBlockState → GameStateManager.Actions.RemoveBlock()
-- LocalPlayerInventoryController → GameStateManager.Actions.MoveItem()
-- CraftInventoryView → GameStateManager.Actions.Craft()
-指摘：SendOnlyは今回のリファクタの対象外なので外しておいてください。
+**SendOnly依存**: （今回のリファクタリング対象外）
 
 **Event依存**:
 - BlockStateEventHandler → GameStateManager内部に統合
