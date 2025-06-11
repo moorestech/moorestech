@@ -2,7 +2,7 @@
 # unity_test.sh
 # 使い方: ./unity_test.sh <UnityProjectPath> 'Regex'  (または -testRegex 'Regex')
 
-UNITY="/Applications/Unity/Hub/Editor/2022.3.18f1/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 
 ###############################################################################
 # 引数パース
