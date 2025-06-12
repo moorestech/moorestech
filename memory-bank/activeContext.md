@@ -17,7 +17,11 @@
   - FluidPipeComponent.csへのコンストラクタベースロードの実装
   - VanillaMachineSaveComponentへの流体データ追加
   - BlockTemplateUtilへの流体ロード機能追加（AddLiquidを使用しない直接設定）
-  - FluidPipeSaveLoadTest.cs、FluidMachineSaveLoadTest.csの作成
+- FluidPipeSaveLoadTest.cs、FluidMachineSaveLoadTest.csの作成
+- 新規メンバー向けガイドを日本語で作成（`docs/NewMemberGuide.md`）
+- サーバーとクライアントの個別ドキュメントを追加し、アーキテクチャ詳細を追記
+  - `docs/ServerGuide.md`
+  - `docs/ClientGuide.md`
 
 ## 次のステップ
 
