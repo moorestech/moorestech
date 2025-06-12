@@ -275,3 +275,30 @@ public class BlockInventoryUI
 2. **効率的なデータ管理**: 鮮度管理による適切なキャッシュ戦略
 3. **シンプルな実装**: BlockInventoryOpenStateDataStoreの廃止による簡潔化
 4. **段階的移行**: 既存システムからの低リスクな移行パス
+
+## 実装時の重要参照先
+
+### ドキュメント
+- `/Users/katsumi.sato/moorestech/CLAUDE.md` - プロジェクトの開発規約とコーディング規則
+- `/Users/katsumi.sato/moorestech/memory-bank/` - プロジェクトコンテキストとパターン
+
+### サーバー側の主要ファイル
+- `/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/` - プロトコル定義
+- `/moorestech_server/Assets/Scripts/Server.Event/EventReceive/` - イベント定義
+- `/moorestech_server/Assets/Scripts/Game.PlayerInventory/BlockInventoryOpenStateDataStore.cs` - 廃止対象
+- `/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/BlockInventoryOpenCloseProtocol.cs` - 廃止対象
+
+### クライアント側の主要ファイル
+- `/moorestech_client/Assets/Scripts/Client.Network/API/VanillaApi.cs` - 現在のAPI実装
+- `/moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/BlockStateEventHandler.cs` - 移行対象
+- `/moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/BlockGameObjectDataStore.cs` - 統合対象
+- `/moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/EntityObjectDatastore.cs` - 統合対象
+- `/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Inventory/View/BlockInventoryState.cs` - インベントリUI実装
+
+### MessagePack関連
+- `/moorestech_server/Assets/Scripts/Server.Util/MessagePack/` - シリアライズ定義
+- `/moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateDetail/` - ブロック状態の型定義
+
+### テスト実行
+- `./unity-test.sh` - テスト実行スクリプト
+- `./unity-compile.sh` - コンパイル確認スクリプト
