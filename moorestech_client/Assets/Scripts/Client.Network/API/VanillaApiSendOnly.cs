@@ -23,12 +23,6 @@ namespace Client.Network.API
             _playerId = playerConnectionSetting.PlayerId;
         }
         
-        public void SetOpenCloseBlock(Vector3Int pos, bool isOpen)
-        {
-            var request = new BlockInventoryOpenCloseProtocol.BlockInventoryOpenCloseProtocolMessagePack(_playerId, pos, isOpen);
-            _packetSender.Send(request);
-        }
-        
         public void ItemMove(int count, ItemMoveType itemMoveType, ItemMoveInventoryInfo fromInv, int fromSlot, ItemMoveInventoryInfo toInv, int toSlot)
         {
             var request = new InventoryItemMoveProtocol.InventoryItemMoveProtocolMessagePack(_playerId, count, itemMoveType, fromInv, fromSlot, toInv, toSlot);

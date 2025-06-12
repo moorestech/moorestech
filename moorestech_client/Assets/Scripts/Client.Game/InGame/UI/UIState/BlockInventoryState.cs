@@ -29,7 +29,9 @@ namespace Client.Game.InGame.UI.UIState
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _playerInventoryViewController = playerInventoryViewController;
             
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
+            // DEPRECATED: OpenableBlockInventoryUpdateEvent has been removed
+            // Block inventory updates now happen through polling
+            // ClientContext.VanillaApi.Event.SubscribeEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
         }
         
         public UIStateEnum GetNextUpdate()
@@ -120,7 +122,8 @@ namespace Client.Game.InGame.UI.UIState
                 
                 // ブロックインベントリのデータを取得する
                 // Get block inventory data
-                ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
+                // DEPRECATED: BlockInventoryOpenCloseProtocol has been removed
+                // ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
                 var response = await ClientContext.VanillaApi.Response.GetBlockInventory(_openBlockPos, _loadBlockInventoryCts.Token);
                 _blockInventoryView?.UpdateItemList(response);
             }
@@ -134,7 +137,8 @@ namespace Client.Game.InGame.UI.UIState
             
             // ブロックを閉じる設定
             // Close block settings
-            ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
+            // DEPRECATED: BlockInventoryOpenCloseProtocol has been removed
+            // ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, false);
             
             // サブインベントリを空にする
             // Set the sub inventory to empty
@@ -147,13 +151,14 @@ namespace Client.Game.InGame.UI.UIState
             _blockInventoryView = null;
         }
         
-        private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
-        {
-            if (_blockInventoryView == null) return;
-            
-            var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
-            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
-            _blockInventoryView.UpdateInventorySlot(packet.Slot, item);
-        }
+        // DEPRECATED: OpenableBlockInventoryUpdateEvent has been removed
+        // private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
+        // {
+        //     if (_blockInventoryView == null) return;
+        //     
+        //     var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
+        //     var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+        //     _blockInventoryView.UpdateInventorySlot(packet.Slot, item);
+        // }
     }
 }
