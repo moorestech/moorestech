@@ -149,11 +149,11 @@ namespace Client.Starter
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             
             // GameStateManager and its implementations (no dependencies)
-            builder.RegisterInstance(new BlockRegistryImpl()).As<IBlockRegistry>();
-            builder.RegisterInstance(new PlayerStateImpl()).As<IPlayerState>();
-            builder.RegisterInstance(new EntityRegistryImpl()).As<IEntityRegistry>();
-            builder.RegisterInstance(new GameProgressStateImpl()).As<IGameProgressState>();
-            builder.RegisterInstance(new MapObjectRegistryImpl()).As<IMapObjectRegistry>();
+            builder.RegisterInstance(new BlockRegistry()).As<IBlockRegistry>();
+            builder.RegisterInstance(new PlayerState()).As<IPlayerState>();
+            builder.RegisterInstance(new EntityRegistry()).As<IEntityRegistry>();
+            builder.RegisterInstance(new GameProgressState()).As<IGameProgressState>();
+            builder.RegisterInstance(new MapObjectRegistry()).As<IMapObjectRegistry>();
             
             
             //Hierarchy上にあるcomponent

@@ -1,15 +1,57 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Client.Game.InGame.Context;
+using Client.Network.API;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace GameState.Implementation
 {
-    public class EntityRegistryImpl : IEntityRegistry
+    public class EntityRegistry : IEntityRegistry, IVanillaApiConnectable, IVanillaApiPollable, IDisposable
     {
         private readonly Dictionary<long, ClientEntityImpl> _entities = new();
 
-        public EntityRegistryImpl()
+        public EntityRegistry()
         {
+        }
+        
+        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        {
+            
+            // Initialize entities from handshake response
+            var worldData = initialHandshakeResponse.WorldData;
+            foreach (var entityResponse in worldData.Entities)
+            {
+                UpdateEntity(entityResponse.InstanceId, entityResponse.Type, entityResponse.Position, entityResponse.State);
+            }
+            
+        }
+        
+        public async UniTask UpdateWithWorldData(WorldDataResponse worldData)
+        {
+            // Update entities
+            var currentEntityIds = new HashSet<long>(_entities.Keys);
+            var newEntityIds = new HashSet<long>();
+            
+            foreach (var entityResponse in worldData.Entities)
+            {
+                newEntityIds.Add(entityResponse.InstanceId);
+                UpdateEntity(entityResponse.InstanceId, entityResponse.Type, entityResponse.Position, entityResponse.State);
+            }
+            
+            // Remove entities that no longer exist
+            currentEntityIds.ExceptWith(newEntityIds);
+            foreach (var removedId in currentEntityIds)
+            {
+                RemoveEntity(removedId);
+            }
+        }
+        
+        public void Dispose()
+        {
+            // No resources to dispose anymore since polling moved to GameStateManager
         }
 
         public IReadOnlyList<IClientEntity> GetEntities()

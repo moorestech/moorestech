@@ -1,27 +1,67 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
+using Client.Network.API;
 using Core.Master;
 using Game.UnlockState;
 using Game.UnlockState.States;
+using MessagePack;
+using Server.Event.EventReceive;
 
 namespace GameState.Implementation
 {
-    public class GameProgressStateImpl : IGameProgressState
+    public class GameProgressState : IGameProgressState, IVanillaApiConnectable
     {
         private readonly GameUnlockStateDataImpl _unlockStateData;
+        
+        public IGameUnlockStateData Unlocks => _unlockStateData;
+        public IReadOnlyChallengeState Challenges => new ChallengeStateImpl();
+        public IReadOnlyCraftTreeState CraftTree => new CraftTreeStateImpl();
 
-        public GameProgressStateImpl()
+        public GameProgressState()
         {
             _unlockStateData = new GameUnlockStateDataImpl();
         }
+        
+        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        {
+            // Initialize unlock state from handshake response
+            var unlockState = initialHandshakeResponse.UnlockState;
+            UpdateUnlockState(
+                unlockState.UnlockedCraftRecipeGuids,
+                unlockState.LockedCraftRecipeGuids,
+                unlockState.UnlockedItemIds,
+                unlockState.LockedItemIds,
+                unlockState.UnlockedChallengeGuids,
+                unlockState.LockedChallengeGuids);
+            
+            // Subscribe to unlock events
+            SubscribeToUnlockEvents();
+        }
+        
+        private void SubscribeToUnlockEvents()
+        {
+            // Unlock event
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, payload =>
+            {
+                var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(payload);
+                
+                switch (data.UnlockEventType)
+                {
+                    case UnlockEventType.CraftRecipe:
+                        _unlockStateData.UnlockCraftRecipe(data.UnlockedCraftRecipeGuid);
+                        break;
+                    case UnlockEventType.Item:
+                        _unlockStateData.UnlockItem(data.UnlockedItemId);
+                        break;
+                    case UnlockEventType.Challenge:
+                        _unlockStateData.UnlockChallenge(data.UnlockedChallengeGuid);
+                        break;
+                }
+            });
+        }
 
-        public IGameUnlockStateData Unlocks => _unlockStateData;
-
-        public IReadOnlyChallengeState Challenges => new ChallengeStateImpl();
-
-        public IReadOnlyCraftTreeState CraftTree => new CraftTreeStateImpl();
-
-        public void UpdateUnlockState(
+        private void UpdateUnlockState(
             List<Guid> unlockedCraftRecipeGuids, 
             List<Guid> lockedCraftRecipeGuids,
             List<ItemId> unlockedItemIds,
@@ -82,6 +122,21 @@ namespace GameState.Implementation
                 {
                     _challengeUnlockStateInfos[guid] = new ChallengeUnlockStateInfo(guid, true);
                 }
+            }
+            
+            public void UnlockCraftRecipe(Guid guid)
+            {
+                _recipeUnlockStateInfos[guid] = new CraftRecipeUnlockStateInfo(guid, true);
+            }
+            
+            public void UnlockItem(ItemId itemId)
+            {
+                _itemUnlockStateInfos[itemId] = new ItemUnlockStateInfo(itemId, true);
+            }
+            
+            public void UnlockChallenge(Guid guid)
+            {
+                _challengeUnlockStateInfos[guid] = new ChallengeUnlockStateInfo(guid, true);
             }
         }
     }
