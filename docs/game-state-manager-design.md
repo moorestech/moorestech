@@ -220,14 +220,40 @@ public class BlockInventoryUI
 2. プロパティアクセス用インターフェース定義
 3. 既存DataStoreのラップ実装
 
-### フェーズ2: 鮮度管理システム
+### フェーズ2: VanillaApiとの統合
+1. **VanillaApiの位置づけ**
+   - GameStateManagerの内部で低レベル通信層として使用
+   - 外部からの直接アクセスを段階的に廃止
+   - `ClientContext.VanillaApi`への参照をGameStateManager経由に移行
+
+2. **データフローの統合**
+   - **初期化フロー**:
+     - GameStateManagerは汎用的なデータ管理基盤を提供
+     - 各DataStoreが自身の責任でGameStateManagerからデータを取得
+     - DataStore側でゲーム固有のロジックを実装
+   
+   - **イベント購読の一元化**:
+     - GameStateManagerが汎用的なイベント配信メカニズムを提供
+     - 各DataStoreがGameStateManagerのイベントストリームを購読
+     - データの解釈と処理は各DataStore側で実装
+   
+   - **送信処理**:
+     - `VanillaApiSendOnly`は現状のまま維持
+     - 各コンポーネントが必要に応じて直接使用
+
+3. **条件付きデータ管理の実装**
+   - インベントリ開閉状態の管理をGameStateManager内で実装
+   - アクティブ/非アクティブデータの切り替えロジック
+   - メモリ効率を考慮した自動解放機能
+
+### フェーズ3: 鮮度管理システム
 1. `FreshDataCache`の実装
 2. ブロックインベントリの非同期取得実装
 3. キャッシュ有効期限の調整
 
-### フェーズ3: 段階的移行
+### フェーズ4: 段階的移行
 
-#### 3.1 VanillaApi依存クラスの移行
+#### 4.1 VanillaApi依存クラスの移行
 
 **Response依存**:
 - InitializeScenePipeline → GameStateManager初期化に統合
@@ -243,11 +269,11 @@ public class BlockInventoryUI
 - NetworkEventInventoryUpdater → GameStateManagerのイベントハンドラに移行
 - ClientGameUnlockStateData → IGameProgressStateの内部実装に移行
 
-#### 3.2 BlockStateEventHandler依存の解消
+#### 4.2 BlockStateEventHandler依存の解消
 - BlockGameObjectDataStoreへの直接アクセスをGameStateManager経由に変更
 - IBlockStateChangeProcessor実装クラスをGameStateManagerのイベントシステムに移行
 
-#### 3.3 旧DataStoreの廃止
+#### 4.3 旧DataStoreの廃止
 - BlockGameObjectDataStore
 - EntityObjectDatastore  
 - MapObjectGameObjectDatastore
@@ -276,6 +302,13 @@ public class BlockInventoryUI
 3. **シンプルな実装**: BlockInventoryOpenStateDataStoreの廃止による簡潔化
 4. **段階的移行**: 既存システムからの低リスクな移行パス
 
+## 実装状況
+
+### 完了したフェーズ
+- **フェーズ0**: サーバー側の準備 ✅
+- **フェーズ1**: GameStateManager基盤構築 ✅
+
+
 ## 実装時の重要参照先
 
 ### ドキュメント
@@ -285,8 +318,6 @@ public class BlockInventoryUI
 ### サーバー側の主要ファイル
 - `/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/` - プロトコル定義
 - `/moorestech_server/Assets/Scripts/Server.Event/EventReceive/` - イベント定義
-- `/moorestech_server/Assets/Scripts/Game.PlayerInventory/BlockInventoryOpenStateDataStore.cs` - 廃止対象
-- `/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/BlockInventoryOpenCloseProtocol.cs` - 廃止対象
 
 ### クライアント側の主要ファイル
 - `/moorestech_client/Assets/Scripts/Client.Network/API/VanillaApi.cs` - 現在のAPI実装
