@@ -71,6 +71,7 @@ Server.Boot → Server.Protocol → Game.World → Game.Block / Game.Entity / Ga
 ## 主なディレクトリ
 
 - `Assets/Server` 以下にゲームロジックのスクリプトが配置されています。
-- `Assets/AddressableResources` にはサーバー側で使用するリソースデータが格納されています。
 
-詳しい実装方針は `memory-bank/systemPatterns.md` も参照してください。
+## プロトコル実装について
+
+moorestechサーバーのプロトコル実装については、[プロトコル実装ガイド](./ProtocolImplementationGuide.md)を参照してください。
