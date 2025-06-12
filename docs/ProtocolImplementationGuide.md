@@ -308,7 +308,7 @@ public class YourEventPacketTest
 
 例：
 ```bash
-./unity-test.sh moorestech_server '[YourProtocol]'
+./unity-test.sh moorestech_server '[test name regex]'
 ```
 
 これにより、実装が正しく動作することを確認できます。
