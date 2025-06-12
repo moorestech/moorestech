@@ -8,6 +8,8 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
+using GameState;
+using GameState.Implementation;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
@@ -86,6 +88,7 @@ namespace Client.Starter
         
         [SerializeField] private InGameCameraController inGameCameraController;
         
+        [SerializeField] private GameStateManager gameStateManager;
         
         private IObjectResolver _resolver;
         private string IPAddress = ServerConst.LocalServerIp;
@@ -145,6 +148,13 @@ namespace Client.Starter
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             
+            // GameStateManager and its implementations (no dependencies)
+            builder.RegisterInstance(new BlockRegistryImpl()).As<IBlockRegistry>();
+            builder.RegisterInstance(new PlayerStateImpl()).As<IPlayerState>();
+            builder.RegisterInstance(new EntityRegistryImpl()).As<IEntityRegistry>();
+            builder.RegisterInstance(new GameProgressStateImpl()).As<IGameProgressState>();
+            builder.RegisterInstance(new MapObjectRegistryImpl()).As<IMapObjectRegistry>();
+            
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
@@ -187,6 +197,8 @@ namespace Client.Starter
             
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
             
+            builder.RegisterComponent(gameStateManager);
+            
             builder.RegisterBuildCallback(objectResolver => { });
             
             //依存関係を解決
@@ -199,6 +211,7 @@ namespace Client.Starter
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
+            _resolver.Resolve<GameStateManager>();
             
             return _resolver;
         }
