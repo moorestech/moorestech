@@ -60,7 +60,12 @@ namespace Server.Protocol.PacketResponse
             [Key(0)] public string Tag { get; set; }
             [Key(1)] public YourRequestData Data { get; set; }
             
-            指摘: メッセージパック側のシステムがシリアライズするために作る引数なしのコンストラクタが必要な旨を書いてください
+            // MessagePackのデシリアライズ用の引数なしコンストラクタ（必須）
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public YourRequestMessagePack()
+            {
+            }
+            
             public YourRequestMessagePack(YourRequestData data)
             {
                 Tag = YourProtocol.Tag;
@@ -74,7 +79,12 @@ namespace Server.Protocol.PacketResponse
             [Key(0)] public string Tag { get; set; }
             [Key(1)] public YourResponseData Data { get; set; }
             
-            指摘: メッセージパック側のシステムがシリアライズするために作る引数なしのコンストラクタが必要な旨を書いてください
+            // MessagePackのデシリアライズ用の引数なしコンストラクタ（必須）
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public YourResponseMessagePack()
+            {
+            }
+            
             public YourResponseMessagePack(YourResponseData data)
             {
                 Tag = YourProtocol.Tag;
@@ -181,7 +191,12 @@ namespace Server.Event.PacketEvent
             [Key(0)] public string Tag { get; set; }
             [Key(1)] public YourEventData Data { get; set; }
             
-            指摘: メッセージパック側のシステムがシリアライズするために作る引数なしのコンストラクタが必要な旨を書いてください
+            // MessagePackのデシリアライズ用の引数なしコンストラクタ（必須）
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public YourEventMessagePack()
+            {
+            }
+            
             public YourEventMessagePack(string tag, YourEventData data)
             {
                 Tag = tag;
@@ -194,7 +209,12 @@ namespace Server.Event.PacketEvent
         {
             [Key(0)] public string SomeProperty { get; set; }
             
-            指摘: メッセージパック側のシステムがシリアライズするために作る引数なしのコンストラクタが必要な旨を書いてください
+            // MessagePackのデシリアライズ用の引数なしコンストラクタ（必須）
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public YourEventData()
+            {
+            }
+            
             public YourEventData(string someProperty)
             {
                 SomeProperty = someProperty;
@@ -208,20 +228,33 @@ namespace Server.Event.PacketEvent
 
 #### 2.2 イベントパケットの初期化
 
-指摘：多分初期化について違うと思うので修正して
-サーバー起動時にイベントパケットクラスをインスタンス化する必要があります。通常は`GameSystem`や関連する初期化クラスで行います：
+イベントパケットは、そのイベントが発生する可能性のあるゲームシステムの初期化時にインスタンス化します。例えば：
+
+- ブロック関連のイベント → `BlockSystem`や`BlockUpdateSystem`の初期化時
+- プレイヤー関連のイベント → `PlayerSystem`の初期化時
+- アイテム関連のイベント → `ItemSystem`の初期化時
+
+実装例：
 
 ```csharp
-public class SomeGameSystem
+// 例: ブロック破壊イベントの場合
+public class BlockUpdateSystem
 {
-    private readonly YourEventPacket _yourEventPacket;
+    private readonly ChangeBlockStateEventPacket _changeBlockStateEventPacket;
     
-    public SomeGameSystem()
+    public BlockUpdateSystem()
     {
-        _yourEventPacket = new YourEventPacket();
+        // このシステムがブロック状態変更イベントを発火する可能性があるため、
+        // ここでイベントパケットを初期化
+        _changeBlockStateEventPacket = new ChangeBlockStateEventPacket();
     }
 }
 ```
+
+重要な点：
+- イベントパケットは、そのイベントを発火する責任を持つシステムで初期化する
+- 一度初期化すれば、`ServerContext.Event`を通じてどこからでもイベントを発火できる
+- イベントパケットのインスタンスは保持する必要がある（ガベージコレクションを防ぐため）
 
 #### 2.3 テストの作成
 
@@ -271,5 +304,11 @@ public class YourEventPacketTest
 
 ## コンパイルとテスト
 
-プロトコルを実装した後は、必ずCLAUDE.mdに記述されているコマンドでコンパイルとテストを実行してください：
+プロトコルを実装した後は、必ずCLAUDE.mdに記述されているコマンドでコンパイルとテストを実行してください。
+
+例：
+```bash
+./unity-test.sh moorestech_server '[YourProtocol]'
+```
+
 これにより、実装が正しく動作することを確認できます。
