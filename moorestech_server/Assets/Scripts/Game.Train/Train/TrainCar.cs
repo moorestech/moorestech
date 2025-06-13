@@ -1,3 +1,5 @@
+using Game.Block.Interface;
+
 namespace Game.Train.Train
 {
     public class TrainCar
@@ -16,12 +18,14 @@ namespace Game.Train.Train
         public int FuelSlots { get; private set; }
 
         public int Length { get; private set; }
+        public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる
 
         public TrainCar(int tractionForce, int inventorySlots, int length)
         {
             TractionForce = tractionForce;
             InventorySlots = inventorySlots;
             Length = length;
+            dockingblock = null;
         }
 
         //重さ、推進力を得る
