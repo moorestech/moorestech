@@ -12,17 +12,12 @@ namespace GameState.Implementation
 {
     internal class BlockInventoryCache
     {
-        private readonly FreshDataCache<Vector3Int, BlockInventoryData> _cache;
+        private readonly SimpleFreshDataCache<Vector3Int, BlockInventoryData> _cache;
         
         public BlockInventoryCache()
         {
-            
-            // Default values if no configuration provided
-            _cache = new FreshDataCache<Vector3Int, BlockInventoryData>(
-                expiration: TimeSpan.FromSeconds(30),
-                cleanupInterval: TimeSpan.FromMinutes(2),
-                maxCacheSize: 100
-            );
+            // Simple cache with 30 second expiration
+            _cache = new SimpleFreshDataCache<Vector3Int, BlockInventoryData>(TimeSpan.FromSeconds(30));
         }
         
         public async UniTask<IBlockInventory> GetInventoryAsync(Vector3Int position)
