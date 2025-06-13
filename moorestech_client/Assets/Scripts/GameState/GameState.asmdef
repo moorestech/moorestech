@@ -1,0 +1,32 @@
+{
+    "name": "GameState",
+    "rootNamespace": "GameState",
+    "references": [
+        "Client.Network",
+        "Core.Item",
+        "Core.Item.Interface",
+        "Core.Master",
+        "Game.Context",
+        "Server.Event",
+        "UniTask",
+        "UniRx",
+        "Unity.TextMeshPro",
+        "VContainer",
+        "Game.Block.Interface",
+        "MessagePack",
+        "Server.Util",
+        "Game.PlayerInventory.Interface",
+        "Game.UnlockState",
+        "Game.Challenge.Interface",
+        "Client.Common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
