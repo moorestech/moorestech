@@ -14,6 +14,7 @@ namespace GameState.Implementation
     public class BlockRegistry : IBlockRegistry, IVanillaApiConnectable, IVanillaApiPollable
     {
         private readonly Dictionary<Vector3Int, ReadOnlyBlock> _blocks = new();
+        private readonly BlockInventoryCache _inventoryCache = new();
 
         public BlockRegistry()
         {
@@ -106,7 +107,7 @@ namespace GameState.Implementation
         {
             if (!_blocks.TryGetValue(position, out var block))
             {
-                block = new ReadOnlyBlock(position, blockId, direction);
+                block = new ReadOnlyBlock(position, blockId, direction, _inventoryCache);
                 _blocks[position] = block;
             }
             else
@@ -118,6 +119,7 @@ namespace GameState.Implementation
         public void RemoveBlock(Vector3Int position)
         {
             _blocks.Remove(position);
+            _inventoryCache.InvalidateInventory(position);
         }
 
         public void UpdateBlockState(Vector3Int position, Dictionary<string, byte[]> stateData)
@@ -143,6 +145,7 @@ namespace GameState.Implementation
         private class ReadOnlyBlock : IReadOnlyBlock
         {
             private readonly Vector3Int _position;
+            private readonly BlockInventoryCache _inventoryCache;
             private int _blockId;
             private BlockDirection _direction;
             private Dictionary<string, byte[]> _stateData = new();
@@ -151,11 +154,12 @@ namespace GameState.Implementation
             public Vector3Int Position => _position;
             public BlockDirection Direction => _direction;
 
-            public ReadOnlyBlock(Vector3Int position, int blockId, BlockDirection direction)
+            public ReadOnlyBlock(Vector3Int position, int blockId, BlockDirection direction, BlockInventoryCache inventoryCache)
             {
                 _position = position;
                 _blockId = blockId;
                 _direction = direction;
+                _inventoryCache = inventoryCache;
             }
 
             public void UpdateBlockInfo(int blockId, BlockDirection direction)
@@ -187,27 +191,7 @@ namespace GameState.Implementation
 
             public async UniTask<IBlockInventory> GetInventoryAsync()
             {
-                try
-                {
-                    var items = await ClientContext.VanillaApi.Response.GetBlockInventory(_position, default);
-                    return new BlockInventoryImpl(items, DateTime.UtcNow);
-                }
-                catch
-                {
-                    return new BlockInventoryImpl(new List<IItemStack>(), DateTime.UtcNow);
-                }
-            }
-        }
-
-        private class BlockInventoryImpl : IBlockInventory
-        {
-            public IReadOnlyList<IItemStack> Items { get; }
-            public DateTime LastUpdated { get; }
-
-            public BlockInventoryImpl(IReadOnlyList<IItemStack> items, DateTime lastUpdated)
-            {
-                Items = items;
-                LastUpdated = lastUpdated;
+                return await _inventoryCache.GetInventoryAsync(_position);
             }
         }
     }
