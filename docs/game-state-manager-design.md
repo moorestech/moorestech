@@ -307,6 +307,8 @@ public class BlockInventoryUI
 ### 完了したフェーズ
 - **フェーズ0**: サーバー側の準備 ✅
 - **フェーズ1**: GameStateManager基盤構築 ✅
+- **フェーズ2**: VanillaApiとの統合 ✅
+- **フェーズ3**: 鮮度管理システム ✅
 
 
 ## 実装時の重要参照先
