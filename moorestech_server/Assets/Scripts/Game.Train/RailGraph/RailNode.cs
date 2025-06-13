@@ -56,12 +56,6 @@ namespace Game.Train.RailGraph
             StationRef = new StationReference(null, StationNodeRole.Entry); // デフォルトのStationReferenceを設定
         }
 
-        public void SetStationReference(StationReference _stationRef) 
-        {
-            // 駅参照を設定する
-            StationRef = _stationRef;
-        }
-
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
         public void SetOppositeNode(RailNode oppositeNode)
         {
