@@ -7,6 +7,7 @@ using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Factory.BlockTemplate.Utility;
+using Game.Train.RailGraph;
 
 
 namespace Game.Block.Factory.BlockTemplate
@@ -37,7 +38,16 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
             blockComponents.AddRange(inventoryComponents);
-            return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
+            
+            // ここで各RailNodeにStationReferenceを設定  
+            var createdBlock = new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
+
+            // 各RailComponentのNodeにStationReferenceを設定  
+            railComponents[0].FrontNode.StationRef = new StationReference(createdBlock, StationNodeRole.Entry);
+            railComponents[1].FrontNode.StationRef = new StationReference(createdBlock, StationNodeRole.Exit);
+            railComponents[1].BackNode.StationRef = new StationReference(createdBlock, StationNodeRole.Entry);
+            railComponents[0].BackNode.StationRef = new StationReference(createdBlock, StationNodeRole.Exit);
+            return createdBlock;
         }
 
         public IBlock Load(
