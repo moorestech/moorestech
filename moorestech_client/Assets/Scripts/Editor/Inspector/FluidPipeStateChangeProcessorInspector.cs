@@ -72,7 +72,7 @@ public class FluidPipeStateChangeProcessorInspector : Editor
     
     private void ShowCurrentState(FluidPipeStateChangeProcessor processor)
     {
-        var state = processor.CurrentFluidPipeState ?? (_isSimulating ? _state : null);
+        var state = processor.DebugCurrentFluidPipeState ?? (_isSimulating ? _state : null);
         
         EditorGUILayout.LabelField(_isSimulating ? "Simulated Fluid Pipe State" : "Current Fluid Pipe State", EditorStyles.boldLabel);
         if (state == null)

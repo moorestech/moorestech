@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.Fluid
         {
             var fluidStateDetail = GetFluidPipeStateDetail();
             var blockStateDetail = new BlockStateDetail(
-                FluidPipeStateDetail.FluidPipeStateDetailKey,
+                FluidPipeStateDetail.BlockStateDetailKey,
                 MessagePackSerializer.Serialize(fluidStateDetail)
             );
             
