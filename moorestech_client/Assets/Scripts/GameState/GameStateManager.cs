@@ -1,18 +1,17 @@
 using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using GameState.Implementation;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 namespace GameState
 {
-    public sealed class GameStateManager : MonoBehaviour, IInitializable
+    public sealed class GameStateManager : IInitializable
     {
-        private static GameStateManager _instance;
-        public static GameStateManager Instance => _instance;
-
+        public static GameStateManager Instance { get; private set; }
+        
         public IBlockRegistry Blocks { get; private set; }
         public IPlayerState Player { get; private set; }
         public IEntityRegistry Entities { get; private set; }
@@ -20,54 +19,41 @@ namespace GameState
         public IMapObjectRegistry MapObjects { get; private set; }
         
         private InitialHandshakeResponse _initialHandshakeResponse;
+        private VanillaApi _vanillaApi;
         private CancellationTokenSource _pollingCancellation;
 
-        private void Awake()
+        public GameStateManager(
+            InitialHandshakeResponse initialHandshakeResponse,
+            VanillaApi vanillaApi)
         {
-            if (_instance != null && _instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-        [Inject]
-        public void Construct(
-            IBlockRegistry blockRegistry,
-            IPlayerState playerState,
-            IEntityRegistry entityRegistry,
-            IGameProgressState gameProgressState,
-            IMapObjectRegistry mapObjectRegistry,
-            InitialHandshakeResponse initialHandshakeResponse)
-        {
-            Blocks = blockRegistry;
-            Player = playerState;
-            Entities = entityRegistry;
-            GameProgress = gameProgressState;
-            MapObjects = mapObjectRegistry;
+            Instance = this;
+            
+            Blocks = new BlockRegistry();
+            Player = new PlayerState();
+            Entities = new EntityRegistry();
+            GameProgress = new GameProgressState();
+            MapObjects = new MapObjectRegistry();
             _initialHandshakeResponse = initialHandshakeResponse;
+            _vanillaApi = vanillaApi;
         }
         
         public void Initialize()
         {
             // Initialize registry implementations with VanillaApi access
             if (Blocks is IVanillaApiConnectable blockConnectable)
-                blockConnectable.ConnectToVanillaApi(_initialHandshakeResponse);
+                blockConnectable.ConnectToVanillaApi(_vanillaApi, _initialHandshakeResponse);
                 
             if (Player is IVanillaApiConnectable playerConnectable)
-                playerConnectable.ConnectToVanillaApi(_initialHandshakeResponse);
+                playerConnectable.ConnectToVanillaApi(_vanillaApi, _initialHandshakeResponse);
                 
             if (Entities is IVanillaApiConnectable entityConnectable)
-                entityConnectable.ConnectToVanillaApi(_initialHandshakeResponse);
+                entityConnectable.ConnectToVanillaApi(_vanillaApi, _initialHandshakeResponse);
                 
             if (GameProgress is IVanillaApiConnectable progressConnectable)
-                progressConnectable.ConnectToVanillaApi(_initialHandshakeResponse);
+                progressConnectable.ConnectToVanillaApi(_vanillaApi, _initialHandshakeResponse);
                 
             if (MapObjects is IVanillaApiConnectable mapObjectConnectable)
-                mapObjectConnectable.ConnectToVanillaApi(_initialHandshakeResponse);
+                mapObjectConnectable.ConnectToVanillaApi(_vanillaApi, _initialHandshakeResponse);
             
             // Start polling for world data updates
             StartWorldDataPolling();
@@ -86,7 +72,7 @@ namespace GameState
                 try
                 {
                     // Poll for world data updates
-                    var worldData = await ClientContext.VanillaApi.Response.GetWorldData(ct);
+                    var worldData = await _vanillaApi.Response.GetWorldData(ct);
                     
                     // Update pollable registries
                     if (Blocks is IVanillaApiPollable blockPollable)
@@ -113,9 +99,9 @@ namespace GameState
             _pollingCancellation?.Cancel();
             _pollingCancellation?.Dispose();
             
-            if (_instance == this)
+            if (Instance == this)
             {
-                _instance = null;
+                Instance = null;
             }
         }
     }

@@ -26,7 +26,6 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
-using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.Skit;
 using Client.Network.API;
@@ -88,8 +87,6 @@ namespace Client.Starter
         
         [SerializeField] private InGameCameraController inGameCameraController;
         
-        [SerializeField] private GameStateManager gameStateManager;
-        
         private IObjectResolver _resolver;
         private string IPAddress = ServerConst.LocalServerIp;
         
@@ -104,7 +101,7 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
         
-        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
+        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, VanillaApi vanillaApi)
         {
             var builder = new ContainerBuilder();
             
@@ -146,15 +143,6 @@ namespace Client.Starter
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
-            builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
-            
-            // GameStateManager and its implementations (no dependencies)
-            builder.RegisterInstance(new BlockRegistry()).As<IBlockRegistry>();
-            builder.RegisterInstance(new PlayerState()).As<IPlayerState>();
-            builder.RegisterInstance(new EntityRegistry()).As<IEntityRegistry>();
-            builder.RegisterInstance(new GameProgressState()).As<IGameProgressState>();
-            builder.RegisterInstance(new MapObjectRegistry()).As<IMapObjectRegistry>();
-            
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
@@ -196,8 +184,6 @@ namespace Client.Starter
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
-            
-            builder.RegisterComponent(gameStateManager);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

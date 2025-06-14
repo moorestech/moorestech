@@ -11,11 +11,11 @@ namespace GameState
 
     public interface IReadOnlyChallengeState
     {
-        // TODO: Define challenge state interface based on existing implementation
+        Client.Network.API.ChallengeResponse ChallengeData { get; }
     }
 
     public interface IReadOnlyCraftTreeState
     {
-        // TODO: Define craft tree state interface based on existing implementation
+        Client.Network.API.CraftTreeResponse CraftTreeData { get; }
     }
 }

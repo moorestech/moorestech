@@ -1,21 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Client.Common;
+using Client.Network.API;
 using Core.Item.Interface;
+using Cysharp.Threading.Tasks;
 using MessagePack;
 using UnityEngine;
-using Client.Common;
-using Client.Game.InGame.Context;
 
 namespace GameState.Implementation
 {
     internal class BlockInventoryCache
     {
         private readonly SimpleFreshDataCache<Vector3Int, BlockInventoryData> _cache;
+        private readonly VanillaApi _vanillaApi;
         
-        public BlockInventoryCache()
+        public BlockInventoryCache(VanillaApi vanillaApi)
         {
+            _vanillaApi = vanillaApi;
             // Simple cache with 30 second expiration
             _cache = new SimpleFreshDataCache<Vector3Int, BlockInventoryData>(TimeSpan.FromSeconds(30));
         }
@@ -39,7 +41,7 @@ namespace GameState.Implementation
         {
             try
             {
-                var response = await ClientContext.VanillaApi.Response.GetBlockInventory(position, CancellationToken.None);
+                var response = await _vanillaApi.Response.GetBlockInventory(position, CancellationToken.None);
                 
                 if (response == null)
                 {
@@ -68,13 +70,10 @@ namespace GameState.Implementation
             }
         }
         
-        [MessagePackObject]
         internal class BlockInventoryData : IBlockInventory
         {
-            [Key(0)]
             public IReadOnlyList<IItemStack> Items { get; set; }
             
-            [Key(1)]
             public DateTime LastUpdated { get; set; }
         }
     }
