@@ -8,35 +8,30 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.BlockSystem
 {
-    /// <summary>
-    /// This class now acts as a bridge between GameStateManager and BlockGameObjectDataStore.
-    /// It observes block state changes from GameStateManager and updates the visual representation.
-    /// </summary>
     public class BlockStateEventHandler : IPostStartable
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly InitialHandshakeResponse _initialHandshakeResponse;
         
-        public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore)
+        public BlockStateEventHandler(BlockGameObjectDataStore blockGameObjectDataStore, InitialHandshakeResponse initialHandshakeResponse)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _initialHandshakeResponse = initialHandshakeResponse;
             
-            // Note: Block state events are now handled by GameStateManager.Blocks
-            // This handler only needs to listen for state changes and update visual processors
             ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag,
                 payload =>
                 {
                     var data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
-                    UpdateVisualState(data);
+                    ChangeState(data);
                 });
         }
         
         public void PostStart()
         {
-            // Initial states are now handled by GameStateManager during initialization
-            // We only need to ensure visual processors are ready
+            foreach (var state in _initialHandshakeResponse.BlockStates) ChangeState(state);
         }
         
-        private void UpdateVisualState(BlockStateMessagePack state)
+        private void ChangeState(BlockStateMessagePack state)
         {
             var pos = state.Position;
             if (!_blockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
