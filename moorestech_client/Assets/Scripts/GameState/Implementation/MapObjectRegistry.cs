@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Client.Network.API;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -15,7 +14,7 @@ namespace GameState.Implementation
         {
         }
         
-        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        public void ConnectToVanillaApi(VanillaApi vanillaApi, InitialHandshakeResponse initialHandshakeResponse)
         {
             
             // Initialize map objects from handshake response
@@ -37,13 +36,13 @@ namespace GameState.Implementation
             }
             
             // Subscribe to map object events
-            SubscribeToMapObjectEvents();
+            SubscribeToMapObjectEvents(vanillaApi);
         }
         
-        private void SubscribeToMapObjectEvents()
+        private void SubscribeToMapObjectEvents(VanillaApi vanillaApi)
         {
             // Map object update event (currently only handles destruction)
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, payload =>
+            vanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(payload);
                 

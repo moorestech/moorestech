@@ -1,27 +1,41 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Network.API;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Event.EventReceive;
+using UniRx;
 using UnityEngine;
 
 namespace GameState.Implementation
 {
+    public struct BlockStateChangedEvent
+    {
+        public Vector3Int Position { get; set; }
+        public Dictionary<string, byte[]> StateData { get; set; }
+    }
+    
     public class BlockRegistry : IBlockRegistry, IVanillaApiConnectable, IVanillaApiPollable
     {
         private readonly Dictionary<Vector3Int, ReadOnlyBlock> _blocks = new();
-        private readonly BlockInventoryCache _inventoryCache = new();
+        private readonly Subject<BlockStateChangedEvent> _blockStateChanged = new();
+        private BlockInventoryCache _inventoryCache;
+        private VanillaApi _vanillaApi;
+
+        public IObservable<BlockStateChangedEvent> OnBlockStateChanged => _blockStateChanged;
+        IObservable<object> IBlockRegistry.OnBlockStateChanged => _blockStateChanged.Select(x => (object)x);
 
         public BlockRegistry()
         {
         }
         
-        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        public void ConnectToVanillaApi(VanillaApi vanillaApi, InitialHandshakeResponse initialHandshakeResponse)
         {
+            _vanillaApi = vanillaApi;
+            _inventoryCache = new BlockInventoryCache(vanillaApi);
             
             // Initialize blocks from handshake response
             var worldData = initialHandshakeResponse.WorldData;
@@ -43,7 +57,7 @@ namespace GameState.Implementation
         private void SubscribeToBlockEvents()
         {
             // Block placement event
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, payload =>
+            _vanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
                 var blockData = data.BlockData;
@@ -51,14 +65,14 @@ namespace GameState.Implementation
             });
             
             // Block removal event
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(RemoveBlockToSetEventPacket.EventTag, payload =>
+            _vanillaApi.Event.SubscribeEventResponse(RemoveBlockToSetEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload);
                 RemoveBlock(data.Position);
             });
             
             // Block state change event
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag, payload =>
+            _vanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
                 UpdateBlockState(data.Position, data.CurrentStateDetail);
@@ -127,6 +141,13 @@ namespace GameState.Implementation
             if (_blocks.TryGetValue(position, out var block))
             {
                 block.UpdateStateData(stateData);
+                
+                // Emit block state changed event
+                _blockStateChanged.OnNext(new BlockStateChangedEvent
+                {
+                    Position = position,
+                    StateData = stateData
+                });
             }
         }
         

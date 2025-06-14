@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Client.Network.API;
 using Core.Master;
 using Game.UnlockState;
@@ -13,17 +12,21 @@ namespace GameState.Implementation
     public class GameProgressState : IGameProgressState, IVanillaApiConnectable
     {
         private readonly GameUnlockStateDataImpl _unlockStateData;
+        private readonly ChallengeStateImpl _challengeState;
+        private readonly CraftTreeStateImpl _craftTreeState;
         
         public IGameUnlockStateData Unlocks => _unlockStateData;
-        public IReadOnlyChallengeState Challenges => new ChallengeStateImpl();
-        public IReadOnlyCraftTreeState CraftTree => new CraftTreeStateImpl();
+        public IReadOnlyChallengeState Challenges => _challengeState;
+        public IReadOnlyCraftTreeState CraftTree => _craftTreeState;
 
         public GameProgressState()
         {
             _unlockStateData = new GameUnlockStateDataImpl();
+            _challengeState = new ChallengeStateImpl();
+            _craftTreeState = new CraftTreeStateImpl();
         }
         
-        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        public void ConnectToVanillaApi(VanillaApi vanillaApi, InitialHandshakeResponse initialHandshakeResponse)
         {
             // Initialize unlock state from handshake response
             var unlockState = initialHandshakeResponse.UnlockState;
@@ -35,14 +38,20 @@ namespace GameState.Implementation
                 unlockState.UnlockedChallengeGuids,
                 unlockState.LockedChallengeGuids);
             
+            // Initialize challenge state
+            _challengeState.Initialize(initialHandshakeResponse.Challenge);
+            
+            // Initialize craft tree state
+            _craftTreeState.Initialize(initialHandshakeResponse.CraftTree);
+            
             // Subscribe to unlock events
-            SubscribeToUnlockEvents();
+            SubscribeToUnlockEvents(vanillaApi);
         }
         
-        private void SubscribeToUnlockEvents()
+        private void SubscribeToUnlockEvents(VanillaApi vanillaApi)
         {
             // Unlock event
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, payload =>
+            vanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(payload);
                 
@@ -143,11 +152,25 @@ namespace GameState.Implementation
 
     public class ChallengeStateImpl : IReadOnlyChallengeState
     {
-        // TODO: Implement based on existing challenge system
+        private ChallengeResponse _challengeData;
+        
+        public ChallengeResponse ChallengeData => _challengeData;
+        
+        public void Initialize(ChallengeResponse challengeData)
+        {
+            _challengeData = challengeData;
+        }
     }
 
     public class CraftTreeStateImpl : IReadOnlyCraftTreeState
     {
-        // TODO: Implement based on existing craft tree system
+        private CraftTreeResponse _craftTreeData;
+        
+        public CraftTreeResponse CraftTreeData => _craftTreeData;
+        
+        public void Initialize(CraftTreeResponse craftTreeData)
+        {
+            _craftTreeData = craftTreeData;
+        }
     }
 }

@@ -10,7 +10,8 @@ namespace GameState
         /// <summary>
         /// Connects the implementation to VanillaApi for receiving server events
         /// </summary>
+        /// <param name="vanillaApi">The VanillaApi instance for network communication</param>
         /// <param name="initialHandshakeResponse">Initial game state from server handshake</param>
-        void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse);
+        void ConnectToVanillaApi(VanillaApi vanillaApi, InitialHandshakeResponse initialHandshakeResponse);
     }
 }

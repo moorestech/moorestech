@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Core.Item.Interface;
@@ -9,6 +10,7 @@ namespace GameState
     {
         IReadOnlyBlock GetBlock(Vector3Int position);
         IReadOnlyDictionary<Vector3Int, IReadOnlyBlock> AllBlocks { get; }
+        IObservable<object> OnBlockStateChanged { get; }
     }
 
     public interface IReadOnlyBlock

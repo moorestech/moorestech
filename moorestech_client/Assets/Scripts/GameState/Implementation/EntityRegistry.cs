@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -17,7 +16,7 @@ namespace GameState.Implementation
         {
         }
         
-        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        public void ConnectToVanillaApi(VanillaApi vanillaApi, InitialHandshakeResponse initialHandshakeResponse)
         {
             
             // Initialize entities from handshake response

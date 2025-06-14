@@ -18,7 +18,8 @@
         "Game.PlayerInventory.Interface",
         "Game.UnlockState",
         "Game.Challenge.Interface",
-        "Client.Common"
+        "Client.Common",
+        "Server.Protocol"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

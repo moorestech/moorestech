@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
@@ -30,7 +29,7 @@ namespace GameState.Implementation
             _grabItem = _itemStackFactory.CreatEmpty();
         }
         
-        public void ConnectToVanillaApi(InitialHandshakeResponse initialHandshakeResponse)
+        public void ConnectToVanillaApi(VanillaApi vanillaApi, InitialHandshakeResponse initialHandshakeResponse)
         {
             
             // Initialize from handshake response
@@ -39,20 +38,20 @@ namespace GameState.Implementation
             UpdateGrabItem(playerInventory.GrabItem);
             
             // Subscribe to inventory events
-            SubscribeToInventoryEvents();
+            SubscribeToInventoryEvents(vanillaApi);
         }
         
-        private void SubscribeToInventoryEvents()
+        private void SubscribeToInventoryEvents(VanillaApi vanillaApi)
         {
             // Main inventory update event
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(MainInventoryUpdateEventPacket.EventTag, payload =>
+            vanillaApi.Event.SubscribeEventResponse(MainInventoryUpdateEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(payload);
                 UpdateMainInventorySlot(data.Slot, data.Item);
             });
             
             // Grab inventory update event
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(GrabInventoryUpdateEventPacket.EventTag, payload =>
+            vanillaApi.Event.SubscribeEventResponse(GrabInventoryUpdateEventPacket.EventTag, payload =>
             {
                 var data = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(payload);
                 var grabItem = _itemStackFactory.Create(data.Item.Id, data.Item.Count);
