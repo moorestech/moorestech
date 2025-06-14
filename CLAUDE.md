@@ -166,3 +166,19 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
+
+#　サーバー側の開発
+moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は`./unity-test.sh moorestech_server '[regex]'`を実行し、コンパイル、テストが通ることを確認してください。regexの内容はタスクによって変動するので、適宜調整してください。
+
+# クライアント側の開発
+moorestehc_client配下はTDDは行っておりません。そのため、コンパイルエラーをチェックする用途で、`./unity-test.sh moorestech_client '^0'`を実行してください。^0は何にもマッチしないので、コンパイルエラーがあれば出力されます。
+
+# 追加指示
+
+NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
+
+YOU MUST:コードを書き終わったから必ずコンパイルを実行してください。
+
+IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライアントの実装をする際はdocs/ClientGuide.mdを必ず参照してください。
+IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコル、イベントプロトコル）を実装する際は、docs/ProtocolImplementationGuide.mdを必ず参照してください。
+IMPORTANT:このゲームのコードベースは非常に大規模であり、たいていタスクもすでにある実装の拡張であることが多いです。そのため、良くコードを読み、コードの性質を理解し、周り合わせて空気を読んだコードを記述することを心がけてください。

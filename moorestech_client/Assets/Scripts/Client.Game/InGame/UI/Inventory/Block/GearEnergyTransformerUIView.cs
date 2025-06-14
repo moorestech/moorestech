@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using TMPro;
@@ -28,23 +29,22 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         private void Update()
         {
-            // ここが重かったら検討
-            var processor = (GearStateChangeProcessor)_blockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as GearStateChangeProcessor);
-            if (processor == null)
+            var state = _blockGameObject.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
+            if (state == null)
             {
-                Debug.LogError("GearStateChangeProcessorがアタッチされていません。");
+                Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
                 return;
             }
             
-            var currentTorque = processor.CurrentGearState?.CurrentTorque ?? 0;
-            var currentRpm = processor.CurrentGearState?.CurrentRpm ?? 0;
+            var currentTorque = state.CurrentTorque;
+            var currentRpm = state.CurrentRpm;
             
             torque.text = $"トルク: {currentTorque}";
             rpm.text = $"回転数: {currentRpm}";
             
-            var rate = processor.CurrentGearState?.GearNetworkOperatingRate ?? 0;
-            var requiredPower = processor.CurrentGearState?.GearNetworkTotalRequiredPower ?? 0;
-            var generatePower = processor.CurrentGearState?.GearNetworkTotalGeneratePower ?? 0;
+            var rate = state.GearNetworkOperatingRate;
+            var requiredPower = state.GearNetworkTotalRequiredPower;
+            var generatePower = state.GearNetworkTotalGeneratePower;
             networkInfo.text = $"歯車ネットワーク情報 稼働率: {rate * 100:F2}% 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
         }
         
