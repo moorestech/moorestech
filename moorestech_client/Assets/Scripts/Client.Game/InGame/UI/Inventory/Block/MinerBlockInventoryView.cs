@@ -75,31 +75,24 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             void UpdateMinerProgressArrow()
             {
-                // ここが重かったら検討
-                var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
-                if (commonProcessor == null)
+                var state = BlockGameObject.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+                if (state == null)
                 {
-                    Debug.LogError("CommonMachineBlockStateChangeProcessorがアタッチされていません。");
+                    Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
                     return;
                 }
                 
-                var state = commonProcessor.CurrentMachineState;
-                var rate = state?.ProcessingRate ?? 0.0f;
+                var rate = state.ProcessingRate;
                 minerProgressArrow.SetProgress(rate);
                 
-                var powerRate = state?.PowerRate ?? 0.0f;
-                var requiredPower = state?.RequestPower ?? 0.0f;
-                var currentPower = state?.CurrentPower ?? 0.0f;
+                var powerRate = state.PowerRate;
+                var requiredPower = state.RequestPower;
+                var currentPower = state.CurrentPower;
                 
                 var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
                 var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
                 
                 powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
-                
-                if (state == null)
-                {
-                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
-                }
             }
             
   #endregion
