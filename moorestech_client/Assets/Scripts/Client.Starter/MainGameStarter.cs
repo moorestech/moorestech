@@ -8,8 +8,6 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
-using GameState;
-using GameState.Implementation;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
@@ -26,6 +24,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
+using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.Skit;
 using Client.Network.API;
@@ -87,6 +86,7 @@ namespace Client.Starter
         
         [SerializeField] private InGameCameraController inGameCameraController;
         
+        
         private IObjectResolver _resolver;
         private string IPAddress = ServerConst.LocalServerIp;
         
@@ -101,7 +101,7 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
         
-        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, VanillaApi vanillaApi)
+        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
             
@@ -143,6 +143,8 @@ namespace Client.Starter
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
+            builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
+            
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
@@ -197,7 +199,6 @@ namespace Client.Starter
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
-            _resolver.Resolve<GameStateManager>();
             
             return _resolver;
         }

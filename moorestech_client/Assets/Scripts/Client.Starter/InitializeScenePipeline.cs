@@ -14,7 +14,6 @@ using Client.Network.Settings;
 using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using GameState;
 using Server.Boot;
 using TMPro;
 using UnityEngine;
@@ -94,8 +93,7 @@ namespace Client.Starter
             }
             
             //staticアクセスできるコンテキストの作成
-            var gameStateManager = new GameStateManager(handshakeResponse, vanillaApi);
-            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi, gameStateManager);
+            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -109,7 +107,7 @@ namespace Client.Starter
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
                 var starter = FindObjectOfType<MainGameStarter>();
-                var resolver = starter.StartGame(handshakeResponse, vanillaApi);
+                var resolver = starter.StartGame(handshakeResponse);
                 var diContainer = new DIContainer(resolver);
                 clientContext.SetDIContainer(diContainer);
             }

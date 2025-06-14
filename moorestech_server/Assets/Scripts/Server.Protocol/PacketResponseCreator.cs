@@ -27,7 +27,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendCommandProtocol.ProtocolTag, new SendCommandProtocol(serviceProvider));
-            _packetResponseDictionary.Add(BlockInventoryUpdateProtocol.ProtocolTag, new BlockInventoryUpdateProtocol());
+            _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.ProtocolTag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.ProtocolTag, new SaveProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.ProtocolTag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGameUnlockStateProtocol.ProtocolTag, new GetGameUnlockStateProtocol(serviceProvider));
