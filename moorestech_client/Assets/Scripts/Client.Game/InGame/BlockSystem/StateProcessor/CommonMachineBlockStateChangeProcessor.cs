@@ -11,24 +11,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public class CommonMachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
-        public CommonMachineBlockStateDetail CurrentMachineState { get; private set; }
-        
-        
-        private void Awake()
-        {
-        }
-        
-        private void Start()
-        {
-
-        }
-        
-        
         public void OnChangeState(BlockStateMessagePack blockState)
         {
-            CurrentMachineState = blockState.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
-            var currentState = CurrentMachineState.CurrentStateType;
-            var previousState = CurrentMachineState.PreviousStateType;
+            var state = blockState.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+            var currentState = state.CurrentStateType;
+            var previousState = state.PreviousStateType;
             
             switch (currentState)
             {

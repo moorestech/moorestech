@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
 using UnityEngine;
@@ -15,25 +16,25 @@ namespace Client.Game.InGame.UI.Inventory.Block
         private new void Update()
         {
             base.Update();
-            // ここが重かったら検討
-            var processor = (GearStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as GearStateChangeProcessor);
-            if (processor == null)
+            
+            var state = BlockGameObject.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
+            if (state == null)
             {
-                Debug.LogError("GearStateChangeProcessorがアタッチされていません。");
+                Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
                 return;
             }
             
             var masterParam = (GearMachineBlockParam)BlockGameObject.BlockMasterElement.BlockParam;
-            SetGearText(masterParam, processor, torque, rpm, networkInfo);
+            SetGearText(masterParam, state, torque, rpm, networkInfo);
         }
         
-        public static void SetGearText(IGearMachineParam param, GearStateChangeProcessor processor, TMP_Text torqueText, TMP_Text rpmText, TMP_Text networkInfoText)
+        public static void SetGearText(IGearMachineParam param, GearStateDetail state, TMP_Text torqueText, TMP_Text rpmText, TMP_Text networkInfoText)
         {
             var requireTorque = param.RequireTorque;
             var requireRpm = param.RequiredRpm;
             
-            var currentTorque = processor.CurrentGearState?.CurrentTorque ?? 0;
-            var currentRpm = processor.CurrentGearState?.CurrentRpm ?? 0;
+            var currentTorque = state.CurrentTorque;
+            var currentRpm = state.CurrentRpm;
             
             torqueText.text = $"トルク: {currentTorque:F2} / {requireTorque:F2}";
             if (currentTorque < requireTorque)
@@ -47,9 +48,9 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 rpmText.text = $"回転数: <color=red>{currentRpm:F2}</color> / {requireRpm:F2}";
             }
             
-            var rate = processor.CurrentGearState?.GearNetworkOperatingRate ?? 0;
-            var requiredPower = processor.CurrentGearState?.GearNetworkTotalRequiredPower ?? 0;
-            var generatePower = processor.CurrentGearState?.GearNetworkTotalGeneratePower ?? 0;
+            var rate = state.GearNetworkOperatingRate;
+            var requiredPower = state.GearNetworkTotalRequiredPower;
+            var generatePower = state.GearNetworkTotalGeneratePower;
             networkInfoText.text = $"歯車ネットワーク情報 稼働率: {rate * 100:F2}% 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
         }
     }
