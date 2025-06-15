@@ -29,12 +29,13 @@ namespace Client.Game.InGame.UI.Inventory.Common
         [SerializeField] private TMP_Text countText;
         [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
         
-        private bool _showToolTip = true;
-        
         private bool _onPointing;
         
         private void Awake()
         {
+            // default true
+            uGuiTooltipTarget.DisplayEnable(true);
+            
             OnPointerEvent.Subscribe(OnInvokeOtherEvent).AddTo(this);
             SubscribeHover();
             SubscribeClick();
@@ -64,7 +65,6 @@ namespace Client.Game.InGame.UI.Inventory.Common
             {
                 uGuiTooltipTarget.SetText(toolTipText, false);
             }
-            uGuiTooltipTarget.DisplayEnable(_showToolTip);
         }
         
         public void SetViewClear()
@@ -75,31 +75,11 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public void SetSlotViewOption(CommonSlotViewOption slotOption)
         {
-            if (slotOption.GrayOut != null)
-            {
-                SetGrayOut(slotOption.GrayOut.Value);
-            }
-            
-            if (slotOption.HotBarSelected != null)
-            {
-                SetHotBarSelect(slotOption.HotBarSelected.Value);
-            }
-            
-            if (slotOption.ItemSlotFrameType != null)
-            {
-                SetFrame(slotOption.ItemSlotFrameType.Value);
-            }
-            
-            if (slotOption.ItemSlotType != null)
-            {
-                SetItemSlotType(slotOption.ItemSlotType.Value);
-            }
-            
-            if (slotOption.IsShowToolTip != null)
-            {
-                _showToolTip = slotOption.IsShowToolTip.Value;
-                uGuiTooltipTarget.DisplayEnable(_showToolTip);
-            }
+            if (slotOption.GrayOut != null) SetGrayOut(slotOption.GrayOut.Value);
+            if (slotOption.HotBarSelected != null) SetHotBarSelect(slotOption.HotBarSelected.Value);
+            if (slotOption.ItemSlotFrameType != null) SetFrame(slotOption.ItemSlotFrameType.Value);
+            if (slotOption.ItemSlotType != null) SetItemSlotType(slotOption.ItemSlotType.Value);
+            if (slotOption.IsShowToolTip != null) uGuiTooltipTarget.DisplayEnable(slotOption.IsShowToolTip.Value);
             
             #region Internal
             
