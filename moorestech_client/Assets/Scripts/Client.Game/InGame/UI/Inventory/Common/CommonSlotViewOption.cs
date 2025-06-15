@@ -10,7 +10,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public ItemSlotFrameType? ItemSlotFrameType;
         public ItemSlotType? ItemSlotType;
         public bool? HotBarSelected;
-        public bool? ShowToolTip;
+        public bool? IsShowToolTip;
     }
     
     public enum ItemUIEventType

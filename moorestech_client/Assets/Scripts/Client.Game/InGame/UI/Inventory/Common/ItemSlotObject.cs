@@ -1,5 +1,7 @@
-﻿using Client.Mod.Texture;
+﻿using System;
+using Client.Mod.Texture;
 using Core.Master;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Common
@@ -10,6 +12,10 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public ItemViewData ItemViewData { get; private set; }
         public int Count { get; private set; }
+        
+        public IObservable<(ItemSlotObject, ItemUIEventType)> OnPointerEvent => commonSlotView.OnPointerEvent.Select(e => (this, e.Item2));
+        
+        public IObservable<ItemSlotObject> OnLeftClickUp => commonSlotView.OnLeftClickUp.Select(_ => this);
         
         
         public void SetItem(ItemViewData itemView, int count, string toolTipText = null)

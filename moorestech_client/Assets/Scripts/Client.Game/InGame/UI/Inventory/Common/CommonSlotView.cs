@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         [SerializeField] private TMP_Text countText;
         [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
         
-        private bool _hotBarSelected = true;
+        private bool _showToolTip = true;
         
         private bool _onPointing;
         
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             {
                 uGuiTooltipTarget.SetText(toolTipText, false);
             }
-            uGuiTooltipTarget.DisplayEnable(_hotBarSelected);
+            uGuiTooltipTarget.DisplayEnable(_showToolTip);
         }
         
         public void SetViewClear()
@@ -82,7 +82,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             
             if (slotOption.HotBarSelected != null)
             {
-                _hotBarSelected = slotOption.HotBarSelected.Value;
+                SetHotBarSelect(slotOption.HotBarSelected.Value);
             }
             
             if (slotOption.ItemSlotFrameType != null)
@@ -93,6 +93,12 @@ namespace Client.Game.InGame.UI.Inventory.Common
             if (slotOption.ItemSlotType != null)
             {
                 SetItemSlotType(slotOption.ItemSlotType.Value);
+            }
+            
+            if (slotOption.IsShowToolTip != null)
+            {
+                _showToolTip = slotOption.IsShowToolTip.Value;
+                uGuiTooltipTarget.DisplayEnable(_showToolTip);
             }
             
             #region Internal
