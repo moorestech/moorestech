@@ -17,6 +17,8 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public IObservable<ItemSlotObject> OnLeftClickUp => commonSlotView.OnLeftClickUp.Select(_ => this);
         
+        public IObservable<ItemSlotObject> OnRightClickUp => commonSlotView.OnRightClickUp.Select(_ => this);
+        
         
         public void SetItem(ItemViewData itemView, int count, string toolTipText = null)
         {

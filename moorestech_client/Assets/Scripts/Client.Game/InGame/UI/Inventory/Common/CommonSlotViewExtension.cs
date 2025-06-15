@@ -1,14 +1,24 @@
+using System.Reflection;
+
 namespace Client.Game.InGame.UI.Inventory.Common
 {
     public static class CommonSlotViewExtension
     {
         public static void SetGrayOut(this CommonSlotView commonSlotView, bool active)
         {
-            commonSlotView.SetSlotViewOption(new CommonSlotViewOption
-            {
-                GrayOut = active
-            });
+            commonSlotView.SetSlotViewOption(GetGrayOutOption(active));
         }
+        public static void SetGrayOut(this ItemSlotObject itemSlotObject, bool active)
+        {
+            itemSlotObject.SetSlotViewOption(GetGrayOutOption(active));
+        }
+        private static CommonSlotViewOption GetGrayOutOption(bool active)
+        {
+            return new CommonSlotViewOption { GrayOut = active };
+        }
+        
+        // 上記をさんこうに
+        // 下記を全て修正してください
         
         public static void SetFrameType(this CommonSlotView commonSlotView, ItemSlotFrameType frameType)
         {
@@ -17,6 +27,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
                 ItemSlotFrameType = frameType
             });
         }
+
         
         public static void SetSlotType(this CommonSlotView commonSlotView, ItemSlotType slotType)
         {
@@ -26,6 +37,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             });
         }
         
+
         public static void SetHotBarSelected(this CommonSlotView commonSlotView, bool isSelected)
         {
             commonSlotView.SetSlotViewOption(new CommonSlotViewOption
