@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8575689108101692114}
   - component: {fileID: 8614296645604515983}
   m_Layer: 5
-  m_Name: click
+  m_Name: Click Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 1014375674738587961}
   - component: {fileID: 1014375674738587960}
   m_Layer: 5
-  m_Name: cout
+  m_Name: Count Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -183,15 +183,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 0
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
+  m_ActiveFontFeatures: 
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -218,9 +220,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1014375675779259833}
+  - component: {fileID: 6025278813921210490}
   - component: {fileID: 1014375675779259836}
   - component: {fileID: 1014375675779259838}
-  - component: {fileID: 7226362693378105453}
   - component: {fileID: 1186919496023674567}
   - component: {fileID: 5583253362659883424}
   m_Layer: 5
@@ -251,6 +253,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6025278813921210490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014375675779259832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60a2352d66534463be31e9a8c114f4ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemImage: {fileID: 1885320552950913259}
+  normalFrame: {fileID: 4299517632762084330}
+  machineSlotFrame: {fileID: 8384614708635708959}
+  craftRecipeFrame: {fileID: 8668122986229676837}
+  hotBarSelect: {fileID: 7837513962978010560}
+  grayOutImage: {fileID: 6648118856840850400}
+  hoverImage: {fileID: 1297722331359907779}
+  clickImage: {fileID: 784587572628537564}
+  normalItemSlotObject: {fileID: 4453128930901351719}
+  noneCrossObject: {fileID: 4581972568625986164}
+  countText: {fileID: 1014375674738587960}
+  uGuiTooltipTarget: {fileID: 1186919496023674567}
 --- !u!222 &1014375675779259836
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -303,30 +329,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &7226362693378105453
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1014375675779259832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemImage: {fileID: 1885320552950913259}
-  normalFrame: {fileID: 4299517632762084330}
-  machineSlotFrame: {fileID: 8384614708635708959}
-  craftRecipeFrame: {fileID: 8668122986229676837}
-  hotBarSelect: {fileID: 7837513962978010560}
-  grayOutImage: {fileID: 6648118856840850400}
-  hoverImage: {fileID: 1297722331359907779}
-  clickImage: {fileID: 784587572628537564}
-  normalItemSlotObject: {fileID: 4453128930901351719}
-  noneCrossObject: {fileID: 4581972568625986164}
-  countText: {fileID: 1014375674738587960}
-  uGuiTooltipTarget: {fileID: 1186919496023674567}
 --- !u!114 &1186919496023674567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -422,7 +424,7 @@ GameObject:
   - component: {fileID: 5585670971775477443}
   - component: {fileID: 8567633607376093635}
   m_Layer: 5
-  m_Name: hover select
+  m_Name: Hover Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -570,7 +572,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9188797133368270542}
   m_Layer: 5
-  m_Name: background frane
+  m_Name: Background Frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -588,9 +590,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7855873280997964389}
   - {fileID: 4577596317612609478}
   - {fileID: 4688892539226602552}
+  - {fileID: 7855873280997964389}
   m_Father: {fileID: 628354622185468710}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -610,7 +612,7 @@ GameObject:
   - component: {fileID: 7497786628764879734}
   - component: {fileID: 5271149875001509311}
   m_Layer: 5
-  m_Name: normal frame
+  m_Name: Normal Frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -986,7 +988,7 @@ GameObject:
   - component: {fileID: 2392319378602379809}
   - component: {fileID: 8765699475418099456}
   m_Layer: 5
-  m_Name: grayout
+  m_Name: Grayout Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1061,7 +1063,7 @@ GameObject:
   - component: {fileID: 7879949793862649112}
   - component: {fileID: 4029926418106968714}
   m_Layer: 5
-  m_Name: hotbar select
+  m_Name: HotBra Select
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1136,7 +1138,7 @@ GameObject:
   - component: {fileID: 8883616724291216631}
   - component: {fileID: 4003330140996149304}
   m_Layer: 5
-  m_Name: use machine frame
+  m_Name: Machine Slot Frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1209,7 +1211,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7855873280997964389}
   m_Layer: 5
-  m_Name: craft recipe item frame
+  m_Name: Craft Recipe Frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
