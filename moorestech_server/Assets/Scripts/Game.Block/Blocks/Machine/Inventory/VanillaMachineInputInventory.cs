@@ -17,6 +17,9 @@ namespace Game.Block.Blocks.Machine.Inventory
     /// </summary>
     public class VanillaMachineInputInventory
     {
+        public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
+        public IReadOnlyList<FluidContainer> FluidInputSlot => _fluidContainers;
+        
         private readonly BlockId _blockId;
         private readonly BlockInstanceId _blockInstanceId;
         
@@ -38,9 +41,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 _fluidContainers[i] = new FluidContainer(innerTankCapacity);
             }
         }
-        
-        public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
-        public IReadOnlyList<FluidContainer> FluidInputSlot => _fluidContainers;
         
         public bool IsAllowedToStartProcess()
         {
