@@ -156,6 +156,16 @@ namespace Game.Block.Blocks.Fluid
             return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
         }
         
+        public List<FluidStack> GetFluidInventory()
+        {
+            var fluidStacks = new List<FluidStack>();
+            if (_fluidContainer.Amount > 0)
+            {
+                fluidStacks.Add(new FluidStack(_fluidContainer.Amount, _fluidContainer.FluidId));
+            }
+            return fluidStacks;
+        }
+        
         /// <summary>
         ///     2つのIFluidInventory間の最大流体搬送速度を取得する
         ///    搬送速度は、2つのIFluidInventoryの流体搬送能力の最小値に、1ゲームアップデートの時間(秒)を乗じた値
