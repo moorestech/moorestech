@@ -91,6 +91,16 @@ namespace Game.Block.Blocks.Gear
             IsDestroy = true;
         }
         
+        public List<FluidStack> GetFluidInventory()
+        {
+            var fluidStacks = new List<FluidStack>();
+            if (_steamTank.Amount > 0)
+            {
+                fluidStacks.Add(new FluidStack(_steamTank.Amount, _steamTank.FluidId));
+            }
+            return fluidStacks;
+        }
+        
         #region IBlockSaveState
         
         public string SaveKey => "steamGearGeneratorFluid";
