@@ -221,6 +221,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1014375675779259833}
   - component: {fileID: 6025278813921210490}
+  - component: {fileID: 296130373708113023}
   - component: {fileID: 1014375675779259836}
   - component: {fileID: 1014375675779259838}
   - component: {fileID: 1186919496023674567}
@@ -277,6 +278,30 @@ MonoBehaviour:
   noneCrossObject: {fileID: 4581972568625986164}
   countText: {fileID: 1014375674738587960}
   uGuiTooltipTarget: {fileID: 1186919496023674567}
+--- !u!114 &296130373708113023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014375675779259832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemImage: {fileID: 0}
+  normalFrame: {fileID: 0}
+  machineSlotFrame: {fileID: 0}
+  craftRecipeFrame: {fileID: 0}
+  hotBarSelect: {fileID: 0}
+  grayOutImage: {fileID: 0}
+  hoverImage: {fileID: 0}
+  clickImage: {fileID: 0}
+  normalItemSlotObject: {fileID: 0}
+  noneCrossObject: {fileID: 0}
+  countText: {fileID: 0}
+  uGuiTooltipTarget: {fileID: 0}
 --- !u!222 &1014375675779259836
 CanvasRenderer:
   m_ObjectHideFlags: 0
