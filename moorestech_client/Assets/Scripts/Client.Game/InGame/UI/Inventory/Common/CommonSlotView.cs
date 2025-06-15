@@ -73,26 +73,26 @@ namespace Client.Game.InGame.UI.Inventory.Common
             uGuiTooltipTarget.DisplayEnable(false);
         }
         
-        public void SetSlotViewOption(CommonSlotViewOption commonSlotView)
+        public void SetSlotViewOption(CommonSlotViewOption slotOption)
         {
-            if (commonSlotView.GrayOut != null)
+            if (slotOption.GrayOut != null)
             {
-                SetGrayOut(commonSlotView.GrayOut.Value);
+                SetGrayOut(slotOption.GrayOut.Value);
             }
             
-            if (commonSlotView.HotBarSelected != null)
+            if (slotOption.HotBarSelected != null)
             {
-                _hotBarSelected = commonSlotView.HotBarSelected.Value;
+                _hotBarSelected = slotOption.HotBarSelected.Value;
             }
             
-            if (commonSlotView.ItemSlotFrameType != null)
+            if (slotOption.ItemSlotFrameType != null)
             {
-                SetFrame(commonSlotView.ItemSlotFrameType.Value);
+                SetFrame(slotOption.ItemSlotFrameType.Value);
             }
             
-            if (commonSlotView.ItemSlotType != null)
+            if (slotOption.ItemSlotType != null)
             {
-                SetItemSlotType(commonSlotView.ItemSlotType.Value);
+                SetItemSlotType(slotOption.ItemSlotType.Value);
             }
             
             #region Internal
@@ -235,17 +235,5 @@ namespace Client.Game.InGame.UI.Inventory.Common
         }
         
         #endregion
-    }
-    
-    /// <summary>
-    /// スロットの設定を変更するクラス。非nullの値のみ変更を実施する
-    /// A class to change slot settings. Only non-null values are changed.
-    /// </summary>
-    public class CommonSlotViewOption
-    {
-        public bool? GrayOut;
-        public ItemSlotFrameType? ItemSlotFrameType;
-        public ItemSlotType? ItemSlotType;
-        public bool? HotBarSelected;
     }
 }
