@@ -70,18 +70,42 @@ namespace Client.Game.InGame.Tutorial
             Vector2 arrowPosition;
             float arrowRotation;
             
+            var screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            
             if (isTargetVisible)
             {
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     canvasRect, targetScreenPos, camera, out arrowPosition);
-                arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, arrowPosition);
                 
-                Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
+                var screenCenterLocal = Vector2.zero;
+                var directionToTarget = (arrowPosition - screenCenterLocal).normalized;
+                arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, directionToTarget);
+                
+                Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Direction: {directionToTarget}, Rotation: {arrowRotation}");
             }
             else
             {
-                var screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-                var directionToTarget = (new Vector2(targetScreenPos.x, targetScreenPos.y) - screenCenter).normalized;
+                Vector2 directionToTarget;
+                
+                if (targetScreenPos.z < 0)
+                {
+                    var cameraToTarget = (targetWorldPos - camera.transform.position).normalized;
+                    var cameraForward = camera.transform.forward;
+                    var cameraRight = camera.transform.right;
+                    var cameraUp = camera.transform.up;
+                    
+                    var screenX = Vector3.Dot(cameraToTarget, cameraRight);
+                    var screenY = Vector3.Dot(cameraToTarget, cameraUp);
+                    
+                    directionToTarget = new Vector2(-screenX, -screenY).normalized;
+                    
+                    Debug.Log($"[HudArrow] Behind Camera - CameraToTarget: {cameraToTarget}, ScreenDir: {directionToTarget}");
+                }
+                else
+                {
+                    directionToTarget = (new Vector2(targetScreenPos.x, targetScreenPos.y) - screenCenter).normalized;
+                }
+                
                 var clampedScreenPos = ClampToScreenEdge(screenCenter, directionToTarget);
                 
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
