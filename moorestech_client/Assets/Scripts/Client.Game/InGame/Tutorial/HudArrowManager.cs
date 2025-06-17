@@ -66,6 +66,8 @@ namespace Client.Game.InGame.Tutorial
             Debug.Log($"[HudArrow] Screen Size: {Screen.width}x{Screen.height}");
             Debug.Log($"[HudArrow] IsVisible: {isTargetVisible}");
             Debug.Log($"[HudArrow] Canvas Rect Size: {canvasRect.rect.size}");
+            Debug.Log($"[HudArrow] Canvas Anchor: {canvasRect.anchorMin} - {canvasRect.anchorMax}");
+            Debug.Log($"[HudArrow] Canvas Pivot: {canvasRect.pivot}");
             
             Vector2 arrowPosition;
             float arrowRotation;
@@ -78,15 +80,18 @@ namespace Client.Game.InGame.Tutorial
                     canvasRect, targetScreenPos, camera, out var targetLocalPos);
                 
                 var canvasCenter = Vector2.zero;
-                var directionToTarget = (targetLocalPos - canvasCenter).normalized;
-                var distanceFromCenter = Vector2.Distance(targetLocalPos, canvasCenter);
-                var arrowDistance = Mathf.Min(distanceFromCenter * 0.8f, 100f);
+                var directionToTarget = targetLocalPos.normalized;
+                var distanceFromCenter = targetLocalPos.magnitude;
                 
-                arrowPosition = canvasCenter + directionToTarget * arrowDistance;
-                arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, directionToTarget);
+                var maxArrowDistance = Mathf.Min(canvasRect.rect.width, canvasRect.rect.height) * 0.3f;
+                var arrowDistance = Mathf.Min(distanceFromCenter * 0.7f, maxArrowDistance);
+                
+                arrowPosition = directionToTarget * arrowDistance;
+                arrowRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg;
                 
                 Debug.Log($"[HudArrow] Visible - TargetLocalPos: {targetLocalPos}, Distance: {distanceFromCenter}");
-                Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Direction: {directionToTarget}, Rotation: {arrowRotation}");
+                Debug.Log($"[HudArrow] Visible - Direction: {directionToTarget}, MaxDistance: {maxArrowDistance}");
+                Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
             }
             else
             {
@@ -111,15 +116,13 @@ namespace Client.Game.InGame.Tutorial
                     directionToTarget = (new Vector2(targetScreenPos.x, targetScreenPos.y) - screenCenter).normalized;
                 }
                 
-                var clampedScreenPos = ClampToScreenEdge(screenCenter, directionToTarget);
-                
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    canvasRect, clampedScreenPos, camera, out arrowPosition);
-                arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, directionToTarget);
+                var maxArrowDistance = Mathf.Min(canvasRect.rect.width, canvasRect.rect.height) * 0.4f;
+                arrowPosition = directionToTarget * maxArrowDistance;
+                arrowRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg;
                 
                 Debug.Log($"[HudArrow] Hidden - ScreenCenter: {screenCenter}");
                 Debug.Log($"[HudArrow] Hidden - Direction: {directionToTarget}");
-                Debug.Log($"[HudArrow] Hidden - ClampedPos: {clampedScreenPos}");
+                Debug.Log($"[HudArrow] Hidden - MaxDistance: {maxArrowDistance}");
                 Debug.Log($"[HudArrow] Hidden - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
             }
             
