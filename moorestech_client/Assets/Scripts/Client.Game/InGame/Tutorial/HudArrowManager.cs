@@ -60,66 +60,55 @@ namespace Client.Game.InGame.Tutorial
             var targetWorldPos = target.transform.position;
             var viewportPos = camera.WorldToViewportPoint(targetWorldPos);
             
+            // 画面内かどうかの判定
             var isOnScreen = viewportPos.z > 0 && 
                              viewportPos.x >= 0 && viewportPos.x <= 1 && 
                              viewportPos.y >= 0 && viewportPos.y <= 1;
             
-            Vector2 canvasSize = canvasRect.rect.size;
-            Vector2 canvasCenter = Vector2.zero;
-            
-            Vector2 arrowPosition;
-            float arrowRotation;
-            
             if (isOnScreen)
             {
-                var screenPos = new Vector2(
-                    (viewportPos.x - 0.5f) * canvasSize.x,
-                    (viewportPos.y - 0.5f) * canvasSize.y
-                );
-                
-                arrowPosition = screenPos;
-                var direction = screenPos.normalized;
-                arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                // 画面内の場合は一旦非表示
+                arrowTransform.gameObject.SetActive(false);
+                return;
             }
-            else
-            {
-                // カメラの後ろにある場合、ビューポート座標を反転
-                if (viewportPos.z < 0)
-                {
-                    viewportPos.x = 1f - viewportPos.x;
-                    viewportPos.y = 1f - viewportPos.y;
-                }
-                
-                // ビューポート座標をクランプして画面端の位置を取得
-                viewportPos.x = Mathf.Clamp(viewportPos.x, 0f, 1f);
-                viewportPos.y = Mathf.Clamp(viewportPos.y, 0f, 1f);
-                
-                // Canvas座標に変換
-                var screenPos = new Vector2(
-                    (viewportPos.x - 0.5f) * canvasSize.x,
-                    (viewportPos.y - 0.5f) * canvasSize.y
-                );
-                
-                // 画面中央からの方向を計算
-                var direction = screenPos.normalized;
-                if (direction.magnitude < 0.001f)
-                {
-                    direction = Vector2.right;
-                }
-                
-                // 画面端からマージンを考慮した位置を計算
-                var margin = 50f;
-                var maxX = (canvasSize.x * 0.5f) - margin;
-                var maxY = (canvasSize.y * 0.5f) - margin;
-                
-                // 方向ベクトルをスケーリングして画面端に配置
-                var scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
-                var scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
-                var scale = Mathf.Min(scaleX, scaleY);
-                
-                arrowPosition = direction * scale;
-                arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            }
+            
+            // 画面外の場合
+            arrowTransform.gameObject.SetActive(true);
+            
+            // カメラからターゲットへの方向ベクトル（ワールド空間）
+            var cameraToTarget = (targetWorldPos - camera.transform.position).normalized;
+            
+            // カメラの前方向ベクトル
+            var cameraForward = camera.transform.forward;
+            
+            // 前方向からターゲット方向への角度を計算
+            var angle = Vector3.SignedAngle(cameraForward, cameraToTarget, camera.transform.up);
+            
+            // 画面上での方向（-180～180度を0～360度に変換）
+            var screenAngle = -angle; // Unityの座標系に合わせて反転
+            
+            // 方向ベクトル（画面上）
+            var direction = new Vector2(
+                Mathf.Cos(screenAngle * Mathf.Deg2Rad),
+                Mathf.Sin(screenAngle * Mathf.Deg2Rad)
+            );
+            
+            // Canvas のサイズ
+            var canvasSize = canvasRect.rect.size;
+            var margin = 100f;
+            var maxX = (canvasSize.x * 0.5f) - margin;
+            var maxY = (canvasSize.y * 0.5f) - margin;
+            
+            // 画面端への距離を計算
+            var scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
+            var scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
+            var scale = Mathf.Min(scaleX, scaleY);
+            
+            // 矢印の位置
+            var arrowPosition = direction * scale;
+            
+            // 矢印の回転（pivotが(1, 0.5)なので右向きが0度）
+            var arrowRotation = screenAngle;
             
             arrowTransform.anchoredPosition = arrowPosition;
             arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
