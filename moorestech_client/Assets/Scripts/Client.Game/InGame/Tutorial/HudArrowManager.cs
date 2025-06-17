@@ -75,12 +75,17 @@ namespace Client.Game.InGame.Tutorial
             if (isTargetVisible)
             {
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    canvasRect, targetScreenPos, camera, out arrowPosition);
+                    canvasRect, targetScreenPos, camera, out var targetLocalPos);
                 
-                var screenCenterLocal = Vector2.zero;
-                var directionToTarget = (arrowPosition - screenCenterLocal).normalized;
+                var canvasCenter = Vector2.zero;
+                var directionToTarget = (targetLocalPos - canvasCenter).normalized;
+                var distanceFromCenter = Vector2.Distance(targetLocalPos, canvasCenter);
+                var arrowDistance = Mathf.Min(distanceFromCenter * 0.8f, 100f);
+                
+                arrowPosition = canvasCenter + directionToTarget * arrowDistance;
                 arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, directionToTarget);
                 
+                Debug.Log($"[HudArrow] Visible - TargetLocalPos: {targetLocalPos}, Distance: {distanceFromCenter}");
                 Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Direction: {directionToTarget}, Rotation: {arrowRotation}");
             }
             else
@@ -132,14 +137,17 @@ namespace Client.Game.InGame.Tutorial
         private Vector2 ClampToScreenEdge(Vector2 screenCenter, Vector2 direction)
         {
             var screenBounds = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            var margin = 50f;
+            var margin = 100f;
             screenBounds -= Vector2.one * margin;
             
             var normalizedDirection = direction.normalized;
-            var scaleFactor = Mathf.Min(
-                Mathf.Abs(screenBounds.x / normalizedDirection.x),
-                Mathf.Abs(screenBounds.y / normalizedDirection.y)
-            );
+            
+            if (Mathf.Abs(normalizedDirection.x) < 0.001f && Mathf.Abs(normalizedDirection.y) < 0.001f)
+                return screenCenter;
+            
+            var scaleX = Mathf.Abs(normalizedDirection.x) > 0.001f ? screenBounds.x / Mathf.Abs(normalizedDirection.x) : float.MaxValue;
+            var scaleY = Mathf.Abs(normalizedDirection.y) > 0.001f ? screenBounds.y / Mathf.Abs(normalizedDirection.y) : float.MaxValue;
+            var scaleFactor = Mathf.Min(scaleX, scaleY);
             
             return screenCenter + normalizedDirection * scaleFactor;
         }
