@@ -88,11 +88,7 @@ namespace Client.Game.InGame.Tutorial
             var localZ = Vector3.Dot(cameraToTarget, camera.transform.forward);
             
             // カメラの後ろにある場合の処理
-            if (localZ < 0)
-            {
-                localX = -localX;
-                localY = -localY;
-            }
+            // 特に反転処理は不要
             
             // 画面上での方向ベクトル
             var direction = new Vector2(localX, localY).normalized;
