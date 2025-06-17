@@ -174,6 +174,31 @@ namespace Game.Block.Blocks.Machine
             return field?.GetValue(pipe) as FluidContainer;
         }
         
+        public List<FluidStack> GetFluidInventory()
+        {
+            var fluidStacks = new List<FluidStack>();
+            
+            // 入力タンクの流体を追加
+            foreach (var container in _inputInventory.FluidInputSlot)
+            {
+                if (container.Amount > 0)
+                {
+                    fluidStacks.Add(new FluidStack(container.Amount, container.FluidId));
+                }
+            }
+            
+            // 出力タンクの流体を追加
+            foreach (var container in _outputInventory.FluidOutputSlot)
+            {
+                if (container.Amount > 0)
+                {
+                    fluidStacks.Add(new FluidStack(container.Amount, container.FluidId));
+                }
+            }
+            
+            return fluidStacks;
+        }
+        
         public bool IsDestroy { get; private set; }
         
         public void Destroy()

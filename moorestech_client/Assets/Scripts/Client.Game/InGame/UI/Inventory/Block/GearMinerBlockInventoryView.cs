@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
 using UnityEngine;
@@ -15,16 +16,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
         private new void Update()
         {
             base.Update();
-            // ここが重かったら検討
-            var processor = (GearStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as GearStateChangeProcessor);
-            if (processor == null)
+            var state = BlockGameObject.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
+            if (state == null)
             {
-                Debug.LogError("GearStateChangeProcessorがアタッチされていません。");
+                Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
                 return;
             }
             
             var masterParam = (IGearMachineParam)BlockGameObject.BlockMasterElement.BlockParam;
-            GearMachineBlockInventoryView.SetGearText(masterParam, processor, torque, rpm, networkInfo);
+            GearMachineBlockInventoryView.SetGearText(masterParam, state, torque, rpm, networkInfo);
         }
     }
 }

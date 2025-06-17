@@ -10,21 +10,21 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private float speed = 1;
         
-        public GearStateDetail CurrentGearState { get; private set; }
+        private GearStateDetail _currentGearState;
         
         private Vector2 _offset;
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {
-            CurrentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
+            _currentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }
         
         private void Update()
         {
-            if (CurrentGearState == null) return;
+            if (_currentGearState == null) return;
             
-            _offset.x += CurrentGearState.CurrentRpm / 60 * Time.time * speed;
+            _offset.x += _currentGearState.CurrentRpm / 60 * Time.time * speed;
             meshRenderer.sharedMaterial.SetTextureOffset(BaseMap, _offset);
         }
     }

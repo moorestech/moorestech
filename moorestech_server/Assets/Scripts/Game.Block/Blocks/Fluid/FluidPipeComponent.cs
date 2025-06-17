@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.Fluid
         {
             var fluidStateDetail = GetFluidPipeStateDetail();
             var blockStateDetail = new BlockStateDetail(
-                FluidPipeStateDetail.FluidPipeStateDetailKey,
+                FluidPipeStateDetail.BlockStateDetailKey,
                 MessagePackSerializer.Serialize(fluidStateDetail)
             );
             
@@ -154,6 +154,16 @@ namespace Game.Block.Blocks.Fluid
             var amount = _fluidContainer.Amount;
             var capacity = _fluidContainer.Capacity;
             return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
+        }
+        
+        public List<FluidStack> GetFluidInventory()
+        {
+            var fluidStacks = new List<FluidStack>();
+            if (_fluidContainer.Amount > 0)
+            {
+                fluidStacks.Add(new FluidStack(_fluidContainer.Amount, _fluidContainer.FluidId));
+            }
+            return fluidStacks;
         }
         
         /// <summary>
