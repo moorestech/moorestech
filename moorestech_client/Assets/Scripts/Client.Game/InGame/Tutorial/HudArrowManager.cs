@@ -22,7 +22,7 @@ namespace Client.Game.InGame.Tutorial
             {
                 if (target == null)
                     continue;
-                    
+                
                 UpdateArrowTransform(target, imageTransform);
             }
         }
@@ -48,11 +48,11 @@ namespace Client.Game.InGame.Tutorial
         {
             if (arrowTransform == null || target == null)
                 return;
-                
+            
             var camera = Camera.main;
             if (camera == null)
                 return;
-                
+            
             var canvasRect = transform as RectTransform;
             if (canvasRect == null)
                 return;
@@ -61,8 +61,8 @@ namespace Client.Game.InGame.Tutorial
             var viewportPos = camera.WorldToViewportPoint(targetWorldPos);
             
             // 画面内かどうかの判定
-            var isOnScreen = viewportPos.z > 0 && 
-                             viewportPos.x >= 0 && viewportPos.x <= 1 && 
+            var isOnScreen = viewportPos.z > 0 &&
+                             viewportPos.x >= 0 && viewportPos.x <= 1 &&
                              viewportPos.y >= 0 && viewportPos.y <= 1;
             
             if (isOnScreen)
@@ -74,9 +74,7 @@ namespace Client.Game.InGame.Tutorial
                 var targetScreenPos = camera.WorldToScreenPoint(targetWorldPos);
                 
                 // スクリーン座標をCanvas座標に変換
-                Vector2 targetCanvasPos;
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    canvasRect, targetScreenPos, camera, out targetCanvasPos);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, targetScreenPos, camera, out var targetCanvasPos);
                 
                 // 矢印の位置をターゲット位置に設定
                 arrowTransform.anchoredPosition = targetCanvasPos;
@@ -86,49 +84,50 @@ namespace Client.Game.InGame.Tutorial
                 var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 
                 arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
-                return;
             }
-            
-            // 画面外の場合
-            arrowTransform.gameObject.SetActive(true);
-            
-            // カメラからターゲットへの方向ベクトル（ワールド空間）
-            var cameraToTarget = targetWorldPos - camera.transform.position;
-            
-            // カメラの右方向と上方向
-            var cameraRight = camera.transform.right;
-            var cameraUp = camera.transform.up;
-            
-            // ターゲット方向をカメラのローカル空間に投影
-            var localX = Vector3.Dot(cameraToTarget, cameraRight);
-            var localY = Vector3.Dot(cameraToTarget, cameraUp);
-            var localZ = Vector3.Dot(cameraToTarget, camera.transform.forward);
-            
-            // カメラの後ろにある場合の処理
-            // 特に反転処理は不要
-            
-            // 画面上での方向ベクトル
-            var direction = new Vector2(localX, localY).normalized;
-            
-            // Canvas のサイズ
-            var canvasSize = canvasRect.rect.size;
-            var margin = 100f;
-            var maxX = (canvasSize.x * 0.5f) - margin;
-            var maxY = (canvasSize.y * 0.5f) - margin;
-            
-            // 画面端への距離を計算
-            var scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
-            var scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
-            var scale = Mathf.Min(scaleX, scaleY);
-            
-            // 矢印の位置
-            var arrowPosition = direction * scale;
-            
-            // 矢印の回転（pivotが(1, 0.5)なので右向きが0度）
-            var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            
-            arrowTransform.anchoredPosition = arrowPosition;
-            arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
+            else
+            {
+                // 画面外の場合
+                arrowTransform.gameObject.SetActive(true);
+                
+                // カメラからターゲットへの方向ベクトル（ワールド空間）
+                var cameraToTarget = targetWorldPos - camera.transform.position;
+                
+                // カメラの右方向と上方向
+                var cameraRight = camera.transform.right;
+                var cameraUp = camera.transform.up;
+                
+                // ターゲット方向をカメラのローカル空間に投影
+                var localX = Vector3.Dot(cameraToTarget, cameraRight);
+                var localY = Vector3.Dot(cameraToTarget, cameraUp);
+                var localZ = Vector3.Dot(cameraToTarget, camera.transform.forward);
+                
+                // カメラの後ろにある場合の処理
+                // 特に反転処理は不要
+                
+                // 画面上での方向ベクトル
+                var direction = new Vector2(localX, localY).normalized;
+                
+                // Canvas のサイズ
+                var canvasSize = canvasRect.rect.size;
+                var margin = 0f;
+                var maxX = canvasSize.x * 0.5f - margin;
+                var maxY = canvasSize.y * 0.5f - margin;
+                
+                // 画面端への距離を計算
+                var scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
+                var scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
+                var scale = Mathf.Min(scaleX, scaleY);
+                
+                // 矢印の位置
+                var arrowPosition = direction * scale;
+                
+                // 矢印の回転（pivotが(1, 0.5)なので右向きが0度）
+                var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                
+                arrowTransform.anchoredPosition = arrowPosition;
+                arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
+            }
         }
         
         #endregion
