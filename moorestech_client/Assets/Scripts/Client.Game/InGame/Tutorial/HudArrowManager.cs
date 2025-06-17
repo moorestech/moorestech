@@ -70,11 +70,14 @@ namespace Client.Game.InGame.Tutorial
                 // 画面内の場合
                 arrowTransform.gameObject.SetActive(true);
                 
-                // ターゲットのスクリーン座標を取得
-                var targetScreenPos = camera.WorldToScreenPoint(targetWorldPos);
+                // Canvas のサイズ
+                var canvasSize = canvasRect.rect.size;
                 
-                // スクリーン座標をCanvas座標に変換
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, targetScreenPos, camera, out var targetCanvasPos);
+                // ビューポート座標をCanvas座標に変換（0-1を-0.5～0.5に変換してからCanvasサイズを掛ける）
+                var targetCanvasPos = new Vector2(
+                    (viewportPos.x - 0.5f) * canvasSize.x,
+                    (viewportPos.y - 0.5f) * canvasSize.y
+                );
                 
                 // 矢印の位置をターゲット位置に設定
                 arrowTransform.anchoredPosition = targetCanvasPos;
