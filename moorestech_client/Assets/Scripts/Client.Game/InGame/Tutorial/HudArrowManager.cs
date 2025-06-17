@@ -79,12 +79,17 @@ namespace Client.Game.InGame.Tutorial
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     canvasRect, targetScreenPos, camera, out var targetLocalPos);
                 
-                arrowPosition = targetLocalPos;
-                var directionToTarget = targetLocalPos.normalized;
+                var screenCenterLocal = Vector2.zero;
+                var directionToTarget = (targetLocalPos - screenCenterLocal).normalized;
+                var distanceToTarget = Vector2.Distance(targetLocalPos, screenCenterLocal);
+                
+                var arrowDistance = Mathf.Min(distanceToTarget * 0.8f, 150f);
+                arrowPosition = screenCenterLocal + directionToTarget * arrowDistance;
                 arrowRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg;
                 
                 Debug.Log($"[HudArrow] Visible - TargetLocalPos: {targetLocalPos}");
-                Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
+                Debug.Log($"[HudArrow] Visible - Direction: {directionToTarget}, Distance: {distanceToTarget}");
+                Debug.Log($"[HudArrow] Visible - ArrowDistance: {arrowDistance}, ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
             }
             else
             {
@@ -111,13 +116,13 @@ namespace Client.Game.InGame.Tutorial
                 
                 var canvasHalfWidth = canvasRect.rect.width * 0.5f;
                 var canvasHalfHeight = canvasRect.rect.height * 0.5f;
-                var margin = 100f;
+                var margin = 150f;
                 
-                var edgeX = (canvasHalfWidth - margin) * Mathf.Sign(directionToTarget.x);
-                var edgeY = (canvasHalfHeight - margin) * Mathf.Sign(directionToTarget.y);
+                var maxX = canvasHalfWidth - margin;
+                var maxY = canvasHalfHeight - margin;
                 
-                var scaleX = Mathf.Abs(directionToTarget.x) > 0.001f ? Mathf.Abs(edgeX / directionToTarget.x) : float.MaxValue;
-                var scaleY = Mathf.Abs(directionToTarget.y) > 0.001f ? Mathf.Abs(edgeY / directionToTarget.y) : float.MaxValue;
+                var scaleX = Mathf.Abs(directionToTarget.x) > 0.001f ? maxX / Mathf.Abs(directionToTarget.x) : float.MaxValue;
+                var scaleY = Mathf.Abs(directionToTarget.y) > 0.001f ? maxY / Mathf.Abs(directionToTarget.y) : float.MaxValue;
                 var scale = Mathf.Min(scaleX, scaleY);
                 
                 arrowPosition = directionToTarget * scale;
@@ -125,7 +130,8 @@ namespace Client.Game.InGame.Tutorial
                 
                 Debug.Log($"[HudArrow] Hidden - Direction: {directionToTarget}");
                 Debug.Log($"[HudArrow] Hidden - CanvasSize: {canvasRect.rect.width}x{canvasRect.rect.height}");
-                Debug.Log($"[HudArrow] Hidden - Scale: {scale}, ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
+                Debug.Log($"[HudArrow] Hidden - MaxX: {maxX}, MaxY: {maxY}, Scale: {scale}");
+                Debug.Log($"[HudArrow] Hidden - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
             }
             
             arrowTransform.anchoredPosition = arrowPosition;
