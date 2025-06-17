@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
@@ -51,67 +51,71 @@ namespace Client.Game.InGame.Tutorial
             if (camera == null)
                 return;
                 
-            var targetWorldPos = target.transform.position;
-            var targetScreenPos = camera.WorldToScreenPoint(targetWorldPos);
-            
             var canvasRect = transform as RectTransform;
             if (canvasRect == null)
                 return;
             
-            Vector2 targetLocalPos;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect, targetScreenPos, camera, out targetLocalPos);
+            var targetWorldPos = target.transform.position;
+            var viewportPos = camera.WorldToViewportPoint(targetWorldPos);
             
-            var isTargetVisible = IsTargetVisible(targetScreenPos, camera);
+            var isOnScreen = viewportPos.z > 0 && 
+                             viewportPos.x >= 0 && viewportPos.x <= 1 && 
+                             viewportPos.y >= 0 && viewportPos.y <= 1;
+            
+            Vector2 canvasSize = canvasRect.rect.size;
+            Vector2 canvasCenter = Vector2.zero;
             
             Vector2 arrowPosition;
             float arrowRotation;
             
-            if (isTargetVisible)
+            if (isOnScreen)
             {
-                arrowPosition = targetLocalPos;
-                var direction = targetLocalPos.normalized;
+                var screenPos = new Vector2(
+                    (viewportPos.x - 0.5f) * canvasSize.x,
+                    (viewportPos.y - 0.5f) * canvasSize.y
+                );
+                
+                arrowPosition = screenPos;
+                var direction = screenPos.normalized;
                 arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             }
             else
             {
-                Vector2 directionFromCenter;
+                Vector2 screenPos;
                 
-                if (targetScreenPos.z < 0)
+                if (viewportPos.z < 0)
                 {
-                    directionFromCenter = -targetLocalPos.normalized;
-                }
-                else
-                {
-                    directionFromCenter = targetLocalPos.normalized;
+                    viewportPos.x = 1f - viewportPos.x;
+                    viewportPos.y = 1f - viewportPos.y;
                 }
                 
-                var canvasHalfWidth = canvasRect.rect.width * 0.5f;
-                var canvasHalfHeight = canvasRect.rect.height * 0.5f;
+                screenPos = new Vector2(
+                    (viewportPos.x - 0.5f) * canvasSize.x,
+                    (viewportPos.y - 0.5f) * canvasSize.y
+                );
+                
+                var direction = screenPos.normalized;
+                
                 var margin = 100f;
+                var maxX = (canvasSize.x * 0.5f) - margin;
+                var maxY = (canvasSize.y * 0.5f) - margin;
                 
-                var maxX = canvasHalfWidth - margin;
-                var maxY = canvasHalfHeight - margin;
+                if (Mathf.Abs(direction.x) < 0.001f && Mathf.Abs(direction.y) < 0.001f)
+                {
+                    direction = Vector2.right;
+                }
                 
-                var scaleX = Mathf.Abs(directionFromCenter.x) > 0.001f ? maxX / Mathf.Abs(directionFromCenter.x) : float.MaxValue;
-                var scaleY = Mathf.Abs(directionFromCenter.y) > 0.001f ? maxY / Mathf.Abs(directionFromCenter.y) : float.MaxValue;
+                var scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
+                var scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
                 var scale = Mathf.Min(scaleX, scaleY);
                 
-                arrowPosition = directionFromCenter * scale;
-                arrowRotation = Mathf.Atan2(directionFromCenter.y, directionFromCenter.x) * Mathf.Rad2Deg;
+                arrowPosition = direction * scale;
+                arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             }
             
             arrowTransform.anchoredPosition = arrowPosition;
             arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
         }
-        
-        private bool IsTargetVisible(Vector3 targetScreenPos, Camera camera)
-        {
-            return targetScreenPos.z > 0 &&
-                   targetScreenPos.x >= 0 && targetScreenPos.x <= Screen.width &&
-                   targetScreenPos.y >= 0 && targetScreenPos.y <= Screen.height;
-        }
-        
         
         #endregion
     }
