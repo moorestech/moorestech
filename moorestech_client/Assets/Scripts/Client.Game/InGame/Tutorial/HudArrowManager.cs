@@ -67,8 +67,25 @@ namespace Client.Game.InGame.Tutorial
             
             if (isOnScreen)
             {
-                // 画面内の場合は一旦非表示
-                arrowTransform.gameObject.SetActive(false);
+                // 画面内の場合
+                arrowTransform.gameObject.SetActive(true);
+                
+                // ターゲットのスクリーン座標を取得
+                var targetScreenPos = camera.WorldToScreenPoint(targetWorldPos);
+                
+                // スクリーン座標をCanvas座標に変換
+                Vector2 targetCanvasPos;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    canvasRect, targetScreenPos, camera, out targetCanvasPos);
+                
+                // 矢印の位置をターゲット位置に設定
+                arrowTransform.anchoredPosition = targetCanvasPos;
+                
+                // 画面中央からターゲットへの方向を計算
+                var direction = targetCanvasPos.normalized;
+                var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                
+                arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
                 return;
             }
             
