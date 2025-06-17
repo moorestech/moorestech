@@ -60,6 +60,13 @@ namespace Client.Game.InGame.Tutorial
                 
             var isTargetVisible = IsTargetVisible(targetScreenPos, camera);
             
+            Debug.Log($"[HudArrow] Target: {target.name}");
+            Debug.Log($"[HudArrow] WorldPos: {targetWorldPos}");
+            Debug.Log($"[HudArrow] ScreenPos: {targetScreenPos}");
+            Debug.Log($"[HudArrow] Screen Size: {Screen.width}x{Screen.height}");
+            Debug.Log($"[HudArrow] IsVisible: {isTargetVisible}");
+            Debug.Log($"[HudArrow] Canvas Rect Size: {canvasRect.rect.size}");
+            
             Vector2 arrowPosition;
             float arrowRotation;
             
@@ -68,6 +75,8 @@ namespace Client.Game.InGame.Tutorial
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     canvasRect, targetScreenPos, camera, out arrowPosition);
                 arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, arrowPosition);
+                
+                Debug.Log($"[HudArrow] Visible - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
             }
             else
             {
@@ -78,6 +87,11 @@ namespace Client.Game.InGame.Tutorial
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     canvasRect, clampedScreenPos, camera, out arrowPosition);
                 arrowRotation = CalculateArrowRotationToTarget(Vector2.zero, directionToTarget);
+                
+                Debug.Log($"[HudArrow] Hidden - ScreenCenter: {screenCenter}");
+                Debug.Log($"[HudArrow] Hidden - Direction: {directionToTarget}");
+                Debug.Log($"[HudArrow] Hidden - ClampedPos: {clampedScreenPos}");
+                Debug.Log($"[HudArrow] Hidden - ArrowPos: {arrowPosition}, Rotation: {arrowRotation}");
             }
             
             arrowTransform.anchoredPosition = arrowPosition;
