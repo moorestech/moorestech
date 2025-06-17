@@ -6,7 +6,7 @@ namespace Game.Fluid
     [MessagePackObject]
     public class FluidPipeStateDetail
     {
-        public const string FluidPipeStateDetailKey = "FluidPipeStateData";
+        public const string BlockStateDetailKey = "FluidPipeStateData";
         
         public FluidPipeStateDetail(FluidId fluidId, float amount, float capacity)
         {

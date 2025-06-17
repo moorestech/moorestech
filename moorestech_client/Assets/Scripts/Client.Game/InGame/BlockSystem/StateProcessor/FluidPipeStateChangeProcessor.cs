@@ -10,18 +10,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private Transform waterLevelTransform;
         [SerializeField] private MeshRenderer meshRenderer;
         
-        public FluidPipeStateDetail CurrentFluidPipeState { get; private set; }
+        private FluidPipeStateDetail _currentFluidPipeState;
         
         private void Update()
         {
-            if (CurrentFluidPipeState == null) return;
+            if (_currentFluidPipeState == null) return;
             
-            UpdateWaterLevel(CurrentFluidPipeState.Amount / CurrentFluidPipeState.Capacity);
+            UpdateWaterLevel(_currentFluidPipeState.Amount / _currentFluidPipeState.Capacity);
         }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {
-            CurrentFluidPipeState = blockState.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.FluidPipeStateDetailKey);
+            _currentFluidPipeState = blockState.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.BlockStateDetailKey);
         }
         
         public void UpdateWaterLevel(float waterLevel)
@@ -35,5 +35,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         public void ResetMaterial()
         {
         }
+        
+        #if UNITY_EDITOR
+        public FluidPipeStateDetail DebugCurrentFluidPipeState => _currentFluidPipeState;
+        #endif
     }
 }
