@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
 {
+    [DefaultExecutionOrder(1000)]
     public class HudArrowManager : MonoBehaviour
     {
         [SerializeField] private RectTransform hudArrowImagePrefab;
@@ -16,7 +17,7 @@ namespace Client.Game.InGame.Tutorial
             RegisterHudArrowTarget(new GameObject("hogehogefoo"));
         }
         
-        private void Update()
+        private void LateUpdate()
         {
             foreach (var (target, imageTransform) in _hudArrowImages)
             {
