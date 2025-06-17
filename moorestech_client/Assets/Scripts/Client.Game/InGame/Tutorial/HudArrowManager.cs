@@ -12,6 +12,8 @@ namespace Client.Game.InGame.Tutorial
         private void Awake()
         {
             Instance = this;
+            
+            RegisterHudArrowTarget(new GameObject("hogehogefoo"));
         }
         
         private void Update()
