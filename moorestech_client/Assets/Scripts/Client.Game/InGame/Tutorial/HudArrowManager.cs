@@ -83,30 +83,36 @@ namespace Client.Game.InGame.Tutorial
             }
             else
             {
-                Vector2 screenPos;
-                
+                // カメラの後ろにある場合、ビューポート座標を反転
                 if (viewportPos.z < 0)
                 {
                     viewportPos.x = 1f - viewportPos.x;
                     viewportPos.y = 1f - viewportPos.y;
                 }
                 
-                screenPos = new Vector2(
+                // ビューポート座標をクランプして画面端の位置を取得
+                viewportPos.x = Mathf.Clamp(viewportPos.x, 0f, 1f);
+                viewportPos.y = Mathf.Clamp(viewportPos.y, 0f, 1f);
+                
+                // Canvas座標に変換
+                var screenPos = new Vector2(
                     (viewportPos.x - 0.5f) * canvasSize.x,
                     (viewportPos.y - 0.5f) * canvasSize.y
                 );
                 
+                // 画面中央からの方向を計算
                 var direction = screenPos.normalized;
-                
-                var margin = 100f;
-                var maxX = (canvasSize.x * 0.5f) - margin;
-                var maxY = (canvasSize.y * 0.5f) - margin;
-                
-                if (Mathf.Abs(direction.x) < 0.001f && Mathf.Abs(direction.y) < 0.001f)
+                if (direction.magnitude < 0.001f)
                 {
                     direction = Vector2.right;
                 }
                 
+                // 画面端からマージンを考慮した位置を計算
+                var margin = 50f;
+                var maxX = (canvasSize.x * 0.5f) - margin;
+                var maxY = (canvasSize.y * 0.5f) - margin;
+                
+                // 方向ベクトルをスケーリングして画面端に配置
                 var scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
                 var scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
                 var scale = Mathf.Min(scaleX, scaleY);
