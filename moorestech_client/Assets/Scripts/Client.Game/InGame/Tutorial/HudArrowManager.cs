@@ -76,22 +76,26 @@ namespace Client.Game.InGame.Tutorial
             arrowTransform.gameObject.SetActive(true);
             
             // カメラからターゲットへの方向ベクトル（ワールド空間）
-            var cameraToTarget = (targetWorldPos - camera.transform.position).normalized;
+            var cameraToTarget = targetWorldPos - camera.transform.position;
             
-            // カメラの前方向ベクトル
-            var cameraForward = camera.transform.forward;
+            // カメラの右方向と上方向
+            var cameraRight = camera.transform.right;
+            var cameraUp = camera.transform.up;
             
-            // 前方向からターゲット方向への角度を計算
-            var angle = Vector3.SignedAngle(cameraForward, cameraToTarget, camera.transform.up);
+            // ターゲット方向をカメラのローカル空間に投影
+            var localX = Vector3.Dot(cameraToTarget, cameraRight);
+            var localY = Vector3.Dot(cameraToTarget, cameraUp);
+            var localZ = Vector3.Dot(cameraToTarget, camera.transform.forward);
             
-            // 画面上での方向（-180～180度を0～360度に変換）
-            var screenAngle = -angle; // Unityの座標系に合わせて反転
+            // カメラの後ろにある場合の処理
+            if (localZ < 0)
+            {
+                localX = -localX;
+                localY = -localY;
+            }
             
-            // 方向ベクトル（画面上）
-            var direction = new Vector2(
-                Mathf.Cos(screenAngle * Mathf.Deg2Rad),
-                Mathf.Sin(screenAngle * Mathf.Deg2Rad)
-            );
+            // 画面上での方向ベクトル
+            var direction = new Vector2(localX, localY).normalized;
             
             // Canvas のサイズ
             var canvasSize = canvasRect.rect.size;
@@ -108,7 +112,7 @@ namespace Client.Game.InGame.Tutorial
             var arrowPosition = direction * scale;
             
             // 矢印の回転（pivotが(1, 0.5)なので右向きが0度）
-            var arrowRotation = screenAngle;
+            var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             
             arrowTransform.anchoredPosition = arrowPosition;
             arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
