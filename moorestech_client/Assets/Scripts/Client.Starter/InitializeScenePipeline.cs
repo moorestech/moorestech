@@ -7,6 +7,7 @@ using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Mod.Texture;
 using Client.Network;
 using Client.Network.API;
@@ -82,7 +83,7 @@ namespace Client.Starter
             //各種ロードを並列実行
             try
             {
-                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad());
+                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad(), LoadStaticAsset());
             }
             catch (Exception e)
             {
@@ -240,6 +241,12 @@ namespace Client.Starter
                 }
                 
                 loadingLog.text += $"\nシーンロード完了  {loadingStopwatch.Elapsed}";
+            }
+            
+            // staticなアセットをロード
+            async UniTask LoadStaticAsset()
+            {
+                await UniTask.WhenAll(ItemSlotObject.LoadItemSlotViewPrefab());
             }
             
             #endregion
