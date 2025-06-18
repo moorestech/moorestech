@@ -13,6 +13,8 @@ namespace Client.Game.InGame.Tutorial
         private void Awake()
         {
             Instance = this;
+            
+            RegisterHudArrowTarget(GameObject.CreatePrimitive(PrimitiveType.Sphere));
         }
         
         private void LateUpdate()
@@ -41,8 +43,6 @@ namespace Client.Game.InGame.Tutorial
             }
         }
         
-        #region Internal
-        
         private void UpdateArrowTransform(GameObject target, RectTransform arrowTransform)
         {
             if (arrowTransform == null || target == null)
@@ -64,7 +64,15 @@ namespace Client.Game.InGame.Tutorial
                              viewportPos.x >= 0 && viewportPos.x <= 1 &&
                              viewportPos.y >= 0 && viewportPos.y <= 1;
             
-            if (isOnScreen)
+            if (isOnScreen) OnScreenProcess();
+            else OffScreenProcess();
+            
+            return;
+            
+            
+            #region Internal
+            
+            void OnScreenProcess()
             {
                 // 画面内の場合
                 arrowTransform.gameObject.SetActive(true);
@@ -87,7 +95,8 @@ namespace Client.Game.InGame.Tutorial
                 
                 arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
             }
-            else
+            
+            void OffScreenProcess()
             {
                 // 画面外の場合
                 arrowTransform.gameObject.SetActive(true);
@@ -130,8 +139,8 @@ namespace Client.Game.InGame.Tutorial
                 arrowTransform.anchoredPosition = arrowPosition;
                 arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
             }
+            
+  #endregion
         }
-        
-        #endregion
     }
 }
