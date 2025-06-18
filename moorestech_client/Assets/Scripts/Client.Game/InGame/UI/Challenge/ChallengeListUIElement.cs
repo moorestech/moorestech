@@ -55,7 +55,7 @@ namespace Client.Game.InGame.UI.Challenge
                     var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem.Value);
                     itemSlotObject.SetItem(itemView, 0);
                 }
-                itemSlotObject.SetItemSlotObjectOption(new ItemSlotObjectBehaviourOption
+                itemSlotObject.SetSlotViewOption(new CommonSlotViewOption
                 {
                     IsShowToolTip = false,
                 });

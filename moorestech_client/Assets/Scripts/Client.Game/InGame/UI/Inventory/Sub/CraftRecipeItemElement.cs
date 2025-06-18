@@ -76,7 +76,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     var slot = Instantiate(itemSlotObjectPrefab, materialParent);
                     var toolTipText = $"{itemViewData.ItemName}\n必要数: {requiredItem.Count}\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
                     slot.SetItem(itemViewData, requiredItem.Count, toolTipText);
-                    slot.SetFrame(ItemSlotFrameType.CraftRecipe);
+                    slot.SetFrameType(ItemSlotFrameType.CraftRecipe);
                     _materialSlots.Add(slot);
                     
                     slot.OnLeftClickUp.Subscribe(_ =>
@@ -91,7 +91,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(CraftRecipe.CraftResultItemGuid);
                 _resultSlot = Instantiate(itemSlotObjectPrefab, resultParent);
                 _resultSlot.SetItem(itemViewData, CraftRecipe.CraftResultCount);
-                _resultSlot.SetFrame(ItemSlotFrameType.Normal);
+                _resultSlot.SetFrameType(ItemSlotFrameType.Normal);
             }
             
             #endregion
