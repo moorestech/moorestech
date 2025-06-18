@@ -12,7 +12,6 @@ namespace Client.DebugSystem
 {
     public class ItemSelectModal : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private Transform itemSlotParent;
         [SerializeField] private Button closeButton;
         

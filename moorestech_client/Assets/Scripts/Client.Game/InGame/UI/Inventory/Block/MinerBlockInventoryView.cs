@@ -17,8 +17,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class MinerBlockInventoryView : CommonBlockInventoryViewBase 
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform miningItemSlotParent;
         [SerializeField] private RectTransform minerResultsParent;
         

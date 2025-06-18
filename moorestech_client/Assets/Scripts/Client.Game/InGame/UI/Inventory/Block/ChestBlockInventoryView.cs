@@ -10,8 +10,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class ChestBlockInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform chestSlotsParent;
         
         public override void Initialize(BlockGameObject blockGameObject)
