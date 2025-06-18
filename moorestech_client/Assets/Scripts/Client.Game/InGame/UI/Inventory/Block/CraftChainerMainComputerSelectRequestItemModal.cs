@@ -12,8 +12,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class CraftChainerMainComputerSelectRequestItemModal : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform itemsParent;
         [SerializeField] private TMP_InputField countInputField;
         

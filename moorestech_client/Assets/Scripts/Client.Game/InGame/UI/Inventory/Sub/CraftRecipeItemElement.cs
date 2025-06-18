@@ -27,9 +27,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private TMP_Text craftTimeText;
         [SerializeField] private GameObject selectedFrame;
         
-        [Header("Prefab")]
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         public CraftRecipeMasterElement CraftRecipe { get; private set; }
         public bool IsCraftable { get; private set; }
         

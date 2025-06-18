@@ -14,8 +14,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class MachineBlockInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;

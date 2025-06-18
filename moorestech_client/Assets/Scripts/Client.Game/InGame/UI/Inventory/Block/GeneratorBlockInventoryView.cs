@@ -10,8 +10,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class GeneratorBlockInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
         
         public override void Initialize(BlockGameObject blockGameObject)

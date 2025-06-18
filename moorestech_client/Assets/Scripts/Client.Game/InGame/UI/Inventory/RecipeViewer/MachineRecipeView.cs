@@ -15,8 +15,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
     public class MachineRecipeView : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform inputParent;
         [SerializeField] private RectTransform outputParent;
         

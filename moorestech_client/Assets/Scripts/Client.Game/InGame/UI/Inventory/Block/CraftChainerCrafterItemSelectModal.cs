@@ -12,7 +12,6 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
 {
     public class CraftChainerCrafterItemSelectModal : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemsParent;
         [SerializeField] private TMP_InputField countInputField;
         

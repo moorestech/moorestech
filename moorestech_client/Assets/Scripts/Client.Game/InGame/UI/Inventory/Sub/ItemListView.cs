@@ -20,7 +20,6 @@ namespace Client.Game.InGame.UI.Inventory.Sub
     {
         public const string ItemRecipeListHighlightKey = "itemRecipeList:{0}";
         
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemListParent;
         
         [Inject] private ILocalPlayerInventory _localPlayerInventory;

@@ -15,8 +15,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class CraftChainerMainComputerInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform chestSlotsParent;
         
         [SerializeField] private Button requestButton;
