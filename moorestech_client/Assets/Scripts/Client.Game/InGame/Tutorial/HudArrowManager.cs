@@ -13,8 +13,6 @@ namespace Client.Game.InGame.Tutorial
         private void Awake()
         {
             Instance = this;
-            
-            RegisterHudArrowTarget(GameObject.CreatePrimitive(PrimitiveType.Sphere));
         }
         
         private void LateUpdate()
