@@ -82,10 +82,10 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             foreach (var slotObject in _itemSlotObjects)
             {
-                slotObject.SetHotBarSelect(false);
+                slotObject.SetHotBarSelected(false);
             }
             
-            itemSlotObject.SetHotBarSelect(true);
+            itemSlotObject.SetHotBarSelected(true);
             _selectedItemId = itemSlotObject.ItemViewData.ItemId;
             
             UpdateRequestButton(countInputField.text);

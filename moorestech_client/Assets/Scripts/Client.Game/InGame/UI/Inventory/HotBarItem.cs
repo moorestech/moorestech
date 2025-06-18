@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Inventory
         
         public void SetSelect(bool isSelect)
         {
-            itemSlotObject.SetHotBarSelect(isSelect);
+            itemSlotObject.SetHotBarSelected(isSelect);
         }
     }
 }

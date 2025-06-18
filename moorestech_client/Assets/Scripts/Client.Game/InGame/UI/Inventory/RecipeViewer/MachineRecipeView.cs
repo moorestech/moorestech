@@ -42,7 +42,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         [Inject]
         public void Construct()
         {
-            machineObject.SetFrame(ItemSlotFrameType.MachineSlot);
+            machineObject.SetFrameType(ItemSlotFrameType.MachineSlot);
             machineObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
             
             nextRecipeButton.onClick.AddListener(() =>

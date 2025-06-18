@@ -60,10 +60,10 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
                 
                 foreach (var slotObject in _itemSlotObjects)
                 {
-                    slotObject.SetHotBarSelect(false);
+                    slotObject.SetHotBarSelected(false);
                     if (slotObject.ItemViewData.ItemId == currentItemId)
                     {
-                        slotObject.SetHotBarSelect(true);
+                        slotObject.SetHotBarSelected(true);
                     }
                 }
                 
@@ -102,10 +102,10 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         {
             foreach (var slotObject in _itemSlotObjects)
             {
-                slotObject.SetHotBarSelect(false);
+                slotObject.SetHotBarSelected(false);
             }
             
-            itemSlotObject.SetHotBarSelect(true);
+            itemSlotObject.SetHotBarSelected(true);
             _selectedItemId = itemSlotObject.ItemViewData.ItemId;
             
             UpdateOkButton(countInputField.text);
