@@ -12,12 +12,11 @@ namespace Client.DebugSystem
 {
     public class ItemSelectModal : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private Transform itemSlotParent;
         [SerializeField] private Button closeButton;
         
-        private List<ItemSlotObject> _itemSlotObjects;
-        private ItemSlotObject _selectedItemSlotObject;
+        private List<ItemSlotView> _itemSlotObjects;
+        private ItemSlotView selectedItemSlotView;
         
         public static ItemSelectModal Instance
         {
@@ -39,32 +38,32 @@ namespace Client.DebugSystem
             
             gameObject.SetActive(true);
             
-            var waitSelectItem = UniTask.WaitUntil(() => _selectedItemSlotObject != null);
+            var waitSelectItem = UniTask.WaitUntil(() => selectedItemSlotView != null);
             var waitClose = closeButton.OnClickAsync();
             await UniTask.WhenAny(waitSelectItem, waitClose);
             
             gameObject.SetActive(false);
-            if (_selectedItemSlotObject == null)
+            if (selectedItemSlotView == null)
             {
                 return null;
             }
             
-            var slotObject = _selectedItemSlotObject;
-            _selectedItemSlotObject = null;
+            var slotObject = selectedItemSlotView;
+            selectedItemSlotView = null;
             
             return slotObject.ItemViewData;
         }
         
         private void Initialize()
         {
-            _itemSlotObjects = new List<ItemSlotObject>();
+            _itemSlotObjects = new List<ItemSlotView>();
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemSlotParent);
+                var itemSlotObject = Instantiate(ItemSlotView.Prefab, itemSlotParent);
                 
                 itemSlotObject.SetItem(itemView, 0);
-                itemSlotObject.OnRightClickUp.Subscribe(item => _selectedItemSlotObject = item).AddTo(this);
+                itemSlotObject.OnRightClickUp.Subscribe(item => selectedItemSlotView = item).AddTo(this);
             }
         }
     }

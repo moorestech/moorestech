@@ -27,20 +27,17 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [SerializeField] private TMP_Text craftTimeText;
         [SerializeField] private GameObject selectedFrame;
         
-        [Header("Prefab")]
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         public CraftRecipeMasterElement CraftRecipe { get; private set; }
         public bool IsCraftable { get; private set; }
         
         public IObservable<CraftRecipeItemElement> OnSelected => _onSelectedSubject;
         private readonly Subject<CraftRecipeItemElement> _onSelectedSubject = new();
         
-        public IObservable<ItemSlotObject> OnClickMaterialItem => _onClickMaterialItem;
-        private readonly Subject<ItemSlotObject> _onClickMaterialItem = new();
+        public IObservable<ItemSlotView> OnClickMaterialItem => _onClickMaterialItem;
+        private readonly Subject<ItemSlotView> _onClickMaterialItem = new();
         
-        private readonly List<ItemSlotObject> _materialSlots = new();
-        private ItemSlotObject _resultSlot;
+        private readonly List<ItemSlotView> _materialSlots = new();
+        private ItemSlotView _resultSlot;
         
         private void Awake()
         {
@@ -73,10 +70,10 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var slot = Instantiate(itemSlotObjectPrefab, materialParent);
+                    var slot = Instantiate(ItemSlotView.Prefab, materialParent);
                     var toolTipText = $"{itemViewData.ItemName}\n必要数: {requiredItem.Count}\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
                     slot.SetItem(itemViewData, requiredItem.Count, toolTipText);
-                    slot.SetFrame(ItemSlotFrameType.CraftRecipe);
+                    slot.SetFrameType(ItemSlotFrameType.CraftRecipe);
                     _materialSlots.Add(slot);
                     
                     slot.OnLeftClickUp.Subscribe(_ =>
@@ -89,9 +86,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             void SetupResultSlot()
             {
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(CraftRecipe.CraftResultItemGuid);
-                _resultSlot = Instantiate(itemSlotObjectPrefab, resultParent);
+                _resultSlot = Instantiate(ItemSlotView.Prefab, resultParent);
                 _resultSlot.SetItem(itemViewData, CraftRecipe.CraftResultCount);
-                _resultSlot.SetFrame(ItemSlotFrameType.Normal);
+                _resultSlot.SetFrameType(ItemSlotFrameType.Normal);
             }
             
             #endregion

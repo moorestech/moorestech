@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using Client.Game.InGame.UI.Tooltip;
-using Client.Mod.Texture;
 using Core.Master;
 using TMPro;
 using UniRx;
@@ -10,7 +9,7 @@ using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Common
 {
-    public class ItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
+    public class CommonSlotView : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
         [SerializeField] private Image itemImage;
         
@@ -30,14 +29,13 @@ namespace Client.Game.InGame.UI.Inventory.Common
         [SerializeField] private TMP_Text countText;
         [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
         
-        private ItemSlotObjectBehaviourOption itemSlotObjectBehaviourOption = new();
         private bool _onPointing;
-        
-        public ItemViewData ItemViewData { get; private set; }
-        public int Count { get; private set; }
         
         private void Awake()
         {
+            // default true
+            uGuiTooltipTarget.DisplayEnable(true);
+            
             OnPointerEvent.Subscribe(OnInvokeOtherEvent).AddTo(this);
             SubscribeHover();
             SubscribeClick();
@@ -56,65 +54,60 @@ namespace Client.Game.InGame.UI.Inventory.Common
         }
         
         
-        public void SetItem(ItemViewData itemView, int count, string toolTipText = null)
+        public void SetView(Sprite sprite, string count, string toolTipText = null)
         {
-            ItemViewData = itemView;
+            countText.text = count;
             
-            Count = count;
-            countText.text = count != 0 ? count.ToString() : string.Empty;
+            itemImage.gameObject.SetActive(true);
+            itemImage.sprite = sprite;
             
-            if (itemView == null || itemView.ItemId == ItemMaster.EmptyItemId)
+            if (toolTipText != null)
             {
-                itemImage.gameObject.SetActive(false);
-                
-                uGuiTooltipTarget.DisplayEnable(false);
-            }
-            else
-            {
-                itemImage.gameObject.SetActive(true);
-                itemImage.sprite = itemView.ItemImage;
-                
-                if (string.IsNullOrEmpty(toolTipText))
-                {
-                    toolTipText = GetToolTipText(itemView);
-                }
-                
                 uGuiTooltipTarget.SetText(toolTipText, false);
-                uGuiTooltipTarget.DisplayEnable(itemSlotObjectBehaviourOption.IsShowToolTip);
             }
         }
         
-        public static string GetToolTipText(ItemViewData itemView)
+        public void SetViewClear()
         {
-            return $"{itemView.ItemName}";
+            countText.text = string.Empty;
+            itemImage.gameObject.SetActive(false);
+            uGuiTooltipTarget.DisplayEnable(false);
         }
         
-        public void SetGrayOut(bool active)
+        public void SetSlotViewOption(CommonSlotViewOption slotOption)
         {
-            grayOutImage.SetActive(active);
-        }
-        
-        public void SetFrame(ItemSlotFrameType frameType)
-        {
-            normalFrame.SetActive(frameType == ItemSlotFrameType.Normal);
-            machineSlotFrame.SetActive(frameType == ItemSlotFrameType.MachineSlot);
-            craftRecipeFrame.SetActive(frameType == ItemSlotFrameType.CraftRecipe);
-        }
-        
-        public void SetItemSlotType(ItemSlotType slotType)
-        {
-            normalItemSlotObject.SetActive(slotType == ItemSlotType.Normal);
-            noneCrossObject.SetActive(slotType == ItemSlotType.NoneCross);
-        }
-        
-        public void SetHotBarSelect(bool active)
-        {
-            hotBarSelect.SetActive(active);
-        }
-        
-        public void SetItemSlotObjectOption(ItemSlotObjectBehaviourOption behaviourOption)
-        {
-            itemSlotObjectBehaviourOption = behaviourOption;
+            if (slotOption.GrayOut != null) SetGrayOut(slotOption.GrayOut.Value);
+            if (slotOption.HotBarSelected != null) SetHotBarSelect(slotOption.HotBarSelected.Value);
+            if (slotOption.ItemSlotFrameType != null) SetFrame(slotOption.ItemSlotFrameType.Value);
+            if (slotOption.ItemSlotType != null) SetItemSlotType(slotOption.ItemSlotType.Value);
+            if (slotOption.IsShowToolTip != null) uGuiTooltipTarget.DisplayEnable(slotOption.IsShowToolTip.Value);
+            
+            #region Internal
+            
+            void SetFrame(ItemSlotFrameType frameType)
+            {
+                normalFrame.SetActive(frameType == ItemSlotFrameType.Normal);
+                machineSlotFrame.SetActive(frameType == ItemSlotFrameType.MachineSlot);
+                craftRecipeFrame.SetActive(frameType == ItemSlotFrameType.CraftRecipe);
+            }
+            
+            void SetGrayOut(bool active)
+            {
+                grayOutImage.SetActive(active);
+            }
+            
+            void SetItemSlotType(ItemSlotType slotType)
+            {
+                normalItemSlotObject.SetActive(slotType == ItemSlotType.Normal);
+                noneCrossObject.SetActive(slotType == ItemSlotType.NoneCross);
+            }
+            
+            void SetHotBarSelect(bool active)
+            {
+                hotBarSelect.SetActive(active);
+            }
+            
+            #endregion
         }
         
         public void SetActive(bool active)
@@ -125,27 +118,27 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         #region PointerEvents
         
-        public IObservable<(ItemSlotObject, ItemUIEventType)> OnPointerEvent => _onPointerEvent;
-        private readonly Subject<(ItemSlotObject, ItemUIEventType)> _onPointerEvent = new();
+        public IObservable<(CommonSlotView, ItemUIEventType)> OnPointerEvent => _onPointerEvent;
+        private readonly Subject<(CommonSlotView, ItemUIEventType)> _onPointerEvent = new();
         
-        public IObservable<ItemSlotObject> OnRightClickDown => _onRightClickDown;
-        private readonly Subject<ItemSlotObject> _onRightClickDown = new();
-        public IObservable<ItemSlotObject> OnLeftClickDown => _onLeftClickDown;
-        private readonly Subject<ItemSlotObject> _onLeftClickDown = new();
-        public IObservable<ItemSlotObject> OnRightClickUp => _onRightClickUp;
-        private readonly Subject<ItemSlotObject> _onRightClickUp = new();
-        public IObservable<ItemSlotObject> OnLeftClickUp => _onLeftClickUp;
-        private readonly Subject<ItemSlotObject> _onLeftClickUp = new();
-        public IObservable<ItemSlotObject> OnCursorEnter => _onCursorEnter;
-        private readonly Subject<ItemSlotObject> _onCursorEnter = new();
-        public IObservable<ItemSlotObject> OnCursorExit => _onCursorExit;
-        private readonly Subject<ItemSlotObject> _onCursorExit = new();
-        public IObservable<ItemSlotObject> OnCursorMove => _onCursorMove;
-        private readonly Subject<ItemSlotObject> _onCursorMove = new();
-        public IObservable<ItemSlotObject> OnDoubleClick => _onDoubleClick;
-        private readonly Subject<ItemSlotObject> _onDoubleClick = new();
+        public IObservable<CommonSlotView> OnRightClickDown => _onRightClickDown;
+        private readonly Subject<CommonSlotView> _onRightClickDown = new();
+        public IObservable<CommonSlotView> OnLeftClickDown => _onLeftClickDown;
+        private readonly Subject<CommonSlotView> _onLeftClickDown = new();
+        public IObservable<CommonSlotView> OnRightClickUp => _onRightClickUp;
+        private readonly Subject<CommonSlotView> _onRightClickUp = new();
+        public IObservable<CommonSlotView> OnLeftClickUp => _onLeftClickUp;
+        private readonly Subject<CommonSlotView> _onLeftClickUp = new();
+        public IObservable<CommonSlotView> OnCursorEnter => _onCursorEnter;
+        private readonly Subject<CommonSlotView> _onCursorEnter = new();
+        public IObservable<CommonSlotView> OnCursorExit => _onCursorExit;
+        private readonly Subject<CommonSlotView> _onCursorExit = new();
+        public IObservable<CommonSlotView> OnCursorMove => _onCursorMove;
+        private readonly Subject<CommonSlotView> _onCursorMove = new();
+        public IObservable<CommonSlotView> OnDoubleClick => _onDoubleClick;
+        private readonly Subject<CommonSlotView> _onDoubleClick = new();
         
-        private void OnInvokeOtherEvent((ItemSlotObject, ItemUIEventType) data)
+        private void OnInvokeOtherEvent((CommonSlotView, ItemUIEventType) data)
         {
             var type = data.Item2;
             var slot = data.Item1;
@@ -229,37 +222,5 @@ namespace Client.Game.InGame.UI.Inventory.Common
         }
         
         #endregion
-    }
-    
-    public enum ItemUIEventType
-    {
-        RightClickDown,
-        LeftClickDown,
-        RightClickUp,
-        LeftClickUp,
-        
-        CursorEnter,
-        CursorExit,
-        CursorMove,
-        
-        DoubleClick,
-    }
-    
-    public enum ItemSlotType
-    {
-        Normal, // 通常のアイテム表示
-        NoneCross, // アイテムが何もないクロス表示
-    }
-    
-    public enum ItemSlotFrameType
-    {
-        Normal,
-        MachineSlot,
-        CraftRecipe,
-    }
-    
-    public class ItemSlotObjectBehaviourOption
-    {
-        public bool IsShowToolTip { get; set; } = true;
     }
 }

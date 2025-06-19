@@ -14,8 +14,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class MachineBlockInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
@@ -38,14 +36,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             for (var i = 0; i < param.InputSlotCount; i++)
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, machineInputItemParent);
                 SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
             
             for (var i = 0; i < param.OutputSlotCount; i++)
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, machineOutputItemParent);
                 SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
