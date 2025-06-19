@@ -246,7 +246,7 @@ namespace Client.Starter
             // staticなアセットをロード
             async UniTask LoadStaticAsset()
             {
-                await UniTask.WhenAll(ItemSlotObject.LoadItemSlotViewPrefab());
+                await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab());
             }
             
             #endregion

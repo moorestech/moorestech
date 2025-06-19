@@ -18,7 +18,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private Button requestButton;
         [SerializeField] private Button cancelButton;
         
-        private readonly List<ItemSlotObject> _itemSlotObjects = new();
+        private readonly List<ItemSlotView> _itemSlotObjects = new();
         private ItemId _selectedItemId;
         
         public void Initialize()
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var slotObject = Instantiate(ItemSlotObject.Prefab, itemsParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, itemsParent);
                 slotObject.SetItem(itemView, 0);
                 slotObject.OnLeftClickUp.Subscribe(ClickItem);
                 _itemSlotObjects.Add(slotObject);
@@ -76,15 +76,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
         }
         
         
-        private void ClickItem(ItemSlotObject itemSlotObject)
+        private void ClickItem(ItemSlotView itemSlotView)
         {
             foreach (var slotObject in _itemSlotObjects)
             {
                 slotObject.SetHotBarSelected(false);
             }
             
-            itemSlotObject.SetHotBarSelected(true);
-            _selectedItemId = itemSlotObject.ItemViewData.ItemId;
+            itemSlotView.SetHotBarSelected(true);
+            _selectedItemId = itemSlotView.ItemViewData.ItemId;
             
             UpdateRequestButton(countInputField.text);
         }

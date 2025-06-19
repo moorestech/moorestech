@@ -69,6 +69,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public void SetViewClear()
         {
+            countText.text = string.Empty;
             itemImage.gameObject.SetActive(false);
             uGuiTooltipTarget.DisplayEnable(false);
         }

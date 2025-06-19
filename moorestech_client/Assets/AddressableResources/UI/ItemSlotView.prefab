@@ -290,18 +290,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemImage: {fileID: 0}
-  normalFrame: {fileID: 0}
-  machineSlotFrame: {fileID: 0}
-  craftRecipeFrame: {fileID: 0}
-  hotBarSelect: {fileID: 0}
-  grayOutImage: {fileID: 0}
-  hoverImage: {fileID: 0}
-  clickImage: {fileID: 0}
-  normalItemSlotObject: {fileID: 0}
-  noneCrossObject: {fileID: 0}
-  countText: {fileID: 0}
-  uGuiTooltipTarget: {fileID: 0}
+  commonSlotView: {fileID: 6025278813921210490}
 --- !u!222 &1014375675779259836
 CanvasRenderer:
   m_ObjectHideFlags: 0

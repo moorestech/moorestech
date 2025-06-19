@@ -8,13 +8,13 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Common
 {
-    public class ItemSlotObject : MonoBehaviour
+    public class ItemSlotView : MonoBehaviour
     {
-        public static ItemSlotObject Prefab;
+        public static ItemSlotView Prefab;
         
-        public IObservable<(ItemSlotObject, ItemUIEventType)> OnPointerEvent => commonSlotView.OnPointerEvent.Select(e => (this, e.Item2));
-        public IObservable<ItemSlotObject> OnLeftClickUp => commonSlotView.OnLeftClickUp.Select(_ => this);
-        public IObservable<ItemSlotObject> OnRightClickUp => commonSlotView.OnRightClickUp.Select(_ => this);
+        public IObservable<(ItemSlotView, ItemUIEventType)> OnPointerEvent => commonSlotView.OnPointerEvent.Select(e => (this, e.Item2));
+        public IObservable<ItemSlotView> OnLeftClickUp => commonSlotView.OnLeftClickUp.Select(_ => this);
+        public IObservable<ItemSlotView> OnRightClickUp => commonSlotView.OnRightClickUp.Select(_ => this);
         public ItemViewData ItemViewData { get; private set; }
         public int Count { get; private set; }
         
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         {
             const string itemSlotViewPath = "Vanilla/UI/ItemSlotView";
             var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(itemSlotViewPath);
-            Prefab = prefab.GetComponent<ItemSlotObject>();
+            Prefab = prefab.GetComponent<ItemSlotView>();
         }
     }
 }
