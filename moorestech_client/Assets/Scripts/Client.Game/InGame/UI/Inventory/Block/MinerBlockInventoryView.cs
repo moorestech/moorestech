@@ -56,7 +56,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             {
                 for (var i = 0; i < outputCount; i++)
                 {
-                    var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
+                    var slotObject = Instantiate(ItemSlotObject.Prefab, minerResultsParent);
                     SubInventorySlotObjectsInternal.Add(slotObject);
                     itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
                 }
@@ -118,7 +118,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             foreach (var itemId in state.GetCurrentMiningItemIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var slot = Instantiate(itemSlotObjectPrefab, miningItemSlotParent);
+                var slot = Instantiate(ItemSlotObject.Prefab, miningItemSlotParent);
                 slot.SetItem(itemView, 0);
             }
         } 

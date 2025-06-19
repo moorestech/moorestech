@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 
                 // アイテムリストを設定
                 // Set the item list
-                var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
+                var itemSlotObject = Instantiate(ItemSlotObject.Prefab, itemListParent);
                 var toolTipText = CraftInventoryView.GetMaterialTolTip(itemViewData);
                 itemSlotObject.SetItem(itemViewData, 0, toolTipText);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);

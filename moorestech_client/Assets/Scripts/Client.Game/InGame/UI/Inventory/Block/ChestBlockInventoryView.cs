@@ -32,7 +32,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var param = (IChestParam)blockGameObject.BlockMasterElement.BlockParam;
             for (var i = 0; i < param.ItemSlotCount; i++)
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
+                var slotObject = Instantiate(ItemSlotObject.Prefab, chestSlotsParent);
                 SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }

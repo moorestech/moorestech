@@ -60,7 +60,7 @@ namespace Client.DebugSystem
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemSlotParent);
+                var itemSlotObject = Instantiate(ItemSlotObject.Prefab, itemSlotParent);
                 
                 itemSlotObject.SetItem(itemView, 0);
                 itemSlotObject.OnRightClickUp.Subscribe(item => _selectedItemSlotObject = item).AddTo(this);
