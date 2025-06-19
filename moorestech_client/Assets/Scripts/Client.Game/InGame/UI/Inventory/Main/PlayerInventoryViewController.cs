@@ -22,8 +22,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         [SerializeField] private GameObject mainInventoryObject;
         
-        [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
-        [SerializeField] private ItemSlotObject grabInventorySlotObject;
+        [SerializeField] private List<ItemSlotView> mainInventorySlotObjects;
+        [SerializeField] private ItemSlotView grabInventorySlotView;
         
         public Transform SubInventoryParent => subInventoryParent.transform;
         [SerializeField] private Transform subInventoryParent;
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             foreach (var sub in _subInventory.SubInventorySlotObjects) _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(ItemSlotUIEvent));
         }
         
-        private void ItemSlotUIEvent((ItemSlotObject slotObject, ItemUIEventType itemUIEvent) eventProperty)
+        private void ItemSlotUIEvent((ItemSlotView slotObject, ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
             var index = mainInventorySlotObjects.IndexOf(slotObject);
@@ -321,9 +321,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 }
             }
             
-            grabInventorySlotObject.SetActive(IsGrabItem);
+            grabInventorySlotView.SetActive(IsGrabItem);
             var garbItemView = ClientContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
-            grabInventorySlotObject.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
+            grabInventorySlotView.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
         }
     }
     

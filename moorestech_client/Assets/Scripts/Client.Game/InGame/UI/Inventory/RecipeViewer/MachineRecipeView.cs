@@ -23,13 +23,13 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         [SerializeField] private TMP_Text itemNameText;
         [SerializeField] private TMP_Text recipeCountText;
-        [SerializeField] private ItemSlotObject machineObject;
+        [SerializeField] private ItemSlotView machineView;
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
         private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
         
-        private readonly List<ItemSlotObject> _inputSlotList = new();
-        private readonly List<ItemSlotObject> _outputSlotList = new();
+        private readonly List<ItemSlotView> _inputSlotList = new();
+        private readonly List<ItemSlotView> _outputSlotList = new();
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
         private int MachineRecipeCount => _currentItemRecipes.MachineRecipes[_currentBlockId].Count;
@@ -40,8 +40,8 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         [Inject]
         public void Construct()
         {
-            machineObject.SetFrameType(ItemSlotFrameType.MachineSlot);
-            machineObject.OnLeftClickUp.Subscribe(OnClickMaterialItem);
+            machineView.SetFrameType(ItemSlotFrameType.MachineSlot);
+            machineView.OnLeftClickUp.Subscribe(OnClickMaterialItem);
             
             nextRecipeButton.onClick.AddListener(() =>
             {
@@ -104,7 +104,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var itemSlotObject = Instantiate(ItemSlotObject.Prefab, inputParent);
+                    var itemSlotObject = Instantiate(ItemSlotView.Prefab, inputParent);
                     itemSlotObject.SetItem(itemViewData, requiredItem.Count);
                     _inputSlotList.Add(itemSlotObject);
                     
@@ -120,7 +120,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var itemSlotObject = Instantiate(ItemSlotObject.Prefab, outputParent);
+                    var itemSlotObject = Instantiate(ItemSlotView.Prefab, outputParent);
                     itemSlotObject.SetItem(itemViewData, requiredItem.Count);
                     _outputSlotList.Add(itemSlotObject);
                     
@@ -133,7 +133,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             {
                 var blockItemId = MasterHolder.BlockMaster.GetItemId(_currentBlockId);
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(blockItemId);
-                machineObject.SetItem(itemViewData, 0);
+                machineView.SetItem(itemViewData, 0);
             }
             
             void UpdateButtonAndText()
@@ -149,9 +149,9 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             #endregion
         }
         
-        private void OnClickMaterialItem(ItemSlotObject itemSlotObject)
+        private void OnClickMaterialItem(ItemSlotView itemSlotView)
         {
-            var itemId = itemSlotObject.ItemViewData.ItemId;
+            var itemId = itemSlotView.ItemViewData.ItemId;
             var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
             _onClickItem.OnNext(itemRecipes);
         }

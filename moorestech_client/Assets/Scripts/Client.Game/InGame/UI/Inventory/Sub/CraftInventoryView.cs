@@ -110,9 +110,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             
             #region Internal
             
-            void OnClickMaterialItem(ItemSlotObject itemSlotObject)
+            void OnClickMaterialItem(ItemSlotView itemSlotView)
             {
-                var itemId = itemSlotObject.ItemViewData.ItemId;
+                var itemId = itemSlotView.ItemViewData.ItemId;
                 var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
                 _onClickItem.OnNext(itemRecipes);
             }
@@ -199,7 +199,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public static string GetMaterialTolTip(ItemViewData itemViewData)
         {
-            var tooltipText = ItemSlotObject.GetToolTipText(itemViewData);
+            var tooltipText = ItemSlotView.GetToolTipText(itemViewData);
             var craftRecipes = MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemViewData.ItemId);
             
             // レシピがなければそのまま返す

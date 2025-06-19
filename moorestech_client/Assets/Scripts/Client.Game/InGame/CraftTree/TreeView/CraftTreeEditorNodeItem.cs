@@ -17,7 +17,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
     public class CraftTreeEditorNodeItem : MonoBehaviour
     {
         [SerializeField] private TMP_Text itemNameText;
-        [SerializeField] private ItemSlotObject itemSlotObject;
+        [SerializeField] private ItemSlotView itemSlotView;
         [SerializeField] private GameObject completedObject;
         
         [SerializeField] private RectTransform offsetUiTransform;
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(node.TargetItemId);
                 itemNameText.text = $"{itemView.ItemName}  {node.CurrentCount} / {node.RequiredCount}";
-                itemSlotObject.SetItem(itemView, 0);
+                itemSlotView.SetItem(itemView, 0);
                 
                 completedObject.SetActive(node.IsCompleted);
             }

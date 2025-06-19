@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         [Inject] private IGameUnlockStateData _gameUnlockStateData;
-        private readonly List<ItemSlotObject> _itemListObjects = new();
+        private readonly List<ItemSlotView> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
         private readonly Subject<RecipeViewerItemRecipes> _onClickItem = new();
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                 
                 // アイテムリストを設定
                 // Set the item list
-                var itemSlotObject = Instantiate(ItemSlotObject.Prefab, itemListParent);
+                var itemSlotObject = Instantiate(ItemSlotView.Prefab, itemListParent);
                 var toolTipText = CraftInventoryView.GetMaterialTolTip(itemViewData);
                 itemSlotObject.SetItem(itemViewData, 0, toolTipText);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
@@ -140,7 +140,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
   #endregion
         }
         
-        private void OnClickItemList(ItemSlotObject slot)
+        private void OnClickItemList(ItemSlotView slot)
         {
             var itemId = slot.ItemViewData.ItemId;
             var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);

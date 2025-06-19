@@ -20,8 +20,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
     public class CraftChainerCrafterInventoryView : CommonBlockInventoryViewBase
     {
         [SerializeField] private RectTransform chestSlotsParent;
-        [SerializeField] private List<ItemSlotObject> recipeInputItemSlotObjects;
-        [SerializeField] private List<ItemSlotObject> recipeOutputItemSlotObjects;
+        [SerializeField] private List<ItemSlotView> recipeInputItemSlotObjects;
+        [SerializeField] private List<ItemSlotView> recipeOutputItemSlotObjects;
         
         [SerializeField] private CraftChainerCrafterItemSelectModal itemSelectModal;
         
@@ -54,7 +54,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var param = (CraftChainerCrafterBlockParam)blockGameObject.BlockMasterElement.BlockParam;
                 for (var i = 0; i < param.ItemSlotCount; i++)
                 {
-                    var slotObject = Instantiate(ItemSlotObject.Prefab, chestSlotsParent);
+                    var slotObject = Instantiate(ItemSlotView.Prefab, chestSlotsParent);
                     SubInventorySlotObjectsInternal.Add(slotObject);
                     itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
                 }
@@ -106,7 +106,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             #endregion
         }
         
-        private async UniTask ClickRecipeInputItem(ItemSlotObject itemSlotObject, int index, bool isInput)
+        private async UniTask ClickRecipeInputItem(ItemSlotView itemSlotView, int index, bool isInput)
         {
             // アイテムを選択
             // Select item
@@ -129,8 +129,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             async UniTask<(ItemId,int)> SelectItem()
             {
                 // モーダルを開いてアイテムを選択
-                var currentId = itemSlotObject.ItemViewData?.ItemId ?? ItemMaster.EmptyItemId;
-                var currentCount = itemSlotObject.Count;
+                var currentId = itemSlotView.ItemViewData?.ItemId ?? ItemMaster.EmptyItemId;
+                var currentCount = itemSlotView.Count;
                 
                 var (id, count) = await itemSelectModal.GetSelectItem(currentId, currentCount);
                 
@@ -178,7 +178,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             #region Internal
             
-            void SetItemSlot(List<ItemSlotObject> itemSlots, List<CraftingSolverItem> items)
+            void SetItemSlot(List<ItemSlotView> itemSlots, List<CraftingSolverItem> items)
             {
                 for (var i = 0; i < itemSlots.Count; i++)
                 {

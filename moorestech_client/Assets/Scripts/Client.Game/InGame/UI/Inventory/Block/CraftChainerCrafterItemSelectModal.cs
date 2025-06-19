@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         [SerializeField] private Button cancelButton;
         [SerializeField] private Button clearButton;
         
-        private readonly List<ItemSlotObject> _itemSlotObjects = new();
+        private readonly List<ItemSlotView> _itemSlotObjects = new();
         
         private ItemId _selectedItemId;
         
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var slotObject = Instantiate(ItemSlotObject.Prefab, itemsParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, itemsParent);
                 slotObject.OnLeftClickUp.Subscribe(ClickItem);
                 slotObject.SetItem(itemView, 0);
                 _itemSlotObjects.Add(slotObject);
@@ -97,15 +97,15 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
   #endregion
         }
         
-        private void ClickItem(ItemSlotObject itemSlotObject)
+        private void ClickItem(ItemSlotView itemSlotView)
         {
             foreach (var slotObject in _itemSlotObjects)
             {
                 slotObject.SetHotBarSelected(false);
             }
             
-            itemSlotObject.SetHotBarSelected(true);
-            _selectedItemId = itemSlotObject.ItemViewData.ItemId;
+            itemSlotView.SetHotBarSelected(true);
+            _selectedItemId = itemSlotView.ItemViewData.ItemId;
             
             UpdateOkButton(countInputField.text);
         }
