@@ -10,7 +10,7 @@ namespace Client.Game.InGame.CraftTree.Target
     public class CraftTreeTargetViewItems : MonoBehaviour
     {
         [SerializeField] private TMP_Text itemNameText;
-        [SerializeField] private ItemSlotObject itemSlotObject;
+        [SerializeField] private ItemSlotView itemSlotView;
         
         [SerializeField] private RectTransform offsetUiTransform;
         [SerializeField] private float depthWidth = 50f;
@@ -32,7 +32,7 @@ namespace Client.Game.InGame.CraftTree.Target
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(node.TargetItemId);
                 itemNameText.text = $"{itemView.ItemName}  {node.CurrentCount} / {node.RequiredCount}";
-                itemSlotObject.SetItem(itemView, 0);
+                itemSlotView.SetItem(itemView, 0);
             }
             
             void SetPosition()

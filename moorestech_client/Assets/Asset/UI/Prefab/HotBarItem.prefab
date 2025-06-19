@@ -31,7 +31,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4295113573953469799}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -109,15 +108,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -167,7 +168,6 @@ RectTransform:
   m_Children:
   - {fileID: 4456691382033667028}
   m_Father: {fileID: 7839424667567594374}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -244,7 +244,6 @@ RectTransform:
   - {fileID: 4295113573953469799}
   - {fileID: 6678910898268511203}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -263,7 +262,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77442038ac344eab97995e975ecb508d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemSlotObject: {fileID: 3957179504307660343}
+  itemSlotView: {fileID: 6250884543348892197}
   keyBoardText: {fileID: 4957540387202215687}
 --- !u!1001 &5954756368800482906
 PrefabInstance:
@@ -275,7 +274,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1014375675779259832, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
       propertyPath: m_Name
-      value: ItemSlotObject
+      value: HotBarItemSlotView
       objectReference: {fileID: 0}
     - target: {fileID: 1014375675779259833, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
       propertyPath: m_Pivot.x
@@ -366,9 +365,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
---- !u!114 &3957179504307660343 stripped
+--- !u!114 &6250884543348892197 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
+  m_CorrespondingSourceObject: {fileID: 296130373708113023, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   m_PrefabInstance: {fileID: 5954756368800482906}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}

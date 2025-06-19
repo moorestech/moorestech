@@ -7,7 +7,7 @@ namespace Client.Game.InGame.UI.Inventory
 {
     public class HotBarItem : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObject;
+        [SerializeField] private ItemSlotView itemSlotView;
         [SerializeField] private TMP_Text keyBoardText;
         
         private void Awake()
@@ -16,7 +16,7 @@ namespace Client.Game.InGame.UI.Inventory
         
         public void SetItem(ItemViewData itemViewData, int count)
         {
-            itemSlotObject.SetItem(itemViewData, count);
+            itemSlotView.SetItem(itemViewData, count);
         }
         
         public void SetKeyBoardText(string text)
@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Inventory
         
         public void SetSelect(bool isSelect)
         {
-            itemSlotObject.SetHotBarSelect(isSelect);
+            itemSlotView.SetHotBarSelected(isSelect);
         }
     }
 }
