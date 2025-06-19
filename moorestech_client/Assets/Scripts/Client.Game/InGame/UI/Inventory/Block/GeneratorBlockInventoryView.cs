@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var generatorParam = (ElectricGeneratorBlockParam)param;
             for (var i = 0; i < generatorParam.FuelItemSlotCount; i++)
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
+                var slotObject = Instantiate(ItemSlotObject.Prefab, powerGeneratorFuelItemParent);
                 SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }

@@ -104,7 +104,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, inputParent);
+                    var itemSlotObject = Instantiate(ItemSlotObject.Prefab, inputParent);
                     itemSlotObject.SetItem(itemViewData, requiredItem.Count);
                     _inputSlotList.Add(itemSlotObject);
                     
@@ -120,7 +120,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, outputParent);
+                    var itemSlotObject = Instantiate(ItemSlotObject.Prefab, outputParent);
                     itemSlotObject.SetItem(itemViewData, requiredItem.Count);
                     _outputSlotList.Add(itemSlotObject);
                     

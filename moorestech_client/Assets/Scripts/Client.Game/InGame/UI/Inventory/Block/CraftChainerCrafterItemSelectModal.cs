@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var slotObject = Instantiate(itemSlotObjectPrefab, itemsParent);
+                var slotObject = Instantiate(ItemSlotObject.Prefab, itemsParent);
                 slotObject.OnLeftClickUp.Subscribe(ClickItem);
                 slotObject.SetItem(itemView, 0);
                 _itemSlotObjects.Add(slotObject);

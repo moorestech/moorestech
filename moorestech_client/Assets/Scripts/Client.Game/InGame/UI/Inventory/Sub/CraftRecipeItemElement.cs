@@ -70,7 +70,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
                     var itemViewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                     
-                    var slot = Instantiate(itemSlotObjectPrefab, materialParent);
+                    var slot = Instantiate(ItemSlotObject.Prefab, materialParent);
                     var toolTipText = $"{itemViewData.ItemName}\n必要数: {requiredItem.Count}\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
                     slot.SetItem(itemViewData, requiredItem.Count, toolTipText);
                     slot.SetFrameType(ItemSlotFrameType.CraftRecipe);
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             void SetupResultSlot()
             {
                 var itemViewData = ClientContext.ItemImageContainer.GetItemView(CraftRecipe.CraftResultItemGuid);
-                _resultSlot = Instantiate(itemSlotObjectPrefab, resultParent);
+                _resultSlot = Instantiate(ItemSlotObject.Prefab, resultParent);
                 _resultSlot.SetItem(itemViewData, CraftRecipe.CraftResultCount);
                 _resultSlot.SetFrameType(ItemSlotFrameType.Normal);
             }
