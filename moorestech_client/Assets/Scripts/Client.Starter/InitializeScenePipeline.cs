@@ -77,13 +77,14 @@ namespace Client.Starter
             //セットされる変数
             BlockGameObjectContainer blockGameObjectContainer = null;
             ItemImageContainer itemImageContainer = null;
+            FluidImageContainer fluidImageContainer = null;
             AsyncOperation sceneLoadTask = null;
             InitialHandshakeResponse handshakeResponse = null;
             
             //各種ロードを並列実行
             try
             {
-                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad(), LoadStaticAsset());
+                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadModAssets(), MainGameSceneLoad(), LoadStaticAsset());
             }
             catch (Exception e)
             {
@@ -94,7 +95,7 @@ namespace Client.Starter
             }
             
             //staticアクセスできるコンテキストの作成
-            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
+            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -164,10 +165,10 @@ namespace Client.Starter
                 }
             }
             
-            async UniTask LoadBlockAndItemAssets()
+            async UniTask LoadModAssets()
             {
                 // ブロックとアイテムのアセットをロード
-                await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets());
+                await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
                 
                 // アイテム画像がロードされていないブロックのアイテム画像をロードする
                 await TakeBlockItemImage();
@@ -187,6 +188,15 @@ namespace Client.Starter
                 var modDirectory = ServerConst.CreateServerModsDirectory(serverDirectory);
                 itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
                 loadingLog.text += $"\nアイテム画像ロード完了  {loadingStopwatch.Elapsed}";
+            }
+            
+            async UniTask LoadFluidAssets()
+            {
+                //通常の液体画像をロード
+                //TODO 非同期で実行できるようにする
+                var modDirectory = ServerConst.CreateServerModsDirectory(serverDirectory);
+                fluidImageContainer = FluidImageContainer.CreateAndLoadFluidImageContainer(modDirectory);
+                loadingLog.text += $"\n液体画像ロード完了  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask TakeBlockItemImage()
@@ -246,7 +256,7 @@ namespace Client.Starter
             // staticなアセットをロード
             async UniTask LoadStaticAsset()
             {
-                await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab());
+                await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
             }
             
             #endregion
