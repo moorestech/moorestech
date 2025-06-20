@@ -17,7 +17,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         [SerializeField] private CommonSlotView commonSlotView;
         
         
-        public void SetFluid(FluidViewData fluidView, float amount, string toolTipText = null)
+        public void SetFluid(FluidViewData fluidView, double amount, string toolTipText = null)
         {
             if (fluidView == null || fluidView.FluidId == FluidMaster.EmptyFluidId)
             {

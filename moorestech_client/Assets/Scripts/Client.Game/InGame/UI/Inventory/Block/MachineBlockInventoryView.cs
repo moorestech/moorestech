@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
@@ -68,13 +68,13 @@ namespace Client.Game.InGame.UI.Inventory.Block
             {
                 for (var i = 0; i < param.InputSlotCount; i++)
                 {
-                    var slotObject = Instantiate(FluidSlotView.Prefab, machineInputItemParent);
+                    var slotObject = Instantiate(FluidSlotView.Prefab, machineInputFluidParent);
                     _fluidSlotViews.Add(slotObject);
                 }
                 
                 for (var i = 0; i < param.OutputSlotCount; i++)
                 {
-                    var slotObject = Instantiate(FluidSlotView.Prefab, machineOutputItemParent);
+                    var slotObject = Instantiate(FluidSlotView.Prefab, machineOutputFluidParent);
                     _fluidSlotViews.Add(slotObject);
                 }
             }
@@ -85,6 +85,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         protected void Update()
         {
             UpdateMachineProgressArrow();
+            UpdateFluidInventory();
             
             #region Internal
             
@@ -108,6 +109,41 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
                 
                 powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
+            }
+            
+            void UpdateFluidInventory()
+            {
+                // GetStateDetailメソッドを使用して液体インベントリの状態を取得
+                var fluidState = BlockGameObject.GetStateDetail<FluidMachineInventoryStateDetail>(FluidMachineInventoryStateDetail.BlockStateDetailKey);
+                if (fluidState == null)
+                {
+                    Debug.LogError("FluidMachineInventoryStateDetail が取得できません。");
+                    return;
+                }
+                
+                var param = BlockGameObject.BlockMasterElement.BlockParam as IMachineParam;
+                
+                // 入力スロットの更新
+                for (var i = 0; i < param.InputSlotCount && i < fluidState.InputTanks.Count; i++)
+                {
+                    var fluidInfo = fluidState.InputTanks[i];
+                    var fluidId = new FluidId(fluidInfo.FluidId);
+                    
+                    var fluidView = fluidId == FluidMaster.EmptyFluidId ? null : ClientContext.FluidImageContiner.GetItemView(fluidId);
+                    _fluidSlotViews[i].SetFluid(fluidView, fluidInfo.Amount);
+                }
+                
+                // 出力スロットの更新
+                var outputStartIndex = param.InputSlotCount;
+                for (var i = 0; i < param.OutputSlotCount && i < fluidState.OutputTanks.Count; i++)
+                {
+                    var fluidInfo = fluidState.OutputTanks[i];
+                    var fluidId = new FluidId(fluidInfo.FluidId);
+                    var slotIndex = outputStartIndex + i;
+                    
+                    var fluidView = fluidId == FluidMaster.EmptyFluidId ? null : ClientContext.FluidImageContiner.GetItemView(fluidId);
+                    _fluidSlotViews[slotIndex].SetFluid(fluidView, fluidInfo.Amount);
+                }
             }
             
             #endregion
