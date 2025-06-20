@@ -18,10 +18,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
         
+        [SerializeField] private RectTransform machineInputFluidParent;
+        [SerializeField] private RectTransform machineOutputFluidParent;
+        
         [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
         
         protected BlockGameObject BlockGameObject;
+        
+        private readonly List<FluidSlotView> _fluidSlotViews = new();
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
@@ -33,23 +38,48 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // GearMachineParamとElectricMachineParamを共通して使える
             var param = blockGameObject.BlockMasterElement.BlockParam as IMachineParam;
             
-            
-            for (var i = 0; i < param.InputSlotCount; i++)
-            {
-                var slotObject = Instantiate(ItemSlotView.Prefab, machineInputItemParent);
-                SubInventorySlotObjectsInternal.Add(slotObject);
-                itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
-            }
-            
-            for (var i = 0; i < param.OutputSlotCount; i++)
-            {
-                var slotObject = Instantiate(ItemSlotView.Prefab, machineOutputItemParent);
-                SubInventorySlotObjectsInternal.Add(slotObject);
-                itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
-            }
-            
             machineBlockNameText.text = blockGameObject.BlockMasterElement.Name;
-            UpdateItemList(itemList);
+            
+            SetItemList();
+            SetFluidList();
+            
+            #region Intenral
+            
+            void SetItemList()
+            {
+                for (var i = 0; i < param.InputSlotCount; i++)
+                {
+                    var slotObject = Instantiate(ItemSlotView.Prefab, machineInputItemParent);
+                    SubInventorySlotObjectsInternal.Add(slotObject);
+                    itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
+                }
+                
+                for (var i = 0; i < param.OutputSlotCount; i++)
+                {
+                    var slotObject = Instantiate(ItemSlotView.Prefab, machineOutputItemParent);
+                    SubInventorySlotObjectsInternal.Add(slotObject);
+                    itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
+                }
+                
+                UpdateItemList(itemList);
+            }
+            
+            void SetFluidList()
+            {
+                for (var i = 0; i < param.InputSlotCount; i++)
+                {
+                    var slotObject = Instantiate(FluidSlotView.Prefab, machineInputItemParent);
+                    _fluidSlotViews.Add(slotObject);
+                }
+                
+                for (var i = 0; i < param.OutputSlotCount; i++)
+                {
+                    var slotObject = Instantiate(FluidSlotView.Prefab, machineOutputItemParent);
+                    _fluidSlotViews.Add(slotObject);
+                }
+            }
+            
+  #endregion
         }
         
         protected void Update()
@@ -78,12 +108,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
                 
                 powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
-
-                
-                if (state == null)
-                {
-                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
-                }
             }
             
             #endregion
