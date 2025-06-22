@@ -60,6 +60,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16777f725be954243984f7ed20cc7ff4
+    m_Address: Vanilla/UI/FluidSlotView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16c979552fd5a4ef1b4af5e1b6f01f5d
     m_Address: Vanilla/UI/Block/GearMinerBlockInventory
     m_ReadOnly: 0
