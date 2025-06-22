@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -8,22 +9,11 @@ namespace Client.Skit.UI
     public class SkitUI : MonoBehaviour
     {
         [SerializeField] private UIDocument skitUiDocument;
+        private SkitUITools _skitUITools;
         
         private void Awake()
         {
-            GetButton("HiddenButton").clicked += () =>
-            {
-                
-            };
-            
-            #region Intenral
-            
-            Button GetButton(string buttonName)
-            {
-                return skitUiDocument.rootVisualElement.Q<Button>(buttonName);
-            }
-            
-            #endregion
+            _skitUITools = new SkitUITools(skitUiDocument);
         }
         
         public void SetText(string characterName, string text)
@@ -41,6 +31,11 @@ namespace Client.Skit.UI
         public async UniTask<int> WaitSelectText(List<string> texts)
         {
             return -1;
+        }
+        
+        private void Update()
+        {
+            _skitUITools.ManualUpdate();
         }
     }
 }
