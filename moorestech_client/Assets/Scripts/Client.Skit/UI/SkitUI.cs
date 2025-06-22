@@ -1,59 +1,46 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Client.Skit.UI
 {
     public class SkitUI : MonoBehaviour
     {
-        [SerializeField] private GameObject storyPanel;
+        [SerializeField] private UIDocument skitUiDocument;
         
-        [SerializeField] private TMP_Text characterNameText;
-        [SerializeField] private TMP_Text storyText;
-        
-        [SerializeField] private CanvasGroup transitionImage;
-        
-        [SerializeField] private GameObject selectionPanel;
-        [SerializeField] private List<SelectionButton> selectionButtons;
+        private void Awake()
+        {
+            GetButton("HiddenButton").clicked += () =>
+            {
+                
+            };
+            
+            #region Intenral
+            
+            Button GetButton(string buttonName)
+            {
+                return skitUiDocument.rootVisualElement.Q<Button>(buttonName);
+            }
+            
+            #endregion
+        }
         
         public void SetText(string characterName, string text)
         {
-            storyPanel.SetActive(true);
-            characterNameText.text = characterName;
-            storyText.text = text.Replace("\\n", "\n");
         }
         
         public void ShowTransition(bool isShow, float duration)
         {
-            transitionImage.alpha = isShow ? 0 : 1;
-            transitionImage.DOFade(isShow ? 1 : 0, duration);
         }
         
         public void ShowSelectionUI(bool enable)
         {
-            selectionPanel.SetActive(enable);
         }
         
         public async UniTask<int> WaitSelectText(List<string> texts)
         {
-            for (var i = 0; i < selectionButtons.Count; i++)
-                if (i < texts.Count)
-                {
-                    selectionButtons[i].SetButton(texts[i], i);
-                    selectionButtons[i].SetActive(true);
-                }
-                else
-                {
-                    selectionButtons[i].SetActive(false);
-                }
-            
-            var cancelToken = this.GetCancellationTokenOnDestroy();
-            
-            var (_, resultIndex) = await UniTask.WhenAny(selectionButtons.Select(button => button.WaitClick(cancelToken)));
-            
-            return resultIndex;
+            return -1;
         }
     }
 }
