@@ -25,3 +25,11 @@
     border-top-color: rgba(0, 0, 0, 0);
     border-bottom-color: rgba(0, 0, 0, 0);
 }
+
+.AutoEnable {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_auto_enable.png?fileID=21300000&guid=d3d5a0c0f0847c845be61addeafce4eb&type=3#skit_icon_auto_enable");
+}
+
+.AutoDisable {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_auto_disable.png?fileID=21300000&guid=582770607f03e4bd68e24d5e464c4b1d&type=3#skit_icon_auto_disable");
+}

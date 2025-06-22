@@ -28,6 +28,8 @@ using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.Skit;
 using Client.Network.API;
+using Client.Skit.Skit;
+using Client.Skit.UI;
 using Game.UnlockState;
 using UnityEngine;
 using VContainer;
@@ -81,6 +83,7 @@ namespace Client.Starter
         [SerializeField] private ChallengeManager challengeManager;
         
         [SerializeField] private SkitManager skitManager;
+        [SerializeField] private SkitUI skitUI;
         
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
         
@@ -139,6 +142,10 @@ namespace Client.Starter
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
+            // スキット関連
+            // register skit related
+            builder.Register<ISkitActionContext, SkitActionContext>(Lifetime.Singleton);
+            
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
@@ -181,6 +188,7 @@ namespace Client.Starter
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager);
+            builder.RegisterComponent(skitUI);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             

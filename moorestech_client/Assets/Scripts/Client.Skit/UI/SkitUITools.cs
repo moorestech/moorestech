@@ -1,3 +1,4 @@
+using Client.Skit.Skit;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,17 +10,33 @@ namespace Client.Skit.UI
         
         private bool _isUIHidden = false;
         
-        public SkitUITools(UIDocument skitUiDocument)
+        public SkitUITools(UIDocument skitUiDocument, ISkitActionContext skitActionContext)
         {
             _skitUiDocument = skitUiDocument;
             
             GetButton("HiddenButton").clicked += HideUI;
+            GetButton("SkipButton").clicked += skitActionContext.Skip;
+            
+            var autoButton = GetButton("AutoButton");
+            SetAutoButtonView(skitActionContext.IsAuto);
+            autoButton.clicked += () =>
+            {
+                var isAuto = !skitActionContext.IsAuto;
+                skitActionContext.SetAuto(isAuto);
+                SetAutoButtonView(isAuto);
+            };
             
             #region Intenral
             
             Button GetButton(string buttonName)
             {
                 return skitUiDocument.rootVisualElement.Q<Button>(buttonName);
+            }
+            
+            void SetAutoButtonView(bool isAuto)
+            {
+                autoButton.EnableInClassList("AutoEnable", isAuto);
+                autoButton.EnableInClassList("AutoDisable", !isAuto);
             }
             
             #endregion
