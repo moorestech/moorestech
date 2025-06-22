@@ -1,7 +1,7 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Asset/UI/NewUI/Skit/SkitUI.uss?fileID=7433441132597879392&amp;guid=cab53207c24ee40d5b7803f5bacbc2ab&amp;type=3" />
-    <ui:VisualElement name="VisualElement" enabled="true" style="flex-grow: 1; position: absolute; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/UI_.png?fileID=2800000&amp;guid=19bf9c8d1eb2849e6b7d6cac412bbd11&amp;type=3#UI_&quot;); top: 0%; bottom: 0; right: 0%; left: auto;" />
-    <ui:VisualElement name="Root" style="flex-grow: 1; position: relative;">
+    <ui:VisualElement name="VisualElement" enabled="true" style="flex-grow: 1; position: absolute; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/UI_.png?fileID=2800000&amp;guid=19bf9c8d1eb2849e6b7d6cac412bbd11&amp;type=3#UI_&quot;); top: 0%; bottom: 0; right: 0%; left: 0; display: none;" />
+    <ui:VisualElement name="Root" style="flex-grow: 1; position: relative; display: flex;">
         <ui:VisualElement style="flex-grow: 1; flex-direction: column; position: relative;">
             <ui:VisualElement name="ToolButtons" style="flex-grow: 1; position: relative; flex-direction: row-reverse; margin-right: 39px;">
                 <ui:Button name="HiddenButton" class="ToolButton" style="background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_hidden.png?fileID=21300000&amp;guid=3fe0eb1dbbf2f0b42a49e3d4926f82a5&amp;type=3#skit_icon_hidden&quot;);" />
@@ -15,6 +15,11 @@
                 <ui:Button text="Button" name="SelectButton" class="SelectButton" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="TextArea" style="flex-grow: 0.65; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/bg_window.png?fileID=2800000&amp;guid=3fae4698fa71c3f4baf2edb1d5e1ba1e&amp;type=3#bg_window&quot;);" />
+        <ui:VisualElement name="TextArea" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/bg_window.png?fileID=21300000&amp;guid=3fae4698fa71c3f4baf2edb1d5e1ba1e&amp;type=3#bg_window&quot;); flex-direction: column; flex-wrap: nowrap; flex-basis: 306px;">
+            <ui:Label text="主人公" name="SpeakerName" style="color: rgb(255, 255, 255); max-height: 431px; font-size: 43px; margin-top: 25px; margin-left: 252px;" />
+            <ui:VisualElement name="TextSplitLine" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/common_line.png?fileID=21300000&amp;guid=0eecc560e87108749826df7176f3657a&amp;type=3#common_line&quot;); margin-right: 166px; margin-left: 166px; flex-basis: 3px; margin-top: 3px;" />
+            <ui:Label text="１行は全角で２５文字分のスペースを確保しています。&#10;１行は全角で２５文字分のスペースを確保しています。" name="MainText" style="color: rgb(255, 255, 255); max-height: 431px; font-size: 32px; padding-top: 20px; padding-left: 256px; -unity-paragraph-spacing: 92px;" />
+            <ui:VisualElement name="NavigationArrow" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/nav_arrow.png?fileID=21300000&amp;guid=7d5f0141799dc414d925414930d6d634&amp;type=3#nav_arrow&quot;); margin-right: 189px; margin-left: 1675px; flex-basis: 59px; margin-top: 22px;" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

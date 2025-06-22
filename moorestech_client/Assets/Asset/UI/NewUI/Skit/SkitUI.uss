@@ -11,6 +11,10 @@
     height: 46px;
     margin-top: 22px;
     margin-bottom: 1px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
 }
 
 .ToolButton {
