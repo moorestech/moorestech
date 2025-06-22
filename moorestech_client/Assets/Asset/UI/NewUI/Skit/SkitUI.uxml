@@ -1,0 +1,20 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Asset/UI/NewUI/Skit/SkitUI.uss?fileID=7433441132597879392&amp;guid=cab53207c24ee40d5b7803f5bacbc2ab&amp;type=3#SkitUI" />
+    <ui:VisualElement name="VisualElement" enabled="true" style="flex-grow: 1; position: absolute; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/UI_.png?fileID=2800000&amp;guid=19bf9c8d1eb2849e6b7d6cac412bbd11&amp;type=3#UI_&quot;); top: 0%; bottom: 0; right: 0%; left: auto;" />
+    <ui:VisualElement name="Root" style="flex-grow: 1; position: relative;">
+        <ui:VisualElement style="flex-grow: 1; flex-direction: column; position: relative;">
+            <ui:VisualElement name="ToolButtons" style="flex-grow: 1; position: relative; flex-direction: row-reverse; margin-right: 39px;">
+                <ui:Button name="HiddenButton" class="ToolButton" style="background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_hidden.png?fileID=21300000&amp;guid=3fe0eb1dbbf2f0b42a49e3d4926f82a5&amp;type=3#skit_icon_hidden&quot;);" />
+                <ui:Button name="SkipButton" class="ToolButton" style="background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_skip.png?fileID=2800000&amp;guid=1f65140147c3dcc428a54a5b5755de8e&amp;type=3#skit_icon_skip&quot;);" />
+                <ui:Button name="AutoButton" class="ToolButton" style="background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_auto.png?fileID=2800000&amp;guid=d3d5a0c0f0847c845be61addeafce4eb&amp;type=3#skit_icon_auto&quot;);" />
+                <ui:Button name="LogButton" class="ToolButton" style="background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_log.png?fileID=21300000&amp;guid=821b3944d165fb142ade8ad57c82c4c9&amp;type=3#skit_icon_log&quot;);" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Selections" style="flex-grow: 1; flex-direction: column-reverse; margin-left: 1205px; margin-right: 8px; flex-wrap: nowrap;">
+                <ui:Button text="Button" name="SelectButton" class="SelectButton" />
+                <ui:Button text="Button" name="SelectButton" class="SelectButton" />
+                <ui:Button text="Button" name="SelectButton" class="SelectButton" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="TextArea" style="flex-grow: 0.65; background-image: url(&quot;project://database/Assets/Asset/UI/NewUI/Skit/bg_window.png?fileID=2800000&amp;guid=3fae4698fa71c3f4baf2edb1d5e1ba1e&amp;type=3#bg_window&quot;);" />
+    </ui:VisualElement>
+</ui:UXML>
