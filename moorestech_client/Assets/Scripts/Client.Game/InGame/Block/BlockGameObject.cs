@@ -93,6 +93,8 @@ namespace Client.Game.InGame.Block
                         {
                             processor.OnChangeState(data);
                         }
+                        
+                        _blockStateMessagePack = data;
                     }).AddTo(this.GetCancellationTokenOnDestroy());
             }
             
