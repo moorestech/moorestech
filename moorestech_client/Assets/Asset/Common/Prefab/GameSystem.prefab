@@ -587,6 +587,7 @@ MonoBehaviour:
   networkDisconnectPresenter: {fileID: 3760452863612925393}
   challengeManager: {fileID: 5423992904397564507}
   skitManager: {fileID: 1951205481002623162}
+  skitUI: {fileID: 8995564702550197256}
   displayEnergizedRange: {fileID: 6801616934556956278}
   inGameCameraController: {fileID: 4843909587234544541}
 --- !u!1001 &932377419651066343
