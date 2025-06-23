@@ -1,8 +1,19 @@
 version: 1
-master:
-  characters: ["主人公", "AI", "友人"]
-
 commands:
+  - id: transition
+    label: トランジション
+    description: フェードイン／アウトの切替と持続時間
+    commandListLabelFormat: "TRANSITION: {enabled}, {duration}s"
+    properties:
+      enabled:
+        type: boolean
+        default: true
+      duration:
+        type: number
+        default: 0.4
+        constraints:
+          min: 0
+
   - id: characterTransform
     label: キャラ位置設定
     description: キャラクターの座標と回転を即座に設定
@@ -10,8 +21,7 @@ commands:
     properties:
       character:
         type: enum
-        options:
-          master: characters
+        options: ["主人公", "AI", "友人"]
         required: true
       Position: { type: vector3, required: true }
       Rotation: { type: vector3, required: true }
@@ -61,8 +71,7 @@ commands:
     properties:
       character:
         type: enum
-        options:
-          master: characters
+        options: ["主人公", "AI", "友人"]
         required: true
       body:
         type: string
@@ -76,8 +85,7 @@ commands:
     properties:
       character:
         type: enum
-        options:
-          master: characters
+        options: ["主人公", "AI", "友人"]
         required: true
       emotion:
         type: enum
@@ -111,8 +119,7 @@ commands:
     properties:
       character:
         type: enum
-        options:
-          master: characters
+        options: ["主人公", "AI", "友人"]
         required: true
       motionName:
         type: enum
