@@ -35,8 +35,10 @@ namespace Client.Skit.UI
             
             void SetAutoButtonView(bool isAuto)
             {
-                autoButton.EnableInClassList("AutoEnable", isAuto);
-                autoButton.EnableInClassList("AutoDisable", !isAuto);
+                var addClass = isAuto ? "AutoEnable" : "AutoDisable";
+                var removeClass = isAuto ? "AutoDisable" : "AutoEnable";
+                autoButton.AddToClassList(addClass);
+                autoButton.RemoveFromClassList(removeClass);
             }
             
             #endregion
