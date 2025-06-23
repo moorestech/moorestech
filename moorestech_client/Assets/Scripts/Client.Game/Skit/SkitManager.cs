@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
@@ -22,6 +23,11 @@ namespace Client.Game.Skit
         [SerializeField] private VoiceDefine voiceDefine;
         
         public bool IsPlayingSkit { get; private set; }
+        
+        private void Awake()
+        {
+            skitUI.SetActive(false);
+        }
         
         public async UniTask StartSkit(string addressablePath)
         {
@@ -51,7 +57,7 @@ namespace Client.Game.Skit
             }
             
             //後処理 Post process
-            skitUI.gameObject.SetActive(false);
+            skitUI.SetActive(false);
             storyContext.DestroyCharacter();
             IsPlayingSkit = false;
             CameraManager.Instance.UnRegisterCamera(skitCamera);
@@ -70,7 +76,7 @@ namespace Client.Game.Skit
                 }
                 
                 // 表示の設定
-                skitUI.gameObject.SetActive(true);
+                skitUI.SetActive(true);
                 
                 return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
             }

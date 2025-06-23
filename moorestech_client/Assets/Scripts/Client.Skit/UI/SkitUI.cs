@@ -99,5 +99,10 @@ namespace Client.Skit.UI
         {
             return skitUiDocument.rootVisualElement.Q<T>(elementName);
         }
+        
+        public void SetActive(bool isActive)
+        {
+            gameObject.SetActive(isActive);
+        }
     }
 }
