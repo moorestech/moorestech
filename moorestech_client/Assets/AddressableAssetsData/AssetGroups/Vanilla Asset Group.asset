@@ -165,6 +165,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5635b42f628d34f4fa97c03bfe9d0d36
+    m_Address: Vanilla/Character/Chr001
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 57dddaed5e986a94c83e73dc6c8b2d8c
     m_Address: Vanilla/Block/Old/beltconbeyor
     m_ReadOnly: 0
