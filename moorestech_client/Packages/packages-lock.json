@@ -55,6 +55,13 @@
       "dependencies": {},
       "hash": "d9510956f357e9aa555508bcf83fd85b8c259224"
     },
+    "com.moorestech.dependency-tracer": {
+      "version": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "63aa77fb6370e75b924345884d9d08425639fe6a"
+    },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
       "depth": 0,
