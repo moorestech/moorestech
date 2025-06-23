@@ -1,4 +1,7 @@
 version: 1
+master:
+  characters: ["主人公", "AI", "友人"]
+
 commands:
   - id: transition
     label: トランジション
@@ -21,7 +24,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       Position: { type: vector3, required: true }
       Rotation: { type: vector3, required: true }
@@ -71,7 +75,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       body:
         type: string
@@ -85,7 +90,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       emotion:
         type: enum
@@ -119,7 +125,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       motionName:
         type: enum
