@@ -206,6 +206,7 @@ namespace Client.Starter
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
+            _resolver.Resolve<SkitUI>();
             
             return _resolver;
         }
