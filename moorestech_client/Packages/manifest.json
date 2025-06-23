@@ -7,6 +7,7 @@
     "com.harumak.unitydebugsheet": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet",
     "com.hecomi.ulipsync": "https://github.com/hecomi/uLipSync.git#upm",
     "com.moorestech.command-forge-generator-util": "https://github.com/moorestech/CommandForgeGenerator.git?path=UnityEditorExtension/CommandForgeGeneratorUtil/Assets/Scripts#main",
+    "com.moorestech.dependency-tracer": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages",
     "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
     "com.singularitygroup.hotreload": "git+https://gitlab.hotreload.net/root/hot-reload-releases.git#1.12.8",
     "com.tayx.graphy": "https://github.com/Tayx94/graphy.git",

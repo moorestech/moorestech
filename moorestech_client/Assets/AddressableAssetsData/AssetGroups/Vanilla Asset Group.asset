@@ -85,6 +85,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 227487304681b4e6897ee786a7b586fc
+    m_Address: Vanilla/Character/Chr002
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22764527d2fc13546af09d27fe46126e
     m_Address: Vanilla/Block/BeltConveyor_Straight
     m_ReadOnly: 0
@@ -417,6 +422,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d608bd17f9587487ab66d6adb08fc735
     m_Address: Vanilla/Skit/commands
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6b9aecf810bb4074b1eee1c06cfa1c3
+    m_Address: Vanilla/Character/Chr003
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
