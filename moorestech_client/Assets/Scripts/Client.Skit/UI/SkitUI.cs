@@ -100,6 +100,11 @@ namespace Client.Skit.UI
             return skitUiDocument.rootVisualElement.Q<T>(elementName);
         }
         
+        public void ShowTextArea(bool isActive)
+        {
+            
+        }
+        
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
