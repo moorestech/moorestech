@@ -83,11 +83,57 @@ namespace Client.Skit.UI
         
         public void ShowSelectionUI(bool enable)
         {
+            var selections = GetElement<VisualElement>("Selections");
+            if (selections != null)
+            {
+                selections.style.display = enable ? DisplayStyle.Flex : DisplayStyle.None;
+            }
         }
         
         public async UniTask<int> WaitSelectText(List<string> texts)
         {
-            return -1;
+            var selections = GetElement<VisualElement>("Selections");
+            if (selections == null) return -1;
+            
+            var buttons = selections.Query<Button>("SelectButton").ToList();
+            
+            // 全てのボタンを非表示にする
+            foreach (var button in buttons)
+            {
+                button.style.display = DisplayStyle.None;
+            }
+            
+            // テキストの数だけボタンを表示
+            for (int i = 0; i < texts.Count && i < buttons.Count; i++)
+            {
+                buttons[i].text = texts[i];
+                buttons[i].style.display = DisplayStyle.Flex;
+            }
+            
+            // 選択を待つ
+            var tcs = new UniTaskCompletionSource<int>();
+            var callbacks = new List<System.Action>();
+            
+            for (int i = 0; i < texts.Count && i < buttons.Count; i++)
+            {
+                int index = i; // クロージャーのためのローカル変数
+                System.Action callback = () => tcs.TrySetResult(index);
+                callbacks.Add(callback);
+                buttons[i].clicked += callback;
+            }
+            
+            try
+            {
+                return await tcs.Task;
+            }
+            finally
+            {
+                // クリーンアップ：イベントハンドラーを削除
+                for (int i = 0; i < texts.Count && i < buttons.Count; i++)
+                {
+                    buttons[i].clicked -= callbacks[i];
+                }
+            }
         }
         
         private void Update()
@@ -102,7 +148,11 @@ namespace Client.Skit.UI
         
         public void ShowTextArea(bool isActive)
         {
-            
+            var textArea = GetElement<VisualElement>("TextArea");
+            if (textArea != null)
+            {
+                textArea.style.display = isActive ? DisplayStyle.Flex : DisplayStyle.None;
+            }
         }
         
         public void SetActive(bool isActive)
