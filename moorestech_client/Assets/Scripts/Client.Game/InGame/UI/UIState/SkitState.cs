@@ -1,4 +1,5 @@
 using Client.Game.Skit;
+using Client.Input;
 
 namespace Client.Game.InGame.UI.UIState
 {
@@ -13,6 +14,8 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
+            // スキット中はカーソルを表示してUIを操作できるようにする
+            InputManager.MouseCursorVisible(true);
         }
         
         public UIStateEnum GetNextUpdate()
@@ -23,6 +26,8 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnExit()
         {
+            // スキット終了時はカーソルを非表示に戻す
+            InputManager.MouseCursorVisible(false);
         }
     }
 }
