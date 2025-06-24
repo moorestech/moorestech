@@ -15,6 +15,15 @@
     border-right-color: rgba(0, 0, 0, 0);
     border-top-color: rgba(0, 0, 0, 0);
     border-bottom-color: rgba(0, 0, 0, 0);
+    display: none;
+}
+
+.SelectButton:hover {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/btn__select_hover.png?fileID=21300000&guid=PLACEHOLDER_GUID&type=3#btn__select_hover");
+}
+
+.SelectButton:active {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/btn__select_click.png?fileID=21300000&guid=PLACEHOLDER_GUID&type=3#btn__select_click");
 }
 
 .ToolButton {
