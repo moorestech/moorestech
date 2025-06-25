@@ -63,7 +63,7 @@ commands:
   - id: showText
     label: テキスト表示
     description: テキストエリアを表示非表示する
-    commandListLabelFormat: "WAIT: {seconds}s"
+    commandListLabelFormat: "テキスト表示:{enable}"
     defaultBackgroundColor: "#ffffff"
     properties:
       enable:
