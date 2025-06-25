@@ -30,28 +30,18 @@ namespace Game.Train.Train
         //true出発可能
         public bool CheckEntries()
         {
-            /*
-            if (!_trainUnit._isUseDestination) return;
-
-            var currentNode = _trainUnit._railPosition.GetNodeApproaching();
-            var distance = _trainUnit._railPosition.GetDistanceToNextNode();
-
-            // ノードに到着した場合  
-            if (distance == 0 && currentNode != null)
+            bool ret = true;
+            //train car全部でIsInventoryFull()をチェックする
+            //ドッキングしている車両がすべてアイテム満杯なら出発可能
+            foreach (var car in _trainUnit._cars)
             {
-                var lastEntry = _entries.LastOrDefault();
-                if (lastEntry == null || lastEntry.Node != currentNode || !lastEntry.IsArrival)
+                if (car.IsDocked)
                 {
-                    _entries.Add(new DiagramEntry
-                    {
-                        Node = currentNode,
-                        Timestamp = currentTime,
-                        IsArrival = true
-                    });
+                    if (car.IsInventoryFull() == false)
+                        ret = false;
                 }
             }
-            */
-            return true;
+            return ret;
         }
 
         //GetNextDestination
