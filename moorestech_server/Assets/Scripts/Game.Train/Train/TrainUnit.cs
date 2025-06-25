@@ -302,6 +302,15 @@ namespace Game.Train.Train
             newNodes.Reverse();
             return newNodes;
         }
+
+        private void OnDestroy()
+        {
+            // 列車が破棄されるときに、ダイアグラムを解除
+            TrainDiagramManager.Instance.UnregisterDiagram(this);
+            TrainUpdateService.Instance.UnregisterTrain(this);
+            trainUnitStationDocking = null;
+            trainDiagram = null;
+        }
     }
 
 }
