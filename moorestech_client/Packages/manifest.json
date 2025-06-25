@@ -9,7 +9,7 @@
     "com.moorestech.command-forge-generator-util": "https://github.com/moorestech/CommandForgeGenerator.git?path=UnityEditorExtension/CommandForgeGeneratorUtil/Assets/Scripts#main",
     "com.moorestech.dependency-tracer": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages",
     "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
-    "com.singularitygroup.hotreload": "git+https://gitlab.hotreload.net/root/hot-reload-releases.git#1.12.8",
+    "com.singularitygroup.hotreload": "git+https://gitlab.hotreload.net/root/hot-reload-releases.git#1.13.7",
     "com.tayx.graphy": "https://github.com/Tayx94/graphy.git",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "2.5.0",
