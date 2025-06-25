@@ -189,6 +189,26 @@ namespace Game.Train.RailGraph
             RemoveUnnecessaryNodes();
         }
 
+        // intの距離を入力として、railpositionの先頭からその距離さかのぼったところにちょうどあるRailNodeをlistですべて取得する
+        // 事実上ドッキング判定のみに使う
+        public List<RailNode> GetNodesAtDistance(int distance)
+        {
+            List<RailNode> nodesAtDistance = new List<RailNode>();
+            int totalDistance = _distanceToNextNode + distance;//この地点をみたい
+            for (int i = 0; i < _railNodes.Count; i++)
+            {
+                if (totalDistance == 0) 
+                {
+                    nodesAtDistance.Add(_railNodes[i]);
+                }
+                if (i == _railNodes.Count - 1) break; // 最後のノードまで到達したら終了
+                int segmentDistance = _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
+                totalDistance -= segmentDistance;
+                if (totalDistance < 0) break;
+            }
+            return nodesAtDistance;
+        }
+
         //テスト用
         //TestGet_railNodes()
         public List<RailNode> TestGet_railNodes()

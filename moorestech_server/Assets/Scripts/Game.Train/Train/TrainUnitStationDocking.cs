@@ -43,7 +43,7 @@ namespace Game.Train.Train
 
 
         //すべてのTrainCarのドッキング状態をfalseにする
-        public void TurnOffDockingStates()
+        public void UndockFromStation()
         {
             // 各車両のドッキング状態をリセット  
             foreach (var car in _trainUnit._cars)
@@ -53,88 +53,68 @@ namespace Game.Train.Train
         }
 
 
-        /// <summary>  
-        /// 列車の速度が0の時にドッキングできるかをチェックする
-        /// </summary>  
+        /// <summary>    
+        /// trainunitのrailpositionを参照して、carの前端と後端のノードを取得し、同じ駅にドッキングできるかチェックする  
+        /// ドッキングできるなら各carのドッキング状態を更新する
+        /// </summary>
         public void TryDockWhenStopped()
         {
-            /*
-            // 速度が0でない場合はドッキングチェックしない  
-            if (_trainUnit._currentSpeed > 0)
+            
+            if (_trainUnit._cars.Count == 0 || _trainUnit._railPosition == null)
             {
-                if (_isDocked)
+                return; // 列車が存在しない場合は何もしない
+            }
+
+            //GetNodesAtDistanceをつかう
+            //列車を先頭から順にみていく
+            int carposition = 0;
+            foreach (var car in _trainUnit._cars)
+            {
+                // 車両の前端位置 = carposition
+                var frontNodelist = _trainUnit._railPosition.GetNodesAtDistance(carposition);
+                // 車両の後端位置 = carposition + car.Length
+                carposition += car.Length;
+                var rearNodelist = _trainUnit._railPosition.GetNodesAtDistance(carposition);
+
+                // frontとrearのノードのStationRefを参照して、同じ駅にいるかつ前輪が駅の前、後輪が駅の後ろにある、という組み合わせが一つでもあれば合格
+                if (frontNodelist != null && rearNodelist != null)
                 {
-                    UndockFromStation();
+                    bool flag = false; // breakフラグ
+                    foreach (var frontNode in frontNodelist)
+                    {
+                        foreach (var rearNode in rearNodelist)
+                        {
+                            // 同じ駅に属するかチェック  
+                            if (IsSameStation(frontNode, rearNode))
+                            {
+                                // ドッキング状態を更新  
+                                car.dockingblock = frontNode.StationRef.StationBlock; // 前端ノードをドッキングブロックとする  
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag) break;
+                    }
                 }
-                return;
             }
 
-            // 列車の前端と後端のノードを取得してドッキング判定  
-            var frontNode = _trainUnit._railPosition.GetNodeApproaching();
-            var rearNode = GetTrainRearNode();
-
-            if (frontNode != null && rearNode != null && IsSameStation(frontNode, rearNode))
-            {
-                DockToStation();
-            }
-            else if (_isDocked)
-            {
-                UndockFromStation();
-            }
-            */
         }
 
-        private RailNode GetTrainRearNode()
-        {
-            // 列車長を考慮して後端ノードを計算  
-            // 実装は列車の長さと現在位置から後端を特定する必要がある  
-            return null; // 簡略化  
-        }
-
+        /// <summary>  
+        /// 2つのノードが同じ駅に属するかチェック  
+        /// フロントがちゃんと前かもチェック
+        /// </summary>  
         private bool IsSameStation(RailNode frontNode, RailNode rearNode)
         {
-            // 同じ駅の前後ノードかチェック  
-            // 実装は駅ブロックとの関連付けが必要  
-            return false; // 簡略化  
-        }
-
-        private void DockToStation()
-        {
-            /*
-            if (!_isDocked)
+            bool isPair = frontNode.StationRef.IsPairWith(rearNode.StationRef); // StationReferenceのペアチェック
+            if (!isPair)
             {
-                _isDocked = true;
-
-                // 各車両のドッキング状態を設定  
-                foreach (var car in _trainUnit._cars)
-                {
-                    _carDockingStates[car] = true;
-                }
+                return false; // 同じ駅でない場合はfalse  
             }
-            */
+            return frontNode.StationRef.NodeRole == StationNodeRole.Entry;
         }
 
-        private void UndockFromStation()
-        {
-            /*
-            if (_isDocked)
-            {
-                _isDocked = false;
-                _carDockingStates.Clear();
-            }
-            */
-        }
-        /*
-        public bool IsCarDocked(TrainCar car)
-        {
-            return _carDockingStates.ContainsKey(car) && _carDockingStates[car];
-        }
 
-        public bool IsTrainDocked()
-        {
-            return _isDocked;
-        }
-        */
     }
 }
 
