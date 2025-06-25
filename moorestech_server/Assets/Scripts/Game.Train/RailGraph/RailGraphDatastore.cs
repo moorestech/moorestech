@@ -1,3 +1,4 @@
+using Game.Train.Common;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -167,6 +168,7 @@ namespace Game.Train.RailGraph
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
+            TrainDiagramManager.Instance.NotifyNodeRemoval(node);
         }
 
         private void RemoveNodeTo(int nodeid)

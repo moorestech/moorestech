@@ -63,7 +63,7 @@ namespace Game.Train.Train
                 entry.Node = null; // または特別な「削除済み」マーカー  
             }
 
-            // 必要に応じて、削除されたノード以降のエントリを無効化  
+            // 必要に応じて、削除されたノードのエントリを無効化  
             var RemoveIndex = _entries.FindIndex(e => e.Node == removedNode);
             if (RemoveIndex >= 0)
             {
