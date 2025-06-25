@@ -6,6 +6,7 @@ using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,7 +20,6 @@ namespace Client.Game.Skit
         
         [SerializeField] private SkitCamera skitCamera;
         
-        [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
         
         public bool IsPlayingSkit { get; private set; }
@@ -48,7 +48,7 @@ namespace Client.Game.Skit
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
             //前処理 Pre process
-            var storyContext = PreProcess();
+            var storyContext = await PreProcess();
             CameraManager.Instance.RegisterCamera(skitCamera);
             
             foreach (var command in commands)
@@ -64,15 +64,28 @@ namespace Client.Game.Skit
             
             #region Internal
             
-            StoryContext PreProcess()
+            async UniTask<StoryContext> PreProcess()
             {
                 //キャラクターを生成
                 var characters = new Dictionary<string, SkitCharacter>();
-                foreach (var characterInfo in characterDefine.CharacterInfos)
+                
+                // CharacterMasterから全キャラクター情報を取得
+                var characterMaster = MasterHolder.CharacterMaster;
+                foreach (var characterElement in characterMaster.ChallengeMasterElements)
                 {
-                    var character = Instantiate(characterInfo.CharacterPrefab);
-                    character.Initialize(transform, characterInfo.CharacterKey);
-                    characters.Add(characterInfo.CharacterKey, character);
+                    // Addressableからキャラクターモデルをロード
+                    var characterPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(characterElement.ModelAddresablePath);
+                    if (characterPrefab != null)
+                    {
+                        var characterInstance = Instantiate(characterPrefab);
+                        var skitCharacter = characterInstance.GetComponent<SkitCharacter>();
+                        skitCharacter.Initialize(transform, characterElement.CharacterId);
+                        characters.Add(characterElement.CharacterId, skitCharacter);
+                    }
+                    else
+                    {
+                        Debug.LogError($"キャラクターモデルのロードに失敗しました: {characterElement.ModelAddresablePath}");
+                    }
                 }
                 
                 // 表示の設定
