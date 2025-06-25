@@ -20,7 +20,7 @@ namespace Game.Train.Common
         {
             foreach (var trainUnit in _trainUnits)
             {
-                trainUnit.UpdateTrain(GameUpdater.UpdateSecondTime);
+                trainUnit.Update();
             }
         }
 

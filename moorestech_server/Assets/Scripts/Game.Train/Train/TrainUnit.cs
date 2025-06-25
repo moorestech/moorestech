@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 
@@ -44,9 +45,14 @@ namespace Game.Train.Train
         }
 
 
+        public void Update() 
+        {
+            UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+        }
+
         // Updateの時間版
         // 進んだ距離を返す
-        public int UpdateTrain(double deltaTime) 
+        public int UpdateTrainByTime(double deltaTime) 
         {
             //目的地に近ければ減速したい。自動運行での最大速度を決めておく
             double maxspeed = Math.Sqrt(((double)_remainingDistance) * 10000.0) + 10.0;//10.0は距離が近すぎても進めるよう
@@ -160,7 +166,7 @@ namespace Game.Train.Train
 
 
         //毎フレーム燃料の在庫を確認しながら加速力を計算する
-        public float UpdateTractionForce(double deltaTime)
+        public double UpdateTractionForce(double deltaTime)
         {
             var totalWeight = 0;
             var totalTraction = 0;
@@ -171,7 +177,7 @@ namespace Game.Train.Train
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (float)(totalTraction) / totalWeight;
+            return (double)(totalTraction) / totalWeight;
         }
 
 

@@ -42,6 +42,7 @@ namespace Game.Train.Train
         /// </summary>  
         public void CheckDockingStatus()
         {
+            /*
             // 速度が0でない場合はドッキングチェックしない  
             if (_trainUnit._currentSpeed > 0)
             {
@@ -64,6 +65,7 @@ namespace Game.Train.Train
             {
                 UndockFromStation();
             }
+            */
         }
 
         private RailNode GetTrainRearNode()
@@ -82,6 +84,7 @@ namespace Game.Train.Train
 
         private void DockToStation()
         {
+            /*
             if (!_isDocked)
             {
                 _isDocked = true;
@@ -92,17 +95,20 @@ namespace Game.Train.Train
                     _carDockingStates[car] = true;
                 }
             }
+            */
         }
 
         private void UndockFromStation()
         {
+            /*
             if (_isDocked)
             {
                 _isDocked = false;
                 _carDockingStates.Clear();
             }
+            */
         }
-
+        /*
         public bool IsCarDocked(TrainCar car)
         {
             return _carDockingStates.ContainsKey(car) && _carDockingStates[car];
@@ -112,6 +118,7 @@ namespace Game.Train.Train
         {
             return _isDocked;
         }
+        */
     }
 }
 
