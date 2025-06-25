@@ -28,8 +28,8 @@ namespace Game.Train.Train
         const double AIR_RESISTANCE = 0.00002f;
 
         public List<TrainCar> _cars;
-        TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
-        TrainDiagram trainDiagram; // 列車のダイアグラム
+        public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
+        public TrainDiagram trainDiagram; // 列車のダイアグラム
 
 
         public TrainUnit(
@@ -53,7 +53,50 @@ namespace Game.Train.Train
 
         public void Update() 
         {
-            UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+            if (IsAutoRun)
+            {
+                // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
+                if (trainUnitStationDocking.IsDocked)
+                {
+                    // ドッキング中は進まない
+                    _currentSpeed = 0;
+                    // もしtrainDiagramの出発条件を満たしていたらtrainDiagramは次の目的地をセットして、ドッキングを解除する
+                    if (trainDiagram.CheckEntries())
+                    {
+                        // 次の目的地をセット
+                        trainDiagram.MoveToNextEntry();
+                        _destinationNode = trainDiagram.GetNextDestination();
+                        // ドッキングを解除
+                        trainUnitStationDocking.TurnOffDockingStates();
+                    }
+                }
+                else
+                {
+                    // ドッキング中でなければ目的地に向かって進む
+                    _destinationNode = trainDiagram.GetNextDestination();//これは手動でRailNodeが消されたときに毎フレーム"必ず存在する"目的地を見るため
+                    UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+                }
+            }
+            else 
+            {
+                // TODO 手動運転中はFキーとかでドッキングできる(satisfactoryを参考に)
+                // 未実装
+                // もしドッキング中なら
+                if (trainUnitStationDocking.IsDocked)
+                {
+                    // ドッキング中は進まない
+                    _currentSpeed = 0;
+                    // Fキーとかでドッキング解除
+                    // trainUnitStationDocking.TurnOffDockingStates();
+                }
+                else
+                {
+                    // ドッキング中でなければキー操作で目的地に向かって進む
+                    _destinationNode = trainDiagram.GetNextDestination();
+                    UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+                }
+            }
+                
         }
 
         // Updateの時間版
@@ -99,11 +142,11 @@ namespace Game.Train.Train
                 int moveLength = _railPosition.MoveForward(distanceToMove);
                 distanceToMove -= moveLength;
                 _remainingDistance -= moveLength;
-                //自動運転で目的地に到着してたら速度を0にする
+                //自動運転で目的地に到着してたらドッキング判定を行う必要がある
                 if (IsArrivedDestination() && _isAutoRun)
                 {
                     _currentSpeed = 0;
-                    _isAutoRun = false;
+                    trainUnitStationDocking.TryDockWhenStopped();
                     break;
                 }
                 if (distanceToMove == 0) break;
