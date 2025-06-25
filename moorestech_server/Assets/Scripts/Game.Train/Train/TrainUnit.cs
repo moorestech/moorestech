@@ -292,7 +292,10 @@ namespace Game.Train.Train
         // ▼ ここからが「編成を分割する」ための処理例
         //============================================================
         /// <summary>
-        ///  列車を「後ろから numberOfCars 両」切り離して新しいTrainUnitとして返す
+        ///  列車を「後ろから numberOfCars 両」切り離して、後ろの部分を新しいTrainUnitとして返す
+        ///  新しいTrainUnitのrailpositionは、切り離した車両の長さに応じて調整される
+        ///  新しいTrainUnitのtrainDiagramは空になる
+        ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
         /// </summary>
         public TrainUnit SplitTrain(int numberOfCarsToDetach)
         {
