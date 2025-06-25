@@ -21,6 +21,7 @@ namespace Game.Train.Train
 
         public TrainDiagram(TrainUnit trainUnit)
         {
+            currentIndex = -1;//-1は未選択,手動運転のようなもの
             _trainUnit = trainUnit;
             _entries = new List<DiagramEntry>();
         }
@@ -51,7 +52,25 @@ namespace Game.Train.Train
             }
             */
             return true;
-        
+        }
+
+        //GetNextDestination
+        public RailNode GetNextDestination() 
+        {
+            if (_entries.Count == 0) return null; // エントリがない場合はnullを返す
+            // 現在のインデックスが有効な範囲内であることを確認
+            if (currentIndex < 0 || currentIndex >= _entries.Count)
+            {
+                return null; // インデックスが無効な場合はnullを返す
+            }
+            return _entries[currentIndex].Node; // 現在のエントリのノードを返す
+        }
+
+        //基本ループする
+        public void MoveToNextEntry()
+        {
+            if (_entries.Count == 0) return; // エントリがない場合は何もしない
+            currentIndex = (currentIndex + 1) % _entries.Count; // 次のエントリに移動
         }
 
         //RailGraphDatabaseからTrainDiagramManager経由で実行される
@@ -69,6 +88,11 @@ namespace Game.Train.Train
             {
                 // 削除されたノードを無効化  
                 _entries.RemoveAt(RemoveIndex);
+            }
+
+            if (currentIndex >= _entries.Count)
+            {
+                currentIndex = -1; // インデックスをリセット
             }
         }
 

@@ -32,15 +32,31 @@ namespace Game.Train.Train
         // 各車両のドッキング状態を管理  
         private TrainUnit _trainUnit;
 
+        //これは列車全体TrainCarを調査し一つでもドッキングしていたらドッキングしているとみなす
+        public bool IsDocked => _trainUnit._cars.Any(car => car.IsDocked);
+
         public TrainUnitStationDocking(TrainUnit trainUnit)
         {
             _trainUnit = trainUnit;
         }
 
+
+
+        //すべてのTrainCarのドッキング状態をfalseにする
+        public void TurnOffDockingStates()
+        {
+            // 各車両のドッキング状態をリセット  
+            foreach (var car in _trainUnit._cars)
+            {
+                car.dockingblock = null; // ドッキング状態を解除  
+            }
+        }
+
+
         /// <summary>  
-        /// 列車の速度が0の時にドッキング状態をチェック  
+        /// 列車の速度が0の時にドッキングできるかをチェックする
         /// </summary>  
-        public void CheckDockingStatus()
+        public void TryDockWhenStopped()
         {
             /*
             // 速度が0でない場合はドッキングチェックしない  
