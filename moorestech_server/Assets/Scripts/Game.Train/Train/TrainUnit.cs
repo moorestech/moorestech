@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 
@@ -28,6 +29,7 @@ namespace Game.Train.Train
 
         public List<TrainCar> _cars;
         TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
+        TrainDiagram trainDiagram; // 列車のダイアグラム
 
 
         public TrainUnit(
@@ -42,6 +44,8 @@ namespace Game.Train.Train
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             trainUnitStationDocking = new TrainUnitStationDocking(this);
+            trainDiagram = new TrainDiagram(this);
+            TrainDiagramManager.Instance.RegisterDiagram(this, trainDiagram);
         }
 
 
