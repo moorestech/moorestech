@@ -17,7 +17,10 @@ namespace Game.Train.Train
         // 燃料のインベントリスロット数 (動力車での燃料容量、貨車では0)
         public int FuelSlots { get; private set; }
 
+        //列車自体の長さ
         public int Length { get; private set; }
+        //列車が駅とドッキングしているかどうか
+        public bool IsDocked => dockingblock != null; // ドッキングしているかどうかのプロパティ
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる
 
         public TrainCar(int tractionForce, int inventorySlots, int length)

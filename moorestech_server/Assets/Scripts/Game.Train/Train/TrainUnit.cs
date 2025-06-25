@@ -20,12 +20,12 @@ namespace Game.Train.Train
             get { return _isAutoRun; }
         }
 
-        public float _currentSpeed;   // m/s など適宜
+        public double _currentSpeed;   // m/s など適宜
         //摩擦係数、空気抵抗係数などはここに追加する
-        const float FRICTION = 0.0002f;
-        const float AIR_RESISTANCE = 0.00002f;
+        const double FRICTION = 0.0002f;
+        const double AIR_RESISTANCE = 0.00002f;
 
-        private List<TrainCar> _cars;
+        public List<TrainCar> _cars;
         TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
 
 
@@ -38,18 +38,18 @@ namespace Game.Train.Train
             _railPosition = initialPosition;
             _destinationNode = destination;
             _cars = cars;  // 追加
-            _currentSpeed = 0.0f; // 仮の初期速度
+            _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
-            trainUnitStationDocking = new TrainUnitStationDocking();
+            trainUnitStationDocking = new TrainUnitStationDocking(this);
         }
 
 
         // Updateの時間版
         // 進んだ距離を返す
-        public int UpdateTrain(float deltaTime) 
+        public int UpdateTrain(double deltaTime) 
         {
             //目的地に近ければ減速したい。自動運行での最大速度を決めておく
-            float maxspeed = MathF.Sqrt(((float)_remainingDistance) * 10000.0f) + 10f;//10fは距離が近すぎても進めるよう
+            double maxspeed = Math.Sqrt(((double)_remainingDistance) * 10000.0) + 10.0;//10.0は距離が近すぎても進めるよう
             if (_isAutoRun)//設定している目的地に向かうべきなら
             {
                 //加速する必要がある
@@ -63,15 +63,14 @@ namespace Game.Train.Train
             //deltaTime次第でかわる
             _currentSpeed -= _currentSpeed * deltaTime * FRICTION + _currentSpeed * _currentSpeed * deltaTime * AIR_RESISTANCE;
             //速度が0以下にならないようにする
-            _currentSpeed = UnityEngine.Mathf.Max(0, _currentSpeed);
+            _currentSpeed = Math.Max(0, _currentSpeed);
             //maxspeed制約
-            _currentSpeed = UnityEngine.Mathf.Min(maxspeed, _currentSpeed);
+            _currentSpeed = Math.Min(maxspeed, _currentSpeed);
 
-
-            float floatDistance = _currentSpeed * deltaTime;
+            double floatDistance = _currentSpeed * deltaTime;
             //floatDistanceが1.5ならランダムで1か2になる
             //floatDistanceが-1.5ならランダムで-1か-2になる
-            int distanceToMove = UnityEngine.Mathf.FloorToInt(floatDistance + UnityEngine.Random.Range(0f, 0.999f));
+            int distanceToMove = UnityEngine.Mathf.FloorToInt((float)floatDistance + UnityEngine.Random.Range(0f, 0.999f));
             UpdateTrainByDistance(distanceToMove);
             return distanceToMove;
         }
@@ -137,7 +136,7 @@ namespace Game.Train.Train
 
                 if (isRandomPathUse)
                 {
-                    //approachingから次のノードをランダムに取得して_railPosition.AddNodeToHeadしたい
+                    //approachingから次のノードをランダムに取得して_railPosition.AddNodeToHead
                     var nextNodelist = approaching.ConnectedNodes.ToList();
                     if (nextNodelist.Count == 0) 
                     {
@@ -161,7 +160,7 @@ namespace Game.Train.Train
 
 
         //毎フレーム燃料の在庫を確認しながら加速力を計算する
-        public float UpdateTractionForce(float deltaTime)
+        public float UpdateTractionForce(double deltaTime)
         {
             var totalWeight = 0;
             var totalTraction = 0;
