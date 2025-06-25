@@ -74,7 +74,8 @@ namespace Client.Game.Skit
                 foreach (var characterElement in characterMaster.ChallengeMasterElements)
                 {
                     // Addressableからキャラクターモデルをロード
-                    var characterPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(characterElement.ModelAddresablePath);
+                    var path = characterElement.SkitModelAddresablePath;
+                    var characterPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(path);
                     if (characterPrefab != null)
                     {
                         var characterInstance = Instantiate(characterPrefab);
@@ -84,7 +85,7 @@ namespace Client.Game.Skit
                     }
                     else
                     {
-                        Debug.LogError($"キャラクターモデルのロードに失敗しました: {characterElement.ModelAddresablePath}");
+                        Debug.LogError($"キャラクターモデルのロードに失敗しました: {path}");
                     }
                 }
                 

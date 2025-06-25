@@ -1,6 +1,6 @@
 version: 1
 master:
-  characters: ["主人公", "AI", "友人"]
+  characters: ["chr_001", "chr_002", "chr_003"]
 
 commands:
   - id: transition
