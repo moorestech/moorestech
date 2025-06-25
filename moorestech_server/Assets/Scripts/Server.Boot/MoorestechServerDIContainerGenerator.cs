@@ -73,6 +73,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
+            initializerCollection.AddSingleton<TrainUpdateService>();
             initializerCollection.AddSingleton<TrainDiagramManager>();
 
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
@@ -99,6 +100,7 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
+            services.AddSingleton<TrainUpdateService>();
             services.AddSingleton<TrainDiagramManager>();
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
@@ -151,6 +153,7 @@ namespace Server.Boot
 
             serviceProvider.GetService<GearNetworkDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
+            serviceProvider.GetService<TrainUpdateService>();
             serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
