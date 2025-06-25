@@ -33,6 +33,7 @@ namespace Client.Input
         
         public static void MouseCursorVisible(bool isVisible)
         {
+            Cursor.visible = isVisible;
             Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
         }
     }

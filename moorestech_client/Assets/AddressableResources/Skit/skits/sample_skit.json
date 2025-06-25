@@ -15,7 +15,7 @@
     {
       "type": "characterTransform",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "Position": [
         -5.89,
         2.89,
@@ -31,7 +31,7 @@
     {
       "type": "characterTransform",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "Position": [
         -3.739,
         2.665,
@@ -127,7 +127,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "ふわぁ……よく寝た\nんん……ここは一体……？",
       "id": 14
     },
@@ -149,7 +149,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "おはようございます、姫さま\nようやくお目覚めになられましたか\nここは惑星Bです\n",
       "id": 16
     },
@@ -183,7 +183,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "ちょっと待って……\n私が住んでるのは惑星Aなんだけど……\nあはは……惑星Bってどこ？　冗談、だよね！？",
       "id": 18
     },
@@ -205,7 +205,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "姫さまに冗談なんて言いません\nぼくは約束と冗談が大っ嫌いなんです\n惑星Bは惑星Aの隣の隣の隣の……とにかく遠くです\n",
       "id": 20
     },
@@ -227,7 +227,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "ありがとう。とにかくすっごく遠くまで旅行に\n来ちゃってるってことは分かったよ\nよーし、早く帰ろう！　みんなが心配しちゃう！",
       "id": 22
     },
@@ -261,14 +261,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "はぁ？　眠り過ぎてお忘れになったんですか？\n惑星Aで大罪を犯した姫様はあなたの父親ーー\n国王さまに永久追放されたじゃないですか",
       "id": 24
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "惑星Aに姫様の帰る場所なんてありませんよ\n諦めて下さい",
       "id": 25
     },
@@ -290,7 +290,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "そんな……私が大罪を犯したって……\n一体何をしたの？　きっと何かの間違いだよね？",
       "id": 27
     },
@@ -312,14 +312,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "いいえ、これは現実です",
       "id": 29
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "惑星Aに戻る手段なんて……存在しませんよ",
       "id": 30
     },
@@ -341,14 +341,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "とりあえず、惑星Aに戻ってお父様とお話をーー",
       "id": 32
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "きゃっ！！！",
       "id": 33
     },
@@ -390,7 +390,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "大丈夫ですか？\nぼくの腕に捕まって下さい",
       "id": 38
     },
@@ -412,7 +412,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "あ……ありがとう……\nあなた、名前は？",
       "id": 40
     },
@@ -434,7 +434,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "ぼくに名前はありません。汎用システムAIです\nそんなフラフラな状態では何も出来ませんよ\nまずはここでの生存の方が重要です",
       "id": 42
     },
@@ -456,7 +456,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "主人公",
+      "character": "chr_001",
       "body": "う……突然そんなこと言われても……\nどうすれば……",
       "id": 44
     },
@@ -478,7 +478,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "AI",
+      "character": "chr_002",
       "body": "大丈夫です\nぼくがしっかりサポートするので\n姫さまは何も心配いりません。さあ、行きますよ",
       "id": 46
     },

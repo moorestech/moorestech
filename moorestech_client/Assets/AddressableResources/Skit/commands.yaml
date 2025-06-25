@@ -1,4 +1,7 @@
 version: 1
+master:
+  characters: ["chr_001", "chr_002", "chr_003"]
+
 commands:
   - id: transition
     label: トランジション
@@ -21,7 +24,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       Position: { type: vector3, required: true }
       Rotation: { type: vector3, required: true }
@@ -56,6 +60,16 @@ commands:
         default: 0.5
         constraints: { min: 0 }
 
+  - id: showText
+    label: テキスト表示
+    description: テキストエリアを表示非表示する
+    commandListLabelFormat: "WAIT: {seconds}s"
+    defaultBackgroundColor: "#ffffff"
+    properties:
+      enable:
+        type: boolean
+        required: true
+
   - id: cameraWarp
     label: カメラワープ
     description: カメラを瞬時に座標移動
@@ -71,7 +85,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       body:
         type: string
@@ -85,7 +100,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       emotion:
         type: enum
@@ -119,7 +135,8 @@ commands:
     properties:
       character:
         type: enum
-        options: ["主人公", "AI", "友人"]
+        options:
+          master: characters
         required: true
       motionName:
         type: enum

@@ -540,5 +540,142 @@ namespace Tests.CombinedTest.Core
             
             #endregion
         }
+        
+        /// <summary>
+        /// VanillaMachineFluidInventoryComponentのステート変更通知が正しく動作することをテストする
+        /// </summary>
+        [Test]
+        public void FluidInventoryStateChangeNotificationTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            // 機械を設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock);
+            
+            // 液体を入れるパイプを設定
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1);
+            
+            // パイプに液体を設定
+            const double fluidAmount1 = 50d;
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            fluidPipe1.AddLiquid(new FluidStack(fluidAmount1, FluidId1), FluidContainer.Empty);
+            
+            // VanillaMachineFluidInventoryComponentを取得
+            var fluidInventoryComponent = fluidMachineBlock.GetComponent<VanillaMachineFluidInventoryComponent>();
+            Assert.IsNotNull(fluidInventoryComponent, "VanillaMachineFluidInventoryComponentが取得できません");
+            
+            // IBlockStateObservableとして取得できることを確認
+            var stateObservable = fluidInventoryComponent as IBlockStateObservable;
+            Assert.IsNotNull(stateObservable, "VanillaMachineFluidInventoryComponentがIBlockStateObservableを実装していません");
+            
+            // ステート変更通知を監視
+            var stateChangeCount = 0;
+            var disposable = stateObservable.OnChangeBlockState.Subscribe(_ =>
+            {
+                stateChangeCount++;
+                Debug.Log($"Fluid inventory state changed! Count: {stateChangeCount}");
+            });
+            
+            // 初期状態のステートを確認
+            var initialDetails = stateObservable.GetBlockStateDetails();
+            Assert.AreEqual(1, initialDetails.Length, "BlockStateDetailsは単一の要素を含むべきです");
+            Assert.AreEqual(FluidMachineInventoryStateDetail.BlockStateDetailKey, initialDetails[0].Key, "BlockStateDetailのキーが正しくありません");
+            
+            var initialState = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(initialDetails[0].Value);
+            Assert.AreEqual(3, initialState.InputTanks.Count, "入力タンクの数が正しくありません");
+            Assert.AreEqual(2, initialState.OutputTanks.Count, "出力タンクの数が正しくありません");
+            
+            // すべての入力タンクが空であることを確認
+            foreach (var tank in initialState.InputTanks)
+            {
+                Assert.AreEqual(FluidMaster.EmptyFluidId.AsPrimitive(), tank.FluidId, "初期状態で入力タンクが空ではありません");
+                Assert.AreEqual(0, tank.Amount, "初期状態で入力タンクに液体が入っています");
+            }
+            
+            // パイプから機械への液体転送を実行
+            var previousCount = stateChangeCount;
+            Debug.Log("Starting fluid transfer from pipe to machine...");
+            
+            // 液体が転送されるまでアップデート
+            var startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
+                
+                // パイプの液体量が減ったかチェック
+                if (fluidPipe1.GetAmount() < fluidAmount1)
+                {
+                    Debug.Log($"Fluid is transferring. Pipe amount: {fluidPipe1.GetAmount()}");
+                }
+            }
+            
+            // ステート変更通知が発生したことを確認
+            Assert.Greater(stateChangeCount, previousCount, "液体転送時にOnChangeBlockStateが発火していません");
+            
+            // 転送後のステートを確認
+            var afterTransferDetails = stateObservable.GetBlockStateDetails();
+            var afterTransferState = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(afterTransferDetails[0].Value);
+            
+            // 最初の入力タンクに液体が入っていることを確認
+            Assert.AreEqual(FluidId1.AsPrimitive(), afterTransferState.InputTanks[0].FluidId, "転送後の液体IDが正しくありません");
+            Assert.Greater(afterTransferState.InputTanks[0].Amount, 0, "転送後の液体量が0より大きくありません");
+            
+            // 出力タンクから液体を排出するテスト
+            Debug.Log("Testing fluid output from machine to pipe...");
+            
+            // 出力用パイプを設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var outputPipeBlock);
+            
+            // 機械の出力タンクに液体を設定
+            var outputContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
+            const double outputFluidAmount = 30d;
+            outputContainers[0].AddLiquid(new FluidStack(outputFluidAmount, FluidId2), FluidContainer.Empty);
+            
+            previousCount = stateChangeCount;
+            
+            // 出力処理を実行
+            startTime = DateTime.Now;
+            while (true)
+            {
+                GameUpdater.UpdateWithWait();
+                
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
+                
+                // 出力タンクの液体量が減ったかチェック
+                if (outputContainers[0].Amount < outputFluidAmount)
+                {
+                    Debug.Log($"Fluid is outputting. Tank amount: {outputContainers[0].Amount}");
+                }
+            }
+            
+            // 出力時にもステート変更通知が発生したことを確認
+            Assert.Greater(stateChangeCount, previousCount, "液体出力時にOnChangeBlockStateが発火していません");
+            
+            // 最終的なステートを確認
+            var finalDetails = stateObservable.GetBlockStateDetails();
+            var finalState = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(finalDetails[0].Value);
+            
+            // 入力タンクと出力タンクの状態が正しく反映されていることを確認
+            Assert.Greater(finalState.InputTanks[0].Amount, 0, "入力タンクに液体が残っているはずです");
+            
+            // 容量が正しく設定されていることを確認
+            foreach (var tank in finalState.InputTanks)
+            {
+                Assert.Greater(tank.MaxCapacity, 0, "入力タンクの最大容量が設定されていません");
+            }
+            foreach (var tank in finalState.OutputTanks)
+            {
+                Assert.Greater(tank.MaxCapacity, 0, "出力タンクの最大容量が設定されていません");
+            }
+            
+            disposable.Dispose();
+            
+            Debug.Log($"Test completed. Total state changes: {stateChangeCount}");
+        }
     }
 }

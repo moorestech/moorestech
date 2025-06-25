@@ -7,7 +7,8 @@
         "Unity.TextMeshPro",
         "UniTask.DOTween",
         "DOTween.Modules",
-        "Client.Common"
+        "Client.Common", 
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

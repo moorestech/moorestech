@@ -1,8 +1,10 @@
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.Common
 {
@@ -10,12 +12,18 @@ namespace Client.Game.Common
     {
         private static GameStateController _instance;
         
-        [SerializeField] private HotBarView hotBarView;
         [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
+        private HotBarView _hotBarView;
         
         private void Awake()
         {
             _instance = this;
+        }
+        
+        [Inject]
+        public void Construct(HotBarView hotBarView)
+        {
+            _hotBarView = hotBarView;
         }
         
         public void Start()
@@ -42,7 +50,7 @@ namespace Client.Game.Common
         private void SetInGameState()
         {
             PlayerSystemContainer.Instance.PlayerObjectController.SetActive(true);
-            hotBarView.SetActive(true);
+            _hotBarView.SetActive(true);
             currentChallengeHudView.SetActive(true);
             
             InputManager.MouseCursorVisible(false);
@@ -51,7 +59,7 @@ namespace Client.Game.Common
         private void SetSkitState()
         {
             PlayerSystemContainer.Instance.PlayerObjectController.SetActive(false);
-            hotBarView.SetActive(false);
+            _hotBarView.SetActive(false);
             currentChallengeHudView.SetActive(false);
             
             InputManager.MouseCursorVisible(true);
@@ -60,7 +68,7 @@ namespace Client.Game.Common
         private void SetCutSceneState()
         {
             PlayerSystemContainer.Instance.PlayerObjectController.SetActive(false);
-            hotBarView.SetActive(false);
+            _hotBarView.SetActive(false);
             currentChallengeHudView.SetActive(false);
             
             InputManager.MouseCursorVisible(false);

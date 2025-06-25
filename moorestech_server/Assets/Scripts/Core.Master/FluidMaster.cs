@@ -38,7 +38,7 @@ namespace Core.Master
                 .ToList();
             
             // 予約されている混ざった液体を追加
-            sortedFluidElements.Add(new FluidMasterElement("MixedFluid", MixedFluidGuid));
+            sortedFluidElements.Add(new FluidMasterElement("MixedFluid", MixedFluidGuid, ""));
             
             _fluidElementTableById = new Dictionary<FluidId, FluidMasterElement>();
             _fluidGuidToFluidId = new Dictionary<Guid, FluidId>();

@@ -336,7 +336,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48b2a332a8b246b2896f21b41566e439, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hotBarView: {fileID: 1409822626637412669}
   currentChallengeHudView: {fileID: 3949354657717493223}
 --- !u!1 &4389934993263601908
 GameObject:
@@ -493,7 +492,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a95c0ce86d154fb096f10920706da476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hotBarView: {fileID: 1409822626637412669}
   miningDistance: 2.5
 --- !u!1 &8881494043226809023
 GameObject:
@@ -559,6 +557,7 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   mainCamera: {fileID: 3578403268787985468}
+  gameStateController: {fileID: 6089311176537732676}
   blockGameObjectDataStore: {fileID: 8650265669030383555}
   mapObjectGameObjectDatastore: {fileID: 2378660713236389372}
   commandUIInput: {fileID: 8470828304828716410}
@@ -587,6 +586,7 @@ MonoBehaviour:
   networkDisconnectPresenter: {fileID: 3760452863612925393}
   challengeManager: {fileID: 5423992904397564507}
   skitManager: {fileID: 1951205481002623162}
+  skitUI: {fileID: 8995564702550197256}
   displayEnergizedRange: {fileID: 6801616934556956278}
   inGameCameraController: {fileID: 4843909587234544541}
 --- !u!1001 &932377419651066343

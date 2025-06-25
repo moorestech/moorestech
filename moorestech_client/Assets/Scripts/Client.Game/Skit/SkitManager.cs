@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
@@ -5,6 +6,7 @@ using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,10 +20,14 @@ namespace Client.Game.Skit
         
         [SerializeField] private SkitCamera skitCamera;
         
-        [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
         
         public bool IsPlayingSkit { get; private set; }
+        
+        private void Awake()
+        {
+            skitUI.SetActive(false);
+        }
         
         public async UniTask StartSkit(string addressablePath)
         {
@@ -42,7 +48,7 @@ namespace Client.Game.Skit
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
             //前処理 Pre process
-            var storyContext = PreProcess();
+            var storyContext = await PreProcess();
             CameraManager.Instance.RegisterCamera(skitCamera);
             
             foreach (var command in commands)
@@ -51,26 +57,40 @@ namespace Client.Game.Skit
             }
             
             //後処理 Post process
-            skitUI.gameObject.SetActive(false);
+            skitUI.SetActive(false);
             storyContext.DestroyCharacter();
             IsPlayingSkit = false;
             CameraManager.Instance.UnRegisterCamera(skitCamera);
             
             #region Internal
             
-            StoryContext PreProcess()
+            async UniTask<StoryContext> PreProcess()
             {
                 //キャラクターを生成
                 var characters = new Dictionary<string, SkitCharacter>();
-                foreach (var characterInfo in characterDefine.CharacterInfos)
+                
+                // CharacterMasterから全キャラクター情報を取得
+                var characterMaster = MasterHolder.CharacterMaster;
+                foreach (var characterElement in characterMaster.ChallengeMasterElements)
                 {
-                    var character = Instantiate(characterInfo.CharacterPrefab);
-                    character.Initialize(transform, characterInfo.CharacterKey);
-                    characters.Add(characterInfo.CharacterKey, character);
+                    // Addressableからキャラクターモデルをロード
+                    var path = characterElement.SkitModelAddresablePath;
+                    var characterPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(path);
+                    if (characterPrefab != null)
+                    {
+                        var characterInstance = Instantiate(characterPrefab);
+                        var skitCharacter = characterInstance.GetComponent<SkitCharacter>();
+                        skitCharacter.Initialize(transform, characterElement.CharacterId);
+                        characters.Add(characterElement.CharacterId, skitCharacter);
+                    }
+                    else
+                    {
+                        Debug.LogError($"キャラクターモデルのロードに失敗しました: {path}");
+                    }
                 }
                 
                 // 表示の設定
-                skitUI.gameObject.SetActive(true);
+                skitUI.SetActive(true);
                 
                 return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
             }

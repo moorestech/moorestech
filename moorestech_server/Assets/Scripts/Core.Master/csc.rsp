@@ -5,6 +5,7 @@
 /additionalfile:Assets/../../VanillaSchema/challenges.json
 /additionalfile:Assets/../../VanillaSchema/blocks.json
 /additionalfile:Assets/../../VanillaSchema/fluids.json
+/additionalfile:Assets/../../VanillaSchema/characters.json
 /additionalfile:Assets/../../VanillaSchema/ref/blockConnectInfo.json
 /additionalfile:Assets/../../VanillaSchema/ref/inventoryConnects.json
 /additionalfile:Assets/../../VanillaSchema/ref/gearConnects.json

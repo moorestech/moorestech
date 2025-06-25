@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; protected set; }
         
         /// <summary>
-        /// そのブロックの全てのアイテムスロットを管理するリスト。ここにトロクされているリストはインベントリのスロットとしてみなされます。
+        /// そのブロックの全てのアイテムスロットを管理するリスト。ここに登録されているリストはインベントリのスロットとしてみなされます。
         /// A list that manages all item slots of the block. The list stored here is considered as an inventory slot.
         /// </summary>
         protected readonly List<ItemSlotView> SubInventorySlotObjectsInternal = new();
