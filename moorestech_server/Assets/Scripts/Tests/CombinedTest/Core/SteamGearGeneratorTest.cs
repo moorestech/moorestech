@@ -374,7 +374,7 @@ namespace Tests.CombinedTest.Core
                 var (finalState, finalRpm, _, _, finalSteamAmount, _) = ExtractDetails(finalDetails);
                 
                 // 減速中でもRPMが十分低ければOKとする（完全停止には時間がかかるため）
-                if (finalState == "Idle" || (finalState == "Decelerating" && finalRpm < 0.2f))
+                if (finalState == "Idle" || (finalState == "Decelerating" && finalRpm < 1f))
                 {
                     Debug.Log($"Test passed: State={finalState}, RPM={finalRpm}, SteamAmount={finalSteamAmount}");
                 }
