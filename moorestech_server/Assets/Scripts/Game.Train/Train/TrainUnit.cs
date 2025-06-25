@@ -67,7 +67,7 @@ namespace Game.Train.Train
                         trainDiagram.MoveToNextEntry();
                         _destinationNode = trainDiagram.GetNextDestination();
                         // ドッキングを解除
-                        trainUnitStationDocking.TurnOffDockingStates();
+                        trainUnitStationDocking.UndockFromStation();
                     }
                 }
                 else

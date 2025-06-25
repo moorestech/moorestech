@@ -26,7 +26,7 @@ namespace Game.Train.Train
         public int Length { get; private set; }
         //列車が駅とドッキングしているかどうか
         public bool IsDocked => dockingblock != null; // ドッキングしているかどうかのプロパティ
-        public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる
+        public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
 
         private readonly IItemStack[] _inventoryItems;
         public TrainCar(int tractionForce, int inventorySlots, int length)
