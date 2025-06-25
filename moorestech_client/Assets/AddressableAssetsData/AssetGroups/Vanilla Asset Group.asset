@@ -86,7 +86,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 227487304681b4e6897ee786a7b586fc
-    m_Address: Vanilla/Character/Chr002
+    m_Address: Vanilla/Character/Chr003
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -111,7 +111,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2ef73f52aa57040ab95f42a213f7b28b
-    m_Address: Vanilla/Character/SkitChr003
+    m_Address: Vanilla/Character/SkitChr002
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -341,7 +341,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a65bf85d5ada24b82a2121b15422b180
-    m_Address: Vanilla/Character/SkitChr002
+    m_Address: Vanilla/Character/SkitChr003
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -441,7 +441,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d6b9aecf810bb4074b1eee1c06cfa1c3
-    m_Address: Vanilla/Character/Chr003
+    m_Address: Vanilla/Character/Chr002
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
