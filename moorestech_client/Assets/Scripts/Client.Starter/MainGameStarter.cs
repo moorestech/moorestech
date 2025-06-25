@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -49,6 +50,7 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
+        [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
@@ -154,6 +156,7 @@ namespace Client.Starter
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
+            builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             
