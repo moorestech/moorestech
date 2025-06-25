@@ -161,22 +161,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   updateMethod: 0
-  skinnedMeshRenderer: {fileID: 0}
+  skinnedMeshRenderer: {fileID: 1118886089382700360}
   blendShapes:
   - phoneme: A
-    index: 14
+    index: 0
     maxWeight: 1
   - phoneme: I
-    index: 15
+    index: 1
     maxWeight: 1
   - phoneme: U
-    index: 16
+    index: 2
     maxWeight: 1
   - phoneme: E
-    index: 17
+    index: 3
     maxWeight: 1
   - phoneme: O
-    index: 18
+    index: 4
     maxWeight: 1
   - phoneme: N
     index: -1
