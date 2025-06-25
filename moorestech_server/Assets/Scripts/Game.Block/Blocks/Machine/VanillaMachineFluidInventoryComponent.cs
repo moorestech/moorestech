@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.Fluid;
@@ -6,8 +7,11 @@ using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Fluid;
+using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -15,11 +19,14 @@ namespace Game.Block.Blocks.Machine
     /// 機械用の流体インベントリコンポーネント
     /// パイプとの接続をサポートし、流体の入出力を管理する
     /// </summary>
-    public class VanillaMachineFluidInventoryComponent : IFluidInventory, IUpdatableBlockComponent
+    public class VanillaMachineFluidInventoryComponent : IFluidInventory, IUpdatableBlockComponent, IBlockStateObservable
     {
         private readonly VanillaMachineInputInventory _inputInventory;
         private readonly VanillaMachineOutputInventory _outputInventory;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+        private readonly Subject<Unit> _onChangeBlockState = new();
+        
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
         public VanillaMachineFluidInventoryComponent(
             VanillaMachineInputInventory inputInventory,
@@ -93,7 +100,11 @@ namespace Game.Block.Blocks.Machine
                 
                 // 転送された量だけコンテナから減らす
                 var transferred = transferAmount - remaining.Amount;
-                container.Amount -= transferred;
+                if (transferred > 0)
+                {
+                    container.Amount -= transferred;
+                    _onChangeBlockState.OnNext(Unit.Default);
+                }
                 
                 if (container.Amount <= 0)
                 {
@@ -136,6 +147,7 @@ namespace Game.Block.Blocks.Machine
                 var remaining = container.AddLiquid(fluidStack, source);
                 if (remaining.Amount < fluidStack.Amount)
                 {
+                    _onChangeBlockState.OnNext(Unit.Default);
                     return remaining;
                 }
             }
@@ -204,6 +216,27 @@ namespace Game.Block.Blocks.Machine
         public void Destroy()
         {
             IsDestroy = true;
+            _onChangeBlockState?.Dispose();
+        }
+        
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            var inputTanks = new List<FluidMessagePack>();
+            foreach (var container in _inputInventory.FluidInputSlot)
+            {
+                inputTanks.Add(new FluidMessagePack(container.FluidId, container.Amount, container.Capacity));
+            }
+            
+            var outputTanks = new List<FluidMessagePack>();
+            foreach (var container in _outputInventory.FluidOutputSlot)
+            {
+                outputTanks.Add(new FluidMessagePack(container.FluidId, container.Amount, container.Capacity));
+            }
+            
+            var stateDetail = new FluidMachineInventoryStateDetail(inputTanks, outputTanks);
+            var serialized = MessagePackSerializer.Serialize(stateDetail);
+            
+            return new[] { new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, serialized) };
         }
     }
 }

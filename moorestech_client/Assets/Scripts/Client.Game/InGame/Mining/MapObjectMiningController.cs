@@ -14,14 +14,13 @@ namespace Client.Game.InGame.Mining
     /// </summary>
     public class MapObjectMiningController : MonoBehaviour
     {
-        [SerializeField] private HotBarView hotBarView;
         [SerializeField] private float miningDistance = 1.5f;
         
         private IMapObjectMiningState _currentState;
         private MapObjectMiningControllerContext _context;
         
         [Inject]
-        public void Constructor(ILocalPlayerInventory localPlayerInventory)
+        public void Constructor(ILocalPlayerInventory localPlayerInventory, HotBarView hotBarView)
         {
             _currentState = new MapObjectMiningIdleState();
             _context = new MapObjectMiningControllerContext(hotBarView, localPlayerInventory);

@@ -60,6 +60,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16777f725be954243984f7ed20cc7ff4
+    m_Address: Vanilla/UI/FluidSlotView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16c979552fd5a4ef1b4af5e1b6f01f5d
     m_Address: Vanilla/UI/Block/GearMinerBlockInventory
     m_ReadOnly: 0
@@ -80,6 +85,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 227487304681b4e6897ee786a7b586fc
+    m_Address: Vanilla/Character/Chr003
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22764527d2fc13546af09d27fe46126e
     m_Address: Vanilla/Block/BeltConveyor_Straight
     m_ReadOnly: 0
@@ -97,6 +107,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
     m_Address: Vanilla/Block/SmallGear
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2ef73f52aa57040ab95f42a213f7b28b
+    m_Address: Vanilla/Character/SkitChr002
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -157,6 +172,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 56313327b02a04da896fffcd4b389621
     m_Address: Vanilla/Block/bronze_miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5635b42f628d34f4fa97c03bfe9d0d36
+    m_Address: Vanilla/Character/Chr001
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -290,6 +310,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 97c516093f39e4d9cabb94395b54eced
+    m_Address: Vanilla/Skit/skits/sample_skit_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
     m_Address: Vanilla/Block/OilWell
     m_ReadOnly: 0
@@ -312,6 +337,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a580b107f1a0e493dbfb43a76d09e90a
     m_Address: Vanilla/Block/FusionReactor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a65bf85d5ada24b82a2121b15422b180
+    m_Address: Vanilla/Character/SkitChr003
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -410,6 +440,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6b9aecf810bb4074b1eee1c06cfa1c3
+    m_Address: Vanilla/Character/Chr002
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d6f2b73c83523ba469dfbcbf32495cdd
     m_Address: Vanilla/Block/PipeCurve
     m_ReadOnly: 0
@@ -482,6 +517,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f148ee4b0ebd54839ad8213503691341
     m_Address: Vanilla/Block/GearBeltConveyor Shaft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f479ff7c99835452c9af9473d5fd2043
+    m_Address: Vanilla/Character/SkitChr001
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

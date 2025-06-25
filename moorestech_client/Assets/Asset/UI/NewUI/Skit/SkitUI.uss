@@ -1,0 +1,48 @@
+:root {
+}
+
+.SelectButton {
+    min-height: 50px;
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/btn__select_default.png?fileID=21300000&guid=0b21f3b9a5dc6dd4190f597b4e39edc3&type=3#btn__select_default");
+    background-repeat: no-repeat no-repeat;
+    background-color: rgba(0, 0, 0, 0);
+    color: rgb(255, 255, 255);
+    -unity-font-definition: url("project://database/Assets/Dependencies/Font/NotoSans-Regular.ttf?fileID=12800000&guid=0a7670f95bfca01489ea7029c692b078&type=3#NotoSans-Regular");
+    height: 46px;
+    margin-top: 22px;
+    margin-bottom: 1px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    display: none;
+}
+
+.SelectButton:hover {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/btn__select_hover.png?fileID=21300000&guid=PLACEHOLDER_GUID&type=3#btn__select_hover");
+}
+
+.SelectButton:active {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/btn__select_click.png?fileID=21300000&guid=PLACEHOLDER_GUID&type=3#btn__select_click");
+}
+
+.ToolButton {
+    width: 50px;
+    height: 50px;
+    margin-top: 13px;
+    margin-right: 8px;
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.66);
+    background-color: rgba(0, 0, 0, 0);
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+}
+
+.AutoEnable {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_auto_enable.png?fileID=21300000&guid=d3d5a0c0f0847c845be61addeafce4eb&type=3#skit_icon_auto_enable");
+}
+
+.AutoDisable {
+    background-image: url("project://database/Assets/Asset/UI/NewUI/Skit/skit_icon_auto_disable.png?fileID=21300000&guid=582770607f03e4bd68e24d5e464c4b1d&type=3#skit_icon_auto_disable");
+}

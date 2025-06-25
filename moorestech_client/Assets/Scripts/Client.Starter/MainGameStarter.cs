@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -28,6 +29,8 @@ using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.Skit;
 using Client.Network.API;
+using Client.Skit.Skit;
+using Client.Skit.UI;
 using Game.UnlockState;
 using UnityEngine;
 using VContainer;
@@ -47,6 +50,7 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
+        [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
@@ -81,6 +85,7 @@ namespace Client.Starter
         [SerializeField] private ChallengeManager challengeManager;
         
         [SerializeField] private SkitManager skitManager;
+        [SerializeField] private SkitUI skitUI;
         
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
         
@@ -139,6 +144,10 @@ namespace Client.Starter
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
+            // スキット関連
+            // register skit related
+            builder.Register<ISkitActionContext, SkitActionContext>(Lifetime.Singleton);
+            
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
@@ -147,6 +156,7 @@ namespace Client.Starter
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
+            builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             
@@ -181,6 +191,7 @@ namespace Client.Starter
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager);
+            builder.RegisterComponent(skitUI);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
@@ -198,6 +209,7 @@ namespace Client.Starter
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
+            _resolver.Resolve<SkitUI>();
             
             return _resolver;
         }
