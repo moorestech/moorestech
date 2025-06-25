@@ -8,6 +8,18 @@ namespace Game.Train.Common
 {
     public class TrainUpdateService
     {
+        private static TrainUpdateService _instance;
+        public static TrainUpdateService Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new TrainUpdateService();
+                return _instance;
+            }
+        }
+
+
         private readonly List<TrainUnit> _trainUnits = new();
 
         public TrainUpdateService()

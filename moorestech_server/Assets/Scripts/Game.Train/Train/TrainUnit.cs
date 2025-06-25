@@ -45,7 +45,9 @@ namespace Game.Train.Train
             _isAutoRun = false;
             trainUnitStationDocking = new TrainUnitStationDocking(this);
             trainDiagram = new TrainDiagram(this);
+
             TrainDiagramManager.Instance.RegisterDiagram(this, trainDiagram);
+            TrainUpdateService.Instance.RegisterTrain(this);
         }
 
 
