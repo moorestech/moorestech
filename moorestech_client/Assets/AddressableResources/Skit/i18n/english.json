@@ -98,6 +98,10 @@
     "master.emotes.Emote_Bouble Tooth": "Toothy Grin (Friend Only)",
     "master.emotes.Emote_Grin": "Grin (Friend Only)",
 
+    "master.animations.idle_lp": "Idle Loop",
+    "master.animations.wait_st": "Wait Start",
+    "master.animations.wait_lp": "Wait Loop",
+
     "command.selection.name": "Selection",
     "command.selection.description": "Define player choices",
     "command.selection.property.Option1Tag.name": "Option1 Text",
@@ -118,12 +122,9 @@
     "command.motion.property.character.enum.主人公": "Protagonist",
     "command.motion.property.character.enum.AI": "AI",
     "command.motion.property.character.enum.友人": "Friend",
-    "command.motion.property.motionName.name": "Motion Name",
-    "command.motion.property.motionName.enum.Jump": "Jump",
-    "command.motion.property.motionName.enum.Wave": "Wave",
-    "command.motion.property.motionName.enum.Nod": "Nod",
-    "command.motion.property.motionName.enum.ShakeHead": "Shake Head",
-    "command.motion.property.motionName.enum.Bow": "Bow",
-    "command.motion.property.motionName.enum.Idle": "Idle"
+    "command.motion.property.animationId.name": "Animation ID",
+    "command.motion.property.animationId.description": "Animation to play",
+    "command.motion.property.mixerDuration.name": "Mixer Duration",
+    "command.motion.property.mixerDuration.description": "Time to blend animations (seconds)"
   }
 }
