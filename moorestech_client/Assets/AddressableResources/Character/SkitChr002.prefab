@@ -51,7 +51,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   voiceAudioSource: {fileID: 1607453554188771847}
   faceSkinnedMeshRenderer: {fileID: 2605674335018465235}
-  animator: {fileID: 7510201364497845021}
+  skitCharacterAnimator: {fileID: -2457454928178491645}
 --- !u!82 &1607453554188771847
 AudioSource:
   m_ObjectHideFlags: 0
