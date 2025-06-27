@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 1884410402027333865}
   - component: {fileID: 5436788043234244432}
   - component: {fileID: 7627634580454184473}
-  - component: {fileID: 8112201518688642046}
   m_Layer: 0
   m_Name: SkitChr003
   m_TagString: Untagged
@@ -233,22 +232,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 9055939533988521164}
---- !u!114 &8112201518688642046
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 160943402041663179}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc0a31d3359f42d8af96d4d355cfb1df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _skitCharacterAnimator: {fileID: 7627634580454184473}
-  _animationDefine: {fileID: 11400000, guid: 8e837888da22e4f148ff9c54601b4656, type: 2}
-  _animationId: 
-  _miexrDuration: 0
 --- !u!1001 &6167680181305784003
 PrefabInstance:
   m_ObjectHideFlags: 0
