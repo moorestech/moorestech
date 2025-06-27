@@ -9,18 +9,21 @@ namespace Client.Skit.Define
     [CreateAssetMenu(fileName = "AnimationDefine", menuName = "moorestech/AnimationDefine", order = 0)]
     public class AnimationDefine : ScriptableObject
     {
-        public List<AnimationInfo> AnimationInfos => animationInfos;
-        
         [SerializeField] private List<AnimationInfo> animationInfos = new();
+        
+        public AnimationClip GetAnimationClip(string animationId)
+        {
+            return animationInfos.Find(animationInfo => animationInfo.AnimationId == animationId)?.AnimationClip;
+        }
     }
     
     [Serializable]
     public class AnimationInfo
     {
-        public string AnimationName => animationInfo;
+        public string AnimationId => animationId;
         public AnimationClip AnimationClip => animationClip;
         
-        [SerializeField] private string animationInfo;
+        [SerializeField] private string animationId;
         [SerializeField] private AnimationClip animationClip;
     }
 }

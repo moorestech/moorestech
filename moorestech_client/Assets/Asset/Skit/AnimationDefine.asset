@@ -12,3 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed26a5296273441892541fbe5b34852c, type: 3}
   m_Name: AnimationDefine
   m_EditorClassIdentifier: 
+  animationInfos:
+  - animationId: idle_lp
+    animationClip: {fileID: 7400000, guid: 3e322023f82804c83a252459830ec557, type: 2}
+  - animationId: wait_st
+    animationClip: {fileID: 7400000, guid: 543c97f22cbfb42bcba4e07b3a6de4ad, type: 2}
+  - animationId: wait_lp
+    animationClip: {fileID: 7400000, guid: 7f11cff8c8744412fabe737ce09dc92d, type: 2}
