@@ -120,6 +120,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 343f9f8edded94a6592efd9b43dfdb40
+    m_Address: Vanilla/Skit/Animations/anim_idle01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 39ce48b794ee6934cacd89b06ee3537b
     m_Address: Vanilla/Block/PipeCross
     m_ReadOnly: 0
@@ -127,6 +132,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3bad25b0c048c4dbf847950e9479f0bc
     m_Address: Vanilla/Skit/test
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3e322023f82804c83a252459830ec557
+    m_Address: Vanilla/Skit/Animations/anim_idle01_lp
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -157,6 +167,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
     m_Address: Vanilla/Block/WeldingProcessingMachine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 543c97f22cbfb42bcba4e07b3a6de4ad
+    m_Address: Vanilla/Skit/Animations/anim_wait01_st
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -280,6 +295,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f11cff8c8744412fabe737ce09dc92d
+    m_Address: Vanilla/Skit/Animations/anim_wait01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 86e61f81bcc934fea864ebdccb57122f
     m_Address: Vanilla/UI/Block/CraftChainerMainComputerInventory
     m_ReadOnly: 0
@@ -302,6 +322,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 921d8d98340992f4aba03c52b5ac1a5a
     m_Address: "Vanilla/Block/Old/tmp \u77F3\u6CB9\u63A1\u6398"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 934cd241b3bec48d499b0eac2f4bf338
+    m_Address: Vanilla/Skit/Animations/anim_wait01_lp
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -425,6 +450,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf933e88af2494be594c957651ae8cc9
+    m_Address: Vanilla/Skit/Animations/Chr001
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
     m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
     m_ReadOnly: 0
@@ -477,6 +507,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e039e23dd6ec87742ac59a0964a66fa0
     m_Address: Vanilla/Block/iron furnace with bellows
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2103e3fa9b2045569b85afc20d3bbe2
+    m_Address: Vanilla/Skit/Animations/anim_wait01_st
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
