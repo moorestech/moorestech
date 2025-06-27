@@ -450,6 +450,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf933e88af2494be594c957651ae8cc9
+    m_Address: Vanilla/Skit/Animations/Chr001
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
     m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
     m_ReadOnly: 0
