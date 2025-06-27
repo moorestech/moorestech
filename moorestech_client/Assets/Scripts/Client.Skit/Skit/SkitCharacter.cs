@@ -9,7 +9,7 @@ namespace Client.Skit.Skit
     {
         [SerializeField] private AudioSource voiceAudioSource;
         [SerializeField] private SkinnedMeshRenderer faceSkinnedMeshRenderer;
-        [SerializeField] private Animator animator;
+        [SerializeField] private SkitCharacterAnimator skitCharacterAnimator;
         
         public void Initialize(Transform parent, string name)
         {
@@ -23,9 +23,9 @@ namespace Client.Skit.Skit
             transform.eulerAngles = rotation;
         }
         
-        public void PlayAnimation(string animationName)
+        public void PlayAnimation(string animationId, float mixierDuration)
         {
-            animator.SetTrigger(animationName);
+            skitCharacterAnimator.PlayAnimation(animationId, mixierDuration);
         }
         
         public void PlayVoice(AudioClip voiceClip)
