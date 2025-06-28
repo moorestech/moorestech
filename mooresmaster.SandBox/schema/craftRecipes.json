@@ -35,6 +35,11 @@
             "default": 3
           },
 
+          "initialUnlocked": {
+            "type": "boolean",
+            "default": true
+          },
+
           "requiredItems": {
             "type": "array",
             "items": {
