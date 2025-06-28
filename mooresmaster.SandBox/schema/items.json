@@ -13,6 +13,7 @@
         "thumbnail": "imagePath",
 
         "properties": {
+
           "itemGuid": {
             "type": "string",
             "format": "uuid",
@@ -39,6 +40,17 @@
             "type": "number",
             "default" : 100,
             "optional": true
+          },
+
+          "initialUnlocked": {
+            "type": "boolean",
+            "default": true
+          },
+
+          "recipeViewType": {
+            "type": "string",
+            "default" : 100,
+            "enum": [  "Default", "IsUnlocked", "IsCraftRecipeExist", "ForceShow", "ForceHide" ]
           }
         }
       }

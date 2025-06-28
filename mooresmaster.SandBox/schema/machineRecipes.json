@@ -45,6 +45,22 @@
               }
             }
           },
+          "inputFluids": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fluidGuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "fluids:fluidGuid:name"
+                },
+                "amount": {
+                  "type": "number"
+                }
+              }
+            }
+          },
           "outputItems": {
             "type": "array",
             "items": {
@@ -64,6 +80,22 @@
                   "default": 1,
                   "minimum": 0,
                   "maximum": 1
+                }
+              }
+            }
+          },
+          "outputFluids": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fluidGuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": "fluids:fluidGuid:name"
+                },
+                "amount": {
+                  "type": "number"
                 }
               }
             }
