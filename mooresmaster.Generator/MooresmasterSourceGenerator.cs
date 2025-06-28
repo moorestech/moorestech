@@ -27,21 +27,23 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var provider = context.CompilationProvider.Combine(additionalTextsProvider);
         context.RegisterSourceOutput(provider, (sourceProductionContext, input) =>
         {
-            try
-            {
-                Emit(sourceProductionContext, input);
-            }
-            catch (Exception e)
-            {
-                GenerateErrorFile(sourceProductionContext, e);
 #pragma warning disable RS1035
-                var environmentVariablesRaw = Environment.GetEnvironmentVariables();
-                var environmentVariables = new Dictionary<string, string>();
-                foreach (DictionaryEntry entry in environmentVariablesRaw) environmentVariables.Add(entry.Key.ToString()!, entry.Value.ToString()!);
-                var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
+            var environmentVariablesRaw = Environment.GetEnvironmentVariables();
+            var environmentVariables = new Dictionary<string, string>();
+            foreach (DictionaryEntry entry in environmentVariablesRaw) environmentVariables.Add(entry.Key.ToString()!, entry.Value.ToString()!);
+            var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
+            if (isSourceGeneratorDebug)
+                Emit(sourceProductionContext, input);
+            else
+                try
+                {
+                    Emit(sourceProductionContext, input);
+                }
+                catch (Exception e)
+                {
+                    GenerateErrorFile(sourceProductionContext, e);
+                }
 #pragma warning restore RS1035
-                if (isSourceGeneratorDebug) throw e;
-            }
         });
     }
 
