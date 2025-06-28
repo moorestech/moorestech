@@ -7,7 +7,7 @@ public static class Tokens
     public const string BuiltinLoaderFileName = "mooresmaster.loader.BuiltinLoader.g.cs";
     public const string ExceptionFileName = "mooresmaster.loader.exception.g.cs";
     public const string ErrorFileName = "mooresmaster.error.g.cs";
-    
+
     public const string DefineInterface = "defineInterface";
     public const string GlobalDefineInterface = "globalDefineInterface";
     public const string InterfaceNameKey = "interfaceName";
@@ -17,10 +17,11 @@ public static class Tokens
     public const string SwitchKey = "switch";
     public const string RefKey = "ref";
     public const string TypeKey = "type";
-    
+
     public const string ObjectType = "object";
     public const string ArrayType = "array";
     public const string StringType = "string";
+    public const string EnumType = "enum";
     public const string NumberType = "number";
     public const string IntegerType = "integer";
     public const string BooleanType = "boolean";

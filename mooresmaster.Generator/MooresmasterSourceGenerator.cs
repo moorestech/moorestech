@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using mooresmaster.Generator.Analyze;
-using mooresmaster.Generator.Analyze.Analyzers;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.JsonSchema;
@@ -73,7 +72,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
         var analyzer = new Analyzer()
-            .AddAnalyzer(new DefineInterfaceScopeAnalyzer());
+            .AddAllAnalyzer();
         var analysis = new Analysis();
         analyzer.PreJsonSchemaLayerAnalyze(analysis, input.additionalTexts.ToAnalyzerTextFiles());
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
