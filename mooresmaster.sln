@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooresmaster.Tests", "moore
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooresmaster.SandBox", "mooresmaster.SandBox\mooresmaster.SandBox.csproj", "{0B9F00B8-20AC-40DA-BAC1-90DC5DCA557D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mooresmaster.error", "mooresmaster.error\mooresmaster.error.csproj", "{4092479F-F49A-4E2B-845B-146C760C09A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{0B9F00B8-20AC-40DA-BAC1-90DC5DCA557D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B9F00B8-20AC-40DA-BAC1-90DC5DCA557D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B9F00B8-20AC-40DA-BAC1-90DC5DCA557D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4092479F-F49A-4E2B-845B-146C760C09A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4092479F-F49A-4E2B-845B-146C760C09A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4092479F-F49A-4E2B-845B-146C760C09A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4092479F-F49A-4E2B-845B-146C760C09A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

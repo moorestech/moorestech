@@ -1,0 +1,6 @@
+id: optionalTestSchema
+type: object
+properties:
+  - key: data0
+    type: number
+    optional: true

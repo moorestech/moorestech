@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.Definitions;
@@ -12,8 +14,6 @@ using mooresmaster.Generator.LoaderGenerate;
 using mooresmaster.Generator.NameResolve;
 using mooresmaster.Generator.Semantic;
 using mooresmaster.Generator.Yaml;
-using Enumerable = System.Linq.Enumerable;
-using ImmutableArrayExtensions = System.Linq.ImmutableArrayExtensions;
 
 namespace mooresmaster.Generator;
 
@@ -24,32 +24,50 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     {
         var additionalTextsProvider = context.AdditionalTextsProvider.Collect();
         var provider = context.CompilationProvider.Combine(additionalTextsProvider);
-        context.RegisterSourceOutput(provider, (sourceProductionContext, input) =>
+        var parseOptions = context.ParseOptionsProvider.Select((parseOptions, _) =>
         {
+            if (parseOptions is CSharpParseOptions csharpParseOptions)
+            {
+                var hashset = new HashSet<string>();
+                foreach (var define in csharpParseOptions.PreprocessorSymbolNames) hashset.Add(define);
+
+                return hashset;
+            }
+
+            return [];
+        });
+
+        var withParseOptionsProvider = provider.Combine(parseOptions);
+        context.RegisterSourceOutput(withParseOptionsProvider, (sourceProductionContext, input) =>
+        {
+            var inputCompilation = input.Left;
+            var symbols = input.Right;
+
+            if (!symbols.Contains("ENABLE_MOORESMASTER_GENERATOR")) return;
+
 #pragma warning disable RS1035
             var environmentVariablesRaw = Environment.GetEnvironmentVariables();
             var environmentVariables = new Dictionary<string, string>();
             foreach (DictionaryEntry entry in environmentVariablesRaw) environmentVariables.Add(entry.Key.ToString()!, entry.Value.ToString()!);
             var isSourceGeneratorDebug = environmentVariables.TryGetValue(Tokens.IsSourceGeneratorDebug, out var value) && value == "true";
             if (isSourceGeneratorDebug)
-                Emit(sourceProductionContext, input);
+                Emit(sourceProductionContext, inputCompilation);
             else
                 try
                 {
-                    Emit(sourceProductionContext, input);
+                    Emit(sourceProductionContext, inputCompilation);
                 }
                 catch (Exception e)
                 {
-                    GenerateErrorFile(sourceProductionContext, e);
+                    GenerateErrorFile(sourceProductionContext, symbols, e);
                 }
 #pragma warning restore RS1035
         });
     }
 
-    private void GenerateErrorFile(SourceProductionContext context, Exception exception)
+    private void GenerateErrorFile(SourceProductionContext context, HashSet<string> symbols, Exception exception)
     {
-        context.AddSource(
-            Tokens.ErrorFileName,
+        var errorFile =
             $$$"""
                // ErrorType:
                // {{{exception.GetType().Name}}}
@@ -65,7 +83,18 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
                    exception.StackTrace
                        .Replace("\n", "\n// ")
                }}}
-               """
+               """;
+
+        if (symbols.Contains("ENABLE_MOORESMASTER_ERROR_FILE_OUTPUT"))
+        {
+#pragma warning disable RS1035
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "mooresmaster_error.txt"), errorFile);
+#pragma warning restore RS1035
+        }
+
+        context.AddSource(
+            Tokens.ErrorFileName,
+            errorFile
         );
     }
 
@@ -78,7 +107,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
         analyzer.PostJsonSchemaLayerAnalyze(analysis, schemas, schemaTable);
         analyzer.PreSemanticsLayerAnalyze(analysis, schemas, schemaTable);
-        var semantics = SemanticsGenerator.Generate(ImmutableArrayExtensions.Select(schemas, schema => schema.Schema).ToImmutableArray(), schemaTable);
+        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
         analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemas, schemaTable);
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
         analyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemas, schemaTable);
@@ -106,7 +135,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var schemaTable = new SchemaTable();
         var parsedFiles = new HashSet<string>();
 
-        foreach (var additionalText in Enumerable.Where(ImmutableArrayExtensions.Where(additionalTexts, a => Path.GetExtension(a.Path) == ".yml"), a => !parsedFiles.Contains(a.Path)))
+        foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
             var json = YamlParser.Parse(additionalText.Path, yamlText);
