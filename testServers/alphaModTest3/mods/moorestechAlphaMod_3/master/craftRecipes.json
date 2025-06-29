@@ -730,6 +730,25 @@
       "craftTime": 3,
       "initialUnlocked": true,
       "requiredItems": []
+    },
+    {
+      "craftRecipeGuid": "c0ae8b35-5b61-4109-b30c-a131db0c5687",
+      "craftResultItemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
+      "craftResultCount": 1,
+      "craftTime": 3,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f",
+          "count": 1,
+          "isRemain": false
+        },
+        {
+          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d",
+          "count": 3,
+          "isRemain": false
+        }
+      ]
     }
   ]
 }
