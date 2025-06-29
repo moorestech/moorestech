@@ -660,6 +660,76 @@
           "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec"
         }
       ]
+    },
+    {
+      "craftRecipeGuid": "938ba8e3-016a-4ff8-8889-2f067c2b329f",
+      "craftResultItemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
+      "craftResultCount": 2,
+      "craftTime": 3,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "844f3264-e055-4d41-bd54-e46570a15ba5",
+          "count": 1,
+          "isRemain": false
+        }
+      ]
+    },
+    {
+      "craftRecipeGuid": "733d9709-0daa-400b-8751-9c896f462cfb",
+      "craftResultItemGuid": "49573e16-be8a-46aa-859c-67fae3f928f9",
+      "craftResultCount": 1,
+      "craftTime": 3,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
+          "count": 2,
+          "isRemain": false
+        },
+        {
+          "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
+          "count": 4,
+          "isRemain": false
+        },
+        {
+          "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e",
+          "count": 1,
+          "isRemain": false
+        }
+      ]
+    },
+    {
+      "craftRecipeGuid": "9fd79629-d3bb-46f0-961c-5033a848f7c2",
+      "craftResultItemGuid": "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f",
+      "craftResultCount": 1,
+      "craftTime": 3,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
+          "count": 6,
+          "isRemain": false
+        },
+        {
+          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d",
+          "count": 2,
+          "isRemain": false
+        },
+        {
+          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d",
+          "count": 2,
+          "isRemain": false
+        }
+      ]
+    },
+    {
+      "craftRecipeGuid": "b49e0849-6064-40c9-842e-586e7831ae3c",
+      "craftResultItemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
+      "craftResultCount": 1,
+      "craftTime": 3,
+      "initialUnlocked": true,
+      "requiredItems": []
     }
   ]
 }
