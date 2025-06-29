@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
+using UnitGenerator;
 
 namespace mooresmaster.Generator.JsonSchema;
 
@@ -168,72 +168,11 @@ public record UUIDSchema(string? PropertyName, SchemaId? Parent, bool IsNullable
     public SchemaId? Parent { get; } = Parent;
 }
 
-public readonly struct SchemaId : IEquatable<SchemaId>, IComparable<SchemaId>
+[UnitOf(typeof(MasterId<SchemaId>))]
+public readonly partial struct SchemaId
 {
-    private readonly MasterId<SchemaId> _value;
-
-    public SchemaId(MasterId<SchemaId> value)
-    {
-        _value = value;
-    }
-
     public static SchemaId New()
     {
         return new SchemaId(new MasterId<SchemaId>());
-    }
-
-    public bool Equals(SchemaId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is SchemaId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(SchemaId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(SchemaId left, SchemaId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(SchemaId left, SchemaId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) >= 0;
     }
 }
