@@ -7,17 +7,11 @@
         <IsPackable>false</IsPackable>
 
         <RootNamespace>mooresmaster.Tests</RootNamespace>
-    </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <DefineConstants>TRACE
-            ENABLE_MOORESMASTER_GENERATOR
-        </DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DefineConstants>TRACE
-            ENABLE_MOORESMASTER_GENERATOR
+        <DefineConstants>
+            ENABLE_MOORESMASTER_GENERATOR;
+            ENABLE_MOORESMASTER_ERROR_FILE_OUTPUT;
+            TRACE
         </DefineConstants>
     </PropertyGroup>
 
@@ -34,6 +28,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
