@@ -16,7 +16,7 @@
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <Title>mooresmaster.Generator</Title>
         <Authors>Moorestech</Authors>
-        <Version>1.0.19</Version>
+        <Version>1.0.20</Version>
     </PropertyGroup>
 
     <ItemGroup>
