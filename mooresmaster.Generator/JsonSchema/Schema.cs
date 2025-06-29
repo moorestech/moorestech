@@ -170,17 +170,16 @@ public record UUIDSchema(string? PropertyName, SchemaId? Parent, bool IsNullable
 
 public readonly struct SchemaId : IEquatable<SchemaId>, IComparable<SchemaId>
 {
-    private static ulong _globalIndex;
-    private readonly ulong _value;
+    private readonly MasterId<SchemaId> _value;
 
-    private SchemaId(ulong value)
+    public SchemaId(MasterId<SchemaId> value)
     {
         _value = value;
     }
 
     public static SchemaId New()
     {
-        return new SchemaId(_globalIndex++);
+        return new SchemaId(new MasterId<SchemaId>());
     }
 
     public bool Equals(SchemaId other)
