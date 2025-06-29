@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using mooresmaster.Generator.JsonSchema;
+using UnitGenerator;
 
 namespace mooresmaster.Generator.Semantic;
 
@@ -156,424 +156,58 @@ public record InterfacePropertySemantics(IDefineInterfacePropertySchema Property
     public IDefineInterfacePropertySchema PropertySchema = PropertySchema;
 }
 
-public readonly struct RootId : IEquatable<RootId>, IComparable<RootId>
+[UnitOf(typeof(MasterId<RootId>))]
+public readonly partial struct RootId
 {
-    private readonly MasterId<RootId> _value;
-
-    public RootId(MasterId<RootId> value)
-    {
-        _value = value;
-    }
-
     public static RootId New()
     {
         return new RootId(new MasterId<RootId>());
     }
-
-    public bool Equals(RootId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is RootId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(RootId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(RootId left, RootId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(RootId left, RootId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(RootId left, RootId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(RootId left, RootId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(RootId left, RootId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(RootId left, RootId right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
 }
 
-public readonly struct PropertyId : IEquatable<PropertyId>, IComparable<PropertyId>
+[UnitOf(typeof(MasterId<PropertyId>))]
+public readonly partial struct PropertyId
 {
-    private readonly MasterId<PropertyId> _value;
-
-    public PropertyId(MasterId<PropertyId> value)
-    {
-        _value = value;
-    }
-
     public static PropertyId New()
     {
         return new PropertyId(new MasterId<PropertyId>());
-    }
-
-    public bool Equals(PropertyId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is PropertyId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(PropertyId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(PropertyId left, PropertyId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(PropertyId left, PropertyId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(PropertyId left, PropertyId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(PropertyId left, PropertyId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(PropertyId left, PropertyId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(PropertyId left, PropertyId right)
-    {
-        return left.CompareTo(right) >= 0;
     }
 }
 
 public interface ITypeId;
 
-public readonly struct ClassId : ITypeId, IEquatable<ClassId>, IComparable<ClassId>
+[UnitOf(typeof(MasterId<ClassId>))]
+public readonly partial struct ClassId : ITypeId
 {
-    private readonly MasterId<ClassId> _value;
-
-    public ClassId(MasterId<ClassId> value)
-    {
-        _value = value;
-    }
-
     public static ClassId New()
     {
         return new ClassId(new MasterId<ClassId>());
     }
-
-    public bool Equals(ClassId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is ClassId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(ClassId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(ClassId left, ClassId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(ClassId left, ClassId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(ClassId left, ClassId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(ClassId left, ClassId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(ClassId left, ClassId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(ClassId left, ClassId right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
 }
 
-public readonly struct SwitchId : ITypeId, IEquatable<SwitchId>, IComparable<SwitchId>
+[UnitOf(typeof(MasterId<SwitchId>))]
+public readonly partial struct SwitchId : ITypeId
 {
-    private readonly MasterId<SwitchId> _value;
-
-    public SwitchId(MasterId<SwitchId> value)
-    {
-        _value = value;
-    }
-
     public static SwitchId New()
     {
         return new SwitchId(new MasterId<SwitchId>());
     }
-
-    public bool Equals(SwitchId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is SwitchId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(SwitchId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(SwitchId left, SwitchId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(SwitchId left, SwitchId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(SwitchId left, SwitchId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(SwitchId left, SwitchId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(SwitchId left, SwitchId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(SwitchId left, SwitchId right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
 }
 
-public readonly struct InterfaceId : ITypeId, IEquatable<InterfaceId>, IComparable<InterfaceId>
+[UnitOf(typeof(MasterId<InterfaceId>))]
+public readonly partial struct InterfaceId : ITypeId
 {
-    private readonly MasterId<InterfaceId> _value;
-
-    public InterfaceId(MasterId<InterfaceId> value)
-    {
-        _value = value;
-    }
-
     public static InterfaceId New()
     {
         return new InterfaceId(new MasterId<InterfaceId>());
     }
-
-    public bool Equals(InterfaceId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is InterfaceId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(InterfaceId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(InterfaceId left, InterfaceId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(InterfaceId left, InterfaceId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(InterfaceId left, InterfaceId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(InterfaceId left, InterfaceId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(InterfaceId left, InterfaceId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(InterfaceId left, InterfaceId right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
 }
 
-public readonly struct InterfacePropertyId : ITypeId, IEquatable<InterfacePropertyId>, IComparable<InterfacePropertyId>
+[UnitOf(typeof(MasterId<InterfacePropertyId>))]
+public readonly partial struct InterfacePropertyId : ITypeId
 {
-    private readonly MasterId<InterfacePropertyId> _value;
-
-    public InterfacePropertyId(MasterId<InterfacePropertyId> value)
-    {
-        _value = value;
-    }
-
     public static InterfacePropertyId New()
     {
         return new InterfacePropertyId(new MasterId<InterfacePropertyId>());
-    }
-
-    public bool Equals(InterfacePropertyId other)
-    {
-        return _value.Equals(other._value);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is InterfacePropertyId other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
-    }
-
-    public int CompareTo(InterfacePropertyId other)
-    {
-        return _value.CompareTo(other._value);
-    }
-
-    public override string ToString()
-    {
-        return _value.ToString();
-    }
-
-    public static bool operator ==(InterfacePropertyId left, InterfacePropertyId right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(InterfacePropertyId left, InterfacePropertyId right)
-    {
-        return !left.Equals(right);
-    }
-
-    public static bool operator <(InterfacePropertyId left, InterfacePropertyId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-
-    public static bool operator <=(InterfacePropertyId left, InterfacePropertyId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-
-    public static bool operator >(InterfacePropertyId left, InterfacePropertyId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-
-    public static bool operator >=(InterfacePropertyId left, InterfacePropertyId right)
-    {
-        return left.CompareTo(right) >= 0;
     }
 }
