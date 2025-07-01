@@ -98,6 +98,10 @@
     "master.emotes.Emote_Bouble Tooth": "歯見せ笑顔（親友固有）",
     "master.emotes.Emote_Grin": "ニヤリ（親友固有）",
 
+    "master.animations.idle_lp": "アイドルループ",
+    "master.animations.wait_st": "待機開始",
+    "master.animations.wait_lp": "待機ループ",
+
     "command.selection.name": "選択肢",
     "command.selection.description": "プレイヤー選択肢を定義",
     "command.selection.property.Option1Tag.name": "選択肢1テキスト",
@@ -118,12 +122,9 @@
     "command.motion.property.character.enum.主人公": "主人公",
     "command.motion.property.character.enum.AI": "AI",
     "command.motion.property.character.enum.友人": "友人",
-    "command.motion.property.motionName.name": "モーション名",
-    "command.motion.property.motionName.enum.Jump": "ジャンプ",
-    "command.motion.property.motionName.enum.Wave": "手を振る",
-    "command.motion.property.motionName.enum.Nod": "うなずく",
-    "command.motion.property.motionName.enum.ShakeHead": "首を振る",
-    "command.motion.property.motionName.enum.Bow": "お辞儀",
-    "command.motion.property.motionName.enum.Idle": "待機"
+    "command.motion.property.animationId.name": "アニメーションID",
+    "command.motion.property.animationId.description": "再生するアニメーション",
+    "command.motion.property.mixerDuration.name": "ミックス時間",
+    "command.motion.property.mixerDuration.description": "アニメーションをブレンドする時間（秒）"
   }
 }

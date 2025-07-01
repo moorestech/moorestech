@@ -11,7 +11,7 @@ namespace Server.Boot
         public static string GetDirectory()
         {
 #if DEBUG
-            var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../test_servers/alphaModTest3"));
+            var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../testServers/alphaModTest3"));
             var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,debugServerDirectory);
 #else
             var serverDirectory = Path.Combine(UnityEngine.Application.dataPath, "../","../", "game");
