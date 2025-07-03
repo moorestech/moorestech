@@ -45,60 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rangePrefab: {fileID: 6040402275095747812, guid: 1f36fdfc97e2c4a0e9f616ec5e640377, type: 3}
---- !u!1 &1619060242645116779
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 9030002554035733856}
-  - component: {fileID: 896265998946888055}
-  m_Layer: 0
-  m_Name: Sequence
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &9030002554035733856
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1619060242645116779}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 403.89987, y: 165.14041, z: 3.2190027}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8466354111555762101}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &896265998946888055
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1619060242645116779}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58376973347642a8890a2c1d7c5f7595, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  forcePlay: 0
-  playCutscene: 1
-  playSkit: 1
-  playBackgroundSkit: 1
-  timelinePlayer: {fileID: 2631860076997896039}
-  initialSkit: {fileID: 4900000, guid: c6ae7c0160f19c6458b2e0f761acceda, type: 3}
-  initialMovie: {fileID: 11400000, guid: 233bc6e7d7905df43829b4ee7a45a832, type: 2}
-  skitManager: {fileID: 1951205481002623162}
-  backgroundSkit: {fileID: 4900000, guid: 2653811e9e4eff9409e76bd3ca81a889, type: 3}
-  backgroundSkitManager: {fileID: 4371159159903290796}
 --- !u!1 &2450945537476807615
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,13 +329,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentChallengeHudView: {fileID: 3949354657717493223}
   backgroundSkitManager: {fileID: 4371159159903290796}
-  challengeTextAssets:
-  - SkitName: "\u77F3\u5668\u4F5C\u308A"
-    TextAsset: {fileID: 4900000, guid: 2653811e9e4eff9409e76bd3ca81a889, type: 3}
-  - SkitName: "\u67283\u500B"
-    TextAsset: {fileID: 4900000, guid: c780983d49369904b8be7270e9d9c33a, type: 3}
-  - SkitName: "\u77F3\u65A7\u4F5C\u308A"
-    TextAsset: {fileID: 4900000, guid: a6719bf2c877fbc45b549ec79efb3cf8, type: 3}
 --- !u!1 &4643187565465294795
 GameObject:
   m_ObjectHideFlags: 0
@@ -531,7 +470,6 @@ Transform:
   - {fileID: 5587172858908462642}
   - {fileID: 4052952166693094718}
   - {fileID: 2785706917729460876}
-  - {fileID: 9030002554035733856}
   - {fileID: 5240328362717940094}
   - {fileID: 2845556891987994162}
   - {fileID: 3329606519850311358}
@@ -560,7 +498,6 @@ MonoBehaviour:
   gameStateController: {fileID: 6089311176537732676}
   blockGameObjectDataStore: {fileID: 8650265669030383555}
   mapObjectGameObjectDatastore: {fileID: 2378660713236389372}
-  commandUIInput: {fileID: 8470828304828716410}
   hotBarView: {fileID: 1409822626637412669}
   mapObjectMiningController: {fileID: 6370490414090957468}
   playerSystemContainer: {fileID: 9095410978574352372}
@@ -1222,17 +1159,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61f42a36e8ea4515850d3bce341f3f35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &8470828304828716410 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5852881186093594908, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79768f6700a64f3badb3a98ed67abe75, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8995564702550197256 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6368471902096402542, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -1665,10 +1591,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 9198265904747437933}
     - target: {fileID: 4316314732125813925, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
-      propertyPath: m_SceneBindings.Array.data[3].value
-      value: 
-      objectReference: {fileID: 5222316366970954643}
-    - target: {fileID: 4316314732125813925, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
       propertyPath: m_SceneBindings.Array.data[4].value
       value: 
       objectReference: {fileID: 472449165917559256}
@@ -1842,11 +1764,6 @@ MonoBehaviour:
 --- !u!4 &2785706917729460876 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7750070693516656201, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
-  m_PrefabInstance: {fileID: 5558877443884145861}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &5222316366970954643 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 386320575878299478, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
   m_PrefabInstance: {fileID: 5558877443884145861}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &9198265904747437933 stripped
