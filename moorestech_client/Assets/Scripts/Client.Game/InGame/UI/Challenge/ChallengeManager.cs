@@ -20,8 +20,6 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
-        [SerializeField] private List<ChallengeTextAsset> challengeTextAssets;
-        
         [Inject] private TutorialManager _tutorialManager;
         
         [Inject]
@@ -71,20 +69,9 @@ namespace Client.Game.InGame.UI.Challenge
             {
                 if (challenge.PlaySkitType == "BackgroundSkit") // TODO いい感じの位置に置きたい
                 {
-                    var skitParam = (BackgroundSkitPlaySkitParam) challenge.PlaySkitParam;
-                    var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == skitParam.FireSkitName);
-                    if (challengeTextAsset == null) continue;
-                    
-                    await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
+                    //await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
                 }
             }
         }
-    }
-    
-    [Serializable]
-    public class ChallengeTextAsset
-    {
-        public string SkitName;
-        public TextAsset TextAsset;
     }
 }

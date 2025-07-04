@@ -25,6 +25,8 @@ namespace Client.Game.InGame.Tutorial
         {
             _inGameCameraController = inGameCameraController;
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
+            
+            HudArrowManager.Instance.RegisterHudArrowTarget(gameObject);
         }
         
         private void Update()
