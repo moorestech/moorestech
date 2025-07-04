@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "sample_short",
+    "version": 1,
+    "created": "2025-07-04T15:45:25.492Z",
+    "modified": "2025-07-04T15:46:59.233Z"
+  },
+  "commands": [
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "body": "こんにちは",
+      "id": 1
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "body": "こんにちは",
+      "id": 2,
+      "overideCharacterName": "？？？"
+    }
+  ]
+}
