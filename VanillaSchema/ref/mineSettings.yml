@@ -1,0 +1,15 @@
+id: mineSettings
+type: array
+overrideCodeGeneratePropertyName: MineSettingsMasterElement
+items:
+  type: object
+  properties:
+  - key: itemGuid
+    type: uuid
+    foreignKey:
+      schemaId: items
+      foreignKeyIdPath: /data/[*]/itemGuid
+      displayElementPath: /data/[*]/name
+  - key: time
+    type: number
+    default: 1
