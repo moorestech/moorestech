@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
@@ -12,7 +11,6 @@ using Client.Game.InGame.Entity;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Skit;
@@ -54,7 +52,6 @@ namespace Client.Starter
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
-        [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
@@ -161,7 +158,6 @@ namespace Client.Starter
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarView);
             
             builder.RegisterComponent(uIStateControl);
@@ -203,7 +199,6 @@ namespace Client.Starter
             // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
-            _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();

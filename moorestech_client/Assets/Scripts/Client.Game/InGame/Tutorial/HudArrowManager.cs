@@ -6,8 +6,8 @@ namespace Client.Game.InGame.Tutorial
     [DefaultExecutionOrder(1000)]
     public class HudArrowManager : MonoBehaviour
     {
-        [SerializeField] private RectTransform hudArrowImagePrefab;
-        private readonly Dictionary<GameObject, RectTransform> _hudArrowImages = new();
+        [SerializeField] private HudArrow hudArrowImagePrefab;
+        private readonly Dictionary<GameObject, HudArrow> _hudArrows = new();
         public static HudArrowManager Instance { get; private set; }
         
         private void Awake()
@@ -17,33 +17,33 @@ namespace Client.Game.InGame.Tutorial
         
         private void LateUpdate()
         {
-            foreach (var (target, imageTransform) in _hudArrowImages)
+            foreach (var (target, arrow) in _hudArrows)
             {
                 if (target == null)
                     continue;
                 
-                UpdateArrowTransform(target, imageTransform);
+                UpdateArrowTransform(target, arrow);
             }
         }
         
         public void RegisterHudArrowTarget(GameObject target)
         {
-            _hudArrowImages[target] = Instantiate(hudArrowImagePrefab, transform);
+            _hudArrows[target] = Instantiate(hudArrowImagePrefab, transform);
         }
         
         public void UnregisterHudArrowTarget(GameObject target)
         {
-            if (_hudArrowImages.TryGetValue(target, out var arrowTransform))
+            if (_hudArrows.TryGetValue(target, out var arrowTransform))
             {
                 if (arrowTransform != null)
                     Destroy(arrowTransform.gameObject);
-                _hudArrowImages.Remove(target);
+                _hudArrows.Remove(target);
             }
         }
         
-        private void UpdateArrowTransform(GameObject target, RectTransform arrowTransform)
+        private void UpdateArrowTransform(GameObject target, HudArrow arrow)
         {
-            if (arrowTransform == null || target == null)
+            if (arrow == null || target == null)
                 return;
             
             var camera = Camera.main;
@@ -73,7 +73,7 @@ namespace Client.Game.InGame.Tutorial
             void OnScreenProcess()
             {
                 // 画面内の場合
-                arrowTransform.gameObject.SetActive(true);
+                arrow.gameObject.SetActive(true);
                 
                 // Canvas のサイズ
                 var canvasSize = canvasRect.rect.size;
@@ -84,20 +84,19 @@ namespace Client.Game.InGame.Tutorial
                     (viewportPos.y - 0.5f) * canvasSize.y
                 );
                 
-                // 矢印の位置をターゲット位置に設定
-                arrowTransform.anchoredPosition = targetCanvasPos;
-                
                 // 画面中央からターゲットへの方向を計算
                 var direction = targetCanvasPos.normalized;
                 var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 
-                arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
+                var rotation = Quaternion.Euler(0, 0, arrowRotation);
+                // 矢印の位置をターゲット位置に設定
+                arrow.SetArrowTransform(targetCanvasPos, rotation, true);
             }
             
             void OffScreenProcess()
             {
                 // 画面外の場合
-                arrowTransform.gameObject.SetActive(true);
+                arrow.gameObject.SetActive(true);
                 
                 // カメラからターゲットへの方向ベクトル（ワールド空間）
                 var cameraToTarget = targetWorldPos - camera.transform.position;
@@ -134,11 +133,20 @@ namespace Client.Game.InGame.Tutorial
                 // 矢印の回転（pivotが(1, 0.5)なので右向きが0度）
                 var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 
-                arrowTransform.anchoredPosition = arrowPosition;
-                arrowTransform.rotation = Quaternion.Euler(0, 0, arrowRotation);
+                arrow.SetArrowTransform(arrowPosition, Quaternion.Euler(0, 0, arrowRotation), false);
             }
             
   #endregion
+        }
+    }
+    
+    public struct HudArrowOptions
+    {
+        public bool HideWhenTargetInactive;
+        
+        public HudArrowOptions(bool hideWhenTargetInactive = true)
+        {
+            HideWhenTargetInactive = hideWhenTargetInactive;
         }
     }
 }
