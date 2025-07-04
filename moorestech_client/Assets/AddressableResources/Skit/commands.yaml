@@ -84,12 +84,16 @@ commands:
     label: テキスト
     description: 台詞を表示
     commandListLabelFormat: "{character}「{body}」"
+    defaultCommandLabelColor: "#03b6fc"
     properties:
       character:
         type: enum
         options:
           master: characters
         required: true
+      overideCharacterName:
+        type: string
+        required: false
       body:
         type: string
         multiline: true
