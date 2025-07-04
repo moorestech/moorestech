@@ -66,6 +66,8 @@
     "command.text.property.character.enum.主人公": "主人公",
     "command.text.property.character.enum.AI": "AI",
     "command.text.property.character.enum.友人": "友人",
+    "command.text.property.overideCharacterName.name": "キャラ名上書き",
+    "command.text.property.overideCharacterName.description": "キャラクター名を一時的に変更",
     "command.text.property.body.name": "本文",
     "command.text.property.body.description": "テキスト内容",
 

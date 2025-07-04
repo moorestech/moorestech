@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "title": "100_start_game",
+    "version": 1,
+    "created": "2025-07-04T10:49:34.465Z",
+    "modified": "2025-07-04T13:33:20.552Z"
+  },
+  "commands": [
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "body": "レポート記録開始",
+      "id": 1,
+      "overideCharacterName": "？？？"
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "body": "現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",
+      "id": 2,
+      "overideCharacterName": "？？？"
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "body": "現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",
+      "id": 3,
+      "overideCharacterName": "？？？"
+    }
+  ]
+}
