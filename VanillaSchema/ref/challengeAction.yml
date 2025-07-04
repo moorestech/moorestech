@@ -1,0 +1,58 @@
+id: challengeAction
+type: array
+overrideCodeGeneratePropertyName: ChallengeActionElement
+items:
+  type: object
+  properties:
+  - key: challengeActionType
+    type: enum
+    options:
+    - unlockCraftRecipe
+    - unlockItemRecipeView
+    - unlockChallenge
+    - playSkit
+  - key: challengeActionParam
+    switch: ./challengeActionType
+    cases:
+    - when: unlockCraftRecipe
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockRecipeGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: craftRecipes
+            foreignKeyIdPath: /data/[*]/craftRecipeGuid
+            displayElementPath: /data/[*]/craftRecipeGuid
+    - when: unlockItemRecipeView
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockItemGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+    - when: unlockChallenge
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockChallengeGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: challenges
+            foreignKeyIdPath: /data/[*]/challengeGuid
+            displayElementPath: /data/[*]/title
+    - when: playSkit
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: skitAddressablePath
+        type: string
