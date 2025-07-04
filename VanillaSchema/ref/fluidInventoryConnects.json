@@ -1,0 +1,12 @@
+{
+    "$id": "fluidInventoryConnects",
+    "type": "object",
+    "properties": {
+        "inflowConnects": {
+            "$ref": "blockConnectInfo"
+        },
+        "outflowConnects": {
+            "$ref": "blockConnectInfo"
+        }
+    }
+}

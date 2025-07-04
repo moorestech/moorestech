@@ -1,0 +1,16 @@
+{
+  "$id": "gear",
+
+  "type": "object",
+  "properties": {
+
+    "gearConnects": {
+      "fixedParameter": {
+        "path" : "./connectType",
+        "value": "Gear"
+      },
+      "$ref" : "blockConnectInfo"
+    }
+
+  }
+}
