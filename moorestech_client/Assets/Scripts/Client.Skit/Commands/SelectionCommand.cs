@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Skit.Context;
 using Cysharp.Threading.Tasks;
 
 namespace CommandForgeGenerator.Command
@@ -7,7 +8,8 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.SkitUI.ShowSelectionUI(true);
+            var skitUI = storyContext.GetSkitUI();
+            skitUI.ShowSelectionUI(true);
 
             var jumpTarget = new List<CommandId>();
             var labels = new List<string>();
@@ -28,8 +30,8 @@ namespace CommandForgeGenerator.Command
                 labels.Add(Option3Tag);
             }
 
-            var index = await storyContext.SkitUI.WaitSelectText(labels);
-            storyContext.SkitUI.ShowSelectionUI(false);
+            var index = await skitUI.WaitSelectText(labels);
+            skitUI.ShowSelectionUI(false);
             
             return null; // TODO
         }

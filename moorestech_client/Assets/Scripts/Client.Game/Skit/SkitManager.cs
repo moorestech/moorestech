@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Tutorial;
+using Client.Skit.Context;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -94,7 +95,7 @@ namespace Client.Game.Skit
                 skitUI.SetActive(true);
                 HudArrowManager.Instance.SetActive(false);
                 
-                return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
+                return new StoryContext(characters, skitCamera, voiceDefine);
             }
             
             #endregion

@@ -1,3 +1,4 @@
+using Client.Skit.Context;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -15,7 +16,8 @@ namespace CommandForgeGenerator.Command
                 characterName = OverrideCharacterName;
             }
             
-            storyContext.SkitUI.SetText(characterName, Body);
+            var skitUi = storyContext.GetSkitUI();
+            skitUi.SetText(characterName, Body);
             
             var voiceClip = storyContext.VoiceDefine.GetVoiceClip(CharacterId, Body);
             var character = storyContext.GetCharacter(CharacterId);
