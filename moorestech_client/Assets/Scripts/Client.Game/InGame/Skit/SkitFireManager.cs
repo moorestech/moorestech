@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.Skit;
 using Client.Network.API;
+using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
@@ -50,7 +51,12 @@ namespace Client.Game.InGame.Skit
         
         private void PlaySkit(ChallengeMasterElement challenge)
         {
-            return;
+            var isSkip = DebugParameters.GetValueOrDefaultBool(DebugConst.SkitPlaySettingsKey);
+            if (isSkip)
+            {
+                return;
+            }
+            
             foreach (var action in challenge.StartedActions.items)
             {
                 if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;
@@ -69,6 +75,12 @@ namespace Client.Game.InGame.Skit
                     _skitManager.StartSkit(param.SkitAddressablePath).Forget();
                 }
             }
+        }
+        
+        private async UniTask SkitProcess(string skitAddressablePath)
+        {
+            await _skitManager.StartSkit(skitAddressablePath);
+            ClientContext.VanillaApi.SendOnly.RegisterPlayedSkit(skitAddressablePath);
         }
     }
 }
