@@ -26,6 +26,7 @@ namespace Client.Game.InGame.Skit
             _skitManager = skitManager;
             _initialHandshakeResponse = initialHandshakeResponse;
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(SkitRegisterEventPacket.EventTag, OnSkitRegister);
         }
         
         public void PostInitialize()
@@ -47,6 +48,12 @@ namespace Client.Game.InGame.Skit
             {
                 PlaySkit(challenge);
             }
+        }
+        
+        private void OnSkitRegister(byte[] packet)
+        {
+            var message = MessagePackSerializer.Deserialize<SkitRegisterEventPacket.SkitRegisterEventMessagePack>(packet);
+            PlayedSkitIds = message.PlayedSkitIds;
         }
         
         private void PlaySkit(ChallengeMasterElement challenge)
@@ -72,7 +79,7 @@ namespace Client.Game.InGame.Skit
                 }
                 else
                 {
-                    _skitManager.StartSkit(param.SkitAddressablePath).Forget();
+                    SkitProcess(param.SkitAddressablePath).Forget();
                 }
             }
         }
