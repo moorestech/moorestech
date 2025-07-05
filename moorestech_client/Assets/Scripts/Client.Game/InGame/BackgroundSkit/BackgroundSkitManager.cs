@@ -1,6 +1,10 @@
+using Client.Common.Asset;
 using Client.Game.InGame.UI.UIState;
 using Client.Skit.Define;
+using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
 
 namespace Client.Game.InGame.BackgroundSkit
@@ -12,27 +16,28 @@ namespace Client.Game.InGame.BackgroundSkit
         
         [SerializeField] private VoiceDefine voiceDefine;
         
-        public async UniTask StartBackgroundSkit(TextAsset storyCsv)
+        public async UniTask StartBackgroundSkit(string skitAddressablePath)
         {
             // UIステートがGameScreenになるまで待機
             await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
             
+            var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
+            var commandsToken = (JToken)JsonConvert.DeserializeObject(textAsset.text);
+            var commands = CommandForgeLoader.LoadCommands(commandsToken);
+            
             backgroundSkitUI.SetActive(true);
             
-            var lines = storyCsv.text.Split('\n');
-            
-            foreach (var line in lines)
+            foreach (var command in commands)
             {
-                var values = line.Split(',');
-                var characterName = values[0];
-                var text = values[1].Replace("\\n", "\n");
-                
-                var voice = voiceDefine.GetVoiceClip(characterName, text);
-                
-                await backgroundSkitUI.SetText(characterName, text, voice);
+                command.ExecuteAsync()
             }
             
             backgroundSkitUI.SetActive(false);
+        }
+        
+        public void SetActive(bool isActive)
+        {
+            backgroundSkitUI.SetActive(isActive);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Client.Skit.Context;
 using Cysharp.Threading.Tasks;
 
 namespace CommandForgeGenerator.Command
@@ -6,7 +7,7 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.SkitUI.ShowTextArea(Enable);
+            storyContext.GetSkitUI().ShowTextArea(Enable);
             return null;
         }
     }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -6,8 +8,7 @@ namespace Client.Game.InGame.BackgroundSkit
 {
     public class BackgroundSkitUI : MonoBehaviour
     {
-        [SerializeField] private TMP_Text characterName;
-        [SerializeField] private TMP_Text line;
+        [SerializeField] private TMP_Text skitText;
         
         [SerializeField] private AudioSource voiceSource;
         
@@ -18,8 +19,7 @@ namespace Client.Game.InGame.BackgroundSkit
         
         public async UniTask SetText(string name, string sentence, AudioClip voice = null)
         {
-            characterName.text = name;
-            line.text = sentence;
+            skitText.text = $"{name} : {sentence}";
             
             if (voice == null)
             {
