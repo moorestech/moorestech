@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.InGame.Tutorial;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -58,6 +58,7 @@ namespace Client.Game.Skit
             
             //後処理 Post process
             skitUI.SetActive(false);
+            HudArrowManager.Instance.SetActive(true);
             storyContext.DestroyCharacter();
             IsPlayingSkit = false;
             CameraManager.Instance.UnRegisterCamera(skitCamera);
@@ -91,6 +92,7 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(true);
+                HudArrowManager.Instance.SetActive(false);
                 
                 return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
             }
