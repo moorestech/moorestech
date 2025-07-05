@@ -3,13 +3,13 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-05T00:30:00Z"
+    "modified": "2025-07-05T07:28:05.803Z"
   },
   "commands": [
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "...レポート記録開始",
       "id": 1,
       "overideCharacterName": "？？？"
@@ -17,7 +17,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",
       "id": 2,
       "overideCharacterName": "？？？"
@@ -25,7 +25,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "搭乗員一名、ヨリ、睡眠薬による昏睡を確認",
       "id": 3,
       "overideCharacterName": "？？？"
@@ -33,7 +33,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "ワープシーケンスを開始。\n現在地、惑星セレスタル、目標、惑星アルカディア\n5..4..3..2..1....",
       "id": 4,
       "overideCharacterName": "？？？"
@@ -41,7 +41,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": ".......",
       "id": 5,
       "overideCharacterName": "？？？"
@@ -49,7 +49,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "ワープの正常終了を確認。\n惑星アルカディアへの大気圏突入を開始",
       "id": 6,
       "overideCharacterName": "？？？"
@@ -57,7 +57,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": ".......",
       "id": 7,
       "overideCharacterName": "？？？"
@@ -65,7 +65,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "耐熱シールドを分離\nパラシュート展開",
       "id": 8,
       "overideCharacterName": "？？？"
@@ -73,14 +73,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "",
+      "characterId": "chr_001",
       "body": "ドスン",
       "id": 9
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "地表への到達を確認",
       "id": 10,
       "overideCharacterName": "？？？"
@@ -88,7 +88,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "睡眠薬の供給停止と覚醒薬を注入",
       "id": 11,
       "overideCharacterName": "？？？"
@@ -96,21 +96,21 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "んん……",
       "id": 12
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "……頭が重い……なんだか変な夢を見ていたような……\n……あれ？　ここは...宇宙船？",
       "id": 13
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "おはようございます。姫さま。\nここは惑星アルカディアです。\nこれはその着陸ポッドです。",
       "id": 14,
       "overideCharacterName": "？？？"
@@ -118,21 +118,21 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "惑星アルカディア...?\n惑星アルカディアってどこ？\nそれに着陸ポッドって...",
       "id": 15
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "私は惑星セレスタルに住んでいるはず..冗談だよね！",
       "id": 16
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "姫さまに冗談なんて言いません\nぼくは約束と冗談が大っ嫌いなんです",
       "id": 17,
       "overideCharacterName": "？？？"
@@ -140,7 +140,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "惑星アルカディアは貴方が住んでいる、\n惑星セレスタルの隣の隣の隣の……\nとにかく遠くです",
       "id": 18,
       "overideCharacterName": "？？？"
@@ -148,14 +148,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "ありがとう。とにかくすっごく遠くまで旅行に\n来ちゃってるってことは分かったよ\nよーし、早く帰ろう！　みんなが心配しちゃう！",
       "id": 19
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "何を言っているのですか？\nあなたは追放されたのです。",
       "id": 20,
       "overideCharacterName": "？？？"
@@ -163,7 +163,7 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "国王陛下……つまり、あなたのお父様の命令により、\n姫さまは惑星セレスタルから永久追放処分となりました。",
       "id": 21,
       "overideCharacterName": "？？？"
@@ -171,14 +171,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "追放...追放って何！？\nどういうこと！？私が何をしたっていうの！？\nそれにお父さまが...",
       "id": 22
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "私はあなたをここまで連れてくるのが任務です。\nあなたが連れて来られた事由は把握していません",
       "id": 23,
       "overideCharacterName": "？？？"
@@ -186,14 +186,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "知らないってどういうことなの！？\n本当に何も知らないの！？",
       "id": 24
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "何も知りません。\n私は貴方をサポートするために、\nプログラムされたAIシステムです。",
       "id": 25,
       "overideCharacterName": "？？？"
@@ -201,14 +201,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "そんな...でも...だって...\nそ、そうだ！惑星セレスタルに帰る手段はあるのよね！？\n戻って話を聞かないと！",
       "id": 26
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "戻る手段なんて...存在しませんよ。\nこれは着陸専用の片道切符の宇宙船です。",
       "id": 27,
       "overideCharacterName": "？？？"
@@ -216,14 +216,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "そ、それなら帰りの宇宙船を作りましょう！\nそれで理由を聞きに行かないと！",
       "id": 28
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "姫様...ご無礼をお許しください",
       "id": 29,
       "overideCharacterName": "？？？"
@@ -231,28 +231,29 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "えっ？",
       "id": 30
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "",
+      "characterId": "chr_001",
       "body": "パチン！",
-      "id": 31
+      "id": 31,
+      "isOverrideCharacterName": true
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "っ！",
       "id": 32
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "いい加減目を冷ましてください！\nあなたは追放されたのです！ここに宇宙船はありません！\nあなたはここで生きていくしかないんです！",
       "id": 33,
       "overideCharacterName": "？？？"
@@ -260,14 +261,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": ".......",
       "id": 34
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "大変申し訳ありません。ですがこれも貴方のためを..",
       "id": 35,
       "overideCharacterName": "？？？"
@@ -275,21 +276,21 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "わかった.",
       "id": 36
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "わかったわ。ここで生きていくしかないのね....\nでも、私は惑星セレスタルに帰るのを諦めないから",
       "id": 37
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "...勝手にしてください。",
       "id": 38,
       "overideCharacterName": "？？？"
@@ -297,14 +298,14 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "ありがとう.\nでも、これからどうすれば...",
       "id": 39
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "大丈夫です。ぼくがしっかりサポートするので\n姫さまは何も心配いりません。さあ、行きますよ",
       "id": 40,
       "overideCharacterName": "？？？"
