@@ -1,4 +1,6 @@
+using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using UnityEngine;
 
 namespace CommandForgeGenerator.Command
@@ -7,10 +9,17 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.SkitUI.SetText(Character, Body);
-
-            var voiceClip = storyContext.VoiceDefine.GetVoiceClip(Character, Body);
-            var character = storyContext.GetCharacter(Character);
+            var characterName = MasterHolder.CharacterMaster.GetCharacterMaster(CharacterId).DisplayName;
+            if (IsOverrideCharacterName)
+            {
+                characterName = OverrideCharacterName;
+            }
+            
+            storyContext.SkitUI.SetText(characterName, Body);
+            
+            var voiceClip = storyContext.VoiceDefine.GetVoiceClip(CharacterId, Body);
+            var character = storyContext.GetCharacter(CharacterId);
+            
             if (voiceClip != null) character.PlayVoice(voiceClip);
 
             while (true)
