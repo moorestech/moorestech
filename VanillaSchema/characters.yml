@@ -11,6 +11,8 @@ properties:
     properties:
     - key: characterId
       type: string
+    - key: displayName
+      type: string
     - key: modelAddresablePath
       type: string
     - key: skitModelAddresablePath
