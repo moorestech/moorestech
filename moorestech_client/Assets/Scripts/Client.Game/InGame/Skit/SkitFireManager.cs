@@ -19,7 +19,7 @@ namespace Client.Game.InGame.Skit
     {
         public List<string> PlayedSkitIds { get; private set; } = new();
         private readonly SkitManager _skitManager;
-        private InitialHandshakeResponse _initialHandshakeResponse;
+        private readonly InitialHandshakeResponse _initialHandshakeResponse;
         
         public SkitFireManager(SkitManager skitManager, InitialHandshakeResponse initialHandshakeResponse)
         {

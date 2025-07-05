@@ -138,6 +138,11 @@ namespace Client.Game.InGame.Tutorial
             
   #endregion
         }
+        
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
+        }
     }
     
     public struct HudArrowOptions
