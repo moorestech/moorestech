@@ -83,15 +83,18 @@ commands:
   - id: text
     label: テキスト
     description: 台詞を表示
-    commandListLabelFormat: "{character}「{body}」"
+    commandListLabelFormat: "{characterId}「{body}」"
     defaultCommandLabelColor: "#03b6fc"
     properties:
-      character:
+      characterId:
         type: enum
         options:
           master: characters
         required: true
-      overideCharacterName:
+      isOverrideCharacterName:
+        type: boolean
+        default: false
+      overrideCharacterName:
         type: string
         required: false
       body:

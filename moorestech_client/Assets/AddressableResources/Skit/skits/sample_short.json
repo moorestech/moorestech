@@ -3,23 +3,25 @@
     "title": "sample_short",
     "version": 1,
     "created": "2025-07-04T15:45:25.492Z",
-    "modified": "2025-07-04T15:46:59.233Z"
+    "modified": "2025-07-05T07:20:33.061Z"
   },
   "commands": [
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_001",
+      "characterId": "chr_001",
       "body": "こんにちは",
-      "id": 1
+      "id": 1,
+      "isOverrideCharacterName": false
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
-      "character": "chr_002",
+      "characterId": "chr_002",
       "body": "こんにちは",
       "id": 2,
-      "overideCharacterName": "？？？"
+      "overideCharacterName": "？？？",
+      "isOverrideCharacterName": false
     }
   ]
 }
