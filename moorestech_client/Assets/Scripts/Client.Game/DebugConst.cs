@@ -4,5 +4,8 @@ namespace Client.Game
     {
         public const string IsItemListViewForceShowLabel = "Item list view force show";
         public const string IsItemListViewForceShowKey = "IsItemListViewForceShow";
+        
+        public const string SkitPlaySettingsLabel = "Skit play setting";
+        public const string SkitPlaySettingsKey = "SkitPlaySettings";
     }
 }
