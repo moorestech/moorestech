@@ -80,6 +80,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a88e4a88a3e44292894c14234324d60
+    m_Address: Vanilla/Skit/skits/sample_short
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1ade7ec81dc8c4207a0723e2bf2919db
     m_Address: Vanilla/Block/ConveyorSplitter
     m_ReadOnly: 0
