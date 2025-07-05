@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using Game.Challenge;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
+using Server.Event.EventReceive;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -31,9 +31,9 @@ namespace Server.Protocol.PacketResponse
             info.PlayedSkitIds.Add(data.SkitId);
             
             // 再生済みスキットリストのイベントを送信
-            var eventData = new Event.EventReceive.SkitRegisterEventPacket.SkitRegisterEventMessagePack(info.PlayedSkitIds);
+            var eventData = new SkitRegisterEventPacket.SkitRegisterEventMessagePack(info.PlayedSkitIds);
             var eventPayload = MessagePackSerializer.Serialize(eventData);
-            _eventProtocolProvider.AddEvent(data.PlayerId, Event.EventReceive.SkitRegisterEventPacket.EventTag, eventPayload);
+            _eventProtocolProvider.AddEvent(data.PlayerId, SkitRegisterEventPacket.EventTag, eventPayload);
             
             return null;
         }
