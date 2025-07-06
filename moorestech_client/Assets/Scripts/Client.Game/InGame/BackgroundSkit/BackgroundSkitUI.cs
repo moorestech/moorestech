@@ -17,9 +17,9 @@ namespace Client.Game.InGame.BackgroundSkit
             gameObject.SetActive(isActive);
         }
         
-        public async UniTask SetText(string name, string sentence, AudioClip voice = null)
+        public async UniTask SetText(string characterName, string body, AudioClip voice = null)
         {
-            skitText.text = $"{name} : {sentence}";
+            skitText.text = $"{characterName} : {body}";
             
             if (voice == null)
             {

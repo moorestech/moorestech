@@ -12,6 +12,8 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace Client.Game.Skit
 {
@@ -49,7 +51,7 @@ namespace Client.Game.Skit
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
             //前処理 Pre process
-            var storyContext = await PreProcess();
+            using var storyContext = await PreProcess();
             CameraManager.Instance.RegisterCamera(skitCamera);
             
             foreach (var command in commands)
@@ -60,7 +62,8 @@ namespace Client.Game.Skit
             //後処理 Post process
             skitUI.SetActive(false);
             HudArrowManager.Instance.SetActive(true);
-            storyContext.DestroyCharacter();
+            var characterContainer = storyContext.GetService<CharacterObjectContainer>();
+            characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
             CameraManager.Instance.UnRegisterCamera(skitCamera);
             
@@ -95,7 +98,14 @@ namespace Client.Game.Skit
                 skitUI.SetActive(true);
                 HudArrowManager.Instance.SetActive(false);
                 
-                return new StoryContext(characters, skitCamera, voiceDefine);
+                // DIコンテナをセットアップ
+                var builder = new ContainerBuilder();
+                builder.RegisterInstance(skitUI);
+                builder.RegisterInstance<ISkitCamera>(skitCamera);
+                builder.RegisterInstance(voiceDefine);
+                builder.RegisterInstance(new CharacterObjectContainer(characters));
+                
+                return new StoryContext(builder.Build());
             }
             
             #endregion
