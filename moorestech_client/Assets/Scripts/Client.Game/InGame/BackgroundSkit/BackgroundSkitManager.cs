@@ -32,14 +32,7 @@ namespace Client.Game.InGame.BackgroundSkit
             // BackgroundSkitは簡易実装なので、Textコマンドのみを実行
             foreach (var command in commands)
             {
-                if (command is not TextCommand textCommand) continue;
-                
-                var characterName = textCommand.IsOverrideCharacterName
-                    ? textCommand.OverrideCharacterName
-                    : characterMaster.GetCharacterMaster(textCommand.CharacterId).DisplayName;
-                
-                var voiceClip = voiceDefine.GetVoiceClip(textCommand.CharacterId, textCommand.Body);
-                await backgroundSkitUI.SetText(characterName, textCommand.Body, voiceClip);
+                await command.ExecuteAsync();
             }
             
             backgroundSkitUI.SetActive(false);
