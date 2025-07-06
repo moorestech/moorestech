@@ -13,9 +13,11 @@ commands:
       enabled:
         type: boolean
         default: true
+        required: true
       duration:
         type: number
         default: 0.4
+        required: true
         constraints:
           min: 0
 
@@ -40,6 +42,7 @@ commands:
       duration:
         type: number
         default: 2
+        required: true
         constraints: { min: 0 }
       easing:
         type: enum
