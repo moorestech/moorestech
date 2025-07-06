@@ -9,6 +9,7 @@ namespace Client.Skit.Context
     public static class StoryContextExtension
     {
         public static SkitUI GetSkitUI(this StoryContext storyContext) => storyContext.GetService<SkitUI>();
+        public static BackgroundSkitUI GetBackgroundSkitUI(this StoryContext storyContext) => storyContext.GetService<BackgroundSkitUI>();
         
         public static VoiceDefine GetVoiceDefine(this StoryContext storyContext) => storyContext.GetService<VoiceDefine>();
         

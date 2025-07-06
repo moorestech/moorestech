@@ -1,12 +1,15 @@
 using Client.Common.Asset;
 using Client.Game.InGame.UI.UIState;
+using Client.Skit.Context;
 using Client.Skit.Define;
+using Client.Skit.UI;
 using CommandForgeGenerator.Command;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.BackgroundSkit
 {
@@ -25,17 +28,29 @@ namespace Client.Game.InGame.BackgroundSkit
             var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
             var commandsToken = (JToken)JsonConvert.DeserializeObject(textAsset.text);
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
-            var characterMaster = MasterHolder.CharacterMaster;
+            var context = GetStoryContext();
             
             backgroundSkitUI.SetActive(true);
             
             // BackgroundSkitは簡易実装なので、Textコマンドのみを実行
             foreach (var command in commands)
             {
-                await command.ExecuteAsync();
+                await command.ExecuteAsync(context);
             }
             
             backgroundSkitUI.SetActive(false);
+            
+            #region Internal
+            
+            StoryContext GetStoryContext()
+            {
+                var builder = new ContainerBuilder();
+                builder.RegisterInstance(backgroundSkitUI);
+                
+                return new StoryContext(builder.Build());
+            }
+            
+  #endregion
         }
         
         public void SetActive(bool isActive)

@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-namespace Client.Game.InGame.BackgroundSkit
+namespace Client.Skit.UI
 {
     public class BackgroundSkitUI : MonoBehaviour
     {
