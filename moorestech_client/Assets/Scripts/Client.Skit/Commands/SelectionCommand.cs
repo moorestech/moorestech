@@ -19,14 +19,14 @@ namespace CommandForgeGenerator.Command
                 jumpTarget.Add(Option1JumpTarget);
                 labels.Add(Option1Tag);
             }
-            if (!string.IsNullOrEmpty(Option2Tag))
+            if (!string.IsNullOrEmpty(Option2Tag) && Option2JumpTarget.HasValue)
             {
-                jumpTarget.Add(Option2JumpTarget);
+                jumpTarget.Add(Option2JumpTarget.Value);
                 labels.Add(Option2Tag);
             }
-            if (!string.IsNullOrEmpty(Option3Tag))
+            if (!string.IsNullOrEmpty(Option3Tag) && Option3JumpTarget.HasValue)
             {
-                jumpTarget.Add(Option3JumpTarget);
+                jumpTarget.Add(Option3JumpTarget.Value);
                 labels.Add(Option3Tag);
             }
 
