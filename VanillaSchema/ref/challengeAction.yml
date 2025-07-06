@@ -11,6 +11,7 @@ items:
     - unlockItemRecipeView
     - unlockChallenge
     - playSkit
+    - playBackgroundSkit
   - key: challengeActionParam
     switch: ./challengeActionType
     cases:
@@ -51,6 +52,12 @@ items:
             foreignKeyIdPath: /data/[*]/challengeGuid
             displayElementPath: /data/[*]/title
     - when: playSkit
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: skitAddressablePath
+        type: string
+    - when: playBackgroundSkit
       type: object
       isDefaultOpen: true
       properties:
