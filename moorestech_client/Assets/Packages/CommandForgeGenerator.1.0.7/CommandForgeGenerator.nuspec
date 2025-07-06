@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>CommandForgeGenerator</id>
-    <version>1.0.3</version>
+    <version>1.0.7</version>
     <title>CommandForge Generator</title>
     <authors>Moorestech</authors>
     <developmentDependency>true</developmentDependency>
@@ -13,6 +13,6 @@
     <description>CommandForgeEditorのcommands.yamlのC#コードを生成するSourceGenerator</description>
     <copyright>Copyright (c) 2024 Moorestech</copyright>
     <tags>roslyn source-generator yaml json code-generation game-development data-loader type-safety</tags>
-    <repository type="git" url="https://github.com/moorestech/CommandForgeGenerator" commit="1cb683c4b270179d11d014da0d552675f06ca012" />
+    <repository type="git" url="https://github.com/moorestech/CommandForgeGenerator" commit="0fd8865bf43d37390ee5bde3f2446d95930023f1" />
   </metadata>
 </package>
