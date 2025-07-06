@@ -67,6 +67,12 @@
           "challengeActionParam": {
             "skitAddressablePath": "Vanilla/Skit/skits/sample_short"
           }
+        },
+        {
+          "challengeActionType": "playBackgroundSkit",
+          "challengeActionParam": {
+            "skitAddressablePath": "Vanilla/Skit/skits/200_star_background"
+          }
         }
       ]
     },
