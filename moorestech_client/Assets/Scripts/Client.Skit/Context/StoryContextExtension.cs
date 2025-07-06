@@ -1,6 +1,8 @@
+using System;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using VContainer;
 
 namespace Client.Skit.Context
 {
@@ -14,8 +16,15 @@ namespace Client.Skit.Context
         
         public static SkitCharacter GetCharacter(this StoryContext storyContext, string characterId)
         {
-            var characterObjectContainer = storyContext.GetService<CharacterObjectContainer>();
-            return characterObjectContainer.GetCharacter(characterId);
+            try
+            {
+                var container = storyContext.GetService<CharacterObjectContainer>();
+                return container.GetCharacter(characterId);
+            }
+            catch (VContainerException e)
+            {
+                return null;
+            }
         }
     }
 }
