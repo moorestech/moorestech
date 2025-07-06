@@ -2,6 +2,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.UI.UIState;
 using Client.Skit.Define;
 using CommandForgeGenerator.Command;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Unity.Plastic.Newtonsoft.Json;
@@ -24,12 +25,21 @@ namespace Client.Game.InGame.BackgroundSkit
             var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
             var commandsToken = (JToken)JsonConvert.DeserializeObject(textAsset.text);
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
+            var characterMaster = MasterHolder.CharacterMaster;
             
             backgroundSkitUI.SetActive(true);
             
+            // BackgroundSkitは簡易実装なので、Textコマンドのみを実行
             foreach (var command in commands)
             {
-                command.ExecuteAsync()
+                if (command is not TextCommand textCommand) continue;
+                
+                var characterName = textCommand.IsOverrideCharacterName
+                    ? textCommand.OverrideCharacterName
+                    : characterMaster.GetCharacterMaster(textCommand.CharacterId).DisplayName;
+                
+                var voiceClip = voiceDefine.GetVoiceClip(textCommand.CharacterId, textCommand.Body);
+                await backgroundSkitUI.SetText(characterName, textCommand.Body, voiceClip);
             }
             
             backgroundSkitUI.SetActive(false);

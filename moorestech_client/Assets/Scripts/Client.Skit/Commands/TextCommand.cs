@@ -19,7 +19,7 @@ namespace CommandForgeGenerator.Command
             var skitUi = storyContext.GetSkitUI();
             skitUi.SetText(characterName, Body);
             
-            var voiceClip = storyContext.VoiceDefine.GetVoiceClip(CharacterId, Body);
+            var voiceClip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
             var character = storyContext.GetCharacter(CharacterId);
             
             if (voiceClip != null) character.PlayVoice(voiceClip);
