@@ -524,6 +524,7 @@ MonoBehaviour:
   challengeManager: {fileID: 5423992904397564507}
   skitManager: {fileID: 1951205481002623162}
   skitUI: {fileID: 8995564702550197256}
+  backgroundSkitManager: {fileID: 4371159159903290796}
   displayEnergizedRange: {fileID: 6801616934556956278}
   inGameCameraController: {fileID: 4843909587234544541}
 --- !u!1001 &932377419651066343
@@ -1865,15 +1866,15 @@ PrefabInstance:
       objectReference: {fileID: 4694271036350155273}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.002746988
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.74200344
+      value: 2.86707
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.08263826
+      value: -3.288924
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalRotation.w

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Context;
 using Client.Game.Skit;
 using Client.Network.API;
@@ -19,12 +20,14 @@ namespace Client.Game.InGame.Skit
     {
         public List<string> PlayedSkitIds { get; private set; } = new();
         private readonly SkitManager _skitManager;
+        private readonly BackgroundSkitManager _backgroundSkitManager;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
         
-        public SkitFireManager(SkitManager skitManager, InitialHandshakeResponse initialHandshakeResponse)
+        public SkitFireManager(SkitManager skitManager, InitialHandshakeResponse initialHandshakeResponse, BackgroundSkitManager backgroundSkitManager)
         {
             _skitManager = skitManager;
             _initialHandshakeResponse = initialHandshakeResponse;
+            _backgroundSkitManager = backgroundSkitManager;
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
             ClientContext.VanillaApi.Event.SubscribeEventResponse(SkitRegisterEventPacket.EventTag, OnSkitRegister);
         }
@@ -64,30 +67,40 @@ namespace Client.Game.InGame.Skit
                 return;
             }
             
+            var skitActions = new List<PlaySkitChallengeActionParam>();
             foreach (var action in challenge.StartedActions.items)
             {
                 if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;
                 
                 var param = (PlaySkitChallengeActionParam)action.ChallengeActionParam;
-                if (_skitManager.IsPlayingSkit)
-                {
-                    Debug.LogError($"複数同時にスキットを再生することは出ません。ID:{challenge.ChallengeGuid} タイトル:{challenge.Title}");
-                }
-                else if (PlayedSkitIds.Contains(param.SkitAddressablePath))
-                {
-                    Debug.LogError($"スキットはすでに再生されています。ID:{challenge.ChallengeGuid} タイトル:{challenge.Title}");
-                }
-                else
-                {
-                    SkitProcess(param.SkitAddressablePath).Forget();
-                }
+                skitActions.Add(param);
             }
+            
+            SkitProcess(skitActions).Forget();
         }
         
-        private async UniTask SkitProcess(string skitAddressablePath)
+        private async UniTask SkitProcess(List<PlaySkitChallengeActionParam> skitActions)
         {
-            await _skitManager.StartSkit(skitAddressablePath);
-            ClientContext.VanillaApi.SendOnly.RegisterPlayedSkit(skitAddressablePath);
+            skitActions.Sort((a, b) => a.PlaySortPriority.CompareTo(b.PlaySortPriority));
+            
+            foreach (var action in skitActions)
+            {
+                // 現在スキットがプレイ中ならスキップする
+                var isPlayedSkit = _skitManager.IsPlayingSkit || _backgroundSkitManager.IsPlayingSkit;
+                if (isPlayedSkit) continue;
+                
+                var path = action.SkitAddressablePath;
+                if (action.PlaySkitType == PlaySkitChallengeActionParam.PlaySkitTypeConst.normal)
+                {
+                    await _skitManager.StartSkit(path);
+                }
+                else if (action.PlaySkitType == PlaySkitChallengeActionParam.PlaySkitTypeConst.background)
+                {
+                    await _backgroundSkitManager.StartBackgroundSkit(path);
+                }
+                
+                ClientContext.VanillaApi.SendOnly.RegisterPlayedSkit(path);
+            }
         }
     }
 }

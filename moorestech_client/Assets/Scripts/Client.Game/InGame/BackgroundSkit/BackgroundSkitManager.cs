@@ -4,7 +4,6 @@ using Client.Skit.Context;
 using Client.Skit.Define;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Unity.Plastic.Newtonsoft.Json;
@@ -15,6 +14,8 @@ namespace Client.Game.InGame.BackgroundSkit
 {
     public class BackgroundSkitManager : MonoBehaviour
     {
+        public bool IsPlayingSkit { get; private set; }
+        
         [SerializeField] private BackgroundSkitUI backgroundSkitUI;
         [SerializeField] private UIStateControl uiStateControl;
         
@@ -22,6 +23,8 @@ namespace Client.Game.InGame.BackgroundSkit
         
         public async UniTask StartBackgroundSkit(string skitAddressablePath)
         {
+            IsPlayingSkit = true;
+            
             // UIステートがGameScreenになるまで待機
             await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
             
@@ -39,6 +42,7 @@ namespace Client.Game.InGame.BackgroundSkit
             }
             
             backgroundSkitUI.SetActive(false);
+            IsPlayingSkit = false;
             
             #region Internal
             

@@ -57,9 +57,12 @@ items:
       properties:
       - key: skitAddressablePath
         type: string
-    - when: playBackgroundSkit
-      type: object
-      isDefaultOpen: true
-      properties:
-      - key: skitAddressablePath
-        type: string
+      - key: playSortPriority
+        type: number
+        default: 0
+      - key: playSkitType
+        default: normal
+        type: enum
+        options:
+          - normal
+          - background 
