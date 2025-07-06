@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
+using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
@@ -83,6 +84,7 @@ namespace Client.Starter
         
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
+        [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
         
@@ -188,6 +190,7 @@ namespace Client.Starter
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager);
             builder.RegisterComponent(skitUI);
+            builder.RegisterComponent(backgroundSkitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
