@@ -29,7 +29,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "bd685f3ca3decfa26cf333446f84f52952af78b3"
+      "hash": "f789083c31250c83082da9b29be0c976152d699b"
     },
     "com.harumak.unitydebugsheet": {
       "version": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet",

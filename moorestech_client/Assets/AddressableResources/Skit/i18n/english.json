@@ -66,6 +66,8 @@
     "command.text.property.character.enum.主人公": "Protagonist",
     "command.text.property.character.enum.AI": "AI",
     "command.text.property.character.enum.友人": "Friend",
+    "command.text.property.overideCharacterName.name": "Override Character Name",
+    "command.text.property.overideCharacterName.description": "Temporarily change character name",
     "command.text.property.body.name": "Body",
     "command.text.property.body.description": "Text content",
 

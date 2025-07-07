@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "200_star_background",
+    "version": 1,
+    "created": "2025-07-06T05:10:43.872Z",
+    "modified": "2025-07-06T06:52:23.471Z"
+  },
+  "commands": [
+    {
+      "type": "backgroundSkitText",
+      "backgroundColor": "#ffffff",
+      "characterId": "chr_002",
+      "isOverrideCharacterName": false,
+      "body": "ひとまず、周りの石を集めましょう。",
+      "id": 1
+    }
+  ]
+}

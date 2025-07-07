@@ -1,3 +1,4 @@
+using Client.Skit.Context;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.SkitCamera.TweenCamera(
+            storyContext.GetSkitCamera().TweenCamera(
                 StartPosition,
                 StartRotation,
                 EndPosition,

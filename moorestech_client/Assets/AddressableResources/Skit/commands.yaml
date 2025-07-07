@@ -13,9 +13,11 @@ commands:
       enabled:
         type: boolean
         default: true
+        required: true
       duration:
         type: number
         default: 0.4
+        required: true
         constraints:
           min: 0
 
@@ -40,6 +42,7 @@ commands:
       duration:
         type: number
         default: 2
+        required: true
         constraints: { min: 0 }
       easing:
         type: enum
@@ -83,13 +86,43 @@ commands:
   - id: text
     label: テキスト
     description: 台詞を表示
-    commandListLabelFormat: "{character}「{body}」"
+    commandListLabelFormat: "{characterId}「{body}」"
+    defaultCommandLabelColor: "#03b6fc"
     properties:
-      character:
+      characterId:
         type: enum
         options:
           master: characters
         required: true
+      isOverrideCharacterName:
+        type: boolean
+        default: false
+        required: false
+      overrideCharacterName:
+        type: string
+        required: false
+      body:
+        type: string
+        multiline: true
+        required: true
+
+  - id: backgroundSkitText
+    label: 背景スキットテキスト
+    description: 台詞を表示
+    commandListLabelFormat: "{characterId}：{body}"
+    defaultCommandLabelColor: "#03fca9"
+    properties:
+      characterId:
+        type: enum
+        options:
+          master: characters
+        required: true
+      isOverrideCharacterName:
+        type: boolean
+        default: false
+        required: true
+      overrideCharacterName:
+        type: string
       body:
         type: string
         multiline: true

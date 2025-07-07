@@ -94,5 +94,11 @@ namespace Client.Network.API
             var request = new ApplyCraftTreeProtocol.ApplyCraftProtocolMessagePack(_playerId, target, craftTree);
             _packetSender.Send(request);
         }
+        
+        public void RegisterPlayedSkit(string skitId)
+        {
+            var request = new RegisterPlayedSkitProtocol.RegisterPlayedSkitMessagePack(_playerId, skitId);
+            _packetSender.Send(request);
+        }
     }
 }

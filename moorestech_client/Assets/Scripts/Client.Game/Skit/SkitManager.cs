@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.InGame.Tutorial;
+using Client.Skit.Context;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -11,6 +12,8 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace Client.Game.Skit
 {
@@ -48,7 +51,7 @@ namespace Client.Game.Skit
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
             //前処理 Pre process
-            var storyContext = await PreProcess();
+            using var storyContext = await PreProcess();
             CameraManager.Instance.RegisterCamera(skitCamera);
             
             foreach (var command in commands)
@@ -58,7 +61,9 @@ namespace Client.Game.Skit
             
             //後処理 Post process
             skitUI.SetActive(false);
-            storyContext.DestroyCharacter();
+            HudArrowManager.Instance.SetActive(true);
+            var characterContainer = storyContext.GetService<CharacterObjectContainer>();
+            characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
             CameraManager.Instance.UnRegisterCamera(skitCamera);
             
@@ -91,8 +96,16 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(true);
+                HudArrowManager.Instance.SetActive(false);
                 
-                return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
+                // DIコンテナをセットアップ
+                var builder = new ContainerBuilder();
+                builder.RegisterInstance(skitUI);
+                builder.RegisterInstance<ISkitCamera>(skitCamera);
+                builder.RegisterInstance(voiceDefine);
+                builder.RegisterInstance(new CharacterObjectContainer(characters));
+                
+                return new StoryContext(builder.Build());
             }
             
             #endregion
