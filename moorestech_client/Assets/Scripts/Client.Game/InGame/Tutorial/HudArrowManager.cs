@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Common;
 using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
@@ -7,28 +8,34 @@ namespace Client.Game.InGame.Tutorial
     public class HudArrowManager : MonoBehaviour
     {
         [SerializeField] private HudArrow hudArrowImagePrefab;
+        private RectTransform _canvasRect;
+        
         private readonly Dictionary<GameObject, HudArrow> _hudArrows = new();
         public static HudArrowManager Instance { get; private set; }
         
         private void Awake()
         {
             Instance = this;
+            _canvasRect = transform as RectTransform;
         }
         
         private void LateUpdate()
         {
             foreach (var (target, arrow) in _hudArrows)
             {
-                if (target == null)
+                if (!target)
                     continue;
                 
+                arrow.ManualUpdate();
                 UpdateArrowTransform(target, arrow);
             }
         }
         
-        public void RegisterHudArrowTarget(GameObject target)
+        public void RegisterHudArrowTarget(GameObject target, HudArrowOptions options = default)
         {
-            _hudArrows[target] = Instantiate(hudArrowImagePrefab, transform);
+            var arrow = Instantiate(hudArrowImagePrefab, transform);
+            arrow.Initialize(target, options);
+            _hudArrows[target] = arrow;
         }
         
         public void UnregisterHudArrowTarget(GameObject target)
@@ -46,16 +53,12 @@ namespace Client.Game.InGame.Tutorial
             if (arrow == null || target == null)
                 return;
             
-            var camera = Camera.main;
-            if (camera == null)
-                return;
-            
-            var canvasRect = transform as RectTransform;
-            if (canvasRect == null)
+            var currentCamera = CameraManager.Instance.MainCamera.MainCamera;
+            if (!currentCamera)
                 return;
             
             var targetWorldPos = target.transform.position;
-            var viewportPos = camera.WorldToViewportPoint(targetWorldPos);
+            var viewportPos = currentCamera.WorldToViewportPoint(targetWorldPos);
             
             // 画面内かどうかの判定
             var isOnScreen = viewportPos.z > 0 &&
@@ -73,10 +76,9 @@ namespace Client.Game.InGame.Tutorial
             void OnScreenProcess()
             {
                 // 画面内の場合
-                arrow.gameObject.SetActive(true);
                 
                 // Canvas のサイズ
-                var canvasSize = canvasRect.rect.size;
+                var canvasSize = _canvasRect.rect.size;
                 
                 // ビューポート座標をCanvas座標に変換（0-1を-0.5～0.5に変換してからCanvasサイズを掛ける）
                 var targetCanvasPos = new Vector2(
@@ -96,19 +98,18 @@ namespace Client.Game.InGame.Tutorial
             void OffScreenProcess()
             {
                 // 画面外の場合
-                arrow.gameObject.SetActive(true);
                 
                 // カメラからターゲットへの方向ベクトル（ワールド空間）
-                var cameraToTarget = targetWorldPos - camera.transform.position;
+                var cameraToTarget = targetWorldPos - currentCamera.transform.position;
                 
                 // カメラの右方向と上方向
-                var cameraRight = camera.transform.right;
-                var cameraUp = camera.transform.up;
+                var cameraRight = currentCamera.transform.right;
+                var cameraUp = currentCamera.transform.up;
                 
                 // ターゲット方向をカメラのローカル空間に投影
                 var localX = Vector3.Dot(cameraToTarget, cameraRight);
                 var localY = Vector3.Dot(cameraToTarget, cameraUp);
-                var localZ = Vector3.Dot(cameraToTarget, camera.transform.forward);
+                var localZ = Vector3.Dot(cameraToTarget, currentCamera.transform.forward);
                 
                 // カメラの後ろにある場合の処理
                 // 特に反転処理は不要
@@ -117,7 +118,7 @@ namespace Client.Game.InGame.Tutorial
                 var direction = new Vector2(localX, localY).normalized;
                 
                 // Canvas のサイズ
-                var canvasSize = canvasRect.rect.size;
+                var canvasSize = _canvasRect.rect.size;
                 var margin = 0f;
                 var maxX = canvasSize.x * 0.5f - margin;
                 var maxY = canvasSize.y * 0.5f - margin;
