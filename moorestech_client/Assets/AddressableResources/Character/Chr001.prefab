@@ -358,7 +358,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3509620118791789518}
-  - component: {fileID: 5015635146449629192}
   m_Layer: 0
   m_Name: c_kilt_01_03.l
   m_TagString: Untagged
@@ -382,37 +381,6 @@ Transform:
   - {fileID: 6242152870567465156}
   m_Father: {fileID: 7122948531937238377}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5015635146449629192
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 373082574578396287}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &379930399412196495
 GameObject:
   m_ObjectHideFlags: 0
@@ -792,7 +760,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6375621613199759229}
-  - component: {fileID: 7511356773865629732}
   m_Layer: 0
   m_Name: c_kilt_01_01.l
   m_TagString: Untagged
@@ -816,37 +783,6 @@ Transform:
   - {fileID: 7122948531937238377}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7511356773865629732
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 688534834914029629}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &754546132140984338
 GameObject:
   m_ObjectHideFlags: 0
@@ -1045,7 +981,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1996925416641816058}
-  - component: {fileID: 8795996840719075950}
   m_Layer: 0
   m_Name: c_kilt_04_02.l
   m_TagString: Untagged
@@ -1069,37 +1004,6 @@ Transform:
   - {fileID: 4415515275944963355}
   m_Father: {fileID: 3766996640806633055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8795996840719075950
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 944078496269469390}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &953873115676436528
 GameObject:
   m_ObjectHideFlags: 0
@@ -1109,7 +1013,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6363096035231033422}
-  - component: {fileID: 2542613076549227192}
   m_Layer: 0
   m_Name: c_kilt_03_03.r
   m_TagString: Untagged
@@ -1133,37 +1036,6 @@ Transform:
   - {fileID: 5022269222231381148}
   m_Father: {fileID: 7179957061228907422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2542613076549227192
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 953873115676436528}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &969220901712945553
 GameObject:
   m_ObjectHideFlags: 0
@@ -1298,7 +1170,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2764417420481028323}
-  - component: {fileID: 2052404379957328760}
   m_Layer: 0
   m_Name: c_kilt_05_01.r
   m_TagString: Untagged
@@ -1322,37 +1193,6 @@ Transform:
   - {fileID: 8141705470951634234}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2052404379957328760
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1071516281784466735}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &1141414325385632174
 GameObject:
   m_ObjectHideFlags: 0
@@ -2485,7 +2325,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2688610005970430402}
-  - component: {fileID: 4654123452171773370}
   m_Layer: 0
   m_Name: c_kilt_06_02.r
   m_TagString: Untagged
@@ -2509,37 +2348,6 @@ Transform:
   - {fileID: 8602517061007777380}
   m_Father: {fileID: 5350559318685967570}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4654123452171773370
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1816294298186554454}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &1832226055223005413
 GameObject:
   m_ObjectHideFlags: 0
@@ -2612,7 +2420,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2880082432925003582}
-  - component: {fileID: 4702444685345999927}
   m_Layer: 0
   m_Name: c_kilt_01_01.r
   m_TagString: Untagged
@@ -2636,37 +2443,6 @@ Transform:
   - {fileID: 5773941647575441072}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4702444685345999927
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1899836508292083818}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &1908413940382546680
 GameObject:
   m_ObjectHideFlags: 0
@@ -2676,7 +2452,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1294854628922527657}
-  - component: {fileID: 6849553461874537649}
   m_Layer: 0
   m_Name: c_kilt_06_02.l
   m_TagString: Untagged
@@ -2700,37 +2475,6 @@ Transform:
   - {fileID: 5160750635107968642}
   m_Father: {fileID: 8436151978619284043}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6849553461874537649
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1908413940382546680}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &1944150119965593785
 GameObject:
   m_ObjectHideFlags: 0
@@ -2867,7 +2611,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4014959253296953731}
-  - component: {fileID: 1640667350375286685}
   m_Layer: 0
   m_Name: c_kilt_master.x
   m_TagString: Untagged
@@ -2902,37 +2645,6 @@ Transform:
   - {fileID: 5350559318685967570}
   m_Father: {fileID: 1127694888428178905}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1640667350375286685
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1961589309141857570}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 8295291094170136960}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 1
-    min: -20
-    max: 20
-  zAngleLimits:
-    active: 1
-    min: 0
-    max: 20
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &1967709511819288658
 GameObject:
   m_ObjectHideFlags: 0
@@ -2942,7 +2654,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 314089540126855927}
-  - component: {fileID: 3769676812518249269}
   m_Layer: 0
   m_Name: c_kilt_04_03.r
   m_TagString: Untagged
@@ -2966,37 +2677,6 @@ Transform:
   - {fileID: 304650449991899169}
   m_Father: {fileID: 7661849766349993893}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3769676812518249269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1967709511819288658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &1999198130247008989
 GameObject:
   m_ObjectHideFlags: 0
@@ -4821,7 +4501,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8497046047330042720}
-  - component: {fileID: 7764752335630927809}
   m_Layer: 0
   m_Name: c_kilt_02_01.l
   m_TagString: Untagged
@@ -4845,37 +4524,6 @@ Transform:
   - {fileID: 3761592181953376526}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7764752335630927809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2880275018691639573}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &2931532649516771934
 GameObject:
   m_ObjectHideFlags: 0
@@ -5214,7 +4862,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4628375973767816263}
-  - component: {fileID: 2352142622231790615}
   m_Layer: 0
   m_Name: c_kilt_01_03.r
   m_TagString: Untagged
@@ -5238,37 +4885,6 @@ Transform:
   - {fileID: 2117173041585010461}
   m_Father: {fileID: 5773941647575441072}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2352142622231790615
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2986384421197048872}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3033813962783840264
 GameObject:
   m_ObjectHideFlags: 0
@@ -5342,7 +4958,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5817586528824672325}
-  - component: {fileID: 5411033432397231331}
   m_Layer: 0
   m_Name: c_kilt_05_01.l
   m_TagString: Untagged
@@ -5366,37 +4981,6 @@ Transform:
   - {fileID: 2092279458046824667}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5411033432397231331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3067022927829630505}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3075883419038805265
 GameObject:
   m_ObjectHideFlags: 0
@@ -5440,7 +5024,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5353415817793153618}
-  - component: {fileID: 4274008053661120784}
   m_Layer: 0
   m_Name: c_kilt_04_01.r
   m_TagString: Untagged
@@ -5464,37 +5047,6 @@ Transform:
   - {fileID: 7661849766349993893}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4274008053661120784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3115916532137074501}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3226894691414890804
 GameObject:
   m_ObjectHideFlags: 0
@@ -5504,7 +5056,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3766996640806633055}
-  - component: {fileID: 1338554400198250055}
   m_Layer: 0
   m_Name: c_kilt_04_01.l
   m_TagString: Untagged
@@ -5528,37 +5079,6 @@ Transform:
   - {fileID: 1996925416641816058}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1338554400198250055
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3226894691414890804}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3299579674780943481
 GameObject:
   m_ObjectHideFlags: 0
@@ -5568,7 +5088,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4415515275944963355}
-  - component: {fileID: 1015782495753508670}
   m_Layer: 0
   m_Name: c_kilt_04_03.l
   m_TagString: Untagged
@@ -5592,37 +5111,6 @@ Transform:
   - {fileID: 7016096589239087274}
   m_Father: {fileID: 1996925416641816058}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1015782495753508670
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3299579674780943481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3313799835650357550
 GameObject:
   m_ObjectHideFlags: 0
@@ -5961,7 +5449,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7397026051318931908}
-  - component: {fileID: 7694927655562515960}
   m_Layer: 0
   m_Name: c_kilt_05_03.l
   m_TagString: Untagged
@@ -5985,37 +5472,6 @@ Transform:
   - {fileID: 1628329380247031908}
   m_Father: {fileID: 2092279458046824667}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7694927655562515960
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3386710595551957088}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3414406683384623706
 GameObject:
   m_ObjectHideFlags: 0
@@ -6073,7 +5529,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5160750635107968642}
-  - component: {fileID: 6438479727155527624}
   m_Layer: 0
   m_Name: c_kilt_06_03.l
   m_TagString: Untagged
@@ -6097,37 +5552,6 @@ Transform:
   - {fileID: 5766964347289542962}
   m_Father: {fileID: 1294854628922527657}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6438479727155527624
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3416597218326590269}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3465766864012845932
 GameObject:
   m_ObjectHideFlags: 0
@@ -6264,7 +5688,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5773941647575441072}
-  - component: {fileID: 5229247316165195216}
   m_Layer: 0
   m_Name: c_kilt_01_02.r
   m_TagString: Untagged
@@ -6288,37 +5711,6 @@ Transform:
   - {fileID: 4628375973767816263}
   m_Father: {fileID: 2880082432925003582}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5229247316165195216
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3591777101149103884}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3626190708830892068
 GameObject:
   m_ObjectHideFlags: 0
@@ -6391,7 +5783,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 55644484539122633}
-  - component: {fileID: 4504661648041920888}
   m_Layer: 0
   m_Name: c_kilt_02_03.l
   m_TagString: Untagged
@@ -6415,37 +5806,6 @@ Transform:
   - {fileID: 2571252612131375636}
   m_Father: {fileID: 3761592181953376526}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4504661648041920888
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3694134381594651925}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3819513925884175061
 GameObject:
   m_ObjectHideFlags: 0
@@ -6486,7 +5846,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6641176079226303900}
-  - component: {fileID: 5218601165857920173}
   m_Layer: 0
   m_Name: c_kilt_03_02.l
   m_TagString: Untagged
@@ -6510,37 +5869,6 @@ Transform:
   - {fileID: 7195817415259119457}
   m_Father: {fileID: 1788395263653262993}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5218601165857920173
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3852602093509698663}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &3908512562495632633
 GameObject:
   m_ObjectHideFlags: 0
@@ -6707,7 +6035,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4814144576678863417}
-  - component: {fileID: 5532189668709203946}
   m_Layer: 0
   m_Name: c_kilt_05_03.r
   m_TagString: Untagged
@@ -6731,81 +6058,6 @@ Transform:
   - {fileID: 3322085699518400772}
   m_Father: {fileID: 8141705470951634234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5532189668709203946
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4082731546102465559}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
---- !u!1 &4114906902271171114
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8295291094170136960}
-  - component: {fileID: 2428113853633480441}
-  m_Layer: 0
-  m_Name: c_kilt_master.x_Pivot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8295291094170136960
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4114906902271171114}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.56463283, y: 0.56743217, z: -0.42566264, w: -0.42192647}
-  m_LocalPosition: {x: 0.00001596658, y: -0.020724127, z: -0.002418325}
-  m_LocalScale: {x: 0.8333334, y: 0.8333334, z: 0.83333325}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1127694888428178905}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2428113853633480441
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4114906902271171114}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 625e9c3b94e3dc64ea82f6e29062b3d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &4124092769870038740
 GameObject:
   m_ObjectHideFlags: 0
@@ -6974,7 +6226,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7661849766349993893}
-  - component: {fileID: 6140601742169242175}
   m_Layer: 0
   m_Name: c_kilt_04_02.r
   m_TagString: Untagged
@@ -6998,37 +6249,6 @@ Transform:
   - {fileID: 314089540126855927}
   m_Father: {fileID: 5353415817793153618}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6140601742169242175
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4282096344636249260}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &4560592880122928062
 GameObject:
   m_ObjectHideFlags: 0
@@ -7292,7 +6512,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1788395263653262993}
-  - component: {fileID: 5311849139417382425}
   m_Layer: 0
   m_Name: c_kilt_03_01.l
   m_TagString: Untagged
@@ -7316,37 +6535,6 @@ Transform:
   - {fileID: 6641176079226303900}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5311849139417382425
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4934139946487250111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &4969089947572755782
 GameObject:
   m_ObjectHideFlags: 0
@@ -7451,7 +6639,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7685443102845324369}
-  - component: {fileID: 849918035490522794}
   m_Layer: 0
   m_Name: c_kilt_02_03.r
   m_TagString: Untagged
@@ -7475,37 +6662,6 @@ Transform:
   - {fileID: 5261713542281669728}
   m_Father: {fileID: 7830688518640701934}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &849918035490522794
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5106987649256171466}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &5179198797820119299
 GameObject:
   m_ObjectHideFlags: 0
@@ -7937,7 +7093,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2092279458046824667}
-  - component: {fileID: 6126150487490830343}
   m_Layer: 0
   m_Name: c_kilt_05_02.l
   m_TagString: Untagged
@@ -7961,37 +7116,6 @@ Transform:
   - {fileID: 7397026051318931908}
   m_Father: {fileID: 5817586528824672325}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6126150487490830343
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5313406798067749695}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &5324608187269798434
 GameObject:
   m_ObjectHideFlags: 0
@@ -8065,7 +7189,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8141705470951634234}
-  - component: {fileID: 8565134420253228694}
   m_Layer: 0
   m_Name: c_kilt_05_02.r
   m_TagString: Untagged
@@ -8089,37 +7212,6 @@ Transform:
   - {fileID: 4814144576678863417}
   m_Father: {fileID: 2764417420481028323}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8565134420253228694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5432871232072878236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &5435966870098130322
 GameObject:
   m_ObjectHideFlags: 0
@@ -8192,7 +7284,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7195817415259119457}
-  - component: {fileID: 1870877506228783932}
   m_Layer: 0
   m_Name: c_kilt_03_03.l
   m_TagString: Untagged
@@ -8216,37 +7307,6 @@ Transform:
   - {fileID: 5847216638232465756}
   m_Father: {fileID: 6641176079226303900}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1870877506228783932
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5536327724371858777}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &5552145242681563762
 GameObject:
   m_ObjectHideFlags: 0
@@ -8869,7 +7929,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8436151978619284043}
-  - component: {fileID: 8970068597309164106}
   m_Layer: 0
   m_Name: c_kilt_06_01.l
   m_TagString: Untagged
@@ -8893,37 +7952,6 @@ Transform:
   - {fileID: 1294854628922527657}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8970068597309164106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6138930471080492989}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &6239512754602628894
 GameObject:
   m_ObjectHideFlags: 0
@@ -8933,7 +7961,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5350559318685967570}
-  - component: {fileID: 3245298318248281356}
   m_Layer: 0
   m_Name: c_kilt_06_01.r
   m_TagString: Untagged
@@ -8957,37 +7984,6 @@ Transform:
   - {fileID: 2688610005970430402}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3245298318248281356
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6239512754602628894}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &6247880270362021633
 GameObject:
   m_ObjectHideFlags: 0
@@ -9513,7 +8509,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7830688518640701934}
-  - component: {fileID: 6528626442426798986}
   m_Layer: 0
   m_Name: c_kilt_02_02.r
   m_TagString: Untagged
@@ -9537,37 +8532,6 @@ Transform:
   - {fileID: 7685443102845324369}
   m_Father: {fileID: 1305528200878173573}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6528626442426798986
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6619899673550970346}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &6623337410933729931
 GameObject:
   m_ObjectHideFlags: 0
@@ -9842,7 +8806,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7179957061228907422}
-  - component: {fileID: 2563577904545011488}
   m_Layer: 0
   m_Name: c_kilt_03_02.r
   m_TagString: Untagged
@@ -9866,37 +8829,6 @@ Transform:
   - {fileID: 6363096035231033422}
   m_Father: {fileID: 5213659523037595091}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2563577904545011488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6744565369329043750}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &6756687964051358118
 GameObject:
   m_ObjectHideFlags: 0
@@ -10235,7 +9167,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3761592181953376526}
-  - component: {fileID: 2154892403674093230}
   m_Layer: 0
   m_Name: c_kilt_02_02.l
   m_TagString: Untagged
@@ -10259,37 +9190,6 @@ Transform:
   - {fileID: 55644484539122633}
   m_Father: {fileID: 8497046047330042720}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2154892403674093230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6867240593326576129}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &6875106731688402541
 GameObject:
   m_ObjectHideFlags: 0
@@ -11042,7 +9942,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8602517061007777380}
-  - component: {fileID: 7099393711110328654}
   m_Layer: 0
   m_Name: c_kilt_06_03.r
   m_TagString: Untagged
@@ -11066,37 +9965,6 @@ Transform:
   - {fileID: 5714213618210924018}
   m_Father: {fileID: 2688610005970430402}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7099393711110328654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7163668446355260331}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &7217920314004252825
 GameObject:
   m_ObjectHideFlags: 0
@@ -12132,7 +11000,6 @@ Transform:
   m_Children:
   - {fileID: 4014959253296953731}
   - {fileID: 305244803250740299}
-  - {fileID: 8295291094170136960}
   m_Father: {fileID: 5205502924534763768}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7950633799435350877
@@ -12476,7 +11343,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2330102646728012974}
   - component: {fileID: 5115675940370361806}
-  - component: {fileID: 4232721219449847719}
   m_Layer: 0
   m_Name: Chr001
   m_TagString: Untagged
@@ -12546,73 +11412,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &4232721219449847719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8054979297905685751}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af276926b0db1c248a93ab3c1134a6c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  automaticUpdates: 1
-  isPaused: 0
-  simulationFrameRate: 60
-  dynamicRatio: 0.5
-  gravity: {x: 0, y: -10, z: 0}
-  bounce: 0
-  friction: 1
-  enableAngleLimits: 1
-  enableCollision: 1
-  enableLengthLimits: 1
-  collideWithGround: 1
-  groundHeight: 0
-  springBones:
-  - {fileID: 1640667350375286685}
-  - {fileID: 2052404379957328760}
-  - {fileID: 4274008053661120784}
-  - {fileID: 1338554400198250055}
-  - {fileID: 5790567899068370825}
-  - {fileID: 5411033432397231331}
-  - {fileID: 8970068597309164106}
-  - {fileID: 6062819976469152105}
-  - {fileID: 5311849139417382425}
-  - {fileID: 7764752335630927809}
-  - {fileID: 7511356773865629732}
-  - {fileID: 4702444685345999927}
-  - {fileID: 3245298318248281356}
-  - {fileID: 6849553461874537649}
-  - {fileID: 6140601742169242175}
-  - {fileID: 8005921581018288787}
-  - {fileID: 8565134420253228694}
-  - {fileID: 8795996840719075950}
-  - {fileID: 2563577904545011488}
-  - {fileID: 2154892403674093230}
-  - {fileID: 5218601165857920173}
-  - {fileID: 5229247316165195216}
-  - {fileID: 6528626442426798986}
-  - {fileID: 4654123452171773370}
-  - {fileID: 6126150487490830343}
-  - {fileID: 5532189668709203946}
-  - {fileID: 6438479727155527624}
-  - {fileID: 2542613076549227192}
-  - {fileID: 3769676812518249269}
-  - {fileID: 1015782495753508670}
-  - {fileID: 1870877506228783932}
-  - {fileID: 849918035490522794}
-  - {fileID: 4504661648041920888}
-  - {fileID: 2352142622231790615}
-  - {fileID: 5015635146449629192}
-  - {fileID: 7694927655562515960}
-  - {fileID: 7099393711110328654}
-  boneColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  colliderColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  collisionColor: {r: 1, g: 0, b: 0, a: 1}
-  groundCollisionColor: {r: 0, g: 1, b: 0, a: 1}
-  angleLimitDrawScale: 0.05
 --- !u!1 &8095297703352542920
 GameObject:
   m_ObjectHideFlags: 0
@@ -12622,7 +11421,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5213659523037595091}
-  - component: {fileID: 5790567899068370825}
   m_Layer: 0
   m_Name: c_kilt_03_01.r
   m_TagString: Untagged
@@ -12646,37 +11444,6 @@ Transform:
   - {fileID: 7179957061228907422}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5790567899068370825
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8095297703352542920}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &8128708792382338102
 GameObject:
   m_ObjectHideFlags: 0
@@ -13075,7 +11842,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1305528200878173573}
-  - component: {fileID: 6062819976469152105}
   m_Layer: 0
   m_Name: c_kilt_02_01.r
   m_TagString: Untagged
@@ -13099,37 +11865,6 @@ Transform:
   - {fileID: 7830688518640701934}
   m_Father: {fileID: 4014959253296953731}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6062819976469152105
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8449679742595843036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &8464606440934314226
 GameObject:
   m_ObjectHideFlags: 0
@@ -13299,7 +12034,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7122948531937238377}
-  - component: {fileID: 8005921581018288787}
   m_Layer: 0
   m_Name: c_kilt_01_02.l
   m_TagString: Untagged
@@ -13323,37 +12057,6 @@ Transform:
   - {fileID: 3509620118791789518}
   m_Father: {fileID: 6375621613199759229}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8005921581018288787
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8687429873037324422}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03118221f4bfcd74ba0ad8075da02411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stiffnessForce: 0.01
-  dragForce: 0.4
-  springForce: {x: 0, y: -0.0001, z: 0}
-  windInfluence: 1
-  pivotNode: {fileID: 0}
-  angularStiffness: 100
-  yAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  zAngleLimits:
-    active: 0
-    min: 0
-    max: 0
-  lengthLimitTargets: []
-  radius: 0.05
-  sphereColliders: []
-  capsuleColliders: []
-  panelColliders: []
 --- !u!1 &8711553585508394986
 GameObject:
   m_ObjectHideFlags: 0
