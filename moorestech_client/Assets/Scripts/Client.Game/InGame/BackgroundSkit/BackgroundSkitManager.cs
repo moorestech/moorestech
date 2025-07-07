@@ -5,8 +5,8 @@ using Client.Skit.Define;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
 using VContainer;
 
@@ -50,6 +50,7 @@ namespace Client.Game.InGame.BackgroundSkit
             {
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(backgroundSkitUI);
+                builder.RegisterInstance(voiceDefine);
                 
                 return new StoryContext(builder.Build());
             }
