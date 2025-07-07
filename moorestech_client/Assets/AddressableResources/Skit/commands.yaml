@@ -97,9 +97,10 @@ commands:
       isOverrideCharacterName:
         type: boolean
         default: false
-        required: true
+        required: false
       overrideCharacterName:
         type: string
+        required: false
       body:
         type: string
         multiline: true

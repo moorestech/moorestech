@@ -11,7 +11,7 @@ namespace CommandForgeGenerator.Command
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var characterName = MasterHolder.CharacterMaster.GetCharacterMaster(CharacterId).DisplayName;
-            if (IsOverrideCharacterName)
+            if (IsOverrideCharacterName.HasValue && IsOverrideCharacterName.Value)
             {
                 characterName = OverrideCharacterName;
             }
