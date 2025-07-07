@@ -65,7 +65,17 @@
         {
           "challengeActionType": "playSkit",
           "challengeActionParam": {
-            "skitAddressablePath": "Vanilla/Skit/skits/sample_skit"
+            "skitAddressablePath": "Vanilla/Skit/skits/100_start_game",
+            "playSkitType": "normal",
+            "playSortPriority": 0
+          }
+        },
+        {
+          "challengeActionType": "playSkit",
+          "challengeActionParam": {
+            "skitAddressablePath": "Vanilla/Skit/skits/200_star_background",
+            "playSkitType": "background",
+            "playSortPriority": 1
           }
         }
       ]

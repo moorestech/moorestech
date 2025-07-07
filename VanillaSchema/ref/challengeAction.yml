@@ -11,6 +11,7 @@ items:
     - unlockItemRecipeView
     - unlockChallenge
     - playSkit
+    - playBackgroundSkit
   - key: challengeActionParam
     switch: ./challengeActionType
     cases:
@@ -56,3 +57,12 @@ items:
       properties:
       - key: skitAddressablePath
         type: string
+      - key: playSortPriority
+        type: number
+        default: 0
+      - key: playSkitType
+        default: normal
+        type: enum
+        options:
+          - normal
+          - background 
