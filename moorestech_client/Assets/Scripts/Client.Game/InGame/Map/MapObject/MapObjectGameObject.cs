@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.Master;
 using Mooresmaster.Model.MapObjectsModule;
+using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEditor;
 using UnityEngine;
@@ -13,18 +14,33 @@ namespace Client.Game.InGame.Map.MapObject
     /// </summary>
     public class MapObjectGameObject : MonoBehaviour
     {
-        public int InstanceId => instanceId;
-        public Guid MapObjectGuid => new(mapObjectGuid);
-        public MapObjectMasterElement MapObjectMasterElement => MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
-        
         [SerializeField] private GameObject outlineObject;
         [SerializeField] private int instanceId;
         [SerializeField] private string mapObjectGuid;
         
         public bool IsDestroyed { get; private set; }
         
+        public int InstanceId => instanceId;
+        public Guid MapObjectGuid => new(mapObjectGuid);
+        public MapObjectMasterElement MapObjectMasterElement => MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
+        
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
+        
+        
+        public void Initialize(GetMapObjectInfoProtocol.MapObjectsInfoMessagePack mapObjectInfo)
+        {
+            if (mapObjectInfo.IsDestroyed)
+            {
+                DestroyMapObject();
+            }
+            
+            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>();
+            foreach (var rayTarget in rayTargets)
+            {
+                rayTarget.Initialize(this);
+            }
+        }
         
         public void OutlineEnable(bool enable)
         {
