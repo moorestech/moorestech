@@ -90,6 +90,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -189,9 +192,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3695907468697396758, guid: 14babb438b254654495b18071dceadf6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7695244773323723810}
-    - targetCorrespondingSourceObject: {fileID: 3695907468697396758, guid: 14babb438b254654495b18071dceadf6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7396058566795239880}
   m_SourcePrefab: {fileID: 100100000, guid: 14babb438b254654495b18071dceadf6, type: 3}
 --- !u!1 &5347930408397174805 stripped
 GameObject:
@@ -213,27 +213,6 @@ MonoBehaviour:
   outlineObject: {fileID: 6020616332273926851}
   instanceId: 0
   mapObjectGuid: ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf
---- !u!135 &7396058566795239880
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5347930408397174805}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.90202886
-  m_Center: {x: 0, y: 0.40202886, z: 0}
 --- !u!4 &8965808723017796102 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 365312301281907717, guid: 14babb438b254654495b18071dceadf6, type: 3}
