@@ -4,6 +4,7 @@ using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
@@ -53,6 +54,7 @@ namespace Client.Game.InGame.UI.UIState
             UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
             
             InputManager.MouseCursorVisible(true);
+            KeyControlDescription.Instance.SetText("E または Esc: インベントリを閉じる");
         }
         
         public void OnExit()

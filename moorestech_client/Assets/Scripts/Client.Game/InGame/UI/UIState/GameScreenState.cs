@@ -1,5 +1,6 @@
 ﻿using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
 using Client.Input;
 using UnityEngine;
@@ -37,6 +38,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
+            KeyControlDescription.Instance.SetText("E: インベントリ | Esc: メニュー | Delete: ブロック削除 | B: ブロック配置 | T: チャレンジ");
         }
         
         public void OnExit()

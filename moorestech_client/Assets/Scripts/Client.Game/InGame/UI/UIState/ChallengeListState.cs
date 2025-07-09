@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace Client.Game.InGame.UI.UIState
             _challengeListUI.UpdateUnlockState();
             _challengeListUI.SetActive(true);
             InputManager.MouseCursorVisible(true);
+            KeyControlDescription.Instance.SetText("T: リストを閉じる");
         }
         public UIStateEnum GetNextUpdate()
         {

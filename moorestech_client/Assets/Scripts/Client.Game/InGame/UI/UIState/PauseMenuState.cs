@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.UI.UIState.UIObject;
+﻿using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
 
 namespace Client.Game.InGame.UI.UIState
@@ -24,6 +25,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             _pauseMenu.gameObject.SetActive(true);
             InputManager.MouseCursorVisible(true);
+            KeyControlDescription.Instance.SetText("Esc: ゲームに戻る");
         }
         
         public void OnExit()
