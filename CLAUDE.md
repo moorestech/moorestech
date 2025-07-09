@@ -179,11 +179,16 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
-#　サーバー側の開発
-moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は`./unity-test.sh moorestech_server '[regex]'`を実行し、コンパイル、テストが通ることを確認してください。regexの内容はタスクによって変動するので、適宜調整してください。
+# サーバー側の開発
+moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
+- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
+- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+- `mcp__moorestech_server__RunEditModeTests` / `mcp__moorestech_server__RunPlayModeTests`: テストを実行（必要に応じてregexでフィルタリング）
 
 # クライアント側の開発
-moorestehc_client配下はTDDは行っておりません。そのため、コンパイルエラーをチェックする用途で、`./unity-test.sh moorestech_client '^0'`を実行してください。^0は何にもマッチしないので、コンパイルエラーがあれば出力されます。
+moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
+- `mcp__moorestec_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
+- `mcp__moorestec_client__GetCompileLogs`: コンパイルエラーを確認
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
