@@ -185,6 +185,27 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 # クライアント側の開発
 moorestehc_client配下はTDDは行っておりません。そのため、コンパイルエラーをチェックする用途で、`./unity-test.sh moorestech_client '^0'`を実行してください。^0は何にもマッチしないので、コンパイルエラーがあれば出力されます。
 
+# シングルトンパターンの実装指針
+Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
+
+1. **GameObjectは配置前提**：シングルトンのGameObjectは、シーンやPrefabに事前に配置されている前提で実装します。
+2. **Awakeでの初期化**：`_instance`の設定は`Awake`メソッドで行います。
+3. **動的生成の禁止**：`Instance`プロパティで`GameObject`を動的に生成することは避けます。
+
+例：
+```csharp
+public class MySingleton : MonoBehaviour
+{
+    private static MySingleton _instance;
+    public static MySingleton Instance => _instance;
+    
+    private void Awake()
+    {
+        _instance = this;
+    }
+}
+```
+
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。

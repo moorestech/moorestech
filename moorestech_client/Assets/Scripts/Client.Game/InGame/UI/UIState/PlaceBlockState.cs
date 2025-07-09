@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.Skit;
 using Client.Input;
@@ -54,6 +55,8 @@ namespace Client.Game.InGame.UI.UIState
                 blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
+            
+            KeyControlDescription.Instance.SetText("B: 配置モード終了 | 左クリック: ブロック配置 | Q/E: ブロック回転");
         }
         
         public UIStateEnum GetNextUpdate()
