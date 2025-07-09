@@ -443,6 +443,13 @@
       },
       "hash": "7746d058e39c5de6b3bde667d5a852f9b8c89fdc"
     },
+    "jp.notargs.unity-natural-mcp": {
+      "version": "https://github.com/notargs/UnityNaturalMCP.git?path=/UnityNaturalMCPServer",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "481d4d0e610c4b7ae3bb922e3d0826859c1181a4"
+    },
     "tech.moores.server": {
       "version": "file:../../moorestech_server/Assets/Scripts",
       "depth": 0,
