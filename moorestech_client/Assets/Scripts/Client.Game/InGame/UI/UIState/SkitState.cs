@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.UIState
             // GameStateControllerでスキット状態に遷移（ホットバーの非表示を含む）
             GameStateController.ChangeState(GameStateType.Skit);
             
-            KeyControlDescription.Instance.SetText("スペース: 次へ | Enter: スキップ");
+            KeyControlDescription.Instance.SetText("");
         }
         
         public UIStateEnum GetNextUpdate()

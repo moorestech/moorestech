@@ -38,7 +38,8 @@ namespace Client.Game.InGame.UI.UIState
         {
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
-            KeyControlDescription.Instance.SetText("E: インベントリ | Esc: メニュー | Delete: ブロック削除 | B: ブロック配置 | T: チャレンジ");
+            
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\n");
         }
         
         public void OnExit()
