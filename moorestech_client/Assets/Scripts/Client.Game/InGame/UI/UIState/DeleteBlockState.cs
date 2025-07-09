@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             _screenClickableCameraController.OnEnter(false);
             _deleteBarObject.gameObject.SetActive(true);
-            KeyControlDescription.Instance.SetText("Delete: 削除モード終了 | 左クリック: ブロックを削除");
+            KeyControlDescription.Instance.SetText("左クリック: ブロックを削除\nECS: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
         
         public UIStateEnum GetNextUpdate()
