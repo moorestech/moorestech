@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "moorestech_server": {
+      "type": "http",
+      "url": "http://localhost:56901/mcp"
+    }
+  }
+}
