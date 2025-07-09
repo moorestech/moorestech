@@ -11,11 +11,15 @@
       "Bash(find:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "mcp__moorestec_client__RefreshAssets",
+      "mcp__moorestec_client__GetCompileLogs"
     ],
     "deny": []
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "moorestech_server"
+    "moorestech_server",
+    "moorestec_client"
   ]
 }
