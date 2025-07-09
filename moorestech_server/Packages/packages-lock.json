@@ -321,6 +321,13 @@
       "dependencies": {},
       "hash": "b1204706248cea04f1b762dca8591e32ae044652"
     },
+    "jp.notargs.unity-natural-mcp": {
+      "version": "https://github.com/notargs/UnityNaturalMCP.git?path=/UnityNaturalMCPServer",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "481d4d0e610c4b7ae3bb922e3d0826859c1181a4"
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,
