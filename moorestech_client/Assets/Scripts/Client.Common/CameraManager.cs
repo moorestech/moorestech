@@ -6,7 +6,7 @@ namespace Client.Common
 {
     public interface IGameCamera
     {
-        Camera MainCamera { get; }
+        Camera Camera { get; }
         void SetEnabled(bool cameraEnabled);
     }
     

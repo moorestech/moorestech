@@ -1,6 +1,7 @@
 fileFormatVersion: 2
-guid: 8d7af49bb8961dc42a66908bb1938ce5
+guid: d506c19bebda94adeb40550c42513478
 labels:
+- NuGetForUnity
 - RoslynAnalyzer
 PluginImporter:
   externalObjects: {}
@@ -16,33 +17,32 @@ PluginImporter:
     Any:
       enabled: 0
       settings:
-        Exclude Editor: 1
-        Exclude Linux64: 1
-        Exclude OSXUniversal: 1
-        Exclude Win: 1
-        Exclude Win64: 1
+        'Exclude ': 0
+        Exclude Android: 0
+        Exclude CloudRendering: 0
+        Exclude EmbeddedLinux: 0
+        Exclude GameCoreScarlett: 0
+        Exclude GameCoreXboxOne: 0
+        Exclude Kepler: 0
+        Exclude Linux64: 0
+        Exclude OSXUniversal: 0
+        Exclude PS4: 0
+        Exclude PS5: 0
+        Exclude QNX: 0
+        Exclude ReservedCFE: 0
+        Exclude Switch: 0
+        Exclude VisionOS: 0
+        Exclude WebGL: 0
+        Exclude Win: 0
+        Exclude Win64: 0
+        Exclude WindowsStoreApps: 0
+        Exclude XboxOne: 0
+        Exclude iOS: 0
+        Exclude tvOS: 0
     Editor:
       enabled: 0
       settings:
-        CPU: AnyCPU
         DefaultValueInitialized: true
-        OS: AnyOS
-    Linux64:
-      enabled: 0
-      settings:
-        CPU: None
-    OSXUniversal:
-      enabled: 0
-      settings:
-        CPU: None
-    Win:
-      enabled: 0
-      settings:
-        CPU: None
-    Win64:
-      enabled: 0
-      settings:
-        CPU: None
     WindowsStoreApps:
       enabled: 0
       settings:

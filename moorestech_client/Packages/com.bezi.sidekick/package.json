@@ -1,0 +1,21 @@
+{
+  "name": "com.bezi.sidekick",
+  "displayName": "Bezi Sidekick",
+  "description": "Your personal assistant for Unity development.",
+  "author": {
+    "name": "Bezi",
+    "url": "https://www.bezi.com/"
+  },
+  "keywords": [
+    "unity",
+    "bezi",
+    "bezi3d"
+  ],
+  "unity": "2018.3",
+  "version": "0.38.7",
+  "type": "library",
+  "hideInEditor": false,
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  }
+}

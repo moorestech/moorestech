@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Map.MapObject
             foreach (var mapObjectInfo in handshakeResponse.MapObjects)
             {
                 var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
-                if (mapObjectInfo.IsDestroyed) mapObject.DestroyMapObject();
+                mapObject.Initialize(mapObjectInfo);
             }
         }
         
@@ -43,6 +43,9 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
                     _allMapObjects[data.InstanceId].DestroyMapObject();
+                    break;
+                case MapObjectUpdateEventMessagePack.HpUpdateEventType:
+                    _allMapObjects[data.InstanceId].UpdateHp(data.CurrentHp);
                     break;
                 default:
                     throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");

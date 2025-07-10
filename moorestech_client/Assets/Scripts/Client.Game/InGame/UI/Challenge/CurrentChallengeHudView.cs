@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
-using TMPro;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Challenge
 {
     public class CurrentChallengeHudView : MonoBehaviour
     {
-        [SerializeField] private TMP_Text challengeText;
+        [SerializeField] private CurrentChallengeHudViewElement challengeElementPrefab;
+        [SerializeField] private Transform challengeElementContainer;
+        
+        private readonly List<CurrentChallengeHudViewElement> _currentElements = new();
         
         public void SetActive(bool active)
         {
@@ -16,20 +20,24 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void SetCurrentChallenge(List<ChallengeMasterElement> nextChallenges)
         {
-            if (nextChallenges.Count == 0)
-            {
-                challengeText.text = string.Empty;
-                return;
-            }
+            if (nextChallenges.Count == 0) return;
             
-            var challengeTexts = string.Empty;
             foreach (var challenge in nextChallenges)
             {
-                challengeTexts += $"・{challenge.Title}\n";
+                var element = Instantiate(challengeElementPrefab, challengeElementContainer);
+                element.Initialize(challenge);
+                _currentElements.Add(element);
             }
-            
-            challengeText.text = challengeTexts;
         }
         
+        public async UniTask OnChallengeCompleted(Guid completedChallengeGuid)
+        {
+            var completedElement = _currentElements.Find(e => e.ChallengeMasterElement.ChallengeGuid == completedChallengeGuid);
+            if (completedElement != null)
+            {
+                await completedElement.OnCompleteChallenge();
+                _currentElements.Remove(completedElement);
+            }
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public ItemSlotType? ItemSlotType;
         public bool? HotBarSelected;
         public bool? IsShowToolTip;
+        public float? CountTextFontSize;
     }
     
     public enum ItemUIEventType

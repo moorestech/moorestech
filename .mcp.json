@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "moorestech_server": {
+      "type": "http",
+      "url": "http://localhost:56901/mcp"
+    },
+    "moorestec_client": {
+      "type": "http",
+      "url": "http://localhost:56902/mcp"
+    }
+  }
+}

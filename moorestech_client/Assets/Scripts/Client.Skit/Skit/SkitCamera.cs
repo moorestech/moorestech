@@ -13,7 +13,7 @@ namespace Client.Skit.Skit
     
     public class SkitCamera : MonoBehaviour, ISkitCamera, IGameCamera
     {
-        public Camera MainCamera => camera;
+        public Camera Camera => camera;
         [SerializeField] private Camera camera;
         
         public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing)

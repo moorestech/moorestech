@@ -1,5 +1,6 @@
 ﻿using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
 using Client.Input;
 using UnityEngine;
@@ -37,6 +38,8 @@ namespace Client.Game.InGame.UI.UIState
         {
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
+            
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\n");
         }
         
         public void OnExit()
