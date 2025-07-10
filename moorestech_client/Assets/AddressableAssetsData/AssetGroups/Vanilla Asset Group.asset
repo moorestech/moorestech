@@ -400,6 +400,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b1ac0ba19863a4bc8b08c6d9b2b8c56f
+    m_Address: Vanilla/Item/StoneHammer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b29f0181457b14246b619880e1f0950a
     m_Address: Vanilla/Block/WoodenFoundation
     m_ReadOnly: 0
@@ -581,7 +586,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f6f44bccd741d48e5ab61feeca991a20
-    m_Address: Vanilla/Item/StoneHammer
+    m_Address: Vanilla/Item/StonePickaxe
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
