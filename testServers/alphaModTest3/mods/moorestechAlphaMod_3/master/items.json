@@ -19,7 +19,8 @@
       "maxStack": 100,
       "name": "石器",
       "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": "Vanilla/Item/StoneTool"
     },
     {
       "initialUnlocked": false,
@@ -61,7 +62,8 @@
       "maxStack": 100,
       "name": "石器ハンマー",
       "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": "Vanilla/Item/StoneHammer"
     },
     {
       "initialUnlocked": false,
@@ -101,7 +103,8 @@
       "maxStack": 100,
       "name": "石のツルハシ",
       "itemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": "Vanilla/Item/StonePickaxe"
     },
     {
       "initialUnlocked": false,

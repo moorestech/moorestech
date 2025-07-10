@@ -1,5 +1,6 @@
 using Client.Game.Common;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
 using Client.Input;
 
@@ -29,6 +30,8 @@ namespace Client.Game.InGame.UI.UIState
             
             // GameStateControllerでスキット状態に遷移（ホットバーの非表示を含む）
             GameStateController.ChangeState(GameStateType.Skit);
+            
+            KeyControlDescription.Instance.SetText("");
         }
         
         public UIStateEnum GetNextUpdate()

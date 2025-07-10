@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.Master;
 using Mooresmaster.Model.MapObjectsModule;
+using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEditor;
 using UnityEngine;
@@ -13,24 +14,49 @@ namespace Client.Game.InGame.Map.MapObject
     /// </summary>
     public class MapObjectGameObject : MonoBehaviour
     {
-        public int InstanceId => instanceId;
-        public Guid MapObjectGuid => new(mapObjectGuid);
-        public MapObjectMasterElement MapObjectMasterElement => MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
-        
         [SerializeField] private GameObject outlineObject;
+        [SerializeField] private MapObjectHpBarView hpBarView;
         [SerializeField] private int instanceId;
         [SerializeField] private string mapObjectGuid;
         
         public bool IsDestroyed { get; private set; }
+        public int CurrentHp { get; private set; }
+        
+        public int InstanceId => instanceId;
+        public Guid MapObjectGuid => new(mapObjectGuid);
+        public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
         
-        public void OutlineEnable(bool enable)
+        
+        public void Initialize(GetMapObjectInfoProtocol.MapObjectsInfoMessagePack mapObjectInfo)
         {
-            if (outlineObject != null)
+            if (mapObjectInfo.IsDestroyed)
             {
-                outlineObject.SetActive(enable);
+                DestroyMapObject();
+            }
+            
+            CurrentHp = mapObjectInfo.CurrentHp;
+            MapObjectMasterElement = MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
+            UpdateHpBar();
+            
+            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>();
+            foreach (var rayTarget in rayTargets)
+            {
+                rayTarget.Initialize(this);
+            }
+        }
+        
+        public void OnFocus(bool isFocused)
+        {
+            if (outlineObject)
+            {
+                outlineObject.SetActive(isFocused);
+            }
+            if (hpBarView)
+            {
+                hpBarView.SetActive(isFocused);
             }
         }
         
@@ -52,6 +78,20 @@ namespace Client.Game.InGame.Map.MapObject
         public Vector3 GetPosition()
         {
             return transform.position;
+        }
+        
+        public void UpdateHp(int newHp)
+        {
+            CurrentHp = newHp;
+            UpdateHpBar();
+        }
+        
+        private void UpdateHpBar()
+        {
+            if (hpBarView)
+            {
+                hpBarView.SetHp(CurrentHp, MapObjectMasterElement.Hp);
+            }
         }
         
 #if UNITY_EDITOR

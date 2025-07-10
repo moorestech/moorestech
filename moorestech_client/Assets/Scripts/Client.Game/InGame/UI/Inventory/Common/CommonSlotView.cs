@@ -81,6 +81,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             if (slotOption.ItemSlotFrameType != null) SetFrame(slotOption.ItemSlotFrameType.Value);
             if (slotOption.ItemSlotType != null) SetItemSlotType(slotOption.ItemSlotType.Value);
             if (slotOption.IsShowToolTip != null) uGuiTooltipTarget.DisplayEnable(slotOption.IsShowToolTip.Value);
+            if (slotOption.CountTextFontSize != null) countText.fontSize = slotOption.CountTextFontSize.Value; 
             
             #region Internal
             

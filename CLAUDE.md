@@ -179,11 +179,46 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
-#　サーバー側の開発
-moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は`./unity-test.sh moorestech_server '[regex]'`を実行し、コンパイル、テストが通ることを確認してください。regexの内容はタスクによって変動するので、適宜調整してください。
+# サーバー側の開発
+moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
+- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
+- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+- `mcp__moorestech_server__RunEditModeTests` / `mcp__moorestech_server__RunPlayModeTests`: テストを実行（必要に応じてregexでフィルタリング）
 
 # クライアント側の開発
-moorestehc_client配下はTDDは行っておりません。そのため、コンパイルエラーをチェックする用途で、`./unity-test.sh moorestech_client '^0'`を実行してください。^0は何にもマッチしないので、コンパイルエラーがあれば出力されます。
+moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
+- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
+- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+
+**注意**: 以前使用していた各種シェルスクリプト（`./unity-test.sh`など）はレガシーとなり、現在はMCPツールによる検証に移行しています。シェルスクリプトは使用せず、上記のMCPツールを使用してください。
+
+# コンパイルエラー確認時の注意事項
+コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
+- `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
+- `moorestech_client/`配下のコードを編集した場合：MCPツールでコンパイルエラーの確認のみ（テストは不要）
+
+両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。
+
+# シングルトンパターンの実装指針
+Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
+
+1. **GameObjectは配置前提**：シングルトンのGameObjectは、シーンやPrefabに事前に配置されている前提で実装します。
+2. **Awakeでの初期化**：`_instance`の設定は`Awake`メソッドで行います。
+3. **動的生成の禁止**：`Instance`プロパティで`GameObject`を動的に生成することは避けます。
+
+例：
+```csharp
+public class MySingleton : MonoBehaviour
+{
+    private static MySingleton _instance;
+    public static MySingleton Instance => _instance;
+    
+    private void Awake()
+    {
+        _instance = this;
+    }
+}
+```
 
 # 追加指示
 

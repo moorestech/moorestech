@@ -45,13 +45,13 @@ namespace Client.Game.InGame.Mining
                 var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
                 if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
                 if (EventSystem.current.IsPointerOverGameObject()) return null;
-                if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
+                if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
                 
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObjectPos = mapObject.transform.position;
+                var mapObjectPos = mapObjectRayTarget.transform.position;
                 if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
                 
-                return mapObject;
+                return mapObjectRayTarget.MapObjectGameObject;
             }
             
             #endregion

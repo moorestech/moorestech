@@ -12,7 +12,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "bd685f3ca3decfa26cf333446f84f52952af78b3"
+      "hash": "f789083c31250c83082da9b29be0c976152d699b"
     },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
@@ -320,6 +320,13 @@
       "source": "git",
       "dependencies": {},
       "hash": "b1204706248cea04f1b762dca8591e32ae044652"
+    },
+    "jp.notargs.unity-natural-mcp": {
+      "version": "https://github.com/notargs/UnityNaturalMCP.git?path=/UnityNaturalMCPServer",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "481d4d0e610c4b7ae3bb922e3d0826859c1181a4"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

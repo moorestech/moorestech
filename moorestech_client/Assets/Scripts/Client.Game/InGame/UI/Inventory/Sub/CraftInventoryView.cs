@@ -100,7 +100,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             {
                 var element = Instantiate(recipeItemElementPrefab, recipeListContainer);
                 var isCraftable = IsCraftable(recipe);
-                element.Initialize(recipe, isCraftable);
+                element.Initialize(recipe, isCraftable, _localPlayerInventory);
                 
                 element.OnSelected.Subscribe(SelectRecipe).AddTo(element);
                 element.OnClickMaterialItem.Subscribe(OnClickMaterialItem).AddTo(element);

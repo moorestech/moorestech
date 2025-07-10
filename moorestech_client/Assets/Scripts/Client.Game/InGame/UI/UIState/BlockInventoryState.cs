@@ -6,6 +6,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -50,6 +51,8 @@ namespace Client.Game.InGame.UI.UIState
             
             _loadBlockInventoryCts = new CancellationTokenSource();
             LoadBlockInventory().Forget();
+            
+            KeyControlDescription.Instance.SetText("Esc: インベントリを閉じる");
             
             #region Internal
             
