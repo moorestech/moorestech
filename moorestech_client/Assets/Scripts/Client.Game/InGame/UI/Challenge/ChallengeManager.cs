@@ -47,21 +47,35 @@ namespace Client.Game.InGame.UI.Challenge
             // チュートリアルを完了
             _tutorialManager.CompleteChallenge(message.CompletedChallengeGuid);
             
-            // スキットの再生
-            // Play background skit
-            PlaySkit(nextChallenges).Forget();
+            // 完了したチャレンジのアニメーションを再生してから次のチャレンジを表示
+            ProcessChallengeCompletion(message.CompletedChallengeGuid, nextChallenges).Forget();
             
-            // チャレンジのテキストの更新 TODO 複数のチャレンジに対応させる
-            // Update challenge text TODO Correspond to multiple challenges
-            if (nextChallenges.Count != 0)
+            #region Internal
+            
+            async UniTask ProcessChallengeCompletion(Guid completedChallengeGuid, List<ChallengeMasterElement> nextList)
             {
-                currentChallengeHudView.SetCurrentChallenge(nextChallenges);
+                // スキットの再生
+                // Play background skit
+                await PlaySkit(nextList);
+                
+                // チャレンジのテキストの更新
+                // Update challenge text
+                if (nextList.Count != 0)
+                {
+                    currentChallengeHudView.SetCurrentChallenge(nextList);
+                }
+                
+                // チュートリアルの適用
+                // Apply tutorial
+                nextList.ForEach(id => _tutorialManager.ApplyTutorial(id.ChallengeGuid));
+                
+                // 完了したチャレンジのアニメーションを再生
+                await currentChallengeHudView.OnChallengeCompleted(completedChallengeGuid);
             }
             
-            // チュートリアルの適用
-            // Apply tutorial
-            nextChallenges.ForEach(id => _tutorialManager.ApplyTutorial(id.ChallengeGuid));
+            #endregion
         }
+        
         
         private async UniTask PlaySkit(List<ChallengeMasterElement> nextChallenges)
         {
