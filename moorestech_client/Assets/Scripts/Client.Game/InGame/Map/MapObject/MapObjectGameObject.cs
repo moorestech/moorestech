@@ -15,14 +15,16 @@ namespace Client.Game.InGame.Map.MapObject
     public class MapObjectGameObject : MonoBehaviour
     {
         [SerializeField] private GameObject outlineObject;
+        [SerializeField] private MapObjectHpBarView hpBarView;
         [SerializeField] private int instanceId;
         [SerializeField] private string mapObjectGuid;
         
         public bool IsDestroyed { get; private set; }
+        public int CurrentHp { get; private set; }
         
         public int InstanceId => instanceId;
         public Guid MapObjectGuid => new(mapObjectGuid);
-        public MapObjectMasterElement MapObjectMasterElement => MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
+        public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
@@ -35,6 +37,10 @@ namespace Client.Game.InGame.Map.MapObject
                 DestroyMapObject();
             }
             
+            CurrentHp = mapObjectInfo.CurrentHp;
+            MapObjectMasterElement = MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
+            UpdateHpBar();
+            
             var rayTargets = GetComponentsInChildren<MapObjectRayTarget>();
             foreach (var rayTarget in rayTargets)
             {
@@ -42,11 +48,15 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
         
-        public void OutlineEnable(bool enable)
+        public void OnFocus(bool isFocused)
         {
-            if (outlineObject != null)
+            if (outlineObject)
             {
-                outlineObject.SetActive(enable);
+                outlineObject.SetActive(isFocused);
+            }
+            if (hpBarView)
+            {
+                hpBarView.SetActive(isFocused);
             }
         }
         
@@ -68,6 +78,20 @@ namespace Client.Game.InGame.Map.MapObject
         public Vector3 GetPosition()
         {
             return transform.position;
+        }
+        
+        public void UpdateHp(int newHp)
+        {
+            CurrentHp = newHp;
+            UpdateHpBar();
+        }
+        
+        private void UpdateHpBar()
+        {
+            if (hpBarView)
+            {
+                hpBarView.SetHp(CurrentHp, MapObjectMasterElement.Hp);
+            }
         }
         
 #if UNITY_EDITOR
