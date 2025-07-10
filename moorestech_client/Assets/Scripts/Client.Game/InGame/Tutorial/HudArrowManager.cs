@@ -53,7 +53,7 @@ namespace Client.Game.InGame.Tutorial
             if (arrow == null || target == null)
                 return;
             
-            var currentCamera = CameraManager.Instance.MainCamera.MainCamera;
+            var currentCamera = CameraManager.Instance.MainCamera.Camera;
             if (!currentCamera)
                 return;
             

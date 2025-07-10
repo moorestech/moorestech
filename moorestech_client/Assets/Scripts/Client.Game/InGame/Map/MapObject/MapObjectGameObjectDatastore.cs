@@ -44,6 +44,9 @@ namespace Client.Game.InGame.Map.MapObject
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
                     _allMapObjects[data.InstanceId].DestroyMapObject();
                     break;
+                case MapObjectUpdateEventMessagePack.HpUpdateEventType:
+                    _allMapObjects[data.InstanceId].UpdateHp(data.CurrentHp);
+                    break;
                 default:
                     throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
             }

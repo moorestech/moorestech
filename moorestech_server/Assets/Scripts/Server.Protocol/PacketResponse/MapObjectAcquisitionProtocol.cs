@@ -5,6 +5,7 @@ using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.EventReceive;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -16,10 +17,12 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:mapObjectInfoAcquisition";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly MapObjectUpdateEventPacket _mapObjectUpdateEventPacket;
         
         public MapObjectAcquisitionProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _mapObjectUpdateEventPacket = serviceProvider.GetService<MapObjectUpdateEventPacket>();
         }
         
         
@@ -31,6 +34,12 @@ namespace Server.Protocol.PacketResponse
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             
             var earnedItem = mapObject.Attack(data.AttackDamage); // ダメージを与える
+            
+            // HP更新イベントを送信（破壊されていない場合のみ）
+            if (!mapObject.IsDestroyed)
+            {
+                _mapObjectUpdateEventPacket.SendHpUpdateEvent(mapObject);
+            }
             
             foreach (var earnItem in earnedItem) playerMainInventory.InsertItem(earnItem);
             

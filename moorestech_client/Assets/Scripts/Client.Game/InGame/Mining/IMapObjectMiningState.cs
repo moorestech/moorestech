@@ -31,8 +31,8 @@ namespace Client.Game.InGame.Mining
         {
             if (mapObjectGameObject != CurrentFocusMapObjectGameObject)
             {
-                CurrentFocusMapObjectGameObject?.OutlineEnable(false);
-                mapObjectGameObject?.OutlineEnable(true);
+                CurrentFocusMapObjectGameObject?.OnFocus(false);
+                mapObjectGameObject?.OnFocus(true);
             }
             
             CurrentFocusMapObjectGameObject = mapObjectGameObject;
