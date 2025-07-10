@@ -570,8 +570,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f620ddbeef6140248947551a289f0681
+    m_Address: Vanilla/Item/StoneTool
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f652861d52dde4fb1b65387a76966fd4
     m_Address: Vanilla/Block/Primitive Centrifuge
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f6f44bccd741d48e5ab61feeca991a20
+    m_Address: Vanilla/Item/StoneHammer
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

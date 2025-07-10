@@ -13,7 +13,12 @@
       "Bash(mv:*)",
       "Bash(rg:*)",
       "mcp__moorestec_client__RefreshAssets",
-      "mcp__moorestec_client__GetCompileLogs"
+      "mcp__moorestec_client__GetCompileLogs",
+      "mcp__moorestech_server__RefreshAssets",
+      "mcp__moorestech_server__GetCompileLogs",
+      "mcp__moorestech_server__RunEditModeTests",
+      "mcp__moorestech_server__ClearConsoleLogs",
+      "mcp__unityMCP__compile_and_reload"
     ],
     "deny": []
   },
