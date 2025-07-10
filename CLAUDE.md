@@ -187,8 +187,10 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 
 # クライアント側の開発
 moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
-- `mcp__moorestec_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
-- `mcp__moorestec_client__GetCompileLogs`: コンパイルエラーを確認
+- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
+- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+
+**注意**: 以前使用していた各種シェルスクリプト（`./unity-test.sh`など）はレガシーとなり、現在はMCPツールによる検証に移行しています。シェルスクリプトは使用せず、上記のMCPツールを使用してください。
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
