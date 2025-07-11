@@ -31,7 +31,7 @@ properties:
       default: true
     - key: recipeViewType
       type: enum
-      default: 100
+      default: IsUnlocked
       options:
       - Default
       - IsUnlocked
