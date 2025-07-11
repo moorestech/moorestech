@@ -75,6 +75,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             else
             {
                 Instance._blockPlacePreview.SetActive(false);
+                // 連続設置状態をリセット
+                Instance._clickStartPosition = null;
+                Instance._isStartZDirection = null;
+                Instance._currentPlaceInfos.Clear();
             }
         }
         
