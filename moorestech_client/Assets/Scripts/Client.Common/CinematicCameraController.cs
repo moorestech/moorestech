@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace Client.Common
 {
+    /// <summary>
+    /// トレイラー撮影のためのスムーズに動くカメラ
+    /// デバッグコマンドから使用する
+    /// </summary>
     public class CinematicCameraController : MonoBehaviour
     {
         private const float StartVerticalRotationAngle = 70;
@@ -14,6 +18,9 @@ namespace Client.Common
         
         [SerializeField] private float positionMoveSpeed = 0.05f;
         [SerializeField] private float positionLerpSpeed = 0.05f;
+        
+        public Camera Camera => camera;
+        [SerializeField] private Camera camera;
         
         
         /// <summary>
