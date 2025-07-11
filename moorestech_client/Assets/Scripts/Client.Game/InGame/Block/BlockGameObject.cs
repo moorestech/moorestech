@@ -96,6 +96,10 @@ namespace Client.Game.InGame.Block
                         
                         _blockStateMessagePack = data;
                     }).AddTo(this.GetCancellationTokenOnDestroy());
+                
+                // ブロックの初期状態を取得するためにサーバーに問い合わせる
+                // Request the server for the initial block state
+                ClientContext.VanillaApi.SendOnly.InvokeBlockState(BlockPosInfo.OriginalPos);
             }
             
             async UniTask LoadBoundingBox()

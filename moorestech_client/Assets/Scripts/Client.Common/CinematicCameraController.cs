@@ -19,6 +19,8 @@ namespace Client.Common
         [SerializeField] private float positionMoveSpeed = 0.05f;
         [SerializeField] private float positionLerpSpeed = 0.05f;
         
+        [SerializeField] private float sprintMagnitude = 1.5f;
+        
         public Camera Camera => camera;
         [SerializeField] private Camera camera;
         
@@ -109,11 +111,12 @@ namespace Client.Common
             var move = new Vector3(
                 Input.GetKey(KeyCode.W) ? 1 :
                 Input.GetKey(KeyCode.S) ? -1 : 0,
-                Input.GetKey(KeyCode.LeftShift) ? -1 :
-                Input.GetKey(KeyCode.Space) ? 1 : 0,
+                Input.GetKey(KeyCode.Q) ? -1 :
+                Input.GetKey(KeyCode.E) ? 1 : 0,
                 Input.GetKey(KeyCode.A) ? -1 :
                 Input.GetKey(KeyCode.D) ? 1 : 0
             );
+            move *= Input.GetKey(KeyCode.LeftShift) ? sprintMagnitude : 1;
             
             //カメラの向きに合わせてXとZのみ移動方向を変更する
             var cameraForward = transform.forward;

@@ -20,7 +20,6 @@ namespace Client.Network.API
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
         public PlayerInventoryResponse Inventory { get; }
         public ChallengeResponse Challenge { get; }
-        public List<BlockStateMessagePack> BlockStates { get; }
         public UnlockStateResponse UnlockState { get; }
         public CraftTreeResponse CraftTree { get; }
         
@@ -31,7 +30,6 @@ namespace Client.Network.API
                 WorldDataResponse worldData, 
                 PlayerInventoryResponse inventory, 
                 ChallengeResponse challenge, 
-                List<BlockStateMessagePack> blockStates,
                 UnlockStateResponse unlockState,
                 CraftTreeResponse craftTree) responses)
         {
@@ -40,7 +38,6 @@ namespace Client.Network.API
             MapObjects = responses.mapObjects;
             Inventory = responses.inventory;
             Challenge = responses.challenge;
-            BlockStates = responses.blockStates;
             UnlockState = responses.unlockState;
             CraftTree = responses.craftTree;
         }
