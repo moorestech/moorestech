@@ -6,7 +6,7 @@ namespace Client.Common
     /// トレイラー撮影のためのスムーズに動くカメラ
     /// デバッグコマンドから使用する
     /// </summary>
-    public class CinematicCameraController : MonoBehaviour
+    public class CinematicCameraController : MonoBehaviour, IGameCamera
     {
         private const float StartVerticalRotationAngle = 70;
         private const float RockVerticalRotationAngle = 88;
@@ -127,6 +127,13 @@ namespace Client.Common
             TargetCameraYRot = Quaternion.Euler(0, euler.y, 0);
             cameraXTransform.localRotation = TargetCameraXRot;
             cameraYTransform.localRotation = TargetCameraYRot;
+        }
+        
+        public void SetEnabled(bool cameraEnabled)
+        {
+            enabled = cameraEnabled;
+            camera.enabled = cameraEnabled;
+            camera.GetComponent<AudioListener>().enabled = cameraEnabled;
         }
     }
 }
