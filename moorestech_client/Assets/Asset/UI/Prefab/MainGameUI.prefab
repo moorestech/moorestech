@@ -7769,7 +7769,7 @@ GameObject:
   - component: {fileID: 4717522050000346273}
   - component: {fileID: 1331126197316628865}
   m_Layer: 5
-  m_Name: Challenges
+  m_Name: ChallengeHudView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
