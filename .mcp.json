@@ -4,7 +4,7 @@
       "type": "http",
       "url": "http://localhost:56901/mcp"
     },
-    "moorestec_client": {
+    "moorestech_client": {
       "type": "http",
       "url": "http://localhost:56902/mcp"
     }
