@@ -63,6 +63,12 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
+
+# コンパイルエラー確認時の注意事項
+コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
+- `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
+- `moorestech_client/`配下のコードを編集した場合：クライアント側のMCPツールでコンパイルエラーの確認のみ（テストは不要）
+
 # サーバー側の開発
 moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
 - `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
@@ -71,14 +77,9 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 
 # クライアント側の開発
 moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
-- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
-- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+- `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
+- `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
 
-
-# コンパイルエラー確認時の注意事項
-コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
-- `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
-- `moorestech_client/`配下のコードを編集した場合：MCPツールでコンパイルエラーの確認のみ（テストは不要）
 
 両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。
 

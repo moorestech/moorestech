@@ -22,6 +22,12 @@ namespace Client.Common
         public Camera Camera => camera;
         [SerializeField] private Camera camera;
         
+        [SerializeField] private float targetFOV = 60f;
+        [SerializeField] private float fovSpeed = 0.1f;
+        [SerializeField] private float fovScrollSpeed = 5f;
+        [SerializeField] private float minFOV = 20f;
+        [SerializeField] private float maxFOV = 90f;
+        
         
         /// <summary>
         ///     キーボードの操作に対してカメラをゆっくりと動かすために、目標の位置を保持する
@@ -43,13 +49,21 @@ namespace Client.Common
             _targetPosition = cameraRootTransform.position;
             TargetCameraXRot = cameraXTransform.localRotation;
             TargetCameraYRot = cameraYTransform.localRotation;
+            targetFOV = camera.fieldOfView;
         }
         
         private void Update()
         {
-            //カーソルを消す
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            // マウスホイールでFOVを変更
+            var scrollDelta = Input.GetAxis("Mouse ScrollWheel");
+            if (scrollDelta != 0)
+            {
+                targetFOV -= scrollDelta * fovScrollSpeed;
+                targetFOV = Mathf.Clamp(targetFOV, minFOV, maxFOV);
+            }
+            
+            // FOVをスムーズに変更
+            camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, targetFOV, fovSpeed);
             
             float sensi;
             sensi = mouseSpeed;
@@ -120,13 +134,17 @@ namespace Client.Common
             lastXmouse = xMouseRot;
         }
         
-        public void SetCameraRotation(Quaternion rotation)
+        public void SetCameraTransform(Vector3 position, Quaternion rotation)
         {
             var euler = rotation.eulerAngles;
             TargetCameraXRot = Quaternion.Euler(euler.x, 0, 0);
             TargetCameraYRot = Quaternion.Euler(0, euler.y, 0);
             cameraXTransform.localRotation = TargetCameraXRot;
             cameraYTransform.localRotation = TargetCameraYRot;
+            
+            // positionのセット
+            _targetPosition = position;
+            cameraRootTransform.position = position;
         }
         
         public void SetEnabled(bool cameraEnabled)
@@ -135,5 +153,34 @@ namespace Client.Common
             camera.enabled = cameraEnabled;
             camera.GetComponent<AudioListener>().enabled = cameraEnabled;
         }
+        
+        #region 調整用メソッド
+        
+        public void SetCameraSpeed(float speed)
+        {
+            cameraSpeed = speed;
+        }
+        
+        public void SetPositionMoveSpeed(float speed)
+        {
+            positionMoveSpeed = speed;
+        }
+        
+        public void SetMouseSpeed(float speed)
+        {
+            mouseSpeed = speed;
+        }
+        
+        public void SetTargetFOV(float fov)
+        {
+            targetFOV = Mathf.Clamp(fov, minFOV, maxFOV);
+        }
+        
+        public void SetFOVScrollSpeed(float speed)
+        {
+            fovScrollSpeed = speed;
+        }
+        
+        #endregion
     }
 }
