@@ -70,6 +70,10 @@ namespace StarterAssets
 		private float _rotationVelocity;
 		private float _verticalVelocity;
 		private float _terminalVelocity = 53.0f;
+		
+		// camera angle lock
+		private float _lockedCameraYaw;
+		private bool _isCameraAngleLocked = false;
 
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
@@ -209,7 +213,27 @@ namespace StarterAssets
 			// if there is a move input rotate player when the player is moving
 			if (_input.move != Vector2.zero)
 			{
-				_targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+                
+                // Check for Ctrl key press
+                // TODO InputManagerにいれる
+                var isCtrlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+                
+                // Handle camera angle locking
+                if (isCtrlPressed && !_isCameraAngleLocked)
+                {
+                    // Lock the camera angle when Ctrl is first pressed
+                    _lockedCameraYaw = _mainCamera.transform.eulerAngles.y;
+                    _isCameraAngleLocked = true;
+                }
+                else if (!isCtrlPressed && _isCameraAngleLocked)
+                {
+                    // Unlock camera angle when Ctrl is released
+                    _isCameraAngleLocked = false;
+                }
+				// Use locked camera angle if Ctrl is pressed, otherwise use current camera angle
+				var cameraYaw = _isCameraAngleLocked ? _lockedCameraYaw : _mainCamera.transform.eulerAngles.y;
+                
+				_targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + cameraYaw;
 				float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
 
 				// rotate to face input direction relative to camera position
