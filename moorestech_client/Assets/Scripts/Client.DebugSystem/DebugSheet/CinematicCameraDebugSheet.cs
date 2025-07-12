@@ -33,18 +33,20 @@ namespace Client.DebugSystem
                     CameraManager.Instance.RegisterCamera(_cinematicCamera);
                     
                     // プレイヤーの位置に合わせる
-                    if (PlayerSystemContainer.Instance != null && PlayerSystemContainer.Instance.PlayerObjectController != null)
-                    {
-                        var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                        // プレイヤーの回転は取得できないため、現在のカメラの回転を維持
-                        _cinematicCamera.SetCameraTransform(playerPosition, _cinematicCamera.transform.rotation);
-                    }
+                    var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
+                    var playerPosition = playerObjectController.Position;
+                    // プレイヤーの回転は取得できないため、現在のカメラの回転を維持
+                    _cinematicCamera.SetCameraTransform(playerPosition + new Vector3(0, 1, 0), _cinematicCamera.transform.rotation);
+                    
+                    playerObjectController.SetControllable(false);
                     
                     Debug.Log("Cinematic camera enabled");
                 }
                 else
                 {
                     CameraManager.Instance.UnRegisterCamera(_cinematicCamera);
+                    PlayerSystemContainer.Instance.PlayerObjectController.SetControllable(true);
+
                     Debug.Log("Cinematic camera disabled");
                 }
             });

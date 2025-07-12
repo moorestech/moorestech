@@ -112,12 +112,22 @@ namespace StarterAssets
 				_mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 			}
 		}
+        
+        private bool _isControllable = true;
+        
+        public void SetControllable(bool value)
+        {
+            _isControllable = value;
+        }
 
 		private void Update()
 		{
 			JumpAndGravity();
 			GroundedCheck();
-			Move();
+            if (_isControllable)
+            {
+                Move();
+            }
 		}
 
 		private void LateUpdate()

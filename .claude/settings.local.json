@@ -18,7 +18,11 @@
       "mcp__moorestech_server__GetCompileLogs",
       "mcp__moorestech_server__RunEditModeTests",
       "mcp__moorestech_server__ClearConsoleLogs",
-      "mcp__unityMCP__compile_and_reload"
+      "mcp__unityMCP__compile_and_reload",
+      "mcp__moorestec_client__ClearConsoleLogs",
+      "mcp__moorestec_client__GetCurrentConsoleLogs",
+      "mcp__moorestech_client__RefreshAssets",
+      "mcp__moorestech_client__GetCompileLogs"
     ],
     "deny": []
   },
