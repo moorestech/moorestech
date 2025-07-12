@@ -464,6 +464,16 @@
       "name": "原木加工機",
       "itemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
       "recipeViewType": "IsUnlocked"
+    },
+    {
+      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
+      "imagePath": "",
+      "name": "核融合炉",
+      "maxStack": 100,
+      "sortPriority": 100,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }

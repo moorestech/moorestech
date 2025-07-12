@@ -2007,6 +2007,21 @@
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockGuid": "3a3804bb-30d8-4864-a798-ca67f0057a6c",
+      "name": "核融合炉",
+      "blockType": "Block",
+      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor",
+      "blockUIAddressablesPath": "",
+      "blockParam": {
+      }
     }
   ]
 }
