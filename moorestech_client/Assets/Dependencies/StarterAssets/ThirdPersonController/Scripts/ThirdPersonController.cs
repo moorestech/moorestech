@@ -113,21 +113,16 @@ namespace StarterAssets
 			}
 		}
         
-        private bool _isControllable = true;
-        
         public void SetControllable(bool value)
         {
-            _isControllable = value;
+            _input.inputEnable = value;
         }
 
 		private void Update()
 		{
 			JumpAndGravity();
 			GroundedCheck();
-            if (_isControllable)
-            {
-                Move();
-            }
+            Move(); 
 		}
 
 		private void LateUpdate()
