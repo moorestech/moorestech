@@ -1,6 +1,7 @@
 using System.Collections;
 using Client.Game.InGame.Context;
 using Core.Master;
+using Server.Protocol.PacketResponse;
 using UnityDebugSheet.Runtime.Core.Scripts;
 
 namespace Client.DebugSystem
@@ -22,7 +23,7 @@ namespace Client.DebugSystem
                 AddButton(itemImage.ItemName, subText, icon: itemImage.ItemImage, clicked: () =>
                 {
                     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-                    var command = $"give {playerId} {itemId} {itemElement.MaxStack}";
+                    var command = $"{SendCommandProtocol.GiveCommand} {playerId} {itemId} {itemElement.MaxStack}";
                     ClientContext.VanillaApi.SendOnly.SendCommand(command);
                 });
             }
