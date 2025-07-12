@@ -882,22 +882,25 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: DOTWEEN
-    EmbeddedLinux: DOTWEEN
-    GameCoreScarlett: DOTWEEN
-    GameCoreXboxOne: DOTWEEN
-    LinuxHeadlessSimulation: DOTWEEN
-    Nintendo Switch: DOTWEEN
-    PS4: DOTWEEN
-    PS5: DOTWEEN
-    QNX: DOTWEEN
+    Android: DOTWEEN;ENVIRO_3
+    EmbeddedLinux: DOTWEEN;ENVIRO_3
+    GameCoreScarlett: DOTWEEN;ENVIRO_3
+    GameCoreXboxOne: DOTWEEN;ENVIRO_3
+    Kepler: ENVIRO_3
+    LinuxHeadlessSimulation: DOTWEEN;ENVIRO_3
+    Nintendo Switch: DOTWEEN;ENVIRO_3
+    PS4: DOTWEEN;ENVIRO_3
+    PS5: DOTWEEN;ENVIRO_3
+    QNX: DOTWEEN;ENVIRO_3
+    ReservedCFE: ENVIRO_3
     Stadia: DOTWEEN
-    Standalone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT;STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;MAPMAGIC2;MM_NATIVE;STEAMWORKS_NET;MAGICACLOTH2
-    WebGL: DOTWEEN
+    Standalone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT;STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;MAPMAGIC2;MM_NATIVE;STEAMWORKS_NET;MAGICACLOTH2;ENVIRO_3
+    VisionOS: ENVIRO_3
+    WebGL: DOTWEEN;ENVIRO_3
     Windows Store Apps: DOTWEEN
-    XboxOne: DOTWEEN
+    XboxOne: DOTWEEN;ENVIRO_3
     iPhone: DOTWEEN
-    tvOS: DOTWEEN
+    tvOS: DOTWEEN;ENVIRO_3
   additionalCompilerArguments:
     Standalone: []
   platformArchitecture: {}
