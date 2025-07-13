@@ -25,6 +25,8 @@ namespace Client.Game.Skit
         
         [SerializeField] private VoiceDefine voiceDefine;
         
+        [Inject] private ISkitActionContext _skitActionContext;
+        
         public bool IsPlayingSkit { get; private set; }
         
         private void Awake()
@@ -104,6 +106,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(new CharacterObjectContainer(characters));
+                builder.RegisterInstance(_skitActionContext);
                 
                 return new StoryContext(builder.Build());
             }
