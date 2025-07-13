@@ -2020,7 +2020,75 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor",
       "blockUIAddressablesPath": "",
+      "blockParam": {}
+    },
+    {
+      "blockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
+      "name": "直進高速ベルトコンベア",
+      "blockType": "BeltConveyor",
+      "itemGuid": "8bbac63f-a589-4c92-a8d1-b6268cf8ade5",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Straight",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
+        "horizontalBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
+        "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
+      },
       "blockParam": {
+        "slopeType": "Straight",
+        "timeOfItemEnterToExit": 0.75,
+        "beltConveyorItemCount": 6
+      }
+    },
+    {
+      "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
+      "name": "上り高速ベルトコンベア",
+      "blockType": "BeltConveyor",
+      "itemGuid": "ec0fddf7-e8de-48aa-8cbd-f20dd1b57506",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Up",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
+        "horizontalBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
+        "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
+      },
+      "blockParam": {
+        "slopeType": "Up",
+        "timeOfItemEnterToExit": 0.75,
+        "beltConveyorItemCount": 6
+      }
+    },
+    {
+      "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
+      "name": "下り高速ベルトコンベア",
+      "blockType": "BeltConveyor",
+      "itemGuid": "47ba2417-5968-472c-8cdf-6125f855909b",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Down",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
+        "horizontalBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
+        "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
+      },
+      "blockParam": {
+        "beltConveyorItemCount": 6,
+        "timeOfItemEnterToExit": 0.75,
+        "slopeType": "Down"
       }
     }
   ]

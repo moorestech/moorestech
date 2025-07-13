@@ -470,7 +470,47 @@
       "imagePath": "",
       "name": "核融合炉",
       "maxStack": 100,
-      "sortPriority": 100,
+      "sortPriority": 640,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
+      "imagePath": "",
+      "name": "量子チェスト",
+      "maxStack": 100,
+      "sortPriority": 650,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "8bbac63f-a589-4c92-a8d1-b6268cf8ade5",
+      "imagePath": "",
+      "name": "直線高速ベルトコンベア",
+      "maxStack": 100,
+      "sortPriority": 660,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "ec0fddf7-e8de-48aa-8cbd-f20dd1b57506",
+      "imagePath": "",
+      "name": "上り高速ベルトコンベア",
+      "maxStack": 100,
+      "sortPriority": 670,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "47ba2417-5968-472c-8cdf-6125f855909b",
+      "imagePath": "",
+      "name": "下り高速ベルトコンベア",
+      "maxStack": 100,
+      "sortPriority": 680,
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
