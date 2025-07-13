@@ -1,6 +1,8 @@
+using Client.Common;
+using Client.Game.InGame.UI.UIState;
 using UnityEngine;
 
-namespace Client.Common
+namespace Client.DebugSystem
 {
     /// <summary>
     /// トレイラー撮影のためのスムーズに動くカメラ
@@ -10,6 +12,9 @@ namespace Client.Common
     {
         private const float StartVerticalRotationAngle = 70;
         private const float RockVerticalRotationAngle = 88;
+        
+        private UIStateControl _uiStateControl;
+        
         [SerializeField] private Transform cameraRootTransform;
         [SerializeField] private Transform cameraXTransform;
         [SerializeField] private Transform cameraYTransform;
@@ -52,12 +57,21 @@ namespace Client.Common
             TargetCameraXRot = cameraXTransform.localRotation;
             TargetCameraYRot = cameraYTransform.localRotation;
             targetFOV = camera.fieldOfView;
+            
+            // UIStateControlを検索
+            _uiStateControl = FindObjectOfType<UIStateControl>();
         }
         
         private void Update()
         {
+            // UIStateがGameScreenでない場合はカメラコントロールを無効化
+            if (_uiStateControl != null && _uiStateControl.CurrentState != UIStateEnum.GameScreen)
+            {
+                return;
+            }
+            
             // マウスホイールでFOVを変更
-            var scrollDelta = Input.GetAxis("Mouse ScrollWheel");
+            var scrollDelta = UnityEngine.Input.GetAxis("Mouse ScrollWheel");
             if (scrollDelta != 0)
             {
                 targetFOV -= scrollDelta * fovScrollSpeed;
@@ -69,8 +83,8 @@ namespace Client.Common
             
             float sensi;
             sensi = mouseSpeed;
-            var xMouseRot = Input.GetAxis("Mouse X") * sensi;
-            var yMouseRot = Input.GetAxis("Mouse Y") * sensi;
+            var xMouseRot = UnityEngine.Input.GetAxis("Mouse X") * sensi;
+            var yMouseRot = UnityEngine.Input.GetAxis("Mouse Y") * sensi;
             
             // マウスの上下方向の動きはカメラのX軸に、マウスの左右方向の動きはカメラのY軸に対して回転させる
             TargetCameraXRot *= Quaternion.Euler(-yMouseRot, 0, 0);
@@ -109,14 +123,14 @@ namespace Client.Common
             
             //キーボード入力をとり、ターゲット位置を更新する
             var move = new Vector3(
-                Input.GetKey(KeyCode.W) ? 1 :
-                Input.GetKey(KeyCode.S) ? -1 : 0,
-                Input.GetKey(KeyCode.Q) ? -1 :
-                Input.GetKey(KeyCode.E) ? 1 : 0,
-                Input.GetKey(KeyCode.A) ? -1 :
-                Input.GetKey(KeyCode.D) ? 1 : 0
+                UnityEngine.Input.GetKey(KeyCode.W) ? 1 :
+                UnityEngine.Input.GetKey(KeyCode.S) ? -1 : 0,
+                UnityEngine.Input.GetKey(KeyCode.Q) ? -1 :
+                UnityEngine.Input.GetKey(KeyCode.E) ? 1 : 0,
+                UnityEngine.Input.GetKey(KeyCode.A) ? -1 :
+                UnityEngine.Input.GetKey(KeyCode.D) ? 1 : 0
             );
-            move *= Input.GetKey(KeyCode.LeftShift) ? sprintMagnitude : 1;
+            move *= UnityEngine.Input.GetKey(KeyCode.LeftShift) ? sprintMagnitude : 1;
             
             //カメラの向きに合わせてXとZのみ移動方向を変更する
             var cameraForward = transform.forward;
