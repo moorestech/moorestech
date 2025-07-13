@@ -2042,7 +2042,79 @@
       "blockParam": {
         "slopeType": "Straight",
         "timeOfItemEnterToExit": 0.75,
-        "beltConveyorItemCount": 6
+        "beltConveyorItemCount": 6,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
       }
     },
     {
@@ -2065,7 +2137,54 @@
       "blockParam": {
         "slopeType": "Up",
         "timeOfItemEnterToExit": 0.75,
-        "beltConveyorItemCount": 6
+        "beltConveyorItemCount": 6,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
       }
     },
     {
@@ -2088,7 +2207,54 @@
       "blockParam": {
         "beltConveyorItemCount": 6,
         "timeOfItemEnterToExit": 0.75,
-        "slopeType": "Down"
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
       }
     }
   ]
