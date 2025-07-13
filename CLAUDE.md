@@ -69,6 +69,8 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 - `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
 - `moorestech_client/`配下のコードを編集した場合：クライアント側のMCPツールでコンパイルエラーの確認のみ（テストは不要）
 
+**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
+
 # サーバー側の開発
 moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
 - `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
