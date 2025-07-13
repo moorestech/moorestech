@@ -198,7 +198,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5358549316656185503}
   m_Layer: 7
-  m_Name: Modern_Straight_ItemShooter
+  m_Name: Fast_BeltConveyor_Straight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

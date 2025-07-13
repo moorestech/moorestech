@@ -51,7 +51,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 107503fe8cad07c4994e7e2c837e8bb0
-    m_Address: Vanilla/Block/Modern_T_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_T
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -161,7 +161,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4936fc7b570875c42905898d5f044465
-    m_Address: Vanilla/Block/Modern_Straight_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -326,7 +326,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8d6e5fa3cf72b8c418ea4fcb8c0f23ca
-    m_Address: Vanilla/Block/Modern_L_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_L
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -362,6 +362,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9eeb8bbe6d88443e9b523c4b3ed49807
     m_Address: Vanilla/UI/Block/GeneratorBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9fd89a4870e5c4183b3684ce35f22293
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Down
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -421,7 +426,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bb72c386ac1ae15458bc2b7afbd83b6b
-    m_Address: Vanilla/Block/Modern_StraightUp_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -531,7 +536,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e83f622eeba41ae4b9696601b8bc61a4
-    m_Address: Vanilla/Block/Modern_Cross_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Cross
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
