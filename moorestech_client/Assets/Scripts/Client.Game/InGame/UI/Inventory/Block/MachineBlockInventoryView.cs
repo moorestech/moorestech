@@ -94,7 +94,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var state = BlockGameObject.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
                 if (state == null)
                 {
-                    Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
                     return;
                 }
                 
