@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CommandForgeGenerator.Command;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
@@ -23,9 +24,9 @@ namespace Client.Skit.Skit
             transform.eulerAngles = rotation;
         }
         
-        public void PlayAnimation(string animationId, float mixierDuration)
+        public async UniTask PlayAnimation(string animationId, float mixierDuration)
         {
-            skitCharacterAnimator.PlayAnimation(animationId, mixierDuration);
+            await skitCharacterAnimator.PlayAnimation(animationId, mixierDuration);
         }
         
         public void PlayVoice(AudioClip voiceClip)
