@@ -24,8 +24,11 @@ properties:
       default: 100
     - key: sortPriority
       type: number
-      default: 100
       optional: true
+      autoIncrement:
+        direction: asc
+        step: 10
+        startWith: 100
     - key: initialUnlocked
       type: boolean
       default: true
