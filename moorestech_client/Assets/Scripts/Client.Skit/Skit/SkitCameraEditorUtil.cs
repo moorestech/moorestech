@@ -1,6 +1,8 @@
+using UnityEngine;
+
 namespace Client.Skit.Skit
 {
-    public class SkitCameraEditorUtil
+    public class SkitCameraEditorUtil : MonoBehaviour
     {
         
     }
