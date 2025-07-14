@@ -11,13 +11,18 @@ public class SkitCameraEditorUtilInspector : Editor
         
         if (GUILayout.Button("カメラワープコマンドをコピー"))
         {
-            Vector3 pos = obj.transform.position;
-            Vector3 rot = obj.transform.eulerAngles;
+            var pos = obj.transform.position;
+            var rot = obj.transform.eulerAngles;
+            
+            // Camera コンポーネントを取得
+            var cam = obj.GetComponent<Camera>();
+            var fov = cam != null ? cam.fieldOfView : 0f;
             
             string str = $@"[
     {{
         ""type"": ""cameraWarp"",
         ""backgroundColor"": ""#ffffff"",
+        ""fieldOfView"": {fov},
         ""Position"": [
             {pos.x},
             {pos.y},

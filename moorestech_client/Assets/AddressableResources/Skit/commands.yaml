@@ -80,6 +80,7 @@ commands:
     description: カメラを瞬時に座標移動
     commandListLabelFormat: "カメラワープ {Position} {Rotation}"
     properties:
+      fieldOfView: { type: number, required: true, default: 60 }
       Position: { type: vector3, required: true }
       Rotation: { type: vector3, required: true }
 
