@@ -363,7 +363,7 @@ public static class LoaderGenerator
                        
                        public static global::System.Guid LoadUUID(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           return new global::System.Guid((string)json);
+                           return string.IsNullOrEmpty((string)json) ? global::System.Guid.Empty : new global::System.Guid((string)json);
                        }
                    }
                }
