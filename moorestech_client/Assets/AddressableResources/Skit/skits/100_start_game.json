@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-14T10:38:53.259Z"
+    "modified": "2025-07-14T10:48:37.703Z"
   },
   "commands": [
     {
@@ -211,6 +211,22 @@
         0
       ],
       "id": 47
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        184.3937,
+        16.41571,
+        -58.785
+      ],
+      "Rotation": [
+        8.078633,
+        186.185,
+        359.9916
+      ],
+      "id": 49
     },
     {
       "type": "text",
