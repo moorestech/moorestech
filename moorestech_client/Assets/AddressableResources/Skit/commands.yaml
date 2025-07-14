@@ -2,7 +2,7 @@ version: 1
 master:
   characters: ["chr_001", "chr_002", "chr_003"]
   emotes: ["Emote_Bitter Smile", "Emote_Blink", "Emote_Mortified", "Emote_Smile", "Emote_Surprise", "Emote_Thinking", "Icon_Blushing", "Icon_Kirakira", "Icon_Pale", "Icon_Sweat", "Icon_Tears", "Icon_Tears2", "Emote_Shock", "Icon_Sweat2", "Emote_Smile2", "Emote_Zitome", "Emote_Bouble Tooth", "Emote_Grin"]
-  animations: ["idle_lp", "wait_st", "wait_lp"]
+  animations: ["Vanilla/Skit/Animations/anim_idle01_lp", "Vanilla/Skit/Animations/anim_surprise01_st","Vanilla/Skit/Animations/anim_surprise01_lp","Vanilla/Skit/Animations/anim_wait01_st", "Vanilla/Skit/Animations/anim_wait01_lp"]
 
 commands:
   - id: transition
