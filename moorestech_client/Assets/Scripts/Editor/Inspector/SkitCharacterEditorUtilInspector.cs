@@ -2,12 +2,12 @@ using Client.Skit.Skit;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(SkitObjectTransfomCopyer))]
-public class SkitObjectTransfomCopyerInspector : Editor
+[CustomEditor(typeof(SkitCharacterEditorUtil))]
+public class SkitCharacterEditorUtilInspector : Editor
 {
     public override void OnInspectorGUI()
     {
-        var obj = (SkitObjectTransfomCopyer)target;
+        var obj = (SkitCharacterEditorUtil)target;
         
         if (GUILayout.Button("キャラ位置設定コマンドをコピー"))
         {
