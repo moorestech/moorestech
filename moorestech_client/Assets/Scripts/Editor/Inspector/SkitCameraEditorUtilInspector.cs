@@ -7,18 +7,17 @@ public class SkitCameraEditorUtilInspector : Editor
 {
     public override void OnInspectorGUI()
     {
-        var obj = (SkitCharacterEditorUtil)target;
+        var obj = (SkitCameraEditorUtil)target;
         
         if (GUILayout.Button("カメラワープコマンドをコピー"))
         {
-            var pos = obj.transform.position;
-            var rot = obj.transform.eulerAngles;
+            Vector3 pos = obj.transform.position;
+            Vector3 rot = obj.transform.eulerAngles;
             
-            var str = $@"[
+            string str = $@"[
     {{
-        ""type"": ""characterTransform"",
+        ""type"": ""cameraWarp"",
         ""backgroundColor"": ""#ffffff"",
-        ""character"": ""{obj.characterId}"",
         ""Position"": [
             {pos.x},
             {pos.y},
@@ -32,7 +31,7 @@ public class SkitCameraEditorUtilInspector : Editor
         ""id"": 1
     }}
 ]";
-            EditorGUIUtility.systemCopyBuffer = str;   // クリップボードへコピー
+            EditorGUIUtility.systemCopyBuffer = str;  // クリップボードへコピー
         }
         
         base.OnInspectorGUI();
