@@ -7,14 +7,34 @@ public class SkitObjectTransfomCopyerInspector : Editor
 {
     public override void OnInspectorGUI()
     {
-        var obj = target as SkitObjectTransfomCopyer;
-        if (GUILayout.Button("座標と角度をコピー"))
+        var obj = (SkitObjectTransfomCopyer)target;
+        
+        if (GUILayout.Button("キャラ位置設定コマンドをコピー"))
         {
-            //クリップボードに座標と角度のTSVをコピー
             var pos = obj.transform.position;
             var rot = obj.transform.eulerAngles;
-            var str = $"pos\t{pos.x}\t{pos.y}\t{pos.z}\trot\t{rot.x}\t{rot.y}\t{rot.z}";
-            EditorGUIUtility.systemCopyBuffer = str;
+            
+            var str = $@"[
+    {{
+        ""type"": ""characterTransform"",
+        ""backgroundColor"": ""#ffffff"",
+        ""character"": ""{obj.characterId}"",
+        ""Position"": [
+            {pos.x},
+            {pos.y},
+            {pos.z}
+        ],
+        ""Rotation"": [
+            {rot.x},
+            {rot.y},
+            {rot.z}
+        ],
+        ""id"": 1
+    }}
+]";
+            EditorGUIUtility.systemCopyBuffer = str;   // クリップボードへコピー
         }
+        
+        base.OnInspectorGUI();
     }
 }
