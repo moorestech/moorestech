@@ -520,7 +520,7 @@
       "imagePath": "",
       "name": "無限歯車ジェネレーター",
       "maxStack": 100,
-      "sortPriority": 100,
+      "sortPriority": 690,
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
