@@ -155,6 +155,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 436ff37517aca4658b6cadb9e33d2c84
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4685e69708529f14084d76cb7178947d
     m_Address: Vanilla/Block/static steam engine
     m_ReadOnly: 0
@@ -307,6 +312,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7f11cff8c8744412fabe737ce09dc92d
     m_Address: Vanilla/Skit/Animations/anim_wait01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 815b8040a58874f92a0d2016d05e742e
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_st
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
