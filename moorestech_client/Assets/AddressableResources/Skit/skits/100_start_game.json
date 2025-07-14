@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-14T10:21:06.876Z"
+    "modified": "2025-07-14T10:38:53.259Z"
   },
   "commands": [
     {
@@ -123,7 +123,9 @@
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": "ドスン",
-      "id": 9
+      "id": 9,
+      "isOverrideCharacterName": true,
+      "overrideCharacterName": "　"
     },
     {
       "type": "text",
@@ -173,8 +175,48 @@
     {
       "type": "text",
       "backgroundColor": "#ffffff",
+      "characterId": "chr_002",
+      "body": "困惑されるのも当然でしょう。\nひとまず、外に出ましょう。",
+      "id": 45,
+      "overideCharacterName": "？？？"
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        184.453,
+        14.81234,
+        -59.776
+      ],
+      "Rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 46
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        184.58,
+        14.81232,
+        -58.228
+      ],
+      "Rotation": [
+        0,
+        185.7982,
+        0
+      ],
+      "id": 47
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
       "characterId": "chr_001",
-      "body": "私は惑星セレスタルに住んでいるはず..冗談だよね！",
+      "body": "ここは…どこ…？\n私は惑星セレスタルに住んでいるはず..冗談だよね！",
       "id": 16
     },
     {
