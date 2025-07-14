@@ -1151,6 +1151,11 @@
                   0,
                   1,
                   -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
                 ]
               ]
             }
@@ -2251,6 +2256,169 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
+      "name": "量子チェスト",
+      "blockType": "Chest",
+      "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "itemSlotCount": 20,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "a770e482-6336-431a-ba13-98558fa56276",
+      "name": "無限歯車ジェネレーター",
+      "blockType": "SimpleGearGenerator",
+      "itemGuid": "0d033e0e-537a-4cc1-b7c6-a183ed33f73d",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/SmallSimpleGeneretor",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "teethCount": 10,
+        "generateRpm": 60,
+        "generateTorque": 1000000000,
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
               }
             }
           ]

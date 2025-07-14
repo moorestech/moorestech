@@ -514,6 +514,16 @@
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "0d033e0e-537a-4cc1-b7c6-a183ed33f73d",
+      "imagePath": "",
+      "name": "無限歯車ジェネレーター",
+      "maxStack": 100,
+      "sortPriority": 100,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
