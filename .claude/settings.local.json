@@ -22,7 +22,9 @@
       "mcp__moorestec_client__ClearConsoleLogs",
       "mcp__moorestec_client__GetCurrentConsoleLogs",
       "mcp__moorestech_client__RefreshAssets",
-      "mcp__moorestech_client__GetCompileLogs"
+      "mcp__moorestech_client__GetCompileLogs",
+      "mcp__moorestech_client__GetCurrentConsoleLogs",
+      "mcp__moorestech_server__GetCurrentConsoleLogs"
     ],
     "deny": []
   },
