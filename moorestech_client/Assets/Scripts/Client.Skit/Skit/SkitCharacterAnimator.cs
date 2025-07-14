@@ -1,4 +1,6 @@
+using Client.Common.Asset;
 using Client.Skit.Define;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -31,7 +33,7 @@ namespace Client.Skit.Skit
         }
 
         /// <summary>animationId を fadeDuration 秒でクロスフェード</summary>
-        public void PlayAnimation(string animationId, float fadeDuration = 0.25f)
+        public async UniTask PlayAnimation(string animationId, float fadeDuration = 0.25f)
         {
             if (_animationDefine == null)
             {
@@ -39,7 +41,7 @@ namespace Client.Skit.Skit
                 return;
             }
 
-            var clip = _animationDefine.GetAnimationClip(animationId);
+            var clip = await AddressableLoader.LoadAsyncDefault<AnimationClip>(animationId);
             if (clip == null)
             {
                 Debug.LogWarning($"{nameof(SkitCharacterAnimator)} : AnimationClip '{animationId}' が見つかりません");

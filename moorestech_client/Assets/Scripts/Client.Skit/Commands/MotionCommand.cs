@@ -8,7 +8,7 @@ namespace CommandForgeGenerator.Command
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var character = storyContext.GetCharacter(Character);
-            character.PlayAnimation(AnimationId, MixerDuration);
+            character.PlayAnimation(AnimationId, MixerDuration).Forget();
             return null;
         }
     }
