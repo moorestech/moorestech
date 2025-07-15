@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
+using CommandForgeGenerator.Command;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -11,7 +12,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectDataStore : MonoBehaviour
+    public class BlockGameObjectDataStore : MonoBehaviour, IBlockObjectControl
     {
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();

@@ -32,6 +32,7 @@ namespace Client.Skit.Skit
         public async UniTask PlayAnimation(string animationId, float fadeDuration = 0.25f)
         {
             var clip = await AddressableLoader.LoadAsyncDefault<AnimationClip>(animationId);
+            clip.wrapMode = WrapMode.Loop;
             if (clip == null)
             {
                 Debug.LogError($"{nameof(SkitCharacterAnimator)} : AnimationClip '{animationId}' が見つかりません");

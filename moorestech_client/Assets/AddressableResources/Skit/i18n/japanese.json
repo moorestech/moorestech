@@ -128,8 +128,12 @@
     "command.motion.property.mixerDuration.name": "ミックス時間",
     "command.motion.property.mixerDuration.description": "アニメーションをブレンドする時間（秒）",
 
-    "command.gameEnvironmentActive.name": "ゲーム背景制御",
-    "command.gameEnvironmentActive.property.enable.name": "表示",
+    "command.inGameObjectControl.name": "ゲーム内オブジェクト制御",
+    "command.inGameObjectControl.description": "ゲーム内の背景とブロックオブジェクトの表示を制御",
+    "command.inGameObjectControl.property.backgroundEnable.name": "背景表示",
+    "command.inGameObjectControl.property.backgroundEnable.description": "背景オブジェクトの表示状態",
+    "command.inGameObjectControl.property.blockEnable.name": "ブロック表示",
+    "command.inGameObjectControl.property.blockEnable.description": "ブロックオブジェクトの表示状態",
 
     "command.controlSkitBackground.name": "スキット背景を制御",
     "command.controlSkitBackground.description": "スキットの背景を追加または削除",

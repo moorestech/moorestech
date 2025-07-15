@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-15T06:34:37.828Z"
+    "modified": "2025-07-15T07:06:33.284Z"
   },
   "commands": [
     {
@@ -20,10 +20,11 @@
       "isCollapsed": false
     },
     {
-      "type": "gameEnvironmentActive",
+      "type": "inGameObjectControl",
       "backgroundColor": "#ffffff",
-      "enable": false,
-      "id": 54
+      "backgroundEnable": false,
+      "blockEnable": false,
+      "id": 70
     },
     {
       "type": "controlSkitBackground",
@@ -302,10 +303,11 @@
       "id": 61
     },
     {
-      "type": "gameEnvironmentActive",
+      "type": "inGameObjectControl",
       "backgroundColor": "#ffffff",
-      "enable": true,
-      "id": 60
+      "backgroundEnable": false,
+      "blockEnable": false,
+      "id": 71
     },
     {
       "type": "characterTransform",

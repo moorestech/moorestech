@@ -8,11 +8,17 @@ namespace CommandForgeGenerator.Command
         void SetActive(bool enable);
     }
     
-    public partial class GameEnvironmentActiveCommand
+    public interface IBlockObjectControl
+    {
+        void SetActive(bool enable);
+    }
+    
+    public partial class InGameObjectControlCommand
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.GetService<IEnvironmentRoot>().SetActive(Enable);
+            storyContext.GetService<IEnvironmentRoot>().SetActive(BackgroundEnable);
+            storyContext.GetService<IBlockObjectControl>().SetActive(BlockEnable);
             return null;
         }
     }

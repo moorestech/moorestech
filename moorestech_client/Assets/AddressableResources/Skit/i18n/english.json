@@ -129,8 +129,12 @@
     "command.motion.property.mixerDuration.name": "Mixer Duration",
     "command.motion.property.mixerDuration.description": "Time to blend animations (seconds)",
 
-    "command.environmentActive.name": "Environment Control",
-    "command.environmentActive.property.enable.name": "Enable",
+    "command.inGameObjectControl.name": "In-Game Object Control",
+    "command.inGameObjectControl.description": "Control in-game background and block object visibility",
+    "command.inGameObjectControl.property.backgroundEnable.name": "Background Enable",
+    "command.inGameObjectControl.property.backgroundEnable.description": "Background object visibility state",
+    "command.inGameObjectControl.property.blockEnable.name": "Block Enable",
+    "command.inGameObjectControl.property.blockEnable.description": "Block object visibility state",
     
     "command.controlSkitBackground.name": "Control Skit Background",
     "command.controlSkitBackground.description": "Add or remove skit background",
