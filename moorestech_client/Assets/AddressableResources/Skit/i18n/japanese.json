@@ -129,6 +129,15 @@
     "command.motion.property.mixerDuration.description": "アニメーションをブレンドする時間（秒）",
 
     "command.environmentActive.name": "背景オブジェクト制御",
-    "command.environmentActive.property.enable.name": "表示"
+    "command.environmentActive.property.enable.name": "表示",
+
+    "command.controlSkitBackground.name": "スキット背景を制御",
+    "command.controlSkitBackground.description": "スキットの背景を追加または削除",
+    "command.controlSkitBackground.property.skitEnvironmentAddressablePath.name": "背景Addressableパス",
+    "command.controlSkitBackground.property.skitEnvironmentAddressablePath.description": "背景のAddressableパス",
+    "command.controlSkitBackground.property.action.name": "アクション",
+    "command.controlSkitBackground.property.action.description": "実行するアクション",
+    "command.controlSkitBackground.property.action.enum.Add": "追加",
+    "command.controlSkitBackground.property.action.enum.Remove": "削除"
   }
 }

@@ -204,4 +204,16 @@ commands:
         type: boolean
         required: true
       
+  - id: controlSkitBackground
+    label: スキット背景を制御
+    description: スキットの背景を追加または削除
+    commandListLabelFormat: "{action}: {skitEnvironmentAddressablePath}"
+    properties:
+      skitEnvironmentAddressablePath:
+        type: string
+        required: true
+      action:
+        type: enum
+        options: ["Add", "Remove"]
+        required: true
 

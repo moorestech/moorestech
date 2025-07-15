@@ -127,6 +127,18 @@
     "command.motion.property.animationId.name": "Animation ID",
     "command.motion.property.animationId.description": "Animation to play",
     "command.motion.property.mixerDuration.name": "Mixer Duration",
-    "command.motion.property.mixerDuration.description": "Time to blend animations (seconds)"
+    "command.motion.property.mixerDuration.description": "Time to blend animations (seconds)",
+
+    "command.environmentActive.name": "Environment Control",
+    "command.environmentActive.property.enable.name": "Enable",
+    
+    "command.controlSkitBackground.name": "Control Skit Background",
+    "command.controlSkitBackground.description": "Add or remove skit background",
+    "command.controlSkitBackground.property.skitEnvironmentAddressablePath.name": "Background Address",
+    "command.controlSkitBackground.property.skitEnvironmentAddressablePath.description": "Addressable path of background",
+    "command.controlSkitBackground.property.action.name": "Action",
+    "command.controlSkitBackground.property.action.description": "Action to perform",
+    "command.controlSkitBackground.property.action.enum.Add": "Add",
+    "command.controlSkitBackground.property.action.enum.Remove": "Remove"
   }
 }
