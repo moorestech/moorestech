@@ -35,6 +35,10 @@ namespace Client.Game.InGame.Block
             return _blockObjectsDictionary.TryGetValue(position, out blockGameObject);
         }
         
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
         
         public void PlaceBlock(Vector3Int blockPosition, BlockId blockId, BlockDirection blockDirection)
         {
