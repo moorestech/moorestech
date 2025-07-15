@@ -9,7 +9,7 @@
     
     "command.transition.name": "トランジション",
     "command.transition.description": "フェードイン／アウトの切替と持続時間",
-    "command.transition.property.enabled.name": "有効",
+    "command.transition.property.enabled.name": "表示",
     "command.transition.property.enabled.description": "フェードの有効",
     "command.transition.property.duration.name": "時間",
     "command.transition.property.duration.description": "フェード時間（秒）",
@@ -126,6 +126,9 @@
     "command.motion.property.animationId.name": "アニメーションID",
     "command.motion.property.animationId.description": "再生するアニメーション",
     "command.motion.property.mixerDuration.name": "ミックス時間",
-    "command.motion.property.mixerDuration.description": "アニメーションをブレンドする時間（秒）"
+    "command.motion.property.mixerDuration.description": "アニメーションをブレンドする時間（秒）",
+
+    "command.environmentActive.name": "背景オブジェクト制御",
+    "command.environmentActive.property.enable.name": "表示"
   }
 }

@@ -193,5 +193,15 @@ commands:
         options:
           master: animations
         required: true
+        
+
+  - id: environmentActive
+    label: 背景オブジェクト制御
+    commandListLabelFormat: "背景:{enable}"
+    defaultBackgroundColor: "#ffffff"
+    properties:
+      enable:
+        type: boolean
+        required: true
       
 
