@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
 using Client.Skit.Context;
 using Client.Skit.Define;
@@ -20,10 +21,10 @@ namespace Client.Game.Skit
     public class SkitManager : MonoBehaviour
     {
         [SerializeField] private SkitUI skitUI;
-        
         [SerializeField] private SkitCamera skitCamera;
-        
         [SerializeField] private VoiceDefine voiceDefine;
+        
+        [Inject] private EnvironmentRoot environmentRoot;
         
         public bool IsPlayingSkit { get; private set; }
         
@@ -104,6 +105,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(new CharacterObjectContainer(characters));
+                builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
                 
                 return new StoryContext(builder.Build());
             }
