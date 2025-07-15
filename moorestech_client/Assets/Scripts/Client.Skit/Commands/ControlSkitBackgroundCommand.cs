@@ -8,7 +8,7 @@ namespace CommandForgeGenerator.Command
 {
     public interface ISkitEnvironmentManager
     {
-        UniTask AddEnvironmentAsync(string addressablePath);
+        UniTask AddEnvironmentAsync(string addressablePath, Vector3 position, Vector3 rotation);
         void RemoveEnvironment(string addressablePath);
     }
     
@@ -20,7 +20,7 @@ namespace CommandForgeGenerator.Command
             
             if (Action == "Add")
             {
-                await environmentManager.AddEnvironmentAsync(SkitEnvironmentAddressablePath);
+                await environmentManager.AddEnvironmentAsync(SkitEnvironmentAddressablePath, Position, Rotation);
             }
             else if (Action == "Remove")
             {
@@ -41,7 +41,7 @@ namespace CommandForgeGenerator.Command
             _environmentParent = environmentParent;
         }
         
-        public async UniTask AddEnvironmentAsync(string addressablePath)
+        public async UniTask AddEnvironmentAsync(string addressablePath, Vector3 position, Vector3 rotation)
         {
             if (string.IsNullOrEmpty(addressablePath))
                 return;
@@ -54,6 +54,8 @@ namespace CommandForgeGenerator.Command
                 return;
             
             var instance = Object.Instantiate(loadedAsset.Asset, _environmentParent);
+            instance.transform.localPosition = position;
+            instance.transform.localRotation = Quaternion.Euler(rotation);
             _loadedEnvironments[addressablePath] = instance;
         }
         

@@ -8,7 +8,7 @@ commands:
   - id: transition
     label: トランジション
     description: フェードイン／アウトの切替と持続時間
-    commandListLabelFormat: "TRANSITION: {enabled}, {duration}s"
+    commandListLabelFormat: "トランジション表示 {enabled} {duration}s"
     properties:
       enabled:
         type: boolean
@@ -195,8 +195,8 @@ commands:
         required: true
         
 
-  - id: environmentActive
-    label: 背景オブジェクト制御
+  - id: gameEnvironmentActive
+    label: ゲーム側背景オブジェクト制御
     commandListLabelFormat: "背景:{enable}"
     defaultBackgroundColor: "#ffffff"
     properties:
@@ -215,5 +215,27 @@ commands:
       action:
         type: enum
         options: ["Add", "Remove"]
+        required: true
+      position:
+        type: vector3
+        required: true
+      rotation:
+        type: vector3
+        required: true
+
+  - id: skitObjectControl
+    label: スキットオブジェクト制御
+    description: スキットオブジェクトの制御を行う
+    commandListLabelFormat: "{skitObjectId} - {action}"
+    properties:
+      skitObjectId:
+        type: string
+        required: true
+      action:
+        type: enum
+        options: ["SetActive"]
+        required: true
+      activeEnable:
+        type: boolean
         required: true
 

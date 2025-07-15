@@ -620,6 +620,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa6ffc3aa92fe475ababb0509162752d
+    m_Address: Vanilla/Skit/Environment/SpaceShip_1_100_start
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fd2ecb5ff8511444d98665186b558b07
     m_Address: Vanilla/Block/primitive miner
     m_ReadOnly: 0

@@ -128,8 +128,8 @@
     "command.motion.property.mixerDuration.name": "ミックス時間",
     "command.motion.property.mixerDuration.description": "アニメーションをブレンドする時間（秒）",
 
-    "command.environmentActive.name": "背景オブジェクト制御",
-    "command.environmentActive.property.enable.name": "表示",
+    "command.gameEnvironmentActive.name": "ゲーム背景制御",
+    "command.gameEnvironmentActive.property.enable.name": "表示",
 
     "command.controlSkitBackground.name": "スキット背景を制御",
     "command.controlSkitBackground.description": "スキットの背景を追加または削除",
@@ -138,6 +138,20 @@
     "command.controlSkitBackground.property.action.name": "アクション",
     "command.controlSkitBackground.property.action.description": "実行するアクション",
     "command.controlSkitBackground.property.action.enum.Add": "追加",
-    "command.controlSkitBackground.property.action.enum.Remove": "削除"
+    "command.controlSkitBackground.property.action.enum.Remove": "削除",
+    "command.controlSkitBackground.property.position.name": "座標",
+    "command.controlSkitBackground.property.position.description": "背景オブジェクトの配置座標",
+    "command.controlSkitBackground.property.rotation.name": "回転",
+    "command.controlSkitBackground.property.rotation.description": "背景オブジェクトの回転角度",
+
+    "command.skitObjectControl.name": "スキットオブジェクト制御",
+    "command.skitObjectControl.description": "スキットオブジェクトの制御を行う",
+    "command.skitObjectControl.property.skitObjectId.name": "オブジェクトID",
+    "command.skitObjectControl.property.skitObjectId.description": "制御対象のオブジェクトID",
+    "command.skitObjectControl.property.action.name": "アクション",
+    "command.skitObjectControl.property.action.description": "実行するアクション",
+    "command.skitObjectControl.property.action.enum.SetActive": "アクティブ切り替え",
+    "command.skitObjectControl.property.activeEnable.name": "アクティブ状態",
+    "command.skitObjectControl.property.activeEnable.description": "オブジェクトのアクティブ状態"
   }
 }

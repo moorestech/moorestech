@@ -106,6 +106,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(new CharacterObjectContainer(characters));
                 builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
+                builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 
                 return new StoryContext(builder.Build());
             }

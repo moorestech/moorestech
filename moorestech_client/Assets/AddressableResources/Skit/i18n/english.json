@@ -139,6 +139,20 @@
     "command.controlSkitBackground.property.action.name": "Action",
     "command.controlSkitBackground.property.action.description": "Action to perform",
     "command.controlSkitBackground.property.action.enum.Add": "Add",
-    "command.controlSkitBackground.property.action.enum.Remove": "Remove"
+    "command.controlSkitBackground.property.action.enum.Remove": "Remove",
+    "command.controlSkitBackground.property.position.name": "Position",
+    "command.controlSkitBackground.property.position.description": "Background object placement position",
+    "command.controlSkitBackground.property.rotation.name": "Rotation",
+    "command.controlSkitBackground.property.rotation.description": "Background object rotation angle",
+
+    "command.skitObjectControl.name": "Skit Object Control",
+    "command.skitObjectControl.description": "Control skit objects",
+    "command.skitObjectControl.property.skitObjectId.name": "Object ID",
+    "command.skitObjectControl.property.skitObjectId.description": "ID of the object to control",
+    "command.skitObjectControl.property.action.name": "Action",
+    "command.skitObjectControl.property.action.description": "Action to perform",
+    "command.skitObjectControl.property.action.enum.SetActive": "Set Active",
+    "command.skitObjectControl.property.activeEnable.name": "Active State",
+    "command.skitObjectControl.property.activeEnable.description": "Active state of the object"
   }
 }
