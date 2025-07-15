@@ -10,7 +10,7 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            var skitObjects = Object.FindObjectsOfType<SkitControllableObject>();
+            var skitObjects = Object.FindObjectsOfType<SkitControllableObject>(true);
             var targetObject = skitObjects.FirstOrDefault(obj => obj.ObjectId == SkitObjectId);
             
             if (targetObject == null)

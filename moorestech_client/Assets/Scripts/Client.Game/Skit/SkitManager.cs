@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
 using Client.Skit.Context;
@@ -25,6 +26,7 @@ namespace Client.Game.Skit
         [SerializeField] private VoiceDefine voiceDefine;
         
         [Inject] private EnvironmentRoot environmentRoot;
+        [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
         
         public bool IsPlayingSkit { get; private set; }
         
@@ -106,6 +108,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(new CharacterObjectContainer(characters));
                 builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
+                builder.RegisterInstance<IBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 
                 return new StoryContext(builder.Build());

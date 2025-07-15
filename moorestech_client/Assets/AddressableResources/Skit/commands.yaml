@@ -195,12 +195,15 @@ commands:
         required: true
         
 
-  - id: gameEnvironmentActive
-    label: ゲーム側背景オブジェクト制御
-    commandListLabelFormat: "背景:{enable}"
+  - id: inGameObjectControl
+    label: ゲーム内オブジェクト制御
+    commandListLabelFormat: "背景:{backgroundEnable} ブロック:{blockEnable}"
     defaultBackgroundColor: "#ffffff"
     properties:
-      enable:
+      backgroundEnable:
+        type: boolean
+        required: true
+      blockEnable:
         type: boolean
         required: true
       
