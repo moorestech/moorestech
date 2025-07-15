@@ -1,5 +1,4 @@
 using Client.Common.Asset;
-using Client.Skit.Define;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -11,8 +10,6 @@ namespace Client.Skit.Skit
     public class SkitCharacterAnimator : MonoBehaviour
     {
         [SerializeField] private Animator animator;
-
-        private AnimationDefine _animationDefine;
 
         // Playables
         private PlayableGraph _graph;
@@ -26,25 +23,18 @@ namespace Client.Skit.Skit
         private float _fadeElapsed;
 
         // 初期化
-        public void Initialize(AnimationDefine animationDefine)
+        public void Initialize()
         {
-            _animationDefine = animationDefine;
             EnsureGraph();                        // 呼ばれた時点でグラフを生成
         }
 
         /// <summary>animationId を fadeDuration 秒でクロスフェード</summary>
         public async UniTask PlayAnimation(string animationId, float fadeDuration = 0.25f)
         {
-            if (_animationDefine == null)
-            {
-                Debug.LogWarning($"{nameof(SkitCharacterAnimator)} : Initialize が呼ばれていません");
-                return;
-            }
-
             var clip = await AddressableLoader.LoadAsyncDefault<AnimationClip>(animationId);
             if (clip == null)
             {
-                Debug.LogWarning($"{nameof(SkitCharacterAnimator)} : AnimationClip '{animationId}' が見つかりません");
+                Debug.LogError($"{nameof(SkitCharacterAnimator)} : AnimationClip '{animationId}' が見つかりません");
                 return;
             }
 

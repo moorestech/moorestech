@@ -75,11 +75,10 @@
     "command.emote.description": "立ち絵・表情切替",
     "command.emote.property.character.name": "キャラクター",
     "command.emote.property.character.description": "対象キャラクター",
-    "command.emote.property.character.enum.主人公": "主人公",
-    "command.emote.property.character.enum.AI": "AI",
-    "command.emote.property.character.enum.友人": "友人",
     "command.emote.property.emotion.name": "感情",
     "command.emote.property.emotion.description": "表情",
+    "command.emote.property.weight.name": "ウェイト(0~100)",
+    "command.emote.property.duration.name": "切り替え時間",
     
     "master.emotes.Emote_Bitter Smile": "苦笑い",
     "master.emotes.Emote_Blink": "瞬き",

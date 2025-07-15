@@ -12,9 +12,10 @@ namespace Client.Skit.Skit
         [SerializeField] private SkinnedMeshRenderer faceSkinnedMeshRenderer;
         [SerializeField] private SkitCharacterAnimator skitCharacterAnimator;
         
-        public void Initialize(Transform parent, string name)
+        public void Initialize(Transform parent)
         {
-            gameObject.name = name + " (StoryCharacter)";
+            skitCharacterAnimator.Initialize();
+            gameObject.name += " (StoryCharacter)";
             transform.SetParent(parent);
         }
         
@@ -40,30 +41,16 @@ namespace Client.Skit.Skit
             voiceAudioSource.Stop();
         }
         
-        public void SetEmotion(EmotionType emotion, float duration)
+        public void SetEmotion(string emoteBlendShapeName, float duration, float weight)
         {
-            var blendShapeData = ToBlendShapeData(emotion);
+            var index =faceSkinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(emoteBlendShapeName);
             
-            // Tween BlendShape
-            foreach (var (key, value) in blendShapeData)
-                DOTween.To(
-                    () => faceSkinnedMeshRenderer.GetBlendShapeWeight(key),
-                    x => faceSkinnedMeshRenderer.SetBlendShapeWeight(key, x),
-                    value,
-                    duration);
             
-            #region Internal
-            
-            Dictionary<int, float> ToBlendShapeData(EmotionType emotionType)
-            {
-                return emotionType switch
-                {
-                    EmotionType.Normal => new Dictionary<int, float> { { 11, 0f } },
-                    EmotionType.Happy => new Dictionary<int, float> { { 11, 100 } },
-                };
-            }
-            
-            #endregion
+            DOTween.To(
+                () => faceSkinnedMeshRenderer.GetBlendShapeWeight(index),
+                x => faceSkinnedMeshRenderer.SetBlendShapeWeight(index, x),
+                weight,
+                duration);
         }
     }
 }
