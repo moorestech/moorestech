@@ -132,7 +132,7 @@ commands:
   - id: emote
     label: エモート
     description: 立ち絵・表情切替
-    commandListLabelFormat: "EMOTE: {character}, {emotion}"
+    commandListLabelFormat: "{character}:{emotion}"
     properties:
       character:
         type: enum
@@ -143,6 +143,14 @@ commands:
         type: enum
         options:
           master: emotes
+        required: true
+      duration:
+        type: number
+        default: 0.2
+        required: true
+      weight:
+        type: integer
+        default: 100
         required: true
 
   - id: selection
@@ -168,7 +176,7 @@ commands:
   - id: motion
     label: モーション
     description: キャラのアニメーション再生
-    commandListLabelFormat: "MOTION: {character}, {motionName}"
+    commandListLabelFormat: "{character}:{animationId}"
     properties:
       character:
         type: enum

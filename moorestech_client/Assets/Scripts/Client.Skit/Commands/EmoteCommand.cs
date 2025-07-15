@@ -1,5 +1,6 @@
 using Client.Skit.Context;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using static System.Enum;
 
 namespace CommandForgeGenerator.Command
@@ -9,8 +10,7 @@ namespace CommandForgeGenerator.Command
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var character = storyContext.GetCharacter(Character);
-            var emotionType = (EmotionType)Parse(typeof(EmotionType), Emotion);
-            character.SetEmotion(emotionType, 0f);
+            character.SetEmotion(Emotion, Duration, Weight);
             return null;
         }
     }

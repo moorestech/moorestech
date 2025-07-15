@@ -85,7 +85,7 @@ namespace Client.Game.Skit
                     {
                         var characterInstance = Instantiate(characterPrefab);
                         var skitCharacter = characterInstance.GetComponent<SkitCharacter>();
-                        skitCharacter.Initialize(transform, characterElement.CharacterId);
+                        skitCharacter.Initialize(transform);
                         characters.Add(characterElement.CharacterId, skitCharacter);
                     }
                     else

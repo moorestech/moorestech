@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-14T10:48:37.703Z"
+    "modified": "2025-07-15T00:34:50.701Z"
   },
   "commands": [
     {
@@ -12,15 +12,15 @@
       "character": "chr_001",
       "Position": [
         404.175,
-        -1.197,
-        -711.368
+        -1.096,
+        -711.557
       ],
       "Rotation": [
-        -69.629,
-        -180,
+        282.4937,
+        180,
         0
       ],
-      "id": 41
+      "id": 52
     },
     {
       "type": "characterTransform",
@@ -53,6 +53,31 @@
         -0.0002039236
       ],
       "id": 44
+    },
+    {
+      "type": "motion",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
+      "mixerDuration": 0,
+      "id": 50
+    },
+    {
+      "type": "motion",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
+      "mixerDuration": 0,
+      "id": 53
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Blink",
+      "duration": 0.2,
+      "weight": 100,
+      "id": 51
     },
     {
       "type": "text",
