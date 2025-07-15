@@ -3,56 +3,108 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-15T00:34:50.701Z"
+    "modified": "2025-07-15T06:34:37.828Z"
   },
   "commands": [
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0,
+      "id": 65
+    },
+    {
+      "id": 63,
+      "type": "group_start",
+      "groupName": "環境設定",
+      "isCollapsed": false
+    },
+    {
+      "type": "gameEnvironmentActive",
+      "backgroundColor": "#ffffff",
+      "enable": false,
+      "id": 54
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/SpaceShip_1_100_start",
+      "action": "Add",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 55
+    },
     {
       "type": "characterTransform",
       "backgroundColor": "#ffffff",
       "character": "chr_001",
       "Position": [
-        404.175,
-        -1.096,
-        -711.557
+        -0.655,
+        -0.54,
+        -0.586
       ],
       "Rotation": [
         282.4937,
         180,
-        0
+        -9.409395e-13
       ],
-      "id": 52
+      "id": 69
     },
     {
       "type": "characterTransform",
       "backgroundColor": "#ffffff",
       "character": "chr_002",
       "Position": [
-        403.5937,
-        -1.57407,
-        -711.7506
+        -1.453478,
+        -1.006919,
+        -0.7206354
       ],
       "Rotation": [
         0,
         0,
         0
       ],
-      "id": 43
+      "id": 59
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_003",
+      "Position": [
+        -1.453478,
+        -100,
+        -0.7206354
+      ],
+      "Rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 68
     },
     {
       "type": "cameraWarp",
       "backgroundColor": "#ffffff",
       "fieldOfView": 48.1,
       "Position": [
-        402.3142,
-        -0.2304926,
-        -711.0417
+        -2.505684,
+        0.2462835,
+        -0.06268561
       ],
       "Rotation": [
-        5.500368,
-        88.48742,
-        -0.0002039236
+        8.078521,
+        93.02203,
+        359.9806
       ],
-      "id": 44
+      "id": 67
     },
     {
       "type": "motion",
@@ -69,6 +121,17 @@
       "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
       "mixerDuration": 0,
       "id": 53
+    },
+    {
+      "id": 64,
+      "type": "group_end"
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.4,
+      "id": 66
     },
     {
       "type": "emote",
@@ -118,6 +181,22 @@
       "body": ".......",
       "id": 5,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_1",
+      "action": "SetActive",
+      "activeEnable": false,
+      "id": 56
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_2",
+      "action": "SetActive",
+      "activeEnable": true,
+      "id": 57
     },
     {
       "type": "text",
@@ -204,6 +283,29 @@
       "body": "困惑されるのも当然でしょう。\nひとまず、外に出ましょう。",
       "id": 45,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/SpaceShip_1_100_start",
+      "action": "Remove",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 61
+    },
+    {
+      "type": "gameEnvironmentActive",
+      "backgroundColor": "#ffffff",
+      "enable": true,
+      "id": 60
     },
     {
       "type": "characterTransform",

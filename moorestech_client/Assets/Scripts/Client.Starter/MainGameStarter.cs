@@ -160,6 +160,7 @@ namespace Client.Starter
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
+            builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(hotBarView);
