@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-15T07:06:33.284Z"
+    "modified": "2025-07-16T04:34:17.493Z"
   },
   "commands": [
     {
@@ -18,13 +18,6 @@
       "type": "group_start",
       "groupName": "環境設定",
       "isCollapsed": false
-    },
-    {
-      "type": "inGameObjectControl",
-      "backgroundColor": "#ffffff",
-      "backgroundEnable": false,
-      "blockEnable": false,
-      "id": 70
     },
     {
       "type": "controlSkitBackground",
@@ -42,6 +35,22 @@
         0
       ],
       "id": 55
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 48.1,
+      "Position": [
+        -2.505684,
+        0.2462835,
+        -0.06268561
+      ],
+      "Rotation": [
+        8.078521,
+        93.02203,
+        359.9806
+      ],
+      "id": 67
     },
     {
       "type": "characterTransform",
@@ -92,22 +101,6 @@
       "id": 68
     },
     {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 48.1,
-      "Position": [
-        -2.505684,
-        0.2462835,
-        -0.06268561
-      ],
-      "Rotation": [
-        8.078521,
-        93.02203,
-        359.9806
-      ],
-      "id": 67
-    },
-    {
       "type": "motion",
       "backgroundColor": "#ffffff",
       "character": "chr_001",
@@ -122,6 +115,13 @@
       "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
       "mixerDuration": 0,
       "id": 53
+    },
+    {
+      "type": "inGameObjectControl",
+      "backgroundColor": "#ffffff",
+      "backgroundEnable": false,
+      "blockEnable": false,
+      "id": 70
     },
     {
       "id": 64,
