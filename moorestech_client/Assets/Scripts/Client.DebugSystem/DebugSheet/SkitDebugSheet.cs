@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Game.Common;
 using Client.Game.Skit;
 using Cysharp.Threading.Tasks;
 using UnityDebugSheet.Runtime.Core.Scripts;
@@ -31,6 +32,7 @@ namespace Client.DebugSystem
                     return;
                 }
                 
+                GameStateController.ChangeState(GameStateType.Skit);
                 skitManager.StartSkit(customPath).Forget();
                 DebugSheetController.CloseDebugSheet();
             });
