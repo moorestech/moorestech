@@ -130,11 +130,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 343f9f8edded94a6592efd9b43dfdb40
-    m_Address: Vanilla/Skit/Animations/anim_idle01_lp
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 39ce48b794ee6934cacd89b06ee3537b
     m_Address: Vanilla/Block/PipeCross
     m_ReadOnly: 0
@@ -155,13 +150,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 436ff37517aca4658b6cadb9e33d2c84
-    m_Address: Vanilla/Skit/Animations/anim_surprise01_lp
+  - m_GUID: 4685e69708529f14084d76cb7178947d
+    m_Address: Vanilla/Block/static steam engine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4685e69708529f14084d76cb7178947d
-    m_Address: Vanilla/Block/static steam engine
+  - m_GUID: 477050cdd2bdd488ba16ce778f30a3d6
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_st_fbx
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -222,6 +217,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 589a9ea807eb8aa4baac7255ad18784a
     m_Address: Vanilla/Block/Boyler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 592fd8fcf82bc49a483838eee4ff2b4b
+    m_Address: Vanilla/Skit/Animations/anim_idle01_lp_fbx
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -315,11 +315,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 815b8040a58874f92a0d2016d05e742e
-    m_Address: Vanilla/Skit/Animations/anim_surprise01_st
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 86e61f81bcc934fea864ebdccb57122f
     m_Address: Vanilla/UI/Block/CraftChainerMainComputerInventory
     m_ReadOnly: 0
@@ -340,6 +335,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8ddc5fe3cf3ed4bb99265e9a31ca89f8
+    m_Address: Vanilla/Skit/Animations/anim_wait01_lp_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 90e31bd775ec74542975d914c3ae3336
     m_Address: Vanilla/Skit/skits/100_start_game
     m_ReadOnly: 0
@@ -355,11 +355,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 934cd241b3bec48d499b0eac2f4bf338
-    m_Address: Vanilla/Skit/Animations/anim_wait01_lp
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 949b6c1afc6444d5bbb480710ca7a8f3
     m_Address: Vanilla/Block/Primitive_Windmill
     m_ReadOnly: 0
@@ -367,6 +362,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
     m_Address: Vanilla/Block/OilWell
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9996f482af5df4c57a7029608a75d9b9
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_lp_fbx
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -510,6 +510,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d74febb7a49e04ac2a1e405ef1a0d42c
+    m_Address: Vanilla/Skit/Animations/anim_wait01_st_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d793aaf0184d71c448ea70d6f7a7fab9
     m_Address: Vanilla/Block/itemshooter down
     m_ReadOnly: 0
@@ -537,11 +542,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e039e23dd6ec87742ac59a0964a66fa0
     m_Address: Vanilla/Block/iron furnace with bellows
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e2103e3fa9b2045569b85afc20d3bbe2
-    m_Address: Vanilla/Skit/Animations/anim_wait01_st
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

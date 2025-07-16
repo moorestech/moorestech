@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-16T06:54:06.693Z"
+    "modified": "2025-07-16T08:41:45.943Z"
   },
   "commands": [
     {
@@ -124,10 +124,6 @@
       "id": 70
     },
     {
-      "id": 64,
-      "type": "group_end"
-    },
-    {
       "type": "transition",
       "backgroundColor": "#ffffff",
       "enabled": false,
@@ -142,6 +138,10 @@
       "duration": 0.2,
       "weight": 100,
       "id": 51
+    },
+    {
+      "id": 64,
+      "type": "group_end"
     },
     {
       "type": "text",

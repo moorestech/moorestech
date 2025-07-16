@@ -99,9 +99,11 @@
     "master.emotes.Emote_Bouble Tooth": "歯見せ笑顔（親友固有）",
     "master.emotes.Emote_Grin": "ニヤリ（親友固有）",
 
-    "master.animations.idle_lp": "アイドルループ",
-    "master.animations.wait_st": "待機開始",
-    "master.animations.wait_lp": "待機ループ",
+    "master.animations.Vanilla/Skit/Animations/anim_idle01_lp": "アイドルループ",
+    "master.animations.Vanilla/Skit/Animations/anim_surprise01_st": "驚き開始",
+    "master.animations.Vanilla/Skit/Animations/anim_surprise01_lp": "驚きループ",
+    "master.animations.Vanilla/Skit/Animations/anim_wait01_st": "待機開始",
+    "master.animations.Vanilla/Skit/Animations/anim_wait01_lp": "待機ループ",
 
     "command.selection.name": "選択肢",
     "command.selection.description": "プレイヤー選択肢を定義",
