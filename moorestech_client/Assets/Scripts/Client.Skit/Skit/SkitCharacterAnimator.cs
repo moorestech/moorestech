@@ -1,34 +1,33 @@
 using Client.Common.Asset;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Animations;
-using UnityEngine.Playables;
 
 namespace Client.Skit.Skit
 {
-    /// <summary>AnimationClip のシンプルなクロスフェード再生器</summary>
+    /// <summary>
+    /// Animation コンポーネント（Legacy）を使って
+    /// ・Addressables から読み込んだ AnimationClip を登録  
+    /// ・前のモーションから fadeDuration 秒でクロスフェード  
+    /// ・以降はループ再生  
+    /// を行うユーティリティ。
+    /// </summary>
     public class SkitCharacterAnimator : MonoBehaviour
     {
-        [SerializeField] private Animator animator;
+        [SerializeField] private Animation animation;   // Animation（Legacy）
 
-        // Playables
-        private PlayableGraph _graph;
-        private AnimationMixerPlayable _mixer;
-        private AnimationClipPlayable _currentPlayable;
-        private AnimationClipPlayable _nextPlayable;
+        /// <summary>現在ループ再生中のクリップ</summary>
 
-        // フェード制御
-        private bool  _isFading;
-        private float _fadeDuration;
-        private float _fadeElapsed;
-
-        // 初期化
         public void Initialize()
         {
-            EnsureGraph();                        // 呼ばれた時点でグラフを生成
+            animation.playAutomatically = false;    // 明示的に制御
         }
 
-        /// <summary>animationId を fadeDuration 秒でクロスフェード</summary>
+        /// <summary>
+        /// animationId の AnimationClip を Addressables からロードし、
+        /// fadeDuration 秒でクロスフェードしてループ再生する。
+        /// </summary>
+        /// <param name="animationId">Addressable のキー</param>
+        /// <param name="fadeDuration">クロスフェード時間（秒）。0 以下なら即時切替</param>
         public async UniTask PlayAnimation(string animationId, float fadeDuration = 0.25f)
         {
             var clip = await AddressableLoader.LoadAsyncDefault<AnimationClip>(animationId);
@@ -38,89 +37,31 @@ namespace Client.Skit.Skit
                 return;
             }
 
-            EnsureGraph();
-
-            // 既に同じクリップを再生中で、フェードもしていなければ無視
-            if (_currentPlayable.IsValid() &&
-                _currentPlayable.GetAnimationClip() == clip &&
-                !_isFading)
+            // ② 未登録なら Animation に追加
+            if (!animation.GetClip(clip.name))
             {
-                return;
+#if UNITY_EDITOR
+                // 実行時でも書き換え可能だが念のため
+                if (!clip.legacy) clip.legacy = true;  // レガシー扱いに
+#endif
+                clip.wrapMode = WrapMode.Loop;         // ループ再生
+                animation.AddClip(clip, clip.name);
+            }
+            else
+            {
+                // 既登録でもラップモードを上書きしておく（Import 設定漏れ対策）
+                animation.GetClip(clip.name).wrapMode = WrapMode.Loop;
             }
 
-            // 以前準備していた nextPlayable をクリア
-            if (_nextPlayable.IsValid())
+            // ③ クロスフェード／即時再生
+            if (fadeDuration <= 0f || animation.clip == null)
             {
-                _graph.Disconnect(_mixer, 1);
-                _nextPlayable.Destroy();
+                animation.Play(clip.name);
             }
-
-            // 次クリップを 1 番スロットに接続
-            _nextPlayable = AnimationClipPlayable.Create(_graph, clip);
-            _nextPlayable.SetApplyFootIK(false);
-            _graph.Connect(_nextPlayable, 0, _mixer, 1);
-            _mixer.SetInputWeight(1, 0f);
-
-            // フェード開始
-            _fadeDuration = Mathf.Max(0.0001f, fadeDuration);
-            _fadeElapsed  = 0f;
-            _isFading     = true;
-        }
-
-        private void Update()
-        {
-            if (!_isFading) return;
-
-            _fadeElapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(_fadeElapsed / _fadeDuration);
-
-            // ウェイト補間
-            _mixer.SetInputWeight(0, 1f - t);
-            _mixer.SetInputWeight(1, t);
-
-            // フェード終了判定
-            if (t >= 1f)
+            else
             {
-                // 古いクリップを破棄
-                if (_currentPlayable.IsValid())
-                {
-                    _graph.Disconnect(_mixer, 0);
-                    _currentPlayable.Destroy();
-                }
-
-                // next を current として 0 番へ
-                _currentPlayable = _nextPlayable;
-                _nextPlayable    = default;
-
-                _graph.Disconnect(_mixer, 1);
-                _graph.Connect(_currentPlayable, 0, _mixer, 0);
-                _mixer.SetInputWeight(0, 1f);
-
-                _isFading = false;
+                animation.CrossFade(clip.name, fadeDuration, PlayMode.StopSameLayer);
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (_graph.IsValid())
-            {
-                _graph.Destroy();
-            }
-        }
-
-        /// <summary>PlayableGraph を生成（既にあれば何もしない）</summary>
-        private void EnsureGraph()
-        {
-            if (_graph.IsValid()) return;
-
-            _graph = PlayableGraph.Create($"{nameof(SkitCharacterAnimator)}_{name}");
-            _graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
-
-            _mixer = AnimationMixerPlayable.Create(_graph, 2, true);
-            var output = AnimationPlayableOutput.Create(_graph, "Animation", animator);
-            output.SetSourcePlayable(_mixer);
-
-            _graph.Play();
         }
     }
 }
