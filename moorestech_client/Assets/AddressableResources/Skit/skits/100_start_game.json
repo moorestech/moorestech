@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-17T10:48:37.046Z"
+    "modified": "2025-07-17T11:33:33.294Z"
   },
   "commands": [
     {
@@ -58,7 +58,8 @@
         4.15996,
         359.9859
       ],
-      "id": 82
+      "id": 82,
+      "cameraOrigin": "absolute"
     },
     {
       "type": "characterTransform",
@@ -460,7 +461,8 @@
         186.185,
         359.9916
       ],
-      "id": 49
+      "id": 49,
+      "cameraOrigin": "absolute"
     },
     {
       "type": "transition",

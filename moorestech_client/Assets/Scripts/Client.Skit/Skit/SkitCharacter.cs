@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
@@ -63,7 +64,8 @@ namespace Client.Skit.Skit
                     return (transform.position, transform.eulerAngles);
                 }
             }
-            return (Vector3.zero, Vector3.zero);
+            
+            throw new ArgumentException($"ボーンが見つかりませんでした。指定されたボーン名：{boneName}");
         }
     }
 }

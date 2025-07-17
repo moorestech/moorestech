@@ -1,3 +1,4 @@
+using System;
 using Client.Skit.Context;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace CommandForgeGenerator.Command.Util
                 return character.GetBoneAbsoluteTransform(cameraOriginBone);
             }
             
-            return (Vector3.zero, Vector3.zero);
+            throw new ArgumentException($"cameraOriginが不正な値です。 値：{cameraOrigin}");
         }
     }
 }
