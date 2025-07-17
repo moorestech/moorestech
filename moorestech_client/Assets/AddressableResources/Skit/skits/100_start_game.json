@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-17T06:58:31.218Z"
+    "modified": "2025-07-17T10:48:37.046Z"
   },
   "commands": [
     {
@@ -17,7 +17,7 @@
       "id": 63,
       "type": "group_start",
       "groupName": "環境設定",
-      "isCollapsed": true
+      "isCollapsed": false
     },
     {
       "type": "controlSkitBackground",
@@ -37,52 +37,60 @@
       "id": 55
     },
     {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_1",
+      "action": "SetActive",
+      "activeEnable": true,
+      "id": 90
+    },
+    {
       "type": "cameraWarp",
       "backgroundColor": "#ffffff",
       "fieldOfView": 48.1,
       "Position": [
-        -2.505684,
-        0.2462835,
-        -0.06268561
+        182.6968,
+        16.54991,
+        -56.41586
       ],
       "Rotation": [
-        8.078521,
-        93.02203,
-        359.9806
+        4.468853,
+        4.15996,
+        359.9859
       ],
-      "id": 67
+      "id": 82
     },
     {
       "type": "characterTransform",
       "backgroundColor": "#ffffff",
       "character": "chr_001",
       "Position": [
-        -0.655,
-        -0.54,
-        -0.586
+        183.367,
+        15.816,
+        -54.18
       ],
       "Rotation": [
-        282.4937,
-        180,
-        -9.409395e-13
+        288.015,
+        132.9489,
+        315.6128
       ],
-      "id": 69
+      "id": 83
     },
     {
       "type": "characterTransform",
       "backgroundColor": "#ffffff",
       "character": "chr_002",
       "Position": [
-        -1.453478,
-        -1.006919,
-        -0.7206354
+        183.408,
+        15.312,
+        -55.064
       ],
       "Rotation": [
         0,
-        0,
+        270,
         0
       ],
-      "id": 59
+      "id": 84
     },
     {
       "type": "characterTransform",
@@ -135,6 +143,12 @@
     {
       "id": 64,
       "type": "group_end"
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#ffffff",
+      "seconds": 0.5,
+      "id": 91
     },
     {
       "type": "transition",
@@ -215,9 +229,23 @@
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
-      "body": "ワープの正常終了を確認。\n惑星アルカディアへの大気圏突入を開始",
+      "body": "ワープの正常終了を確認",
       "id": 6,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "characterId": "chr_002",
+      "body": "惑星アルカディアへの大気圏突入を開始",
+      "id": 94,
+      "overideCharacterName": "？？？"
+    },
+    {
+      "id": 88,
+      "type": "group_start",
+      "groupName": "地上の表示",
+      "isCollapsed": false
     },
     {
       "type": "transition",
@@ -268,20 +296,20 @@
       "id": 74
     },
     {
-      "type": "cameraWarp",
+      "type": "skitObjectControl",
       "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        182.6968,
-        16.54991,
-        -56.41586
-      ],
-      "Rotation": [
-        4.468853,
-        4.15996,
-        359.9859
-      ],
-      "id": 82
+      "skitObjectId": "Planet_2",
+      "action": "SetActive",
+      "activeEnable": false,
+      "id": 86
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "SpaceSkybox",
+      "action": "SetActive",
+      "activeEnable": false,
+      "id": 85
     },
     {
       "type": "wait",
@@ -295,6 +323,10 @@
       "enabled": false,
       "duration": 0.5,
       "id": 80
+    },
+    {
+      "id": 89,
+      "type": "group_end"
     },
     {
       "type": "text",
@@ -311,6 +343,15 @@
       "body": "睡眠薬の供給停止と覚醒薬を注入",
       "id": 11,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Blink",
+      "duration": 0.2,
+      "weight": "0",
+      "id": 87
     },
     {
       "type": "text",
@@ -348,6 +389,13 @@
       "body": "困惑されるのも当然でしょう。\nひとまず、外に出ましょう。",
       "id": 45,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0.5,
+      "id": 92
     },
     {
       "type": "controlSkitBackground",
@@ -413,6 +461,13 @@
         359.9916
       ],
       "id": 49
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 93
     },
     {
       "type": "text",
@@ -533,7 +588,8 @@
       "characterId": "chr_001",
       "body": "パチン！",
       "id": 31,
-      "isOverrideCharacterName": true
+      "isOverrideCharacterName": true,
+      "overrideCharacterName": "　"
     },
     {
       "type": "text",

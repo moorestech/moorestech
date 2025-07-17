@@ -54,7 +54,7 @@
     "command.showText.property.enable.name": "表示",
     "command.showText.property.enable.description": "テキストエリアの表示",
 
-    "command.cameraWarp.name": "カメラワープ",
+    "command.cameraWarp.name": "カメラ移動",
     "command.cameraWarp.description": "カメラを瞬時に座標移動",
     "command.cameraWarp.property.Position.name": "座標",
     "command.cameraWarp.property.Rotation.name": "回転",
