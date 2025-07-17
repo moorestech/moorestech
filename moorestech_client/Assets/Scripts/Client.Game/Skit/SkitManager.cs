@@ -25,6 +25,7 @@ namespace Client.Game.Skit
         [SerializeField] private SkitCamera skitCamera;
         [SerializeField] private VoiceDefine voiceDefine;
         
+        [Inject] private ISkitActionContext _skitActionContext;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
         
@@ -110,6 +111,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<IBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
+                builder.RegisterInstance(_skitActionContext);
                 
                 return new StoryContext(builder.Build());
             }

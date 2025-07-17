@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Client.Skit.Context;
+using Client.Skit.Skit;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace CommandForgeGenerator.Command
     public partial class TextCommand
     {
         private const float TextDuration = 0.05f;
+        private const float WaitDuration = 1f;
         
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
@@ -20,6 +22,7 @@ namespace CommandForgeGenerator.Command
             }
             
             var skitUi = storyContext.GetSkitUI();
+            var skitActionContext = storyContext.GetService<ISkitActionContext>();
             
             var setTextTaskCancellationTokenSource = new CancellationTokenSource();
             UniTask<bool> setTextTask = UniTask.Create(factory: async () =>
@@ -54,13 +57,15 @@ namespace CommandForgeGenerator.Command
             }
             
             // 次のコマンドへ移行
+            var waitStartTime = Time.timeAsDouble;
             while (true)
             {
-                if (Input.GetMouseButtonDown(0))
+                if (skitActionContext.IsAuto && Time.timeAsDouble - waitStartTime >= WaitDuration || Input.GetMouseButtonDown(0))
                 {
                     await UniTask.Yield();
                     return null;
                 }
+                
                 await UniTask.Yield();
             }
         }
