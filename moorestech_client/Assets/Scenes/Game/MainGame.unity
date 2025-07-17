@@ -64905,7 +64905,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 505804567449448598, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       propertyPath: m_Name
-      value: Enviroment
+      value: Environment
       objectReference: {fileID: 0}
     - target: {fileID: 1737230499573010102, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       propertyPath: m_LocalPosition.x
