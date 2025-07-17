@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-16T08:41:45.943Z"
+    "modified": "2025-07-17T06:58:31.218Z"
   },
   "commands": [
     {
@@ -17,12 +17,12 @@
       "id": 63,
       "type": "group_start",
       "groupName": "環境設定",
-      "isCollapsed": false
+      "isCollapsed": true
     },
     {
       "type": "controlSkitBackground",
       "backgroundColor": "#ffffff",
-      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/SpaceShip_1_100_start",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_1_SpaceShip",
       "action": "Add",
       "position": [
         0,
@@ -104,7 +104,7 @@
       "type": "motion",
       "backgroundColor": "#ffffff",
       "character": "chr_001",
-      "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
+      "animationId": "Vanilla/Skit/Animations/anim_idle01_st",
       "mixerDuration": 0,
       "id": 50
     },
@@ -112,7 +112,7 @@
       "type": "motion",
       "backgroundColor": "#ffffff",
       "character": "chr_002",
-      "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
+      "animationId": "Vanilla/Skit/Animations/anim_idle01_st",
       "mixerDuration": 0,
       "id": 53
     },
@@ -122,13 +122,6 @@
       "backgroundEnable": false,
       "blockEnable": false,
       "id": 70
-    },
-    {
-      "type": "transition",
-      "backgroundColor": "#ffffff",
-      "enabled": false,
-      "duration": 0.4,
-      "id": 66
     },
     {
       "type": "emote",
@@ -142,6 +135,13 @@
     {
       "id": 64,
       "type": "group_end"
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.4,
+      "id": 66
     },
     {
       "type": "text",
@@ -176,12 +176,11 @@
       "overideCharacterName": "？？？"
     },
     {
-      "type": "text",
+      "type": "transition",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": ".......",
-      "id": 5,
-      "overideCharacterName": "？？？"
+      "enabled": true,
+      "duration": 0.5,
+      "id": 76
     },
     {
       "type": "skitObjectControl",
@@ -200,6 +199,19 @@
       "id": 57
     },
     {
+      "type": "wait",
+      "backgroundColor": "#ffffff",
+      "seconds": 0.5,
+      "id": 78
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 77
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
@@ -208,29 +220,81 @@
       "overideCharacterName": "？？？"
     },
     {
-      "type": "text",
+      "type": "transition",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": ".......",
-      "id": 7,
-      "overideCharacterName": "？？？"
+      "enabled": true,
+      "duration": 0.5,
+      "id": 79
     },
     {
-      "type": "text",
+      "type": "controlSkitBackground",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "耐熱シールドを分離\nパラシュート展開",
-      "id": 8,
-      "overideCharacterName": "？？？"
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_1_SpaceShip",
+      "action": "Remove",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 61
     },
     {
-      "type": "text",
+      "type": "inGameObjectControl",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "ドスン",
-      "id": 9,
-      "isOverrideCharacterName": true,
-      "overrideCharacterName": "　"
+      "backgroundEnable": true,
+      "blockEnable": true,
+      "id": 71
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior",
+      "action": "Add",
+      "position": [
+        182.04,
+        14.856,
+        -61.59
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 74
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        182.6968,
+        16.54991,
+        -56.41586
+      ],
+      "Rotation": [
+        4.468853,
+        4.15996,
+        359.9859
+      ],
+      "id": 82
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#ffffff",
+      "seconds": 0.5,
+      "id": 81
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 80
     },
     {
       "type": "text",
@@ -288,7 +352,7 @@
     {
       "type": "controlSkitBackground",
       "backgroundColor": "#ffffff",
-      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/SpaceShip_1_100_start",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior",
       "action": "Remove",
       "position": [
         0,
@@ -300,14 +364,7 @@
         0,
         0
       ],
-      "id": 61
-    },
-    {
-      "type": "inGameObjectControl",
-      "backgroundColor": "#ffffff",
-      "backgroundEnable": false,
-      "blockEnable": false,
-      "id": 71
+      "id": 75
     },
     {
       "type": "characterTransform",
