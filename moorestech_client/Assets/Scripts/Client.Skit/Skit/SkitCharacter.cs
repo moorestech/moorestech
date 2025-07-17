@@ -52,5 +52,18 @@ namespace Client.Skit.Skit
                 weight,
                 duration);
         }
+        
+        public (Vector3 pos, Vector3 rot) GetBoneAbsoluteTransform(string boneName)
+        {
+            var transforms = gameObject.GetComponentsInChildren<Transform>();
+            foreach (var transform in transforms)
+            {
+                if (transform.name == boneName)
+                {
+                    return (transform.position, transform.eulerAngles);
+                }
+            }
+            return (Vector3.zero, Vector3.zero);
+        }
     }
 }
