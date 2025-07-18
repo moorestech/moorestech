@@ -12,7 +12,6 @@ namespace Client.DebugSystem
             var debugEnvironmentController = FindObjectOfType<DebugEnvironmentController>();
             if (debugEnvironmentController == null)
             {
-                Debug.LogError("DebugEnvironmentController not found");
                 return;
             }
             

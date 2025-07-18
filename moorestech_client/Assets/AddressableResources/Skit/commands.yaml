@@ -61,7 +61,7 @@ commands:
   - id: wait
     label: 待機
     description: 指定秒数だけウェイト
-    commandListLabelFormat: "WAIT: {seconds}s"
+    commandListLabelFormat: "待機 {seconds}s"
     category: ["基本"]
     defaultBackgroundColor: "#ffffff"
     properties:

@@ -27,7 +27,7 @@ namespace Client.Game.InGame.Tutorial
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
             
             var options = new HudArrowOptions(hideWhenTargetInactive: true);
-            HudArrowManager.Instance.RegisterHudArrowTarget(gameObject, options);
+            HudArrowManager.RegisterHudArrowTarget(gameObject, options);
         }
         
         private void Update()
@@ -85,10 +85,7 @@ namespace Client.Game.InGame.Tutorial
         
         private void OnDestroy()
         {
-            if (HudArrowManager.Instance != null)
-            {
-                HudArrowManager.Instance.UnregisterHudArrowTarget(gameObject);
-            }
+            HudArrowManager.UnregisterHudArrowTarget(gameObject);
         }
     }
 }

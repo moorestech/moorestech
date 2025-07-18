@@ -24,7 +24,7 @@ namespace Client.Game.InGame.Map.MapObject
         
         private void Update()
         {
-            var currentCamera = CameraManager.Instance.MainCamera.Camera;
+            var currentCamera = CameraManager.MainCamera.Camera;
             
             if (currentCamera)
             {

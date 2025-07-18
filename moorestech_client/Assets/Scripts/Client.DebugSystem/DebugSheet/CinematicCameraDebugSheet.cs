@@ -30,7 +30,7 @@ namespace Client.DebugSystem
                 
                 if (_isCinematicCameraActive)
                 {
-                    CameraManager.Instance.RegisterCamera(_cinematicCamera);
+                    CameraManager.RegisterCamera(_cinematicCamera);
                     
                     // プレイヤーの位置に合わせる
                     var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
@@ -44,7 +44,7 @@ namespace Client.DebugSystem
                 }
                 else
                 {
-                    CameraManager.Instance.UnRegisterCamera(_cinematicCamera);
+                    CameraManager.UnRegisterCamera(_cinematicCamera);
                     PlayerSystemContainer.Instance.PlayerObjectController.SetControllable(true);
 
                     Debug.Log("Cinematic camera disabled");

@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
-using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Skit;
-using Client.Game.InGame.World;
 using Client.Game.Skit;
-using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
-using Core.Item.Interface;
-using Game.CraftTree.Models;
-using Mooresmaster.Model.ChallengesModule;
+using Cysharp.Threading.Tasks;
+using Server.Boot;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -33,20 +27,22 @@ namespace Client.DebugSystem.Skit
             var builder = new ContainerBuilder();
             
             // 必要な依存関係の登録
+            builder.Register<SkitFireManager>(Lifetime.Singleton);
             builder.Register<ISkitActionContext, SkitActionContext>(Lifetime.Singleton);
             
             // Hierarchy上のコンポーネントを登録
             builder.RegisterComponent(skitManager);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(environmentRoot);
-            
-            
-            // SkitFireManagerを登録
-            builder.Register<SkitFireManager>(Lifetime.Singleton);
+            builder.RegisterComponent(skitUI);
             
             // 依存関係を解決
             _resolver = builder.Build();
             _resolver.Inject(skitManager);
+            
+            new MoorestechServerDIContainerGenerator().Create(ServerDirectory.GetDirectory());
+            
+            skitManager.StartSkit("Vanilla/Skit/skits/100_start_game").Forget();
         }
         
 
