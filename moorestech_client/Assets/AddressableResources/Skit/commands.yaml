@@ -2,13 +2,15 @@ version: 1
 master:
   characters: ["chr_001", "chr_002", "chr_003"]
   emotes: ["Emote_Bitter Smile", "Emote_Blink", "Emote_Mortified", "Emote_Smile", "Emote_Surprise", "Emote_Thinking", "Icon_Blushing", "Icon_Kirakira", "Icon_Pale", "Icon_Sweat", "Icon_Tears", "Icon_Tears2", "Emote_Shock", "Icon_Sweat2", "Emote_Smile2", "Emote_Zitome", "Emote_Bouble Tooth", "Emote_Grin"]
-  animations: ["idle_lp", "wait_st", "wait_lp"]
+  animations: ["Vanilla/Skit/Animations/anim_idle01_st", "Vanilla/Skit/Animations/anim_idle01_lp", "Vanilla/Skit/Animations/anim_surprise01_st","Vanilla/Skit/Animations/anim_surprise01_lp","Vanilla/Skit/Animations/anim_wait01_st", "Vanilla/Skit/Animations/anim_wait01_lp"]
+  cameraOrigin: ["absolute", "characterBone"]
 
 commands:
   - id: transition
     label: トランジション
     description: フェードイン／アウトの切替と持続時間
-    commandListLabelFormat: "TRANSITION: {enabled}, {duration}s"
+    commandListLabelFormat: "トランジション表示 {enabled} {duration}s"
+    category: ["基本"]
     properties:
       enabled:
         type: boolean
@@ -21,72 +23,11 @@ commands:
         constraints:
           min: 0
 
-  - id: characterTransform
-    label: キャラ位置設定
-    description: キャラクターの座標と回転を即座に設定
-    commandListLabelFormat: "{character} {Position} {Rotation}"
-    properties:
-      character:
-        type: enum
-        options:
-          master: characters
-        required: true
-      Position: { type: vector3, required: true }
-      Rotation: { type: vector3, required: true }
-
-  - id: camerawork
-    label: カメラワーク
-    description: 指定時間でカメラを補間移動
-    commandListLabelFormat: "カメラワーク:{duration}s {easing}"
-    properties:
-      duration:
-        type: number
-        default: 2
-        required: true
-        constraints: { min: 0 }
-      easing:
-        type: enum
-        default: InOutSine
-        options: ["Linear", "InSine", "OutSine", "InOutSine", "InQuad", "OutQuad", "InOutQuad"]
-      StartPosition: { type: vector3, required: true }
-      StartRotation: { type: vector3, required: true }
-      
-      EndPosition: { type: vector3, required: true }
-      EndRotation: { type: vector3, required: true }
-
-  - id: wait
-    label: 待機
-    description: 指定秒数だけウェイト
-    commandListLabelFormat: "WAIT: {seconds}s"
-    defaultBackgroundColor: "#ffffff"
-    properties:
-      seconds:
-        type: number
-        default: 0.5
-        constraints: { min: 0 }
-
-  - id: showText
-    label: テキスト表示
-    description: テキストエリアを表示非表示する
-    commandListLabelFormat: "テキスト表示:{enable}"
-    defaultBackgroundColor: "#ffffff"
-    properties:
-      enable:
-        type: boolean
-        required: true
-
-  - id: cameraWarp
-    label: カメラワープ
-    description: カメラを瞬時に座標移動
-    commandListLabelFormat: "カメラワープ {Position} {Rotation}"
-    properties:
-      Position: { type: vector3, required: true }
-      Rotation: { type: vector3, required: true }
-
   - id: text
     label: テキスト
     description: 台詞を表示
     commandListLabelFormat: "{characterId}「{body}」"
+    category: ["基本"]
     defaultCommandLabelColor: "#03b6fc"
     properties:
       characterId:
@@ -106,10 +47,198 @@ commands:
         multiline: true
         required: true
 
+  - id: showText
+    label: テキスト表示
+    description: テキストエリアを表示非表示する
+    commandListLabelFormat: "テキスト表示:{enable}"
+    category: ["基本"]
+    defaultBackgroundColor: "#ffffff"
+    properties:
+      enable:
+        type: boolean
+        required: true
+
+  - id: wait
+    label: 待機
+    description: 指定秒数だけウェイト
+    commandListLabelFormat: "待機 {seconds}s"
+    category: ["基本"]
+    defaultBackgroundColor: "#ffffff"
+    properties:
+      seconds:
+        type: number
+        default: 0.5
+        constraints: { min: 0 }
+
+  - id: selection
+    label: 選択肢
+    description: プレイヤー選択肢を定義
+    commandListLabelFormat: "SELECTION: {Option1Label}/{Option2Label}/{Option3Label}"
+    category: ["移動"]
+    defaultBackgroundColor: "#f9f0ff"
+    properties:
+      Option1Tag:   { type: string, required: true }
+      Option1JumpTarget: { type: command, required: true }
+      Option2Tag:   { type: string }
+      Option2JumpTarget: { type: command }
+      Option3Tag:   { type: string }
+      Option3JumpTarget: { type: command }
+
+  - id: jump
+    label: ジャンプ
+    description: 指定ラベルへジャンプ
+    commandListLabelFormat: "JUMP: {targetLabel}"
+    category: ["移動"]
+    properties:
+      jumpTargetCommand: { type: command, required: true }
+
+  - id: characterTransform
+    label: キャラ位置設定
+    description: キャラクターの座標と回転を即座に設定
+    commandListLabelFormat: "{character} {Position} {Rotation}"
+    category: ["キャラクター"]
+    properties:
+      character:
+        type: enum
+        options:
+          master: characters
+        required: true
+      Position: { type: vector3, required: true }
+      Rotation: { type: vector3, required: true }
+
+  - id: emote
+    label: エモート
+    description: 立ち絵・表情切替
+    commandListLabelFormat: "{character}:{emotion}"
+    category: ["キャラクター"]
+    properties:
+      character:
+        type: enum
+        options:
+          master: characters
+        required: true
+      emotion:
+        type: enum
+        options:
+          master: emotes
+        required: true
+      duration:
+        type: number
+        default: 0.2
+        required: true
+      weight:
+        type: integer
+        default: 100
+        required: true
+
+  - id: motion
+    label: モーション
+    description: キャラのアニメーション再生
+    commandListLabelFormat: "{character}:{animationId}"
+    category: ["キャラクター"]
+    properties:
+      character:
+        type: enum
+        options:
+          master: characters
+        required: true
+      animationId:
+        type: enum
+        options:
+          master: animations
+        required: true
+      mixerDuration:
+        type: number
+        options:
+          master: animations
+        required: true
+
+  - id: camerawork
+    label: カメラワーク
+    description: 指定時間でカメラを補間移動
+    commandListLabelFormat: "カメラワーク:{duration}s {easing}"
+    category: ["カメラ"]
+    properties:
+      duration:
+        type: number
+        default: 2
+        required: true
+        constraints: { min: 0 }
+      easing:
+        type: enum
+        default: InOutSine
+        options: ["Linear", "InSine", "OutSine", "InOutSine", "InQuad", "OutQuad", "InOutQuad"]
+      StartPosition: { type: vector3, required: true }
+      StartRotation: { type: vector3, required: true }
+      
+      EndPosition: { type: vector3, required: true }
+      EndRotation: { type: vector3, required: true }
+
+  - id: cameraWarp
+    label: カメラ移動
+    description: カメラを瞬時に座標移動
+    commandListLabelFormat: "カメラ移動 {Position} {Rotation}"
+    category: ["カメラ"]
+    properties:
+      fieldOfView: { type: number, required: true, default: 60 }
+      Position: { type: vector3, required: true }
+      Rotation: { type: vector3, required: true }
+
+  - id: inGameObjectControl
+    label: ゲーム内オブジェクト制御
+    commandListLabelFormat: "背景:{backgroundEnable} ブロック:{blockEnable}"
+    category: ["環境"]
+    defaultBackgroundColor: "#ffffff"
+    properties:
+      backgroundEnable:
+        type: boolean
+        required: true
+      blockEnable:
+        type: boolean
+        required: true
+      
+  - id: controlSkitBackground
+    label: スキット背景を制御
+    description: スキットの背景を追加または削除
+    commandListLabelFormat: "{action}: {skitEnvironmentAddressablePath}"
+    category: ["環境"]
+    properties:
+      skitEnvironmentAddressablePath:
+        type: string
+        required: true
+      action:
+        type: enum
+        options: ["Add", "Remove"]
+        required: true
+      position:
+        type: vector3
+        required: true
+      rotation:
+        type: vector3
+        required: true
+
+  - id: skitObjectControl
+    label: スキットオブジェクト制御
+    description: スキットオブジェクトの制御を行う
+    commandListLabelFormat: "{skitObjectId} - {action}"
+    category: ["環境"]
+    properties:
+      skitObjectId:
+        type: string
+        required: true
+      action:
+        type: enum
+        options: ["SetActive"]
+        required: true
+      activeEnable:
+        type: boolean
+        required: true
+  
   - id: backgroundSkitText
     label: 背景スキットテキスト
     description: 台詞を表示
     commandListLabelFormat: "{characterId}：{body}"
+    category: ["背景スキット"]
     defaultCommandLabelColor: "#03fca9"
     properties:
       characterId:
@@ -128,61 +257,4 @@ commands:
         multiline: true
         required: true
 
-  - id: emote
-    label: エモート
-    description: 立ち絵・表情切替
-    commandListLabelFormat: "EMOTE: {character}, {emotion}"
-    properties:
-      character:
-        type: enum
-        options:
-          master: characters
-        required: true
-      emotion:
-        type: enum
-        options:
-          master: emotes
-        required: true
-
-  - id: selection
-    label: 選択肢
-    description: プレイヤー選択肢を定義
-    commandListLabelFormat: "SELECTION: {Option1Label}/{Option2Label}/{Option3Label}"
-    defaultBackgroundColor: "#f9f0ff"
-    properties:
-      Option1Tag:   { type: string, required: true }
-      Option1JumpTarget: { type: command, required: true }
-      Option2Tag:   { type: string }
-      Option2JumpTarget: { type: command }
-      Option3Tag:   { type: string }
-      Option3JumpTarget: { type: command }
-
-  - id: jump
-    label: ジャンプ
-    description: 指定ラベルへジャンプ
-    commandListLabelFormat: "JUMP: {targetLabel}"
-    properties:
-      jumpTargetCommand: { type: command, required: true }
-
-  - id: motion
-    label: モーション
-    description: キャラのアニメーション再生
-    commandListLabelFormat: "MOTION: {character}, {motionName}"
-    properties:
-      character:
-        type: enum
-        options:
-          master: characters
-        required: true
-      animationId:
-        type: enum
-        options:
-          master: animations
-        required: true
-      mixerDuration:
-        type: number
-        options:
-          master: animations
-        required: true
-      
 

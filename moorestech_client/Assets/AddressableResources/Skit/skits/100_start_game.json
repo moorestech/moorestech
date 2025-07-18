@@ -3,9 +3,160 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-05T07:28:05.803Z"
+    "modified": "2025-07-18T09:38:27.260Z"
   },
   "commands": [
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0,
+      "id": 65
+    },
+    {
+      "id": 63,
+      "type": "group_start",
+      "groupName": "環境設定",
+      "isCollapsed": false
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_1_SpaceShip",
+      "action": "Add",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 55
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_1",
+      "action": "SetActive",
+      "activeEnable": true,
+      "id": 90
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        180.0574,
+        5.05194,
+        -57.61555
+      ],
+      "Rotation": [
+        358.213,
+        35.37724,
+        0.01684119
+      ],
+      "id": 95
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        183.367,
+        15.816,
+        -54.18
+      ],
+      "Rotation": [
+        288.015,
+        132.9489,
+        315.6128
+      ],
+      "id": 83
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        183.408,
+        15.312,
+        -55.064
+      ],
+      "Rotation": [
+        0,
+        270,
+        0
+      ],
+      "id": 84
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_003",
+      "Position": [
+        -1.453478,
+        -100,
+        -0.7206354
+      ],
+      "Rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 68
+    },
+    {
+      "type": "motion",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "animationId": "Vanilla/Skit/Animations/anim_idle01_st",
+      "mixerDuration": 0,
+      "id": 50
+    },
+    {
+      "type": "motion",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "animationId": "Vanilla/Skit/Animations/anim_idle01_lp",
+      "mixerDuration": 0,
+      "id": 53
+    },
+    {
+      "type": "inGameObjectControl",
+      "backgroundColor": "#ffffff",
+      "backgroundEnable": false,
+      "blockEnable": false,
+      "id": 70
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Blink",
+      "duration": 0.2,
+      "weight": 100,
+      "id": 51
+    },
+    {
+      "id": 64,
+      "type": "group_end"
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#ffffff",
+      "seconds": 0.5,
+      "id": 91
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.4,
+      "id": 66
+    },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
@@ -23,12 +174,44 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        182.3469,
+        16.4379,
+        -54.77198
+      ],
+      "Rotation": [
+        27.08996,
+        342.3409,
+        0.01999091
+      ],
+      "id": 114
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
       "body": "搭乗員一名、ヨリ、睡眠薬による昏睡を確認",
       "id": 3,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        182.784,
+        16.83559,
+        -55.47733
+      ],
+      "Rotation": [
+        358.0412,
+        48.78478,
+        0.01428189
+      ],
+      "id": 97
     },
     {
       "type": "text",
@@ -39,18 +222,62 @@
       "overideCharacterName": "？？？"
     },
     {
-      "type": "text",
+      "type": "transition",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": ".......",
-      "id": 5,
-      "overideCharacterName": "？？？"
+      "enabled": true,
+      "duration": 0.5,
+      "id": 76
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_1",
+      "action": "SetActive",
+      "activeEnable": false,
+      "id": 56
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_2",
+      "action": "SetActive",
+      "activeEnable": true,
+      "id": 57
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#ffffff",
+      "seconds": 0.5,
+      "id": 78
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        188.4598,
+        4.201832,
+        -55.37869
+      ],
+      "Rotation": [
+        353.2283,
+        316.4809,
+        0.01263327
+      ],
+      "id": 98
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 77
     },
     {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
-      "body": "ワープの正常終了を確認。\n惑星アルカディアへの大気圏突入を開始",
+      "body": "ワープの正常終了を確認",
       "id": 6,
       "overideCharacterName": "？？？"
     },
@@ -58,24 +285,139 @@
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
-      "body": ".......",
-      "id": 7,
+      "body": "惑星アルカディアへの大気圏突入を開始",
+      "id": 94,
       "overideCharacterName": "？？？"
     },
     {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "耐熱シールドを分離\nパラシュート展開",
-      "id": 8,
-      "overideCharacterName": "？？？"
+      "id": 88,
+      "type": "group_start",
+      "groupName": "地上の表示",
+      "isCollapsed": false
     },
     {
-      "type": "text",
+      "type": "transition",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "ドスン",
-      "id": 9
+      "enabled": true,
+      "duration": 0.5,
+      "id": 79
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_1_SpaceShip",
+      "action": "Remove",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 61
+    },
+    {
+      "type": "inGameObjectControl",
+      "backgroundColor": "#ffffff",
+      "backgroundEnable": true,
+      "blockEnable": true,
+      "id": 71
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior",
+      "action": "Add",
+      "position": [
+        182.04,
+        14.856,
+        -61.59
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 74
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "Planet_2",
+      "action": "SetActive",
+      "activeEnable": false,
+      "id": 86
+    },
+    {
+      "type": "skitObjectControl",
+      "backgroundColor": "#ffffff",
+      "skitObjectId": "SpaceSkybox",
+      "action": "SetActive",
+      "activeEnable": false,
+      "id": 85
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        182.7367,
+        16.4516,
+        -53.71825
+      ],
+      "Rotation": [
+        359.0725,
+        2.891769,
+        0.01336524
+      ],
+      "id": 99
+    },
+    {
+      "type": "wait",
+      "backgroundColor": "#ffffff",
+      "seconds": 0.5,
+      "id": 81
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 80
+    },
+    {
+      "id": 89,
+      "type": "group_end"
+    },
+    {
+      "type": "camerawork",
+      "backgroundColor": "#ffffff",
+      "duration": 3,
+      "easing": "InOutSine",
+      "StartPosition": [
+        182.7367,
+        16.4516,
+        -53.71825
+      ],
+      "StartRotation": [
+        359.0725,
+        2.891769,
+        0.01336524
+      ],
+      "EndPosition": [
+        182.689,
+        16.86179,
+        -55.76982
+      ],
+      "EndRotation": [
+        12.48,
+        2.895,
+        0.014
+      ],
+      "id": 100
     },
     {
       "type": "text",
@@ -94,6 +436,22 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        182.0695,
+        16.55181,
+        -54.51553
+      ],
+      "Rotation": [
+        46.51343,
+        331.4532,
+        0.02307051
+      ],
+      "id": 101
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
@@ -101,11 +459,36 @@
       "id": 12
     },
     {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Blink",
+      "duration": 0.2,
+      "weight": "0",
+      "id": 87
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": "……頭が重い……なんだか変な夢を見ていたような……\n……あれ？　ここは...宇宙船？",
       "id": 13
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        183.5419,
+        17.27454,
+        -55.31778
+      ],
+      "Rotation": [
+        42.04444,
+        307.8068,
+        0.03439349
+      ],
+      "id": 102
     },
     {
       "type": "text",
@@ -116,6 +499,22 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        182.2061,
+        16.76579,
+        -54.32726
+      ],
+      "Rotation": [
+        62.84259,
+        271.0457,
+        0.05302175
+      ],
+      "id": 117
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
@@ -123,11 +522,147 @@
       "id": 15
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        183.5419,
+        17.27454,
+        -55.31778
+      ],
+      "Rotation": [
+        42.04444,
+        307.8068,
+        0.03439349
+      ],
+      "id": 118
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "characterId": "chr_002",
+      "body": "困惑されるのも当然でしょう。\nひとまず、外に出ましょう。",
+      "id": 45,
+      "overideCharacterName": "？？？"
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0.5,
+      "id": 92
+    },
+    {
+      "type": "controlSkitBackground",
+      "backgroundColor": "#ffffff",
+      "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior",
+      "action": "Remove",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 75
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        184.453,
+        14.81234,
+        -59.776
+      ],
+      "Rotation": [
+        0,
+        0,
+        0
+      ],
+      "id": 46
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Shock",
+      "duration": 0,
+      "weight": "54",
+      "id": 103
+    },
+    {
+      "type": "motion",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "animationId": "Vanilla/Skit/Animations/anim_wait01_lp",
+      "mixerDuration": 0,
+      "id": 104
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        184.58,
+        14.81232,
+        -58.228
+      ],
+      "Rotation": [
+        0,
+        185.7982,
+        0
+      ],
+      "id": 47
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        184.5986,
+        16.22844,
+        -59.21669
+      ],
+      "Rotation": [
+        344.9777,
+        202.751,
+        0.03206696
+      ],
+      "id": 122
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 93
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
-      "body": "私は惑星セレスタルに住んでいるはず..冗談だよね！",
+      "body": "ここは…どこ…？\n私は惑星セレスタルに住んでいるはず..冗談だよね！",
       "id": 16
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        184.886,
+        16.43916,
+        -59.04727
+      ],
+      "Rotation": [
+        4.057205,
+        345.0848,
+        0.02503862
+      ],
+      "id": 106
     },
     {
       "type": "text",
@@ -146,11 +681,61 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Shock",
+      "duration": 0,
+      "weight": "0",
+      "id": 119
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Blink",
+      "duration": 0.2,
+      "weight": 100,
+      "id": 107
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 43,
+      "Position": [
+        184.8304,
+        16.40388,
+        -58.84608
+      ],
+      "Rotation": [
+        0.4475534,
+        211.3543,
+        0.02616501
+      ],
+      "id": 108
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": "ありがとう。とにかくすっごく遠くまで旅行に\n来ちゃってるってことは分かったよ\nよーし、早く帰ろう！　みんなが心配しちゃう！",
       "id": 19
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 18,
+      "Position": [
+        184.9841,
+        16.47682,
+        -57.23351
+      ],
+      "Rotation": [
+        2.510181,
+        191.2412,
+        0.02663064
+      ],
+      "id": 109
     },
     {
       "type": "text",
@@ -169,11 +754,61 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Blink",
+      "duration": 0.2,
+      "weight": "0",
+      "id": 116
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Shock",
+      "duration": 0,
+      "weight": "73",
+      "id": 120
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 47,
+      "Position": [
+        184.487,
+        16.40104,
+        -59.08266
+      ],
+      "Rotation": [
+        4.91653,
+        187.4641,
+        0.02788683
+      ],
+      "id": 111
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": "追放...追放って何！？\nどういうこと！？私が何をしたっていうの！？\nそれにお父さまが...",
       "id": 22
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 47,
+      "Position": [
+        184.6846,
+        16.44692,
+        -60.25506
+      ],
+      "Rotation": [
+        5.947936,
+        357.4612,
+        0.02951227
+      ],
+      "id": 112
     },
     {
       "type": "text",
@@ -191,12 +826,37 @@
       "id": 24
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 24,
+      "Position": [
+        187.1472,
+        16.27157,
+        -61.62614
+      ],
+      "Rotation": [
+        4.74471,
+        316.5513,
+        0.02788075
+      ],
+      "id": 113
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
       "body": "何も知りません。\n私は貴方をサポートするために、\nプログラムされたAIシステムです。",
       "id": 25,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Shock",
+      "duration": 0,
+      "weight": "0",
+      "id": 121
     },
     {
       "type": "text",
@@ -241,7 +901,8 @@
       "characterId": "chr_001",
       "body": "パチン！",
       "id": 31,
-      "isOverrideCharacterName": true
+      "isOverrideCharacterName": true,
+      "overrideCharacterName": "　"
     },
     {
       "type": "text",

@@ -64,6 +64,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             if (toolTipText != null)
             {
                 uGuiTooltipTarget.SetText(toolTipText, false);
+                uGuiTooltipTarget.DisplayEnable(true);
             }
         }
         

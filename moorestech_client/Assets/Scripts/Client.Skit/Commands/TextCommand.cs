@@ -10,7 +10,7 @@ namespace CommandForgeGenerator.Command
 {
     public partial class TextCommand
     {
-        private const float TextDuration = 0.1f;
+        private const float TextDuration = 0.05f;
         private const float WaitDuration = 1f;
         
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)

@@ -14,6 +14,7 @@ namespace Client.Game.InGame.Player
         public void SetActive(bool active);
         
         public void SetAnimationState(string state);
+        public void SetControllable(bool enable);
     }
     
     public class PlayerAnimationState
@@ -66,6 +67,10 @@ namespace Client.Game.InGame.Player
         public void SetAnimationState(string state)
         {
             animator.Play(state);
+        }
+        public void SetControllable(bool enable)
+        {
+            controller.SetControllable(enable);
         }
     }
 }

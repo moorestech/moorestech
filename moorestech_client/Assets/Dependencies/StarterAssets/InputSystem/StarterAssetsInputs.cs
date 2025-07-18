@@ -58,21 +58,25 @@ namespace StarterAssets
 
 		public void MoveInput(Vector2 newMoveDirection)
 		{
+            if (!inputEnable) return; 
 			move = newMoveDirection;
 		} 
 
 		public void LookInput(Vector2 newLookDirection)
 		{
+            if (!inputEnable) return;
 			look = newLookDirection;
 		}
 
 		public void JumpInput(bool newJumpState)
 		{
+            if (!inputEnable) return;
 			jump = newJumpState;
 		}
 
 		public void SprintInput(bool newSprintState)
 		{
+            if (!inputEnable) return;
 			sprint = newSprintState;
 		}
 

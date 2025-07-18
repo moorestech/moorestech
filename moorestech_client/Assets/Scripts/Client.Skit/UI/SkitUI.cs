@@ -29,7 +29,7 @@ namespace Client.Skit.UI
         public void ShowTransition(bool isShow, float duration)
         {
             // UXML / UI Builder で Name = "Transition" を付けておく
-            var transition = GetElement<Label>("Transition");
+            var transition = GetElement<VisualElement>("Transition");
             if (transition == null) return;               // 念のため存在チェック
             
             // 0 秒なら即座に切り替え

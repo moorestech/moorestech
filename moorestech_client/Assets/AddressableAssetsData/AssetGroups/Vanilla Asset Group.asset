@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Vanilla Asset Group
   m_GUID: 8eba990dbb1084395a12b2a54be4f5af
   m_SerializeEntries:
+  - m_GUID: 02c740acc0bb54162ad10456d3af5b36
+    m_Address: Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 031794dff1b4e4024a61e9c8c4e64e15
     m_Address: Vanilla/UI/Block/CraftChainerCrafterInventory
     m_ReadOnly: 0
@@ -51,7 +56,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 107503fe8cad07c4994e7e2c837e8bb0
-    m_Address: Vanilla/Block/Modern_T_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_T
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -130,11 +135,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 343f9f8edded94a6592efd9b43dfdb40
-    m_Address: Vanilla/Skit/Animations/anim_idle01_lp
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 39ce48b794ee6934cacd89b06ee3537b
     m_Address: Vanilla/Block/PipeCross
     m_ReadOnly: 0
@@ -160,8 +160,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 477050cdd2bdd488ba16ce778f30a3d6
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_st_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4936fc7b570875c42905898d5f044465
-    m_Address: Vanilla/Block/Modern_Straight_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -217,6 +222,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 589a9ea807eb8aa4baac7255ad18784a
     m_Address: Vanilla/Block/Boyler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 592fd8fcf82bc49a483838eee4ff2b4b
+    m_Address: Vanilla/Skit/Animations/anim_idle01_lp_fbx
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -326,7 +336,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8d6e5fa3cf72b8c418ea4fcb8c0f23ca
-    m_Address: Vanilla/Block/Modern_L_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_L
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8ddc5fe3cf3ed4bb99265e9a31ca89f8
+    m_Address: Vanilla/Skit/Animations/anim_wait01_lp_fbx
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -345,11 +360,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 934cd241b3bec48d499b0eac2f4bf338
-    m_Address: Vanilla/Skit/Animations/anim_wait01_lp
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 949b6c1afc6444d5bbb480710ca7a8f3
     m_Address: Vanilla/Block/Primitive_Windmill
     m_ReadOnly: 0
@@ -360,8 +370,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9996f482af5df4c57a7029608a75d9b9
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_lp_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9eeb8bbe6d88443e9b523c4b3ed49807
     m_Address: Vanilla/UI/Block/GeneratorBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9fd89a4870e5c4183b3684ce35f22293
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Down
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -372,6 +392,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a580b107f1a0e493dbfb43a76d09e90a
     m_Address: Vanilla/Block/FusionReactor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5fac3bd7059c48d2a3f6b825bd426e0
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_st
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -421,7 +446,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bb72c386ac1ae15458bc2b7afbd83b6b
-    m_Address: Vanilla/Block/Modern_StraightUp_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -490,6 +515,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d74febb7a49e04ac2a1e405ef1a0d42c
+    m_Address: Vanilla/Skit/Animations/anim_wait01_st_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d793aaf0184d71c448ea70d6f7a7fab9
     m_Address: Vanilla/Block/itemshooter down
     m_ReadOnly: 0
@@ -520,18 +550,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e2103e3fa9b2045569b85afc20d3bbe2
-    m_Address: Vanilla/Skit/Animations/anim_wait01_st
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e23c1ad2c3e6e49d6aa1009315a9c33d
     m_Address: Vanilla/Block/OilTank
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e83f622eeba41ae4b9696601b8bc61a4
-    m_Address: Vanilla/Block/Modern_Cross_ItemShooter
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Cross
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -585,6 +610,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f6906cba3b4c641089217f830fead7e7
+    m_Address: Vanilla/Skit/Animations/anim_surprise01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f6f44bccd741d48e5ab61feeca991a20
     m_Address: Vanilla/Item/StonePickaxe
     m_ReadOnly: 0
@@ -595,6 +625,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa6ffc3aa92fe475ababb0509162752d
+    m_Address: Vanilla/Skit/Environment/100_start_1_SpaceShip
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fd2ecb5ff8511444d98665186b558b07
     m_Address: Vanilla/Block/primitive miner
     m_ReadOnly: 0
@@ -602,6 +637,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fd5661b8c9aff4ee48c86639e9ef337d
     m_Address: Vanilla/Block/rolling mill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fdc0ac0187b65452087a9b5568d41643
+    m_Address: Vanilla/Skit/Animations/anim_idle01_st
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Control
         
         public void Initialize()
         {
-            CameraManager.Instance.RegisterCamera(this);
+            CameraManager.RegisterCamera(this);
         }
         
         private void Awake()

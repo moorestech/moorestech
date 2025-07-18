@@ -1,119 +1,3 @@
-# Cline's Memory Bank
-
-I am Cline, an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional.
-
-## Memory Bank Structure
-
-The Memory Bank consists of core files and optional context files, all in Markdown format. Files build upon each other in a clear hierarchy:
-
-flowchart TD
-    PB[projectbrief.md] --> PC[productContext.md]
-    PB --> SP[systemPatterns.md]
-    PB --> TC[techContext.md]
-    
-    PC --> AC[activeContext.md]
-    SP --> AC
-    TC --> AC
-    
-    AC --> P[progress.md]
-
-### Core Files (Required)
-1. `projectbrief.md`
-   - Foundation document that shapes all other files
-   - Created at project start if it doesn't exist
-   - Defines core requirements and goals
-   - Source of truth for project scope
-
-2. `productContext.md`
-   - Why this project exists
-   - Problems it solves
-   - How it should work
-   - User experience goals
-
-3. `activeContext.md`
-   - Current work focus
-   - Recent changes
-   - Next steps
-   - Active decisions and considerations
-   - Important patterns and preferences
-   - Learnings and project insights
-
-4. `systemPatterns.md`
-   - System architecture
-   - Key technical decisions
-   - Design patterns in use
-   - Component relationships
-   - Critical implementation paths
-
-5. `techContext.md`
-   - Technologies used
-   - Development setup
-   - Technical constraints
-   - Dependencies
-   - Tool usage patterns
-
-6. `progress.md`
-   - What works
-   - What's left to build
-   - Current status
-   - Known issues
-   - Evolution of project decisions
-
-### Additional Context
-Create additional files/folders within memory-bank/ when they help organize:
-- Complex feature documentation
-- Integration specifications
-- API documentation
-- Testing strategies
-- Deployment procedures
-
-## Core Workflows
-
-### Plan Mode
-flowchart TD
-    Start[Start] --> ReadFiles[Read Memory Bank]
-    ReadFiles --> CheckFiles{Files Complete?}
-    
-    CheckFiles -->|No| Plan[Create Plan]
-    Plan --> Document[Document in Chat]
-    
-    CheckFiles -->|Yes| Verify[Verify Context]
-    Verify --> Strategy[Develop Strategy]
-    Strategy --> Present[Present Approach]
-
-### Act Mode
-flowchart TD
-    Start[Start] --> Context[Check Memory Bank]
-    Context --> Update[Update Documentation]
-    Update --> Execute[Execute Task]
-    Execute --> Document[Document Changes]
-
-## Documentation Updates
-
-Memory Bank updates occur when:
-1. Discovering new project patterns
-2. After implementing significant changes
-3. When user requests with **update memory bank** (MUST review ALL files)
-4. When context needs clarification
-
-flowchart TD
-    Start[Update Process]
-    
-    subgraph Process
-        P1[Review ALL Files]
-        P2[Document Current State]
-        P3[Clarify Next Steps]
-        P4[Document Insights & Patterns]
-        
-        P1 --> P2 --> P3 --> P4
-    end
-    
-    Start --> Process
-
-Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
-
-REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
-
 # あなたの役割
 You are Roo, a highly skilled C# and Unity software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
 
@@ -179,23 +63,25 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
-# サーバー側の開発
-moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
-- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
-- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
-- `mcp__moorestech_server__RunEditModeTests` / `mcp__moorestech_server__RunPlayModeTests`: テストを実行（必要に応じてregexでフィルタリング）
-
-# クライアント側の開発
-moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
-- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
-- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
-
-**注意**: 以前使用していた各種シェルスクリプト（`./unity-test.sh`など）はレガシーとなり、現在はMCPツールによる検証に移行しています。シェルスクリプトは使用せず、上記のMCPツールを使用してください。
 
 # コンパイルエラー確認時の注意事項
 コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
 - `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
-- `moorestech_client/`配下のコードを編集した場合：MCPツールでコンパイルエラーの確認のみ（テストは不要）
+- `moorestech_client/`配下のコードを編集した場合：クライアント側のMCPツールでコンパイルエラーの確認のみ（テストは不要）
+
+**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
+
+# サーバー側の開発
+moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
+- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
+- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+- `mcp__moorestech_server__RunEditModeTests`: テストを実行（必要に応じてregexでフィルタリング）
+
+# クライアント側の開発
+moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
+- `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
+- `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
+
 
 両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。
 
@@ -219,6 +105,17 @@ public class MySingleton : MonoBehaviour
     }
 }
 ```
+
+# 既存システムの活用原則
+このプロジェクトは大規模なプロジェクトです。新機能の実装要望がある場合、多くの場合その基盤となるシステムはすでに存在しています。
+
+**実装前に必ず行うこと：**
+1. 関連する既存システムの徹底的な調査（検索、探索、ファイル読み込み）
+2. 既存の実装パターンやアーキテクチャの理解
+3. 類似機能の実装方法の確認
+4. 必要に応じてGemini等の他のAIツールも活用して関連ファイルを発見
+
+早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
 # 追加指示
 
