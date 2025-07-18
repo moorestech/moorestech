@@ -100,5 +100,11 @@ namespace Client.Network.API
             var request = new RegisterPlayedSkitProtocol.RegisterPlayedSkitMessagePack(_playerId, skitId);
             _packetSender.Send(request);
         }
+        
+        public void InvokeBlockState(Vector3Int position)
+        {
+            var request = new InvokeBlockStateEventProtocol.RequestInvokeBlockStateProtocolMessagePack(position);
+            _packetSender.Send(request);
+        }
     }
 }

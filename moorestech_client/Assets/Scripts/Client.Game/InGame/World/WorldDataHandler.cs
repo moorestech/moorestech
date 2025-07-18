@@ -32,6 +32,8 @@ namespace Client.Game.InGame.World
             //イベントをサブスクライブする
             ClientContext.VanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
             ClientContext.VanillaApi.Event.SubscribeEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
+            
+            ApplyWorldData(initialHandshakeResponse.WorldData);
         }
         
         public void Initialize()

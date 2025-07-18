@@ -1,5 +1,8 @@
 ﻿using System.Reflection;
+using Client.Game.InGame.Context;
+using Client.Network.API;
 using IngameDebugConsole;
+using Server.Protocol.PacketResponse;
 using Tayx.Graphy;
 using UnityDebugSheet.Runtime.Core.Scripts;
 using UnityDebugSheet.Runtime.Extensions.Graphy;
@@ -24,9 +27,15 @@ namespace Client.DebugSystem
             
             rootPage.AddPageLinkButton<ItemGetDebugSheet>("Get Item");
             rootPage.AddPageLinkButton<SkitDebugSheet>("Skit Player");
+            rootPage.AddPageLinkButton<CinematicCameraDebugSheet>("Cinematic Camera");
             rootPage.AddPageLinkButton<IngameDebugConsoleDebugPage>("In-Game Debug Console", onLoad: x => x.page.Setup(DebugLogManager.Instance));
             rootPage.AddPageLinkButton<GraphyDebugPage>("Graphy", onLoad: x => x.page.Setup(GraphyManager.Instance));
             rootPage.AddSwitch(false, "Runtime Hierarchy Inspector", valueChanged: active => runtimeHierarchyInspector.SetActive(active));
+            rootPage.AddButton("Clear Inventory", clicked: () =>
+            {
+                var command = $"{SendCommandProtocol.ClearInventoryCommand} {ClientContext.PlayerConnectionSetting.PlayerId}";
+                ClientContext.VanillaApi.SendOnly.SendCommand(command);
+            });
             
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);

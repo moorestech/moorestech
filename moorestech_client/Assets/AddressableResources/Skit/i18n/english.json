@@ -127,6 +127,36 @@
     "command.motion.property.animationId.name": "Animation ID",
     "command.motion.property.animationId.description": "Animation to play",
     "command.motion.property.mixerDuration.name": "Mixer Duration",
-    "command.motion.property.mixerDuration.description": "Time to blend animations (seconds)"
+    "command.motion.property.mixerDuration.description": "Time to blend animations (seconds)",
+
+    "command.inGameObjectControl.name": "In-Game Object Control",
+    "command.inGameObjectControl.description": "Control in-game background and block object visibility",
+    "command.inGameObjectControl.property.backgroundEnable.name": "Background Enable",
+    "command.inGameObjectControl.property.backgroundEnable.description": "Background object visibility state",
+    "command.inGameObjectControl.property.blockEnable.name": "Block Enable",
+    "command.inGameObjectControl.property.blockEnable.description": "Block object visibility state",
+    
+    "command.controlSkitBackground.name": "Control Skit Background",
+    "command.controlSkitBackground.description": "Add or remove skit background",
+    "command.controlSkitBackground.property.skitEnvironmentAddressablePath.name": "Background Address",
+    "command.controlSkitBackground.property.skitEnvironmentAddressablePath.description": "Addressable path of background",
+    "command.controlSkitBackground.property.action.name": "Action",
+    "command.controlSkitBackground.property.action.description": "Action to perform",
+    "command.controlSkitBackground.property.action.enum.Add": "Add",
+    "command.controlSkitBackground.property.action.enum.Remove": "Remove",
+    "command.controlSkitBackground.property.position.name": "Position",
+    "command.controlSkitBackground.property.position.description": "Background object placement position",
+    "command.controlSkitBackground.property.rotation.name": "Rotation",
+    "command.controlSkitBackground.property.rotation.description": "Background object rotation angle",
+
+    "command.skitObjectControl.name": "Skit Object Control",
+    "command.skitObjectControl.description": "Control skit objects",
+    "command.skitObjectControl.property.skitObjectId.name": "Object ID",
+    "command.skitObjectControl.property.skitObjectId.description": "ID of the object to control",
+    "command.skitObjectControl.property.action.name": "Action",
+    "command.skitObjectControl.property.action.description": "Action to perform",
+    "command.skitObjectControl.property.action.enum.SetActive": "Set Active",
+    "command.skitObjectControl.property.activeEnable.name": "Active State",
+    "command.skitObjectControl.property.activeEnable.description": "Active state of the object"
   }
 }

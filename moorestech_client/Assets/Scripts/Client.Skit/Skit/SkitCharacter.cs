@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using CommandForgeGenerator.Command;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
@@ -11,9 +13,10 @@ namespace Client.Skit.Skit
         [SerializeField] private SkinnedMeshRenderer faceSkinnedMeshRenderer;
         [SerializeField] private SkitCharacterAnimator skitCharacterAnimator;
         
-        public void Initialize(Transform parent, string name)
+        public void Initialize(Transform parent)
         {
-            gameObject.name = name + " (StoryCharacter)";
+            skitCharacterAnimator.Initialize();
+            gameObject.name += " (StoryCharacter)";
             transform.SetParent(parent);
         }
         
@@ -23,9 +26,9 @@ namespace Client.Skit.Skit
             transform.eulerAngles = rotation;
         }
         
-        public void PlayAnimation(string animationId, float mixierDuration)
+        public async UniTask PlayAnimation(string animationId, float mixierDuration)
         {
-            skitCharacterAnimator.PlayAnimation(animationId, mixierDuration);
+            await skitCharacterAnimator.PlayAnimation(animationId, mixierDuration);
         }
         
         public void PlayVoice(AudioClip voiceClip)
@@ -39,30 +42,30 @@ namespace Client.Skit.Skit
             voiceAudioSource.Stop();
         }
         
-        public void SetEmotion(EmotionType emotion, float duration)
+        public void SetEmotion(string emoteBlendShapeName, float duration, float weight)
         {
-            var blendShapeData = ToBlendShapeData(emotion);
+            var index =faceSkinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(emoteBlendShapeName);
             
-            // Tween BlendShape
-            foreach (var (key, value) in blendShapeData)
-                DOTween.To(
-                    () => faceSkinnedMeshRenderer.GetBlendShapeWeight(key),
-                    x => faceSkinnedMeshRenderer.SetBlendShapeWeight(key, x),
-                    value,
-                    duration);
             
-            #region Internal
-            
-            Dictionary<int, float> ToBlendShapeData(EmotionType emotionType)
+            DOTween.To(
+                () => faceSkinnedMeshRenderer.GetBlendShapeWeight(index),
+                x => faceSkinnedMeshRenderer.SetBlendShapeWeight(index, x),
+                weight,
+                duration);
+        }
+        
+        public (Vector3 pos, Vector3 rot) GetBoneAbsoluteTransform(string boneName)
+        {
+            var transforms = gameObject.GetComponentsInChildren<Transform>();
+            foreach (var transform in transforms)
             {
-                return emotionType switch
+                if (transform.name == boneName)
                 {
-                    EmotionType.Normal => new Dictionary<int, float> { { 11, 0f } },
-                    EmotionType.Happy => new Dictionary<int, float> { { 11, 100 } },
-                };
+                    return (transform.position, transform.eulerAngles);
+                }
             }
             
-            #endregion
+            throw new ArgumentException($"ボーンが見つかりませんでした。指定されたボーン名：{boneName}");
         }
     }
 }

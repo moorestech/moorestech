@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Game.Common;
 using Client.Game.Skit;
 using Cysharp.Threading.Tasks;
 using UnityDebugSheet.Runtime.Core.Scripts;
@@ -13,7 +14,7 @@ namespace Client.DebugSystem
         
         public override IEnumerator Initialize()
         {
-            var customPath = "Vanilla/Skit/skits/sample_skit_2";
+            var customPath = "Vanilla/Skit/skits/100_start_game";
             AddInputField("Skit Addressable Path", value:customPath ,valueChanged: value => customPath = value);
             
             AddButton("Play Custom Skit", subText: "Play skit from custom path", clicked: () =>
@@ -31,6 +32,7 @@ namespace Client.DebugSystem
                     return;
                 }
                 
+                GameStateController.ChangeState(GameStateType.Skit);
                 skitManager.StartSkit(customPath).Forget();
                 DebugSheetController.CloseDebugSheet();
             });

@@ -2,6 +2,7 @@ using System;
 using Client.Skit.Define;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using UnityEngine;
 using VContainer;
 
 namespace Client.Skit.Context
@@ -24,6 +25,7 @@ namespace Client.Skit.Context
             }
             catch (VContainerException e)
             {
+                Debug.LogError("CharacterObjectContainerがコンテキストに設定されていませんでした。");
                 return null;
             }
         }

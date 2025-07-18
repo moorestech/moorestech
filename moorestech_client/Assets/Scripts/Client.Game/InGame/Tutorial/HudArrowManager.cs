@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Tutorial
         private RectTransform _canvasRect;
         
         private readonly Dictionary<GameObject, HudArrow> _hudArrows = new();
-        public static HudArrowManager Instance { get; private set; }
+        private static HudArrowManager Instance { get; set; }
         
         private void Awake()
         {
@@ -31,20 +31,24 @@ namespace Client.Game.InGame.Tutorial
             }
         }
         
-        public void RegisterHudArrowTarget(GameObject target, HudArrowOptions options = default)
+        public static void RegisterHudArrowTarget(GameObject target, HudArrowOptions options = default)
         {
-            var arrow = Instantiate(hudArrowImagePrefab, transform);
+            if (!Instance) return;
+            
+            var arrow = Instantiate(Instance.hudArrowImagePrefab, Instance.transform);
             arrow.Initialize(target, options);
-            _hudArrows[target] = arrow;
+            Instance._hudArrows[target] = arrow;
         }
         
-        public void UnregisterHudArrowTarget(GameObject target)
+        public static void UnregisterHudArrowTarget(GameObject target)
         {
-            if (_hudArrows.TryGetValue(target, out var arrowTransform))
+            if (!Instance) return;
+
+            if (Instance._hudArrows.TryGetValue(target, out var arrowTransform))
             {
                 if (arrowTransform != null)
                     Destroy(arrowTransform.gameObject);
-                _hudArrows.Remove(target);
+                Instance._hudArrows.Remove(target);
             }
         }
         
@@ -53,7 +57,7 @@ namespace Client.Game.InGame.Tutorial
             if (arrow == null || target == null)
                 return;
             
-            var currentCamera = CameraManager.Instance.MainCamera.Camera;
+            var currentCamera = CameraManager.MainCamera.Camera;
             if (!currentCamera)
                 return;
             
@@ -140,9 +144,10 @@ namespace Client.Game.InGame.Tutorial
   #endregion
         }
         
-        public void SetActive(bool enable)
+        public static void SetActive(bool enable)
         {
-            gameObject.SetActive(enable);
+            if (Instance == null) return;
+            Instance.gameObject.SetActive(enable);
         }
     }
     

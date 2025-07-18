@@ -36,6 +36,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.ProtocolTag, new GetChallengeInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(AllBlockStateProtocol.ProtocolTag, new AllBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockStateProtocol.ProtocolTag, new BlockStateProtocol(serviceProvider));
+            _packetResponseDictionary.Add(InvokeBlockStateEventProtocol.ProtocolTag, new InvokeBlockStateEventProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetCraftChainerCrafterRecipeProtocol.ProtocolTag, new SetCraftChainerCrafterRecipeProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetCraftChainerMainComputerRequestItemProtocol.ProtocolTag, new SetCraftChainerMainComputerRequestItemProtocol(serviceProvider));

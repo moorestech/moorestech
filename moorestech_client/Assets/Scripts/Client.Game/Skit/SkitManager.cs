@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
 using Client.Skit.Context;
 using Client.Skit.Define;
@@ -20,12 +22,12 @@ namespace Client.Game.Skit
     public class SkitManager : MonoBehaviour
     {
         [SerializeField] private SkitUI skitUI;
-        
         [SerializeField] private SkitCamera skitCamera;
-        
         [SerializeField] private VoiceDefine voiceDefine;
         
         [Inject] private ISkitActionContext _skitActionContext;
+        [Inject] private EnvironmentRoot environmentRoot;
+        [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
         
         public bool IsPlayingSkit { get; private set; }
         
@@ -54,7 +56,7 @@ namespace Client.Game.Skit
             
             //前処理 Pre process
             using var storyContext = await PreProcess();
-            CameraManager.Instance.RegisterCamera(skitCamera);
+            CameraManager.RegisterCamera(skitCamera);
             
             foreach (var command in commands)
             {
@@ -63,11 +65,11 @@ namespace Client.Game.Skit
             
             //後処理 Post process
             skitUI.SetActive(false);
-            HudArrowManager.Instance.SetActive(true);
+            HudArrowManager.SetActive(true);
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
             characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
-            CameraManager.Instance.UnRegisterCamera(skitCamera);
+            CameraManager.UnRegisterCamera(skitCamera);
             
             #region Internal
             
@@ -87,7 +89,7 @@ namespace Client.Game.Skit
                     {
                         var characterInstance = Instantiate(characterPrefab);
                         var skitCharacter = characterInstance.GetComponent<SkitCharacter>();
-                        skitCharacter.Initialize(transform, characterElement.CharacterId);
+                        skitCharacter.Initialize(transform);
                         characters.Add(characterElement.CharacterId, skitCharacter);
                     }
                     else
@@ -98,7 +100,7 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(true);
-                HudArrowManager.Instance.SetActive(false);
+                HudArrowManager.SetActive(false);
                 
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
@@ -106,6 +108,9 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(new CharacterObjectContainer(characters));
+                builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
+                builder.RegisterInstance<IBlockObjectControl>(blockGameObjectDataStore);
+                builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance(_skitActionContext);
                 
                 return new StoryContext(builder.Build());

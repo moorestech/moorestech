@@ -38,7 +38,6 @@ namespace Client.Network.API
                 GetWorldData(ct), 
                 GetPlayerInventory(playerId, ct), 
                 GetChallengeResponse(playerId, ct), 
-                GetAllBlockState(ct),
                 GetUnlockState(ct), 
                 GetCraftTree(playerId, ct));
             
@@ -122,14 +121,6 @@ namespace Client.Network.API
             var completed = response.CompletedChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             
             return new ChallengeResponse(current, completed);
-        }
-        
-        public async UniTask<List<BlockStateMessagePack>> GetAllBlockState(CancellationToken ct)
-        {
-            var request = new AllBlockStateProtocol.RequestAllBlockStateProtocolMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<AllBlockStateProtocol.ResponseAllBlockStateProtocolMessagePack>(request, ct);
-            
-            return response.StateList;
         }
         
         public async UniTask<BlockStateMessagePack> GetBlockState(Vector3Int blockPos, CancellationToken ct)
