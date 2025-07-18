@@ -168,31 +168,11 @@ commands:
         type: enum
         default: InOutSine
         options: ["Linear", "InSine", "OutSine", "InOutSine", "InQuad", "OutQuad", "InOutQuad"]
-      startCameraOrigin: 
-        type: enum
-        required: true
-        options:
-          master: cameraOrigin
       StartPosition: { type: vector3, required: true }
       StartRotation: { type: vector3, required: true }
-      startCameraOriginCharacter:
-        type: enum
-        options:
-          master: characters
-      startCameraOriginBone: { type: string }
       
-      endCameraOrigin: 
-        type: enum
-        required: true
-        options:
-          master: cameraOrigin
       EndPosition: { type: vector3, required: true }
       EndRotation: { type: vector3, required: true }
-      endCameraOriginCharacter:
-        type: enum
-        options:
-          master: characters
-      endCameraOriginBone: { type: string }
 
   - id: cameraWarp
     label: カメラ移動
@@ -200,20 +180,9 @@ commands:
     commandListLabelFormat: "カメラ移動 {Position} {Rotation}"
     category: ["カメラ"]
     properties:
-      cameraOrigin: 
-        type: enum
-        required: true
-        options:
-          master: cameraOrigin
       fieldOfView: { type: number, required: true, default: 60 }
       Position: { type: vector3, required: true }
       Rotation: { type: vector3, required: true }
-      cameraOriginCharacter:
-        type: enum
-        required: true
-        options:
-          master: characters
-      cameraOriginBone: { type: string }
 
   - id: inGameObjectControl
     label: ゲーム内オブジェクト制御
