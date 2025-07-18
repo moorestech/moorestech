@@ -56,7 +56,7 @@ namespace Client.Game.Skit
             
             //前処理 Pre process
             using var storyContext = await PreProcess();
-            CameraManager.Instance.RegisterCamera(skitCamera);
+            CameraManager.RegisterCamera(skitCamera);
             
             foreach (var command in commands)
             {
@@ -65,11 +65,11 @@ namespace Client.Game.Skit
             
             //後処理 Post process
             skitUI.SetActive(false);
-            HudArrowManager.Instance.SetActive(true);
+            HudArrowManager.SetActive(true);
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
             characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
-            CameraManager.Instance.UnRegisterCamera(skitCamera);
+            CameraManager.UnRegisterCamera(skitCamera);
             
             #region Internal
             
@@ -100,7 +100,7 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(true);
-                HudArrowManager.Instance.SetActive(false);
+                HudArrowManager.SetActive(false);
                 
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
