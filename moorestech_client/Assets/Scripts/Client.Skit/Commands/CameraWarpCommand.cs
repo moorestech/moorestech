@@ -7,7 +7,10 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.GetSkitCamera().SetTransform(Position, Rotation);
+            var skitCamera = storyContext.GetSkitCamera();
+            skitCamera.SetTransform(Position, Rotation);
+            skitCamera.SetFov(FieldOfView);
+            
             return null;
         }
     }

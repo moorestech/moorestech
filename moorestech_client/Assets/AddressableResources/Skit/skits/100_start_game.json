@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-18T11:18:33.742Z"
+    "modified": "2025-07-19T04:40:33.863Z"
   },
   "commands": [
     {
@@ -575,7 +575,7 @@
       "character": "chr_001",
       "Position": [
         184.453,
-        14.0,
+        14,
         -59.776
       ],
       "Rotation": [
@@ -866,6 +866,22 @@
       "id": 26
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        184.7434,
+        15.62829,
+        -59.0401
+      ],
+      "Rotation": [
+        15.22981,
+        354.0601,
+        0.02528165
+      ],
+      "id": 123
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
@@ -874,11 +890,52 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 49,
+      "Position": [
+        184.7672,
+        15.55954,
+        -58.95792
+      ],
+      "Rotation": [
+        1.478832,
+        216.8877,
+        0.02219273
+      ],
+      "id": 124
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": "そ、それなら帰りの宇宙船を作りましょう！\nそれで理由を聞きに行かないと！",
       "id": 28
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 18,
+      "Position": [
+        184.9841,
+        15.66448,
+        -57.23351
+      ],
+      "Rotation": [
+        2.510181,
+        191.2412,
+        0.02663064
+      ],
+      "id": 125
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "emotion": "Emote_Zitome",
+      "duration": 0,
+      "weight": "23.1",
+      "id": 136
     },
     {
       "type": "text",
@@ -896,6 +953,13 @@
       "id": 30
     },
     {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": true,
+      "duration": 0.5,
+      "id": 128
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
@@ -905,11 +969,77 @@
       "overrideCharacterName": "　"
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        184.4727,
+        15.44698,
+        -59.16392
+      ],
+      "Rotation": [
+        349.9624,
+        186.4592,
+        0.0222772
+      ],
+      "id": 130
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Shock",
+      "duration": 0,
+      "weight": "40",
+      "id": 126
+    },
+    {
+      "type": "transition",
+      "backgroundColor": "#ffffff",
+      "enabled": false,
+      "duration": 0.5,
+      "id": 129
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": "っ！",
       "id": 32
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Shock",
+      "duration": 0,
+      "weight": "0",
+      "id": 127
+    },
+    {
+      "type": "emote",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "emotion": "Emote_Mortified",
+      "duration": 0,
+      "weight": "100",
+      "id": 134
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 60,
+      "Position": [
+        184.5488,
+        15.51434,
+        -58.75301
+      ],
+      "Rotation": [
+        353.2282,
+        7.457527,
+        0.02480879
+      ],
+      "id": 131
     },
     {
       "type": "text",
@@ -920,11 +1050,43 @@
       "overideCharacterName": "？？？"
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 36,
+      "Position": [
+        184.4513,
+        15.5406,
+        -59.00948
+      ],
+      "Rotation": [
+        359.0724,
+        180.2752,
+        0.02645407
+      ],
+      "id": 133
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_001",
       "body": ".......",
       "id": 34
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 36,
+      "Position": [
+        184.4646,
+        15.53033,
+        -59.18229
+      ],
+      "Rotation": [
+        359.0723,
+        5.224973,
+        0.02690975
+      ],
+      "id": 135
     },
     {
       "type": "text",
@@ -933,6 +1095,22 @@
       "body": "大変申し訳ありません。ですがこれも貴方のためを..",
       "id": 35,
       "overideCharacterName": "？？？"
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 36,
+      "Position": [
+        184.4513,
+        15.5406,
+        -59.00948
+      ],
+      "Rotation": [
+        359.0724,
+        180.2752,
+        0.02645407
+      ],
+      "id": 137
     },
     {
       "type": "text",
@@ -947,6 +1125,22 @@
       "characterId": "chr_001",
       "body": "わかったわ。ここで生きていくしかないのね....\nでも、私は惑星セレスタルに帰るのを諦めないから",
       "id": 37
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 36,
+      "Position": [
+        184.9641,
+        15.39773,
+        -57.44633
+      ],
+      "Rotation": [
+        1.136204,
+        185.3638,
+        0.0232487
+      ],
+      "id": 138
     },
     {
       "type": "text",
