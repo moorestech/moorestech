@@ -1759,9 +1759,9 @@
     },
     {
       "blockSize": [
-        1,
-        1,
-        1
+        3,
+        2,
+        3
       ],
       "itemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_sawmill",

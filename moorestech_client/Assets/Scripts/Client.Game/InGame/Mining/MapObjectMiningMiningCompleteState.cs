@@ -1,6 +1,7 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.SoundEffect;
+using Common.Debug;
 using Mooresmaster.Model.MapObjectsModule;
 using UnityEngine;
 
@@ -23,8 +24,17 @@ namespace Client.Game.InGame.Mining
             
             PlaySoundEffect(masterElement);
             
+            var attackDamage = _attackDamage;
+            
+            // デバッグ用で高速マイニングする
+            // For debugging, mine super fast
+            if (DebugParameters.GetValueOrDefaultBool(DebugConst.MapObjectSuperMineKey))
+            {
+                attackDamage = int.MaxValue;
+            }
+            
             var instanceId = _completedMapObjectGameObject.InstanceId;
-            ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, _attackDamage);
+            ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, attackDamage);
             
             return context.CurrentFocusMapObjectGameObject == null
                 ? new MapObjectMiningIdleState()

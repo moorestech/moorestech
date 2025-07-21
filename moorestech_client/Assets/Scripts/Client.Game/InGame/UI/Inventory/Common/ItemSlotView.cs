@@ -10,7 +10,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
 {
     public class ItemSlotView : MonoBehaviour
     {
-        public static ItemSlotView Prefab;
+        public static ItemSlotView Prefab { get; private set; }
         
         public IObservable<(ItemSlotView, ItemUIEventType)> OnPointerEvent => commonSlotView.OnPointerEvent.Select(e => (this, e.Item2));
         public IObservable<ItemSlotView> OnLeftClickUp => commonSlotView.OnLeftClickUp.Select(_ => this);
