@@ -1,6 +1,7 @@
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
+using Common.Debug;
 using Mooresmaster.Model.MapObjectsModule;
 
 namespace Client.Game.InGame.Mining
@@ -46,6 +47,13 @@ namespace Client.Game.InGame.Mining
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
                 return new MapObjectMiningFocusState();
+            }
+            
+            // デバッグ用で高速マイニングする
+            // For debugging, mine super fast
+            if (DebugParameters.GetValueOrDefaultBool(DebugConst.MapObjectSuperMineKey))
+            {
+                dt *= 1000;
             }
             
             _currentMiningProgressTime += dt;
