@@ -31,6 +31,11 @@ defineInterface:
   - key: requiredRpm
     type: number
     default: 5
+- interfaceName: IInventoryConnectors
+  properties:
+  - key: inventoryConnectors
+    ref: inventoryConnects
+
 properties:
 - key: data
   type: array
@@ -97,6 +102,8 @@ properties:
         properties: []
       - when: BeltConveyor
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -227,6 +234,7 @@ properties:
         implementationInterface:
         - IMachineParam
         - IGearMachineParam
+        - IInventoryConnectors
         properties:
         - key: inputSlotCount
           type: integer

@@ -1772,8 +1772,8 @@
         "requiredRpm": 1,
         "requireTorque": 4,
         "teethCount": 10,
-        "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "outputSlotCount": 5,
+        "inputSlotCount": 5,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -1787,7 +1787,13 @@
                 "isReverse": true,
                 "inventoryOptions": []
               },
-              "directions": []
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
             }
           ],
           "outputConnects": [
@@ -1861,7 +1867,8 @@
         "inputTankCount": 0,
         "innerTankCapacity": 0
       },
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {},
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
