@@ -168,6 +168,8 @@ properties:
           default: 5
       - when: ElectricGenerator
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: fuelItemSlotCount
           type: integer
@@ -200,6 +202,8 @@ properties:
           ref: inventoryConnects
       - when: ElectricMiner
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: requiredPower
           type: number
@@ -359,6 +363,8 @@ properties:
           ref: gear
       - when: ItemShooter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: inventoryItemNum
           type: integer
@@ -384,6 +390,7 @@ properties:
         type: object
         implementationInterface:
         - IGearMachineParam
+        - IInventoryConnectors
         properties:
         - key: teethCount
           type: integer
@@ -408,6 +415,7 @@ properties:
         implementationInterface:
         - IChestParam
         - IGearMachineParam
+        - IInventoryConnectors
         properties:
         - key: teethCount
           type: integer
@@ -433,6 +441,8 @@ properties:
           ref: gear
       - when: CraftChainerTransporter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: transporterConveyorItemCount
           type: integer
@@ -450,6 +460,8 @@ properties:
           ref: inventoryConnects
       - when: CraftChainerCrafter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: itemSlotCount
           type: integer
@@ -471,6 +483,7 @@ properties:
         type: object
         implementationInterface:
         - IChestParam
+        - IInventoryConnectors
         properties:
         - key: itemSlotCount
           type: integer
@@ -482,6 +495,8 @@ properties:
         properties: []
       - when: TrainStation
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: stationDistance
           type: integer
@@ -492,6 +507,8 @@ properties:
           ref: inventoryConnects
       - when: TrainCargoPlatform
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: platformDistance
           type: integer
