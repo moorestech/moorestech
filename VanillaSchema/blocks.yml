@@ -132,6 +132,7 @@ properties:
       - when: ElectricMachine
         type: object
         implementationInterface:
+        - IInventoryConnectors
         - IMachineParam
         properties:
         - key: requiredPower
@@ -334,6 +335,8 @@ properties:
           ref: fluidInventoryConnects
       - when: GearBeltConveyor
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -456,6 +459,7 @@ properties:
       - when: CraftChainerProviderChest
         type: object
         implementationInterface:
+        - IInventoryConnectors
         - IChestParam
         properties:
         - key: itemSlotCount
