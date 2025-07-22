@@ -24,9 +24,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var startToCornerDistance = 0;
             var blockSize = holdingBlockMasterElement.BlockSize;
             var isLargeBlock = blockSize.x > 1 || blockSize.y > 1 || blockSize.z > 1;
-            var autoDirection = isLargeBlock ? false : true; // TODO: masterから取得するようにする
+            var enableConveyorPlacement = (holdingBlockMasterElement.EnableConveyorPlacement ?? false) && !isLargeBlock;
+            Debug.Log($"{holdingBlockMasterElement.Name} {holdingBlockMasterElement.EnableConveyorPlacement} {isLargeBlock}");
             
-            List<Vector3Int> positions = CalcPositions();
+            List<Vector3Int> positions = enableConveyorPlacement ? CalcPositionsForConveyor() : CalcPositions(blockSize);
             
             List<PlaceInfo> result = CalcPlaceDirection(positions);
             result = CalcPlaceable(result);
@@ -35,18 +36,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             #region Internal
             
-            // TODO statci化
-            // TODO ブロックの大きさに応じて、設置する間隔を変更する
-            List<Vector3Int> CalcPositions()
+            List<Vector3Int> CalcPositionsForConveyor()
             {
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
-                
-                // ブロックサイズが1x1x1より大きい場合は、折れ曲がりなしで一方向のみ伸ばす
-                if (isLargeBlock)
-                {
-                    return CalcPositionsForLargeBlock(blockSize);
-                }
                 
                 // 1x1x1ブロックの場合は従来通りの処理
                 // X軸とZ軸のポイントを設定する
@@ -141,7 +134,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return pointList;
             }
             
-            List<Vector3Int> CalcPositionsForLargeBlock(Vector3 blockSize)
+            List<Vector3Int> CalcPositions(Vector3Int blockSize)
             {
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
@@ -155,7 +148,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 if (deltaX >= deltaY && deltaX >= deltaZ)
                 {
                     // X方向に伸ばす
-                    var stepX = (int)blockSize.x;
+                    var stepX = blockSize.x;
                     var directionX = endPoint.x > startPoint.x ? 1 : -1;
                     
                     while (Mathf.Abs(currentPoint.x - endPoint.x) >= stepX)
@@ -167,7 +160,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 else if (deltaZ >= deltaX && deltaZ >= deltaY)
                 {
                     // Z方向に伸ばす
-                    var stepZ = (int)blockSize.z;
+                    var stepZ = blockSize.z;
                     var directionZ = endPoint.z > startPoint.z ? 1 : -1;
                     
                     while (Mathf.Abs(currentPoint.z - endPoint.z) >= stepZ)
@@ -179,7 +172,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 else
                 {
                     // Y方向に伸ばす
-                    var stepY = (int)blockSize.y;
+                    var stepY = blockSize.y;
                     var directionY = endPoint.y > startPoint.y ? 1 : -1;
                     
                     while (Mathf.Abs(currentPoint.y - endPoint.y) >= stepY)
@@ -194,8 +187,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             List<PlaceInfo> CalcPlaceDirection(List<Vector3Int> placePositions)
             {
-                // autoDirectionがfalseの場合は初期状態の方向のままにする
-                if (!autoDirection)
+                // enableConveyorPlacementがfalseの場合は初期状態の方向のままにする
+                if (!enableConveyorPlacement)
                 {
                     var placeInfos = new List<PlaceInfo>(placePositions.Count);
                     

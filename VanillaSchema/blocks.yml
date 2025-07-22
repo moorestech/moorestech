@@ -531,3 +531,4 @@ properties:
     - key: enableConveyorPlacement
       type: boolean
       default: false
+      optional: true
