@@ -528,3 +528,6 @@ properties:
           foreignKeyIdPath: /data/[*]/blockGuid
           displayElementPath: /data/[*]/name
         optional: true
+    - key: enableConveyorPlacement
+      type: boolean
+      default: false
