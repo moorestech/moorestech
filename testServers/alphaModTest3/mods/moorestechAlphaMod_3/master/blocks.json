@@ -1011,7 +1011,8 @@
         "horizontalBlockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
+      "enableConveyorPlacement": true
     },
     {
       "blockSize": [
@@ -1110,7 +1111,8 @@
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {},
+      "enableConveyorPlacement": true
     },
     {
       "blockSize": [
@@ -1214,7 +1216,8 @@
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {},
+      "enableConveyorPlacement": true
     },
     {
       "blockSize": [
@@ -2120,7 +2123,8 @@
             }
           ]
         }
-      }
+      },
+      "enableConveyorPlacement": true
     },
     {
       "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
@@ -2190,7 +2194,8 @@
             }
           ]
         }
-      }
+      },
+      "enableConveyorPlacement": true
     },
     {
       "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
@@ -2260,7 +2265,8 @@
             }
           ]
         }
-      }
+      },
+      "enableConveyorPlacement": true
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
