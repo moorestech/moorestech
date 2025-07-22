@@ -76,6 +76,7 @@ properties:
       - TrainStation
       - TrainCargoPlatform
       - FluidPipe
+      - BaseCamp
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -532,6 +533,25 @@ properties:
         - key: capacity
           type: number
           default: 100
+      - when: BaseCamp
+        type: object
+        properties:
+        - key: requiredItems
+          type: array
+          items:
+            # TODO アイテムIDの外部キーと数を指定する
+        - key: inventorySlot
+          type: integer
+          default: 5
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: upgradBlockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
+
     - key: overrideVerticalBlock
       type: object
       optional: true
