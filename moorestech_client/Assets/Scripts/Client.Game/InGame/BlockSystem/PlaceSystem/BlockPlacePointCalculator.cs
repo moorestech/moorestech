@@ -37,10 +37,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // TODO ブロックの大きさに応じて、設置する間隔を変更する
             List<Vector3Int> CalcPositions()
             {
-                // ひとまず、XとZ方向に目的地に向かって1ずつ進む
+                var blockSize = holdingBlockMasterElement.BlockSize;
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
                 
+                // ブロックサイズが1x1x1より大きい場合は、折れ曲がりなしで一方向のみ伸ばす
+                if (blockSize.x > 1 || blockSize.y > 1 || blockSize.z > 1)
+                {
+                    return CalcPositionsForLargeBlock(blockSize);
+                }
+                
+                // 1x1x1ブロックの場合は従来通りの処理
                 // X軸とZ軸のポイントを設定する
                 pointList.Add(currentPoint);
                 while (currentPoint.x != endPoint.x || currentPoint.z != endPoint.z)
@@ -129,6 +136,78 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var lastPoint = pointList[^1];
                 lastPoint.y = endPoint.y;
                 pointList[^1] = lastPoint;
+                
+                return pointList;
+            }
+            
+            List<Vector3Int> CalcPositionsForLargeBlock(Vector3 blockSize)
+            {
+                var pointList = new List<Vector3Int>();
+                var currentPoint = startPoint;
+                pointList.Add(currentPoint);
+                
+                // 最も距離が長い方向を判定
+                var deltaX = Mathf.Abs(endPoint.x - startPoint.x);
+                var deltaY = Mathf.Abs(endPoint.y - startPoint.y);
+                var deltaZ = Mathf.Abs(endPoint.z - startPoint.z);
+                
+                if (deltaX >= deltaY && deltaX >= deltaZ)
+                {
+                    // X方向に伸ばす
+                    var stepX = (int)blockSize.x;
+                    var directionX = endPoint.x > startPoint.x ? 1 : -1;
+                    
+                    while (Mathf.Abs(currentPoint.x - endPoint.x) >= stepX)
+                    {
+                        currentPoint.x += stepX * directionX;
+                        pointList.Add(currentPoint);
+                    }
+                    
+                    // 最後の位置を追加（端数がある場合）
+                    if (currentPoint.x != endPoint.x)
+                    {
+                        currentPoint.x = endPoint.x;
+                        pointList.Add(currentPoint);
+                    }
+                }
+                else if (deltaZ >= deltaX && deltaZ >= deltaY)
+                {
+                    // Z方向に伸ばす
+                    var stepZ = (int)blockSize.z;
+                    var directionZ = endPoint.z > startPoint.z ? 1 : -1;
+                    
+                    while (Mathf.Abs(currentPoint.z - endPoint.z) >= stepZ)
+                    {
+                        currentPoint.z += stepZ * directionZ;
+                        pointList.Add(currentPoint);
+                    }
+                    
+                    // 最後の位置を追加（端数がある場合）
+                    if (currentPoint.z != endPoint.z)
+                    {
+                        currentPoint.z = endPoint.z;
+                        pointList.Add(currentPoint);
+                    }
+                }
+                else
+                {
+                    // Y方向に伸ばす
+                    var stepY = (int)blockSize.y;
+                    var directionY = endPoint.y > startPoint.y ? 1 : -1;
+                    
+                    while (Mathf.Abs(currentPoint.y - endPoint.y) >= stepY)
+                    {
+                        currentPoint.y += stepY * directionY;
+                        pointList.Add(currentPoint);
+                    }
+                    
+                    // 最後の位置を追加（端数がある場合）
+                    if (currentPoint.y != endPoint.y)
+                    {
+                        currentPoint.y = endPoint.y;
+                        pointList.Add(currentPoint);
+                    }
+                }
                 
                 return pointList;
             }
