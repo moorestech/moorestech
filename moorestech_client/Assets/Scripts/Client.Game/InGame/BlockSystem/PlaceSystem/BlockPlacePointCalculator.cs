@@ -22,6 +22,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
+            var blockSize = holdingBlockMasterElement.BlockSize;
+            var isLargeBlock = blockSize.x > 1 || blockSize.y > 1 || blockSize.z > 1;
+            var autoDirection = isLargeBlock ? false : true; // TODO: masterから取得するようにする
+            
             List<Vector3Int> positions = CalcPositions();
             
             List<PlaceInfo> result = CalcPlaceDirection(positions);
@@ -35,12 +39,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // TODO ブロックの大きさに応じて、設置する間隔を変更する
             List<Vector3Int> CalcPositions()
             {
-                var blockSize = holdingBlockMasterElement.BlockSize;
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
                 
                 // ブロックサイズが1x1x1より大きい場合は、折れ曲がりなしで一方向のみ伸ばす
-                if (blockSize.x > 1 || blockSize.y > 1 || blockSize.z > 1)
+                if (isLargeBlock)
                 {
                     return CalcPositionsForLargeBlock(blockSize);
                 }
@@ -191,6 +194,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             List<PlaceInfo> CalcPlaceDirection(List<Vector3Int> placePositions)
             {
+                // autoDirectionがfalseの場合は初期状態の方向のままにする
+                if (!autoDirection)
+                {
+                    var placeInfos = new List<PlaceInfo>(placePositions.Count);
+                    
+                    foreach (var placePosition in placePositions)
+                    {
+                        placeInfos.Add(new PlaceInfo
+                        {
+                            Position = placePosition,
+                            Direction = blockDirection,
+                            VerticalDirection = BlockVerticalDirection.Horizontal,
+                        });
+                    }
+                    
+                    return placeInfos;
+                }
+                
                 if (placePositions.Count == 1)
                 {
                     return new List<PlaceInfo>
