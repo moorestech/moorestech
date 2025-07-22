@@ -25,7 +25,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var blockSize = holdingBlockMasterElement.BlockSize;
             var isLargeBlock = blockSize.x > 1 || blockSize.y > 1 || blockSize.z > 1;
             var enableConveyorPlacement = (holdingBlockMasterElement.EnableConveyorPlacement ?? false) && !isLargeBlock;
-            Debug.Log($"{holdingBlockMasterElement.Name} {holdingBlockMasterElement.EnableConveyorPlacement} {isLargeBlock}");
             
             List<Vector3Int> positions = enableConveyorPlacement ? CalcPositionsForConveyor() : CalcPositions(blockSize);
             
