@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
-using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -24,9 +22,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
-            var positions = CalcPositions();
+            List<Vector3Int> positions = CalcPositions();
             
-            var result = CalcPlaceDirection(positions);
+            List<PlaceInfo> result = CalcPlaceDirection(positions);
             result = CalcPlaceable(result);
             
             return result;
@@ -162,13 +160,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         currentPoint.x += stepX * directionX;
                         pointList.Add(currentPoint);
                     }
-                    
-                    // 最後の位置を追加（端数がある場合）
-                    if (currentPoint.x != endPoint.x)
-                    {
-                        currentPoint.x = endPoint.x;
-                        pointList.Add(currentPoint);
-                    }
                 }
                 else if (deltaZ >= deltaX && deltaZ >= deltaY)
                 {
@@ -179,13 +170,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     while (Mathf.Abs(currentPoint.z - endPoint.z) >= stepZ)
                     {
                         currentPoint.z += stepZ * directionZ;
-                        pointList.Add(currentPoint);
-                    }
-                    
-                    // 最後の位置を追加（端数がある場合）
-                    if (currentPoint.z != endPoint.z)
-                    {
-                        currentPoint.z = endPoint.z;
                         pointList.Add(currentPoint);
                     }
                 }
@@ -200,13 +184,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         currentPoint.y += stepY * directionY;
                         pointList.Add(currentPoint);
                     }
-                    
-                    // 最後の位置を追加（端数がある場合）
-                    if (currentPoint.y != endPoint.y)
-                    {
-                        currentPoint.y = endPoint.y;
-                        pointList.Add(currentPoint);
-                    }
                 }
                 
                 return pointList;
@@ -216,19 +193,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 if (placePositions.Count == 1)
                 {
-                    return new List<PlaceInfo>()
+                    return new List<PlaceInfo>
                     {
                         new()
                         {
                             Position = placePositions[0],
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
-                        }
+                        },
                     };
                 }
                 
                 var results = new List<PlaceInfo>(placePositions.Count);
-                for (int i = 0; i < placePositions.Count; i++)
+                for (var i = 0; i < placePositions.Count; i++)
                 {
                     BlockDirection direction;
                     BlockVerticalDirection verticalDirection;
@@ -271,7 +248,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         }
                     }
                     
-                    results.Add(new PlaceInfo()
+                    results.Add(new PlaceInfo
                     {
                         Position = currentPoint,
                         Direction = direction,
@@ -329,6 +306,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 
                 return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
             }
+            
             #endregion
         }
     }
