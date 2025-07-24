@@ -40,7 +40,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
                 
-                // 1x1x1ブロックの場合は従来通りの処理
                 // X軸とZ軸のポイントを設定する
                 pointList.Add(currentPoint);
                 while (currentPoint.x != endPoint.x || currentPoint.z != endPoint.z)
@@ -92,7 +91,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         var point = pointList[i];
                         point.y += currentYDelta;
                         
-                        if (startToCornerDistance + 1 != i) currentYDelta--; // 角の時はY座標を下げない
+                        if (startToCornerDistance + 1 != i || pointList.Count == 2) currentYDelta--; // 角の時はY座標を下げない
                         
                         pointList[i] = point;
                     }
