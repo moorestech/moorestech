@@ -3,7 +3,7 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-19T04:40:33.863Z"
+    "modified": "2025-07-24T03:37:16.094Z"
   },
   "commands": [
     {
@@ -464,7 +464,7 @@
       "character": "chr_001",
       "emotion": "Emote_Blink",
       "duration": 0.2,
-      "weight": "0",
+      "weight": 0,
       "id": 87
     },
     {
@@ -591,7 +591,7 @@
       "character": "chr_001",
       "emotion": "Emote_Shock",
       "duration": 0,
-      "weight": "54",
+      "weight": 54,
       "id": 103
     },
     {
@@ -686,7 +686,7 @@
       "character": "chr_001",
       "emotion": "Emote_Shock",
       "duration": 0,
-      "weight": "0",
+      "weight": 0,
       "id": 119
     },
     {
@@ -759,7 +759,7 @@
       "character": "chr_001",
       "emotion": "Emote_Blink",
       "duration": 0.2,
-      "weight": "0",
+      "weight": 0,
       "id": 116
     },
     {
@@ -768,7 +768,7 @@
       "character": "chr_001",
       "emotion": "Emote_Shock",
       "duration": 0,
-      "weight": "73",
+      "weight": 73,
       "id": 120
     },
     {
@@ -855,7 +855,7 @@
       "character": "chr_001",
       "emotion": "Emote_Shock",
       "duration": 0,
-      "weight": "0",
+      "weight": 0,
       "id": 121
     },
     {
@@ -934,7 +934,7 @@
       "character": "chr_002",
       "emotion": "Emote_Zitome",
       "duration": 0,
-      "weight": "23.1",
+      "weight": 23,
       "id": 136
     },
     {
@@ -990,7 +990,7 @@
       "character": "chr_001",
       "emotion": "Emote_Shock",
       "duration": 0,
-      "weight": "40",
+      "weight": 40,
       "id": 126
     },
     {
@@ -1013,7 +1013,7 @@
       "character": "chr_001",
       "emotion": "Emote_Shock",
       "duration": 0,
-      "weight": "0",
+      "weight": 0,
       "id": 127
     },
     {
@@ -1022,7 +1022,7 @@
       "character": "chr_001",
       "emotion": "Emote_Mortified",
       "duration": 0,
-      "weight": "100",
+      "weight": 100,
       "id": 134
     },
     {
