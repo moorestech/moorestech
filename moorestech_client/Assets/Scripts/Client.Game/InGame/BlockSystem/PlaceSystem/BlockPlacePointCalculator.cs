@@ -249,7 +249,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
                             verticalDirection = BlockVerticalDirection.Down;
                         }
-                        else if ((i == 0 || i == startToCornerDistance) && i != placePositions.Count - 1)
+                        else if (i == 0) // 最初のブロックの場合、startPositionよりもcurrentPointが低いならdown、同じならhorizontal
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = currentPoint.y < startPoint.y ? BlockVerticalDirection.Down : BlockVerticalDirection.Horizontal;
+                        }
+                        else if (i == startToCornerDistance && i != placePositions.Count - 1)
                         {
                             var nextPoint = placePositions[i + 1];
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
