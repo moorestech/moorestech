@@ -539,7 +539,17 @@ properties:
         - key: requiredItems
           type: array
           items:
-            # TODO アイテムIDの外部キーと数を指定する
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: integer
+              default: 1
         - key: inventorySlot
           type: integer
           default: 5
