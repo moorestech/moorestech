@@ -241,10 +241,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
                         }
                     }
-                    else
+                    else if (startPoint.y > endPoint.y) // 下向きの場合
                     {
-                        // 下向きの場合
-                        if ((i == 0 || i == startToCornerDistance) && i != placePositions.Count - 1)
+                        if (i == 0 && placePositions.Count == 2) // 最初のブロックかつ、2個のブロックかつ、全体が下向きの場合は、ブロックを下向きにする
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = BlockVerticalDirection.Down;
+                        }
+                        else if ((i == 0 || i == startToCornerDistance) && i != placePositions.Count - 1)
                         {
                             var nextPoint = placePositions[i + 1];
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
@@ -252,6 +257,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             {
                                 verticalDirection = BlockVerticalDirection.Horizontal; // 角のブロックは必ず水平にする
                             }
+                        }
+                        else
+                        {
+                            var prevPoint = placePositions[i - 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
+                        }
+                    }
+                    else // 水平の場合
+                    {
+                        if (i != placePositions.Count - 1)
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
                         }
                         else
                         {
