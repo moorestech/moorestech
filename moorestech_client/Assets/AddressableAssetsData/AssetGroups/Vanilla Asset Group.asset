@@ -180,6 +180,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50e0b09afaa3747d490bdd5d395c0c56
+    m_Address: Vanilla/Block/Util/InventoryConnectorView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
     m_Address: Vanilla/Block/WeldingProcessingMachine
     m_ReadOnly: 0
@@ -227,6 +232,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 592fd8fcf82bc49a483838eee4ff2b4b
     m_Address: Vanilla/Skit/Animations/anim_idle01_lp_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5a77ed9a5ab3444bdaaa17a7e6ae5797
+    m_Address: Vanilla/Block/Util/InventoryConnectorLineView
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

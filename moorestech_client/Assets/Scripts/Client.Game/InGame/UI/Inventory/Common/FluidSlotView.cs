@@ -10,7 +10,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
 {
     public class FluidSlotView : MonoBehaviour
     {
-        public static FluidSlotView Prefab;
+        public static FluidSlotView Prefab { get; private set; }
         
         public IObservable<(FluidSlotView, ItemUIEventType)> OnPointerEvent => commonSlotView.OnPointerEvent.Select(e => (this, e.Item2));
         
