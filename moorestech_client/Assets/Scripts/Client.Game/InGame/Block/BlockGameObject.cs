@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Block
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
-        private List<PreviewOnlyObject> _previewOnlyObjects = new();
+        private List<IPreviewOnlyObject> _previewOnlyObjects = new();
         private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
         
         private BlockStateMessagePack _blockStateMessagePack;
@@ -73,10 +73,10 @@ namespace Client.Game.InGame.Block
             
             void OffPreviewOnlyObjectsActive()
             {
-                _previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
+                _previewOnlyObjects = gameObject.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
                 _previewOnlyObjects.ForEach(obj =>
                 {
-                    obj.Initialize();
+                    obj.Initialize(BlockId);
                     obj.SetActive(false);
                 });
             }
@@ -109,7 +109,7 @@ namespace Client.Game.InGame.Block
                 previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize, posInfo.BlockDirection);
                 
                 var previewOnlyObject = previewBoundingBoxObj.GetComponent<PreviewOnlyObject>();
-                previewOnlyObject.Initialize();
+                previewOnlyObject.Initialize(BlockId);
                 previewOnlyObject.SetActive(false);
                 _previewOnlyObjects.Add(previewOnlyObject);
             }

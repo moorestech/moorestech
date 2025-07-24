@@ -66,13 +66,13 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             void SetFluidList()
             {
-                for (var i = 0; i < param.InputSlotCount; i++)
+                for (var i = 0; i < param.InputTankCount; i++)
                 {
                     var slotObject = Instantiate(FluidSlotView.Prefab, machineInputFluidParent);
                     _fluidSlotViews.Add(slotObject);
                 }
                 
-                for (var i = 0; i < param.OutputSlotCount; i++)
+                for (var i = 0; i < param.OutputTankCount; i++)
                 {
                     var slotObject = Instantiate(FluidSlotView.Prefab, machineOutputFluidParent);
                     _fluidSlotViews.Add(slotObject);
@@ -116,7 +116,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var fluidState = BlockGameObject.GetStateDetail<FluidMachineInventoryStateDetail>(FluidMachineInventoryStateDetail.BlockStateDetailKey);
                 if (fluidState == null)
                 {
-                    Debug.LogError("FluidMachineInventoryStateDetail が取得できません。");
                     return;
                 }
                 

@@ -7,5 +7,8 @@ namespace Client.Game
         
         public const string SkitPlaySettingsLabel = "Skit play setting";
         public const string SkitPlaySettingsKey = "SkitPlaySettings";
+        
+        public const string MapObjectSuperMineLabel = "Map object super mine";
+        public const string MapObjectSuperMineKey = "MapObjectSuperMine";
     }
 }
