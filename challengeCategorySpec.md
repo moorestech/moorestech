@@ -17,54 +17,47 @@
 
 ### 1. スキーマ定義の変更
 
-#### 1.1 新規スキーマファイルの追加
-- **`VanillaSchema/challengeCategories.yml`**（新規）
-  - カテゴリマスターデータの定義
-  - カテゴリGUID、名前、説明、表示順序、アイコン等
-  - カテゴリ間の依存関係（前提カテゴリ）
-  - 初期アンロック状態
-
-#### 1.2 既存スキーマの修正
+#### 1.1 challenges.ymlの構造変更
 - **`VanillaSchema/challenges.yml`**
-  - `categoryGuid`フィールドの追加（所属カテゴリの指定）
-  - `prevChallengeGuids`の制約変更（同一カテゴリ内のみ参照可能に）
-  - カテゴリ内での表示位置情報の追加
+  - 現在のフラットな配列構造から、カテゴリをトップレベルに持つ構造に変更
+  - 新しい構造例：
+    ```yaml
+    categories:
+      - categoryGuid: "category-guid-1"
+        categoryName: "基本操作"
+        categoryDescription: "ゲームの基本的な操作を学ぶ"
+        displayOrder: 1
+        initialUnlocked: true
+        prevCategoryGuids: []
+        challenges:
+          - challengeGuid: "challenge-guid-1"
+            title: "最初のアイテムを作る"
+            # 既存のチャレンジフィールド
+      - categoryGuid: "category-guid-2"
+        categoryName: "建築"
+        # ...
+    ```
 
+#### 1.2 チャレンジアクションの修正
 - **`VanillaSchema/ref/challengeAction.yml`**
   - `unlockChallengeCategory`アクションタイプの追加
   - カテゴリアンロック時のアクション定義
 
-指摘：challengeCategoriesというのを定義するのではなく、challenges.ymlのスキーマの形状を「チャレンジカテゴリ」の中に「チャレンジがたくさんある」という形に変更してください。これに伴い下記のChallengeCategoryMasterも不要です。
-
 ### 2. サーバー側の実装変更
 
 #### 2.1 マスターデータ関連
-- **`Core.Master/ChallengeCategoryMaster.cs`**（新規）
-  - カテゴリマスターデータのロード・管理
-  - カテゴリ間の依存関係管理
-  - カテゴリ検索機能
-
-指摘：これは不要
-
 - **`Core.Master/ChallengeMaster.cs`**（修正）
-  - カテゴリ別のチャレンジ管理機能追加
+  - 内部実装を新しいカテゴリ構造に対応
+  - publicメソッドは変更なし（既存の互換性を維持）
+  - カテゴリ情報の内部管理
   - カテゴリ内でのチャレンジツリー構築
-  - カテゴリを跨いだ参照の検証
-
-指摘：publicメソッドは基本的に変更なし、実装部分だけ新しいスキーマに対応するように変更する
 
 #### 2.2 ゲームロジック関連
-- **`Game.Challenge/ChallengeCategoryDatastore.cs`**（新規）
-  - カテゴリごとのアンロック状態管理
-  - カテゴリ完了判定（全チャレンジ完了時）
-  - カテゴリ進捗率の計算
-
-指摘：このコード自体が不要下のChallengeDatastoreをカテゴリに対応する形にする
-
 - **`Game.Challenge/ChallengeDatastore.cs`**（修正）
   - カテゴリを考慮したチャレンジ登録処理
-  - カテゴリアンロック時のチャレンジ自動登録
-  - カテゴリ完了時の処理追加
+  - カテゴリアンロック状態の管理機能追加
+  - カテゴリ完了判定（全チャレンジ完了時）　指摘：「カテゴリが完了した」という概念は持たせないでください。カテゴリはあくまでアンロックされているか、ロックされているかというステートでのみ管理してください。
+  - カテゴリ進捗率の計算　指摘：進捗率の計算は不要
 
 - **`Game.UnlockState/States/ChallengeCategoryUnlockStateInfo.cs`**（新規）
   - カテゴリのアンロック状態管理
@@ -81,148 +74,69 @@
 
 ### 3. ネットワークプロトコルの変更
 
-#### 3.1 新規プロトコル
-- **`GetChallengeCategoriesProtocol`**（新規）
-  - カテゴリ一覧とアンロック状態の取得
-  - カテゴリごとの進捗情報
-
-#### 3.2 既存プロトコルの修正
+#### 3.1 既存プロトコルの修正
 - **`GetChallengeInfoProtocol`**（修正）
-  - カテゴリ情報を含むレスポンス
-  - カテゴリ別のチャレンジ一覧
+  - カテゴリ構造に対応したレスポンス形式
+  - カテゴリごとのチャレンジ一覧とアンロック状態
 
-- **イベントパケット**
-  - `CategoryUnlockedEventPacket`（新規）
-  - `CategoryCompletedEventPacket`（新規）
+#### 3.2 イベントパケット
+- **`CategoryUnlockedEventPacket`**（新規）
+  - カテゴリがアンロックされた時の通知
+- **`CategoryCompletedEventPacket`**（新規）
+  - カテゴリ内の全チャレンジが完了した時の通知
 
-### 4. クライアント側の実装変更
+### 4. セーブデータ構造の変更
 
-#### 4.1 UI実装
-- **`ChallengeCateg categorySelectUI.cs`**（新規）
-  - カテゴリ選択画面
-  - カテゴリアイコン、進捗表示
-  - ロック/アンロック表示
-
-- **`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Challenge/ChallengeListUI.cs`**（修正）
-  - カテゴリ別表示対応
-  - カテゴリ内でのツリー表示
-  - カテゴリ切り替え機能
-
-- **`CurrentChallengeHudView.cs`**（修正）
-  - 現在のカテゴリ表示
-  - カテゴリアイコン表示
-
-#### 4.2 チャレンジマネージャー
-- **`ChallengeManager.cs`**（修正）
-  - カテゴリ管理機能追加
-  - カテゴリ切り替え処理
-  - カテゴリ進捗トラッキング
-
-指摘：クライアント側の実装は不要
-
-### 5. セーブデータ構造の変更
-
-#### 5.1 新規セーブデータ
-- カテゴリアンロック状態
-- 現在選択中のカテゴリ ← この保存は不要
-- カテゴリごとの進捗
-
-#### 5.2 マイグレーション
-- 既存セーブデータからの移行処理
-- デフォルトカテゴリへの自動割り当て
-
-指摘：マイグレーションは不要
+#### 4.1 新規セーブデータ
+- カテゴリアンロック状態の保存
+- カテゴリごとの進捗情報
 
 
-### 6. テスト関連
+### 5. テスト関連
 
-#### 6.1 ユニットテスト
-- カテゴリマスターのテスト
+#### 5.1 ユニットテスト
+- ChallengeMasterのカテゴリ構造対応テスト
 - カテゴリアンロックロジックのテスト
 - カテゴリ内チャレンジ管理のテスト
-- マイグレーションテスト
 
-#### 6.2 統合テスト
+#### 5.2 統合テスト
 - カテゴリを跨いだチャレンジ進行テスト
 - カテゴリ完了時の動作テスト
 
-### 7. コンテンツ作成ツールの更新
+### 6. 実装順序の推奨
 
-#### 7.1 Unityエディタ拡張
-- カテゴリ作成・編集機能
-- カテゴリビジュアライザー
-- チャレンジのカテゴリ割り当てUI
-
-指摘：これは不要
-
-### 8. 考慮事項
-
-#### 8.1 後方互換性
-- 既存のチャレンジデータとの互換性維持
-- APIの後方互換性（必要に応じて）
-
-指摘：後方互換は不要
-
-#### 8.2 パフォーマンス
-- カテゴリ数増加時のパフォーマンス
-- カテゴリ別ロード機能の検討
-
-指摘：パフォーマンス観点での検討も現時点で不要
-
-#### 8.3 拡張性
-- 将来的なカテゴリ間の複雑な依存関係
-- カテゴリ固有の機能追加余地
-
-### 9. 実装順序の推奨
-
-1. **Phase 1: 基盤構築**
-   - スキーマ定義
-   - マスターデータクラス
-   - 基本的なデータ構造
+1. **Phase 1: スキーマ定義**
+   - challenges.ymlの構造変更
+   - challengeAction.ymlへのカテゴリアクション追加
 
 2. **Phase 2: サーバー側実装**
-   - カテゴリ管理ロジック
-   - チャレンジ管理の修正
-   - ネットワークプロトコル
+   - ChallengeMaster.csの内部実装修正
+   - ChallengeDatastore.csのカテゴリ対応
+   - ChallengeCategoryUnlockStateInfo.csの新規作成
+   - アクションクラスの追加
+   - プロトコルの修正
 
-3. **Phase 3: クライアント側実装**
-   - UI実装
-   - 表示ロジック
-   - インタラクション
-
-4. **Phase 4: 統合とテスト**
-   - 統合テスト
-   - マイグレーション実装
-   - パフォーマンス最適化
-
-5. **Phase 5: ツールとコンテンツ**
-   - エディタ拡張
-   - コンテンツ作成
-   - ドキュメント整備
+3. **Phase 3: テスト**
+   - ユニットテストの実装
+   - 統合テストの実装
 
 ## 影響を受ける主要ファイル一覧
 
 ### スキーマ
-- `VanillaSchema/challenges.yml`
-- `VanillaSchema/ref/challengeAction.yml`
-- `VanillaSchema/challengeCategories.yml`（新規）
+- `VanillaSchema/challenges.yml`（構造変更）
+- `VanillaSchema/ref/challengeAction.yml`（カテゴリアクション追加）
 
 ### サーバー側
-- `Core.Master/ChallengeMaster.cs`
-- `Core.Master/ChallengeCategoryMaster.cs`（新規）
-- `Game.Challenge/ChallengeDatastore.cs`
-- `Game.Challenge/ChallengeCategoryDatastore.cs`（新規）
-- `Game.UnlockState/States/ChallengeUnlockStateInfo.cs`
+- `Core.Master/ChallengeMaster.cs`（内部実装のみ修正）
+- `Game.Challenge/ChallengeDatastore.cs`（カテゴリ対応）
 - `Game.UnlockState/States/ChallengeCategoryUnlockStateInfo.cs`（新規）
-- 各種プロトコルクラス
-
-### クライアント側
-- `ChallengeManager.cs`
-- `ChallengeListUI.cs`
-- `CurrentChallengeHudView.cs`
-- 新規UIコンポーネント
+- `Game.Challenge/ChallengeTask/Factory/ChallengeFactory.cs`
+- ネットワークプロトコル関連
+  - `GetChallengeInfoProtocol.cs`
+  - 新規イベントパケットクラス
+- アクションクラス
+  - `UnlockChallengeCategoryAction.cs`（新規）
 
 ### その他
 - セーブデータ関連クラス
 - テストクラス
-- エディタ拡張スクリプト
