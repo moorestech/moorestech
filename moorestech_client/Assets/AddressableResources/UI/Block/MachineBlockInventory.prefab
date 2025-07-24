@@ -869,6 +869,8 @@ MonoBehaviour:
   machineInputItemParent: {fileID: 976896010169528272}
   machineOutputItemParent: {fileID: 6931871132086811337}
   machineBlockNameText: {fileID: 1896569409975918612}
+  machineInputFluidParent: {fileID: 4733052551185589620}
+  machineOutputFluidParent: {fileID: 8898992423655121602}
   powerRateText: {fileID: 3562878083436755205}
   machineProgressArrow: {fileID: 140989436986467170}
 --- !u!1 &6129189798529970233

@@ -31,6 +31,11 @@ defineInterface:
   - key: requiredRpm
     type: number
     default: 5
+- interfaceName: IInventoryConnectors
+  properties:
+  - key: inventoryConnectors
+    ref: inventoryConnects
+
 properties:
 - key: data
   type: array
@@ -71,6 +76,7 @@ properties:
       - TrainStation
       - TrainCargoPlatform
       - FluidPipe
+      - BaseCamp
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -97,6 +103,8 @@ properties:
         properties: []
       - when: BeltConveyor
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -125,6 +133,7 @@ properties:
       - when: ElectricMachine
         type: object
         implementationInterface:
+        - IInventoryConnectors
         - IMachineParam
         properties:
         - key: requiredPower
@@ -160,6 +169,8 @@ properties:
           default: 5
       - when: ElectricGenerator
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: fuelItemSlotCount
           type: integer
@@ -192,6 +203,8 @@ properties:
           ref: inventoryConnects
       - when: ElectricMiner
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: requiredPower
           type: number
@@ -227,6 +240,7 @@ properties:
         implementationInterface:
         - IMachineParam
         - IGearMachineParam
+        - IInventoryConnectors
         properties:
         - key: inputSlotCount
           type: integer
@@ -326,6 +340,8 @@ properties:
           ref: fluidInventoryConnects
       - when: GearBeltConveyor
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -348,6 +364,8 @@ properties:
           ref: gear
       - when: ItemShooter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: inventoryItemNum
           type: integer
@@ -373,6 +391,7 @@ properties:
         type: object
         implementationInterface:
         - IGearMachineParam
+        - IInventoryConnectors
         properties:
         - key: teethCount
           type: integer
@@ -397,6 +416,7 @@ properties:
         implementationInterface:
         - IChestParam
         - IGearMachineParam
+        - IInventoryConnectors
         properties:
         - key: teethCount
           type: integer
@@ -422,6 +442,8 @@ properties:
           ref: gear
       - when: CraftChainerTransporter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: transporterConveyorItemCount
           type: integer
@@ -439,6 +461,8 @@ properties:
           ref: inventoryConnects
       - when: CraftChainerCrafter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: itemSlotCount
           type: integer
@@ -448,6 +472,7 @@ properties:
       - when: CraftChainerProviderChest
         type: object
         implementationInterface:
+        - IInventoryConnectors
         - IChestParam
         properties:
         - key: itemSlotCount
@@ -459,6 +484,7 @@ properties:
         type: object
         implementationInterface:
         - IChestParam
+        - IInventoryConnectors
         properties:
         - key: itemSlotCount
           type: integer
@@ -470,6 +496,8 @@ properties:
         properties: []
       - when: TrainStation
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: stationDistance
           type: integer
@@ -480,6 +508,8 @@ properties:
           ref: inventoryConnects
       - when: TrainCargoPlatform
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
         - key: platformDistance
           type: integer
@@ -503,6 +533,35 @@ properties:
         - key: capacity
           type: number
           default: 100
+      - when: BaseCamp
+        type: object
+        properties:
+        - key: requiredItems
+          type: array
+          items:
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: integer
+              default: 1
+        - key: inventorySlot
+          type: integer
+          default: 5
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: upgradBlockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
+
     - key: overrideVerticalBlock
       type: object
       optional: true
