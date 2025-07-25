@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private const int PlayerId = 1;
         
         [Test]
-        public void ItemDeliveryEventTest()
+        public void BaseCampCompletionEventTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
@@ -33,30 +33,55 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // ベースキャンプブロックを設置
             worldBlockDataStore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock);
+            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // イベントリクエストを送信してイベント受信を開始
             packetResponse.GetPacketResponse(GetEventPacket());
             
-            // アイテムを納品
-            var deliveredItem = itemStackFactory.Create(new ItemId(1), 3);
-            baseCampInventory.InsertItem(deliveredItem);
+            // アイテムを部分的に納品（まだ完了しない）
+            var partialItem = itemStackFactory.Create(new ItemId(1), 3);
+            baseCampInventory.InsertItem(partialItem);
             
-            // イベントパケットを取得
+            // この時点ではまだ完了していない
+            Assert.IsFalse(baseCampComponent.IsCompleted());
+            
+            // イベントを消費
+            packetResponse.GetPacketResponse(GetEventPacket());
+            
+            // 残りのアイテムを納品して完了させる
+            var remainingItem = itemStackFactory.Create(new ItemId(1), 2);
+            baseCampInventory.InsertItem(remainingItem);
+            
+            // 完了を確認
+            Assert.IsTrue(baseCampComponent.IsCompleted());
+            
+            // 完了イベントパケットを取得
             var eventPackets = packetResponse.GetPacketResponse(GetEventPacket());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPackets[0].ToArray());
             
-            // 納品イベントが発生していることを確認
-            指摘：やっぱり、納品イベントではなく、完了イベントだけチェックするように敷いてほしい。
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            // 完了イベントが発生していることを確認
+            Assert.GreaterOrEqual(eventMessagePack.Events.Count, 1);
             
-            var payLoad = eventMessagePack.Events[0].Payload;
-            var updateEvent = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
+            // 完了イベントを探す
+            BaseCampCompletionEventMessagePack completionEvent = null;
+            foreach (var evt in eventMessagePack.Events)
+            {
+                try
+                {
+                    completionEvent = MessagePackSerializer.Deserialize<BaseCampCompletionEventMessagePack>(evt.Payload);
+                    break;
+                }
+                catch
+                {
+                    // 他のイベントタイプの場合は無視
+                }
+            }
             
-            Assert.AreEqual(position.x, updateEvent.Position.X);
-            Assert.AreEqual(position.y, updateEvent.Position.Y);
-            Assert.AreEqual(1, updateEvent.Item.Id.AsPrimitive());
-            Assert.AreEqual(3, updateEvent.Item.Count);
+            Assert.IsNotNull(completionEvent);
+            Assert.AreEqual(position.x, completionEvent.Position.x);
+            Assert.AreEqual(position.y, completionEvent.Position.y);
+            Assert.AreEqual(baseCampBlockId, completionEvent.BlockId);
         }
         
         
@@ -81,10 +106,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     
     // TODO: 実装時に削除 - 仮のメッセージパック定義
     [MessagePackObject]
-    public class BaseCampTransformEventMessagePack
+    public class BaseCampCompletionEventMessagePack
     {
         [Key(0)] public Vector3Int Position { get; set; }
-        [Key(1)] public BlockId OriginalBlockId { get; set; }
-        [Key(2)] public BlockId TransformedBlockId { get; set; }
+        [Key(1)] public BlockId BlockId { get; set; }
     }
 }
