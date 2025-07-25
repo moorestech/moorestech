@@ -47,6 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPackets[0].ToArray());
             
             // 納品イベントが発生していることを確認
+            指摘：やっぱり、納品イベントではなく、完了イベントだけチェックするように敷いてほしい。
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             
             var payLoad = eventMessagePack.Events[0].Payload;
