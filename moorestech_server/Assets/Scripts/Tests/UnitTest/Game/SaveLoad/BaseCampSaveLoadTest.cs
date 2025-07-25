@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             // ベースキャンプブロックの配置
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000001")); // TODO: 実際のIDに変更
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var position = new Vector3Int(10, 0, 10);
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock);
             
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             // 複数アイテム要求のベースキャンプブロック配置
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000002")); // TODO: 実際のIDに変更
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp2;
             var position = new Vector3Int(5, 0, 5);
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.South, out var baseCampBlock);
             
@@ -124,7 +124,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             // ベースキャンプブロックの配置
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000001"));
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var position = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.East, out var baseCampBlock);
             
@@ -193,7 +193,6 @@ namespace Tests.UnitTest.Game.SaveLoad
     {
         bool IsCompleted();
         float GetProgress();
-        BlockId GetTransformedBlockId();
     }
     
     public interface IBaseCampInventory : IBlockInventory

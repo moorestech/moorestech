@@ -150,6 +150,7 @@ YOU MUST:コードを書き終わったから必ずコンパイルを実行し�
 IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライアントの実装をする際はdocs/ClientGuide.mdを必ず参照してください。
 IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコル、イベントプロトコル）を実装する際は、docs/ProtocolImplementationGuide.mdを必ず参照してください。
 IMPORTANT:このゲームのコードベースは非常に大規模であり、たいていタスクもすでにある実装の拡張であることが多いです。そのため、良くコードを読み、コードの性質を理解し、周り合わせて空気を読んだコードを記述することを心がけてください。
+IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。

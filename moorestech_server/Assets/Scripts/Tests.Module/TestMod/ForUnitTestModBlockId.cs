@@ -64,5 +64,9 @@ namespace Tests.Module.TestMod
         
         public static BlockId FluidMachineId => GetBlock("9b36e317-b6eb-441a-b5bf-8aa99e9216a0");
         public static BlockId SteamGearGeneratorId => GetBlock("cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471");
+        
+        public static BlockId BaseCamp1 => GetBlock("5f8e8f90-0000-0000-0000-000000000001"); // 単一アイテム要求
+        public static BlockId BaseCamp2 => GetBlock("5f8e8f90-0000-0000-0000-000000000002"); // 複数アイテム要求
+        public static BlockId TransformedBlock => GetBlock("5f8e8f90-0000-0000-0000-000000000003"); // 変換後のブロック
     }
 }
