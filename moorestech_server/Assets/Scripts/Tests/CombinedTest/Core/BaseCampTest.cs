@@ -137,6 +137,7 @@ namespace Tests.CombinedTest.Core
         }
         
         [Test]
+        指摘：これは名前空間が違う。ComvinedTest/Serevr/PacketTest 配下に移動してほしい。
         public void BaseCampCompleteProtocolTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
