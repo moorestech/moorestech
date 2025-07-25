@@ -101,6 +101,16 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 - `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
 - `mcp__moorestech_server__RunEditModeTests`: テストを実行（必要に応じてregexでフィルタリング）
 
+## MCPテスト実行時の重要事項
+**テストを実行する際は、必ずgroupNamesパラメータと正規表現を活用して、実行するテストを適切に絞り込んでください。**
+
+例：
+- 特定のnamespaceのテストのみ実行: `groupNames: ["^MyNamespace\\."]`
+- 特定のクラスのテストのみ実行: `groupNames: ["^MyNamespace\\.MyTestClass$"]`
+- 特定の機能に関連するテストのみ実行: `groupNames: ["^.*\\.Inventory\\."]`
+
+これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
+
 # クライアント側の開発
 moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
 - `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
