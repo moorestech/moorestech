@@ -3773,7 +3773,11 @@
           }
         ],
         "upgradBlockGuid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
-        "inventorySlot": 3
+        "inventorySlot": 3,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       }
     },
     {
@@ -3808,7 +3812,12 @@
             "itemGuid": "00000000-0000-0000-1234-000000000003",
             "amount": 5
           }
-        ]
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "upgradBlockGuid": ""
       }
     },
     {
@@ -3816,11 +3825,11 @@
       "name": "BaseTransformedBlock",
       "blockType": "BaseCamp",
       "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
-      "blockSize": {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
@@ -3828,7 +3837,15 @@
         "horizontalBlockGuid": "",
         "downBlockGuid": ""
       },
-      "blockParam": {}
+      "blockParam": {
+        "inventorySlot": 3,
+        "requiredItems": [],
+        "upgradBlockGuid": "",
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
     }
   ]
 }
