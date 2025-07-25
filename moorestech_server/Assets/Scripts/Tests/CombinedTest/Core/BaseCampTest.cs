@@ -7,6 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -14,7 +15,6 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
-    指摘：プロトコルのテストが無い。プロトコルとして、「アイテム納品を完了させる」ためのプロトコルが必要なのでその実装をしてください。具体的には、アイテムを必要数入れたあと、そのプロトコルを叩き、既存のBaseCampが消え、同じ座標のブロックが変換後のブロックになっていることを確認してください。
     public class BaseCampTest
     {
         [Test]
@@ -26,8 +26,7 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
-            指摘：テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。この旨はCLAUDE.mdに追記してください。
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000001")); // TODO: 実際のベースキャンプブロックIDに変更
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
             // ベースキャンプコンポーネントの取得
@@ -44,10 +43,6 @@ namespace Tests.CombinedTest.Core
             
             // 納品完了の確認
             Assert.IsTrue(baseCampComponent.IsCompleted());
-            
-            // ブロックが変化したことを確認
-            指摘：ブロックの置換はプロトコル側で行い、置換時にコンポーネントは破棄されるため、このAssertは不適切であり不要。GetTransformedBlockIdも不要。これより下のテストも同様なので直して
-            Assert.AreNotEqual(baseCampBlockId, baseCampComponent.GetTransformedBlockId());
         }
         
         [Test]
@@ -59,7 +54,7 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000002")); // TODO: 複数アイテム要求のベースキャンプブロックID
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp2;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
             var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
@@ -94,7 +89,7 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000001"));
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(3), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
             var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
@@ -120,7 +115,7 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000001"));
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(4), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
             var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
@@ -142,16 +137,15 @@ namespace Tests.CombinedTest.Core
         }
         
         [Test]
-        public void BlockTransformationDetailsTest()
+        public void BaseCampCompleteProtocolTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var position = new Vector3Int(10, 0, 10);
-            var baseCampBlockId = MasterHolder.BlockMaster.GetBlockId(new System.Guid("5f8e8f90-0000-0000-0000-000000000001"));
+            var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             
             // ワールドに配置
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock);
@@ -164,14 +158,34 @@ namespace Tests.CombinedTest.Core
             var requiredAmount = 5;
             baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, requiredAmount));
             
-            // ブロック変換が発生したことを確認
+            // 納品完了を確認
             Assert.IsTrue(baseCampComponent.IsCompleted());
             
-            // 変換後のブロックがワールドに存在することを確認
+            // 納品完了プロトコルを送信
+            var completeRequest = MessagePackSerializer.Serialize(new CompleteBaseCampProtocolMessagePack(1, position)).ToList();
+            packetResponse.GetPacketResponse(completeRequest);
+            
+            // ブロックが変換されたことを確認
             var transformedBlock = worldBlockDatastore.GetBlock(position);
             Assert.IsNotNull(transformedBlock);
             Assert.AreNotEqual(baseCampBlockId, transformedBlock.BlockId);
-            Assert.AreEqual(baseCampComponent.GetTransformedBlockId(), transformedBlock.BlockId);
+            Assert.AreEqual(ForUnitTestModBlockId.TransformedBlock, transformedBlock.BlockId);
+        }
+        
+        // TODO: 実装時に削除 - 仮のプロトコル定義
+        [MessagePackObject]
+        public class CompleteBaseCampProtocolMessagePack
+        {
+            [Key(0)] public int PlayerId { get; set; }
+            [Key(1)] public Vector3Int Position { get; set; }
+            
+            public CompleteBaseCampProtocolMessagePack() { }
+            
+            public CompleteBaseCampProtocolMessagePack(int playerId, Vector3Int position)
+            {
+                PlayerId = playerId;
+                Position = position;
+            }
         }
     }
     
@@ -180,6 +194,5 @@ namespace Tests.CombinedTest.Core
     {
         bool IsCompleted();
         float GetProgress();
-        BlockId GetTransformedBlockId();
     }
 }
