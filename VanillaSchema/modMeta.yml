@@ -1,0 +1,25 @@
+id: modMeta
+type: object
+isDefaultOpen: true
+properties:
+- key: id
+  type: string
+  description: "Unique identifier for the mod"
+  required: true
+- key: name
+  type: string
+  description: "Display name of the mod"
+  required: true
+- key: version
+  type: string
+  description: "Version of the mod"
+  required: true
+  default: "1.0.0"
+- key: author
+  type: string
+  description: "Author of the mod"
+  required: true
+- key: description
+  type: string
+  description: "Description of the mod"
+  optional: true

@@ -26,7 +26,8 @@
       "mcp__moorestech_client__GetCurrentConsoleLogs",
       "mcp__moorestech_server__GetCurrentConsoleLogs",
       "WebFetch(domain:github.com)",
-      "mcp__moorestech_client__ClearConsoleLogs"
+      "mcp__moorestech_client__ClearConsoleLogs",
+      "Bash(cat:*)"
     ],
     "deny": []
   },

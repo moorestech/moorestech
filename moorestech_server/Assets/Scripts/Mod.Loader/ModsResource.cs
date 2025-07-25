@@ -13,7 +13,7 @@ namespace Mod.Loader
 {
     public class ModsResource
     {
-        private const string ModMetaFilePath = "modMeta.json";
+        private const string ModMetaFilePath = "master/modMeta.json";
         public readonly Dictionary<string, Mod> Mods;
         
         /// <summary>
