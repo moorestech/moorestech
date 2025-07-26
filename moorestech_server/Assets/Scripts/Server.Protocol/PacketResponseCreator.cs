@@ -26,6 +26,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.ProtocolTag, new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
+            _packetResponseDictionary.Add(CompleteBaseCampProtocol.ProtocolTag, new CompleteBaseCampProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendCommandProtocol.ProtocolTag, new SendCommandProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.ProtocolTag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.ProtocolTag, new SaveProtocol(serviceProvider));
