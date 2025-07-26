@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.BaseCamp;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -33,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // ベースキャンプブロックを設置
             worldBlockDataStore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock);
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // イベントリクエストを送信してイベント受信を開始
@@ -50,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(GetEventPacket());
             
             // 残りのアイテムを納品して完了させる
-            var remainingItem = itemStackFactory.Create(new ItemId(1), 2);
+            var remainingItem = itemStackFactory.Create(new ItemId(1), 7);
             baseCampInventory.InsertItem(remainingItem);
             
             // 完了を確認
@@ -79,8 +81,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             }
             
             Assert.IsNotNull(completionEvent);
-            Assert.AreEqual(position.x, completionEvent.Position.x);
-            Assert.AreEqual(position.y, completionEvent.Position.y);
+            Assert.AreEqual(position.x, completionEvent.Position.X);
+            Assert.AreEqual(position.y, completionEvent.Position.Y);
             Assert.AreEqual(baseCampBlockId, completionEvent.BlockId);
         }
         
@@ -95,20 +97,5 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();
         }
-    }
-    
-    // TODO: 実装時に削除 - 仮のインターフェース定義
-    public interface IBaseCampComponent : IBlockComponent
-    {
-        bool IsCompleted();
-        float GetProgress();
-    }
-    
-    // TODO: 実装時に削除 - 仮のメッセージパック定義
-    [MessagePackObject]
-    public class BaseCampCompletionEventMessagePack
-    {
-        [Key(0)] public Vector3Int Position { get; set; }
-        [Key(1)] public BlockId BlockId { get; set; }
     }
 }
