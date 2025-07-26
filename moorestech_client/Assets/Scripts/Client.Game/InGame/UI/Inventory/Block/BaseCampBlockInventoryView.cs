@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.Context;
@@ -15,17 +16,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform slotsParent;
         [SerializeField] private Button completeButton;
         
+        private BlockGameObject _blockGameObject;
+        
         private void Awake()
         {
             completeButton.onClick.AddListener(() =>
             {
-                
+                ClientContext.VanillaApi.SendOnly.CompleteBaseCamp(_blockGameObject.BlockPosInfo.OriginalPos);
             });
         }
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
             base.Initialize(blockGameObject);
+            _blockGameObject = blockGameObject;
             
             // アイテムリストを初期化
             // Initialize item list
