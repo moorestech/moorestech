@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -18,17 +17,14 @@ namespace Tests.UnitTest.Game.Challenge
     {
         private const int PlayerId = 1;
         private ChallengeDatastore _challengeDatastore;
-        private IServiceProvider _serviceProvider;
-        private IGameUnlockStateDataController _gameUnlockStateDataController;
         
         [SetUp]
         public void Setup()
         {
             // カテゴリ構造に対応したテスト環境をセットアップ
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            _serviceProvider = serviceProvider;
             _challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
+            serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
         [Test]
