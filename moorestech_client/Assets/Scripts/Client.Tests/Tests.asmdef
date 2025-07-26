@@ -4,7 +4,11 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Server.Tests"
+        "Server.Tests",
+        "Client.Game",
+        "Game.Block.Interface",
+        "Core.Master",
+        "Server.Protocol"
     ],
     "includePlatforms": [
         "Editor"

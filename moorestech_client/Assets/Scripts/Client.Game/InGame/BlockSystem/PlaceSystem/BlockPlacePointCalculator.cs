@@ -4,7 +4,6 @@ using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
-using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -22,22 +21,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
+            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlockMasterElement, IsNotExistBlock);
+        }
+        
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
+        {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
-            var positions = CalcPositions();
+            var blockSize = holdingBlockMasterElement.BlockSize;
+            var isLargeBlock = blockSize.x > 1 || blockSize.y > 1 || blockSize.z > 1;
+            var enableConveyorPlacement = (holdingBlockMasterElement.EnableConveyorPlacement ?? false) && !isLargeBlock;
             
-            var result = CalcPlaceDirection(positions);
+            List<Vector3Int> positions = enableConveyorPlacement ? CalcPositionsForConveyor() : CalcPositions(blockSize);
+            
+            List<PlaceInfo> result = CalcPlaceDirection(positions);
             result = CalcPlaceable(result);
             
             return result;
             
             #region Internal
             
-            // TODO statci化
-            // TODO ブロックの大きさに応じて、設置する間隔を変更する
-            List<Vector3Int> CalcPositions()
+            List<Vector3Int> CalcPositionsForConveyor()
             {
-                // ひとまず、XとZ方向に目的地に向かって1ずつ進む
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
                 
@@ -92,9 +97,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         var point = pointList[i];
                         point.y += currentYDelta;
                         
-                        if (startToCornerDistance + 1 != i) currentYDelta--; // 角の時はY座標を下げない
+                        if (startToCornerDistance + 1 != i || pointList.Count == 2) currentYDelta--; // 角の時はY座標を下げない
                         
                         pointList[i] = point;
+                    }
+                    
+                    // 上がる場合、最初のポイントは次のポイントと同じ高さにする、ただし、2つ目の場合は一つ下にする
+                    if (pointList.Count > 1 && pointList.Count != 2)
+                    {
+                        var firstPoint = pointList[0];
+                        var secondPoint = pointList[1];
+                        firstPoint.y = secondPoint.y;
+                        pointList[0] = firstPoint;
                     }
                     
                     return pointList;
@@ -133,23 +147,92 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return pointList;
             }
             
+            List<Vector3Int> CalcPositions(Vector3Int blockSize)
+            {
+                var pointList = new List<Vector3Int>();
+                var currentPoint = startPoint;
+                pointList.Add(currentPoint);
+                
+                // 最も距離が長い方向を判定
+                var deltaX = Mathf.Abs(endPoint.x - startPoint.x);
+                var deltaY = Mathf.Abs(endPoint.y - startPoint.y);
+                var deltaZ = Mathf.Abs(endPoint.z - startPoint.z);
+                
+                if (deltaX >= deltaY && deltaX >= deltaZ)
+                {
+                    // X方向に伸ばす
+                    var stepX = blockSize.x;
+                    var directionX = endPoint.x > startPoint.x ? 1 : -1;
+                    
+                    while (Mathf.Abs(currentPoint.x - endPoint.x) >= stepX)
+                    {
+                        currentPoint.x += stepX * directionX;
+                        pointList.Add(currentPoint);
+                    }
+                }
+                else if (deltaZ >= deltaX && deltaZ >= deltaY)
+                {
+                    // Z方向に伸ばす
+                    var stepZ = blockSize.z;
+                    var directionZ = endPoint.z > startPoint.z ? 1 : -1;
+                    
+                    while (Mathf.Abs(currentPoint.z - endPoint.z) >= stepZ)
+                    {
+                        currentPoint.z += stepZ * directionZ;
+                        pointList.Add(currentPoint);
+                    }
+                }
+                else
+                {
+                    // Y方向に伸ばす
+                    var stepY = blockSize.y;
+                    var directionY = endPoint.y > startPoint.y ? 1 : -1;
+                    
+                    while (Mathf.Abs(currentPoint.y - endPoint.y) >= stepY)
+                    {
+                        currentPoint.y += stepY * directionY;
+                        pointList.Add(currentPoint);
+                    }
+                }
+                
+                return pointList;
+            }
+            
             List<PlaceInfo> CalcPlaceDirection(List<Vector3Int> placePositions)
             {
+                // enableConveyorPlacementがfalseの場合は初期状態の方向のままにする
+                if (!enableConveyorPlacement)
+                {
+                    var placeInfos = new List<PlaceInfo>(placePositions.Count);
+                    
+                    foreach (var placePosition in placePositions)
+                    {
+                        placeInfos.Add(new PlaceInfo
+                        {
+                            Position = placePosition,
+                            Direction = blockDirection,
+                            VerticalDirection = BlockVerticalDirection.Horizontal,
+                        });
+                    }
+                    
+                    return placeInfos;
+                }
+                
                 if (placePositions.Count == 1)
                 {
-                    return new List<PlaceInfo>()
+                    return new List<PlaceInfo>
                     {
                         new()
                         {
                             Position = placePositions[0],
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
-                        }
+                        },
                     };
                 }
                 
                 var results = new List<PlaceInfo>(placePositions.Count);
-                for (int i = 0; i < placePositions.Count; i++)
+                for (var i = 0; i < placePositions.Count; i++)
                 {
                     BlockDirection direction;
                     BlockVerticalDirection verticalDirection;
@@ -158,10 +241,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     
                     // TODo このロジックのドキュメント化
                     if (startPoint.y < endPoint.y)
-                        //if (true)
                     {
                         // 上向きの場合
-                        if (i == placePositions.Count - 1)
+                        if (i == 0 && placePositions.Count == 2)
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = BlockVerticalDirection.Up;
+                        }
+                        else if (i == 0 && placePositions.Count > 1) // 上がる場合、最初のブロックは必ず水平になる
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = BlockVerticalDirection.Horizontal; // 最後のブロックは必ず水平にする
+                        }
+                        else if (i == placePositions.Count - 1)
                         {
                             var prevPoint = placePositions[i - 1];
                             (direction, _) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
@@ -173,10 +267,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
                         }
                     }
-                    else
+                    else if (startPoint.y > endPoint.y) // 下向きの場合
                     {
-                        // 下向きの場合
-                        if ((i == 0 || i == startToCornerDistance) && i != placePositions.Count - 1)
+                        if (i == 0 && placePositions.Count == 2) // 最初のブロックかつ、2個のブロックかつ、全体が下向きの場合は、ブロックを下向きにする
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = BlockVerticalDirection.Down;
+                        }
+                        else if (i == 0) // 下がる場合、最初のブロックは必ず水平になる
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = BlockVerticalDirection.Horizontal;
+                        }
+                        else if (i == startToCornerDistance && i != placePositions.Count - 1)
                         {
                             var nextPoint = placePositions[i + 1];
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
@@ -191,8 +296,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             (direction, verticalDirection) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
                         }
                     }
+                    else // 水平の場合
+                    {
+                        if (i != placePositions.Count - 1)
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                        }
+                        else
+                        {
+                            var prevPoint = placePositions[i - 1];
+                            (direction, verticalDirection) = GetBlockDirectionWithNextBlock(prevPoint, currentPoint);
+                        }
+                    }
                     
-                    results.Add(new PlaceInfo()
+                    results.Add(new PlaceInfo
                     {
                         Position = currentPoint,
                         Direction = direction,
@@ -233,24 +351,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 foreach (var info in infos)
                 {
                     //TODO ブロックの数が足りているかどうか
-                    info.Placeable = IsNotExistBlock(info);
+                    info.Placeable = isNotExistBlock(info, holdingBlockMasterElement);
                 }
                 
                 return infos;
             }
             
-            // 設置予定地にブロックが既に存在しているかどうか
-            bool IsNotExistBlock(PlaceInfo placeInfo)
-            {
-                // 設置の縦方向のguidを取得
-                var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-                
-                var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
-                var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
-                
-                return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
-            }
             #endregion
+        }
+        
+        // 設置予定地にブロックが既に存在しているかどうか
+        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement holdingBlockMasterElement)
+        {
+            // 設置の縦方向のguidを取得
+            var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
+            
+            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
+            
+            return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
         }
     }
 }
