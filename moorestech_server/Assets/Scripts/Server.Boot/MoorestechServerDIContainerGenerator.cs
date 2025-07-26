@@ -57,12 +57,11 @@ namespace Server.Boot
 
             // マスターをロード
             var modResource = new ModsResource(modDirectory);
-            Dictionary<string, MasterJsonCpntens> configJsons = ModJsonStringLoader.GetConfigString(modResource);
-            var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
-            MasterHolder.Load(configJsonFileContainer);
+            var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
+            MasterHolder.Load(masterJsonFileContainer);
 
             var initializerCollection = new ServiceCollection();
-            initializerCollection.AddSingleton(configJsonFileContainer);
+            initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
@@ -100,7 +99,7 @@ namespace Server.Boot
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
 
-            services.AddSingleton(configJsonFileContainer);
+            services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
 

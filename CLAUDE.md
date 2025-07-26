@@ -66,6 +66,8 @@ public void ComplexMethod()
 - 詳細な実装はinternalメソッドに隠蔽される
 - コードの意図が明確になり、保守性が向上する
 
+`#endregion`の下にはコードを書かないでください。すべてのコードは`#region`ブロックの上部もしくは内部に記述するようにしてください。
+
 # Nullチェックに関する指針
 プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。過度なnullチェックはコードの可読性を下げ、本質的なロジックを見えにくくします。
 
@@ -100,6 +102,16 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 - `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
 - `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
 - `mcp__moorestech_server__RunEditModeTests`: テストを実行（必要に応じてregexでフィルタリング）
+
+## MCPテスト実行時の重要事項
+**テストを実行する際は、必ずgroupNamesパラメータと正規表現を活用して、実行するテストを適切に絞り込んでください。**
+
+例：
+- 特定のnamespaceのテストのみ実行: `groupNames: ["^MyNamespace\\."]`
+- 特定のクラスのテストのみ実行: `groupNames: ["^MyNamespace\\.MyTestClass$"]`
+- 特定の機能に関連するテストのみ実行: `groupNames: ["^.*\\.Inventory\\."]`
+
+これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
 
 # クライアント側の開発
 moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
@@ -150,6 +162,9 @@ YOU MUST:コードを書き終わったから必ずコンパイルを実行し�
 IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライアントの実装をする際はdocs/ClientGuide.mdを必ず参照してください。
 IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコル、イベントプロトコル）を実装する際は、docs/ProtocolImplementationGuide.mdを必ず参照してください。
 IMPORTANT:このゲームのコードベースは非常に大規模であり、たいていタスクもすでにある実装の拡張であることが多いです。そのため、良くコードを読み、コードの性質を理解し、周り合わせて空気を読んだコードを記述することを心がけてください。
+IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
+IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
+IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。Mooresmaster.Model.BlocksModule名前空間に生成されるため、手動で作成しないでください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。

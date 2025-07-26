@@ -20,6 +20,9 @@ namespace Client.Game.InGame.Block
         public IObservable<BlockGameObject> OnBlockPlaced => _onBlockPlaced;
         private readonly Subject<BlockGameObject> _onBlockPlaced = new();
         
+        public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
+        private readonly Subject<Vector3Int> _onBlockRemoved = new();
+        
         
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
@@ -76,6 +79,9 @@ namespace Client.Game.InGame.Block
             
             _blockObjectsDictionary[blockPosition].DestroyBlock().Forget();
             _blockObjectsDictionary.Remove(blockPosition);
+            
+            // ブロック削除イベントを発行
+            _onBlockRemoved.OnNext(blockPosition);
         }
         
         public bool IsOverlapPositionInfo(BlockPositionInfo target)
