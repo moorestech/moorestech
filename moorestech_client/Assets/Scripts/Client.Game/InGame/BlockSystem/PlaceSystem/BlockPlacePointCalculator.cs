@@ -263,11 +263,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                             (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
                             verticalDirection = BlockVerticalDirection.Down;
                         }
-                        else if (i == 0) // 最初のブロックの場合、startPositionよりもcurrentPointが低いならdown、同じならhorizontal
+                        else if (i == 0) // 下がる場合、最初のブロックは必ず水平になる
                         {
                             var nextPoint = placePositions[i + 1];
                             (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
-                            verticalDirection = currentPoint.y < startPoint.y ? BlockVerticalDirection.Down : BlockVerticalDirection.Horizontal;
+                            verticalDirection = BlockVerticalDirection.Horizontal;
                         }
                         else if (i == startToCornerDistance && i != placePositions.Count - 1)
                         {
