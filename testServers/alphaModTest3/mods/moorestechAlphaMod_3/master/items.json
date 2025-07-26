@@ -524,6 +524,26 @@
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "b1101477-9a08-4c9e-8751-43577d1a45a2",
+      "imagePath": "",
+      "name": "ベースキャンプ1",
+      "maxStack": 100,
+      "sortPriority": 700,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "7d0b5ea8-fb7d-4209-a3c7-2089a70e323e",
+      "imagePath": "",
+      "name": "ベースキャンプ2",
+      "maxStack": 100,
+      "sortPriority": 710,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
