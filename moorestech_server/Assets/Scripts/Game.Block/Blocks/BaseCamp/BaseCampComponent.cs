@@ -61,30 +61,7 @@ namespace Game.Block.Blocks.BaseCamp
         public bool IsCompleted()
         {
             CheckDestroy(this);
-            
-            // 現在のインベントリ内のアイテムを集計
-            // Count items currently in inventory
-            var currentItems = new Dictionary<ItemId, int>();
-            foreach (var item in InventoryItems)
-            {
-                if (item.Id == ItemMaster.EmptyItemId) continue;
-                
-                if (!currentItems.ContainsKey(item.Id))
-                    currentItems[item.Id] = 0;
-                currentItems[item.Id] += item.Count;
-            }
-            
-            // 必要なアイテムがすべて揃っているか確認
-            // Check if all required items are present
-            foreach (var required in _requiredItems)
-            {
-                if (!currentItems.ContainsKey(required.Key) || currentItems[required.Key] < required.Value)
-                {
-                    return false;
-                }
-            }
-            
-            return true;
+            return BaseCampCalculator.CalculateIsCompleted(InventoryItems, _requiredItems);
         }
         
         /// <summary>
@@ -94,33 +71,7 @@ namespace Game.Block.Blocks.BaseCamp
         public float GetProgress()
         {
             CheckDestroy(this);
-            
-            // 現在のインベントリ内のアイテムを集計
-            // Count items currently in inventory
-            var currentItems = new Dictionary<ItemId, int>();
-            foreach (var item in InventoryItems)
-            {
-                if (item.Id == ItemMaster.EmptyItemId) continue;
-                
-                if (!currentItems.ContainsKey(item.Id))
-                    currentItems[item.Id] = 0;
-                currentItems[item.Id] += item.Count;
-            }
-            
-            // 必要な総アイテム数と納品済みアイテム数を計算
-            // Calculate total required items and delivered items
-            var totalRequired = _requiredItems.Sum(r => r.Value);
-            var totalDelivered = 0;
-            
-            foreach (var required in _requiredItems)
-            {
-                if (currentItems.ContainsKey(required.Key))
-                {
-                    totalDelivered += System.Math.Min(currentItems[required.Key], required.Value);
-                }
-            }
-            
-            return totalRequired > 0 ? (float)totalDelivered / totalRequired : 0f;
+            return BaseCampCalculator.CalculateProgress(InventoryItems, _requiredItems);
         }
         
         #region IOpenableBlockInventoryComponent
