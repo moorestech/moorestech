@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.BaseCamp;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -29,12 +30,13 @@ namespace Tests.CombinedTest.Core
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
             // ベースキャンプコンポーネントの取得
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>(); // TODO: 実際のコンポーネント名に変更
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // 必要なアイテムの設定（テスト用に単一アイテム）
-            var requiredItemId = new ItemId(1);
-            var requiredAmount = 5;
+            var requiredItemGuid = new Guid("00000000-0000-0000-1234-000000000001");
+            var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItemGuid);
+            var requiredAmount = 10; // BaseCamp1は10個必要
             
             // アイテムを納品
             var deliveredItem = itemStackFactory.Create(requiredItemId, requiredAmount);
@@ -56,7 +58,7 @@ namespace Tests.CombinedTest.Core
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp2;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // 複数の必要アイテム
@@ -91,7 +93,7 @@ namespace Tests.CombinedTest.Core
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(3), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // 間違ったアイテムを納品しようとする
@@ -117,7 +119,7 @@ namespace Tests.CombinedTest.Core
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(4), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             var requiredItemId = new ItemId(1);
@@ -136,10 +138,4 @@ namespace Tests.CombinedTest.Core
         }
     }
     
-    // TODO: 実装時に削除 - 仮のインターフェース定義
-    public interface IBaseCampComponent : IBlockComponent
-    {
-        bool IsCompleted();
-        float GetProgress();
-    }
 }
