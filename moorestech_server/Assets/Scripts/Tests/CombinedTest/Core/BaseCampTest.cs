@@ -61,23 +61,35 @@ namespace Tests.CombinedTest.Core
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
-            // 複数の必要アイテム
+            // 複数の必要アイテム（実際のBaseCamp2の設定に合わせる）
             var requiredItems = new List<(ItemId id, int count)>
             {
                 (new ItemId(1), 3),
-                (new ItemId(2), 5),
-                (new ItemId(3), 2)
+                (new ItemId(2), 2),
+                (new ItemId(3), 5)
             };
             
             // 部分的に納品
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[0].id, requiredItems[0].count));
+            var remaining1 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[0].id, requiredItems[0].count));
+            Debug.Log($"After first insert: remaining={remaining1.Count}");
             Assert.IsFalse(baseCampComponent.IsCompleted());
             
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[1].id, requiredItems[1].count));
+            var remaining2 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[1].id, requiredItems[1].count));
+            Debug.Log($"After second insert: remaining={remaining2.Count}");
             Assert.IsFalse(baseCampComponent.IsCompleted());
             
             // 最後のアイテムを納品
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[2].id, requiredItems[2].count));
+            var remaining3 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[2].id, requiredItems[2].count));
+            Debug.Log($"After third insert: remaining={remaining3.Count}");
+            Debug.Log($"IsCompleted: {baseCampComponent.IsCompleted()}, Progress: {baseCampComponent.GetProgress()}");
+            
+            // インベントリの状態を確認
+            for (int i = 0; i < baseCampComponent.GetSlotSize(); i++)
+            {
+                var item = baseCampComponent.GetItem(i);
+                Debug.Log($"Slot {i}: {item.Id} x {item.Count}");
+            }
+            
             Assert.IsTrue(baseCampComponent.IsCompleted());
         }
         
@@ -96,14 +108,15 @@ namespace Tests.CombinedTest.Core
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
-            // 間違ったアイテムを納品しようとする
-            var wrongItemId = new ItemId(999);
+            // 間違ったアイテムを納品しようとする（BaseCamp1はItemId 1が必要だが、ItemId 2を送る）
+            var wrongItemGuid = new Guid("00000000-0000-0000-1234-000000000002");
+            var wrongItemId = MasterHolder.ItemMaster.GetItemId(wrongItemGuid);
             var wrongItem = itemStackFactory.Create(wrongItemId, 10);
             
-            var insertedCount = baseCampInventory.InsertItem(wrongItem);
+            var remaining = baseCampInventory.InsertItem(wrongItem);
             
-            // 間違ったアイテムは受け付けないことを確認
-            Assert.AreEqual(0, insertedCount);
+            // 間違ったアイテムは受け付けないことを確認（全て返される）
+            Assert.AreEqual(10, remaining.Count);
             Assert.IsFalse(baseCampComponent.IsCompleted());
         }
         

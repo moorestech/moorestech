@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.BaseCamp;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -31,8 +32,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var position = new Vector3Int(10, 0, 10);
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock);
             
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBaseCampInventory>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
+            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            
+            Assert.IsNotNull(baseCampComponent, "BaseCampComponent should not be null");
+            Assert.IsNotNull(baseCampInventory, "IBlockInventory should not be null");
             
             // 部分的にアイテムを納品
             var requiredItemId = new ItemId(1);
@@ -51,18 +55,22 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.RemoveBlock(position);
             
             // ロード
-            var (_, loadWorldBlockDatastore, _, _, _) = CreateBlockTestModule();
-            loadJsonFile.Load(json);
+            Debug.Log("Creating new test module for loading...");
+            var (_, loadWorldBlockDatastore, _, _, loadJsonFileForLoad) = CreateBlockTestModule();
+            Debug.Log("Loading JSON...");
+            loadJsonFileForLoad.Load(json);
+            Debug.Log("JSON loaded, checking for block...");
             
             // ロードされたブロックの確認
+            Debug.Log($"Trying to get block at position {position}");
             var loadedBlock = loadWorldBlockDatastore.GetBlock(position);
-            Assert.IsNotNull(loadedBlock);
+            Assert.IsNotNull(loadedBlock, $"Block at position {position} should be loaded");
             Assert.AreEqual(baseCampBlockId, loadedBlock.BlockId);
             Assert.AreEqual(blockInstanceId, loadedBlock.BlockInstanceId);
             
             // 納品状態の確認
-            var loadedBaseCampComponent = loadedBlock.GetComponent<IBaseCampComponent>();
-            var loadedBaseCampInventory = loadedBlock.GetComponent<IBaseCampInventory>();
+            var loadedBaseCampComponent = loadedBlock.GetComponent<BaseCampComponent>();
+            var loadedBaseCampInventory = loadedBlock.GetComponent<IBlockInventory>();
             
             Assert.AreEqual(progress, loadedBaseCampComponent.GetProgress(), 0.01f);
             
@@ -86,8 +94,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var position = new Vector3Int(5, 0, 5);
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.South, out var baseCampBlock);
             
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBaseCampInventory>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
+            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // 複数アイテムの部分納品
             baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 2));
@@ -104,15 +112,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.RemoveBlock(position);
             
             // ロード
-            var (_, loadWorldBlockDatastore, _, _, _) = CreateBlockTestModule();
-            loadJsonFile.Load(json);
+            var (_, loadWorldBlockDatastore, _, _, loadJsonFileForLoad) = CreateBlockTestModule();
+            loadJsonFileForLoad.Load(json);
             
             // ロードされたブロックの確認
             var loadedBlock = loadWorldBlockDatastore.GetBlock(position);
             Assert.IsNotNull(loadedBlock);
             Assert.AreEqual(BlockDirection.South, loadedBlock.BlockPositionInfo.BlockDirection);
             
-            var loadedBaseCampComponent = loadedBlock.GetComponent<IBaseCampComponent>();
+            var loadedBaseCampComponent = loadedBlock.GetComponent<BaseCampComponent>();
             Assert.AreEqual(progress, loadedBaseCampComponent.GetProgress(), 0.01f);
             Assert.IsFalse(loadedBaseCampComponent.IsCompleted());
         }
@@ -128,8 +136,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var position = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.East, out var baseCampBlock);
             
-            var baseCampComponent = baseCampBlock.GetComponent<IBaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBaseCampInventory>();
+            var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
+            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // すべてのアイテムを納品（変換直前の状態）
             var requiredItemId = new ItemId(1);
@@ -146,31 +154,31 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.RemoveBlock(position);
             
             // ロード
-            var (_, loadWorldBlockDatastore, _, _, _) = CreateBlockTestModule();
-            loadJsonFile.Load(json);
+            var (_, loadWorldBlockDatastore, _, _, loadJsonFileForLoad) = CreateBlockTestModule();
+            loadJsonFileForLoad.Load(json);
             
             // ロードされたブロックの確認
             var loadedBlock = loadWorldBlockDatastore.GetBlock(position);
             Assert.IsNotNull(loadedBlock);
             
-            var loadedBaseCampComponent = loadedBlock.GetComponent<IBaseCampComponent>();
+            var loadedBaseCampComponent = loadedBlock.GetComponent<BaseCampComponent>();
             Assert.IsTrue(loadedBaseCampComponent.IsCompleted());
             Assert.AreEqual(1.0f, loadedBaseCampComponent.GetProgress(), 0.01f);
         }
         
-        private List<IItemStack> GetDeliveredItems(IBaseCampInventory inventory)
+        private List<IItemStack> GetDeliveredItems(IBlockInventory inventory)
         {
-            // リフレクションを使用して内部の納品済みアイテムリストを取得
-            var deliveredItemsField = inventory.GetType()
-                .GetField("_deliveredItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            
-            if (deliveredItemsField != null)
+            // インベントリから全アイテムを取得（空でないものだけ）
+            var items = new List<IItemStack>();
+            for (int i = 0; i < inventory.GetSlotSize(); i++)
             {
-                return deliveredItemsField.GetValue(inventory) as List<IItemStack> ?? new List<IItemStack>();
+                var item = inventory.GetItem(i);
+                if (item != null && item.Id != ItemMaster.EmptyItemId)
+                {
+                    items.Add(item);
+                }
             }
-            
-            // 代替方法：公開メソッドがある場合
-            return inventory.GetDeliveredItems();
+            return items;
         }
         
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
@@ -186,17 +194,5 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             return (blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
         }
-    }
-    
-    // TODO: 実装時に削除 - 仮のインターフェース定義
-    public interface IBaseCampComponent : IBlockComponent
-    {
-        bool IsCompleted();
-        float GetProgress();
-    }
-    
-    public interface IBaseCampInventory : IBlockInventory
-    {
-        List<IItemStack> GetDeliveredItems();
     }
 }
