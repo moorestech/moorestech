@@ -209,13 +209,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         public class CategoryInfo
         {
             [Key(0)] public Guid CategoryGuid { get; set; }
-            [Key(1)] public string CategoryName { get; set; }
             [Key(2)] public bool IsUnlocked { get; set; }
-            [Key(3)] public float Progress { get; set; }
             [Key(4)] public List<Guid> CurrentChallengeGuids { get; set; }
             [Key(5)] public List<Guid> CompletedChallengeGuids { get; set; }
-            [Key(6)] public int TotalChallengesCount { get; set; }
-            [Key(7)] public int CompletedChallengesCount { get; set; }
         }
     }
     
