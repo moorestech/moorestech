@@ -424,6 +424,36 @@
       "maxStack": 100,
       "name": "SimpleGearGenerator",
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26"
+    },
+    {
+      "itemGuid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
+      "imagePath": "",
+      "name": "BaseCamp1",
+      "maxStack": 100,
+      "sortPriority": 700,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
+      "imagePath": "",
+      "name": "BaseCamp2",
+      "maxStack": 100,
+      "sortPriority": 710,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
+      "imagePath": "",
+      "name": "BaseTransformedBlock",
+      "maxStack": 100,
+      "sortPriority": 720,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }

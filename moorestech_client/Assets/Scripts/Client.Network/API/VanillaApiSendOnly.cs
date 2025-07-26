@@ -106,5 +106,11 @@ namespace Client.Network.API
             var request = new InvokeBlockStateEventProtocol.RequestInvokeBlockStateProtocolMessagePack(position);
             _packetSender.Send(request);
         }
+        
+        public void CompleteBaseCamp(Vector3Int position)
+        {
+            var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(_playerId, position);
+            _packetSender.Send(request);
+        }
     }
 }

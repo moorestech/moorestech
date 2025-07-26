@@ -3747,6 +3747,105 @@
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
       "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
+      "name": "BaseCamp1",
+      "blockType": "BaseCamp",
+      "itemGuid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "requiredItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 10
+          }
+        ],
+        "upgradBlockGuid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
+        "inventorySlot": 3,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "9e18bb3d-b821-4f19-a47e-e3718c39eafa",
+      "name": "BaseCamp2",
+      "blockType": "BaseCamp",
+      "itemGuid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "inventorySlot": 3,
+        "requiredItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 3
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "amount": 2
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000003",
+            "amount": 5
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "upgradBlockGuid": ""
+      }
+    },
+    {
+      "blockGuid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
+      "name": "BaseTransformedBlock",
+      "blockType": "BaseCamp",
+      "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "inventorySlot": 3,
+        "requiredItems": [],
+        "upgradBlockGuid": "",
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
     }
   ]
 }
