@@ -96,8 +96,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         pointList[i] = point;
                     }
                     
-                    // 上がる場合、最初のポイントは次のポイントと同じ高さにする
-                    if (pointList.Count > 1)
+                    // 上がる場合、最初のポイントは次のポイントと同じ高さにする、ただし、2つ目の場合は一つ下にする
+                    if (pointList.Count > 1 && pointList.Count != 2)
                     {
                         var firstPoint = pointList[0];
                         var secondPoint = pointList[1];
@@ -237,7 +237,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     if (startPoint.y < endPoint.y)
                     {
                         // 上向きの場合
-                        if (i == 0 && placePositions.Count > 1) // 上がる場合、最初のブロックは必ず水平になる
+                        if (i == 0 && placePositions.Count == 2)
+                        {
+                            var nextPoint = placePositions[i + 1];
+                            (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
+                            verticalDirection = BlockVerticalDirection.Up;
+                        }
+                        else if (i == 0 && placePositions.Count > 1) // 上がる場合、最初のブロックは必ず水平になる
                         {
                             var nextPoint = placePositions[i + 1];
                             (direction, _) = GetBlockDirectionWithNextBlock(currentPoint, nextPoint);
