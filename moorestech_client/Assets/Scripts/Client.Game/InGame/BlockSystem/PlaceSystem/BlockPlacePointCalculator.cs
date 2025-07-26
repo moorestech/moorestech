@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Core.Master;
@@ -19,6 +20,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         }
         
         public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
+        {
+            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlockMasterElement, IsNotExistBlock);
+        }
+        
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
@@ -345,25 +351,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 foreach (var info in infos)
                 {
                     //TODO ブロックの数が足りているかどうか
-                    info.Placeable = IsNotExistBlock(info);
+                    info.Placeable = isNotExistBlock(info, holdingBlockMasterElement);
                 }
                 
                 return infos;
             }
             
-            // 設置予定地にブロックが既に存在しているかどうか
-            bool IsNotExistBlock(PlaceInfo placeInfo)
-            {
-                // 設置の縦方向のguidを取得
-                var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-                
-                var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
-                var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
-                
-                return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
-            }
-            
             #endregion
+        }
+        
+        // 設置予定地にブロックが既に存在しているかどうか
+        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement holdingBlockMasterElement)
+        {
+            // 設置の縦方向のguidを取得
+            var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
+            
+            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
+            
+            return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
         }
     }
 }
