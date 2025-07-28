@@ -29,6 +29,10 @@ namespace Tests.CombinedTest.Game
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             
+            // 初期チャレンジを設定
+            // Set initial challenges
+            challengeDatastore.InitializeCurrentChallenges();
+            
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
             var challengeInfo = challengeDatastore.CurrentChallengeInfo;
@@ -71,6 +75,10 @@ namespace Tests.CombinedTest.Game
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            
+            // 初期チャレンジを設定
+            // Set initial challenges
+            challengeDatastore.InitializeCurrentChallenges();
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
@@ -124,6 +132,10 @@ namespace Tests.CombinedTest.Game
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+
+            // 初期チャレンジを設定
+            // Set initial challenges
+            challengeDatastore.InitializeCurrentChallenges();
 
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
