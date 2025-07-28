@@ -21,9 +21,9 @@ namespace Core.Master
             _nextChallenges = new Dictionary<Guid, List<Guid>>();
             foreach (var challengeCategory in Challenges.Data)
             {
-                var next = new List<Guid>();
                 foreach (var challengeElement in challengeCategory.Challenges)
                 {
+                    var next = new List<Guid>();
                     foreach (var checkTarget in challengeCategory.Challenges)
                     {
                         var prev = checkTarget.PrevChallengeGuids;
@@ -53,5 +53,11 @@ namespace Core.Master
         {
             return _challengeGuidMap[guid];
         }
+        
+        public ChallengeCategoryMasterElement GetChallengeCategory(Guid guid)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

@@ -113,6 +113,11 @@ namespace Game.Challenge
                     var isCompleted = IsChallengesCompleted(CurrentChallengeInfo, challengeElement);
                     if (!isCompleted) continue;
                     
+                    // 既に現在のチャレンジに含まれているかチェック
+                    // Check if already included in current challenges
+                    var isAlreadyCurrent = CurrentChallengeInfo.CurrentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == challengeElement.ChallengeGuid);
+                    if (isAlreadyCurrent) continue;
+                    
                     // 現在のチャレンジとして登録
                     // Register as a current challenge
                     var nextChallenge = CreateChallenge(challengeElement);
@@ -157,9 +162,40 @@ namespace Game.Challenge
             // create current challenges
             CreateCurrentChallenge(currentChallenges, challengeJsonObject.CurrentChallengeGuids);
             
+            // CurrentChallengeGuidsが空で、CompletedGuidsも空の場合は初期チャレンジを追加
+            // If CurrentChallengeGuids is empty and CompletedGuids is also empty, add initial challenges
+            if (challengeJsonObject.CurrentChallengeGuids.Count == 0 && challengeJsonObject.CompletedGuids.Count == 0)
+            {
+                AddInitialChallenges(currentChallenges);
+            }
+            
             CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeIds);
             
             #region Internal
+            
+            void AddInitialChallenges(List<IChallengeTask> currentChallenges)
+            {
+                // 全てのチャレンジカテゴリから初期チャレンジを探す
+                foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
+                {
+                    foreach (var challengeElement in category.Challenges)
+                    {
+                        // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
+                        if (challengeElement.InitialUnlocked &&
+                            (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0))
+                        {
+                            var challenge = CreateChallenge(challengeElement);
+                            currentChallenges.Add(challenge);
+                            
+                            // チャレンジスタートのアクションを実行
+                            foreach (var action in challengeElement.StartedActions.items)
+                            {
+                                ExecuteClearedAction(action);
+                            }
+                        }
+                    }
+                }
+            }
             
             void CreateCurrentChallenge(List<IChallengeTask> currentChallenges, List<string> currentChallengeGuidStrings)
             {
@@ -212,7 +248,10 @@ namespace Game.Challenge
         public ChallengeJsonObject GetSaveJsonObject()
         {
             var completedIds = CurrentChallengeInfo.CompletedChallengeGuids.Select(x => x.ToString()).ToList();
-            var currentChallengeGuids = CurrentChallengeInfo.CurrentChallenges.Select(x => x.ChallengeMasterElement.ChallengeGuid.ToString()).ToList();
+            var currentChallengeGuids = CurrentChallengeInfo.CurrentChallenges
+                .Select(x => x.ChallengeMasterElement.ChallengeGuid.ToString())
+                .Distinct()
+                .ToList();
             
             return new ChallengeJsonObject
             {

@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Challenge;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.EventReceive;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -46,6 +47,9 @@ namespace Server.Protocol.PacketResponse
             
             [IgnoreMember] public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
             [IgnoreMember] public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
+            
+            [Key(5)] public List<ChallengeCategoryMessagePack> Categories { get; set; }
+            
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseChallengeInfoMessagePack() { }
