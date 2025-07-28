@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Game
             }
             // 何もクリアしていないことを確認
             // Check that nothing is cleared
-            Assert.AreEqual(0,challengeInfo.CompletedChallengeGuids.Count);
+            Assert.AreEqual(0,challengeInfo.CompletedChallenges.Count);
         }
         
         [Test]
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game
             
             // クラフトのチャレンジがクリアされたことを確認する
             // Check that the craft challenge is cleared
-            Assert.AreEqual(1, challengeInfo.CompletedChallengeGuids.Count);
+            Assert.AreEqual(1, challengeInfo.CompletedChallenges.Count);
             var currentChallengeCount = challengeInfo.CurrentChallenges.Count;
             
             // セーブ
@@ -112,14 +112,14 @@ namespace Tests.CombinedTest.Game
             // チャレンジがクリアされていることを確認する
             // Check that the challenge is cleared
             var loadedChallengeInfo = challengeDatastore.CurrentChallengeInfo;
-            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);
+            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallenges.Count);
             var challengeGuid = new Guid("00000000-0000-0000-4567-000000000001");
-            Assert.AreEqual(challengeGuid, loadedChallengeInfo.CompletedChallengeGuids[0]);
+            Assert.AreEqual(challengeGuid, loadedChallengeInfo.CompletedChallenges[0].ChallengeGuid);
             
             Assert.AreEqual(currentChallengeCount, loadedChallengeInfo.CurrentChallenges.Count);
-            for (int i = 0; i < loadedChallengeInfo.CompletedChallengeGuids.Count; i++)
+            for (int i = 0; i < loadedChallengeInfo.CompletedChallenges.Count; i++)
             {
-                Assert.AreEqual(challengeInfo.CompletedChallengeGuids[i], loadedChallengeInfo.CompletedChallengeGuids[i]);
+                Assert.AreEqual(challengeInfo.CompletedChallenges[i].ChallengeGuid, loadedChallengeInfo.CompletedChallenges[i].ChallengeGuid);
             }
         }
         
@@ -171,7 +171,7 @@ namespace Tests.CombinedTest.Game
             var loadedChallengeInfo = challengeDatastore.CurrentChallengeInfo;
 
             // クリア済みのチャレンジが1つ存在することを確認
-            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);
+            Assert.AreEqual(1, loadedChallengeInfo.CompletedChallenges.Count);
 
             // 現在のチャレンジが正しくロードされていることを確認
             // Check that the current challenges are loaded correctly
