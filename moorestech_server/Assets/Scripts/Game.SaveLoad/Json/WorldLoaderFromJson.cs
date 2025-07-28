@@ -80,6 +80,27 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
+            
+            // Challengeがnullまたはリストがnullでないことを確認
+            if (load.Challenge == null)
+            {
+                load.Challenge = new ChallengeJsonObject
+                {
+                    CompletedGuids = new System.Collections.Generic.List<string>(),
+                    CurrentChallengeGuids = new System.Collections.Generic.List<string>(),
+                    PlayedSkitIds = new System.Collections.Generic.List<string>()
+                };
+            }
+            else
+            {
+                if (load.Challenge.CompletedGuids == null)
+                    load.Challenge.CompletedGuids = new System.Collections.Generic.List<string>();
+                if (load.Challenge.CurrentChallengeGuids == null)
+                    load.Challenge.CurrentChallengeGuids = new System.Collections.Generic.List<string>();
+                if (load.Challenge.PlayedSkitIds == null)
+                    load.Challenge.PlayedSkitIds = new System.Collections.Generic.List<string>();
+            }
+            
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
         }
