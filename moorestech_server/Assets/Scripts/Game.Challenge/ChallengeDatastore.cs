@@ -26,42 +26,36 @@ namespace Game.Challenge
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
             GameUpdater.UpdateObservable.Subscribe(Update);
-            
-            InitializeCurrentChallenges();
-            
-            #region Internal
-            
-            void InitializeCurrentChallenges()
+        }
+        
+        public void InitializeCurrentChallenges()
+        {
+            // 全てのチャレンジカテゴリから初期チャレンジを探す
+            foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
-                // 全てのチャレンジカテゴリから初期チャレンジを探す
-                foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
+                // カテゴリがinitialUnlockedの場合、カテゴリをアンロック
+                if (category.InitialUnlocked)
                 {
-                    // カテゴリがinitialUnlockedの場合、カテゴリをアンロック
-                    if (category.InitialUnlocked)
+                    // カテゴリアンロックは現時点では必要ない
+                }
+                
+                foreach (var challengeElement in category.Challenges)
+                {
+                    // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
+                    if (challengeElement.InitialUnlocked &&
+                        (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0))
                     {
-                        // カテゴリアンロックは現時点では必要ない
-                    }
-                    
-                    foreach (var challengeElement in category.Challenges)
-                    {
-                        // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
-                        if (challengeElement.InitialUnlocked &&
-                            (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0))
+                        var challenge = CreateChallenge(challengeElement);
+                        CurrentChallengeInfo.CurrentChallenges.Add(challenge);
+                        
+                        // チャレンジスタートのアクションを実行
+                        foreach (var action in challengeElement.StartedActions.items)
                         {
-                            var challenge = CreateChallenge(challengeElement);
-                            CurrentChallengeInfo.CurrentChallenges.Add(challenge);
-                            
-                            // チャレンジスタートのアクションを実行
-                            foreach (var action in challengeElement.StartedActions.items)
-                            {
-                                ExecuteClearedAction(action);
-                            }
+                            ExecuteClearedAction(action);
                         }
                     }
                 }
             }
-            
-            #endregion
         }
         
         private void Update(Unit unit)
