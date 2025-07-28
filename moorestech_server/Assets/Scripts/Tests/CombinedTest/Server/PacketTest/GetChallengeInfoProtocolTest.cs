@@ -28,13 +28,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             // チャレンジを無理やりクリアする
             // Forced to complete a challenge
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            
+            // 初期チャレンジを設定
+            challengeDatastore.InitializeCurrentChallenges();
             var currentChallengeInfo = challengeDatastore.CurrentChallengeInfo;
             
-            foreach (var challenge in currentChallengeInfo.CurrentChallenges.ToList())
-            {
-                var subject = (Subject<IChallengeTask>)challenge.OnChallengeComplete;
-                subject.OnNext(challenge); // 無理やりクリア
-            }
+            // 最初は3つのチャレンジがあるはず（1、2、3）
+            Assert.AreEqual(3, currentChallengeInfo.CurrentChallenges.Count);
+            
+            // チャレンジ1だけをクリア
+            var challenge1 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge1Guid));
+            var subject1 = (Subject<IChallengeTask>)challenge1.OnChallengeComplete;
+            subject1.OnNext(challenge1);
             
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
@@ -45,22 +50,32 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 検証
             // Verification
             
-            Assert.AreEqual(3, challengeInfo.CompletedChallengeGuids.Count);
+            Assert.AreEqual(1, challengeInfo.CompletedChallengeGuids.Count);
             Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge1Guid)));
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge2Guid)));
-            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge3Guid)));
             
-            Assert.AreEqual(1, challengeInfo.CurrentChallengeGuids.Count);
+            // チャレンジ1がクリアされたので、チャレンジ4が開始されているはず
+            // まだチャレンジ2と3が残っているので、合計で3つのCurrentChallengeがあるはず
+            Assert.AreEqual(3, challengeInfo.CurrentChallengeGuids.Count);
             Assert.IsTrue(challengeInfo.CurrentChallengeGuids.Contains(Guid.Parse(Challenge4Guid)));
+            Assert.IsTrue(challengeInfo.CurrentChallengeGuids.Contains(Guid.Parse(Challenge2Guid)));
+            Assert.IsTrue(challengeInfo.CurrentChallengeGuids.Contains(Guid.Parse(Challenge3Guid)));
                 
                 
             // 複数のチャレンジがクリアしたらチャレンジがスタートすることを検証する
             // Verify that the challenge starts when multiple challenges are cleared
-            foreach (var challenge in currentChallengeInfo.CurrentChallenges.ToList())
-            {
-                var subject = (Subject<IChallengeTask>)challenge.OnChallengeComplete;
-                subject.OnNext(challenge); // 無理やりクリア
-            }
+            
+            // チャレンジ2、3、4をクリア（チャレンジ5の前提条件を満たすため）
+            var challenge2 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge2Guid));
+            var subject2 = (Subject<IChallengeTask>)challenge2.OnChallengeComplete;
+            subject2.OnNext(challenge2);
+            
+            var challenge3 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge3Guid));
+            var subject3 = (Subject<IChallengeTask>)challenge3.OnChallengeComplete;
+            subject3.OnNext(challenge3);
+            
+            var challenge4 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge4Guid));
+            var subject4 = (Subject<IChallengeTask>)challenge4.OnChallengeComplete;
+            subject4.OnNext(challenge4);
             
             
             // 現在のチャレンジ情報をリクエスト
@@ -71,6 +86,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 検証
             // Verification
+            
+            // チャレンジ1、2、3、4がクリアされているはず
+            Assert.AreEqual(4, challengeInfo.CompletedChallengeGuids.Count);
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge1Guid)));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge2Guid)));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge3Guid)));
+            Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge4Guid)));
+            
+            // チャレンジ5だけが現在のチャレンジとして残っているはず
             Assert.AreEqual(1, challengeInfo.CurrentChallengeGuids.Count);
             Assert.IsTrue(challengeInfo.CurrentChallengeGuids.Contains(Guid.Parse(Challenge5Guid)));
         }

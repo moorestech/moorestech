@@ -73,6 +73,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
+            // 初期チャレンジを設定
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            challengeDatastore.InitializeCurrentChallenges();
+            
+            // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
+            packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            
             // インベントリに別々にアイテムを追加
             const int itemId = 1;
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
