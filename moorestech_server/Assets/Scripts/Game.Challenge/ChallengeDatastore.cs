@@ -14,11 +14,12 @@ namespace Game.Challenge
 {
     public class ChallengeDatastore
     {
+        public CurrentChallengeInfo CurrentChallengeInfo { get; private set; } = new();
+        
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly ChallengeEvent _challengeEvent;
-        
-        private readonly Dictionary<int, PlayerChallengeInfo> _playerChallengeInfos = new();
         private readonly ChallengeFactory _challengeFactory = new();
+        
         
         public ChallengeDatastore(IGameUnlockStateDataController gameUnlockStateDataController, ChallengeEvent challengeEvent)
         {
@@ -29,68 +30,37 @@ namespace Game.Challenge
         
         private void Update(Unit unit)
         {
-            foreach (var challengeInfo in _playerChallengeInfos.Values)
-                for (var i = challengeInfo.CurrentChallenges.Count - 1; i >= 0; i--)
-                {
-                    var currentChallenge = challengeInfo.CurrentChallenges[i];
-                    currentChallenge.ManualUpdate();
-                }
-        }
-        
-        public PlayerChallengeInfo GetOrCreateChallengeInfo(int playerId)
-        {
-            if (_playerChallengeInfos.TryGetValue(playerId, out var info)) return info;
-            
-            var initialChallenge = CreateInitialChallenge();
-            _playerChallengeInfos.Add(playerId, initialChallenge);
-            
-            return initialChallenge;
-            
-            #region Internal
-            
-            PlayerChallengeInfo CreateInitialChallenge()
+            for (var i = CurrentChallengeInfo.CurrentChallenges.Count - 1; i >= 0; i--)
             {
-                var initialChallenges = new List<IChallengeTask>();
-                foreach (var challengeGuid in MasterHolder.ChallengeMaster.InitialChallenge)
-                {
-                    var challenge = MasterHolder.ChallengeMaster.GetChallenge(challengeGuid);
-                    var initialChallenge = CreateChallenge(playerId, challenge);
-                    initialChallenges.Add(initialChallenge);
-                }
-                
-                return new PlayerChallengeInfo(initialChallenges, new List<Guid>());
+                var currentChallenge = CurrentChallengeInfo.CurrentChallenges[i];
+                currentChallenge.ManualUpdate();
             }
-            
-            #endregion
         }
         
         
-        private IChallengeTask CreateChallenge(int playerId, ChallengeMasterElement challengeElement)
+        private IChallengeTask CreateChallenge(ChallengeMasterElement challengeElement)
         {
-            var challenge = _challengeFactory.CreateChallengeTask(playerId, challengeElement);
+            var challenge = _challengeFactory.CreateChallengeTask(challengeElement);
             challenge.OnChallengeComplete.Subscribe(CompletedChallenge);
             return challenge;
         }
         
         private void CompletedChallenge(IChallengeTask currentChallenge)
         {
-            var playerId = currentChallenge.PlayerId;
-            var challengeInfo = _playerChallengeInfos[playerId];
-            
             // クリアしたチャレンジを削除
             // Remove the cleared challenge
-            challengeInfo.CurrentChallenges.Remove(currentChallenge);
+            CurrentChallengeInfo.CurrentChallenges.Remove(currentChallenge);
             
             // クリア済みに登録されていればスキップ
             // Skip if already registered as cleared
-            var isAlreadyCompleted = challengeInfo.CompletedChallengeGuids.Contains(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            var isAlreadyCompleted = CurrentChallengeInfo.CompletedChallengeGuids.Contains(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             if (isAlreadyCompleted) return;
             
             // クリア済みに登録
             // Register as cleared
-            challengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            CurrentChallengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             
-            UnlockAllPreviousChallengeComplete(challengeInfo, currentChallenge.ChallengeMasterElement);
+            UnlockAllPreviousChallengeComplete(CurrentChallengeInfo, currentChallenge.ChallengeMasterElement);
             
             // クリア時のアクションを実行。次のチャレンジを登録する際にチャレンジのアンロックが走るため、先にクリアアクションを実行する
             // Perform the action when cleared. When registering the next challenge, the challenge unlock will run, so execute the cleared action first
@@ -112,13 +82,13 @@ namespace Game.Challenge
                     
                     // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
                     // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
-                    var isCompleted = IsChallengesCompleted(challengeInfo, challengeElement);
+                    var isCompleted = IsChallengesCompleted(CurrentChallengeInfo, challengeElement);
                     if (!isCompleted) continue;
                     
                     // 現在のチャレンジとして登録
                     // Register as a current challenge
-                    var nextChallenge = CreateChallenge(playerId, challengeElement);
-                    challengeInfo.CurrentChallenges.Add(nextChallenge);
+                    var nextChallenge = CreateChallenge(challengeElement);
+                    CurrentChallengeInfo.CurrentChallenges.Add(nextChallenge);
                     addedNextChallenges.Add(nextChallengeMaster);
                     
                     // チャレンジスタートのアクションを実行する
@@ -127,7 +97,7 @@ namespace Game.Challenge
                 
                 // イベントを発行
                 // Issue an event
-                _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges, challengeInfo.PlayedSkitIds);
+                _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges, CurrentChallengeInfo.PlayedSkitIds);
             }
             
             void ExecuteChallengeActions(ChallengeActionElement[] actions)
@@ -143,36 +113,32 @@ namespace Game.Challenge
         
         #region SaveLoad
         
-        public void LoadChallenge(List<ChallengeJsonObject> challengeJsonObjects)
+        public void LoadChallenge(ChallengeJsonObject challengeJsonObject)
         {
-            foreach (var challengeJsonObject in challengeJsonObjects)
-            {
-                var playerId = challengeJsonObject.PlayerId;
-                var currentChallenges = new List<IChallengeTask>();
-                
-                // 完了したチャレンジのGUIDリストを作成
-                // Create a list of completed challenge GUIDs
-                var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
-                var playerChallengeInfo = new PlayerChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
-                
-                // 前チャレンジがクリアしているときにアンロックする処理
-                // Unlock process when the previous challenge is cleared
-                AutoUnlockChallenge(playerChallengeInfo);
-                
-                // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
-                // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
-                ExecuteUnlockActionsOnLoad(completedChallengeIds);
-                
-                // CurrentChallengeを作成
-                // create current challenges
-                CreateCurrentChallenge(currentChallenges, playerId, challengeJsonObject.CurrentChallengeGuids);
-                
-                _playerChallengeInfos.Add(playerId, new PlayerChallengeInfo(currentChallenges, completedChallengeIds));
-            }
+            var currentChallenges = new List<IChallengeTask>();
+            
+            // 完了したチャレンジのGUIDリストを作成
+            // Create a list of completed challenge GUIDs
+            var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
+            var playerChallengeInfo = new CurrentChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
+            
+            // 前チャレンジがクリアしているときにアンロックする処理
+            // Unlock process when the previous challenge is cleared
+            AutoUnlockChallenge(playerChallengeInfo);
+            
+            // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
+            // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
+            ExecuteUnlockActionsOnLoad(completedChallengeIds);
+            
+            // CurrentChallengeを作成
+            // create current challenges
+            CreateCurrentChallenge(currentChallenges, challengeJsonObject.CurrentChallengeGuids);
+            
+            CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeIds);
             
             #region Internal
             
-            void AutoUnlockChallenge(PlayerChallengeInfo challengeInfo)
+            void AutoUnlockChallenge(CurrentChallengeInfo challengeInfo)
             {
                 foreach (var completedGuid in challengeInfo.CompletedChallengeGuids)
                 {
@@ -181,7 +147,7 @@ namespace Game.Challenge
                 }
             }
             
-            void CreateCurrentChallenge(List<IChallengeTask> currentChallenges, int playerId, List<string> currentChallengeGuidStrings)
+            void CreateCurrentChallenge(List<IChallengeTask> currentChallenges, List<string> currentChallengeGuidStrings)
             {
                 // JSONからロードされたCurrentChallengeGuidを元に、現在挑戦中のチャレンジを再構築する
                 
@@ -192,7 +158,7 @@ namespace Game.Challenge
                     if (challengeElement == null) continue;
                     
                     
-                    var next = CreateChallenge(playerId, challengeElement);
+                    var next = CreateChallenge(challengeElement);
                     if (currentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == next.ChallengeMasterElement.ChallengeGuid)) continue;
                     currentChallenges.Add(next);
                     
@@ -229,25 +195,17 @@ namespace Game.Challenge
 #endregion
         }
         
-        public List<ChallengeJsonObject> GetSaveJsonObject()
+        public ChallengeJsonObject GetSaveJsonObject()
         {
-            var result = new List<ChallengeJsonObject>();
-            foreach (var challengeInfo in _playerChallengeInfos)
-            {
-                var playerId = challengeInfo.Key;
-                var completedIds = challengeInfo.Value.CompletedChallengeGuids.Select(x => x.ToString()).ToList();
-                var currentChallengeGuids = challengeInfo.Value.CurrentChallenges.Select(x => x.ChallengeMasterElement.ChallengeGuid.ToString()).ToList();
-
-                result.Add(new ChallengeJsonObject
-                {
-                    PlayerId = playerId,
-                    CompletedGuids = completedIds,
-                    CurrentChallengeGuids = currentChallengeGuids,
-                    PlayedSkitIds = challengeInfo.Value.PlayedSkitIds
-                });
-            }
+            var completedIds = CurrentChallengeInfo.CompletedChallengeGuids.Select(x => x.ToString()).ToList();
+            var currentChallengeGuids = CurrentChallengeInfo.CurrentChallenges.Select(x => x.ChallengeMasterElement.ChallengeGuid.ToString()).ToList();
             
-            return result;
+            return new ChallengeJsonObject
+            {
+                CompletedGuids = completedIds,
+                CurrentChallengeGuids = currentChallengeGuids,
+                PlayedSkitIds = CurrentChallengeInfo.PlayedSkitIds,
+            };
         }
         
         #endregion
@@ -258,7 +216,7 @@ namespace Game.Challenge
         /// チャレンジがコンプリートできるかをチェック
         /// Check if the challenge can be completed
         /// </summary>
-        private bool IsChallengesCompleted(PlayerChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
+        private bool IsChallengesCompleted(CurrentChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
         {
             // チャレンジがアンロックされていない場合はクリアできない
             // If the challenge is not unlocked, it cannot be cleared
@@ -281,7 +239,7 @@ namespace Game.Challenge
             return true;
         }
         
-        private void UnlockAllPreviousChallengeComplete(PlayerChallengeInfo challengeInfo, ChallengeMasterElement completedChallenge)
+        private void UnlockAllPreviousChallengeComplete(CurrentChallengeInfo challengeInfo, ChallengeMasterElement completedChallenge)
         {
             var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(completedChallenge.ChallengeGuid);
             foreach (var nextChallenge in nextChallenges)
@@ -357,16 +315,23 @@ namespace Game.Challenge
         }
     }
     
-    public class PlayerChallengeInfo
+    public class CurrentChallengeInfo
     {
         public List<IChallengeTask> CurrentChallenges { get; }
         public List<Guid> CompletedChallengeGuids { get; }
         public List<string> PlayedSkitIds { get; }
         
-        public PlayerChallengeInfo(List<IChallengeTask> currentChallenges, List<Guid> completedChallengeGuids)
+        public CurrentChallengeInfo(List<IChallengeTask> currentChallenges, List<Guid> completedChallengeGuids)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallengeGuids = completedChallengeGuids;
+            PlayedSkitIds = new List<string>();
+        }
+        
+        public CurrentChallengeInfo()
+        {
+            CurrentChallenges = new List<IChallengeTask>();
+            CompletedChallengeGuids = new List<Guid>();
             PlayedSkitIds = new List<string>();
         }
     }

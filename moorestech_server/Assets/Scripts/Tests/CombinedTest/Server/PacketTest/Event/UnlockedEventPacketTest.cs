@@ -73,9 +73,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            
             // インベントリに別々にアイテムを追加
             const int itemId = 1;
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
