@@ -26,6 +26,42 @@ namespace Game.Challenge
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
             GameUpdater.UpdateObservable.Subscribe(Update);
+            
+            InitializeCurrentChallenges();
+            
+            #region Internal
+            
+            void InitializeCurrentChallenges()
+            {
+                // 全てのチャレンジカテゴリから初期チャレンジを探す
+                foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
+                {
+                    // カテゴリがinitialUnlockedの場合、カテゴリをアンロック
+                    if (category.InitialUnlocked)
+                    {
+                        // カテゴリアンロックは現時点では必要ない
+                    }
+                    
+                    foreach (var challengeElement in category.Challenges)
+                    {
+                        // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
+                        if (challengeElement.InitialUnlocked &&
+                            (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0))
+                        {
+                            var challenge = CreateChallenge(challengeElement);
+                            CurrentChallengeInfo.CurrentChallenges.Add(challenge);
+                            
+                            // チャレンジスタートのアクションを実行
+                            foreach (var action in challengeElement.StartedActions.items)
+                            {
+                                ExecuteClearedAction(action);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            #endregion
         }
         
         private void Update(Unit unit)
@@ -60,8 +96,6 @@ namespace Game.Challenge
             // Register as cleared
             CurrentChallengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
             
-            UnlockAllPreviousChallengeComplete(CurrentChallengeInfo, currentChallenge.ChallengeMasterElement);
-            
             // クリア時のアクションを実行。次のチャレンジを登録する際にチャレンジのアンロックが走るため、先にクリアアクションを実行する
             // Perform the action when cleared. When registering the next challenge, the challenge unlock will run, so execute the cleared action first
             ExecuteChallengeActions(currentChallenge.ChallengeMasterElement.ClearedActions.items);
@@ -80,8 +114,8 @@ namespace Game.Challenge
                 {
                     var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(nextChallengeMaster.ChallengeGuid);
                     
-                    // 前提条件となるチャレンジがすべてクリア済みか、かつ、チャレンジがアンロックされているかチェック
-                    // Check if all prerequisite challenges have been cleared AND the challenge is unlocked
+                    // 前提条件となるチャレンジがすべてクリア済みか
+                    // Check if all prerequisite challenges have been cleared
                     var isCompleted = IsChallengesCompleted(CurrentChallengeInfo, challengeElement);
                     if (!isCompleted) continue;
                     
@@ -122,10 +156,6 @@ namespace Game.Challenge
             var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
             var playerChallengeInfo = new CurrentChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
             
-            // 前チャレンジがクリアしているときにアンロックする処理
-            // Unlock process when the previous challenge is cleared
-            AutoUnlockChallenge(playerChallengeInfo);
-            
             // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
             // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
             ExecuteUnlockActionsOnLoad(completedChallengeIds);
@@ -137,15 +167,6 @@ namespace Game.Challenge
             CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeIds);
             
             #region Internal
-            
-            void AutoUnlockChallenge(CurrentChallengeInfo challengeInfo)
-            {
-                foreach (var completedGuid in challengeInfo.CompletedChallengeGuids)
-                {
-                    var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(completedGuid);
-                    UnlockAllPreviousChallengeComplete(challengeInfo, challengeElement);
-                }
-            }
             
             void CreateCurrentChallenge(List<IChallengeTask> currentChallenges, List<string> currentChallengeGuidStrings)
             {
@@ -211,18 +232,12 @@ namespace Game.Challenge
         #endregion
         
         
-        
         /// <summary>
         /// チャレンジがコンプリートできるかをチェック
         /// Check if the challenge can be completed
         /// </summary>
         private bool IsChallengesCompleted(CurrentChallengeInfo challengeInfo, ChallengeMasterElement challengeElement)
         {
-            // チャレンジがアンロックされていない場合はクリアできない
-            // If the challenge is not unlocked, it cannot be cleared
-            var isUnlocked = _gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
-            if (!isUnlocked) return false;
-            
             // 前提条件がない場合は常に開始可能
             // If there are no prerequisites, it can always be started
             if (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0)
@@ -238,52 +253,7 @@ namespace Game.Challenge
             
             return true;
         }
-        
-        private void UnlockAllPreviousChallengeComplete(CurrentChallengeInfo challengeInfo, ChallengeMasterElement completedChallenge)
-        {
-            var nextChallenges = MasterHolder.ChallengeMaster.GetNextChallenges(completedChallenge.ChallengeGuid);
-            foreach (var nextChallenge in nextChallenges)
-            {
-                if (!CheckUnlockChallenge(nextChallenge)) continue;
-                
-                _gameUnlockStateDataController.UnlockChallenge(nextChallenge.ChallengeGuid);
-            }
-            
-            return;
-            
-            #region Internal
-            
-            bool CheckUnlockChallenge(ChallengeMasterElement nextChallenge)
-            {
-                // アンロックを行うかをチェック
-                // Check if unlocking is to be performed
-                if (!nextChallenge.UnlockAllPreviousChallengeComplete) return false;
-                
-                
-                // 前提条件がない場合は常にアンロック
-                // If there are no prerequisites, it can always be started
-                if (nextChallenge.PrevChallengeGuids == null || nextChallenge.PrevChallengeGuids.Length == 0)
-                {
-                    return false;
-                }
-                
-                // すべての前提条件がクリア済みかチェック
-                // Check if all prerequisites have been cleared
-                foreach (var prevGuid in nextChallenge.PrevChallengeGuids)
-                {
-                    if (!challengeInfo.CompletedChallengeGuids.Contains(prevGuid))
-                    {
-                        // クリアしてないチャレンジがあったので、アンロックしない
-                        // If there was a challenge that was not cleared, do not unlock
-                        return false;
-                    }
-                }
-                
-                return true;
-            }
-            
-            #endregion
-        }
+
         
         private void ExecuteClearedAction(ChallengeActionElement action)
         {
