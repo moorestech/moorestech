@@ -83,12 +83,12 @@ namespace Game.Challenge
             
             // クリア済みに登録されていればスキップ
             // Skip if already registered as cleared
-            var isAlreadyCompleted = CurrentChallengeInfo.CompletedChallengeGuids.Contains(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            var isAlreadyCompleted = CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
             if (isAlreadyCompleted) return;
             
             // クリア済みに登録
             // Register as cleared
-            CurrentChallengeInfo.CompletedChallengeGuids.Add(currentChallenge.ChallengeMasterElement.ChallengeGuid);
+            CurrentChallengeInfo.CompletedChallenges.Add(currentChallenge.ChallengeMasterElement);
             
             // クリア時のアクションを実行。次のチャレンジを登録する際にチャレンジのアンロックが走るため、先にクリアアクションを実行する
             // Perform the action when cleared. When registering the next challenge, the challenge unlock will run, so execute the cleared action first
@@ -152,11 +152,19 @@ namespace Game.Challenge
             
             // 完了したチャレンジのGUIDリストを作成
             // Create a list of completed challenge GUIDs
-            var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
+            var completedChallengeElements = new List<ChallengeMasterElement>();
+            foreach (var guid in challengeJsonObject.CompletedGuids)
+            {
+                var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(Guid.Parse(guid));
+                if (challengeElement == null) continue;
+                
+                completedChallengeElements.Add(challengeElement);
+                
+                // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
+                // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
+                ExecuteUnlockActions(challengeElement.ClearedActions.items);
+            }
             
-            // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
-            // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
-            ExecuteUnlockActionsOnLoad(completedChallengeIds);
             
             // CurrentChallengeを作成
             // create current challenges
@@ -169,7 +177,7 @@ namespace Game.Challenge
                 AddInitialChallenges(currentChallenges);
             }
             
-            CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeIds);
+            CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeElements);
             
             #region Internal
             
@@ -218,15 +226,6 @@ namespace Game.Challenge
                 }
             }
             
-            void ExecuteUnlockActionsOnLoad(List<Guid> completedChallengeGuids)
-            {
-                foreach (var completedGuid in completedChallengeGuids)
-                {
-                    var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(completedGuid);
-                    ExecuteUnlockActions(challengeElement.ClearedActions.items);
-                }
-            }
-            
             void ExecuteUnlockActions(ChallengeActionElement[] actions)
             {
                 foreach (var action in actions)
@@ -247,7 +246,7 @@ namespace Game.Challenge
         
         public ChallengeJsonObject GetSaveJsonObject()
         {
-            var completedIds = CurrentChallengeInfo.CompletedChallengeGuids.Select(x => x.ToString()).ToList();
+            var completedIds = CurrentChallengeInfo.CompletedChallenges.Select(x => x.ChallengeGuid.ToString()).ToList();
             var currentChallengeGuids = CurrentChallengeInfo.CurrentChallenges
                 .Select(x => x.ChallengeMasterElement.ChallengeGuid.ToString())
                 .Distinct()
@@ -279,7 +278,7 @@ namespace Game.Challenge
             // Check if all prerequisites have been cleared
             foreach (var prevGuid in challengeElement.PrevChallengeGuids)
             {
-                if (!challengeInfo.CompletedChallengeGuids.Contains(prevGuid))
+                if (challengeInfo.CompletedChallenges.All(c => c.ChallengeGuid != prevGuid))
                     return false;
             }
             
@@ -320,20 +319,20 @@ namespace Game.Challenge
     public class CurrentChallengeInfo
     {
         public List<IChallengeTask> CurrentChallenges { get; }
-        public List<Guid> CompletedChallengeGuids { get; }
+        public List<ChallengeMasterElement> CompletedChallenges { get; }
         public List<string> PlayedSkitIds { get; }
         
-        public CurrentChallengeInfo(List<IChallengeTask> currentChallenges, List<Guid> completedChallengeGuids)
+        public CurrentChallengeInfo(List<IChallengeTask> currentChallenges, List<ChallengeMasterElement> completedChallenges)
         {
             CurrentChallenges = currentChallenges;
-            CompletedChallengeGuids = completedChallengeGuids;
+            CompletedChallenges = completedChallenges;
             PlayedSkitIds = new List<string>();
         }
         
         public CurrentChallengeInfo()
         {
             CurrentChallenges = new List<IChallengeTask>();
-            CompletedChallengeGuids = new List<Guid>();
+            CompletedChallenges = new List<ChallengeMasterElement>();
             PlayedSkitIds = new List<string>();
         }
     }

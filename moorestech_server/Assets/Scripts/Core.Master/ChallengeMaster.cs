@@ -13,6 +13,7 @@ namespace Core.Master
         public ChallengeCategoryMasterElement[] ChallengeCategoryMasterElements => Challenges.Data;
         
         private readonly Dictionary<Guid, ChallengeMasterElement> _challengeGuidMap = new();
+        private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeToCategoryMap = new();
         private readonly Dictionary<Guid, List<Guid>> _nextChallenges;
         
         public ChallengeMaster(JToken challengeJToken)
@@ -35,6 +36,7 @@ namespace Core.Master
                     
                     _nextChallenges.Add(challengeElement.ChallengeGuid, next);
                     _challengeGuidMap.Add(challengeElement.ChallengeGuid, challengeElement);
+                    _challengeToCategoryMap.Add(challengeElement.ChallengeGuid, challengeCategory);
                 }
             }
         }
@@ -54,10 +56,9 @@ namespace Core.Master
             return _challengeGuidMap[guid];
         }
         
-        public ChallengeCategoryMasterElement GetChallengeCategory(Guid guid)
+        public ChallengeCategoryMasterElement GetChallengeCategoryFromChallengeGuid(Guid guid)
         {
-            throw new NotImplementedException();
+            return _challengeToCategoryMap[guid];
         }
-
     }
 }
