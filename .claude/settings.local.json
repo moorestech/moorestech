@@ -36,5 +36,8 @@
   "enabledMcpjsonServers": [
     "moorestech_server",
     "moorestec_client"
-  ]
+  ],
+  "env": {
+    "MCP_TOOL_TIMEOUT": "1000000"
+  }
 }
