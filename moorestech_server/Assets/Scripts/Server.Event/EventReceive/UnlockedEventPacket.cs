@@ -24,7 +24,7 @@ namespace Server.Event.EventReceive
             
             unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe ,c)));
             unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
-            unlockState.OnUnlockChallenge.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Challenge ,c)));
+            unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Challenge ,c)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)

@@ -18,6 +18,12 @@ namespace Tests.CombinedTest.Game
     {
         private const int PlayerId = 1;
         
+        private readonly List<Guid> _initialChallenge = new()
+        {
+            Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            Guid.Parse("00000000-0000-0000-0000-000000000002")
+        };
+        
         [Test]
         public void NonCompletedChallengeSaveLoadTest()
         {
@@ -31,12 +37,12 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
-            Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
+            Assert.AreEqual(_initialChallenge.Count ,challengeInfo.CurrentChallenges.Count);
+            
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
-                Assert.IsNotNull(challenge);
+                var index = _initialChallenge.FindIndex(g => g == currentChallenge.ChallengeMasterElement.ChallengeGuid);
+                Assert.IsTrue(index != -1);
             }
             
             
@@ -53,11 +59,11 @@ namespace Tests.CombinedTest.Game
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
             challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            Assert.AreEqual(initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
+            Assert.AreEqual(_initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
-                var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
-                Assert.IsNotNull(challenge);
+                var index = _initialChallenge.FindIndex(g => g == currentChallenge.ChallengeMasterElement.ChallengeGuid);
+                Assert.IsTrue(index != -1);
             }
             // 何もクリアしていないことを確認
             // Check that nothing is cleared
@@ -77,7 +83,7 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            var initialChallenge = _initialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
                 var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
@@ -133,7 +139,7 @@ namespace Tests.CombinedTest.Game
 
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            var initialChallenge = MasterHolder.ChallengeMaster.InitialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            var initialChallenge = _initialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
             Assert.AreEqual(initialChallenge.Count, challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {

@@ -150,10 +150,6 @@ namespace Game.Challenge
                 var playerId = challengeJsonObject.PlayerId;
                 var currentChallenges = new List<IChallengeTask>();
                 
-                // InitialChallengeの中でクリアしていないのを登録
-                // Register initial challenges that have not been cleared
-                RegisterInitialChallenge(challengeJsonObject, currentChallenges, playerId);
-                
                 // 完了したチャレンジのGUIDリストを作成
                 // Create a list of completed challenge GUIDs
                 var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
@@ -182,25 +178,6 @@ namespace Game.Challenge
                 {
                     var challengeElement = MasterHolder.ChallengeMaster.GetChallenge(completedGuid);
                     UnlockAllPreviousChallengeComplete(challengeInfo, challengeElement);
-                }
-            }
-            
-            void RegisterInitialChallenge(ChallengeJsonObject challengeJsonObject, List<IChallengeTask> currentChallenges, int playerId)
-            {
-                foreach (var initialChallengeGuid in MasterHolder.ChallengeMaster.InitialChallenge)
-                {
-                    // クリア済みならスキップ
-                    if (challengeJsonObject.CompletedGuids.Contains(initialChallengeGuid.ToString())) continue;
-                    
-                    var challenge = MasterHolder.ChallengeMaster.GetChallenge(initialChallengeGuid);
-                    // 初期チャレンジもアンロック状態を確認 (通常はアンロックされているはず)
-                    // Check unlock state for initial challenges as well (usually unlocked)
-                    var isUnlocked = _gameUnlockStateDataController.ChallengeUnlockStateInfos[challenge.ChallengeGuid].IsUnlocked;
-                    if (isUnlocked)
-                    {
-                        var initialChallenge = CreateChallenge(playerId, challenge);
-                        currentChallenges.Add(initialChallenge);
-                    }
                 }
             }
             
@@ -285,7 +262,7 @@ namespace Game.Challenge
         {
             // チャレンジがアンロックされていない場合はクリアできない
             // If the challenge is not unlocked, it cannot be cleared
-            var isUnlocked = _gameUnlockStateDataController.ChallengeUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
+            var isUnlocked = _gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos[challengeElement.ChallengeGuid].IsUnlocked;
             if (!isUnlocked) return false;
             
             // 前提条件がない場合は常に開始可能
