@@ -55,15 +55,15 @@ namespace Server.Protocol.PacketResponse
             // Get challenge unlock states
             var lockedChallenge = new List<string>();
             var unlockedChallenge = new List<string>();
-            foreach (var challenge in gameUnlockStateData.ChallengeUnlockStateInfos.Values)
+            foreach (var challenge in gameUnlockStateData.ChallengeCategoryUnlockStateInfos.Values)
             {
                 if (challenge.IsUnlocked)
                 {
-                    unlockedChallenge.Add(challenge.ChallengeGuid.ToString());
+                    unlockedChallenge.Add(challenge.ChallengeCategoryGuid.ToString());
                 }
                 else
                 {
-                    lockedChallenge.Add(challenge.ChallengeGuid.ToString());
+                    lockedChallenge.Add(challenge.ChallengeCategoryGuid.ToString());
                 }
             }
             

@@ -13,8 +13,6 @@ namespace Game.UnlockState
     {
         public GameUnlockStateDataController()
         {
-            // TODO 同じ処理がいろいろあるため共通化したい
-            
             // Initialize recipe unlock states
             var recipes = MasterHolder.CraftRecipeMaster.GetAllCraftRecipes();
             foreach (var recipe in recipes)
@@ -38,12 +36,12 @@ namespace Game.UnlockState
             }
 
             // Initialize challenge unlock states
-            foreach (var challenge in MasterHolder.ChallengeMaster.ChallengeMasterElements)
+            foreach (var challenge in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
-                var guid = challenge.ChallengeGuid;
-                if (!ChallengeUnlockStateInfos.ContainsKey(guid))
+                var guid = challenge.CategoryGuid;
+                if (!ChallengeCategoryUnlockStateInfos.ContainsKey(guid))
                 {
-                    _challengeUnlockStateInfos.Add(guid, new ChallengeUnlockStateInfo(guid, challenge.InitialUnlocked));
+                    _challengeCategoryUnlockStateInfos.Add(guid, new ChallengeCategoryUnlockStateInfo(guid, challenge.InitialUnlocked));
                 }
             }
         }
@@ -73,20 +71,20 @@ namespace Game.UnlockState
         }
         
 
-        public IObservable<Guid> OnUnlockChallenge => _onUnlockChallenge;
-        public IReadOnlyDictionary<Guid, ChallengeUnlockStateInfo> ChallengeUnlockStateInfos => _challengeUnlockStateInfos;
+        public IObservable<Guid> OnUnlockChallengeCategory => _onUnlockChallengeCategory;
+        public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos => _challengeCategoryUnlockStateInfos;
 
-        private readonly Subject<Guid> _onUnlockChallenge = new();
-        private readonly Dictionary<Guid, ChallengeUnlockStateInfo> _challengeUnlockStateInfos = new();
-        public void UnlockChallenge(Guid challengeGuid)
+        private readonly Subject<Guid> _onUnlockChallengeCategory = new();
+        private readonly Dictionary<Guid, ChallengeCategoryUnlockStateInfo> _challengeCategoryUnlockStateInfos = new();
+        public void UnlockChallenge(Guid categoryGuid)
         {
-            if (!ChallengeUnlockStateInfos.ContainsKey(challengeGuid))
+            if (!ChallengeCategoryUnlockStateInfos.ContainsKey(categoryGuid))
             {
-                Debug.LogError($"[UnlockChallenge] Challenge not found: {challengeGuid}");
+                Debug.LogError($"[UnlockChallenge] Challenge category not found: {categoryGuid}");
                 return;
             }
-            ChallengeUnlockStateInfos[challengeGuid].Unlock();
-            _onUnlockChallenge.OnNext(challengeGuid);
+            ChallengeCategoryUnlockStateInfos[categoryGuid].Unlock();
+            _onUnlockChallengeCategory.OnNext(categoryGuid);
         }
         
         
@@ -96,7 +94,7 @@ namespace Game.UnlockState
         {
             LoadRecipeUnlockStateInfos();
             LoadItemUnlockStateInfos();
-            LoadChallengeUnlockStateInfos(); // Added for challenge unlock
+            LoadChallengeCategoryUnlockStateInfos(); // Added for challenge unlock
             
             #region Internal
             
@@ -118,12 +116,12 @@ namespace Game.UnlockState
                 }
             }
 
-            void LoadChallengeUnlockStateInfos()
+            void LoadChallengeCategoryUnlockStateInfos()
             {
-                foreach (var challengeUnlockStateInfo in stateJsonObject.ChallengeUnlockStateInfos)
+                foreach (var challengeUnlockStateInfo in stateJsonObject.ChallengeCategoryUnlockStateInfos)
                 {
-                    var state = new ChallengeUnlockStateInfo(challengeUnlockStateInfo);
-                    _challengeUnlockStateInfos[state.ChallengeGuid] = state;
+                    var state = new ChallengeCategoryUnlockStateInfo(challengeUnlockStateInfo);
+                    _challengeCategoryUnlockStateInfos[state.ChallengeCategoryGuid] = state;
                 }
             }
             
@@ -134,12 +132,12 @@ namespace Game.UnlockState
         {
             var recipeUnlockStateInfos = CraftRecipeUnlockStateInfos.Values.Select(r => new CraftRecipeUnlockStateInfoJsonObject(r)).ToList();
             var itemUnlockStateInfos = ItemUnlockStateInfos.Values.Select(i => new ItemUnlockStateInfoJsonObject(i)).ToList();
-            var challengeUnlockStateInfos = ChallengeUnlockStateInfos.Values.Select(c => new ChallengeUnlockStateInfoJsonObject(c)).ToList(); // Added for challenge unlock
+            var challengeUnlockStateInfos = ChallengeCategoryUnlockStateInfos.Values.Select(c => new ChallengeUnlockStateInfoJsonObject(c)).ToList();
             return new GameUnlockStateJsonObject
             {
                 CraftRecipeUnlockStateInfos = recipeUnlockStateInfos,
                 ItemUnlockStateInfos = itemUnlockStateInfos,
-                ChallengeUnlockStateInfos = challengeUnlockStateInfos, // Added for challenge unlock
+                ChallengeCategoryUnlockStateInfos = challengeUnlockStateInfos, // Added for challenge unlock
             };
         }
         
@@ -150,6 +148,6 @@ namespace Game.UnlockState
     {
         [JsonProperty("craftRecipeUnlockStateInfos")] public List<CraftRecipeUnlockStateInfoJsonObject> CraftRecipeUnlockStateInfos;
         [JsonProperty("itemUnlockStateInfos")] public List<ItemUnlockStateInfoJsonObject> ItemUnlockStateInfos;
-        [JsonProperty("challengeUnlockStateInfos")] public List<ChallengeUnlockStateInfoJsonObject> ChallengeUnlockStateInfos;
+        [JsonProperty("challengeCategoryUnlockStateInfos")] public List<ChallengeUnlockStateInfoJsonObject> ChallengeCategoryUnlockStateInfos;
     }
 }

@@ -54,10 +54,6 @@ namespace Client.Game.InGame.UI.Challenge
             
             async UniTask ProcessChallengeCompletion(Guid completedChallengeGuid, List<ChallengeMasterElement> nextList)
             {
-                // スキットの再生
-                // Play background skit
-                await PlaySkit(nextList);
-                
                 // チャレンジのテキストの更新
                 // Update challenge text
                 if (nextList.Count != 0)
@@ -74,18 +70,6 @@ namespace Client.Game.InGame.UI.Challenge
             }
             
             #endregion
-        }
-        
-        
-        private async UniTask PlaySkit(List<ChallengeMasterElement> nextChallenges)
-        {
-            foreach (var challenge in nextChallenges)
-            {
-                if (challenge.PlaySkitType == "BackgroundSkit") // TODO いい感じの位置に置きたい
-                {
-                    //await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
-                }
-            }
         }
     }
 }

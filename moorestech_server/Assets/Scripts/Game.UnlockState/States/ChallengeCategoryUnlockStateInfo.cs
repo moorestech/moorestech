@@ -4,20 +4,20 @@ using Newtonsoft.Json;
 
 namespace Game.UnlockState.States
 {
-    public class ChallengeUnlockStateInfo
+    public class ChallengeCategoryUnlockStateInfo
     {
-        public Guid ChallengeGuid { get; }
+        public Guid ChallengeCategoryGuid { get; }
         public bool IsUnlocked { get; private set; }
 
-        public ChallengeUnlockStateInfo(Guid challengeGuid, bool initialUnlocked)
+        public ChallengeCategoryUnlockStateInfo(Guid challengeCategoryGuid, bool initialUnlocked)
         {
-            ChallengeGuid = challengeGuid;
+            ChallengeCategoryGuid = challengeCategoryGuid;
             IsUnlocked = initialUnlocked;
         }
 
-        public ChallengeUnlockStateInfo(ChallengeUnlockStateInfoJsonObject jsonObject)
+        public ChallengeCategoryUnlockStateInfo(ChallengeUnlockStateInfoJsonObject jsonObject)
         {
-            ChallengeGuid = Guid.Parse(jsonObject.ChallengeGuid);
+            ChallengeCategoryGuid = Guid.Parse(jsonObject.CategoryGuid);
             IsUnlocked = jsonObject.IsUnlocked;
         }
 
@@ -29,12 +29,12 @@ namespace Game.UnlockState.States
 
     public class ChallengeUnlockStateInfoJsonObject
     {
-        [JsonProperty("challengeGuid")] public string ChallengeGuid;
+        [JsonProperty("categoryGuid")] public string CategoryGuid;
         [JsonProperty("isUnlocked")] public bool IsUnlocked;
 
-        public ChallengeUnlockStateInfoJsonObject(ChallengeUnlockStateInfo info)
+        public ChallengeUnlockStateInfoJsonObject(ChallengeCategoryUnlockStateInfo info)
         {
-            ChallengeGuid = info.ChallengeGuid.ToString();
+            CategoryGuid = info.ChallengeCategoryGuid.ToString();
             IsUnlocked = info.IsUnlocked;
         }
 
