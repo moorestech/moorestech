@@ -17,8 +17,9 @@ namespace Tests.CombinedTest.Game
     {
         private readonly List<Guid> _initialChallenge = new()
         {
-            Guid.Parse("00000000-0000-0000-0000-000000000001"),
-            Guid.Parse("00000000-0000-0000-0000-000000000002")
+            Guid.Parse("00000000-0000-0000-4567-000000000001"),
+            Guid.Parse("00000000-0000-0000-4567-000000000002"),
+            Guid.Parse("00000000-0000-0000-4567-000000000003")
         };
         
         [Test]
