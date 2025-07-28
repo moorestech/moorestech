@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Challenge;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
@@ -13,18 +14,19 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:getChallengeInfo";
         
         private readonly ChallengeDatastore _challengeDatastore;
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         
         public GetChallengeInfoProtocol(ServiceProvider serviceProvider)
         {
             _challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
+            var challengeCategories = CompletedChallengeEventPacket.GetChallengeCategories(_challengeDatastore, _gameUnlockStateDataController);
             
-            
-            return new ResponseChallengeInfoMessagePack(currentChallengeIds, info.CompletedChallenges);
+            return new ResponseChallengeInfoMessagePack(challengeCategories);
         }
         
         
@@ -42,9 +44,10 @@ namespace Server.Protocol.PacketResponse
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseChallengeInfoMessagePack() { }
-            public ResponseChallengeInfoMessagePack(List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
+            public ResponseChallengeInfoMessagePack(List<ChallengeCategoryMessagePack> categories)
             {
                 Tag = ProtocolTag;
+                Categories = categories;
             }
         }
     }
