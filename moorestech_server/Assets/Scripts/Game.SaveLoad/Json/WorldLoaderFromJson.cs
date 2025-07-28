@@ -87,6 +87,7 @@ namespace Game.SaveLoad.Json
         public void WorldInitialize()
         {
             _worldSettingsDatastore.Initialize();
+            _challengeDatastore.InitializeCurrentChallenges();
         }
     }
 }
