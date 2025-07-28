@@ -32,9 +32,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-         
             ClearCraftChallenge(packet,serviceProvider);
             
             // イベントを受け取り、テストする
@@ -72,9 +69,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            
             // インベントリに別々にアイテムを追加
             const int itemId = 1;
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
@@ -101,8 +95,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceChallengeClearTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
             
             // ブロックを設置
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, out _);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Challenge;
-using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +15,6 @@ namespace Tests.CombinedTest.Game
 {
     public class ChallengeSaveLoadTest
     {
-        private const int PlayerId = 1;
-        
         private readonly List<Guid> _initialChallenge = new()
         {
             Guid.Parse("00000000-0000-0000-0000-000000000001"),
@@ -31,12 +28,9 @@ namespace Tests.CombinedTest.Game
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             
-            // そのプレイヤーIDのチャレンジを作成する
-            // create a challenge for that player ID
-            var challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
+            var challengeInfo = challengeDatastore.CurrentChallengeInfo;
             Assert.AreEqual(_initialChallenge.Count ,challengeInfo.CurrentChallenges.Count);
             
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
@@ -58,7 +52,7 @@ namespace Tests.CombinedTest.Game
             
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
-            challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            challengeInfo = challengeDatastore.CurrentChallengeInfo;
             Assert.AreEqual(_initialChallenge.Count,challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
@@ -77,13 +71,10 @@ namespace Tests.CombinedTest.Game
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             
-            // そのプレイヤーIDのチャレンジを作成する
-            // create a challenge for that player ID
-            var challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
             var initialChallenge = _initialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            var challengeInfo = challengeDatastore.CurrentChallengeInfo;
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
                 var challenge = initialChallenge.Find(c => c.ChallengeGuid == currentChallenge.ChallengeMasterElement.ChallengeGuid);
@@ -111,7 +102,7 @@ namespace Tests.CombinedTest.Game
             
             // チャレンジがクリアされていることを確認する
             // Check that the challenge is cleared
-            var loadedChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            var loadedChallengeInfo = challengeDatastore.CurrentChallengeInfo;
             Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);
             var challengeGuid = new Guid("00000000-0000-0000-4567-000000000001");
             Assert.AreEqual(challengeGuid, loadedChallengeInfo.CompletedChallengeGuids[0]);
@@ -133,13 +124,10 @@ namespace Tests.CombinedTest.Game
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
 
-            // そのプレイヤーIDのチャレンジを作成する
-            // create a challenge for that player ID
-            var challengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-
             // 初期チャレンジが正しく設定されていることを確認する
             // Check that the initial challenge is set correctly
             var initialChallenge = _initialChallenge.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            var challengeInfo = challengeDatastore.CurrentChallengeInfo;
             Assert.AreEqual(initialChallenge.Count, challengeInfo.CurrentChallenges.Count);
             foreach (var currentChallenge in challengeInfo.CurrentChallenges)
             {
@@ -167,7 +155,7 @@ namespace Tests.CombinedTest.Game
 
             // ロードされたチャレンジ情報を取得
             // Get the loaded challenge information
-            var loadedChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            var loadedChallengeInfo = challengeDatastore.CurrentChallengeInfo;
 
             // クリア済みのチャレンジが1つ存在することを確認
             Assert.AreEqual(1, loadedChallengeInfo.CompletedChallengeGuids.Count);

@@ -22,31 +22,25 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
             
-            var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
+            var info = _challengeDatastore.CurrentChallengeInfo;
             var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeMasterElement.ChallengeGuid).ToList();
             
-            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
+            return new ResponseChallengeInfoMessagePack(currentChallengeIds, info.CompletedChallengeGuids);
         }
         
         
         [MessagePackObject]
         public class RequestChallengeMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RequestChallengeMessagePack() { }
-            public RequestChallengeMessagePack(int playerId)
+            public RequestChallengeMessagePack()
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
             }
         }
         
         [MessagePackObject]
         public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
             [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
             
@@ -55,10 +49,9 @@ namespace Server.Protocol.PacketResponse
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseChallengeInfoMessagePack() { }
-            public ResponseChallengeInfoMessagePack(int playerId, List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
+            public ResponseChallengeInfoMessagePack(List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 CurrentChallengeGuidsStr = currentChallengeIds.Select(x => x.ToString()).ToList();
                 CompletedChallengeGuidsStr = completedChallengeIds.Select(x => x.ToString()).ToList();
             }

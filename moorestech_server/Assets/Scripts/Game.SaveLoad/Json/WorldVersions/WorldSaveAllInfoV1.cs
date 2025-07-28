@@ -20,8 +20,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<PlayerInventorySaveJsonObject> inventory,
             List<EntityJsonObject> entities, 
             WorldSettingJsonObject setting,
-            List<MapObjectJsonObject> mapObjects, 
-            List<ChallengeJsonObject> challenge,
+            List<MapObjectJsonObject> mapObjects,
+            ChallengeJsonObject challenge,
             GameUnlockStateJsonObject gameUnlockStateJsonObject,
             List<PlayerCraftTreeJsonObject> craftTreeInfo)
         {
@@ -40,7 +40,7 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("entities")] public List<EntityJsonObject> Entities { get; }
         [JsonProperty("setting")] public WorldSettingJsonObject Setting { get; }
         [JsonProperty("mapObjects")] public List<MapObjectJsonObject> MapObjects { get; set; }
-        [JsonProperty("challenge")] public List<ChallengeJsonObject> Challenge { get; set; }
+        [JsonProperty("challenge")] public ChallengeJsonObject Challenge { get; set; }
         [JsonProperty("gameUnlockState")] public GameUnlockStateJsonObject GameUnlockStateJsonObject { get; set; }
         [JsonProperty("craftTreeInfo")] public List<PlayerCraftTreeJsonObject> CraftTreeInfo { get; set; }
         [JsonProperty("currentlyActiveChallenge")] public ChallengeJsonObject CurrentlyActiveChallenge { get; set; }

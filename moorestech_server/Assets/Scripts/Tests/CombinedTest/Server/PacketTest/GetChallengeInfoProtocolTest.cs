@@ -14,7 +14,6 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class GetChallengeInfoProtocolTest
     {
-        private const int PlayerId = 1;
         private const string Challenge1Guid = "00000000-0000-0000-4567-000000000001";
         private const string Challenge2Guid = "00000000-0000-0000-4567-000000000002";
         private const string Challenge3Guid = "00000000-0000-0000-4567-000000000003";
@@ -29,9 +28,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // チャレンジを無理やりクリアする
             // Forced to complete a challenge
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            var playerChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            var currentChallengeInfo = challengeDatastore.CurrentChallengeInfo;
             
-            foreach (var challenge in playerChallengeInfo.CurrentChallenges.ToList())
+            foreach (var challenge in currentChallengeInfo.CurrentChallenges.ToList())
             {
                 var subject = (Subject<IChallengeTask>)challenge.OnChallengeComplete;
                 subject.OnNext(challenge); // 無理やりクリア
@@ -39,13 +38,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
-            var messagePack = new RequestChallengeMessagePack(PlayerId);
+            var messagePack = new RequestChallengeMessagePack();
             var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
             var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
             
             // 検証
             // Verification
-            Assert.AreEqual(PlayerId, challengeInfo.PlayerId);
             
             Assert.AreEqual(3, challengeInfo.CompletedChallengeGuids.Count);
             Assert.IsTrue(challengeInfo.CompletedChallengeGuids.Contains(Guid.Parse(Challenge1Guid)));
@@ -58,8 +56,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 
             // 複数のチャレンジがクリアしたらチャレンジがスタートすることを検証する
             // Verify that the challenge starts when multiple challenges are cleared
-            playerChallengeInfo = challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-            foreach (var challenge in playerChallengeInfo.CurrentChallenges.ToList())
+            foreach (var challenge in currentChallengeInfo.CurrentChallenges.ToList())
             {
                 var subject = (Subject<IChallengeTask>)challenge.OnChallengeComplete;
                 subject.OnNext(challenge); // 無理やりクリア
@@ -68,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
-            messagePack = new RequestChallengeMessagePack(PlayerId);
+            messagePack = new RequestChallengeMessagePack();
             response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
             

@@ -114,7 +114,7 @@ namespace Client.Network.API
         
         public async UniTask<ChallengeResponse> GetChallengeResponse(int playerId, CancellationToken ct)
         {
-            var request = new GetChallengeInfoProtocol.RequestChallengeMessagePack(playerId);
+            var request = new GetChallengeInfoProtocol.RequestChallengeMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetChallengeInfoProtocol.ResponseChallengeInfoMessagePack>(request, ct);
             
             var current = response.CurrentChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();

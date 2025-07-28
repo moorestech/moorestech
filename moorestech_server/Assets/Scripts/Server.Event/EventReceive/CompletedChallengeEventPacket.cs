@@ -25,8 +25,7 @@ namespace Server.Event.EventReceive
             var messagePack = new CompletedChallengeEventMessagePack(completeProperty);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
-            var playerId = completeProperty.ChallengeTask.PlayerId;
-            _eventProtocolProvider.AddEvent(playerId, EventTag, payload);
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }
     
