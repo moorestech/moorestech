@@ -205,7 +205,7 @@ namespace Game.Challenge
                     {
                         case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
                         case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
-                        case ChallengeActionElement.ChallengeActionTypeConst.unlockChallenge:
+                        case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
                             ExecuteClearedAction(action);
                             break;
                     }
@@ -273,8 +273,8 @@ namespace Game.Challenge
                         _gameUnlockStateDataController.UnlockItem(itemId);
                     }
                     break;
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockChallenge:
-                    var challenges = ((UnlockChallengeChallengeActionParam) action.ChallengeActionParam).UnlockChallengeGuids;
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
+                    var challenges = ((UnlockChallengeCategoryChallengeActionParam) action.ChallengeActionParam).UnlockChallengeCategoryGuids;
                     foreach (var guid in challenges)
                     {
                         _gameUnlockStateDataController.UnlockChallenge(guid);
