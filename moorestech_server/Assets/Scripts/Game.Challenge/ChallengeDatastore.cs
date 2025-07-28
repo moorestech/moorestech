@@ -154,7 +154,6 @@ namespace Game.Challenge
             // 完了したチャレンジのGUIDリストを作成
             // Create a list of completed challenge GUIDs
             var completedChallengeIds = challengeJsonObject.CompletedGuids.ConvertAll(Guid.Parse);
-            var playerChallengeInfo = new CurrentChallengeInfo(new List<IChallengeTask>(), completedChallengeIds);
             
             // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
             // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
