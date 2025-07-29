@@ -26,6 +26,9 @@ namespace Game.Challenge
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
             GameUpdater.UpdateObservable.Subscribe(Update);
+            
+            // カテゴリアンロック時のイベントを購読
+            _gameUnlockStateDataController.OnUnlockChallengeCategory.Subscribe(OnChallengeCategoryUnlocked);
         }
         
         public void InitializeCurrentChallenges()
@@ -51,7 +54,7 @@ namespace Game.Challenge
                         // チャレンジスタートのアクションを実行
                         foreach (var action in challengeElement.StartedActions.items)
                         {
-                            ExecuteClearedAction(action);
+                            ExecuteChallengeAction(action);
                         }
                     }
                 }
@@ -64,6 +67,34 @@ namespace Game.Challenge
             {
                 var currentChallenge = CurrentChallengeInfo.CurrentChallenges[i];
                 currentChallenge.ManualUpdate();
+            }
+        }
+        
+        private void OnChallengeCategoryUnlocked(Guid categoryGuid)
+        {
+            // カテゴリ内の初期チャレンジを取得
+            var initialChallenges = MasterHolder.ChallengeMaster.GetCategoryInitialChallenges(categoryGuid);
+            
+            foreach (var challengeElement in initialChallenges)
+            {
+                // 既に現在のチャレンジに含まれているかチェック
+                var isAlreadyCurrent = CurrentChallengeInfo.CurrentChallenges
+                    .Any(c => c.ChallengeMasterElement.ChallengeGuid == challengeElement.ChallengeGuid);
+                if (isAlreadyCurrent) continue;
+                
+                // 既にクリア済みかチェック
+                var isAlreadyCompleted = CurrentChallengeInfo.CompletedChallenges
+                    .Any(c => c.ChallengeGuid == challengeElement.ChallengeGuid);
+                if (isAlreadyCompleted) continue;
+                
+                var challenge = CreateChallenge(challengeElement);
+                CurrentChallengeInfo.CurrentChallenges.Add(challenge);
+                
+                // チャレンジスタートのアクションを実行
+                foreach (var action in challengeElement.StartedActions.items)
+                {
+                    ExecuteChallengeAction(action);
+                }
             }
         }
         
@@ -137,7 +168,7 @@ namespace Game.Challenge
             {
                 foreach (var action in actions)
                 {
-                    ExecuteClearedAction(action);
+                    ExecuteChallengeAction(action);
                 }
             }
             
@@ -198,7 +229,7 @@ namespace Game.Challenge
                             // チャレンジスタートのアクションを実行
                             foreach (var action in challengeElement.StartedActions.items)
                             {
-                                ExecuteClearedAction(action);
+                                ExecuteChallengeAction(action);
                             }
                         }
                     }
@@ -235,7 +266,7 @@ namespace Game.Challenge
                         case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
                         case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
                         case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
-                            ExecuteClearedAction(action);
+                            ExecuteChallengeAction(action);
                             break;
                     }
                 }
@@ -286,7 +317,7 @@ namespace Game.Challenge
         }
 
         
-        private void ExecuteClearedAction(ChallengeActionElement action)
+        private void ExecuteChallengeAction(ChallengeActionElement action)
         {
             switch (action.ChallengeActionType)
             {
