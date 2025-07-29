@@ -60,5 +60,26 @@ namespace Core.Master
         {
             return _challengeToCategoryMap[guid];
         }
+        
+        /// <summary>
+        /// 指定されたカテゴリの初期チャレンジ（前提条件がないチャレンジ）を取得する
+        /// </summary>
+        public List<ChallengeMasterElement> GetCategoryInitialChallenges(Guid categoryGuid)
+        {
+            var category = ChallengeCategoryMasterElements.FirstOrDefault(c => c.CategoryGuid == categoryGuid);
+            if (category == null) return new List<ChallengeMasterElement>();
+            
+            var initialChallenges = new List<ChallengeMasterElement>();
+            foreach (var challengeElement in category.Challenges)
+            {
+                // 前提条件がないチャレンジを初期チャレンジとする
+                if (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0)
+                {
+                    initialChallenges.Add(challengeElement);
+                }
+            }
+            
+            return initialChallenges;
+        }
     }
 }
