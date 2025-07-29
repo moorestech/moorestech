@@ -58,16 +58,6 @@ properties:
         - key: summary
           type: string
           default: New Challenge summary
-          switch: ./playSkitType
-          cases:
-          - when: None
-            type: object
-            properties: []
-          - when: BackgroundSkit
-            type: object
-            properties:
-            - key: fireSkitName
-              type: string
         - key: taskCompletionType
           type: enum
           default: createItem
