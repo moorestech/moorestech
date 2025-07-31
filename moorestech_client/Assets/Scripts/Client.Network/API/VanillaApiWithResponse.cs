@@ -37,7 +37,7 @@ namespace Client.Network.API
                 GetMapObjectInfo(ct), 
                 GetWorldData(ct), 
                 GetPlayerInventory(playerId, ct), 
-                GetChallengeResponse(playerId, ct), 
+                GetChallengeResponse(ct), 
                 GetUnlockState(ct), 
                 GetCraftTree(playerId, ct));
             
@@ -112,15 +112,22 @@ namespace Client.Network.API
             #endregion
         }
         
-        public async UniTask<ChallengeResponse> GetChallengeResponse(int playerId, CancellationToken ct)
+        public async UniTask<List<ChallengeCategoryResponse>> GetChallengeResponse(CancellationToken ct)
         {
             var request = new GetChallengeInfoProtocol.RequestChallengeMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetChallengeInfoProtocol.ResponseChallengeInfoMessagePack>(request, ct);
             
-            var current = response.CurrentChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
-            var completed = response.CompletedChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+            var result = new List<ChallengeCategoryResponse>();
+            foreach (var category in response.Categories)
+            {
+                var categoryMaster = MasterHolder.ChallengeMaster.GetChallengeCategory(category.ChallengeCategoryGuid);
+                var current = category.CurrentChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+                var completed = category.CompletedChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
+                
+                result.Add(new ChallengeCategoryResponse(categoryMaster, category.IsUnlocked, current, completed));
+            }
             
-            return new ChallengeResponse(current, completed);
+            return result;
         }
         
         public async UniTask<BlockStateMessagePack> GetBlockState(Vector3Int blockPos, CancellationToken ct)
@@ -141,7 +148,7 @@ namespace Client.Network.API
             return new UnlockStateResponse(
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
-                response.LockedChallengeGuids, response.UnlockedChallengeGuids);
+                response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids);
         }
         
         public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)

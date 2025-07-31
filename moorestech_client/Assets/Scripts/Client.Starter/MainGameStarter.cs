@@ -70,8 +70,8 @@ namespace Client.Starter
         [SerializeField] private RecipeViewerView recipeViewerView;
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
-        [SerializeField] private ChallengeListUI challengeListUI;
         [SerializeField] private CraftTreeViewManager craftTreeViewManager;
+        [SerializeField] private ChallengeListView challengeListView;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -182,8 +182,8 @@ namespace Client.Starter
             builder.RegisterComponent(recipeViewerView);
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
-            builder.RegisterComponent(challengeListUI);
             builder.RegisterComponent(craftTreeViewManager);
+            builder.RegisterComponent(challengeListView);
             
             builder.RegisterComponent(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);

@@ -12,6 +12,7 @@ namespace Core.Master
         public readonly Challenges Challenges;
         public ChallengeCategoryMasterElement[] ChallengeCategoryMasterElements => Challenges.Data;
         
+        private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeCategoryGuidMap = new();
         private readonly Dictionary<Guid, ChallengeMasterElement> _challengeGuidMap = new();
         private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeToCategoryMap = new();
         private readonly Dictionary<Guid, List<Guid>> _nextChallenges;
@@ -22,6 +23,7 @@ namespace Core.Master
             _nextChallenges = new Dictionary<Guid, List<Guid>>();
             foreach (var challengeCategory in Challenges.Data)
             {
+                _challengeCategoryGuidMap.Add(challengeCategory.CategoryGuid, challengeCategory);
                 foreach (var challengeElement in challengeCategory.Challenges)
                 {
                     var next = new List<Guid>();
@@ -80,6 +82,11 @@ namespace Core.Master
             }
             
             return initialChallenges;
+        }
+        
+        public ChallengeCategoryMasterElement GetChallengeCategory(Guid categoryGuid)
+        {
+            return _challengeCategoryGuidMap[categoryGuid];
         }
     }
 }
