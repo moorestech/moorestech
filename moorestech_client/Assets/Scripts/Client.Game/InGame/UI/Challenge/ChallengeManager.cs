@@ -23,20 +23,20 @@ namespace Client.Game.InGame.UI.Challenge
         [Inject] private TutorialManager _tutorialManager;
         
         [Inject]
-        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
+        public void Construct(ChallengeListView challengeListView, InitialHandshakeResponse initialHandshakeResponse)
         {
-            //TODO 複数のチャレンジを表示する
-            if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
+            foreach (var challengeCategory in initialHandshakeResponse.Challenges)
             {
-                var currentChallenges = initialHandshakeResponse.Challenge.CurrentChallenges;
-                currentChallengeHudView.SetCurrentChallenge(currentChallenges);
-                
-                ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
-                
                 // チュートリアルの適用
                 // Apply tutorial
-                initialHandshakeResponse.Challenge.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
+                challengeCategory.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
             }
+            
+            var currentChallenges = initialHandshakeResponse.Challenges.SelectMany(c => c.CurrentChallenges).ToList();
+            currentChallengeHudView.SetCurrentChallenge(currentChallenges);
+            challengeListView.SetUI(initialHandshakeResponse.Challenges);
+            
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
         
         private void OnCompletedChallenge(byte[] packet)
