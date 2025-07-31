@@ -602,7 +602,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -44, y: -200}
+  m_AnchoredPosition: {x: -133, y: 155}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2274353054541861963
@@ -866,7 +866,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.00012207031, y: 0}
+  m_AnchoredPosition: {x: 0.00012207031, y: 0.000091552734}
   m_SizeDelta: {x: 1464.27, y: 790}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &4374408254904698067
@@ -918,7 +918,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49bf88f0510a44ccae451b4b2b19391e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  categoryElement: {fileID: 0}
+  categoryElement: {fileID: 5719419794850769494, guid: 1fca8c35fdf9341baa39b03f2eaf97d3, type: 3}
   challengeListParent: {fileID: 9194757666149125676}
   connectLineParent: {fileID: 7268158187256570741}
 --- !u!1 &5449077620303397880

@@ -1,6 +1,13 @@
 {
   "data": [
     {
+      "categoryGuid": "de6d14f1-8f77-4ca7-8e5d-1125775bf1b4",
+      "categoryName": "生きる基盤",
+      "categoryDescription": "Category description",
+      "displayOrder": 0,
+      "initialUnlocked": true,
+      "challenges": [
+    {
       "blockSize": [
         1,
         1,
@@ -45,14 +52,6 @@
           "challengeActionParam": {
             "unlockItemGuids": [
               "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
-            ]
-          }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "7ac263d8-406a-44e1-9878-9195378e9efc"
             ]
           }
         }
@@ -106,24 +105,6 @@
             "unlockItemGuids": [
               "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
               "91458a7e-5eaa-47fd-b79e-8390af20bb84"
-            ]
-          }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "c78e8e4b-84e6-4859-8541-daa255c09d48"
-            ]
-          }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "c78e8e4b-84e6-4859-8541-daa255c09d48",
-              "a05f88c4-b60a-496a-a2c0-5584ea121456",
-              "8fb53727-935e-4d44-bcfc-064123f15a0a"
             ]
           }
         }
@@ -292,17 +273,6 @@
       "playSkitParam": {},
       "playSkitType": "None",
       "clearedActions": [
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "87ff05b0-4d10-4a0d-952d-e725f2004fe4",
-              "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
-              "4e406d3a-0b04-429d-b4b2-38c7d4586b3c",
-              "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
-            ]
-          }
-        },
         {
           "challengeActionType": "unlockItemRecipeView",
           "challengeActionParam": {
@@ -488,19 +458,6 @@
               "619638d5-13f0-4c04-b4e6-5113e946be7e"
             ]
           }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "bf759905-fdc6-48b6-b130-890c0d7f5784",
-              "bf759905-fdc6-48b6-b130-890c0d7f5784",
-              "74d3d6b2-d8fe-4077-a271-5367972e0569",
-              "7d127f2a-774d-4b51-9a2f-e10ed9f3f66d",
-              "3cc878e1-b049-4262-8893-bada63b6b14f",
-              "5f19ddab-619c-4749-9160-ea86846c055e"
-            ]
-          }
         }
       ],
       "tutorials": [],
@@ -539,14 +496,6 @@
       "playSkitParam": {},
       "tutorials": [],
       "clearedActions": [
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "1f1568c7-f976-4e66-bbb1-2ec1ae6114d0"
-            ]
-          }
-        }
       ],
       "startedActions": [
         {
@@ -746,15 +695,6 @@
               "98383d78-6da1-47ca-bc94-f5e12f50c140"
             ]
           }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "0f859a46-4e21-4f16-9e98-e3b4148290c7",
-              "ea4a2fdc-5e3d-4bdb-984b-7615b08159de"
-            ]
-          }
         }
       ],
       "challengeGuid": "5f19ddab-619c-4749-9160-ea86846c055e",
@@ -842,17 +782,6 @@
               "8b67462b-227a-465b-8d86-de683b5e98a1",
               "dfd0ae76-ae7d-46cd-8abc-0c69407645a2",
               "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
-            ]
-          }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "e3031ec0-7617-4633-a5b5-da484d6c8582",
-              "3e53ca96-1eed-4fef-832d-2190230d24e6",
-              "53ba736e-3228-4dc3-8fd5-370b51384b6f",
-              "99fc2d4b-a99c-412d-a79c-e91dba34c21f"
             ]
           }
         }
@@ -1010,17 +939,6 @@
               "44cb69e9-c703-4393-94c4-bad4477da10f"
             ]
           }
-        },
-        {
-          "challengeActionType": "unlockChallenge",
-          "challengeActionParam": {
-            "unlockChallengeGuids": [
-              "08cee1c0-cbf3-48ed-80d1-70bf02723bfa",
-              "c3f25998-ac94-443c-a7a9-e1d2a517f859",
-              "33ca8580-8370-41bb-9f62-48c0c4803cad",
-              "47b5d93e-d3dd-436a-9ea1-94e317cfa96d"
-            ]
-          }
         }
       ],
       "startedActions": [],
@@ -1164,6 +1082,7 @@
       "clearedActions": [],
       "startedActions": [],
       "unlockAllPreviousChallengeComplete": true
+    }]
     }
   ]
 }

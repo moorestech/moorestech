@@ -20,7 +20,11 @@ properties:
       default: Category description
     - key: displayOrder
       type: integer
-      default: 0
+      default: 100
+      autoIncrement:
+        direction: asc
+        step: 10
+        startWith: 100
     - key: initialUnlocked
       type: boolean
       default: false
