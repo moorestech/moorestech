@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void TwoItemIoTest()
         {
-            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             

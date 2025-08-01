@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
@@ -68,7 +69,7 @@ namespace Client.Starter
             _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
             
             // DIコンテナによるServerContextの作成
-            new MoorestechServerDIContainerGenerator().Create(serverDirectory);
+            new MoorestechServerDIContainerGenerator().Create(serverDirectory, false);
             
             //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
@@ -88,7 +89,7 @@ namespace Client.Starter
             }
             catch (Exception e)
             {
-                Debug.LogError($"初期化処理中にエラーが発生しました: {e.Message}\n{e.StackTrace}");
+                Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
                 // 初期化に失敗した場合はメインメニューへ戻る
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
@@ -138,30 +139,39 @@ namespace Client.Starter
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
                 var serverConfig = new ConnectionServerConfig(_proprieties.ServerIp, _proprieties.ServerPort);
+                var timeOut = TimeSpan.FromSeconds(3);
                 try
                 {
                     // 10秒以内にサーバー接続できなければタイムアウト
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig)
-                        .Timeout(TimeSpan.FromSeconds(10));
+                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig).Timeout(timeOut);
                     
                     Debug.Log("接続完了");
                     return serverCommunicator;
                 }
-                catch (TimeoutException)
+                catch (SocketException)
                 {
-                    Debug.LogError("サーバーへの接続がタイムアウトしました");
-                    loadingLog.text += "\nサーバーへの接続がタイムアウトしました。メインメニューに戻ります。";
-                    await UniTask.Delay(2000);
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                    throw; // 再度スローして後続処理中断
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
-                    loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
-                    await UniTask.Delay(2000);
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                    throw;
+                    loadingLog.text += "\nサーバーの接続が失敗しました。サーバーを起動します。";
+                    try
+                    {
+                        var serverInstanceGameObject = new GameObject("ServerInstance");
+                        serverInstanceGameObject.AddComponent<ServerStarter>();
+                        DontDestroyOnLoad(serverInstanceGameObject);
+                        
+                        await UniTask.Delay(1000);
+                        
+                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig).Timeout(timeOut);
+                        
+                        Debug.Log("接続完了");
+                        return serverCommunicator;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
+                        loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
+                        await UniTask.Delay(2000);
+                        SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                        throw;
+                    }
                 }
             }
             

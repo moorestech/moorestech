@@ -16,7 +16,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void GiveCommandTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             //送信するパケットの作成
             //ID2のアイテムを5個入れる

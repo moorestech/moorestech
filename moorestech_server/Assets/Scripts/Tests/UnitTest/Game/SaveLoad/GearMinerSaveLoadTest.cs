@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Core.Block
         {
             // Initialize the server and get the block factory.
             var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var blockFactory = ServerContext.BlockFactory;
 
             // Get the block GUID for the GearMiner.

@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Core.Block
         [TestCase(3, new int[3] { 2, 1, 3 }, 5, 1)]
         public void RecipeInputItemBlockIdTest(int BlocksId, int[] items, int output0Id, double output0Percent)
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var inputItems = new List<IItemStack>();
@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Core.Block
         [TestCase(1, new int[2] { 2, 1 }, 1)] //存在するときのテストケース exist test
         public void NullRecipeTest(int BlocksId, int[] items, int outputLength)
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var inputItems = new List<IItemStack>();
@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Core.Block
         [TestCase(3, new int[4] { 2, 1, 0, 5 }, new int[4] { 3, 1, 4, 5 }, false)]
         public void RecipeConfirmationTest(int blocksId, int[] items, int[] itemcount, bool ans)
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var itemStacks = new List<IItemStack>();

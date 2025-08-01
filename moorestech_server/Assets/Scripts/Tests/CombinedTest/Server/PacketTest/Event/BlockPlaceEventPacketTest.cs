@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void DontBlockPlaceTest()
         {
-            var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             
             

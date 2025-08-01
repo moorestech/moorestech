@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core.Inventory
         public void InsertItemWithPrioritySlotTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             
