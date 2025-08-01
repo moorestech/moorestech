@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void Test()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var inventoryList = new List<IBlockInventory>();

@@ -4,7 +4,7 @@ using System.Threading;
 using Server.Protocol;
 using UnityEngine;
 
-namespace Server.Boot.PacketHandle
+namespace Server.Boot.Loop
 {
     public class PacketHandler
     {

@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Core
             // アップデート中、前回よりもRPM、トルクが増加していることを確認する
             // 最大になる時間になったときに、RPM、トルクが最大値になっていることを確認する
             
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);
@@ -187,7 +187,7 @@ namespace Tests.CombinedTest.Core
             // 1. OnChangeBlockStateが適切なタイミングで発火すること
             // 2. GetBlockStateDetailsが必要な情報を全て含んでいること
             
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // Steam Gear Generatorを設置
