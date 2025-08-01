@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void NormalSaveLoadTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var blockFactory = ServerContext.BlockFactory;
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void GearSaveLoadTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var blockFactory = ServerContext.BlockFactory;
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);

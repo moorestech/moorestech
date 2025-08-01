@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UnlockedEventTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             // イベントがないことを確認する
             // Make sure there are no events
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void ClearedChallengeToUnlockCraftRecipeEventTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             challengeDatastore.GetOrCreateChallengeInfo(PlayerId);

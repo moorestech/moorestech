@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(7, 100)]
         public void JsonStackTest(int id, int stack)
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             Assert.AreEqual(stack, MasterHolder.ItemMaster.GetItemMaster(new ItemId(id)).MaxStack);
         }
         
@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(7, "Test7")]
         public void JsonNameTest(int id, string name)
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             Assert.AreEqual(name, MasterHolder.ItemMaster.GetItemMaster(new ItemId(id)).Name);
         }
     }

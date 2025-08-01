@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetCompletedChallengeTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             // チャレンジを無理やりクリアする
             // Forced to complete a challenge
