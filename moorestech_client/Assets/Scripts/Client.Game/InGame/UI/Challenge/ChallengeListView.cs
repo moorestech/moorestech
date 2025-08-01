@@ -15,6 +15,10 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private ChallengeTreeView challengeTreeView;
         
         [SerializeField] private ChallengeListViewCategoryElement categoryListElementPrefab;
+        public ChallengeListView(RectTransform categoryListParent)
+        {
+            this.categoryListParent = categoryListParent;
+        }
         
         
         public void SetUI(List<ChallengeCategoryResponse> challengeCategories)
