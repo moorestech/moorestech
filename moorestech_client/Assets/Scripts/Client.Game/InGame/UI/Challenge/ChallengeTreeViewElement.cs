@@ -9,6 +9,7 @@ namespace Client.Game.InGame.UI.Challenge
     {
         public Vector2 AnchoredPosition => rectTransform.anchoredPosition;
         public ChallengeMasterElement ChallengeMasterElement { get; private set; }
+        public RectTransform RectTransform => rectTransform;
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private RectTransform connectLinePrefab;
