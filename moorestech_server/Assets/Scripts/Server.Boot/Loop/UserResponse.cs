@@ -4,7 +4,7 @@ using Server.Protocol;
 using Server.Util;
 using UnityEngine;
 
-namespace Server.Boot.PacketHandle
+namespace Server.Boot.Loop
 {
     public class UserResponse
     {

@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void NonCompletedChallengeSaveLoadTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             
@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Game
             
             // ロード
             // load
-            (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
             
@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void CompletedChallengeSaveLoadTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             
@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Game
             
             // ロード
             // load
-            (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
             
@@ -123,7 +123,7 @@ namespace Tests.CombinedTest.Game
             // AI生成コード
             // AI generated code
             
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
 
@@ -155,7 +155,7 @@ namespace Tests.CombinedTest.Game
 
             // ロード
             // load
-            (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 

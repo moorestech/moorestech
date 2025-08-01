@@ -4,21 +4,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
 
-namespace Server.Boot
+namespace Server.Boot.Loop
 {
-    public class ServerGameUpdater
+    public static class ServerGameUpdater
     {
-        public static Task CreateUpdateThread()
-        {
-            var  startTask = Task.Run(StartUpdate);;
-            return startTask;
-        }
-        
         public const int FrameIntervalMs = 100;
         private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(FrameIntervalMs);
         
         
-        private static async Task StartUpdate()
+        public static async Task StartUpdate(CancellationToken token)
         {
             var stopwatch = new Stopwatch();
             
@@ -40,7 +34,9 @@ namespace Server.Boot
                 
                 // まだフレーム時間が余っていれば、その分だけ待機
                 if (remaining > TimeSpan.Zero)
-                    await Task.Delay(remaining);
+                    await Task.Delay(remaining, token);
+                
+                if (token.IsCancellationRequested) return;
             }
         }
     }
