@@ -53,12 +53,13 @@ namespace Server.Boot
             
             
             //サーバーの起動とゲームアップデートの開始
-            var connectionUpdateThread = new Thread(() => new PacketHandler().StartServer(packet));
+            var cancellationToken = new CancellationTokenSource();
+            var token = cancellationToken.Token;
+            
+            var connectionUpdateThread = new Thread(() => new PacketHandler().StartServer(packet, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
-            var cancellationToken = new CancellationTokenSource();
-            var token = cancellationToken.Token;
             Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
             Task.Run(() => ServerGameUpdater.StartUpdate(token), cancellationToken.Token);
             
@@ -70,7 +71,7 @@ namespace Server.Boot
         {
             try
             {
-                GameUpdater.Dispose();
+                _cancellationTokenSource?.Cancel();
             }
             catch (Exception e)
             {
@@ -86,7 +87,7 @@ namespace Server.Boot
             }
             try
             {
-                _cancellationTokenSource?.Cancel();
+                GameUpdater.Dispose();
             }
             catch (Exception e)
             {
