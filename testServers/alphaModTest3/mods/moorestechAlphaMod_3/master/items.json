@@ -471,7 +471,7 @@
       "name": "核融合炉",
       "maxStack": 100,
       "sortPriority": 640,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -481,7 +481,7 @@
       "name": "量子チェスト",
       "maxStack": 100,
       "sortPriority": 650,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -491,7 +491,7 @@
       "name": "直線高速ベルトコンベア",
       "maxStack": 100,
       "sortPriority": 660,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -501,7 +501,7 @@
       "name": "上り高速ベルトコンベア",
       "maxStack": 100,
       "sortPriority": 670,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -511,7 +511,7 @@
       "name": "下り高速ベルトコンベア",
       "maxStack": 100,
       "sortPriority": 680,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -521,7 +521,7 @@
       "name": "無限歯車ジェネレーター",
       "maxStack": 100,
       "sortPriority": 690,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -531,7 +531,7 @@
       "name": "ベースキャンプ1",
       "maxStack": 100,
       "sortPriority": 700,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -541,7 +541,7 @@
       "name": "ベースキャンプ2",
       "maxStack": 100,
       "sortPriority": 710,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     }
