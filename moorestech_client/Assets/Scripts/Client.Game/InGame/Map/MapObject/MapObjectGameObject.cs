@@ -3,7 +3,6 @@ using Core.Master;
 using Mooresmaster.Model.MapObjectsModule;
 using Server.Protocol.PacketResponse;
 using UniRx;
-using UnityEditor;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapObject
@@ -97,12 +96,12 @@ namespace Client.Game.InGame.Map.MapObject
 #if UNITY_EDITOR
         public void SetMapObjectData(int instanceId)
         {
-            Undo.RecordObject(this, "SetMapObjectData");
+            UnityEditor.Undo.RecordObject(this, "SetMapObjectData");
             
             this.instanceId = instanceId;
             
             //Dirtyフラグを立てる
-            EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
         }
         
 #endif
