@@ -10,19 +10,19 @@ namespace Client.Skit.UI
         
         private bool _isUIHidden = false;
         
-        public SkitUITools(UIDocument skitUiDocument, ISkitActionContext skitActionContext)
+        public SkitUITools(UIDocument skitUiDocument, ISkitActionController skitActionController)
         {
             _skitUiDocument = skitUiDocument;
             
             GetButton("HiddenButton").clicked += HideUI;
-            GetButton("SkipButton").clicked += skitActionContext.Skip;
+            GetButton("SkipButton").clicked += () => skitActionController.SetSkip(true);
             
             var autoButton = GetButton("AutoButton");
-            SetAutoButtonView(skitActionContext.IsAuto);
+            SetAutoButtonView(skitActionController.IsAuto);
             autoButton.clicked += () =>
             {
-                var isAuto = !skitActionContext.IsAuto;
-                skitActionContext.SetAuto(isAuto);
+                var isAuto = !skitActionController.IsAuto;
+                skitActionController.SetAuto(isAuto);
                 SetAutoButtonView(isAuto);
             };
             
