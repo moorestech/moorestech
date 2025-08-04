@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorConnectMachineTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var world = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             
@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Game
         public void MachineConnectToBeltConveyorTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var world = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             
@@ -123,7 +123,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorToChestConnectTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             //チェストの設置
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0), BlockDirection.North, out var vanillaChest);
@@ -157,7 +157,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void NotConnectableBlockTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var world = ServerContext.WorldBlockDatastore;
             
             //機械とチェストを設置
@@ -184,7 +184,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MultiBlockConnectTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var world = ServerContext.WorldBlockDatastore;
             
             //ベルトコンベアを設置

@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Game
         public void SaveJsonAndLoadTest()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             
@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Game
             
             
             var (_, loadServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             
             //テスト用にファイル名を変更

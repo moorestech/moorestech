@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 using Server.Protocol;
 using Server.Util;
 using UnityEngine;
 
-namespace Server.Boot.PacketHandle
+namespace Server.Boot.Loop
 {
     public class UserResponse
     {
@@ -21,7 +22,7 @@ namespace Server.Boot.PacketHandle
         }
         
         
-        public void StartListen()
+        public void StartListen(CancellationToken token)
         {
             _startTime = DateTime.Now;
             
@@ -32,6 +33,7 @@ namespace Server.Boot.PacketHandle
                 var parser = new PacketBufferParser();
                 while (true)
                 {
+                    token.ThrowIfCancellationRequested();
                     var error = ReceiveProcess(parser, buffer);
                     if (error)
                     {
@@ -39,6 +41,11 @@ namespace Server.Boot.PacketHandle
                         break;
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                _client.Close();
+                Debug.Log("切断されました");
             }
             catch (Exception e)
             {

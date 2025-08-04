@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         // Test to ensure that the item is created and that the challenge receives a completed event
         public void CreateItemChallengeClearTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         // Test to ensure that the challenge receives a completed event when an item is in the inventory
         public void InInventoryChallengeClearTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
@@ -102,7 +102,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceChallengeClearTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
