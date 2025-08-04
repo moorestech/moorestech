@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
@@ -13,13 +15,14 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UniRx;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 namespace Client.Game.Skit
 {
-    public class SkitManager : MonoBehaviour
+    public class SkitManager : MonoBehaviour, IInitializable
     {
         [SerializeField] private SkitUI skitUI;
         [SerializeField] private SkitCamera skitCamera;
@@ -31,10 +34,18 @@ namespace Client.Game.Skit
         [Inject] private MapObjectPin mapObjectPin;
         
         public bool IsPlayingSkit { get; private set; }
+        private bool _isSkip;
         
         private void Awake()
         {
             skitUI.SetActive(false);
+        }
+        public void Initialize()
+        {
+            _skitActionContext.OnSkip.Subscribe(_ =>
+            {
+                _isSkip = true;
+            }).AddTo(this);
         }
         
         public async UniTask StartSkit(string addressablePath)
@@ -49,9 +60,10 @@ namespace Client.Game.Skit
             await StartSkit(storyCsv);
         }
         
-        public async UniTask StartSkit(TextAsset skitJson)
+        private async UniTask StartSkit(TextAsset skitJson)
         {
             IsPlayingSkit = true;
+            _isSkip = false;
             var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
@@ -61,7 +73,14 @@ namespace Client.Game.Skit
             
             foreach (var command in commands)
             {
-                await command.ExecuteAsync(storyContext);
+                try
+                {
+                    await command.ExecuteAsync(storyContext);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
             
             //後処理 Post process
@@ -71,6 +90,7 @@ namespace Client.Game.Skit
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
             characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
+            _isSkip = false;
             CameraManager.UnRegisterCamera(skitCamera);
             
             #region Internal

@@ -147,7 +147,9 @@ namespace Client.Starter
             
             // スキット関連
             // register skit related
-            builder.Register<ISkitActionContext, SkitActionContext>(Lifetime.Singleton);
+            var skitActionContext = new SkitActionContext();
+            builder.RegisterInstance<ISkitActionContext>(skitActionContext);
+            builder.RegisterInstance<ISkitActionController>(skitActionContext);
             
             // その他インスタンス
             // register other instance
@@ -191,7 +193,7 @@ namespace Client.Starter
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
-            builder.RegisterComponent(skitManager);
+            builder.RegisterComponent(skitManager).As<IInitializable>();
             builder.RegisterComponent(skitUI);
             builder.RegisterComponent(backgroundSkitManager);
             
