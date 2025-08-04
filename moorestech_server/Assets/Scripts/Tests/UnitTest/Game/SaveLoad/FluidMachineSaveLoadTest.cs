@@ -141,7 +141,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;

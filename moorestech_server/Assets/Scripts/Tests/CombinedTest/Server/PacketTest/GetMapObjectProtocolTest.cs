@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectProtocol_DestroyAndAddToInventory_Test()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             var itemFactory = ServerContext.ItemStackFactory;

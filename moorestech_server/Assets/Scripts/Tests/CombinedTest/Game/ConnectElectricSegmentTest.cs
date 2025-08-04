@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Game
         public void PlaceElectricPoleToPlaceElectricPoleTest()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             //範囲内の電柱
@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Game
         public void PlaceElectricPoleToPlaceMachineTest()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             //起点となる電柱の設置
@@ -155,7 +155,7 @@ namespace Tests.CombinedTest.Game
         public void PlaceMachineToPlaceElectricPoleTest()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             
@@ -200,7 +200,7 @@ namespace Tests.CombinedTest.Game
         public void SegmentConnectionTest()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             //一つ目のセグメントを設置

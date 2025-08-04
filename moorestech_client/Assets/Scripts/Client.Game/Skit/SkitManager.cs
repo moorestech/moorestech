@@ -28,6 +28,7 @@ namespace Client.Game.Skit
         [Inject] private ISkitActionContext _skitActionContext;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
+        [Inject] private MapObjectPin mapObjectPin;
         
         public bool IsPlayingSkit { get; private set; }
         
@@ -66,6 +67,7 @@ namespace Client.Game.Skit
             //後処理 Post process
             skitUI.SetActive(false);
             HudArrowManager.SetActive(true);
+            mapObjectPin.SetActive(true);
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
             characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
@@ -100,6 +102,7 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(true);
+                mapObjectPin.SetActive(false);
                 HudArrowManager.SetActive(false);
                 
                 // DIコンテナをセットアップ

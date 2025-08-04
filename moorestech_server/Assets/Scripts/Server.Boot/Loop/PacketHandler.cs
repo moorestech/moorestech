@@ -4,13 +4,13 @@ using System.Threading;
 using Server.Protocol;
 using UnityEngine;
 
-namespace Server.Boot.PacketHandle
+namespace Server.Boot.Loop
 {
     public class PacketHandler
     {
         private const int Port = 11564;
         
-        public void StartServer(PacketResponseCreator packetResponseCreator)
+        public void StartServer(PacketResponseCreator packetResponseCreator, CancellationToken token)
         {
             //ソケットの作成
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -25,7 +25,7 @@ namespace Server.Boot.PacketHandle
                 var client = listener.Accept();
                 Debug.Log("接続確立");
                 
-                var receiveThread = new Thread(() => new UserResponse(client, packetResponseCreator).StartListen());
+                var receiveThread = new Thread(() => new UserResponse(client, packetResponseCreator).StartListen(token));
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 
                 receiveThread.Start();

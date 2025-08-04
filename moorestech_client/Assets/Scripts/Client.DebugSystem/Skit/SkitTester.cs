@@ -40,7 +40,7 @@ namespace Client.DebugSystem.Skit
             _resolver = builder.Build();
             _resolver.Inject(skitManager);
             
-            new MoorestechServerDIContainerGenerator().Create(ServerDirectory.GetDirectory());
+            new MoorestechServerDIContainerGenerator().Create(ServerDirectory.GetDirectory(), false);
             
             skitManager.StartSkit("Vanilla/Skit/skits/100_start_game").Forget();
         }

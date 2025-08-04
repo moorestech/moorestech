@@ -48,9 +48,12 @@ namespace Server.Boot
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
-        public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
+        public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory, bool resetUpdate)
         {
-            GameUpdater.ResetUpdate();
+            if (resetUpdate)
+            {
+                GameUpdater.ResetUpdate();
+            }
 
             //必要な各種インスタンスを手動で作成
             var modDirectory = Path.Combine(serverDirectory, "mods");
@@ -156,9 +159,6 @@ namespace Server.Boot
 
             // CraftChainerの初期化
             CraftChainerEntryPoint.Entry();
-
-            // アップデート時間をリセット
-            GameUpdater.ResetTime();
 
             return (packetResponse, serviceProvider);
         }

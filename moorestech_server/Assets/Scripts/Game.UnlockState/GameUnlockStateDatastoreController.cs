@@ -94,7 +94,7 @@ namespace Game.UnlockState
         {
             LoadRecipeUnlockStateInfos();
             LoadItemUnlockStateInfos();
-            LoadChallengeCategoryUnlockStateInfos(); // Added for challenge unlock
+            LoadChallengeCategoryUnlockStateInfos();
             
             #region Internal
             

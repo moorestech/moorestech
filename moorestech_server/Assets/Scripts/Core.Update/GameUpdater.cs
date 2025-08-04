@@ -33,12 +33,6 @@ namespace Core.Update
             _lastUpdateTime = DateTime.Now;
         }
         
-        public static void ResetTime()
-        {
-            _lastUpdateTime = DateTime.Now;
-            UpdateSecondTime = 0;
-        }
-        
         public static void Dispose()
         {
             _updateSubject.Dispose();
