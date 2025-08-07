@@ -1,13 +1,21 @@
+using System;
 using UnityEngine;
 
 namespace Server.Boot
 {
     public class ServerStarter : MonoBehaviour
     {
-        private readonly ServerInstanceManager _startServer = new(new string[] { });
+        private ServerInstanceManager _startServer;
+        private string[] _args = Array.Empty<string>();
+        
+        public void SetArgs(string[] args)
+        {
+            _args = args;
+        }
         
         private void Awake()
         {
+            _startServer = new ServerInstanceManager(_args);
             _startServer.Start();
         }
         

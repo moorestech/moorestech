@@ -8,7 +8,8 @@
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
         "Client.Common",
-        "Client.Starter"
+        "Client.Starter",
+        "Server.Boot"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
