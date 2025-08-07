@@ -36,11 +36,9 @@ namespace Game.Challenge
             // 全てのチャレンジカテゴリから初期チャレンジを探す
             foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
-                // カテゴリがinitialUnlockedの場合、カテゴリをアンロック
-                if (category.InitialUnlocked)
-                {
-                    // カテゴリアンロックは現時点では必要ない
-                }
+                // アンロックされていないカテゴリはスキップ
+                if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos.ContainsKey(category.CategoryGuid)) continue;
+                if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos[category.CategoryGuid].IsUnlocked) continue;
                 
                 foreach (var challengeElement in category.Challenges)
                 {
@@ -215,6 +213,10 @@ namespace Game.Challenge
                 // 全てのチャレンジカテゴリから初期チャレンジを探す
                 foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
                 {
+                    // アンロックされていないカテゴリはスキップ
+                    if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos.ContainsKey(category.CategoryGuid)) continue;
+                    if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos[category.CategoryGuid].IsUnlocked) continue;
+                    
                     foreach (var challengeElement in category.Challenges)
                     {
                         // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする

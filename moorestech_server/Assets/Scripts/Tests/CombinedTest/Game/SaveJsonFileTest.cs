@@ -76,8 +76,8 @@ namespace Tests.CombinedTest.Game
         
         private void ChangeFilePath(SaveJsonFilePath instance, string fileName)
         {
-            // バッキングフィールドを取得する
-            var fieldInfo = typeof(SaveJsonFilePath).GetField("<FullSaveFilePath>k__BackingField",
+            // Pathプロパティのバッキングフィールドを取得する
+            var fieldInfo = typeof(SaveJsonFilePath).GetField("<Path>k__BackingField",
                 BindingFlags.Instance | BindingFlags.NonPublic);
             
             // バッキングフィールドの値を更新する
