@@ -5,13 +5,13 @@ namespace Game.SaveLoad.Json
     /// <summary>
     ///     JSONでセーブするさいのファイル名を指定するクラス
     /// </summary>
-    public class SaveJsonFileName
+    public class SaveJsonFilePath
     {
-        public string FullSaveFilePath { get; }
+        public string Path { get; }
         
-        public SaveJsonFileName(string fileName)
+        public SaveJsonFilePath(string path)
         {
-            FullSaveFilePath = GameSystemPaths.GetSaveFilePath(fileName);
+            Path = path;
         }
     }
 }
