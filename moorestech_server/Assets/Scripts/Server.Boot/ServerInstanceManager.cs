@@ -8,7 +8,6 @@ using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
-using Server.Boot.Args;
 using Server.Boot.Loop;
 using UnityEngine;
 
@@ -33,7 +32,8 @@ namespace Server.Boot
         
         private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
-            var settings = StartServerSettings.Parse(args);
+            // これはコンパイルエラーを避ける仮対応
+            var settings = new StartServerSettings();
             
             //カレントディレクトリを表示
             var serverDirectory = ServerDirectory.GetDirectory();
