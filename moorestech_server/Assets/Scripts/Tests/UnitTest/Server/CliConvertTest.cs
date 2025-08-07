@@ -799,7 +799,7 @@ namespace Tests.UnitTest.Server
         [Test]
         public void Parse_StartServerSettings_ShortForms()
         {
-            var args = new[] { "-s", "/short/save.json", "-c", "true" };
+            var args = new[] { "-s", "/short/save.json", "-a", "true" };
             var result = CliConvert.Parse<StartServerSettings>(args);
             
             Assert.AreEqual("/short/save.json", result.SaveFilePath);
@@ -809,7 +809,7 @@ namespace Tests.UnitTest.Server
         [Test]
         public void Parse_StartServerSettings_ComplexScenario()
         {
-            var args = new[] { "-c", "true", "--saveFilePath", "/complex/save.json" };
+            var args = new[] { "-a", "true", "--saveFilePath", "/complex/save.json" };
             var result = CliConvert.Parse<StartServerSettings>(args);
             
             Assert.AreEqual("/complex/save.json", result.SaveFilePath);
