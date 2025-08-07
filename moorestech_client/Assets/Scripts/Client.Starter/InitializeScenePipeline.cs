@@ -141,12 +141,12 @@ namespace Client.Starter
             
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
-                var serverConfig = new ConnectionServerConfig(_proprieties.ServerIp, _proprieties.ServerPort);
+                var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
                 var timeOut = TimeSpan.FromSeconds(3);
                 try
                 {
                     // 10秒以内にサーバー接続できなければタイムアウト
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig).Timeout(timeOut);
+                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                     
                     Debug.Log("接続完了");
                     return serverCommunicator;
@@ -162,7 +162,7 @@ namespace Client.Starter
                         
                         await UniTask.Delay(1000);
                         
-                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig).Timeout(timeOut);
+                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                         
                         Debug.Log("接続完了");
                         return serverCommunicator;
