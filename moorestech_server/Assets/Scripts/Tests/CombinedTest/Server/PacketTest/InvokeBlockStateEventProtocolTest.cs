@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void InvokeTest()
         {
             // Arrange
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlock = ServerContext.WorldBlockDatastore;
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void NotInvokeTest()
         {
             // Arrange
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             
             var blockPosition = new Vector3Int(100, 200, 300); // 存在しない座標

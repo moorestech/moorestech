@@ -14,7 +14,7 @@ namespace Tests.UnitTest.Core.Other
         // メタデータの同一性の評価
         public void MetaDataEqualityTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemsStackFactory = ServerContext.ItemStackFactory;
             
             var meta = new Dictionary<string, ItemStackMetaData> { { "test1", new TestMeta1() } };
@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Core.Other
         // Addできる、できないの評価
         public void AddTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemsStackFactory = ServerContext.ItemStackFactory;
             
             var meta = new Dictionary<string, ItemStackMetaData> { { "test1", new TestMeta1() } };
