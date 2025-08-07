@@ -185,7 +185,7 @@ namespace Client.Starter
             builder.RegisterComponent(craftTreeViewManager);
             builder.RegisterComponent(challengeListView);
             
-            builder.RegisterComponent(mapObjectPin);
+            builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
