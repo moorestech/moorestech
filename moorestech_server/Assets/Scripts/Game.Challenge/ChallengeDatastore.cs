@@ -34,6 +34,12 @@ namespace Game.Challenge
         public void InitializeCurrentChallenges()
         {
             // 全てのチャレンジカテゴリから初期チャレンジを探す
+            CurrentChallengeInfo.CurrentChallenges.AddRange(CollectAndExecuteInitializeChallenges());
+        }
+        
+        private List<IChallengeTask> CollectAndExecuteInitializeChallenges()
+        {
+            var result = new List<IChallengeTask>();
             foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
                 // アンロックされていないカテゴリはスキップ
@@ -46,7 +52,7 @@ namespace Game.Challenge
                     if (challengeElement.PrevChallengeGuids != null && challengeElement.PrevChallengeGuids.Length != 0) continue;
                     
                     var challenge = CreateChallenge(challengeElement);
-                    CurrentChallengeInfo.CurrentChallenges.Add(challenge);
+                    result.Add(challenge);
                     
                     // チャレンジスタートのアクションを実行
                     foreach (var action in challengeElement.StartedActions.items)
@@ -55,6 +61,8 @@ namespace Game.Challenge
                     }
                 }
             }
+            
+            return result;
         }
         
         private void Update(Unit unit)
@@ -201,38 +209,12 @@ namespace Game.Challenge
             // If CurrentChallengeGuids is empty and CompletedGuids is also empty, add initial challenges
             if (challengeJsonObject.CurrentChallengeGuids.Count == 0 && challengeJsonObject.CompletedGuids.Count == 0)
             {
-                AddInitialChallenges(currentChallenges);
+                currentChallenges.AddRange(CollectAndExecuteInitializeChallenges());
             }
             
             CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeElements);
             
             #region Internal
-            
-            void AddInitialChallenges(List<IChallengeTask> currentChallenges)
-            {
-                // 全てのチャレンジカテゴリから初期チャレンジを探す
-                foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
-                {
-                    // アンロックされていないカテゴリはスキップ
-                    if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos.ContainsKey(category.CategoryGuid)) continue;
-                    if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos[category.CategoryGuid].IsUnlocked) continue;
-                    
-                    foreach (var challengeElement in category.Challenges)
-                    {
-                        // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
-                        if (challengeElement.PrevChallengeGuids != null && challengeElement.PrevChallengeGuids.Length != 0) continue;
-                        
-                        var challenge = CreateChallenge(challengeElement);
-                        currentChallenges.Add(challenge);
-                        
-                        // チャレンジスタートのアクションを実行
-                        foreach (var action in challengeElement.StartedActions.items)
-                        {
-                            ExecuteChallengeAction(action);
-                        }
-                    }
-                }
-            }
             
             void CreateCurrentChallenge(List<IChallengeTask> currentChallenges, List<string> currentChallengeGuidStrings)
             {
