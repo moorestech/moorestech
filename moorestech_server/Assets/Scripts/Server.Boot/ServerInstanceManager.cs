@@ -33,10 +33,11 @@ namespace Server.Boot
         {
             //カレントディレクトリを表示
             var serverDirectory = ServerDirectory.GetDirectory();
+            var options = new MoorestechServerDIContainerOptions(serverDirectory);
             
             Debug.Log("データをロードします　パス:" + serverDirectory);
             
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(serverDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
             
             //マップをロードする
             serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();

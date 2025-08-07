@@ -45,18 +45,27 @@ using Server.Protocol;
 
 namespace Server.Boot
 {
+    public class MoorestechServerDIContainerOptions
+    {
+        public readonly string ServerDirectory;
+        public SaveJsonFileName SaveJsonFileName { get; set; } = new("save_1.json");
+        
+        public MoorestechServerDIContainerOptions(string serverDirectory)
+        {
+            ServerDirectory = serverDirectory;
+        }
+    }
+    
+    
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
-        public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory, bool resetUpdate)
+        public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
         {
-            if (resetUpdate)
-            {
-                GameUpdater.ResetUpdate();
-            }
+            GameUpdater.ResetUpdate();
 
             //必要な各種インスタンスを手動で作成
-            var modDirectory = Path.Combine(serverDirectory, "mods");
+            var modDirectory = Path.Combine(options.ServerDirectory, "mods");
 
             // マスターをロード
             var modResource = new ModsResource(modDirectory);
@@ -75,7 +84,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
 
-            var mapPath = Path.Combine(serverDirectory, "map", "map.json");
+            var mapPath = Path.Combine(options.ServerDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
             initializerCollection.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();

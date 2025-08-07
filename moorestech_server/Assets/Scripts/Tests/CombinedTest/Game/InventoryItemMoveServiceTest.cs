@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Game
             //初期設定----------------------------------------------------------
             
             var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //プレイヤーのインベントリの設定

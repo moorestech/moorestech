@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core.Other
         [SetUp]
         public void Setup()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _itemStackFactory = ServerContext.ItemStackFactory;
         }
         

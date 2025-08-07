@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetCompletedChallengeTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             // チャレンジを無理やりクリアする
             // Forced to complete a challenge
@@ -117,7 +117,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CategoryUnlockStartsFirstChallengeTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             

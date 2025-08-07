@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void RandomPlaceBlockToWorldDataResponseTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var random = new Random(13944156);
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void PlaceBlockToWorldDataTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlock = ServerContext.WorldBlockDatastore;
             
             //ブロックの設置

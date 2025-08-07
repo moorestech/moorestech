@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game
         // A test in which a train on rails moves towards a designated station
         public void SimpleTrainMoveTest()
         {
-            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             // TODO レールブロック1を設置
             // TODO レールブロック2を設置
@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Game
         public void DijkstraTest0()
         {
 
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game
         //ダイクストラ法が正しく動いているか、分岐あり 0=(1,2)=3
         public void DijkstraTest1()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -102,7 +102,7 @@ namespace Tests.UnitTest.Game
         //ダイクストラ法が正しく動いているか、複雑
         public void DijkstraTest2()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -158,7 +158,7 @@ namespace Tests.UnitTest.Game
         {
             //Notionの図を参照
             //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -218,7 +218,7 @@ namespace Tests.UnitTest.Game
         public void ConnectedNodesTest()
         {
             //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -240,7 +240,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MoveForward_LongTrain_MovesAcrossMultipleNodes()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraph = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -286,7 +286,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MoveBackward_LongTrain_MovesAcrossMultipleNodes()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraph = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -375,7 +375,7 @@ namespace Tests.UnitTest.Game
         public void TestRailComponentsAreConnected()
         {
             // Initialize the RailGraphDatastore
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -432,7 +432,7 @@ namespace Tests.UnitTest.Game
                 return list;
             }
             // Initialize the RailGraphDatastore
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
             const int size = 8;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上
@@ -564,7 +564,7 @@ namespace Tests.UnitTest.Game
 
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作り、距離を設定
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -684,7 +684,7 @@ namespace Tests.UnitTest.Game
             const bool DEBUG_LOG_FLAG = false;
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作る
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -779,7 +779,7 @@ namespace Tests.UnitTest.Game
         public void LoopTrainTest()
         {
             // サーバーDIを立てて、WorldBlockDatastore や RailGraphDatastore を取得
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -897,7 +897,7 @@ namespace Tests.UnitTest.Game
                 return list;
             }
 
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //10000回のTryAddBlockし、それぞれが10つのRailComponentにつながる。距離は1
@@ -1027,7 +1027,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationDirectionSimple()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 1) 駅をつくってrailcomponentの座標を確認
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
@@ -1045,7 +1045,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationDirectionMain()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //以下のを4方向でloopで確認する
@@ -1069,7 +1069,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationConnectionSimple()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
@@ -1140,7 +1140,7 @@ namespace Tests.UnitTest.Game
             railComponentAの座標(2.50, 15.50, 0.00)W
             railComponentBの座標(2.50, 15.50, 22.00)W
              */
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
             BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };

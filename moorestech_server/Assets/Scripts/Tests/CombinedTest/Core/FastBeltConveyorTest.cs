@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Core
         /// </summary>
         public void OneFramePer3BlockBeltConveyorTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             //PlaceBlock(ForUnitTestModBlockId.FastBeltConveyor, new Vector3Int(0, 0, 0));
             //PlaceBlock(ForUnitTestModBlockId.FastBeltConveyor, new Vector3Int(0, 0, 1));
