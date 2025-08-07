@@ -19,6 +19,10 @@ namespace Client.PlayModeTests
             // Load the initialization scene
             SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
             
+            // シーンのオブジェクトが初期化されるまで1フレーム待機
+            // Wait 1 frame for scene objects to initialize
+            await UniTask.Yield();
+            
             SetInitializeProperty();
             
             await WaitStartServer();
@@ -38,6 +42,14 @@ namespace Client.PlayModeTests
                 var args = CliConvert.Serialize(properties);
                 
                 var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();
+                
+                // nullチェックを追加してデバッグ情報を出力
+                if (starter == null)
+                {
+                    Debug.LogError("InitializeScenePipeline not found after scene load!");
+                    throw new InvalidOperationException("InitializeScenePipeline not found in the scene");
+                }
+                
                 var defaultProperties = InitializeProprieties.CreateDefault();
                 defaultProperties.CreateLocalServerArgs = args;
                 starter.SetProperty(defaultProperties);
@@ -54,8 +66,8 @@ namespace Client.PlayModeTests
                 
                 // タイムアウトしてるかどうかを判定
                 // Check if the timeout occurred
-                //var loader = Object.FindObjectOfType<GameInitializerSceneLoader>();
-                // 一旦アサートを外す Assert.IsNotNull(loader, "GameInitializerSceneLoader was not found within 60 seconds");
+                var loader = Object.FindObjectOfType<GameInitializerSceneLoader>();
+                Assert.IsNotNull(loader, "GameInitializerSceneLoader was not found within 60 seconds. This usually means the initialization failed.");
             }
             
             #endregion
