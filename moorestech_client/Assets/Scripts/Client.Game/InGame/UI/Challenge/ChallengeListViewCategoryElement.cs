@@ -1,7 +1,11 @@
 using System;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Protocol.PacketResponse;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,17 +13,17 @@ namespace Client.Game.InGame.UI.Challenge
 {
     public class ChallengeListViewCategoryElement: MonoBehaviour
     {
-        [SerializeField] private Button button;
+        [SerializeField] private ItemSlotView itemSlotView;
         
         private ChallengeTreeView _challengeTreeView;
         private ChallengeCategoryMasterElement _currentCategory;
         
         private void Awake()
         {
-            button.onClick.AddListener(() =>
+            itemSlotView.OnLeftClickUp.Subscribe(_ =>
             {
                 _challengeTreeView.SetChallengeCategory(_currentCategory);
-            });
+            }).AddTo(this);
         }
         
         
@@ -27,6 +31,9 @@ namespace Client.Game.InGame.UI.Challenge
         {
             _challengeTreeView = challengeTreeView;
             _currentCategory = category;
+            
+            var itemView = ClientContext.ItemImageContainer.GetItemView(category.IconItem);
+            itemSlotView.SetItem(itemView, 0, category.CategoryName);
         }
     }
 }
