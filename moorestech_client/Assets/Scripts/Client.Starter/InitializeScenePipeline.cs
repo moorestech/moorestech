@@ -65,8 +65,7 @@ namespace Client.Starter
             var handle = await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
             handle.Dispose();
             
-            
-            _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
+            _proprieties ??= InitializeProprieties.CreateDefault();
             
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
