@@ -1,16 +1,14 @@
-using System.Collections;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using NUnit.Framework;
-using UnityEngine.TestTools;
 
 namespace Client.PlayModeTests
 {
     public class PlayModeTest
     {
-        [UnityTest]
-        public IEnumerator NewTestScriptSimplePasses()
+        [Test]
+        public async Task  NewTestScriptSimplePasses()
         {
-            yield return PlayModeTestUtil.LoadMainGame().ToCoroutine();
+            await PlayModeTestUtil.LoadMainGame();
         }
     }
 }
