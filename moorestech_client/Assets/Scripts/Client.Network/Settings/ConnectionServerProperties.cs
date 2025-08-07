@@ -1,11 +1,11 @@
 ﻿namespace Client.Network.Settings
 {
-    public class ConnectionServerConfig
+    public class ConnectionServerProperties
     {
         public readonly string IP;
         public readonly int Port;
         
-        public ConnectionServerConfig(string ip, int port)
+        public ConnectionServerProperties(string ip, int port)
         {
             IP = ip;
             Port = port;
