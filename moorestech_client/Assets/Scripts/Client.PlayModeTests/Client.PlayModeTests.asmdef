@@ -6,7 +6,9 @@
         "UnityEditor.TestRunner",
         "UniTask",
         "Unity.InputSystem",
-        "Unity.InputSystem.TestFramework"
+        "Unity.InputSystem.TestFramework",
+        "Client.Common",
+        "Client.Starter"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
