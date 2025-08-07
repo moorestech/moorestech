@@ -16,6 +16,7 @@ using Client.Network.Settings;
 using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using Server.Boot;
 using TMPro;
 using UnityEngine;
@@ -69,7 +70,11 @@ namespace Client.Starter
             _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
             
             // DIコンテナによるServerContextの作成
-            new MoorestechServerDIContainerGenerator().Create(serverDirectory, false);
+            if (!ServerContext.IsInitialized)
+            {
+                var options =  new MoorestechServerDIContainerOptions(serverDirectory);
+                new MoorestechServerDIContainerGenerator().Create(options);
+            }
             
             //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);

@@ -28,7 +28,7 @@ namespace Client.Game.Skit
         [Inject] private ISkitActionContext _skitActionContext;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
-        [Inject] private MapObjectPin mapObjectPin;
+        [Inject] private IMapObjectPin mapObjectPin;
         
         public bool IsPlayingSkit { get; private set; }
         
