@@ -7,1082 +7,1083 @@
       "displayOrder": 0,
       "initialUnlocked": true,
       "challenges": [
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "initialUnlocked": true,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "summary": "小石を3個拾う",
-      "title": "小石を3個拾う",
-      "displayListType": "ForceShow",
-      "displayListParam": {
-        "UIPosition": [
-          0,
-          0
-        ],
-        "IconItem": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
-        "UIScale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "playSkitType": "None",
-      "taskCompletionType": "inInventoryItem",
-      "taskParam": {
-        "itemCount": 3,
-        "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
-      },
-      "tutorials": [
         {
-          "tutorialType": "mapObjectPin",
-          "tutorialParam": {
-            "pinText": "左クリックで拾う",
-            "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871"
-          }
-        }
-      ],
-      "clearedActions": [
-        {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+          "blockSize": [
+            1,
+            1,
+            1
+          ],
+          "initialUnlocked": true,
+          "sortPriority": 100,
+          "maxStack": 100,
+          "summary": "小石を3個拾う",
+          "title": "小石を3個拾う",
+          "displayListType": "ForceShow",
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              0
+            ],
+            "IconItem": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
+            "UIScale": [
+              1,
+              1,
+              1
             ]
-          }
-        }
-      ],
-      "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
-      "playSkitParam": {},
-      "prevChallengeGuids": [],
-      "unlockAllPreviousChallengeComplete": true,
-      "startedActions": [
-        {
-          "challengeActionType": "playSkit",
-          "challengeActionParam": {
-            "skitAddressablePath": "Vanilla/Skit/skits/100_start_game",
-            "playSkitType": "normal",
-            "playSortPriority": 0
-          }
+          },
+          "playSkitType": "None",
+          "taskCompletionType": "inInventoryItem",
+          "taskParam": {
+            "itemCount": 3,
+            "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+          },
+          "tutorials": [
+            {
+              "tutorialType": "mapObjectPin",
+              "tutorialParam": {
+                "pinText": "左クリックで拾う",
+                "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871"
+              }
+            }
+          ],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+                ]
+              }
+            }
+          ],
+          "challengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
+          "playSkitParam": {},
+          "prevChallengeGuids": [],
+          "unlockAllPreviousChallengeComplete": true,
+          "startedActions": [
+            {
+              "challengeActionType": "playSkit",
+              "challengeActionParam": {
+                "skitAddressablePath": "Vanilla/Skit/skits/100_start_game",
+                "playSkitType": "normal",
+                "playSortPriority": 0
+              }
+            },
+            {
+              "challengeActionType": "playSkit",
+              "challengeActionParam": {
+                "skitAddressablePath": "Vanilla/Skit/skits/200_star_background",
+                "playSkitType": "background",
+                "playSortPriority": 1
+              }
+            }
+          ]
         },
         {
-          "challengeActionType": "playSkit",
-          "challengeActionParam": {
-            "skitAddressablePath": "Vanilla/Skit/skits/200_star_background",
-            "playSkitType": "background",
-            "playSortPriority": 1
-          }
-        }
-      ]
-    },
-    {
-      "summary": "石器を作る",
-      "title": "石器を作る",
-      "playSkitType": "None",
-      "taskCompletionType": "createItem",
-      "displayListType": "ForceShow",
-      "displayListParam": {
-        "UIPosition": [
-          300,
-          0
-        ],
-        "IconItem": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
-        "UIScale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "prevChallengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
-      "clearedActions": [
-        {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
-              "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+          "summary": "石器を作る",
+          "title": "石器を作る",
+          "playSkitType": "None",
+          "taskCompletionType": "createItem",
+          "displayListType": "ForceShow",
+          "displayListParam": {
+            "UIPosition": [
+              300,
+              0
+            ],
+            "IconItem": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
+            "UIScale": [
+              1,
+              1,
+              1
             ]
-          }
-        }
-      ],
-      "taskParam": {
-        "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
-      },
-      "tutorials": [
-        {
-          "tutorialType": "keyControl",
-          "tutorialParam": {
-            "controlText": "Tabを押してインベントリを開く",
-            "uiState": "GameScreen"
-          }
+          },
+          "prevChallengeGuid": "49ab89d7-bbe2-4735-b253-fbc55889c583",
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+                  "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+                ]
+              }
+            }
+          ],
+          "taskParam": {
+            "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+          },
+          "tutorials": [
+            {
+              "tutorialType": "keyControl",
+              "tutorialParam": {
+                "controlText": "Tabを押してインベントリを開く",
+                "uiState": "GameScreen"
+              }
+            },
+            {
+              "tutorialType": "itemViewHighLight",
+              "tutorialParam": {
+                "highLightText": "アイテムを選択",
+                "highLightItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+              }
+            },
+            {
+              "tutorialType": "uiHighLight",
+              "tutorialParam": {
+                "highLightText": "長押しでクラフト",
+                "highLightUIObjectId": "craftButton"
+              }
+            }
+          ],
+          "challengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc",
+          "playSkitParam": {},
+          "prevChallengeGuids": [
+            "49ab89d7-bbe2-4735-b253-fbc55889c583"
+          ],
+          "initialUnlocked": false,
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
         },
         {
-          "tutorialType": "itemViewHighLight",
-          "tutorialParam": {
-            "highLightText": "アイテムを選択",
-            "highLightItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
-          }
+          "initialUnlocked": false,
+          "craftTime": 3,
+          "craftResultCount": 1,
+          "summary": "ブッシュを伐採する",
+          "title": "ブッシュを伐採する",
+          "sortPriority": 100,
+          "maxStack": 100,
+          "prevChallengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc",
+          "playSkitType": "None",
+          "taskCompletionType": "inInventoryItem",
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
+          },
+          "displayListType": "ForceShow",
+          "displayListParam": {
+            "UIPosition": [
+              600,
+              0
+            ],
+            "IconItem": "91458a7e-5eaa-47fd-b79e-8390af20bb84",
+            "UIScale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "tutorials": [
+            {
+              "tutorialType": "mapObjectPin",
+              "tutorialParam": {
+                "pinText": "ブッシュを伐採する",
+                "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf"
+              }
+            }
+          ],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "5def2be9-1bfa-4d6b-b827-8d82712bf70b",
+                  "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+                ]
+              }
+            }
+          ],
+          "challengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
+          "playSkitParam": {},
+          "prevChallengeGuids": [
+            "7ac263d8-406a-44e1-9878-9195378e9efc"
+          ],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
         },
         {
-          "tutorialType": "uiHighLight",
-          "tutorialParam": {
-            "highLightText": "長押しでクラフト",
-            "highLightUIObjectId": "craftButton"
-          }
-        }
-      ],
-      "challengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc",
-      "playSkitParam": {},
-      "prevChallengeGuids": [
-        "49ab89d7-bbe2-4735-b253-fbc55889c583"
-      ],
-      "initialUnlocked": false,
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "initialUnlocked": false,
-      "craftTime": 3,
-      "craftResultCount": 1,
-      "summary": "ブッシュを伐採する",
-      "title": "ブッシュを伐採する",
-      "sortPriority": 100,
-      "maxStack": 100,
-      "prevChallengeGuid": "7ac263d8-406a-44e1-9878-9195378e9efc",
-      "playSkitType": "None",
-      "taskCompletionType": "inInventoryItem",
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
-      },
-      "displayListType": "ForceShow",
-      "displayListParam": {
-        "UIPosition": [
-          600,
-          0
-        ],
-        "IconItem": "91458a7e-5eaa-47fd-b79e-8390af20bb84",
-        "UIScale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "tutorials": [
+          "initialUnlocked": false,
+          "sortPriority": 100,
+          "maxStack": 100,
+          "blockSize": [
+            1,
+            1,
+            1
+          ],
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              750,
+              0
+            ],
+            "IconItem": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+          },
+          "summary": "麻縄を2個作る",
+          "title": "麻縄を2個作る",
+          "playSkitType": "None",
+          "playSkitParam": {},
+          "tutorials": [
+            {
+              "tutorialType": "itemViewHighLight",
+              "tutorialParam": {
+                "highLightText": "選択して素材を確認しクラフト",
+                "highLightItemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+              }
+            }
+          ],
+          "clearedActions": [],
+          "taskCompletionType": "inInventoryItem",
+          "displayListType": "ForceShow",
+          "taskParam": {
+            "itemCount": 2,
+            "itemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+          },
+          "prevChallengeGuids": [
+            "c78e8e4b-84e6-4859-8541-daa255c09d48"
+          ],
+          "challengeGuid": "a05f88c4-b60a-496a-a2c0-5584ea121456",
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "tutorialType": "mapObjectPin",
-          "tutorialParam": {
-            "pinText": "ブッシュを伐採する",
-            "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf"
-          }
-        }
-      ],
-      "clearedActions": [
-        {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "5def2be9-1bfa-4d6b-b827-8d82712bf70b",
-              "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+          "summary": "石器のハンマーを作る",
+          "title": "石器のハンマーを作る",
+          "prevChallengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
+          "taskCompletionType": "createItem",
+          "taskParam": {
+            "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+          },
+          "challengeGuid": "8fb53727-935e-4d44-bcfc-064123f15a0a",
+          "displayListType": "ForceShow",
+          "displayListParam": {
+            "UIPosition": [
+              900,
+              0
+            ],
+            "IconItem": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
+            "UIScale": [
+              1.5,
+              1.5,
+              1.5
             ]
-          }
-        }
-      ],
-      "challengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
-      "playSkitParam": {},
-      "prevChallengeGuids": [
-        "7ac263d8-406a-44e1-9878-9195378e9efc"
-      ],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "initialUnlocked": false,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          750,
-          0
-        ],
-        "IconItem": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
-      },
-      "summary": "麻縄を2個作る",
-      "title": "麻縄を2個作る",
-      "playSkitType": "None",
-      "playSkitParam": {},
-      "tutorials": [
+          },
+          "playSkitParam": {},
+          "playSkitType": "None",
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
+                  "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
+                ]
+              }
+            }
+          ],
+          "tutorials": [
+            {
+              "tutorialType": "itemViewHighLight",
+              "tutorialParam": {
+                "highLightText": "選択して素材を確認しクラフト",
+                "highLightItemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
+              }
+            }
+          ],
+          "prevChallengeGuids": [
+            "a05f88c4-b60a-496a-a2c0-5584ea121456"
+          ],
+          "initialUnlocked": false,
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "tutorialType": "itemViewHighLight",
-          "tutorialParam": {
-            "highLightText": "選択して素材を確認しクラフト",
-            "highLightItemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
-          }
-        }
-      ],
-      "clearedActions": [],
-      "taskCompletionType": "inInventoryItem",
-      "displayListType": "ForceShow",
-      "taskParam": {
-        "itemCount": 2,
-        "itemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
-      },
-      "prevChallengeGuids": [
-        "c78e8e4b-84e6-4859-8541-daa255c09d48"
-      ],
-      "challengeGuid": "a05f88c4-b60a-496a-a2c0-5584ea121456",
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "summary": "石器のハンマーを作る",
-      "title": "石器のハンマーを作る",
-      "prevChallengeGuid": "c78e8e4b-84e6-4859-8541-daa255c09d48",
-      "taskCompletionType": "createItem",
-      "taskParam": {
-        "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
-      },
-      "challengeGuid": "8fb53727-935e-4d44-bcfc-064123f15a0a",
-      "displayListType": "ForceShow",
-      "displayListParam": {
-        "UIPosition": [
-          900,
-          0
-        ],
-        "IconItem": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
-        "UIScale": [
-          1.5,
-          1.5,
-          1.5
-        ]
-      },
-      "playSkitParam": {},
-      "playSkitType": "None",
-      "clearedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              1000,
+              150
+            ],
+            "IconItem": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
+          },
+          "summary": "木を採掘する",
+          "title": "木を採掘する",
+          "playSkitType": "None",
+          "playSkitParam": {},
+          "clearedActions": [],
+          "tutorials": [
+            {
+              "tutorialType": "mapObjectPin",
+              "tutorialParam": {
+                "pinText": "石器ハンマーで木を採掘",
+                "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b"
+              }
+            }
+          ],
+          "taskCompletionType": "inInventoryItem",
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
+          },
+          "displayListType": "ForceShow",
+          "prevChallengeGuid": "8fb53727-935e-4d44-bcfc-064123f15a0a",
+          "challengeGuid": "87ff05b0-4d10-4a0d-952d-e725f2004fe4",
+          "prevChallengeGuids": [
+            "8fb53727-935e-4d44-bcfc-064123f15a0a"
+          ],
+          "initialUnlocked": false,
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
-              "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
-            ]
-          }
-        }
-      ],
-      "tutorials": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              1200,
+              150
+            ],
+            "IconItem": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
+          },
+          "summary": "木材を作る",
+          "title": "木材を作る",
+          "initialUnlocked": false,
+          "sortPriority": 100,
+          "maxStack": 100,
+          "playSkitType": "None",
+          "playSkitParam": {},
+          "taskCompletionType": "createItem",
+          "displayListType": "ForceShow",
+          "prevChallengeGuids": [
+            "87ff05b0-4d10-4a0d-952d-e725f2004fe4"
+          ],
+          "taskParam": {
+            "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
+          },
+          "clearedActions": [],
+          "tutorials": [],
+          "challengeGuid": "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "tutorialType": "itemViewHighLight",
-          "tutorialParam": {
-            "highLightText": "選択して素材を確認しクラフト",
-            "highLightItemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c"
-          }
-        }
-      ],
-      "prevChallengeGuids": [
-        "a05f88c4-b60a-496a-a2c0-5584ea121456"
-      ],
-      "initialUnlocked": false,
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          1000,
-          150
-        ],
-        "IconItem": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
-      },
-      "summary": "木を採掘する",
-      "title": "木を採掘する",
-      "playSkitType": "None",
-      "playSkitParam": {},
-      "clearedActions": [],
-      "tutorials": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              1000,
+              -150
+            ],
+            "IconItem": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          },
+          "summary": "石を採掘",
+          "title": "石を採掘",
+          "playSkitType": "None",
+          "playSkitParam": {},
+          "clearedActions": [],
+          "tutorials": [
+            {
+              "tutorialType": "mapObjectPin",
+              "tutorialParam": {
+                "pinText": "石器ハンマーで石を採掘",
+                "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165"
+              }
+            }
+          ],
+          "taskCompletionType": "inInventoryItem",
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          },
+          "challengeGuid": "4e406d3a-0b04-429d-b4b2-38c7d4586b3c",
+          "displayListType": "ForceShow",
+          "prevChallengeGuids": [
+            "8fb53727-935e-4d44-bcfc-064123f15a0a"
+          ],
+          "initialUnlocked": false,
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "tutorialType": "mapObjectPin",
-          "tutorialParam": {
-            "pinText": "石器ハンマーで木を採掘",
-            "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b"
-          }
-        }
-      ],
-      "taskCompletionType": "inInventoryItem",
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
-      },
-      "displayListType": "ForceShow",
-      "prevChallengeGuid": "8fb53727-935e-4d44-bcfc-064123f15a0a",
-      "challengeGuid": "87ff05b0-4d10-4a0d-952d-e725f2004fe4",
-      "prevChallengeGuids": [
-        "8fb53727-935e-4d44-bcfc-064123f15a0a"
-      ],
-      "initialUnlocked": false,
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          1200,
-          150
-        ],
-        "IconItem": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
-      },
-      "summary": "木材を作る",
-      "title": "木材を作る",
-      "initialUnlocked": false,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "playSkitType": "None",
-      "playSkitParam": {},
-      "taskCompletionType": "createItem",
-      "displayListType": "ForceShow",
-      "prevChallengeGuids": [
-        "87ff05b0-4d10-4a0d-952d-e725f2004fe4"
-      ],
-      "taskParam": {
-        "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
-      },
-      "clearedActions": [],
-      "tutorials": [],
-      "challengeGuid": "5addda6c-aa79-4d88-835c-8fd1a1ce021a",
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          1000,
-          -150
-        ],
-        "IconItem": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
-      },
-      "summary": "石を採掘",
-      "title": "石を採掘",
-      "playSkitType": "None",
-      "playSkitParam": {},
-      "clearedActions": [],
-      "tutorials": [
+          "displayListParam": {
+            "UIScale": [
+              1.5,
+              1.5,
+              1.5
+            ],
+            "UIPosition": [
+              1500,
+              0
+            ],
+            "IconItem": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
+          },
+          "summary": "石のツルハシを作る",
+          "title": "石のツルハシを作る",
+          "initialUnlocked": false,
+          "sortPriority": 100,
+          "maxStack": 100,
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
+          },
+          "prevChallengeGuids": [
+            "4e406d3a-0b04-429d-b4b2-38c7d4586b3c",
+            "5addda6c-aa79-4d88-835c-8fd1a1ce021a"
+          ],
+          "challengeGuid": "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c",
+          "playSkitType": "None",
+          "playSkitParam": {},
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "19fb4202-de45-49f1-a480-3d154309dd99",
+                  "370b1996-237e-475e-a5e3-a3f4f2a88587",
+                  "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
+                  "619638d5-13f0-4c04-b4e6-5113e946be7e"
+                ]
+              }
+            }
+          ],
+          "tutorials": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "tutorialType": "mapObjectPin",
-          "tutorialParam": {
-            "pinText": "石器ハンマーで石を採掘",
-            "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165"
-          }
-        }
-      ],
-      "taskCompletionType": "inInventoryItem",
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
-      },
-      "challengeGuid": "4e406d3a-0b04-429d-b4b2-38c7d4586b3c",
-      "displayListType": "ForceShow",
-      "prevChallengeGuids": [
-        "8fb53727-935e-4d44-bcfc-064123f15a0a"
-      ],
-      "initialUnlocked": false,
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1.5,
-          1.5,
-          1.5
-        ],
-        "UIPosition": [
-          1500,
-          0
-        ],
-        "IconItem": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
-      },
-      "summary": "石のツルハシを作る",
-      "title": "石のツルハシを作る",
-      "initialUnlocked": false,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
-      },
-      "prevChallengeGuids": [
-        "4e406d3a-0b04-429d-b4b2-38c7d4586b3c",
-        "5addda6c-aa79-4d88-835c-8fd1a1ce021a"
-      ],
-      "challengeGuid": "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c",
-      "playSkitType": "None",
-      "playSkitParam": {},
-      "clearedActions": [
+          "recipeViewType": 100,
+          "initialUnlocked": false,
+          "sortPriority": 100,
+          "maxStack": 100,
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              1800,
+              150
+            ],
+            "IconItem": "370b1996-237e-475e-a5e3-a3f4f2a88587"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "木の風車を作る",
+          "title": "木の風車を作る",
+          "prevChallengeGuids": [
+            "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
+          ],
+          "taskParam": {
+            "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587"
+          },
+          "challengeGuid": "bf759905-fdc6-48b6-b130-890c0d7f5784",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "ba3cf978-dc21-47f9-810e-50f1c26015ed",
+                  "19fb4202-de45-49f1-a480-3d154309dd99"
+                ]
+              }
+            }
+          ],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "19fb4202-de45-49f1-a480-3d154309dd99",
-              "370b1996-237e-475e-a5e3-a3f4f2a88587",
-              "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
-              "619638d5-13f0-4c04-b4e6-5113e946be7e"
-            ]
-          }
-        }
-      ],
-      "tutorials": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "recipeViewType": 100,
-      "initialUnlocked": false,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          1800,
-          150
-        ],
-        "IconItem": "370b1996-237e-475e-a5e3-a3f4f2a88587"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "木の風車を作る",
-      "title": "木の風車を作る",
-      "prevChallengeGuids": [
-        "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
-      ],
-      "taskParam": {
-        "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587"
-      },
-      "challengeGuid": "bf759905-fdc6-48b6-b130-890c0d7f5784",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [
-      ],
-      "startedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              2100,
+              150
+            ],
+            "IconItem": "370b1996-237e-475e-a5e3-a3f4f2a88587"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "blockPlace",
+          "playSkitType": "None",
+          "summary": "木の風車はふるいのシャフト（棒）と繋がるように設置する",
+          "title": "木の風車を設置する",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemCount": 1,
+            "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6"
+          },
+          "prevChallengeGuids": [
+            "bf759905-fdc6-48b6-b130-890c0d7f5784"
+          ],
+          "challengeGuid": "1f1568c7-f976-4e66-bbb1-2ec1ae6114d0",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "ba3cf978-dc21-47f9-810e-50f1c26015ed",
-              "19fb4202-de45-49f1-a480-3d154309dd99"
-            ]
-          }
-        }
-      ],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          2100,
-          150
-        ],
-        "IconItem": "370b1996-237e-475e-a5e3-a3f4f2a88587"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "blockPlace",
-      "playSkitType": "None",
-      "summary": "木の風車はふるいのシャフト（棒）と繋がるように設置する",
-      "title": "木の風車を設置する",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemCount": 1,
-        "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6"
-      },
-      "prevChallengeGuids": [
-        "bf759905-fdc6-48b6-b130-890c0d7f5784"
-      ],
-      "challengeGuid": "1f1568c7-f976-4e66-bbb1-2ec1ae6114d0",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          1800,
-          -150
-        ],
-        "IconItem": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "ふるいを作る",
-      "title": "ふるいを作る",
-      "initialUnlocked": false,
-      "prevChallengeGuids": [
-        "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
-      ],
-      "taskParam": {
-        "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
-      },
-      "challengeGuid": "74d3d6b2-d8fe-4077-a271-5367972e0569",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              1800,
+              -150
+            ],
+            "IconItem": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "ふるいを作る",
+          "title": "ふるいを作る",
+          "initialUnlocked": false,
+          "prevChallengeGuids": [
+            "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
+          ],
+          "taskParam": {
+            "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
+          },
+          "challengeGuid": "74d3d6b2-d8fe-4077-a271-5367972e0569",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
+                  "86670a2a-ab7c-46f4-bedf-1b30d1da111e"
+                ]
+              }
+            }
+          ],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
-              "86670a2a-ab7c-46f4-bedf-1b30d1da111e"
-            ]
-          }
-        }
-      ],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          2100,
-          -150
-        ],
-        "IconItem": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "blockPlace",
-      "playSkitType": "None",
-      "summary": "ふるいは木の風車のシャフト（棒）と繋がるように設置する",
-      "title": "ふるいを設置する",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemCount": 1,
-        "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f"
-      },
-      "prevChallengeGuids": [
-        "74d3d6b2-d8fe-4077-a271-5367972e0569"
-      ],
-      "challengeGuid": "7d127f2a-774d-4b51-9a2f-e10ed9f3f66d",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          1800,
-          -300
-        ],
-        "IconItem": "619638d5-13f0-4c04-b4e6-5113e946be7e"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "石を石のツルハシで砕く",
-      "title": "破石を作る",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemGuid": "619638d5-13f0-4c04-b4e6-5113e946be7e"
-      },
-      "prevChallengeGuids": [
-        "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
-      ],
-      "challengeGuid": "3cc878e1-b049-4262-8893-bada63b6b14f",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              2100,
+              -150
+            ],
+            "IconItem": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "blockPlace",
+          "playSkitType": "None",
+          "summary": "ふるいは木の風車のシャフト（棒）と繋がるように設置する",
+          "title": "ふるいを設置する",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemCount": 1,
+            "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f"
+          },
+          "prevChallengeGuids": [
+            "74d3d6b2-d8fe-4077-a271-5367972e0569"
+          ],
+          "challengeGuid": "7d127f2a-774d-4b51-9a2f-e10ed9f3f66d",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "38cfc079-3835-4530-b539-449c5200dd59"
-            ]
-          }
-        }
-      ],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1.5,
-          1.5,
-          1.5
-        ],
-        "UIPosition": [
-          2400,
-          0
-        ],
-        "IconItem": "9245960f-5ab9-490d-b940-dac6b9994695"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "動いているふるいに破石を入れ、亜鉛を入手する",
-      "title": "亜鉛鉱石を入手する",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemGuid": "9245960f-5ab9-490d-b940-dac6b9994695",
-        "itemCount": 1
-      },
-      "prevChallengeGuids": [
-        "7d127f2a-774d-4b51-9a2f-e10ed9f3f66d",
-        "1f1568c7-f976-4e66-bbb1-2ec1ae6114d0",
-        "3cc878e1-b049-4262-8893-bada63b6b14f"
-      ],
-      "clearedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              1800,
+              -300
+            ],
+            "IconItem": "619638d5-13f0-4c04-b4e6-5113e946be7e"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "石を石のツルハシで砕く",
+          "title": "破石を作る",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemGuid": "619638d5-13f0-4c04-b4e6-5113e946be7e"
+          },
+          "prevChallengeGuids": [
+            "a0c5e75d-66fa-404c-9dcd-41ae6b5a868c"
+          ],
+          "challengeGuid": "3cc878e1-b049-4262-8893-bada63b6b14f",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "38cfc079-3835-4530-b539-449c5200dd59"
+                ]
+              }
+            }
+          ],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "98383d78-6da1-47ca-bc94-f5e12f50c140"
-            ]
-          }
-        }
-      ],
-      "challengeGuid": "5f19ddab-619c-4749-9160-ea86846c055e",
-      "playSkitParam": {},
-      "tutorials": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          2700,
-          0
-        ],
-        "IconItem": "98383d78-6da1-47ca-bc94-f5e12f50c140"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "破石を石のツルハシでさらに砕く",
-      "title": "砂利を作る",
-      "initialUnlocked": false,
-      "prevChallengeGuids": [
-        "5f19ddab-619c-4749-9160-ea86846c055e"
-      ],
-      "taskParam": {
-        "itemGuid": "98383d78-6da1-47ca-bc94-f5e12f50c140"
-      },
-      "challengeGuid": "0f859a46-4e21-4f16-9e98-e3b4148290c7",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1.5,
+              1.5,
+              1.5
+            ],
+            "UIPosition": [
+              2400,
+              0
+            ],
+            "IconItem": "9245960f-5ab9-490d-b940-dac6b9994695"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "動いているふるいに破石を入れ、亜鉛を入手する",
+          "title": "亜鉛鉱石を入手する",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemGuid": "9245960f-5ab9-490d-b940-dac6b9994695",
+            "itemCount": 1
+          },
+          "prevChallengeGuids": [
+            "7d127f2a-774d-4b51-9a2f-e10ed9f3f66d",
+            "1f1568c7-f976-4e66-bbb1-2ec1ae6114d0",
+            "3cc878e1-b049-4262-8893-bada63b6b14f"
+          ],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "98383d78-6da1-47ca-bc94-f5e12f50c140"
+                ]
+              }
+            }
+          ],
+          "challengeGuid": "5f19ddab-619c-4749-9160-ea86846c055e",
+          "playSkitParam": {},
+          "tutorials": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
-            ]
-          }
-        }
-      ],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1.5,
-          1.5,
-          1.5
-        ],
-        "UIPosition": [
-          3000,
-          0
-        ],
-        "IconItem": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "砂をふるいにかけ、石炭を入手する",
-      "title": "石炭を入手する",
-      "initialUnlocked": false,
-      "prevChallengeGuids": [
-        "0f859a46-4e21-4f16-9e98-e3b4148290c7"
-      ],
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
-      },
-      "challengeGuid": "ea4a2fdc-5e3d-4bdb-984b-7615b08159de",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              2700,
+              0
+            ],
+            "IconItem": "98383d78-6da1-47ca-bc94-f5e12f50c140"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "破石を石のツルハシでさらに砕く",
+          "title": "砂利を作る",
+          "initialUnlocked": false,
+          "prevChallengeGuids": [
+            "5f19ddab-619c-4749-9160-ea86846c055e"
+          ],
+          "taskParam": {
+            "itemGuid": "98383d78-6da1-47ca-bc94-f5e12f50c140"
+          },
+          "challengeGuid": "0f859a46-4e21-4f16-9e98-e3b4148290c7",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
+                ]
+              }
+            }
+          ],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "b6ac41f7-89e1-45c8-8f2d-128105cb5063",
-              "8b67462b-227a-465b-8d86-de683b5e98a1",
-              "dfd0ae76-ae7d-46cd-8abc-0c69407645a2",
-              "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
-            ]
-          }
-        }
-      ],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          3300,
-          150
-        ],
-        "IconItem": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "粘土を採掘する",
-      "title": "粘土を採掘する",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
-      },
-      "prevChallengeGuids": [
-        "ea4a2fdc-5e3d-4bdb-984b-7615b08159de"
-      ],
-      "challengeGuid": "e3031ec0-7617-4633-a5b5-da484d6c8582",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          3300,
-          -150
-        ],
-        "IconItem": "8b67462b-227a-465b-8d86-de683b5e98a1"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "キャンプファイアを作る",
-      "title": "キャンプファイアを作る",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemGuid": "8b67462b-227a-465b-8d86-de683b5e98a1"
-      },
-      "challengeGuid": "3e53ca96-1eed-4fef-832d-2190230d24e6",
-      "prevChallengeGuids": [
-        "ea4a2fdc-5e3d-4bdb-984b-7615b08159de"
-      ],
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1.5,
+              1.5,
+              1.5
+            ],
+            "UIPosition": [
+              3000,
+              0
+            ],
+            "IconItem": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "砂をふるいにかけ、石炭を入手する",
+          "title": "石炭を入手する",
+          "initialUnlocked": false,
+          "prevChallengeGuids": [
+            "0f859a46-4e21-4f16-9e98-e3b4148290c7"
+          ],
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
+          },
+          "challengeGuid": "ea4a2fdc-5e3d-4bdb-984b-7615b08159de",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "b6ac41f7-89e1-45c8-8f2d-128105cb5063",
+                  "8b67462b-227a-465b-8d86-de683b5e98a1",
+                  "dfd0ae76-ae7d-46cd-8abc-0c69407645a2",
+                  "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
+                ]
+              }
+            }
+          ],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "8b67462b-227a-465b-8d86-de683b5e98a1"
-            ]
-          }
-        }
-      ],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          3600,
-          0
-        ],
-        "IconItem": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "レンガから釜を作る",
-      "title": "釜を作る",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
-      },
-      "prevChallengeGuids": [
-        "3e53ca96-1eed-4fef-832d-2190230d24e6",
-        "e3031ec0-7617-4633-a5b5-da484d6c8582"
-      ],
-      "challengeGuid": "53ba736e-3228-4dc3-8fd5-370b51384b6f",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1.5,
-          1.5,
-          1.5
-        ],
-        "UIPosition": [
-          3900,
-          0
-        ],
-        "IconItem": "38cfc079-3835-4530-b539-449c5200dd59"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "釜で亜鉛を作る",
-      "title": "亜鉛を作る",
-      "initialUnlocked": false,
-      "prevChallengeGuids": [
-        "53ba736e-3228-4dc3-8fd5-370b51384b6f"
-      ],
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
-      },
-      "challengeGuid": "99fc2d4b-a99c-412d-a79c-e91dba34c21f",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              3300,
+              150
+            ],
+            "IconItem": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "粘土を採掘する",
+          "title": "粘土を採掘する",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
+          },
+          "prevChallengeGuids": [
+            "ea4a2fdc-5e3d-4bdb-984b-7615b08159de"
+          ],
+          "challengeGuid": "e3031ec0-7617-4633-a5b5-da484d6c8582",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
-            "unlockItemGuids": [
-              "ba3cf978-dc21-47f9-810e-50f1c26015ed",
-              "96b45ab2-3345-4fcd-99af-f3dc06605e73",
-              "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
-              "fa4e84ee-482d-414f-ad0e-8f167d178342",
-              "57f116bb-c374-410b-bc00-23b285575d7b",
-              "44cb69e9-c703-4393-94c4-bad4477da10f"
-            ]
-          }
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              3300,
+              -150
+            ],
+            "IconItem": "8b67462b-227a-465b-8d86-de683b5e98a1"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "キャンプファイアを作る",
+          "title": "キャンプファイアを作る",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemGuid": "8b67462b-227a-465b-8d86-de683b5e98a1"
+          },
+          "challengeGuid": "3e53ca96-1eed-4fef-832d-2190230d24e6",
+          "prevChallengeGuids": [
+            "ea4a2fdc-5e3d-4bdb-984b-7615b08159de"
+          ],
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "8b67462b-227a-465b-8d86-de683b5e98a1"
+                ]
+              }
+            }
+          ],
+          "unlockAllPreviousChallengeComplete": true
+        },
+        {
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              3600,
+              0
+            ],
+            "IconItem": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "レンガから釜を作る",
+          "title": "釜を作る",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3"
+          },
+          "prevChallengeGuids": [
+            "3e53ca96-1eed-4fef-832d-2190230d24e6",
+            "e3031ec0-7617-4633-a5b5-da484d6c8582"
+          ],
+          "challengeGuid": "53ba736e-3228-4dc3-8fd5-370b51384b6f",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
+        {
+          "displayListParam": {
+            "UIScale": [
+              1.5,
+              1.5,
+              1.5
+            ],
+            "UIPosition": [
+              3900,
+              0
+            ],
+            "IconItem": "38cfc079-3835-4530-b539-449c5200dd59"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "釜で亜鉛を作る",
+          "title": "亜鉛を作る",
+          "initialUnlocked": false,
+          "prevChallengeGuids": [
+            "53ba736e-3228-4dc3-8fd5-370b51384b6f"
+          ],
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
+          },
+          "challengeGuid": "99fc2d4b-a99c-412d-a79c-e91dba34c21f",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockItemRecipeView",
+              "challengeActionParam": {
+                "unlockItemGuids": [
+                  "ba3cf978-dc21-47f9-810e-50f1c26015ed",
+                  "96b45ab2-3345-4fcd-99af-f3dc06605e73",
+                  "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
+                  "fa4e84ee-482d-414f-ad0e-8f167d178342",
+                  "57f116bb-c374-410b-bc00-23b285575d7b",
+                  "44cb69e9-c703-4393-94c4-bad4477da10f"
+                ]
+              }
+            }
+          ],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
+        {
+          "blockSize": [
+            1,
+            1,
+            1
+          ],
+          "recipeViewType": 100,
+          "initialUnlocked": false,
+          "sortPriority": 100,
+          "maxStack": 100,
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              4100,
+              150
+            ],
+            "IconItem": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "大きな歯車を作る",
+          "title": "大きな歯車を作る",
+          "taskParam": {
+            "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
+          },
+          "prevChallengeGuids": [
+            "99fc2d4b-a99c-412d-a79c-e91dba34c21f"
+          ],
+          "challengeGuid": "08cee1c0-cbf3-48ed-80d1-70bf02723bfa",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
+        {
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              4100,
+              -150
+            ],
+            "IconItem": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "createItem",
+          "playSkitType": "None",
+          "summary": "遠心分離機を作る",
+          "title": "遠心分離機を作る",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
+          },
+          "challengeGuid": "c3f25998-ac94-443c-a7a9-e1d2a517f859",
+          "prevChallengeGuids": [
+            "99fc2d4b-a99c-412d-a79c-e91dba34c21f"
+          ],
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
+        {
+          "displayListParam": {
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "UIPosition": [
+              4400,
+              0
+            ],
+            "IconItem": "57f116bb-c374-410b-bc00-23b285575d7b"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "大きな歯車を使って回転速度を早め、砂を遠心分離する",
+          "title": "砂鉄を入手する",
+          "initialUnlocked": false,
+          "prevChallengeGuids": [
+            "c3f25998-ac94-443c-a7a9-e1d2a517f859",
+            "08cee1c0-cbf3-48ed-80d1-70bf02723bfa"
+          ],
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "57f116bb-c374-410b-bc00-23b285575d7b"
+          },
+          "challengeGuid": "33ca8580-8370-41bb-9f62-48c0c4803cad",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
+        },
+        {
+          "displayListParam": {
+            "UIScale": [
+              1.5,
+              1.5,
+              1.5
+            ],
+            "UIPosition": [
+              4700,
+              0
+            ],
+            "IconItem": "44cb69e9-c703-4393-94c4-bad4477da10f"
+          },
+          "displayListType": "ForceShow",
+          "taskCompletionType": "inInventoryItem",
+          "playSkitType": "None",
+          "summary": "釜で砂鉄を精錬する",
+          "title": "低品質鉄塊を入手する",
+          "initialUnlocked": false,
+          "taskParam": {
+            "itemCount": 1,
+            "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f"
+          },
+          "prevChallengeGuids": [
+            "33ca8580-8370-41bb-9f62-48c0c4803cad"
+          ],
+          "challengeGuid": "47b5d93e-d3dd-436a-9ea1-94e317cfa96d",
+          "playSkitParam": {},
+          "tutorials": [],
+          "clearedActions": [],
+          "startedActions": [],
+          "unlockAllPreviousChallengeComplete": true
         }
       ],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "recipeViewType": 100,
-      "initialUnlocked": false,
-      "sortPriority": 100,
-      "maxStack": 100,
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          4100,
-          150
-        ],
-        "IconItem": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "大きな歯車を作る",
-      "title": "大きな歯車を作る",
-      "taskParam": {
-        "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed"
-      },
-      "prevChallengeGuids": [
-        "99fc2d4b-a99c-412d-a79c-e91dba34c21f"
-      ],
-      "challengeGuid": "08cee1c0-cbf3-48ed-80d1-70bf02723bfa",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          4100,
-          -150
-        ],
-        "IconItem": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "createItem",
-      "playSkitType": "None",
-      "summary": "遠心分離機を作る",
-      "title": "遠心分離機を作る",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b"
-      },
-      "challengeGuid": "c3f25998-ac94-443c-a7a9-e1d2a517f859",
-      "prevChallengeGuids": [
-        "99fc2d4b-a99c-412d-a79c-e91dba34c21f"
-      ],
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1,
-          1,
-          1
-        ],
-        "UIPosition": [
-          4400,
-          0
-        ],
-        "IconItem": "57f116bb-c374-410b-bc00-23b285575d7b"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "大きな歯車を使って回転速度を早め、砂を遠心分離する",
-      "title": "砂鉄を入手する",
-      "initialUnlocked": false,
-      "prevChallengeGuids": [
-        "c3f25998-ac94-443c-a7a9-e1d2a517f859",
-        "08cee1c0-cbf3-48ed-80d1-70bf02723bfa"
-      ],
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "57f116bb-c374-410b-bc00-23b285575d7b"
-      },
-      "challengeGuid": "33ca8580-8370-41bb-9f62-48c0c4803cad",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    },
-    {
-      "displayListParam": {
-        "UIScale": [
-          1.5,
-          1.5,
-          1.5
-        ],
-        "UIPosition": [
-          4700,
-          0
-        ],
-        "IconItem": "44cb69e9-c703-4393-94c4-bad4477da10f"
-      },
-      "displayListType": "ForceShow",
-      "taskCompletionType": "inInventoryItem",
-      "playSkitType": "None",
-      "summary": "釜で砂鉄を精錬する",
-      "title": "低品質鉄塊を入手する",
-      "initialUnlocked": false,
-      "taskParam": {
-        "itemCount": 1,
-        "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f"
-      },
-      "prevChallengeGuids": [
-        "33ca8580-8370-41bb-9f62-48c0c4803cad"
-      ],
-      "challengeGuid": "47b5d93e-d3dd-436a-9ea1-94e317cfa96d",
-      "playSkitParam": {},
-      "tutorials": [],
-      "clearedActions": [],
-      "startedActions": [],
-      "unlockAllPreviousChallengeComplete": true
-    }]
+      "IconItem": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
     }
   ]
 }

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Common;
 using Mooresmaster.Model.ChallengesModule;
+using TMPro;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Challenge
@@ -14,6 +17,11 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private RectTransform connectLinePrefab;
         
+        [SerializeField] private ItemSlotView itemSlotView;
+        [SerializeField] private TMP_Text title;
+        [SerializeField] private TMP_Text summary;
+        
+        
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
         
@@ -22,6 +30,16 @@ namespace Client.Game.InGame.UI.Challenge
             ChallengeMasterElement = challengeMasterElement;
             rectTransform.anchoredPosition = challengeMasterElement.DisplayListParam.UIPosition;
             rectTransform.localScale = challengeMasterElement.DisplayListParam.UIScale;
+            
+            var itemView = ClientContext.ItemImageContainer.GetItemView(challengeMasterElement.DisplayListParam.IconItem);
+            itemSlotView.SetItem(itemView, 0);
+            itemSlotView.SetSlotViewOption(new CommonSlotViewOption
+            {
+                IsShowToolTip = false,
+            });
+            
+            title.text = challengeMasterElement.Title;
+            summary.text = challengeMasterElement.Summary;
         }
         
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ChallengeTreeViewElement> challengeElements)

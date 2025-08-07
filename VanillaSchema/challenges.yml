@@ -25,6 +25,12 @@ properties:
         direction: asc
         step: 10
         startWith: 100
+    - key: IconItem
+      type: uuid
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
     - key: initialUnlocked
       type: boolean
       default: false
@@ -200,5 +206,4 @@ properties:
               schemaId: items
               foreignKeyIdPath: /data/[*]/itemGuid
               displayElementPath: /data/[*]/name
-            optional: true
             overrideCodeGeneratePropertyName: DisplayInChallengeListIconItemGuid
