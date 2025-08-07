@@ -70,7 +70,7 @@ namespace Client.Starter
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
             {
-                var options =  new MoorestechServerDIContainerOptions(serverDirectory);
+                var options = new MoorestechServerDIContainerOptions(serverDirectory);
                 new MoorestechServerDIContainerGenerator().Create(options);
             }
             

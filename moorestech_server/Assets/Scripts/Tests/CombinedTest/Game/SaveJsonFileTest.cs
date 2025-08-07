@@ -29,8 +29,8 @@ namespace Tests.CombinedTest.Game
             
             
             //リフレクションでテスト用のファイル名を変更
-            ChangeFilePath(saveServiceProvider.GetService<SaveJsonFileName>(), "SaveJsonAndLoadTest.json");
-            Debug.Log(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
+            ChangeFilePath(saveServiceProvider.GetService<SaveJsonFilePath>(), "SaveJsonAndLoadTest.json");
+            Debug.Log(saveServiceProvider.GetService<SaveJsonFilePath>().Path);
             
             
             //ブロックの追加
@@ -47,14 +47,14 @@ namespace Tests.CombinedTest.Game
             
             //テスト用にファイル名を変更
             //リフレクションでテスト用のファイル名を変更
-            ChangeFilePath(loadServiceProvider.GetService<SaveJsonFileName>(), "SaveJsonAndLoadTest.json");
-            Debug.Log(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
+            ChangeFilePath(loadServiceProvider.GetService<SaveJsonFilePath>(), "SaveJsonAndLoadTest.json");
+            Debug.Log(loadServiceProvider.GetService<SaveJsonFilePath>().Path);
             
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loadWorldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // ファイルを削除
-            File.Delete(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
+            File.Delete(saveServiceProvider.GetService<SaveJsonFilePath>().Path);
             
             //追加したブロックのチェック
             var block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
@@ -74,10 +74,10 @@ namespace Tests.CombinedTest.Game
             
         }
         
-        private void ChangeFilePath(SaveJsonFileName instance, string fileName)
+        private void ChangeFilePath(SaveJsonFilePath instance, string fileName)
         {
             // バッキングフィールドを取得する
-            var fieldInfo = typeof(SaveJsonFileName).GetField("<FullSaveFilePath>k__BackingField",
+            var fieldInfo = typeof(SaveJsonFilePath).GetField("<FullSaveFilePath>k__BackingField",
                 BindingFlags.Instance | BindingFlags.NonPublic);
             
             // バッキングフィールドの値を更新する

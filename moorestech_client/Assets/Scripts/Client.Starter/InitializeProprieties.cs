@@ -22,10 +22,7 @@ namespace Client.Starter
         
         public static InitializeProprieties CreateDefault()
         {
-             var proprieties = new InitializeProprieties(null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId)
-                 {
-                     LocalSaveFilePath = "save_1.json",
-                 };
+            var proprieties = new InitializeProprieties(null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
              
              return proprieties;
         }

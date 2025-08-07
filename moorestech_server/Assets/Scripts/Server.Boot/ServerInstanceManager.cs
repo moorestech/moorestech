@@ -4,9 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
 using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
+using Server.Boot.Args;
 using Server.Boot.Loop;
 using UnityEngine;
 
@@ -31,9 +33,14 @@ namespace Server.Boot
         
         private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
+            var settings = StartServerSettings.Parse(args);
+            
             //カレントディレクトリを表示
             var serverDirectory = ServerDirectory.GetDirectory();
-            var options = new MoorestechServerDIContainerOptions(serverDirectory);
+            var options = new MoorestechServerDIContainerOptions(serverDirectory)
+                {
+                    saveJsonFilePath = new SaveJsonFilePath(settings.SaveFilePath),
+                };
             
             Debug.Log("データをロードします　パス:" + serverDirectory);
             
@@ -61,7 +68,10 @@ namespace Server.Boot
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
-            Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
+            if (settings.AutoSave)
+            {
+                Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
+            }
             Task.Run(() => ServerGameUpdater.StartUpdate(token), cancellationToken.Token);
             
             return (connectionUpdateThread, cancellationToken);

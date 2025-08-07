@@ -21,6 +21,7 @@ using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
+using Game.Paths;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -48,7 +49,9 @@ namespace Server.Boot
     public class MoorestechServerDIContainerOptions
     {
         public readonly string ServerDirectory;
-        public SaveJsonFileName SaveJsonFileName { get; set; } = new("save_1.json");
+        
+        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json"); 
+        public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
         
         public MoorestechServerDIContainerOptions(string serverDirectory)
         {
@@ -119,7 +122,7 @@ namespace Server.Boot
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(new SaveJsonFileName("save_1.json"));
+            services.AddSingleton(options.saveJsonFilePath);
 
             //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
