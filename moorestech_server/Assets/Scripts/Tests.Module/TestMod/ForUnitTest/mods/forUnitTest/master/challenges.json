@@ -5,6 +5,7 @@
       "categoryName": "Category1",
       "categoryDescription": "Category1 description",
       "displayOrder": 0,
+      "IconItem": "00000000-0000-0000-1234-000000000001",
       "initialUnlocked": true,
       "challenges": [
         {
@@ -15,11 +16,8 @@
             "itemGuid": "00000000-0000-0000-1234-000000000003"
           },
           "challengeGuid": "00000000-0000-0000-4567-000000000001",
-          "playSkitType": "None",
-          "playSkitParam": {},
           "tutorials": [],
           "clearedActions": [],
-          "displayListType": "NotDisplay",
           "displayListParam": {
             "UIPosition": [
               0,
@@ -46,8 +44,6 @@
             "itemGuid": "00000000-0000-0000-1234-000000000001"
           },
           "challengeGuid": "00000000-0000-0000-4567-000000000002",
-          "playSkitType": "None",
-          "playSkitParam": {},
           "tutorials": [],
           "clearedActions": [
             {
@@ -67,7 +63,6 @@
               }
             }
           ],
-          "displayListType": "NotDisplay",
           "displayListParam": {
             "UIPosition": [
               0,
@@ -94,11 +89,8 @@
             "blockGuid": "00000000-0000-0000-0000-000000000001"
           },
           "challengeGuid": "00000000-0000-0000-4567-000000000003",
-          "playSkitType": "None",
-          "playSkitParam": {},
           "tutorials": [],
           "clearedActions": [],
-          "displayListType": "NotDisplay",
           "displayListParam": {
             "UIPosition": [
               0,
@@ -128,11 +120,8 @@
             "00000000-0000-0000-4567-000000000001"
           ],
           "challengeGuid": "00000000-0000-0000-4567-000000000004",
-          "playSkitType": "None",
-          "playSkitParam": {},
           "tutorials": [],
           "clearedActions": [],
-          "displayListType": "NotDisplay",
           "displayListParam": {
             "UIPosition": [
               0,
@@ -162,8 +151,6 @@
             "00000000-0000-0000-4567-000000000004"
           ],
           "challengeGuid": "00000000-0000-0000-4567-000000000005",
-          "playSkitType": "None",
-          "playSkitParam": {},
           "tutorials": [],
           "clearedActions": [
             {
@@ -175,7 +162,6 @@
               }
             }
           ],
-          "displayListType": "NotDisplay",
           "displayListParam": {
             "UIPosition": [
               0,
@@ -199,6 +185,7 @@
       "categoryName": "Category2",
       "categoryDescription": "Category2 description",
       "displayOrder": 0,
+      "IconItem": "00000000-0000-0000-1234-000000000001",
       "initialUnlocked": false,
       "challenges": [
         {
