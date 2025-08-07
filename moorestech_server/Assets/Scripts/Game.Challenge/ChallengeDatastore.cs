@@ -45,17 +45,15 @@ namespace Game.Challenge
                 foreach (var challengeElement in category.Challenges)
                 {
                     // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
-                    if (challengeElement.InitialUnlocked &&
-                        (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0))
+                    if (challengeElement.PrevChallengeGuids != null && challengeElement.PrevChallengeGuids.Length != 0) continue;
+                    
+                    var challenge = CreateChallenge(challengeElement);
+                    CurrentChallengeInfo.CurrentChallenges.Add(challenge);
+                    
+                    // チャレンジスタートのアクションを実行
+                    foreach (var action in challengeElement.StartedActions.items)
                     {
-                        var challenge = CreateChallenge(challengeElement);
-                        CurrentChallengeInfo.CurrentChallenges.Add(challenge);
-                        
-                        // チャレンジスタートのアクションを実行
-                        foreach (var action in challengeElement.StartedActions.items)
-                        {
-                            ExecuteChallengeAction(action);
-                        }
+                        ExecuteChallengeAction(action);
                     }
                 }
             }
@@ -220,17 +218,15 @@ namespace Game.Challenge
                     foreach (var challengeElement in category.Challenges)
                     {
                         // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
-                        if (challengeElement.InitialUnlocked &&
-                            (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0))
+                        if (challengeElement.PrevChallengeGuids != null && challengeElement.PrevChallengeGuids.Length != 0) continue;
+                        
+                        var challenge = CreateChallenge(challengeElement);
+                        currentChallenges.Add(challenge);
+                        
+                        // チャレンジスタートのアクションを実行
+                        foreach (var action in challengeElement.StartedActions.items)
                         {
-                            var challenge = CreateChallenge(challengeElement);
-                            currentChallenges.Add(challenge);
-                            
-                            // チャレンジスタートのアクションを実行
-                            foreach (var action in challengeElement.StartedActions.items)
-                            {
-                                ExecuteChallengeAction(action);
-                            }
+                            ExecuteChallengeAction(action);
                         }
                     }
                 }
