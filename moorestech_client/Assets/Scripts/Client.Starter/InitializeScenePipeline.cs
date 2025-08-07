@@ -157,7 +157,11 @@ namespace Client.Starter
                     try
                     {
                         var serverInstanceGameObject = new GameObject("ServerInstance");
-                        serverInstanceGameObject.AddComponent<ServerStarter>();
+                        var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
+                        if (_proprieties.CreateLocalServerArgs != null)
+                        {
+                            serverStarter.SetArgs(_proprieties.CreateLocalServerArgs);
+                        }
                         DontDestroyOnLoad(serverInstanceGameObject);
                         
                         await UniTask.Delay(1000);
