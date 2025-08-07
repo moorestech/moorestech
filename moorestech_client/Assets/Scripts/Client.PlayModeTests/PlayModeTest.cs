@@ -14,16 +14,7 @@ namespace Client.PlayModeTests
         [Test]
         public async Task  NewTestScriptSimplePasses()
         {
-            SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
-            
-            // GameInitializerSceneLoaderが表示されるか15秒のタイムアウトを待つ
-            // Wait for GameInitializerSceneLoader to appear or 15 seconds timeout
-            var timeout = UniTask.Delay(15000);
-            var waitForLoader = UniTask.WaitUntil(() => Object.FindObjectOfType<GameInitializerSceneLoader>() != null);
-            await UniTask.WhenAny(waitForLoader, timeout);
-            
-            var loader = Object.FindObjectOfType<GameInitializerSceneLoader>();
-            Assert.IsNotNull(loader, "GameInitializerSceneLoader was not found within 15 seconds");
+            await PlayModeTestUtil.LoadMainGame();
         }
     }
 }
