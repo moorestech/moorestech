@@ -9,7 +9,7 @@ namespace Server.Boot
         [Option(isFlag: false, "--saveFilePath", "-s")]
         public string SaveFilePath { get; set; } = MoorestechServerDIContainerOptions.DefaultSaveJsonFilePath;
         
-        [Option(isFlag: true, "--autoSave", "-c")]
+        [Option(isFlag: false, "--autoSave", "-c")]
         public bool AutoSave { get; set; } = true;
     }
 }

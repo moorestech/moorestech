@@ -50,11 +50,14 @@ namespace Server.Boot.Args
         }
         
         /// <summary>TSettings → string[]</summary>
-        public static string[] Serialize<T>(T settings)
+        public static string[] Serialize<T>(T settings) where T : new()
         {
             var type = typeof(T);
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var output = new List<string>();
+            
+            // デフォルトインスタンスを作成してプロパティの初期値を取得
+            var defaultInstance = new T();
             
             foreach (var prop in props)
             {
@@ -62,19 +65,20 @@ namespace Server.Boot.Args
                 if (attr == null) continue;
                 
                 var current = prop.GetValue(settings);
-                var defaultVal = prop.PropertyType.IsValueType
-                    ? Activator.CreateInstance(prop.PropertyType)
-                    : null;
+                var defaultVal = prop.GetValue(defaultInstance);
                 
-                // 既定値と同じならスキップ（bool flag の false など）
+                // 既定値と同じならスキップ
                 if (Equals(current, defaultVal)) continue;
                 
-                // 既定値比較をもう少し厳密に行いたい場合はここを拡張
                 var primaryName = attr.Names.First();
                 
-                if (attr.IsFlag && prop.PropertyType == typeof(bool) && Equals(current, true))
+                if (attr.IsFlag && prop.PropertyType == typeof(bool))
                 {
-                    output.Add(primaryName);
+                    // フラグオプションは true の場合のみ出力
+                    if (Equals(current, true))
+                    {
+                        output.Add(primaryName);
+                    }
                 }
                 else
                 {
