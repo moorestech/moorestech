@@ -1,11 +1,10 @@
+using System;
 using System.Collections.Generic;
-using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Network.API;
-using Cysharp.Threading.Tasks;
+using Core.Master;
+using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using UnityEngine;
-using VContainer;
 
 namespace Client.Game.InGame.UI.Challenge
 {
@@ -15,10 +14,6 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private ChallengeTreeView challengeTreeView;
         
         [SerializeField] private ChallengeListViewCategoryElement categoryListElementPrefab;
-        public ChallengeListView(RectTransform categoryListParent)
-        {
-            this.categoryListParent = categoryListParent;
-        }
         
         
         public void SetUI(List<ChallengeCategoryResponse> challengeCategories)
@@ -28,9 +23,28 @@ namespace Client.Game.InGame.UI.Challenge
                 if (!category.IsUnlocked) continue;
                 
                 var categoryElement = Instantiate(categoryListElementPrefab, categoryListParent);
-                categoryElement.SetUI(category.Category, challengeTreeView);
+                categoryElement.SetUI(category, challengeTreeView);
             }
         }
+        
+        
+        /// <summary>
+        /// challengeCategoriesを変換してSetUIを叩く
+        /// </summary>
+        public void UpdateUI(List<ChallengeCategoryMessagePack> challengeCategories)
+        {
+            var categories = new List<ChallengeCategoryResponse>();
+            foreach (var category in challengeCategories)
+            {
+                var currentChallenges = category.CurrentChallengeGuidsStr.ConvertAll(e => MasterHolder.ChallengeMaster.GetChallenge(Guid.Parse(e)));
+                var completedChallenges = category.CompletedChallengeGuidsStr.ConvertAll(e => MasterHolder.ChallengeMaster.GetChallenge(Guid.Parse(e)));
+                var categoryMaster =  MasterHolder.ChallengeMaster.GetChallengeCategory(category.ChallengeCategoryGuid);
+                categories.Add(new ChallengeCategoryResponse(categoryMaster, category.IsUnlocked, currentChallenges, completedChallenges));
+            }
+            SetUI(categories);
+        }
+        
+        
         public void SetActive(bool enable)
         {
             gameObject.SetActive(enable);

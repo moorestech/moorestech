@@ -46,7 +46,16 @@
           "taskCompletionType": "inInventoryItem",
           "tutorials": [],
           "startedActions": [],
-          "clearedActions": [],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockChallengeCategory",
+              "challengeActionParam": {
+                "unlockChallengeCategoryGuids": [
+                  "2f8c52b3-9c6d-46aa-bcae-38c836d42432"
+                ]
+              }
+            }
+          ],
           "displayListParam": {
             "UIPosition": [
               0,

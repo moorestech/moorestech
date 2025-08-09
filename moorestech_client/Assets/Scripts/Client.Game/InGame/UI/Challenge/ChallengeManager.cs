@@ -21,6 +21,7 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [Inject] private TutorialManager _tutorialManager;
+        private ChallengeListView _challengeListView;
         
         [Inject]
         public void Construct(ChallengeListView challengeListView, InitialHandshakeResponse initialHandshakeResponse)
@@ -34,7 +35,8 @@ namespace Client.Game.InGame.UI.Challenge
             
             var currentChallenges = initialHandshakeResponse.Challenges.SelectMany(c => c.CurrentChallenges).ToList();
             currentChallengeHudView.SetCurrentChallenge(currentChallenges);
-            challengeListView.SetUI(initialHandshakeResponse.Challenges);
+            _challengeListView = challengeListView;
+            _challengeListView.SetUI(initialHandshakeResponse.Challenges);
             
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
@@ -43,6 +45,9 @@ namespace Client.Game.InGame.UI.Challenge
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
             var nextChallenges = message.NextChallengeGuids.Select(c => MasterHolder.ChallengeMaster.GetChallenge(c)).ToList();
+            
+            // チャレンジリストを更新
+            _challengeListView.UpdateUI(message.ChallengeCategories);
             
             // チュートリアルを完了
             _tutorialManager.CompleteChallenge(message.CompletedChallengeGuid);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Network.API;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 
@@ -17,16 +18,17 @@ namespace Client.Game.InGame.UI.Challenge
         
         private readonly Dictionary<Guid, ChallengeTreeViewElement> _challengeElementsDictionary = new();
         
-        public void SetChallengeCategory(ChallengeCategoryMasterElement category)
+        public void SetChallengeCategory(ChallengeCategoryResponse categoryResponse)
         {
             // 既存の要素をクリア
             ClearChallengeElements();
             
             // 新しいチャレンジ要素を作成
-            foreach (var challenge in category.Challenges)
+            foreach (var challenge in categoryResponse.Category.Challenges)
             {
                 var challengeElement = Instantiate(categoryElement, challengeListParent);
-                challengeElement.SetChallenge(challenge);
+                var currentState = GetCurrentState(challenge);
+                challengeElement.SetChallenge(challenge, currentState);
                 
                 _challengeElementsDictionary.Add(challenge.ChallengeGuid, challengeElement);
             }
@@ -39,6 +41,24 @@ namespace Client.Game.InGame.UI.Challenge
             
             // 全要素を包含するように親のサイズを調整
             AdjustParentSize();
+            
+            #region Internal
+            
+            ChallengeListUIElementState GetCurrentState(ChallengeMasterElement challengeMasterElement)
+            {
+                if (categoryResponse.CurrentChallenges.Contains(challengeMasterElement))
+                {
+                    return ChallengeListUIElementState.Current;
+                }
+                if (categoryResponse.CompletedChallenges.Contains(challengeMasterElement))
+                {
+                    return ChallengeListUIElementState.Completed;
+                }
+                
+                return ChallengeListUIElementState.Before;
+            }
+            
+            #endregion
         }
         
         private void ClearChallengeElements()

@@ -195,12 +195,4 @@ namespace Client.Game.InGame.UI.Challenge
             _connectLines.Clear();
         }
     }
-    
-    public enum ChallengeListUIElementState
-    {
-        Before,
-        Current,
-        Completed,
-        Locked,
-    }
 }
