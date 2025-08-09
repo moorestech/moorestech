@@ -48,8 +48,7 @@ namespace Client.Starter
         
         private void Start()
         {
-            var serverDirectory = ServerDirectory.GetDirectory();
-            Initialize(serverDirectory).Forget();
+            Initialize(_proprieties.ServerDirectoryPath).Forget();
         }
         
         private async UniTask Initialize(string serverDirectory)

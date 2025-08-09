@@ -9,6 +9,8 @@ namespace Client.PlayModeTests
         public async Task  NewTestScriptSimplePasses()
         {
             await PlayModeTestUtil.LoadMainGame();
+            
+            //await PlayModeTestUtil.GiveItem();
         }
     }
 }

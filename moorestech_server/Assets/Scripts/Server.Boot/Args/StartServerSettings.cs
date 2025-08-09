@@ -10,5 +10,8 @@ namespace Server.Boot
         
         [Option(isFlag: false, "--autoSave", "-a")]
         public bool AutoSave { get; set; } = true;
+        
+        [Option(isFlag: false, "--serverDataDirectory")]
+        public string ServerDataDirectory { get; set; } = ServerDirectory.GetDirectory();
     }
 }
