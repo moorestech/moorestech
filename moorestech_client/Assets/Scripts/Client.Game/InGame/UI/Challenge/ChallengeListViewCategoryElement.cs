@@ -14,6 +14,8 @@ namespace Client.Game.InGame.UI.Challenge
 {
     public class ChallengeListViewCategoryElement: MonoBehaviour
     {
+        public Guid CategoryGuid => _currentCategory.Category.CategoryGuid;
+        
         [SerializeField] private ItemSlotView itemSlotView;
         
         private ChallengeTreeView _challengeTreeView;

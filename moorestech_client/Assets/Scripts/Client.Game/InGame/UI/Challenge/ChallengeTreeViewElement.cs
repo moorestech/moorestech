@@ -21,6 +21,9 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private TMP_Text title;
         [SerializeField] private TMP_Text summary;
         
+        [SerializeField] private GameObject currentChallengeViewObject;
+        [SerializeField] private GameObject completedChallengeViewObject;
+        
         
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
@@ -40,6 +43,9 @@ namespace Client.Game.InGame.UI.Challenge
             
             title.text = challengeMasterElement.Title;
             summary.text = challengeMasterElement.Summary;
+            
+            currentChallengeViewObject.SetActive(currentState == ChallengeListUIElementState.Current);
+            completedChallengeViewObject.SetActive(currentState == ChallengeListUIElementState.Completed);
         }
         
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ChallengeTreeViewElement> challengeElements)

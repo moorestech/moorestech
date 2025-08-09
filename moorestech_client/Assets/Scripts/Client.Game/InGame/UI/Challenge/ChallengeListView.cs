@@ -15,12 +15,22 @@ namespace Client.Game.InGame.UI.Challenge
         
         [SerializeField] private ChallengeListViewCategoryElement categoryListElementPrefab;
         
+        private List<ChallengeListViewCategoryElement> _categoryListElements = new();
+        
         
         public void SetUI(List<ChallengeCategoryResponse> challengeCategories)
         {
             foreach (var category in challengeCategories)
             {
                 if (!category.IsUnlocked) continue;
+                
+                var element = _categoryListElements.Find(e => e.CategoryGuid == category.Category.CategoryGuid);
+                if (element != null)
+                {
+                    // すでに存在する場合はスキップ
+                    element.SetUI(category, challengeTreeView);
+                    continue;
+                }
                 
                 var categoryElement = Instantiate(categoryListElementPrefab, categoryListParent);
                 categoryElement.SetUI(category, challengeTreeView);
