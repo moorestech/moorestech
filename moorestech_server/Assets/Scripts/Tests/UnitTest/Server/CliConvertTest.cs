@@ -444,6 +444,118 @@ namespace Tests.UnitTest.Server
             Assert.AreEqual(original.AutoSave, parsed.AutoSave);
         }
         
+        [Test]
+        public void RoundTrip_StringWithSpaces_ShouldPreserveValues()
+        {
+            var original = new SpecialCharSettings
+            {
+                Text = "Hello World with spaces",
+                Path = "/path with spaces/file.txt"
+            };
+            
+            var serialized = CliConvert.Serialize(original);
+            var parsed = CliConvert.Parse<SpecialCharSettings>(serialized);
+            
+            Assert.AreEqual(original.Text, parsed.Text);
+            Assert.AreEqual(original.Path, parsed.Path);
+        }
+        
+        [Test]
+        public void RoundTrip_StringWithSpecialCharacters_ShouldPreserveValues()
+        {
+            var original = new SpecialCharSettings
+            {
+                Text = "Text with \"quotes\" and 'apostrophes'",
+                Path = "C:\\Users\\My User\\Documents\\file.txt"
+            };
+            
+            var serialized = CliConvert.Serialize(original);
+            var parsed = CliConvert.Parse<SpecialCharSettings>(serialized);
+            
+            Assert.AreEqual(original.Text, parsed.Text);
+            Assert.AreEqual(original.Path, parsed.Path);
+        }
+        
+        [Test]
+        public void RoundTrip_ComplexEscapedStrings_ShouldPreserveValues()
+        {
+            var original = new SpecialCharSettings
+            {
+                Text = "Complex\\\"string\\\\with\\all\\\"escapes\"",
+                Path = "\\\\server\\share\\path with spaces\\file.txt"
+            };
+            
+            var serialized = CliConvert.Serialize(original);
+            var parsed = CliConvert.Parse<SpecialCharSettings>(serialized);
+            
+            Assert.AreEqual(original.Text, parsed.Text);
+            Assert.AreEqual(original.Path, parsed.Path);
+        }
+        
+        [Test]
+        public void RoundTrip_EmptyAndWhitespaceStrings_ShouldPreserveValues()
+        {
+            var original = new SpecialCharSettings
+            {
+                Text = "",
+                Path = "   "
+            };
+            
+            var serialized = CliConvert.Serialize(original);
+            var parsed = CliConvert.Parse<SpecialCharSettings>(serialized);
+            
+            Assert.AreEqual(original.Text, parsed.Text);
+            Assert.AreEqual(original.Path, parsed.Path);
+        }
+        
+        [Test]
+        public void Serialize_StringWithSpaces_ShouldQuoteValue()
+        {
+            var settings = new SpecialCharSettings
+            {
+                Text = "value with spaces"
+            };
+            
+            var result = CliConvert.Serialize(settings);
+            
+            Assert.AreEqual(2, result.Length);
+            Assert.AreEqual("--text", result[0]);
+            Assert.AreEqual("\"value with spaces\"", result[1]);
+        }
+        
+        [Test]
+        public void Serialize_StringWithQuotes_ShouldEscapeAndQuote()
+        {
+            var settings = new SpecialCharSettings
+            {
+                Text = "value with \"quotes\""
+            };
+            
+            var result = CliConvert.Serialize(settings);
+            
+            Assert.AreEqual(2, result.Length);
+            Assert.AreEqual("--text", result[0]);
+            Assert.AreEqual("\"value with \\\"quotes\\\"\"", result[1]);
+        }
+        
+        [Test]
+        public void Parse_QuotedString_ShouldUnquoteCorrectly()
+        {
+            var args = new[] { "--text", "\"quoted value with spaces\"" };
+            var result = CliConvert.Parse<SpecialCharSettings>(args);
+            
+            Assert.AreEqual("quoted value with spaces", result.Text);
+        }
+        
+        [Test]
+        public void Parse_EscapedQuotesInQuotedString_ShouldUnescapeCorrectly()
+        {
+            var args = new[] { "--text", "\"value with \\\"quotes\\\"\"" };
+            var result = CliConvert.Parse<SpecialCharSettings>(args);
+            
+            Assert.AreEqual("value with \"quotes\"", result.Text);
+        }
+        
         #endregion
         
         #region Error Cases Tests

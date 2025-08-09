@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Server.Boot.Args;
+using UnityEngine;
 
 namespace Server.Boot.Args
 {
@@ -42,6 +44,10 @@ namespace Server.Boot.Args
                     if (tokens.Count == 0)
                         throw new ArgumentException($"Missing value for option {token}");
                     var raw = tokens.Dequeue();
+                    
+                    // クォートされている値をアンクォート
+                    raw = UnquoteValue(raw);
+                    
                     value = ConvertSimple(raw, prop.PropertyType);
                 }
                 prop.SetValue(instance, value);
@@ -83,7 +89,12 @@ namespace Server.Boot.Args
                 else
                 {
                     output.Add(primaryName);
-                    output.Add(current?.ToString() ?? string.Empty);
+                    var value = current?.ToString() ?? string.Empty;
+                    
+                    // 値をクォート処理
+                    value = QuoteValue(value);
+                    
+                    output.Add(value);
                 }
             }
             return output.ToArray();
@@ -115,6 +126,72 @@ namespace Server.Boot.Args
             if (target.IsEnum) return Enum.Parse(target, raw, ignoreCase: true);
             // 必要に応じて型を追加
             return Convert.ChangeType(raw, target);
+        }
+        
+        /// <summary>値にスペースや特殊文字が含まれる場合、適切にクォート処理を行う</summary>
+        private static string QuoteValue(string value)
+        {
+            // null または空文字列の場合はそのまま返す
+            if (string.IsNullOrEmpty(value))
+                return value ?? string.Empty;
+            
+            // スペース、タブ、ダブルクォート、バックスラッシュのいずれかを含む場合はクォートが必要
+            bool needsQuoting = value.Any(c => c == ' ' || c == '\t' || c == '"' || c == '\\');
+            
+            if (!needsQuoting)
+                return value;
+            
+            // ダブルクォートで囲み、内部のダブルクォートとバックスラッシュをエスケープ
+            var escaped = value
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"");
+            
+            return $"\"{escaped}\"";
+        }
+        
+        /// <summary>クォートされた値をアンクォートする</summary>
+        private static string UnquoteValue(string value)
+        {
+            // クォートされていない場合はそのまま返す
+            if (string.IsNullOrEmpty(value) || value.Length < 2)
+                return value;
+            
+            if (!value.StartsWith('"') || !value.EndsWith('"'))
+                return value;
+            
+            // 前後のダブルクォートを削除
+            var unquoted = value.Substring(1, value.Length - 2);
+            
+            // StringBuilderを使って効率的に文字列を構築
+            var sb = new StringBuilder(unquoted.Length);
+            
+            // 文字列をスキャンしてエスケープシーケンスを処理
+            for (int i = 0; i < unquoted.Length; i++)
+            {
+                // 現在の文字がバックスラッシュで、かつ文字列の末尾でない場合
+                if (unquoted[i] == '\\' && i + 1 < unquoted.Length)
+                {
+                    char nextChar = unquoted[i + 1];
+                    if (nextChar == '\\' || nextChar == '"')
+                    {
+                        // 次の文字（エスケープ対象）を追加
+                        sb.Append(nextChar);
+                        i++; // 次の文字を消費したのでインデックスを1つ進める
+                    }
+                    else
+                    {
+                        // エスケープシーケンスではない場合はそのまま追加
+                        sb.Append(unquoted[i]);
+                    }
+                }
+                else
+                {
+                    // 通常の文字はそのまま追加
+                    sb.Append(unquoted[i]);
+                }
+            }
+            
+            return sb.ToString();
         }
     }
 }
