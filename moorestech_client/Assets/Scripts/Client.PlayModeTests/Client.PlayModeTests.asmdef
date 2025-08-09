@@ -9,7 +9,11 @@
         "Unity.InputSystem.TestFramework",
         "Client.Common",
         "Client.Starter",
-        "Server.Boot"
+        "Server.Boot",
+        "Client.Game",
+        "Server.Protocol",
+        "Client.Network",
+        "Core.Master"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

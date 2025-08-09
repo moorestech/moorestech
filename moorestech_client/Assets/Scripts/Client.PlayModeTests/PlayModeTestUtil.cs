@@ -1,10 +1,13 @@
 using System;
 using Client.Common;
+using Client.Game.InGame.Context;
 using Client.Starter;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -13,7 +16,9 @@ namespace Client.PlayModeTests
 {
     public class PlayModeTestUtil
     {
-        public static async UniTask LoadMainGame()
+        public const string PlayModeTestServerDirectoryPath = "";
+        
+        public static async UniTask LoadMainGame(string serverDirectory = PlayModeTestServerDirectoryPath)
         {
             // 初期化シーンをロード
             // Load the initialization scene
@@ -38,6 +43,7 @@ namespace Client.PlayModeTests
                 {
                     SaveFilePath = String.Empty,
                     AutoSave = false,
+                    ServerDataDirectory = serverDirectory,
                 };
                 var args = CliConvert.Serialize(properties);
                 
@@ -71,6 +77,27 @@ namespace Client.PlayModeTests
             }
             
             #endregion
+        }
+        
+        public static async UniTask GiveItem(string itemName, int count)
+        {
+            var giveItemId = new ItemId(-1);
+            foreach (var itemId in  MasterHolder.ItemMaster.GetItemAllIds())
+            {
+                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                if (itemMaster.Name != itemName) continue;
+                giveItemId = itemId;
+            }
+            if (giveItemId.AsPrimitive() == -1)
+            {
+                throw new ArgumentException($"Item not found: {itemName}");
+            }
+            
+            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
+            var command = $"{SendCommandProtocol.GiveCommand} {playerId} {giveItemId} {count}";
+            ClientContext.VanillaApi.SendOnly.SendCommand(command);
+            
+            await UniTask.Delay(1000);
         }
     }
 }
