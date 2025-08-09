@@ -11,7 +11,6 @@ namespace Client.Starter
         public readonly string ServerIp;
         public readonly int ServerPort;
         
-        public string ServerDirectoryPath { get; set; }
         public string[] CreateLocalServerArgs { get; set; }
         
         public InitializeProprieties(Process localServerProcess, string serverIp, int serverPort, int playerId)

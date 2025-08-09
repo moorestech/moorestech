@@ -17,6 +17,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Server.Boot;
+using Server.Boot.Args;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -48,11 +49,14 @@ namespace Client.Starter
         
         private void Start()
         {
-            Initialize(_proprieties.ServerDirectoryPath).Forget();
+            Initialize().Forget();
         }
         
-        private async UniTask Initialize(string serverDirectory)
+        private async UniTask Initialize()
         {
+            var args = CliConvert.Parse<StartServerSettings>(Environment.GetCommandLineArgs());
+            var serverDirectory = args.ServerDataDirectory;
+            
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
             
