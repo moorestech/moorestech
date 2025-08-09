@@ -54,7 +54,7 @@ namespace Client.Starter
         
         private async UniTask Initialize()
         {
-            var args = CliConvert.Parse<StartServerSettings>(Environment.GetCommandLineArgs());
+            var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
             
             var loadingStopwatch = new Stopwatch();
