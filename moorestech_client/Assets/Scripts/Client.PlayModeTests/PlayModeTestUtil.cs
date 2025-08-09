@@ -25,13 +25,12 @@ namespace Client.PlayModeTests
             
             // 初期化シーンをロード
             // Load the initialization scene
+            SceneManager.sceneLoaded += SetInitializeProperty;
             SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
             
             // シーンのオブジェクトが初期化されるまで1フレーム待機
             // Wait 1 frame for scene objects to initialize
             await UniTask.Yield();
-            
-            SetInitializeProperty();
             
             await WaitStartServer();
             
@@ -39,13 +38,15 @@ namespace Client.PlayModeTests
             
             // 初期化プロパティをセット
             // Set the initialization properties
-            void SetInitializeProperty()
+            void SetInitializeProperty(Scene scene, LoadSceneMode mode)
             {
+                SceneManager.sceneLoaded -= SetInitializeProperty;
+                
                 // 既存のセーブデータをロードさせず、オートセーブもしないようにする
                 var defaultProperties = InitializeProprieties.CreateDefault();
                 var properties = new StartServerSettings
                 {
-                    SaveFilePath = String.Empty,
+                    SaveFilePath = $"dummy_play_mode_test_{Guid.NewGuid()}.json",
                     AutoSave = false,
                     ServerDataDirectory = serverDirectory,
                 };
