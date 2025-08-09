@@ -40,7 +40,11 @@ namespace Client.Starter
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
         
-        private InitializeProprieties _proprieties;
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
+        public void SetProperty(InitializeProprieties proprieties)
+        {
+            _proprieties = proprieties;
+        }
         
         private void Awake()
         {
@@ -280,12 +284,6 @@ namespace Client.Starter
             }
             
             #endregion
-        }
-        
-        
-        public void SetProperty(InitializeProprieties proprieties)
-        {
-            _proprieties = proprieties;
         }
     }
 }
