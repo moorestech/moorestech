@@ -13,7 +13,7 @@ namespace Server.Boot
             _args = args;
         }
         
-        private void Awake()
+        private void Start()
         {
             _startServer = new ServerInstanceManager(_args);
             _startServer.Start();
