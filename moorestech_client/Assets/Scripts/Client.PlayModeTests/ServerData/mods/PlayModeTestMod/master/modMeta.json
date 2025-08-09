@@ -1,7 +1,7 @@
 {
-  "id": "moorestechAlphaMod3",
-  "name": "moorestech Alpha Mod",
+  "id": "PlayModeTest",
+  "name": "PlayModeTest",
   "version": "1.0.0",
   "author": "sakastudio",
-  "description": "moorestechのAlpha版限定で利用するmodです。将来的にこれは使わなくなります。"
+  "description": "play mode test only mod"
 }
