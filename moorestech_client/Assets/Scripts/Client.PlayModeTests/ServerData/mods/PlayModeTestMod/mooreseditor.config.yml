@@ -3,7 +3,7 @@ projectName: SampleProject
 projectDescription: Description
 
 # スキーマのyamlファイルが入っているパス。相対パスは指定方法の一例
-schemaPath: "../../../../VanillaSchema"
+schemaPath: "../../../../../../../VanillaSchema"
 
 # その他のスキーマパスの指定方法
 # 絶対パス /Users/moorestech/schema

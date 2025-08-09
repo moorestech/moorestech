@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Client.Common;
 using Client.Game.InGame.Context;
 using Client.Starter;
@@ -16,10 +17,12 @@ namespace Client.PlayModeTests
 {
     public class PlayModeTestUtil
     {
-        public const string PlayModeTestServerDirectoryPath = "";
+        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.PlayModeTests/ServerData");
         
-        public static async UniTask LoadMainGame(string serverDirectory = PlayModeTestServerDirectoryPath)
+        public static async UniTask LoadMainGame(string serverDirectory = null)
         {
+            serverDirectory ??= PlayModeTestServerDirectoryPath;
+            
             // 初期化シーンをロード
             // Load the initialization scene
             SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
@@ -39,25 +42,16 @@ namespace Client.PlayModeTests
             void SetInitializeProperty()
             {
                 // 既存のセーブデータをロードさせず、オートセーブもしないようにする
-                var properties = new StartServerSettings()
+                var defaultProperties = InitializeProprieties.CreateDefault();
+                var properties = new StartServerSettings
                 {
                     SaveFilePath = String.Empty,
                     AutoSave = false,
                     ServerDataDirectory = serverDirectory,
                 };
-                var args = CliConvert.Serialize(properties);
+                defaultProperties.CreateLocalServerArgs = CliConvert.Serialize(properties);
                 
                 var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();
-                
-                // nullチェックを追加してデバッグ情報を出力
-                if (starter == null)
-                {
-                    Debug.LogError("InitializeScenePipeline not found after scene load!");
-                    throw new InvalidOperationException("InitializeScenePipeline not found in the scene");
-                }
-                
-                var defaultProperties = InitializeProprieties.CreateDefault();
-                defaultProperties.CreateLocalServerArgs = args;
                 starter.SetProperty(defaultProperties);
             }
             
