@@ -17,7 +17,7 @@ namespace Client.PlayModeTests.Util
 {
     public class PlayModeTestUtil
     {
-        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.PlayModeTests/ServerData");
+        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.TestsPlayMode/ServerData");
         
         public static async UniTask LoadMainGame(string serverDirectory = null)
         {
