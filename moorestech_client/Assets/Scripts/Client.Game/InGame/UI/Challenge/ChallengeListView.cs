@@ -59,5 +59,9 @@ namespace Client.Game.InGame.UI.Challenge
         {
             gameObject.SetActive(enable);
         }
+        
+#if UNITY_EDITOR
+        public RectTransform DebugCategoryListParent => categoryListParent;
+#endif
     }
 }
