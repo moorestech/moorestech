@@ -80,7 +80,7 @@
           "prevChallengeGuids": [],
           "title": "カテゴリ2チャレンジ2",
           "summary": "New Challenge summary",
-          "taskCompletionType": "createItem",
+          "taskCompletionType": "inInventoryItem",
           "tutorials": [],
           "startedActions": [],
           "clearedActions": [],
@@ -95,6 +95,10 @@
               1
             ],
             "IconItem": ""
+          },
+          "taskParam": {
+            "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+            "itemCount": 1
           }
         }
       ]
