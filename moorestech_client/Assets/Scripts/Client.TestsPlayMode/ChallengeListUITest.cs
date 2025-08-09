@@ -7,12 +7,12 @@ using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Client.PlayModeTests
+namespace Client.TestsPlayMode
 {
-    public class PlayModeTest
+    public class ChallengeListUITest
     {
         [Test]
-        public async Task  NewTestScriptSimplePasses()
+        public async Task CategoryElementTest()
         {
             await PlayModeTestUtil.LoadMainGame();
             
