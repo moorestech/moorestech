@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.Challenge
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
         
-        public void SetChallenge(ChallengeMasterElement challengeMasterElement)
+        public void SetChallenge(ChallengeMasterElement challengeMasterElement, ChallengeListUIElementState currentState)
         {
             ChallengeMasterElement = challengeMasterElement;
             rectTransform.anchoredPosition = challengeMasterElement.DisplayListParam.UIPosition;
@@ -109,5 +109,13 @@ namespace Client.Game.InGame.UI.Challenge
             
             _connectLines.Clear();
         }
+    }
+    
+    public enum ChallengeListUIElementState
+    {
+        Before,
+        Current,
+        Completed,
+        Locked,
     }
 }

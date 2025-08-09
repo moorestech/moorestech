@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
@@ -16,7 +17,7 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private ItemSlotView itemSlotView;
         
         private ChallengeTreeView _challengeTreeView;
-        private ChallengeCategoryMasterElement _currentCategory;
+        private ChallengeCategoryResponse _currentCategory;
         
         private void Awake()
         {
@@ -27,13 +28,13 @@ namespace Client.Game.InGame.UI.Challenge
         }
         
         
-        public void SetUI(ChallengeCategoryMasterElement category, ChallengeTreeView challengeTreeView)
+        public void SetUI(ChallengeCategoryResponse categoryResponse, ChallengeTreeView challengeTreeView)
         {
             _challengeTreeView = challengeTreeView;
-            _currentCategory = category;
+            _currentCategory = categoryResponse;
             
-            var itemView = ClientContext.ItemImageContainer.GetItemView(category.IconItem);
-            itemSlotView.SetItem(itemView, 0, category.CategoryName);
+            var itemView = ClientContext.ItemImageContainer.GetItemView(categoryResponse.Category.IconItem);
+            itemSlotView.SetItem(itemView, 0, categoryResponse.Category.CategoryName);
         }
     }
 }
