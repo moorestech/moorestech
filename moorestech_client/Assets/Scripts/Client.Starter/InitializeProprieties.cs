@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Client.Common;
 using Server.Boot;
 
@@ -11,7 +12,7 @@ namespace Client.Starter
         public readonly string ServerIp;
         public readonly int ServerPort;
         
-        public string[] CreateLocalServerArgs { get; set; }
+        public string[] CreateLocalServerArgs { get; set; } = Array.Empty<string>();
         
         public InitializeProprieties(Process localServerProcess, string serverIp, int serverPort, int playerId)
         {
