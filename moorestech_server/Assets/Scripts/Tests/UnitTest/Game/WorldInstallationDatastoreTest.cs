@@ -13,7 +13,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldData = ServerContext.WorldBlockDatastore;
             
             var random = new Random(131513);
@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldData = ServerContext.WorldBlockDatastore;
             
             var entityId = BlockInstanceId.Create();
@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldData = ServerContext.WorldBlockDatastore;
             

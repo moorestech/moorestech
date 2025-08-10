@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetUnlockStateInfo()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             // アンロック状態を取得
             // Get the unlock state

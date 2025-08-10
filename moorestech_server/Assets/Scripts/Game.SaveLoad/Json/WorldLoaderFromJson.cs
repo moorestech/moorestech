@@ -23,20 +23,20 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
         
-        private readonly SaveJsonFileName _saveJsonFileName;
+        private readonly SaveJsonFilePath _saveJsonFilePath;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
         
-        public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName,
+        public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
             
-            _saveJsonFileName = saveJsonFileName;
+            _saveJsonFilePath = saveJsonFilePath;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
@@ -47,9 +47,9 @@ namespace Game.SaveLoad.Json
         
         public void LoadOrInitialize()
         {
-            if (File.Exists(_saveJsonFileName.FullSaveFilePath))
+            if (File.Exists(_saveJsonFilePath.Path))
             {
-                var json = File.ReadAllText(_saveJsonFileName.FullSaveFilePath);
+                var json = File.ReadAllText(_saveJsonFilePath.Path);
                 try
                 {
                     Load(json);
@@ -60,7 +60,7 @@ namespace Game.SaveLoad.Json
                 {
                     //TODO ログ基盤
                     Debug.Log("セーブデータが破損していたか古いバージョンでした。削除したら治る可能性があります。\nサポートが必要な場合はDiscordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
-                    Debug.Log($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
+                    Debug.Log($"セーブファイルパス {_saveJsonFilePath.Path}");
                     throw new Exception(
                         $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
@@ -80,6 +80,27 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
+            
+            // Challengeがnullまたはリストがnullでないことを確認
+            if (load.Challenge == null)
+            {
+                load.Challenge = new ChallengeJsonObject
+                {
+                    CompletedGuids = new System.Collections.Generic.List<string>(),
+                    CurrentChallengeGuids = new System.Collections.Generic.List<string>(),
+                    PlayedSkitIds = new System.Collections.Generic.List<string>()
+                };
+            }
+            else
+            {
+                if (load.Challenge.CompletedGuids == null)
+                    load.Challenge.CompletedGuids = new System.Collections.Generic.List<string>();
+                if (load.Challenge.CurrentChallengeGuids == null)
+                    load.Challenge.CurrentChallengeGuids = new System.Collections.Generic.List<string>();
+                if (load.Challenge.PlayedSkitIds == null)
+                    load.Challenge.PlayedSkitIds = new System.Collections.Generic.List<string>();
+            }
+            
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
         }
@@ -87,6 +108,7 @@ namespace Game.SaveLoad.Json
         public void WorldInitialize()
         {
             _worldSettingsDatastore.Initialize();
+            _challengeDatastore.InitializeCurrentChallenges();
         }
     }
 }

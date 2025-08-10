@@ -34,7 +34,8 @@ namespace Client.Game.InGame.Skit
         
         public void PostInitialize()
         {
-            foreach (var challenge in _initialHandshakeResponse.Challenge.CurrentChallenges)
+            var currentChallenges = _initialHandshakeResponse.Challenges.SelectMany(c => c.CurrentChallenges);
+            foreach (var challenge in currentChallenges)
             {
                 PlaySkit(challenge);
             }

@@ -52,7 +52,7 @@ namespace Client.Game.InGame.UI.Challenge
                 // Icon specification
                 if (param.IconItem != null)
                 {
-                    var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem.Value);
+                    var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem);
                     itemSlotView.SetItem(itemView, 0);
                 }
                 itemSlotView.SetSlotViewOption(new CommonSlotViewOption
@@ -194,13 +194,5 @@ namespace Client.Game.InGame.UI.Challenge
             
             _connectLines.Clear();
         }
-    }
-    
-    public enum ChallengeListUIElementState
-    {
-        Before,
-        Current,
-        Completed,
-        Locked,
     }
 }

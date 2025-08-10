@@ -1,4 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "MCP_TOOL_TIMEOUT": "1000000"
+  },
   "permissions": {
     "allow": [
       "Bash(grep:*)",
@@ -28,13 +32,14 @@
       "WebFetch(domain:github.com)",
       "mcp__moorestech_client__ClearConsoleLogs",
       "Bash(cat:*)",
-      "Bash(gemini:*)"
+      "Bash(gemini:*)",
+      "mcp__moorestech_client__RunPlayModeTests"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "moorestech_server",
-    "moorestec_client"
+    "moorestech_client"
   ]
 }

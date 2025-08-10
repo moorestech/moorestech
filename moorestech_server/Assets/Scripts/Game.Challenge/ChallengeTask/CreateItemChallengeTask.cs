@@ -11,23 +11,20 @@ namespace Game.Challenge.Task
     public class CreateItemChallengeTask : IChallengeTask
     {
         public ChallengeMasterElement ChallengeMasterElement { get; }
-        public int PlayerId { get; }
-        
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
         private readonly Subject<IChallengeTask> _onChallengeComplete = new();
         
         private bool _completed;
         
         
-        public static IChallengeTask Create(int playerId, ChallengeMasterElement challengeMasterElement)
+        public static IChallengeTask Create(ChallengeMasterElement challengeMasterElement)
         {
-            return new CreateItemChallengeTask(playerId, challengeMasterElement);
+            return new CreateItemChallengeTask(challengeMasterElement);
         }
         
-        public CreateItemChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
+        public CreateItemChallengeTask(ChallengeMasterElement challengeMasterElement)
         {
             ChallengeMasterElement = challengeMasterElement;
-            PlayerId = playerId;
             
             var craftEvent = ServerContext.GetService<CraftEvent>();
             craftEvent.OnCraftItem.Subscribe(CreateItem);

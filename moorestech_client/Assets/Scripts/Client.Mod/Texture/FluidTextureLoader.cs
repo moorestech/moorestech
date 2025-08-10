@@ -44,8 +44,6 @@ namespace Client.Mod.Texture
                 var path = string.IsNullOrEmpty(fluidMaster.ImagePath) ? Path.Combine("assets", "item", $"{fluidMaster.Name}.png") : fluidMaster.ImagePath;
                 
                 var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
-                if (texture == null) Debug.LogWarning("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + fluidMaster.Name);
-                
                 textureList.Add(new FluidViewData(texture, fluidMaster));
             }
             

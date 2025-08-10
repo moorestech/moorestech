@@ -33,6 +33,9 @@ namespace Client.Localization
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
+            // 既存のデータをクリア（複数回初期化に対応）
+            localizeDictionary.Clear();
+            
             //player prefsから言語コードを取得
             CurrentLanguageCode = PlayerPrefs.GetString("LanguageCode", DefaultLanguageCode);
             

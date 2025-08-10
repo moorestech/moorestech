@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UnlockedEventTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             // イベントがないことを確認する
             // Make sure there are no events
@@ -71,10 +71,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void ClearedChallengeToUnlockCraftRecipeEventTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
+            // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            challengeDatastore.InitializeCurrentChallenges();
+            
+            // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
+            packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
             
             // インベントリに別々にアイテムを追加
             const int itemId = 1;

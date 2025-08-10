@@ -1,0 +1,21 @@
+{
+  "characters": [
+    {
+      "characterId": "chr_001",
+      "characterModelAddresablePath": "Vanilla/Character/Chr001",
+      "modelAddresablePath": "Vanilla/Character/Chr001",
+      "skitModelAddresablePath": "Vanilla/Character/SkitChr001"
+    },
+    {
+      "characterId": "chr_002",
+      "modelAddresablePath": "Vanilla/Character/Chr002",
+      "skitModelAddresablePath": "Vanilla/Character/SkitChr002"
+    },
+    {
+      "characterId": "chr_003",
+      "modelAddresablePath": "Vanilla/Character/Chr003",
+      "skitModelAddresablePath": "Vanilla/Character/SkitChr003"
+    }
+  ],
+  "animations": []
+}

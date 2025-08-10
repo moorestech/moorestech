@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Tutorial
         private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
         
         public TutorialManager(
-            MapObjectPin mapObjectPin, 
+            IMapObjectPin mapObjectPin, 
             UIHighlightTutorialManager uiHighlightTutorialManager, 
             KeyControlTutorialManager keyControlTutorialManager,
             ItemViewHighLightTutorialManager itemViewHighLightTutorialManager

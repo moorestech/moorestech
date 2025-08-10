@@ -1,0 +1,116 @@
+{
+  "data": [
+    {
+      "categoryGuid": "a6c4b3db-3f09-4456-96ba-53baa2011b7b",
+      "categoryName": "カテゴリ1",
+      "categoryDescription": "Category description",
+      "displayOrder": 100,
+      "IconItem": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
+      "initialUnlocked": true,
+      "challenges": [
+        {
+          "challengeGuid": "5dd737df-dd08-4b08-9d9d-e45048151dec",
+          "unlockAllPreviousChallengeComplete": true,
+          "prevChallengeGuids": [],
+          "title": "カテゴリ1チャレンジ1",
+          "summary": "New Challenge summary",
+          "taskCompletionType": "inInventoryItem",
+          "tutorials": [],
+          "startedActions": [],
+          "clearedActions": [],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              0
+            ],
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "IconItem": ""
+          },
+          "taskParam": {
+            "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
+            "itemCount": 1
+          }
+        },
+        {
+          "challengeGuid": "992e30b4-840d-4f0b-8958-0b84a4b2c754",
+          "unlockAllPreviousChallengeComplete": true,
+          "prevChallengeGuids": [
+            "5dd737df-dd08-4b08-9d9d-e45048151dec"
+          ],
+          "title": "カテゴリ1チャレンジ2",
+          "summary": "New Challenge summary",
+          "taskCompletionType": "inInventoryItem",
+          "tutorials": [],
+          "startedActions": [],
+          "clearedActions": [
+            {
+              "challengeActionType": "unlockChallengeCategory",
+              "challengeActionParam": {
+                "unlockChallengeCategoryGuids": [
+                  "2f8c52b3-9c6d-46aa-bcae-38c836d42432"
+                ]
+              }
+            }
+          ],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              -200
+            ],
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "IconItem": ""
+          },
+          "taskParam": {
+            "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
+            "itemCount": 1
+          }
+        }
+      ]
+    },
+    {
+      "categoryGuid": "2f8c52b3-9c6d-46aa-bcae-38c836d42432",
+      "categoryName": "カテゴリ2",
+      "categoryDescription": "Category description",
+      "displayOrder": 110,
+      "IconItem": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
+      "initialUnlocked": false,
+      "challenges": [
+        {
+          "challengeGuid": "900bf48f-3cd5-4783-a50a-e36a1d0b6fa6",
+          "unlockAllPreviousChallengeComplete": true,
+          "prevChallengeGuids": [],
+          "title": "カテゴリ2チャレンジ2",
+          "summary": "New Challenge summary",
+          "taskCompletionType": "inInventoryItem",
+          "tutorials": [],
+          "startedActions": [],
+          "clearedActions": [],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              0
+            ],
+            "UIScale": [
+              1,
+              1,
+              1
+            ],
+            "IconItem": ""
+          },
+          "taskParam": {
+            "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4",
+            "itemCount": 1
+          }
+        }
+      ]
+    }
+  ]
+}
