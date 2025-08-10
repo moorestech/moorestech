@@ -21,28 +21,33 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [Inject] private TutorialManager _tutorialManager;
+        private ChallengeListView _challengeListView;
         
         [Inject]
-        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
+        public void Construct(ChallengeListView challengeListView, InitialHandshakeResponse initialHandshakeResponse)
         {
-            //TODO 複数のチャレンジを表示する
-            if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
+            foreach (var challengeCategory in initialHandshakeResponse.Challenges)
             {
-                var currentChallenges = initialHandshakeResponse.Challenge.CurrentChallenges;
-                currentChallengeHudView.SetCurrentChallenge(currentChallenges);
-                
-                ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
-                
                 // チュートリアルの適用
                 // Apply tutorial
-                initialHandshakeResponse.Challenge.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
+                challengeCategory.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
             }
+            
+            var currentChallenges = initialHandshakeResponse.Challenges.SelectMany(c => c.CurrentChallenges).ToList();
+            currentChallengeHudView.SetCurrentChallenge(currentChallenges);
+            _challengeListView = challengeListView;
+            _challengeListView.SetUI(initialHandshakeResponse.Challenges);
+            
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
         
         private void OnCompletedChallenge(byte[] packet)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
             var nextChallenges = message.NextChallengeGuids.Select(c => MasterHolder.ChallengeMaster.GetChallenge(c)).ToList();
+            
+            // チャレンジリストを更新
+            _challengeListView.UpdateUI(message.ChallengeCategories);
             
             // チュートリアルを完了
             _tutorialManager.CompleteChallenge(message.CompletedChallengeGuid);
@@ -54,10 +59,6 @@ namespace Client.Game.InGame.UI.Challenge
             
             async UniTask ProcessChallengeCompletion(Guid completedChallengeGuid, List<ChallengeMasterElement> nextList)
             {
-                // スキットの再生
-                // Play background skit
-                await PlaySkit(nextList);
-                
                 // チャレンジのテキストの更新
                 // Update challenge text
                 if (nextList.Count != 0)
@@ -74,18 +75,6 @@ namespace Client.Game.InGame.UI.Challenge
             }
             
             #endregion
-        }
-        
-        
-        private async UniTask PlaySkit(List<ChallengeMasterElement> nextChallenges)
-        {
-            foreach (var challenge in nextChallenges)
-            {
-                if (challenge.PlaySkitType == "BackgroundSkit") // TODO いい感じの位置に置きたい
-                {
-                    //await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
-                }
-            }
         }
     }
 }

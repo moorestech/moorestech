@@ -25,6 +25,15 @@
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       }
     },
+    "com.boxqkrtm.ide.cursor": {
+      "version": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
+      "hash": "38fecf55e4fd94ccfe58a92ed8ad1a529ba1694e"
+    },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
@@ -463,7 +472,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "481d4d0e610c4b7ae3bb922e3d0826859c1181a4"
+      "hash": "66aabcf1da8e72ac46bb911488503975ed53a762"
     },
     "tech.moores.server": {
       "version": "file:../../moorestech_server/Assets/Scripts",

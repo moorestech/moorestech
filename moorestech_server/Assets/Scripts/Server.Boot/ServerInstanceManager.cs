@@ -4,9 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
 using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
+using Server.Boot.Args;
 using Server.Boot.Loop;
 using UnityEngine;
 
@@ -31,12 +33,19 @@ namespace Server.Boot
         
         private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
+            // これはコンパイルエラーを避ける仮対応
+            var settings = CliConvert.Parse<StartServerSettings>(args);
+            
             //カレントディレクトリを表示
-            var serverDirectory = ServerDirectory.GetDirectory();
+            var serverDirectory = settings.ServerDataDirectory;
+            var options = new MoorestechServerDIContainerOptions(serverDirectory)
+                {
+                    saveJsonFilePath = new SaveJsonFilePath(settings.SaveFilePath),
+                };
             
             Debug.Log("データをロードします　パス:" + serverDirectory);
             
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(serverDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
             
             //マップをロードする
             serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
@@ -60,7 +69,10 @@ namespace Server.Boot
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
-            Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
+            if (settings.AutoSave)
+            {
+                Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
+            }
             Task.Run(() => ServerGameUpdater.StartUpdate(token), cancellationToken.Token);
             
             return (connectionUpdateThread, cancellationToken);

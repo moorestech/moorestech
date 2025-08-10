@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMachineInputTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 機械を設置
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMachineOutputTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 機械を設置
@@ -162,7 +162,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidProcessingOutputTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -281,7 +281,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MachineBlockStateObservableTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
@@ -547,7 +547,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidInventoryStateChangeNotificationTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 機械を設置

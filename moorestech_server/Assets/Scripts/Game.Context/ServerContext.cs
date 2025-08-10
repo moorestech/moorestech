@@ -10,6 +10,7 @@ namespace Game.Context
 {
     public class ServerContext
     {
+        public static bool IsInitialized => _serviceProvider != null;
         private static ServiceProvider _serviceProvider;
         
         public static IItemStackFactory ItemStackFactory { get; private set; }

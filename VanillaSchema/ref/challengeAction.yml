@@ -9,7 +9,7 @@ items:
     options:
     - unlockCraftRecipe
     - unlockItemRecipeView
-    - unlockChallenge
+    - unlockChallengeCategory
     - playSkit
     - playBackgroundSkit
   - key: challengeActionParam
@@ -39,18 +39,18 @@ items:
             schemaId: items
             foreignKeyIdPath: /data/[*]/itemGuid
             displayElementPath: /data/[*]/name
-    - when: unlockChallenge
+    - when: unlockChallengeCategory
       type: object
       isDefaultOpen: true
       properties:
-      - key: unlockChallengeGuids
+      - key: unlockChallengeCategoryGuids
         type: array
         items:
           type: uuid
           foreignKey:
             schemaId: challenges
-            foreignKeyIdPath: /data/[*]/challengeGuid
-            displayElementPath: /data/[*]/title
+            foreignKeyIdPath: /data/[*]/categoryGuid
+            displayElementPath: /data/[*]/categoryName
     - when: playSkit
       type: object
       isDefaultOpen: true

@@ -30,11 +30,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         // Test to ensure that the item is created and that the challenge receives a completed event
         public void CreateItemChallengeClearTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
+            // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
-         
+            challengeDatastore.InitializeCurrentChallenges();
+            
             ClearCraftChallenge(packet,serviceProvider);
             
             // イベントを受け取り、テストする
@@ -70,10 +71,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         // Test to ensure that the challenge receives a completed event when an item is in the inventory
         public void InInventoryChallengeClearTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
+            // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            challengeDatastore.InitializeCurrentChallenges();
             
             // インベントリに別々にアイテムを追加
             const int itemId = 1;
@@ -100,17 +102,26 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceChallengeClearTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory, true);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
+            // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
-            challengeDatastore.GetOrCreateChallengeInfo(PlayerId);
+            challengeDatastore.InitializeCurrentChallenges();
+            
+            // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
+            packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             
             // ブロックを設置
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, out _);
+            
+            // アップデートを呼び出してイベントを処理
+            GameUpdater.UpdateWithWait();
             
             // イベントを受け取り、テストする
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             

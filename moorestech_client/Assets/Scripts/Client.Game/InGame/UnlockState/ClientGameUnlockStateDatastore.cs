@@ -14,12 +14,12 @@ namespace Client.Game.InGame.UnlockState
     {
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
         public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos => _itemUnlockStateInfos;
-        public IReadOnlyDictionary<Guid, ChallengeUnlockStateInfo> ChallengeUnlockStateInfos => _challengeUnlockStateInfos;
+        public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos => _challengeCategoryUnlockStateInfos;
         
         
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
-        private readonly Dictionary<Guid, ChallengeUnlockStateInfo> _challengeUnlockStateInfos = new();
+        private readonly Dictionary<Guid, ChallengeCategoryUnlockStateInfo> _challengeCategoryUnlockStateInfos = new();
         
         public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -42,13 +42,13 @@ namespace Client.Game.InGame.UnlockState
                 _itemUnlockStateInfos[unlockedItemId] = new ItemUnlockStateInfo(unlockedItemId, true);
             }
             
-            foreach (var lockedChallengeId in unlockState.LockedChallengeGuids)
+            foreach (var lockedChallengeId in unlockState.LockedChallengeCategoryGuids)
             {
-                _challengeUnlockStateInfos[lockedChallengeId] = new ChallengeUnlockStateInfo(lockedChallengeId, false);
+                _challengeCategoryUnlockStateInfos[lockedChallengeId] = new ChallengeCategoryUnlockStateInfo(lockedChallengeId, false);
             }
-            foreach (var unlockedChallengeId in unlockState.UnlockedChallengeGuids)
+            foreach (var unlockedChallengeId in unlockState.UnlockedChallengeCategoryGuids)
             {
-                _challengeUnlockStateInfos[unlockedChallengeId] = new ChallengeUnlockStateInfo(unlockedChallengeId, true);
+                _challengeCategoryUnlockStateInfos[unlockedChallengeId] = new ChallengeCategoryUnlockStateInfo(unlockedChallengeId, true);
             }
             
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
@@ -68,9 +68,9 @@ namespace Client.Game.InGame.UnlockState
                      var itemId = message.UnlockedItemId;
                      _itemUnlockStateInfos[itemId] = new ItemUnlockStateInfo(itemId, true);
                      break;
-                 case UnlockEventType.Challenge:
-                     var challengeId = message.UnlockedChallengeGuid;
-                     _challengeUnlockStateInfos[challengeId] = new ChallengeUnlockStateInfo(challengeId, true);
+                 case UnlockEventType.ChallengeCategory:
+                     var challengeId = message.UnlockedChallengeCategoryGuid;
+                     _challengeCategoryUnlockStateInfos[challengeId] = new ChallengeCategoryUnlockStateInfo(challengeId, true);
                      break;
                  default:
                      throw new ArgumentOutOfRangeException();

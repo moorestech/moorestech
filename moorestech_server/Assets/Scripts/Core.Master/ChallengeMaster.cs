@@ -10,38 +10,35 @@ namespace Core.Master
     public class ChallengeMaster
     {
         public readonly Challenges Challenges;
-        public ChallengeMasterElement[] ChallengeMasterElements => Challenges.Data;
-        public readonly List<Guid> InitialChallenge;
+        public ChallengeCategoryMasterElement[] ChallengeCategoryMasterElements => Challenges.Data;
         
+        private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeCategoryGuidMap = new();
+        private readonly Dictionary<Guid, ChallengeMasterElement> _challengeGuidMap = new();
+        private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeToCategoryMap = new();
         private readonly Dictionary<Guid, List<Guid>> _nextChallenges;
         
         public ChallengeMaster(JToken challengeJToken)
         {
             Challenges = ChallengesLoader.Load(challengeJToken);
             _nextChallenges = new Dictionary<Guid, List<Guid>>();
-            foreach (var challengeElement in Challenges.Data)
+            foreach (var challengeCategory in Challenges.Data)
             {
-                var next = new List<Guid>();
-                foreach (var checkTarget in Challenges.Data)
+                _challengeCategoryGuidMap.Add(challengeCategory.CategoryGuid, challengeCategory);
+                foreach (var challengeElement in challengeCategory.Challenges)
                 {
-                    var prev = checkTarget.PrevChallengeGuids;
-                    if (prev != null && prev.Contains(challengeElement.ChallengeGuid))
+                    var next = new List<Guid>();
+                    foreach (var checkTarget in challengeCategory.Challenges)
                     {
-                        next.Add(checkTarget.ChallengeGuid);
+                        var prev = checkTarget.PrevChallengeGuids;
+                        if (prev != null && prev.Contains(challengeElement.ChallengeGuid))
+                        {
+                            next.Add(checkTarget.ChallengeGuid);
+                        }
                     }
-                }
-                
-                _nextChallenges.Add(challengeElement.ChallengeGuid, next);
-            }
-            
-            InitialChallenge = new List<Guid>();
-            foreach (var challengeElement in Challenges.Data)
-            {
-                // prevがnullか0の場合が初期チャレンジ
-                var prev = challengeElement.PrevChallengeGuids;
-                if (prev == null || prev.Length == 0)
-                {
-                    InitialChallenge.Add(challengeElement.ChallengeGuid);
+                    
+                    _nextChallenges.Add(challengeElement.ChallengeGuid, next);
+                    _challengeGuidMap.Add(challengeElement.ChallengeGuid, challengeElement);
+                    _challengeToCategoryMap.Add(challengeElement.ChallengeGuid, challengeCategory);
                 }
             }
         }
@@ -58,7 +55,38 @@ namespace Core.Master
         
         public ChallengeMasterElement GetChallenge(Guid guid)
         {
-            return Array.Find(Challenges.Data, x => x.ChallengeGuid == guid);
+            return _challengeGuidMap[guid];
+        }
+        
+        public ChallengeCategoryMasterElement GetChallengeCategoryFromChallengeGuid(Guid guid)
+        {
+            return _challengeToCategoryMap[guid];
+        }
+        
+        /// <summary>
+        /// 指定されたカテゴリの初期チャレンジ（前提条件がないチャレンジ）を取得する
+        /// </summary>
+        public List<ChallengeMasterElement> GetCategoryInitialChallenges(Guid categoryGuid)
+        {
+            var category = ChallengeCategoryMasterElements.FirstOrDefault(c => c.CategoryGuid == categoryGuid);
+            if (category == null) return new List<ChallengeMasterElement>();
+            
+            var initialChallenges = new List<ChallengeMasterElement>();
+            foreach (var challengeElement in category.Challenges)
+            {
+                // 前提条件がないチャレンジを初期チャレンジとする
+                if (challengeElement.PrevChallengeGuids == null || challengeElement.PrevChallengeGuids.Length == 0)
+                {
+                    initialChallenges.Add(challengeElement);
+                }
+            }
+            
+            return initialChallenges;
+        }
+        
+        public ChallengeCategoryMasterElement GetChallengeCategory(Guid categoryGuid)
+        {
+            return _challengeCategoryGuidMap[categoryGuid];
         }
     }
 }

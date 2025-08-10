@@ -13,10 +13,11 @@ using Client.Mod.Texture;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
-using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using Server.Boot;
+using Server.Boot.Args;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -39,7 +40,11 @@ namespace Client.Starter
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
         
-        private InitializeProprieties _proprieties;
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
+        public void SetProperty(InitializeProprieties proprieties)
+        {
+            _proprieties = proprieties;
+        }
         
         private void Awake()
         {
@@ -48,12 +53,14 @@ namespace Client.Starter
         
         private void Start()
         {
-            var serverDirectory = ServerDirectory.GetDirectory();
-            Initialize(serverDirectory).Forget();
+            Initialize().Forget();
         }
         
-        private async UniTask Initialize(string serverDirectory)
+        private async UniTask Initialize()
         {
+            var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
+            var serverDirectory = args.ServerDataDirectory;
+            
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
             
@@ -65,11 +72,14 @@ namespace Client.Starter
             var handle = await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
             handle.Dispose();
             
-            
-            _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
+            _proprieties ??= InitializeProprieties.CreateDefault();
             
             // DIコンテナによるServerContextの作成
-            new MoorestechServerDIContainerGenerator().Create(serverDirectory, false);
+            if (!ServerContext.IsInitialized)
+            {
+                var options = new MoorestechServerDIContainerOptions(serverDirectory);
+                new MoorestechServerDIContainerGenerator().Create(options);
+            }
             
             //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
@@ -138,12 +148,12 @@ namespace Client.Starter
             
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
-                var serverConfig = new ConnectionServerConfig(_proprieties.ServerIp, _proprieties.ServerPort);
+                var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
                 var timeOut = TimeSpan.FromSeconds(3);
                 try
                 {
                     // 10秒以内にサーバー接続できなければタイムアウト
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig).Timeout(timeOut);
+                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                     
                     Debug.Log("接続完了");
                     return serverCommunicator;
@@ -154,12 +164,16 @@ namespace Client.Starter
                     try
                     {
                         var serverInstanceGameObject = new GameObject("ServerInstance");
-                        serverInstanceGameObject.AddComponent<ServerStarter>();
+                        var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
+                        if (_proprieties.CreateLocalServerArgs != null)
+                        {
+                            serverStarter.SetArgs(_proprieties.CreateLocalServerArgs);
+                        }
                         DontDestroyOnLoad(serverInstanceGameObject);
                         
                         await UniTask.Delay(1000);
                         
-                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig).Timeout(timeOut);
+                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                         
                         Debug.Log("接続完了");
                         return serverCommunicator;
@@ -270,12 +284,6 @@ namespace Client.Starter
             }
             
             #endregion
-        }
-        
-        
-        public void SetProperty(InitializeProprieties proprieties)
-        {
-            _proprieties = proprieties;
         }
     }
 }
