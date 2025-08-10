@@ -61,14 +61,11 @@ namespace Client.Game.InGame.Entity
                 var id = new ItemId(int.Parse(entity.State.Split(',')[0]));
                 var viewData = ClientContext.ItemImageContainer.GetItemView(id);
                 Texture texture = null;
-                if (viewData == null)
-                {
-                    Debug.LogError("ItemTexture Not Found  ItemId:" + id);
-                }
-                else
+                if (viewData != null)
                 {
                     texture = viewData.ItemTexture;
                 }
+                
                 item.SetTexture(texture);
                 return item;
             }
