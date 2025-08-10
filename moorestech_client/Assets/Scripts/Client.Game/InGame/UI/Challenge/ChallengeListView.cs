@@ -20,20 +20,21 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void SetUI(List<ChallengeCategoryResponse> challengeCategories)
         {
+            // categoryListParent内の全ての子要素を削除
+            foreach (var child in _categoryListElements)
+            {
+                Destroy(child.gameObject);
+            }
+            _categoryListElements.Clear();
+            
+            // アンロックされたカテゴリを処理
             foreach (var category in challengeCategories)
             {
                 if (!category.IsUnlocked) continue;
                 
-                var element = _categoryListElements.Find(e => e.CategoryGuid == category.Category.CategoryGuid);
-                if (element != null)
-                {
-                    // すでに存在する場合はスキップ
-                    element.SetUI(category, challengeTreeView);
-                    continue;
-                }
-                
                 var categoryElement = Instantiate(categoryListElementPrefab, categoryListParent);
                 categoryElement.SetUI(category, challengeTreeView);
+                _categoryListElements.Add(categoryElement);
             }
         }
         
