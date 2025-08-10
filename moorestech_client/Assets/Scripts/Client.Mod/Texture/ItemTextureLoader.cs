@@ -43,7 +43,6 @@ namespace Client.Mod.Texture
                 var path = string.IsNullOrEmpty(itemMaster.ImagePath) ? Path.Combine("assets", "item", $"{itemMaster.Name}.png") : itemMaster.ImagePath;
                 
                 var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
-                if (texture == null) Debug.LogWarning("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + itemMaster.Name);
                 
                 textureList.Add(new ItemViewData(texture, itemMaster));
             }
