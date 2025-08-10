@@ -8,6 +8,8 @@ namespace Client.Game.InGame.UI.Challenge
 {
     public class ChallengeTreeView : MonoBehaviour
     {
+        public Guid CurrentCategoryGuid { get; private set; }
+        
         [SerializeField] private ChallengeTreeViewElement categoryElement;
         
         [SerializeField] private Transform challengeListParent;
@@ -20,6 +22,8 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void SetChallengeCategory(ChallengeCategoryResponse categoryResponse)
         {
+            CurrentCategoryGuid = categoryResponse.Category.CategoryGuid;
+            
             // 既存の要素をクリア
             ClearChallengeElements();
             

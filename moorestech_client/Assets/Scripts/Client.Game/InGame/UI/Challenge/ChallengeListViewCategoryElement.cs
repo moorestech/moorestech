@@ -37,6 +37,12 @@ namespace Client.Game.InGame.UI.Challenge
             
             var itemView = ClientContext.ItemImageContainer.GetItemView(categoryResponse.Category.IconItem);
             itemSlotView.SetItem(itemView, 0, categoryResponse.Category.CategoryName);
+            
+            // 現在のツリービューがこのカテゴリを表示している場合、ツリービューを更新する
+            if (_challengeTreeView.CurrentCategoryGuid == categoryResponse.Category.CategoryGuid)
+            {
+                _challengeTreeView.SetChallengeCategory(categoryResponse);
+            }
         }
     }
 }
