@@ -1,3 +1,14 @@
 {
-  "data": []
+  "data": [
+    {
+      "name": "水",
+      "fluidGuid": "1cb67dbf-df47-462d-a1bc-44f68f12bdb3",
+      "imagePath": ""
+    },
+    {
+      "name": "水蒸気",
+      "fluidGuid": "a6d350b4-ff9e-46c0-8c29-dcfb4488bacc",
+      "imagePath": ""
+    }
+  ]
 }
