@@ -429,6 +429,46 @@
         }
       ],
       "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "909d7e40-5f77-49aa-acbd-a26ad9dc50d8",
+      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
+      "time": 1,
+      "inputItems": [
+        {
+          "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "9993466d-1790-4008-afaf-cce42943a17f",
+          "count": 5,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "4190238c-a44a-49d2-91a5-44747a6529a9",
+      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
+      "time": 1,
+      "inputItems": [
+        {
+          "itemGuid": "4a8b6001-3081-4885-89b5-9300424db13f",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "844f3264-e055-4d41-bd54-e46570a15ba5",
+          "count": 4,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
     }
   ]
 }

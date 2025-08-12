@@ -2569,7 +2569,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
             }
           ]
         },
@@ -2633,7 +2636,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
             }
           ]
         },
@@ -2653,7 +2659,7 @@
     {
       "blockGuid": "7d35321c-98b7-49db-8fc7-6f23854dd1c7",
       "name": "鉄のパイプ",
-      "blockType": "TrainCargoPlatform",
+      "blockType": "FluidPipe",
       "itemGuid": "83e24258-bd99-4b0d-afc7-e6174c0366f2",
       "blockSize": [
         1,
@@ -2757,7 +2763,7 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10,
+                "flowCapacity": 5,
                 "connectTankIndex": 0
               }
             }
@@ -2894,7 +2900,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
             }
           ]
         },
