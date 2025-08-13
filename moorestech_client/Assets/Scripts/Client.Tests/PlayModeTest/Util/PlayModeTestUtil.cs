@@ -17,10 +17,11 @@ namespace Client.Tests.PlayModeTest.Util
 {
     public class PlayModeTestUtil
     {
-        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.TestsPlayMode/ServerData");
+        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.Tests/PlayModeTest/ServerData");
         
-        public static async UniTask LoadMainGame(string serverDirectory = null)
+        public static async UniTask LoadMainGame(string serverDirectory = null, string saveFilePath = null)
         {
+            saveFilePath ??= $"dummy_play_mode_test_{Guid.NewGuid()}.json";
             serverDirectory ??= PlayModeTestServerDirectoryPath;
             
             // 初期化シーンをロード
@@ -48,7 +49,7 @@ namespace Client.Tests.PlayModeTest.Util
                 var defaultProperties = InitializeProprieties.CreateDefault();
                 var properties = new StartServerSettings
                 {
-                    SaveFilePath = $"dummy_play_mode_test_{Guid.NewGuid()}.json",
+                    SaveFilePath = saveFilePath,
                     AutoSave = false,
                     ServerDataDirectory = serverDirectory,
                 };
