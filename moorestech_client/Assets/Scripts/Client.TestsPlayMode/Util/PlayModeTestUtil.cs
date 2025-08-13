@@ -34,6 +34,8 @@ namespace Client.PlayModeTests.Util
             
             await WaitStartServer();
             
+            await UniTask.Delay(TimeSpan.FromSeconds(1));
+            
             #region Internal
             
             // 初期化プロパティをセット
