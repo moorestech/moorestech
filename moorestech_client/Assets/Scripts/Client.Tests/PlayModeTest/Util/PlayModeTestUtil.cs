@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Client.PlayModeTests.Util
+namespace Client.Tests.PlayModeTest.Util
 {
     public class PlayModeTestUtil
     {
