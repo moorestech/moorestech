@@ -16,15 +16,12 @@ namespace Client.TestsPlayMode
         {
             await PlayModeTestUtil.LoadMainGame();
             
-            // Wait 1 sec
-            await UniTask.Delay(TimeSpan.FromSeconds(1));
-            
             var challengeListView = Object.FindFirstObjectByType<ChallengeListView>(FindObjectsInactive.Include);
             var categoryParent = challengeListView.DebugCategoryListParent;
             
             // 子要素（カテゴリの要素）が1個であることを確認
             // Confirm that there is one child element (category element)
-            Assert.AreEqual(1, categoryParent.childCount);
+            Assert.AreEqual(1, GetCategoryCount());
             
             // アイテムを付与してチャレンジ1を完了
             // Grant an item and complete Challenge 1
@@ -32,13 +29,22 @@ namespace Client.TestsPlayMode
 
             // カテゴリが増えていないことを確認
             // Confirm that the category has not increased
-            Assert.AreEqual(1, categoryParent.childCount);
+            Assert.AreEqual(1, GetCategoryCount());
             
             await PlayModeTestUtil.GiveItem("石器", 1);
             
             // 上記のチャレンジクリアによってカテゴリが増えることを確認
             // Confirm that the category increases due to the completion of the above challenge
-            Assert.AreEqual(2, categoryParent.childCount);
+            Assert.AreEqual(2, GetCategoryCount());
+            
+            #region Internal
+            
+            int GetCategoryCount()
+            {
+                return categoryParent.GetComponentsInChildren<ChallengeListViewCategoryElement>().Length;
+            }
+            
+            #endregion
 
         }
     }
