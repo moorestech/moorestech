@@ -7,6 +7,20 @@
     "moorestech_client": {
       "type": "http",
       "url": "http://localhost:56902/mcp"
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "/Users/sato-katsumi/moorestech"
+      ],
+      "env": {}
     }
   }
 }
