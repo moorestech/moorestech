@@ -6,7 +6,8 @@
     "Core.Util",
     "Game.EnergySystem",
     "Core.Const",
-    "Core.Master"
+    "Core.Master",
+    "Game.Map.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

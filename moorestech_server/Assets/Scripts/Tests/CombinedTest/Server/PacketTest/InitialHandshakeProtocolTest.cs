@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.Map.Interface.Json;
 using Game.World.DataStore.WorldSettings;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -23,15 +24,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             //ワールド設定情報を初期化
-            serviceProvider.GetService<IWorldSettingsDatastore>().Initialize();
+            serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             
             //最初のハンドシェイクを実行
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             
-            //今のところ初期スポーンはゼロ固定
-            var pos = WorldSettingsDatastore.GameDefaultSpawnPoint;
+            // スポーンポイントの座標のチェック
+            var pos = new Vector3(186, 15.7f, -37.401f);;
             Assert.AreEqual(pos.x, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(pos.y, handShakeResponse.PlayerPos.Y);
             Assert.AreEqual(pos.z, handShakeResponse.PlayerPos.Z);
