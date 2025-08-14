@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.World.DataStore.WorldSettings;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             
             //今のところ初期スポーンはゼロ固定
-            var pos = InitialHandshakeProtocol.DefaultPlayerPosition;
+            var pos = WorldSettingsDatastore.GameDefaultSpawnPoint;
             Assert.AreEqual(pos.x, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(pos.y, handShakeResponse.PlayerPos.Y);
             Assert.AreEqual(pos.z, handShakeResponse.PlayerPos.Z);

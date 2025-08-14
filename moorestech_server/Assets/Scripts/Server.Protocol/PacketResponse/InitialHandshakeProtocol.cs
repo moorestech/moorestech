@@ -13,8 +13,6 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
         
-        public static readonly Vector3 DefaultPlayerPosition = new(186, 15.7f, -37.401f);
-        
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
@@ -45,12 +43,13 @@ namespace Server.Protocol.PacketResponse
                 return new Vector3MessagePack(pos.x, pos.y, pos.z);
             }
             
-            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, DefaultPlayerPosition);
+            var spawnPoint = _worldSettingsDatastore.WorldSpawnPoint;
+            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, spawnPoint);
             _entitiesDatastore.Add(playerEntity);
             
             
             //プレイヤーのデータがなかったのでスポーン地点を取得する
-            return new Vector3MessagePack(DefaultPlayerPosition);
+            return new Vector3MessagePack(spawnPoint);
         }
         
         [MessagePackObject]
