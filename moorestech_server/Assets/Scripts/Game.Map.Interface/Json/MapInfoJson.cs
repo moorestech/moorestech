@@ -46,19 +46,7 @@ namespace Game.Map.Interface.Json
         [JsonProperty("x")] public float X;
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;
-
-        public SpawnPointJson(float x, float y, float z)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-        }
-
-        public SpawnPointJson(Vector3 vector)
-        {
-            X = vector.x;
-            Y = vector.y;
-            Z = vector.z;
-        }
+        
+        [JsonIgnore] public Vector3 Position => new(X, Y, Z);
     }
 }

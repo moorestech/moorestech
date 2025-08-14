@@ -39,10 +39,16 @@ public class MapExportAndSetting : EditorWindow
             if (spawnPoint == null)
             {
                 Debug.LogError("MapSpawnPoint not found in the scene.");
-                return new SpawnPointJson(0, 0, 0);
+                return new SpawnPointJson {X = 0, Y = 0, Z = 0,};
             }
             
-            return new SpawnPointJson(spawnPoint.transform.position);
+            var point = spawnPoint.transform.position;
+            return new SpawnPointJson
+            {
+                X = point.x,
+                Y = point.y,
+                Z = point.z,
+            };
         }
         
         List<MapObjectInfoJson> SetUpMapObjectInfos()

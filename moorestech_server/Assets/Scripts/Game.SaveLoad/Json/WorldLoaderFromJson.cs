@@ -4,6 +4,7 @@ using Game.Challenge;
 using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
+using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
@@ -22,6 +23,7 @@ namespace Game.SaveLoad.Json
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
+        private readonly MapInfoJson _mapInfoJson;
         
         private readonly SaveJsonFilePath _saveJsonFilePath;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
@@ -31,7 +33,7 @@ namespace Game.SaveLoad.Json
         
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
-            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager)
+            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -43,6 +45,7 @@ namespace Game.SaveLoad.Json
             _challengeDatastore = challengeDatastore;
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _craftTreeManager = craftTreeManager;
+            _mapInfoJson = mapInfoJson;
         }
         
         public void LoadOrInitialize()
@@ -107,7 +110,7 @@ namespace Game.SaveLoad.Json
         
         public void WorldInitialize()
         {
-            _worldSettingsDatastore.Initialize();
+            _worldSettingsDatastore.Initialize(_mapInfoJson);
             _challengeDatastore.InitializeCurrentChallenges();
         }
     }

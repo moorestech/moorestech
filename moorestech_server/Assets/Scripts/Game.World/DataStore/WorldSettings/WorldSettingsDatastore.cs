@@ -1,3 +1,4 @@
+using Game.Map.Interface.Json;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
@@ -9,13 +10,11 @@ namespace Game.World.DataStore.WorldSettings
     /// </summary>
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
-        public static readonly Vector3 GameDefaultSpawnPoint = new(186, 15.7f, -37.401f);
-        
         public Vector3 WorldSpawnPoint { get; private set; }
         
-        public void Initialize()
+        public void Initialize(MapInfoJson mapInfoJson)
         {
-            WorldSpawnPoint = GameDefaultSpawnPoint;
+            WorldSpawnPoint = mapInfoJson.DefaultSpawnPointJson.Position;
         }
         
         public WorldSettingJsonObject GetSaveJsonObject()

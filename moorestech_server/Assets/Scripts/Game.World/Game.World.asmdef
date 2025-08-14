@@ -9,7 +9,8 @@
     "Game.Block.Interface",
     "UniRx",
     "Game.Context",
-    "Core.Master"
+    "Core.Master",
+    "Game.Map.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
