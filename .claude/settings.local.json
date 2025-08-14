@@ -33,7 +33,12 @@
       "mcp__moorestech_client__ClearConsoleLogs",
       "Bash(cat:*)",
       "Bash(gemini:*)",
-      "mcp__moorestech_client__RunPlayModeTests"
+      "mcp__moorestech_client__RunPlayModeTests",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__onboarding",
+      "mcp__serena__list_dir",
+      "mcp__serena__find_file",
+      "mcp__serena__write_memory"
     ],
     "deny": []
   },
