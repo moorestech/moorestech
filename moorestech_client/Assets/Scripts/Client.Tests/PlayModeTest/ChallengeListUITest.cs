@@ -9,6 +9,10 @@ using Object = UnityEngine.Object;
 
 namespace Client.Tests.PlayModeTest
 {
+    /// <summary>
+    /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
+    /// This test is executed in EditMode, but it switches to PlayMode during execution.
+    /// </summary>
     public class ChallengeListUITest
     {
         [UnityTest]
