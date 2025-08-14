@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Client.Common;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
 using Game.Map.Interface.Json;
@@ -15,6 +17,7 @@ public class MapExportAndSetting : EditorWindow
         
         var mapObjectConfig = new MapInfoJson
         {
+            DefaultSpawnPointJson = GetSpawnPointJson(),
             MapObjects = SetUpMapObjectInfos(),
             MapVeins = GetMapVeinInfo(),
         };
@@ -28,6 +31,19 @@ public class MapExportAndSetting : EditorWindow
         
         
         #region Internal
+        
+        SpawnPointJson GetSpawnPointJson()
+        {
+            var spawnPoint = FindObjectsByType<SpawnPointObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault();
+            
+            if (spawnPoint == null)
+            {
+                Debug.LogError("MapSpawnPoint not found in the scene.");
+                return new SpawnPointJson(0, 0, 0);
+            }
+            
+            return new SpawnPointJson(spawnPoint.transform.position);
+        }
         
         List<MapObjectInfoJson> SetUpMapObjectInfos()
         {
