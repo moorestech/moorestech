@@ -127,6 +127,11 @@ namespace Client.Tests.PlayModeTest.Util
             return block;
         }
         
+        public static bool RemoveBlock(Vector3Int position)
+        {
+            return ServerContext.WorldBlockDatastore.RemoveBlock(position);
+        }
+        
         public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int count)
         {
             var blockInventory = block.GetComponent<IBlockInventory>();
