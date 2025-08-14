@@ -26,6 +26,12 @@ namespace Client.Tests.PlayModeTest
             
             yield return AssertTest().ToCoroutine();
             
+            // ブロックを削除してもアイテムが範囲内にあるかをチェックする
+            // Check if the item is still within the range after removing the blocks
+            RemoveBlock(new Vector3Int(0, 0, 2));
+            
+            yield return AssertTest().ToCoroutine();
+            
             yield return new ExitPlayMode();
             
             #region Internal
@@ -37,12 +43,13 @@ namespace Client.Tests.PlayModeTest
                 // TODO このブロックの名前を英語にする
                 // TODO Change the name of this block to English
                 var chest = PlaceBlock("量子チェスト", Vector3Int.zero, BlockDirection.North);
-                PlaceBlock("ベルトコンベア", new Vector3Int(0, 0, 1), BlockDirection.North);
-                PlaceBlock("ベルトコンベア", new Vector3Int(0, 0, 2), BlockDirection.East);
-                PlaceBlock("ベルトコンベア", new Vector3Int(1, 0, 2), BlockDirection.East);
-                PlaceBlock("ベルトコンベア", new Vector3Int(2, 0, 2), BlockDirection.South);
-                PlaceBlock("ベルトコンベア", new Vector3Int(2, 0, 1), BlockDirection.South);
-                PlaceBlock("ベルトコンベア", new Vector3Int(2, 0, 0), BlockDirection.South);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(0, 0, 1), BlockDirection.North);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(0, 0, 2), BlockDirection.East);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(1, 0, 2), BlockDirection.East);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(2, 0, 2), BlockDirection.South);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(2, 0, 1), BlockDirection.South);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(2, 0, 0), BlockDirection.West);
+                PlaceBlock("直進高速ベルトコンベア", new Vector3Int(1, 0, 0), BlockDirection.West);
                 
                 // チェストにアイテムを入れる
                 InsertItemToBlock(chest, new ItemId(1), 100);
@@ -52,17 +59,18 @@ namespace Client.Tests.PlayModeTest
             {
                 // アイテムが常にベルトコンベアが置いてある範囲内にあるかどうかをチェックするためのバウディングボックス
                 // Create a bounding box to check if the item is always within the range of the conveyor belt
-                var itemEntityBoundingBox = new Bounds(Vector3.zero, new Vector3(2.9f, 1f, 2.9f));
+                var itemEntityBoundingBox = new Bounds(new Vector3(1.5f, 0.5f, 1.5f), new Vector3(2.9f, 1f, 2.9f));
                 
                 var entityDatastore = Object.FindObjectOfType<EntityObjectDatastore>();
                 var startTime = Time.time;
-                var testDuration = 10f;
+                var testDuration = 3;
+                
                 while (true)
                 {
                     // 秒数経過したら終了
                     // Exit after a certain number of seconds
                     if (Time.time - startTime > testDuration) break;
-                    
+                
                     // アイテムエンティティをチェック
                     // Check the item entity
                     for (int i = 0; i < entityDatastore.transform.childCount; i++)
@@ -74,6 +82,8 @@ namespace Client.Tests.PlayModeTest
                         // Check if the item entity's position is within the range of the conveyor belt
                         Assert.IsTrue(itemEntityBoundingBox.Contains(itemEntity.transform.position), $"Item entity {itemEntity.name} is out of bounds: {itemEntity.transform.position}");
                     }
+                    
+                    await UniTask.Yield();
                 }
             }
             
