@@ -4,7 +4,7 @@ namespace Game.World.Interface.DataStore
 {
     public interface IWorldSettingsDatastore
     {
-        public Vector3Int WorldSpawnPoint { get; }
+        public Vector3 WorldSpawnPoint { get; }
         
         public WorldSettingJsonObject GetSaveJsonObject();
         public void Initialize();

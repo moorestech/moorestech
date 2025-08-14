@@ -9,11 +9,13 @@ namespace Game.World.DataStore.WorldSettings
     /// </summary>
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
-        public Vector3Int WorldSpawnPoint { get; private set; }
+        public static readonly Vector3 GameDefaultSpawnPoint = new(186, 15.7f, -37.401f);
+        
+        public Vector3 WorldSpawnPoint { get; private set; }
         
         public void Initialize()
         {
-            WorldSpawnPoint = Vector3Int.zero;
+            WorldSpawnPoint = GameDefaultSpawnPoint;
         }
         
         public WorldSettingJsonObject GetSaveJsonObject()
@@ -23,7 +25,7 @@ namespace Game.World.DataStore.WorldSettings
         
         public void LoadSettingData(WorldSettingJsonObject worldSettingJsonObject)
         {
-            WorldSpawnPoint = new Vector3Int(worldSettingJsonObject.SpawnX, worldSettingJsonObject.SpawnY);
+            WorldSpawnPoint = new Vector3(worldSettingJsonObject.SpawnX, worldSettingJsonObject.SpawnY, worldSettingJsonObject.SpawnZ);
         }
     }
 }
