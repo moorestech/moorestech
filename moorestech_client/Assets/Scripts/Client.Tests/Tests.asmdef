@@ -15,7 +15,10 @@
       "Unity.InputSystem.TestFramework",
       "Client.Common",
       "Server.Boot",
-      "Client.Network"
+      "Client.Network",
+      "Game.Context",
+      "Game.World.Interface",
+      "Core.Item.Interface"
     ],
     "includePlatforms": [
         "Editor"

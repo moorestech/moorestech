@@ -229,7 +229,7 @@ namespace Client.Starter
                 // Collect the blocks that need to be screenshot.
                 var takeBlockInfos = new List<BlockObjectInfo>();
                 var itemIds = new List<ItemId>();
-                foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
+                foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
                 {
                     var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
                     var itemViewData = itemImageContainer.GetItemView(itemId);

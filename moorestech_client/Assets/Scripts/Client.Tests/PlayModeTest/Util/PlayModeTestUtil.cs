@@ -3,8 +3,13 @@ using System.IO;
 using Client.Common;
 using Client.Game.InGame.Context;
 using Client.Starter;
+using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -96,6 +101,38 @@ namespace Client.Tests.PlayModeTest.Util
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
             
             await UniTask.Delay(1000);
+        }
+        
+        public static IBlock PlaceBlock(string blockName, Vector3Int position, BlockDirection direction)
+        {
+            var blockId = new BlockId(-1);
+            foreach (var id in MasterHolder.BlockMaster.GetBlockAllIds())
+            {
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(id);
+                if (blockMaster.Name != blockName) continue;
+                blockId = id;
+            }
+            if (blockId.AsPrimitive() == -1)
+            {
+                throw new ArgumentException($"Block not found: {blockName}");
+            }
+            
+            ServerContext.WorldBlockDatastore.TryAddBlock(
+                blockId,
+                position,
+                direction,
+                out var block
+            );
+            
+            return block;
+        }
+        
+        public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int count)
+        {
+            var blockInventory = block.GetComponent<IBlockInventory>();
+            var itemStack = ServerContext.ItemStackFactory.Create(itemId, count);
+            
+            return blockInventory.InsertItem(itemStack);
         }
     }
 }
