@@ -28,13 +28,13 @@ namespace Client.Tests.PlayModeTest
             
             yield return SetUp().ToCoroutine();
             
-            yield return AssertTest().ToCoroutine();
+            yield return AssertTest("Normal Test").ToCoroutine();
             
             // ブロックを削除してもアイテムが範囲内にあるかをチェックする
             // Check if the item is still within the range after removing the blocks
             RemoveBlock(new Vector3Int(0, 0, 2));
             
-            yield return AssertTest().ToCoroutine();
+            yield return AssertTest("Removed Test").ToCoroutine();
             
             yield return new ExitPlayMode();
             
@@ -59,7 +59,7 @@ namespace Client.Tests.PlayModeTest
                 InsertItemToBlock(chest, new ItemId(1), 100);
             }
             
-            async UniTask AssertTest()
+            async UniTask AssertTest(string testPhase)
             {
                 // アイテムが常にベルトコンベアが置いてある範囲内にあるかどうかをチェックするためのバウディングボックス
                 // Create a bounding box to check if the item is always within the range of the conveyor belt
@@ -84,7 +84,7 @@ namespace Client.Tests.PlayModeTest
                         
                         // アイテムエンティティの位置がベルトコンベアの範囲内にあるかどうかをチェック
                         // Check if the item entity's position is within the range of the conveyor belt
-                        Assert.IsTrue(itemEntityBoundingBox.Contains(itemEntity.transform.position), $"Item entity {itemEntity.name} is out of bounds: {itemEntity.transform.position}");
+                        Assert.IsTrue(itemEntityBoundingBox.Contains(itemEntity.transform.position), $"{testPhase} : Item entity {itemEntity.name} is out of bounds: {itemEntity.transform.position}");
                     }
                     
                     await UniTask.Yield();
