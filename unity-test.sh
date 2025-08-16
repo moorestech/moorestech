@@ -22,7 +22,6 @@ REGEX="$1"
 LOGFILE="$(mktemp -t unity_cli_XXXX).log"
 
 "$UNITY" \
-  -batchmode -nographics \
   -projectPath "$PROJECT" \
   -executeMethod CliTestRunner.Run \
   -testRegex "$REGEX" \
