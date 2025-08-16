@@ -139,11 +139,54 @@ else
     fi
   fi
   
+  # Unityコンソールログを表示（エラーと警告のみ）
+  echo ""
+  echo "📋 Unity Console Errors and Warnings:"
+  echo "────────────────────────────────────────"
+  
+  # エラーメッセージを抽出
+  ERROR_MESSAGES=$(grep -A1 "UnityEngine\.Debug:LogError" "$LOGFILE" | grep -v "UnityEngine\.Debug:LogError" | grep -v "^--$" | grep -v "^\s*$")
+  if [ -n "$ERROR_MESSAGES" ]; then
+    echo "$ERROR_MESSAGES" | head -10 | while IFS= read -r line; do
+      if [ -n "$line" ]; then
+        # スタックトレースを除外し、メインメッセージのみ表示
+        if ! echo "$line" | grep -q "at \|\.cs:"; then
+          echo "  ❌ $line"
+        fi
+      fi
+    done
+  fi
+  
+  # 警告メッセージを抽出
+  WARNING_MESSAGES=$(grep -A1 "UnityEngine\.Debug:LogWarning" "$LOGFILE" | grep -v "UnityEngine\.Debug:LogWarning" | grep -v "^--$" | grep -v "^\s*$")
+  if [ -n "$WARNING_MESSAGES" ]; then
+    echo "$WARNING_MESSAGES" | head -5 | while IFS= read -r line; do
+      if [ -n "$line" ]; then
+        if ! echo "$line" | grep -q "at \|\.cs:"; then
+          echo "  ⚠️  $line"
+        fi
+      fi
+    done
+  fi
+  
+  # Exception を表示
+  if grep -q "Exception:" "$LOGFILE"; then
+    grep "Exception:" "$LOGFILE" | head -5 | while IFS= read -r line; do
+      echo "  ❌ $line"
+    done
+  fi
+  
+  # メッセージが見つからない場合
+  if [ -z "$ERROR_MESSAGES" ] && [ -z "$WARNING_MESSAGES" ] && ! grep -q "Exception:" "$LOGFILE"; then
+    echo "  (No console errors or warnings detected)"
+  fi
+  echo "────────────────────────────────────────"
+  
   # その他のビルドエラーも表示
   echo ""
   echo "🔴 Build errors:"
   echo ""
-  grep -E "(BuildFailedException|Error building Player|Build failed)" "$LOGFILE" | head -10 | sed 's/^/    /'
+  grep -E "(BuildFailedException|Error building Player|Build failed|Cannot recognize file type|Failed to build)" "$LOGFILE" | head -10 | sed 's/^/    /'
   
   echo ""
   echo "💡 For full details, check the log file: $LOGFILE"
