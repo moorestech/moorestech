@@ -49,8 +49,8 @@ public static class CliTestRunner
         public void TestFinished(ITestResultAdaptor result)
         {
             if (result.Test.IsSuite) return;                 // Suite は除外
+            
             string name = result.Test.FullName;
-            if (!_regex.IsMatch(name)) return;               // 対象のみ
 
             bool   passed = result.TestStatus == TestStatus.Passed;
             string icon   = passed ? "✅" : "❌";
@@ -89,7 +89,7 @@ public static class CliTestRunner
         var callbacks = new ResultCallbacks(regex);
         api.RegisterCallbacks(callbacks);
 
-        // 3) EditMode テスト一覧を取得して対象を選別
+        // 3) EditMode テスト一覧を取得して対象を選別（ゼロ件検出のため継続利用）
         api.RetrieveTestList(
             TestMode.EditMode,
             root =>
@@ -107,18 +107,18 @@ public static class CliTestRunner
                 var execFilter = new Filter
                 {
                     testMode  = TestMode.EditMode,
-                    testNames = matched.ToArray()
+                    groupNames = new [] { pattern }
                 };
 
                 api.Execute(new ExecutionSettings
                 {
                     filters          = new[] { execFilter },
-                    runSynchronously = true        // ★ ここがポイント！
+                    runSynchronously =  false
                 });
             });
     }
 
-    // 再帰的にテストケースを収集
+    // 再帰的にテストケースを収集（ゼロ件検出用）
     private static void Collect(ITestAdaptor node, List<string> list, Regex regex)
     {
         if (node.IsSuite)
@@ -127,7 +127,7 @@ public static class CliTestRunner
             list.Add(node.FullName);
     }
 
-    // 全行に [CliTest] をつけて出力 
+    // [CliTest]がついている行のみ実際のコンソールに出力されるので、全行に [CliTest] をつけて出力 
     private static void Export(string msg)
     {
         var lines = msg.Split('\n');
