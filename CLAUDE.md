@@ -114,12 +114,18 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
 
 # クライアント側の開発
-moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
-- `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
-- `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
+moorestech_client配下の開発について
 
+## テストの実行
+クライアント側のテスト実行には `tools/unity-test.sh` を使用してください。
 
-両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。
+**重要：テスト実行時の注意事項**
+- **必ず正規表現を使用して実施したいテストのみを実行してください**
+- 全てのテストを一括で実行すると、結果が安定しない等の不具合が生じる恐れがあります
+- 例：
+  - 特定のnamespaceのテストのみ: `./tools/unity-test.sh "^MyNamespace\."`
+  - 特定のクラスのテストのみ: `./tools/unity-test.sh "^MyNamespace\.MyTestClass$"`
+  - 特定の機能に関連するテストのみ: `./tools/unity-test.sh ".*\.Feature\."`
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
