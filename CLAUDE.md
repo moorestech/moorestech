@@ -127,6 +127,29 @@ moorestech_client配下の開発について
   - 特定のクラスのテストのみ: `./tools/unity-test.sh "^MyNamespace\.MyTestClass$"`
   - 特定の機能に関連するテストのみ: `./tools/unity-test.sh ".*\.Feature\."`
 
+## ビルドの実行
+CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
+
+### 使用方法
+```bash
+# 基本的な使い方（デフォルト出力先: moorestech_client/Library/ShellScriptBuild）
+./tools/unity-build-test.sh moorestech_client
+
+# 出力先を指定する場合
+./tools/unity-build-test.sh moorestech_client /path/to/output
+```
+
+### 機能
+- プラットフォームの自動判定（macOS/Windows/Linux）
+- Unityのビルド結果（Succeeded/Failed）を正確に判定
+- ビルド失敗時のコンパイルエラー詳細表示
+- ビルド成功時のファイルサイズ表示
+- エラー時のログファイル保存（デバッグ用）
+
+### 注意事項
+- ビルドが失敗した場合、ログファイルが保存されるので詳細を確認してください
+- macOSの場合、.appファイルが生成されても実際に開けない場合があるため、Unityが報告するビルド結果を信頼してください
+
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
 
