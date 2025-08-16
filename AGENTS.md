@@ -118,8 +118,19 @@ moorestech_client配下はTDDは行っておりません。コンパイルエラ
 - `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
 - `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
 
+## クライアント側のテスト実行（unity-test.sh で限定実行）
+- 実行方法: MCPではなく`tools/unity-test.sh`を使用してください。
+- 重要: 必ず正規表現で「実施したいテストのみ」を指定してください。全件実行は結果が不安定になる恐れがあります。
+- 使い方: `./tools/unity-test.sh <UnityProjectPath> '<Regex>'`
+  - `<UnityProjectPath>`: Unityプロジェクトのルート（このリポジトリのルート）
+  - `'<Regex>'`: 実行対象を絞る正規表現（クラス名・namespaceなど）
+- 実行例:
+  - 単一クラスのみ: `./tools/unity-test.sh . '^MyNamespace\\.MyTestClass$'`
+  - 特定namespace配下のみ: `./tools/unity-test.sh . '^MyNamespace\\.'`
+  - 機能単位（例: Inventory）: `./tools/unity-test.sh . '^.*\\.Inventory\\.'`
+- 挙動: コンパイル失敗時は失敗として終了し、`[CliTest]`の行のみをサマリ表示します。
 
-両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。
+両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。クライアント側のテストは必ず`tools/unity-test.sh`＋正規表現で限定実行してください。
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
