@@ -18,12 +18,18 @@ using TestStatus = NUnit.Framework.Interfaces.TestStatus;
 [assembly:TestRunCallback(typeof(CliPersistentCallbacks))]
 public class CliPersistentCallbacks : ITestRunCallback // ★修正: UnityEngine.TestRunner.ITestRunCallback を実装
 {
+    // ★追加: EditorPrefs フラグをチェック
+    private static bool IsEnabled() => EditorPrefs.GetBool(CliTestRunner.PrefKey, false);
+
     // ★修正: シグネチャを ITest/ITestResult に変更
     public void RunStarted(ITest testsToRun) { }
     public void TestStarted(ITest test) { }
 
     public void TestFinished(ITestResult result)
     {
+        // ★追加: フラグ未設定なら何もしない
+        if (!IsEnabled()) return;
+
         if (result.Test.IsSuite) return;
 
         bool   passed = result.ResultState.Status == TestStatus.Passed; // ★修正
@@ -40,6 +46,9 @@ public class CliPersistentCallbacks : ITestRunCallback // ★修正: UnityEngine
 
     public void RunFinished(ITestResult result)
     {
+        // ★追加: フラグ未設定なら何もしない
+        if (!IsEnabled()) return;
+
         // 失敗があれば 1、無ければ 0 で Unity を終了
         EditorApplication.Exit(result.FailCount == 0 ? 0 : 1);
     }
@@ -47,6 +56,9 @@ public class CliPersistentCallbacks : ITestRunCallback // ★修正: UnityEngine
 
 public static class CliTestRunner
 {
+    // ★追加: EditorPrefs 用のキー
+    internal const string PrefKey = "CliPersistentCallbacks.Enabled";
+
     // ────────────────────────────────────────────────────────────────────────
     //  コンパイルエラー監視（既存のまま）
     // ────────────────────────────────────────────────────────────────────────
@@ -56,6 +68,9 @@ public static class CliTestRunner
     private static void RegisterCompileCallback()
     {
         CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompiled;
+
+        // ★追加: ドメインロード時にフラグを下げる（無効化）
+        EditorPrefs.SetBool(PrefKey, false);
     }
 
     private static void OnAssemblyCompiled(string path, CompilerMessage[] msgs)
@@ -108,6 +123,9 @@ public static class CliTestRunner
                     testMode  = TestMode.EditMode,
                     testNames = matched.ToArray()
                 };
+
+                // ★追加: 実行直前にフラグを立てる（有効化）
+                EditorPrefs.SetBool(PrefKey, true);
 
                 api.Execute(new ExecutionSettings
                 {
