@@ -26,6 +26,7 @@ LOGFILE="$(mktemp -t unity_cli_XXXX).log"
   -projectPath "$PROJECT" \
   -executeMethod CliTestRunner.Run \
   -testRegex "$REGEX" \
+  -isFromShellScript \
   -logFile "$LOGFILE"
 RET=$?
 
