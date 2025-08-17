@@ -544,6 +544,146 @@
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "5f29799a-62fc-4b48-8c08-18ed35699b1e",
+      "imagePath": "",
+      "name": "鉄のドリル",
+      "maxStack": 100,
+      "sortPriority": 720,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "93b2a5cc-3cbc-4072-9770-7337c4904906",
+      "imagePath": "",
+      "name": "鉄の採掘機",
+      "maxStack": 100,
+      "sortPriority": 730,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+      "imagePath": "",
+      "name": "鉄の粉砕機",
+      "maxStack": 100,
+      "sortPriority": 740,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "b62e1cf2-ab6c-4a43-b134-74e3d85e3caa",
+      "imagePath": "",
+      "name": "ボイラー",
+      "maxStack": 100,
+      "sortPriority": 750,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "83e24258-bd99-4b0d-afc7-e6174c0366f2",
+      "imagePath": "",
+      "name": "鉄のパイプ",
+      "maxStack": 100,
+      "sortPriority": 760,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "2b40caf7-bec9-45f8-81a5-a95a10c311de",
+      "imagePath": "",
+      "name": "蒸気機関",
+      "maxStack": 100,
+      "sortPriority": 770,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "2e7c64a5-8349-4ca1-a41b-d3658e67b1ba",
+      "imagePath": "",
+      "name": "モーター",
+      "maxStack": 100,
+      "sortPriority": 780,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f59ed4c5-991d-48f6-a5e0-0d707608fed0",
+      "imagePath": "",
+      "name": "鉄鉱石",
+      "maxStack": 100,
+      "sortPriority": 790,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "6f5a5586-1140-4593-8835-049ba8323110",
+      "imagePath": "",
+      "name": "銅鉱石",
+      "maxStack": 100,
+      "sortPriority": 800,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f1fdf5a7-d17d-4813-b719-633a622625f2",
+      "imagePath": "",
+      "name": "鉄鉱石の粉",
+      "maxStack": 100,
+      "sortPriority": 810,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "21a75c80-b186-4c38-9d1d-519b0798770f",
+      "imagePath": "",
+      "name": "銅鉱石の粉",
+      "maxStack": 100,
+      "sortPriority": 820,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "5f9ef09f-f9db-454a-b717-bb4b7f1790f2",
+      "imagePath": "",
+      "name": "鉄インゴット",
+      "maxStack": 100,
+      "sortPriority": 830,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+      "imagePath": "",
+      "name": "銅インゴット",
+      "maxStack": 100,
+      "sortPriority": 840,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "9993466d-1790-4008-afaf-cce42943a17f",
+      "imagePath": "",
+      "name": "銅線",
+      "maxStack": 100,
+      "sortPriority": 850,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }

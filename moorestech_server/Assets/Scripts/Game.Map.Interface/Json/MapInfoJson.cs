@@ -7,6 +7,7 @@ namespace Game.Map.Interface.Json
 {
     public class MapInfoJson
     {
+        [JsonProperty("defaultSpawnPoint")] public SpawnPointJson DefaultSpawnPointJson;
         [JsonProperty("mapObjects")] public List<MapObjectInfoJson> MapObjects;
         [JsonProperty("mapVeins")] public List<MapVeinInfoJson> MapVeins;
     }
@@ -38,5 +39,14 @@ namespace Game.Map.Interface.Json
         [JsonProperty("maxX")] public int MaxX;
         [JsonProperty("maxY")] public int MaxY;
         [JsonProperty("maxZ")] public int MaxZ;
+    }
+    
+    public class SpawnPointJson
+    {
+        [JsonProperty("x")] public float X;
+        [JsonProperty("y")] public float Y;
+        [JsonProperty("z")] public float Z;
+        
+        [JsonIgnore] public Vector3 Position => new(X, Y, Z);
     }
 }

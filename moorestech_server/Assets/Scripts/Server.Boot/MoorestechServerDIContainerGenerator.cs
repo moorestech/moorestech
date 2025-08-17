@@ -113,7 +113,8 @@ namespace Server.Boot
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
-
+            
+            services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();

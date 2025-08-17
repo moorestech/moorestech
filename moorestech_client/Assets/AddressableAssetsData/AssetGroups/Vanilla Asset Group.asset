@@ -130,6 +130,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 28dddce8f5fb04af3883632a8d31ee9e
+    m_Address: Vanilla/Block/iron_crasher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2be4fde42a4bf477fae4587b089f81f6
+    m_Address: Vanilla/Block/iron_miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2ef73f52aa57040ab95f42a213f7b28b
     m_Address: Vanilla/Character/SkitChr002
     m_ReadOnly: 0
