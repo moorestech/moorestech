@@ -3,8 +3,13 @@ using System.IO;
 using Client.Common;
 using Client.Game.InGame.Context;
 using Client.Starter;
+using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -13,14 +18,15 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Client.PlayModeTests.Util
+namespace Client.Tests.PlayModeTest.Util
 {
     public class PlayModeTestUtil
     {
-        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.TestsPlayMode/ServerData");
+        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.Tests/PlayModeTest/ServerData");
         
-        public static async UniTask LoadMainGame(string serverDirectory = null)
+        public static async UniTask LoadMainGame(string serverDirectory = null, string saveFilePath = null)
         {
+            saveFilePath ??= $"dummy_play_mode_test_{Guid.NewGuid()}.json";
             serverDirectory ??= PlayModeTestServerDirectoryPath;
             
             // 初期化シーンをロード
@@ -34,6 +40,8 @@ namespace Client.PlayModeTests.Util
             
             await WaitStartServer();
             
+            await UniTask.Delay(TimeSpan.FromSeconds(1));
+            
             #region Internal
             
             // 初期化プロパティをセット
@@ -46,7 +54,7 @@ namespace Client.PlayModeTests.Util
                 var defaultProperties = InitializeProprieties.CreateDefault();
                 var properties = new StartServerSettings
                 {
-                    SaveFilePath = $"dummy_play_mode_test_{Guid.NewGuid()}.json",
+                    SaveFilePath = saveFilePath,
                     AutoSave = false,
                     ServerDataDirectory = serverDirectory,
                 };
@@ -93,6 +101,43 @@ namespace Client.PlayModeTests.Util
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
             
             await UniTask.Delay(1000);
+        }
+        
+        public static IBlock PlaceBlock(string blockName, Vector3Int position, BlockDirection direction)
+        {
+            var blockId = new BlockId(-1);
+            foreach (var id in MasterHolder.BlockMaster.GetBlockAllIds())
+            {
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(id);
+                if (blockMaster.Name != blockName) continue;
+                blockId = id;
+            }
+            if (blockId.AsPrimitive() == -1)
+            {
+                throw new ArgumentException($"Block not found: {blockName}");
+            }
+            
+            ServerContext.WorldBlockDatastore.TryAddBlock(
+                blockId,
+                position,
+                direction,
+                out var block
+            );
+            
+            return block;
+        }
+        
+        public static bool RemoveBlock(Vector3Int position)
+        {
+            return ServerContext.WorldBlockDatastore.RemoveBlock(position);
+        }
+        
+        public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int count)
+        {
+            var blockInventory = block.GetComponent<IBlockInventory>();
+            var itemStack = ServerContext.ItemStackFactory.Create(itemId, count);
+            
+            return blockInventory.InsertItem(itemStack);
         }
     }
 }
