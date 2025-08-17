@@ -186,6 +186,8 @@ public class MySingleton : MonoBehaviour
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
 
+NEVER:Libraryディレクトリの削除は絶対にしないでください。UnityのLibraryディレクトリには重要なキャッシュやビルド情報が含まれており、削除すると再インポートに膨大な時間がかかります。
+
 YOU MUST:コードを書き終わったから必ずコンパイルを実行してください。
 
 IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライアントの実装をする際はdocs/ClientGuide.mdを必ず参照してください。
