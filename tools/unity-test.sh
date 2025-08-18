@@ -32,7 +32,11 @@ RET=$?
 ###############################################################################
 # 出力処理
 ###############################################################################
-if [ $RET -eq 2 ] || grep -q "Scripts have compiler errors" "$LOGFILE"; then
+# EndWrite before BeginWrite エラーのチェック
+if grep -q "Unhandled log message: '\[Assert\] Calling EndWrite before BeginWrite'" "$LOGFILE"; then
+  echo "不明なエラーが発生したため、テスト結果が出力できませんでした。テストを再実行してください。"
+  RET=1
+elif [ $RET -eq 2 ] || grep -q "Scripts have compiler errors" "$LOGFILE"; then
   # --- ❶ コンパイルエラー行を抽出 ------------------------------------------
   echo "❌ Compile errors detected"
   #   Unity が出力する例: Assets/Scripts/Foo.cs(12,18): error CS1002: ; expected
@@ -48,7 +52,10 @@ fi
 ###############################################################################
 # 最終メッセージ
 ###############################################################################
-if [ $RET -eq 0 ]; then
+# EndWrite before BeginWrite エラーの場合は最終メッセージを出力しない
+if grep -q "Unhandled log message: '\[Assert\] Calling EndWrite before BeginWrite'" "$LOGFILE"; then
+  : # 何も出力しない
+elif [ $RET -eq 0 ]; then
   echo "✅  All matching tests passed"
 else
   echo "❌  Some matching tests failed or compilation failed"
