@@ -182,6 +182,35 @@ public class MySingleton : MonoBehaviour
 
 早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
+# Physics.SyncTransforms()の使用指針
+Unityの物理演算において、`Physics.SyncTransforms()`を呼ぶ必要があるケースは以下の通りです：
+
+## 呼び出しが必要なケース
+
+2. **テストコード内での物理演算**
+   - PlayModeテストで物理オブジェクトを配置・移動した後
+   - アサーションで位置や衝突を検証する前
+   - 「Calling EndWrite before BeginWrite」エラーを防ぐため
+   
+## PlayModeテストでの使用例
+```csharp
+// オブジェクト配置後
+PlaceBlock("ベルトコンベア", position, direction);
+Physics.SyncTransforms();
+await UniTask.WaitForFixedUpdate();
+
+// アサーションループ内
+while (testRunning)
+{
+    // 位置のチェック
+    Assert.IsTrue(bounds.Contains(position));
+    
+    // 次のフレームの前に同期
+    Physics.SyncTransforms();
+    await UniTask.WaitForFixedUpdate();
+}
+```
+
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
