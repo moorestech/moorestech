@@ -41,7 +41,11 @@
       "mcp__serena__list_dir",
       "mcp__serena__find_file",
       "mcp__serena__write_memory",
-      "mcp__moorestech_client__RunEditModeTests"
+      "mcp__moorestech_client__RunEditModeTests",
+      "Bash(./tools/unity-test.sh:*)",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_symbol",
+      "mcp__serena__get_symbols_overview"
     ],
     "deny": []
   },
@@ -50,10 +54,6 @@
     "moorestech_server",
     "moorestech_client"
   ],
-  "statusLine": {
-    "type": "command",
-    "command": "node ./.claude/statusline.js"
-  },
   "hooks": {
     "Stop": [
       {
@@ -66,5 +66,9 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node ./.claude/statusline.js"
   }
 }
