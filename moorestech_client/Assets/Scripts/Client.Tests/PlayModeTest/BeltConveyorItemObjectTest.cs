@@ -57,6 +57,10 @@ namespace Client.Tests.PlayModeTest
                 
                 // チェストにアイテムを入れる
                 InsertItemToBlock(chest, new ItemId(1), 100);
+                
+                // 物理演算の同期を待つ
+                Physics.SyncTransforms();
+                await UniTask.WaitForFixedUpdate();
             }
             
             async UniTask AssertTest(string testPhase)
@@ -87,7 +91,9 @@ namespace Client.Tests.PlayModeTest
                         Assert.IsTrue(itemEntityBoundingBox.Contains(itemEntity.transform.position), $"{testPhase} : Item entity {itemEntity.name} is out of bounds: {itemEntity.transform.position}");
                     }
                     
-                    await UniTask.Yield();
+                    // 物理演算の同期を確実にする
+                    Physics.SyncTransforms();
+                    await UniTask.WaitForFixedUpdate();
                 }
             }
             
