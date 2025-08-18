@@ -58,6 +58,7 @@ public static class CliTestRunner
     //  コンパイルエラー監視（既存のまま）
     // ────────────────────────────────────────────────────────────────────────
     private static int _compileErrors = 0;
+    private static TestRunnerApi _api;
 
     [InitializeOnLoadMethod] // ドメインロード時に 1 度だけ登録
     private static void RegisterCompileCallback()
@@ -92,10 +93,10 @@ public static class CliTestRunner
         var regex = new Regex(pattern);
 
         // 2) TestRunnerApi 初期化（RegisterCallbacks は不要）
-        var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+        _api = ScriptableObject.CreateInstance<TestRunnerApi>();
 
         // 3) EditMode テスト一覧を取得して対象を選別（ゼロ件検出のため継続利用）
-        api.RetrieveTestList(
+        _api.RetrieveTestList(
             TestMode.EditMode,
             root =>
             {
@@ -115,8 +116,8 @@ public static class CliTestRunner
                     testMode  = TestMode.EditMode,
                     testNames = matched.ToArray()
                 };
-
-                api.Execute(new ExecutionSettings
+                
+                _api.Execute(new ExecutionSettings
                 {
                     filters          = new[] { execFilter },
                     runSynchronously = false
