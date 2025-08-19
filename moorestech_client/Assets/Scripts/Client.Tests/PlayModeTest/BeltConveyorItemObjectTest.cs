@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.UI.Challenge;
 using Core.Master;
@@ -73,6 +75,9 @@ namespace Client.Tests.PlayModeTest
                 var startTime = Time.time;
                 var testDuration = 3;
                 
+                var itemObjects = new Dictionary<long,Transform>();
+                var intervalCheckTime = new Dictionary<long,DateTime>();
+                
                 while (true)
                 {
                     // 秒数経過したら終了
@@ -89,6 +94,34 @@ namespace Client.Tests.PlayModeTest
                         // アイテムエンティティの位置がベルトコンベアの範囲内にあるかどうかをチェック
                         // Check if the item entity's position is within the range of the conveyor belt
                         Assert.IsTrue(itemEntityBoundingBox.Contains(itemEntity.transform.position), $"{testPhase} : Item entity {itemEntity.name} is out of bounds: {itemEntity.transform.position}");
+
+                        
+                        // アイテムエンティティの生成時間を記録
+                        // Record the creation time of the item entity
+                        var entityId = itemEntity.EntityId;
+                        if (!intervalCheckTime.ContainsKey(entityId))
+                        {
+                            intervalCheckTime[entityId] = DateTime.Now;
+                        }
+                        
+                        // 長い時間をかけてでもアイテムが移動していることをチェック
+                        // Check if the item has moved
+                        var nowTransform = itemEntity.transform;
+                        var oldTransform = itemObjects.GetValueOrDefault(entityId);
+                        var instantiateTime = intervalCheckTime.GetValueOrDefault(entityId);
+                        if (nowTransform && oldTransform && 1f < (DateTime.Now - instantiateTime).TotalSeconds)
+                        {
+                            const float itemDistance = 0.1f;
+                            Assert.GreaterOrEqual(
+                                Vector3.Distance(nowTransform.position, oldTransform.position),
+                                itemDistance,
+                                $" EntityId:{entityId}, {testPhase} : Item entity {itemEntity.name} did not move enough: {Vector3.Distance(nowTransform.position, oldTransform.position)}"
+                            );
+                            // アイテムエンティティの位置を記録
+                            // Record the position of the item entity
+                            itemObjects[entityId] = nowTransform;
+                            intervalCheckTime[entityId] = DateTime.Now;
+                        }
                     }
                     
                     // 物理演算の同期を確実にする
