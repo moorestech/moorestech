@@ -75,7 +75,7 @@ namespace Client.Tests.PlayModeTest
                 var startTime = Time.time;
                 var testDuration = 3;
                 
-                var itemObjects = new Dictionary<long,Transform>();
+                var itemObjects = new Dictionary<long,Vector3>();
                 var intervalCheckTime = new Dictionary<long,DateTime>();
                 
                 while (true)
@@ -102,24 +102,25 @@ namespace Client.Tests.PlayModeTest
                         if (!intervalCheckTime.ContainsKey(entityId))
                         {
                             intervalCheckTime[entityId] = DateTime.Now;
+                            itemObjects[entityId] = itemEntity.transform.position;
                         }
                         
                         // 長い時間をかけてでもアイテムが移動していることをチェック
                         // Check if the item has moved
-                        var nowTransform = itemEntity.transform;
-                        var oldTransform = itemObjects.GetValueOrDefault(entityId);
                         var instantiateTime = intervalCheckTime.GetValueOrDefault(entityId);
-                        if (nowTransform && oldTransform && 1f < (DateTime.Now - instantiateTime).TotalSeconds)
+                        if (1f < (DateTime.Now - instantiateTime).TotalSeconds)
                         {
+                            var nowPosition = itemEntity.transform.position;
+                            var distance = Vector3.Distance(nowPosition, itemObjects.GetValueOrDefault(entityId));
                             const float itemDistance = 0.1f;
                             Assert.GreaterOrEqual(
-                                Vector3.Distance(nowTransform.position, oldTransform.position),
+                                distance,
                                 itemDistance,
-                                $" EntityId:{entityId}, {testPhase} : Item entity {itemEntity.name} did not move enough: {Vector3.Distance(nowTransform.position, oldTransform.position)}"
+                                $" EntityId:{entityId}, {testPhase} : Item entity {itemEntity.name} did not move enough: {distance}"
                             );
-                            // アイテムエンティティの位置を記録
-                            // Record the position of the item entity
-                            itemObjects[entityId] = nowTransform;
+                            // アイテムエンティティの位置を更新
+                            // Update the position of the item entity
+                            itemObjects[entityId] = nowPosition;
                             intervalCheckTime[entityId] = DateTime.Now;
                         }
                     }
