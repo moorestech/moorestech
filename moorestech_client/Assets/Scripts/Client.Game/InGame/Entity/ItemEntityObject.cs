@@ -44,8 +44,6 @@ namespace Client.Game.InGame.Entity
         
         public void SetInterpolationPosition(Vector3 position)
         {
-            SetDirectPosition(position);
-            return;
             _previousPosition = transform.position;
             _targetPosition = position;
             _linerTime = 0;
