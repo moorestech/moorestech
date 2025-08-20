@@ -58,7 +58,7 @@ def query_notion_database_for_tickets():
 
 def create_ticket(issue):
     issue_url = issue.html_url
-    issue_status = "Done" if issue.state == "closed" else "TODO"
+    issue_status = "Done" if issue.state == "closed" else "Backlog"
 
     notion_client.pages.create(
         **{
