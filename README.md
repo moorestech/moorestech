@@ -9,7 +9,9 @@
 # 起動方法
 mooresech_clientをUnityで開きMainGameシーンを再生してください
 
-
+# LICENSE
+コードは[Apache2.0](https://github.com/moorestech/moorestech/blob/master/LICENSE) ライセンスで配布されています。
+コード以外の各種コンテンツは[moorestech Game Content License ](https://github.com/moorestech/moorestech/blob/master/CONTENT_LICENSE.md) ライセンスでは配布されています。
 
 ### OSSに関する表記
 
