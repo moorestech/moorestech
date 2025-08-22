@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -166,6 +167,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 var diff = (float)(GameUpdater.UpdateSecondTime * (1f / (float)_timeOfItemEnterToExit));
                 var last = item.RemainingPercent;
                 item.RemainingPercent -= diff;
+                item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
                 var current = item.RemainingPercent;
                 
                 if (item.ItemInstanceId.AsPrimitive() != 0)
