@@ -45,6 +45,7 @@ namespace Client.Game.InGame.Entity
                 else
                 {
                     var entityObject = CreateEntity(entity);
+                    entityObject.Initialize(entity.InstanceId);
                     _entities.Add(entity.InstanceId, (DateTime.Now, entityObject));
                 }
         }
