@@ -36,5 +36,10 @@ namespace Game.PlayerInventory.Interface
             //インベントリの一番したがホットバーとなる
             return (MainInventoryRows - 1) * MainInventoryColumns + slot;
         }
+        
+        /// <summary>
+        ///     指定されたスロットがホットバーかどうかを判定します
+        /// </summary>
+        public static bool IsHotBarSlot(int slot) => slot >= HotBarSlotToInventorySlot(0) && slot < MainInventorySize;
     }
 }
