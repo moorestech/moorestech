@@ -28,4 +28,9 @@ namespace Client.Game.InGame.UI.Inventory
         public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
     }
+    
+    public static class ISubInventoryExtension
+    {
+        public static bool IsEnableSubInventory(this ISubInventory subInventory) => subInventory.Count > 0;
+    } 
 }
