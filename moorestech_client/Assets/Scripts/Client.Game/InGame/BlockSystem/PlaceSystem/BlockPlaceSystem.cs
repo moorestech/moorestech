@@ -236,7 +236,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         return new Vector3Int(
                             Mathf.FloorToInt(hitPoint.x),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) + Mathf.RoundToInt(rotatedSize.z / 2f)
+                            Mathf.FloorToInt(hitPoint.z)
                         );
                     case PreviewSurfaceType.YZ_Origin:
                         return new Vector3Int(
@@ -246,7 +246,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                         );
                     case PreviewSurfaceType.YZ_X:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) + Mathf.RoundToInt(rotatedSize.x / 2f),
+                            Mathf.FloorToInt(hitPoint.x),
                             Mathf.FloorToInt(hitPoint.y),
                             Mathf.FloorToInt(hitPoint.z)
                         );
