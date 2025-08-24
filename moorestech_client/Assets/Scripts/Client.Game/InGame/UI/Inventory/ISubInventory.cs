@@ -13,6 +13,11 @@ namespace Client.Game.InGame.UI.Inventory
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; }
     }
     
+    public static class ISubInventoryExtension
+    {
+        public static bool IsEnableSubInventory(this ISubInventory subInventory) => subInventory.Count > 0;
+    }
+    
     public class EmptySubInventory : ISubInventory
     {
         public EmptySubInventory()
