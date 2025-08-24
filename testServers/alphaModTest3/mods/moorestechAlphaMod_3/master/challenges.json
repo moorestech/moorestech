@@ -5,7 +5,6 @@
       "categoryName": "生きる基盤",
       "categoryDescription": "Category description",
       "displayOrder": 0,
-
       "initialUnlocked": true,
       "challenges": [
         {
@@ -763,7 +762,6 @@
           "summary": "砂をふるいにかけ、石炭を入手する",
           "title": "石炭を入手する",
           "initialUnlocked": false,
-
           "prevChallengeGuids": [
             "0f859a46-4e21-4f16-9e98-e3b4148290c7"
           ],
@@ -774,7 +772,6 @@
           "challengeGuid": "ea4a2fdc-5e3d-4bdb-984b-7615b08159de",
           "playSkitParam": {},
           "tutorials": [],
-
           "clearedActions": [
             {
               "challengeActionType": "unlockItemRecipeView",
