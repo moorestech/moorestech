@@ -118,6 +118,15 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             _localPlayerInventory.SetMainInventory(inventoryMainInventory);
         }
+        
+        public void DirectMoveItem(int clickedSlot)
+        {
+            // ホットバーかどうかのチェック
+            PlayerInventoryConst.IsHotBarSlot(clickedSlot);
+            
+            // サブインベントリがあるかどうかのチェック
+            _subInventory.IsEnableSubInventory();
+        }
     }
     
     public enum LocalMoveInventoryType
