@@ -290,7 +290,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             if (sourceItem.Id == ItemMaster.EmptyItemId) return;
 
             // サブインベントリの有無を判定
-            var hasSubInventory = _subInventory != null && _subInventory.Count > 0;
+            var hasSubInventory = _subInventory != null && _subInventory.IsEnableSubInventory();
             
             // 移動元の種類を判定
             var sourceType = GetInventoryType(slotIndex, hasSubInventory);
@@ -308,8 +308,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 if (hasSub && index >= PlayerInventoryConst.MainInventorySize)
                     return InventoryType.SubInventory;
                 
-                // ホットバーの判定（36-44のスロット）
-                if (index >= (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns)
+                // ホットバーの判定
+                if (PlayerInventoryConst.IsHotBarSlot(index))
                     return InventoryType.HotBar;
                 
                 return InventoryType.MainInventory;
