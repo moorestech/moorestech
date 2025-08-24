@@ -212,7 +212,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             if (InputManager.UI.ItemDirectMove.GetKey)
             {
                 //シフト（デフォルト）＋クリックでメイン、サブのアイテム移動を直接やる処理
-                _playerInventory.DirectMoveItem(slotIndex);
+                DirectMove(slotIndex);
             }
             else
             {
@@ -280,6 +280,22 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             //あまりのアイテムをGrabインベントリに設定する
             _playerInventory.SetGrabItem(itemStackFactory.Create(grabItem.Id, remainItemNum));
+        }
+        
+        
+        private void DirectMove(int slotIndex)
+        {
+            //そのスロットがメインインベントリかサブインベントリを判定する
+            var isMain = slotIndex < PlayerInventoryConst.MainInventorySize;
+            
+            var startIndex = isMain ? 0 : PlayerInventoryConst.MainInventorySize;
+            var endIndex = isMain ? PlayerInventoryConst.MainInventorySize : PlayerInventoryConst.MainInventorySize + _subInventory.Count;
+            for (var i = startIndex; i < endIndex; i++)
+            {
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, slotIndex, LocalMoveInventoryType.MainOrSub, i, _playerInventory.LocalPlayerInventory[slotIndex].Count);
+                //アイテムがなくなったら終了する
+                if (_playerInventory.LocalPlayerInventory[slotIndex].Count == 0) break;
+            }
         }
         
         public void SetActive(bool isActive)
