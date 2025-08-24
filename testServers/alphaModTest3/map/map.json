@@ -874,5 +874,51 @@
       "z": -21.5445862
     }
   ],
-  "mapVeins": []
+  "mapVeins": [
+    {
+      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+      "minX": 225,
+      "minY": 20,
+      "minZ": -73,
+      "maxX": 228,
+      "maxY": 21,
+      "maxZ": -70
+    },
+    {
+      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+      "minX": 217,
+      "minY": 20,
+      "minZ": -79,
+      "maxX": 220,
+      "maxY": 21,
+      "maxZ": -76
+    },
+    {
+      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+      "minX": 221,
+      "minY": 16,
+      "minZ": -57,
+      "maxX": 224,
+      "maxY": 17,
+      "maxZ": -54
+    },
+    {
+      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+      "minX": 226,
+      "minY": 16,
+      "minZ": -47,
+      "maxX": 229,
+      "maxY": 17,
+      "maxZ": -44
+    },
+    {
+      "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+      "minX": 212,
+      "minY": 16,
+      "minZ": -65,
+      "maxX": 215,
+      "maxY": 17,
+      "maxZ": -62
+    }
+  ]
 }
