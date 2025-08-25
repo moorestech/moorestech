@@ -80,7 +80,7 @@ namespace Client.Game.InGame.Map.MapObject
         
         public void FindMapObjects()
         {
-            mapObjects = FindObjectsOfType<MapObjectGameObject>().ToList();
+            mapObjects = FindObjectsOfType<MapObjectGameObject>(true).ToList();
             mapObjects.Sort((a, b) => string.Compare(a.gameObject.name, b.gameObject.name, StringComparison.Ordinal));
         }
 #endif

@@ -81,7 +81,7 @@ public class MapExportAndSetting : EditorWindow
         
         List<MapVeinInfoJson> GetMapVeinInfo()
         {
-            var veins = FindObjectsOfType<MapVeinGameObject>();
+            var veins = FindObjectsOfType<MapVeinGameObject>(true);
             var result = new List<MapVeinInfoJson>();
             
             foreach (var vein in veins)
