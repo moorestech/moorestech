@@ -4,6 +4,7 @@ namespace Client.DebugSystem
 {
     public class DebugEnvironmentController : MonoBehaviour
     {
+        [SerializeField] private GameObject gameEnvironment;
         [SerializeField] private GameObject debugEnvironment;
         [SerializeField] private GameObject pureNatureEnvironment;
         
@@ -17,6 +18,7 @@ namespace Client.DebugSystem
             
             var debugEnvironment = false;
             var pureNatureEnvironment = false;
+            var gameEnvironment = false;
             switch (environmentType)
             {
                 case DebugEnvironmentType.Debug:
@@ -25,16 +27,21 @@ namespace Client.DebugSystem
                 case DebugEnvironmentType.PureNature:
                     pureNatureEnvironment = true;
                     break;
+                case DebugEnvironmentType.Game:
+                    gameEnvironment = true;
+                    break;
             }
             
             debugEnvironmentController.debugEnvironment.SetActive(debugEnvironment);
             debugEnvironmentController.pureNatureEnvironment.SetActive(pureNatureEnvironment);
+            debugEnvironmentController.gameEnvironment.SetActive(gameEnvironment);
         }
     }
     
     public enum DebugEnvironmentType
     {
         Debug,
-        PureNature
+        PureNature,
+        Game,
     }
 }
