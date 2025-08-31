@@ -187,7 +187,7 @@ GameObject:
   - component: {fileID: 3511257979520308621}
   - component: {fileID: 5990750896162685171}
   m_Layer: 6
-  m_Name: Bronze
+  m_Name: Bronze TerrainMapObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

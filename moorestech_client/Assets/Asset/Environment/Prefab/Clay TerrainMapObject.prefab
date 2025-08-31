@@ -77,7 +77,7 @@ GameObject:
   - component: {fileID: 5873761449218699749}
   - component: {fileID: 7313206263206825878}
   m_Layer: 6
-  m_Name: Clay
+  m_Name: Clay TerrainMapObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
