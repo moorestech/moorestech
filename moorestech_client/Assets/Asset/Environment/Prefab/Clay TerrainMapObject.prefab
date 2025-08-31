@@ -76,6 +76,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5873761449218699749}
   - component: {fileID: 7313206263206825878}
+  - component: {fileID: 8180051597467520711}
   m_Layer: 6
   m_Name: Clay TerrainMapObject
   m_TagString: Untagged
@@ -117,6 +118,25 @@ MonoBehaviour:
   hpBarView: {fileID: 3947860032021203847}
   instanceId: 147
   mapObjectGuid: e76e6b65-88db-4ee7-a806-8e65ba859556
+--- !u!205 &8180051597467520711
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6475114897893993062}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.0069795847, y: -0.009354711, z: -0.04496813}
+  m_Size: 2.4240446
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.0028707655
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2059802493304361100}
+  m_Enabled: 1
 --- !u!1001 &3563078795509098485
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -198,6 +218,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 84fd7b687e118974bb138d340d5ce7f4, type: 3}
+--- !u!23 &2059802493304361100 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3307746853903480697, guid: 84fd7b687e118974bb138d340d5ce7f4, type: 3}
+  m_PrefabInstance: {fileID: 3563078795509098485}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5097059427448344138 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8633116547077286335, guid: 84fd7b687e118974bb138d340d5ce7f4, type: 3}

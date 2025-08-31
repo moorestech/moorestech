@@ -186,6 +186,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3511257979520308621}
   - component: {fileID: 5990750896162685171}
+  - component: {fileID: 1568103375946731388}
   m_Layer: 6
   m_Name: Bronze TerrainMapObject
   m_TagString: Untagged
@@ -227,6 +228,25 @@ MonoBehaviour:
   hpBarView: {fileID: 220702310046901491}
   instanceId: 0
   mapObjectGuid: 20eb0c7e-51d3-4f4a-ba28-c974bc96e165
+--- !u!205 &1568103375946731388
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9108736956833503452}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.0017194748, y: 0.4620285, z: 0.036426067}
+  m_Size: 1.8803787
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.015636692
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 5194992972676516936}
+  m_Enabled: 1
 --- !u!1001 &7699419025567653180
 PrefabInstance:
   m_ObjectHideFlags: 0
