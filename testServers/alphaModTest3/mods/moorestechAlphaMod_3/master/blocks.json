@@ -1598,10 +1598,14 @@
           {
             "time": 15,
             "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          },
+          {
+            "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d",
+            "time": 15
           }
         ],
         "teethCount": 10,
-        "requiredRpm": 40,
+        "requiredRpm": 10,
         "requireTorque": 1,
         "gear": {
           "gearConnects": [
