@@ -224,7 +224,7 @@
       "craftResultItemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "requiredItems": [
         {
-          "count": 10,
+          "count": 2,
           "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
         }
       ],
@@ -258,7 +258,7 @@
       "craftResultItemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "requiredItems": [
         {
-          "count": 6,
+          "count": 3,
           "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
         },
         {
@@ -275,8 +275,9 @@
       "craftResultItemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "requiredItems": [
         {
+          "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
           "count": 2,
-          "itemGuid": "38cfc079-3835-4530-b539-449c5200dd59"
+          "isRemain": false
         }
       ],
       "craftRecipeGuid": "b5b8e667-3df3-4c85-a620-de0dc3448ea8"
@@ -339,15 +340,7 @@
       "craftResultItemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
       "requiredItems": [
         {
-          "count": 4,
-          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f"
-        },
-        {
-          "count": 1,
-          "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e"
-        },
-        {
-          "count": 10,
+          "count": 3,
           "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb"
         }
       ],
@@ -394,11 +387,7 @@
       "craftResultItemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "requiredItems": [
         {
-          "count": 4,
-          "itemGuid": "322b7f36-d719-48f2-8dab-76de09c876bf"
-        },
-        {
-          "count": 1,
+          "count": 5,
           "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99"
         },
         {
@@ -495,8 +484,8 @@
       "craftResultItemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
       "requiredItems": [
         {
-          "count": 4,
-          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa"
+          "count": 1,
+          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f"
         },
         {
           "count": 5,
@@ -739,13 +728,13 @@
       "initialUnlocked": true,
       "requiredItems": [
         {
-          "itemGuid": "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f",
-          "count": 1,
+          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f",
+          "count": 3,
           "isRemain": false
         },
         {
-          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d",
-          "count": 3,
+          "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
+          "count": 10,
           "isRemain": false
         }
       ]

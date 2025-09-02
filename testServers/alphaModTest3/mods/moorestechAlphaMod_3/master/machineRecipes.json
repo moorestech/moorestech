@@ -469,6 +469,26 @@
         }
       ],
       "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "1655d274-b60b-47a5-98fc-5b1f94217b24",
+      "blockGuid": "4b1808f2-0a5b-41bf-aced-645e4a76b870",
+      "time": 1,
+      "inputItems": [
+        {
+          "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
+          "count": 3,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
     }
   ]
 }
