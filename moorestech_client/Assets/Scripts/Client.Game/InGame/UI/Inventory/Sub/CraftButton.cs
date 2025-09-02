@@ -1,6 +1,7 @@
 ﻿using System;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
+using Common.Debug;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -61,6 +62,12 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         public void SetCraftInfo(float craftTime, ProgressArrowView progressArrow)
         {
+            // デバッグモードでクラフト時間を固定
+            if (DebugParameters.GetValueOrDefaultBool(DebugConst.FixCraftTimeKey))
+            {
+                craftTime = 0.3f;
+            }
+            
             _currentCraftTime = craftTime;
             _progressArrow = progressArrow;
         }
