@@ -478,7 +478,7 @@
     {
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "imagePath": "",
-      "name": "量子チェスト",
+      "name": "チェスト",
       "maxStack": 100,
       "sortPriority": 650,
       "initialUnlocked": false,
