@@ -869,8 +869,8 @@
       "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 0.2,
-        "beltConveyorSpeed": 0.01,
+        "requireTorque": 0.02,
+        "beltConveyorSpeed": 0.05,
         "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
@@ -2281,7 +2281,7 @@
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
-      "name": "量子チェスト",
+      "name": "チェスト",
       "blockType": "Chest",
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "blockSize": [
