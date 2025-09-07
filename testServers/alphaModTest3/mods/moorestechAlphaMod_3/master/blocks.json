@@ -1890,10 +1890,48 @@
         "requireTorque": 1,
         "teethCount": 10,
         "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "inputSlotCount": 2,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                6
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
         },
         "gear": {
           "gearConnects": [
@@ -1902,9 +1940,36 @@
               "offset": [
                 0,
                 0,
-                0
+                1
               ],
-              "directions": []
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "connectType": "Gear",
+              "offset": [
+                3,
+                0,
+                1
+              ],
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
             }
           ]
         },
