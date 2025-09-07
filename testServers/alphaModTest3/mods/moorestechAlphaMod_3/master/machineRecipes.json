@@ -139,7 +139,7 @@
       "outputFluids": []
     },
     {
-      "time": 1,
+      "time": 3,
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "inputItems": [
         {
@@ -159,7 +159,7 @@
       "outputFluids": []
     },
     {
-      "time": 1,
+      "time": 3,
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "inputItems": [
         {
@@ -179,7 +179,7 @@
       "outputFluids": []
     },
     {
-      "time": 1,
+      "time": 3,
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "outputItems": [
         {
@@ -485,6 +485,26 @@
         {
           "itemGuid": "92e8bb57-30ae-41dc-8a57-5336faeee8fb",
           "count": 3,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "1c9a0212-6bb5-430d-a691-cc18951ac53f",
+      "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
+      "time": 6,
+      "inputItems": [
+        {
+          "itemGuid": "fa4e84ee-482d-414f-ad0e-8f167d178342",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063",
+          "count": 1,
           "percent": 1
         }
       ],
