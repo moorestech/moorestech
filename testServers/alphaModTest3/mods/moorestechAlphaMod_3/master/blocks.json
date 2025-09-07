@@ -1896,7 +1896,17 @@
           "outputConnects": []
         },
         "gear": {
-          "gearConnects": []
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": []
+            }
+          ]
         },
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
