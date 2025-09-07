@@ -509,6 +509,30 @@
         }
       ],
       "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "3576f513-bfdd-41df-935d-e74618e43ee6",
+      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
+      "time": 5,
+      "inputItems": [
+        {
+          "itemGuid": "57f116bb-c374-410b-bc00-23b285575d7b",
+          "count": 1
+        },
+        {
+          "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
     }
   ]
 }

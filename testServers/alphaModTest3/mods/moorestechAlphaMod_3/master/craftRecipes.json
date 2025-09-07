@@ -219,7 +219,7 @@
     },
     {
       "initialUnlocked": true,
-      "craftTime": 3,
+      "craftTime": 1,
       "craftResultCount": 1,
       "craftResultItemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "requiredItems": [
@@ -270,7 +270,7 @@
     },
     {
       "initialUnlocked": true,
-      "craftTime": 3,
+      "craftTime": 1,
       "craftResultCount": 1,
       "craftResultItemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "requiredItems": [
