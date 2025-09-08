@@ -110,7 +110,7 @@
       "initialUnlocked": false,
       "sortPriority": 220,
       "maxStack": 100,
-      "name": "砕石",
+      "name": "砕いた石",
       "itemGuid": "619638d5-13f0-4c04-b4e6-5113e946be7e",
       "recipeViewType": "IsUnlocked"
     },
