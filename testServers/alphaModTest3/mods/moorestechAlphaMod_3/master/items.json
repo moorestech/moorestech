@@ -304,6 +304,30 @@
       "recipeViewType": "IsUnlocked"
     },
     {
+      "itemGuid": "efd714bf-150c-48ff-8257-a8e9fb70b7ee",
+      "name": "薄い低品質鉄板",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 435
+    },
+    {
+      "itemGuid": "26cbb01d-bede-4194-b0a4-d32f6c1c56e9",
+      "name": "とても薄い低品質鉄板",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 436
+    },
+    {
+      "itemGuid": "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
+      "name": "低品​質​鉄粉",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 437
+    },
+    {
       "initialUnlocked": false,
       "sortPriority": 450,
       "maxStack": 100,
@@ -551,7 +575,7 @@
       "name": "鉄のドリル",
       "maxStack": 100,
       "sortPriority": 720,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -561,7 +585,7 @@
       "name": "鉄の採掘機",
       "maxStack": 100,
       "sortPriority": 730,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -571,7 +595,7 @@
       "name": "鉄の粉砕機",
       "maxStack": 100,
       "sortPriority": 740,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -581,7 +605,7 @@
       "name": "ボイラー",
       "maxStack": 100,
       "sortPriority": 750,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -591,7 +615,7 @@
       "name": "鉄のパイプ",
       "maxStack": 100,
       "sortPriority": 760,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -601,7 +625,7 @@
       "name": "蒸気機関",
       "maxStack": 100,
       "sortPriority": 770,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -611,7 +635,7 @@
       "name": "モーター",
       "maxStack": 100,
       "sortPriority": 780,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -621,7 +645,7 @@
       "name": "鉄鉱石",
       "maxStack": 100,
       "sortPriority": 790,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -631,7 +655,7 @@
       "name": "銅鉱石",
       "maxStack": 100,
       "sortPriority": 800,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -641,7 +665,7 @@
       "name": "鉄鉱石の粉",
       "maxStack": 100,
       "sortPriority": 810,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -651,17 +675,7 @@
       "name": "銅鉱石の粉",
       "maxStack": 100,
       "sortPriority": 820,
-      "initialUnlocked": true,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
-    },
-    {
-      "itemGuid": "5f9ef09f-f9db-454a-b717-bb4b7f1790f2",
-      "imagePath": "",
-      "name": "鉄インゴット",
-      "maxStack": 100,
-      "sortPriority": 830,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -671,7 +685,7 @@
       "name": "銅インゴット",
       "maxStack": 100,
       "sortPriority": 840,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -681,7 +695,7 @@
       "name": "銅線",
       "maxStack": 100,
       "sortPriority": 850,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     }
