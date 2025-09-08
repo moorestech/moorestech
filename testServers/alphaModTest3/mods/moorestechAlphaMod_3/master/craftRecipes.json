@@ -452,8 +452,8 @@
       "craftResultItemGuid": "4a8b6001-3081-4885-89b5-9300424db13f",
       "requiredItems": [
         {
-          "count": 15,
-          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d"
+          "count": 3,
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa"
         }
       ],
       "craftRecipeGuid": "470b1275-b849-4ebf-b7e3-fc591126cd8a"
@@ -470,7 +470,7 @@
         },
         {
           "count": 5,
-          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d"
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa"
         }
       ],
       "craftRecipeGuid": "b6615452-b241-4405-a39c-1d830abd4949"
