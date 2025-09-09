@@ -433,7 +433,7 @@
     {
       "machineRecipeGuid": "909d7e40-5f77-49aa-acbd-a26ad9dc50d8",
       "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
-      "time": 1,
+      "time": 3,
       "inputItems": [
         {
           "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
@@ -453,10 +453,10 @@
     {
       "machineRecipeGuid": "4190238c-a44a-49d2-91a5-44747a6529a9",
       "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
-      "time": 1,
+      "time": 3,
       "inputItems": [
         {
-          "itemGuid": "4a8b6001-3081-4885-89b5-9300424db13f",
+          "itemGuid": "ad76f181-50da-4c7d-a98f-e55f2387c47d",
           "count": 1
         }
       ],
@@ -537,7 +537,7 @@
     {
       "machineRecipeGuid": "32a08424-a4db-42e2-99ee-50d235f36365",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
-      "time": 1,
+      "time": 2,
       "inputItems": [
         {
           "itemGuid": "5c5b7ee0-d1ea-420e-951e-2b2b49fee81b",
@@ -557,7 +557,7 @@
     {
       "machineRecipeGuid": "6adc1bc5-6aaf-4d61-8c3c-d412fa655853",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
-      "time": 1,
+      "time": 2,
       "inputItems": [
         {
           "itemGuid": "efd714bf-150c-48ff-8257-a8e9fb70b7ee",
@@ -577,7 +577,7 @@
     {
       "machineRecipeGuid": "bb0e0f16-1600-4ec6-8179-1927f9e547ae",
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
-      "time": 1,
+      "time": 3,
       "inputItems": [
         {
           "itemGuid": "26cbb01d-bede-4194-b0a4-d32f6c1c56e9",
@@ -588,7 +588,7 @@
       "outputItems": [
         {
           "itemGuid": "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
-          "count": 1,
+          "count": 2,
           "percent": 1
         }
       ],
@@ -597,7 +597,7 @@
     {
       "machineRecipeGuid": "1425d3ea-6800-4789-a7cf-2aed41a6df3d",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
-      "time": 1,
+      "time": 3,
       "inputItems": [
         {
           "itemGuid": "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
@@ -621,7 +621,7 @@
     {
       "machineRecipeGuid": "62f39818-5cbe-4af3-8d3e-b8dfbe954fc3",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
-      "time": 1,
+      "time": 3,
       "inputItems": [
         {
           "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
@@ -649,7 +649,7 @@
     {
       "machineRecipeGuid": "5e93ff28-2cd6-4f7e-b274-c608eb7f4cd1",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
-      "time": 1,
+      "time": 3,
       "inputItems": [
         {
           "itemGuid": "ec21231e-7ea3-4179-8653-84a37f00716d",
@@ -684,6 +684,30 @@
       "outputItems": [
         {
           "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "8f5e32e4-6839-423a-b147-fdd75b06de22",
+      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
+      "time": 3,
+      "inputItems": [
+        {
+          "itemGuid": "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
+          "count": 16
+        },
+        {
+          "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db",
+          "count": 5
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
           "count": 1,
           "percent": 1
         }
