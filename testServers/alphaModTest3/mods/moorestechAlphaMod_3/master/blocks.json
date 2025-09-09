@@ -628,7 +628,7 @@
           "inputConnects": [
             {
               "offset": [
-                1,
+                0,
                 0,
                 0
               ],
@@ -637,22 +637,58 @@
                 "isReverse": true,
                 "inventoryOptions": []
               },
-              "directions": []
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
             }
           ],
           "outputConnects": [
             {
               "offset": [
-                1,
                 0,
-                2
+                0,
+                0
               ],
               "connectType": "Inventory",
               "directions": [
                 [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
               ],
               "connectOption": {
@@ -1762,7 +1798,8 @@
       "name": "圧延機",
       "blockPrefabAddressablesPath": "Vanilla/Block/rolling mill",
       "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {},
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "blockSize": [
