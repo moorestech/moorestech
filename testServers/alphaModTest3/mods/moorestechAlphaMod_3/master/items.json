@@ -720,11 +720,21 @@
       "handGrabModelAddressablePath": ""
     },
     {
+      "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+      "imagePath": "",
+      "name": "石灰粉",
+      "maxStack": 100,
+      "sortPriority": 880,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
       "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
       "imagePath": "",
       "name": "鋼鉄",
       "maxStack": 100,
-      "sortPriority": 880,
+      "sortPriority": 890,
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
