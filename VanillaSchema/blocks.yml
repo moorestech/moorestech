@@ -77,6 +77,7 @@ properties:
       - TrainCargoPlatform
       - FluidPipe
       - BaseCamp
+      - GearPump
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -561,6 +562,36 @@ properties:
             schemaId: blocks
             foreignKeyIdPath: /data/[*]/blockGuid
             displayElementPath: /data/[*]/name
+      - when: GearPump
+        type: object
+        properties:
+        - key: generateFluid
+          type: array
+          items:
+            type: object
+            properties:
+            - key: fluidGuid
+              type: uuid
+              foreignKey:
+                schemaId: fluids
+                foreignKeyIdPath: /data/[*]/fluidGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: number
+              default: 1
+        - key: innerTankCapacity
+          type: number
+          default: 100
+        - key: requireTorque
+          type: number
+          default: 1
+        - key: requiredRpm
+          type: number
+          default: 5
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
+        - key: gear
+          ref: gear
 
     - key: overrideVerticalBlock
       type: object
