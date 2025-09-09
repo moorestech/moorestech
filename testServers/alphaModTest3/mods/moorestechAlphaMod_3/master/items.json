@@ -698,6 +698,36 @@
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "ec21231e-7ea3-4179-8653-84a37f00716d",
+      "imagePath": "",
+      "name": "石灰岩",
+      "maxStack": 100,
+      "sortPriority": 860,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
+      "imagePath": "",
+      "name": "生石​灰石",
+      "maxStack": 100,
+      "sortPriority": 870,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+      "imagePath": "",
+      "name": "鋼鉄",
+      "maxStack": 100,
+      "sortPriority": 880,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
