@@ -617,6 +617,78 @@
         }
       ],
       "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "62f39818-5cbe-4af3-8d3e-b8dfbe954fc3",
+      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
+      "time": 1,
+      "inputItems": [
+        {
+          "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
+          "count": 1
+        },
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+          "count": 3
+        },
+        {
+          "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "5e93ff28-2cd6-4f7e-b274-c608eb7f4cd1",
+      "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
+      "time": 1,
+      "inputItems": [
+        {
+          "itemGuid": "ec21231e-7ea3-4179-8653-84a37f00716d",
+          "count": 1
+        },
+        {
+          "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "45b7b273-f82c-4a68-8108-dfde37377d9f",
+      "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
+      "time": 1,
+      "inputItems": [
+        {
+          "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
+          "count": 1
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": []
     }
   ]
 }
