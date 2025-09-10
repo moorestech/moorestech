@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # unity_test.sh
-# 使い方: ./unity_test.sh <UnityProjectPath> 'Regex'  (または -testRegex 'Regex')
+# 使い方:
+#   ./unity_test.sh <UnityProjectPath> 'Regex' [isBatch]
+#     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isBatch]
+#   ※ isBatch を付けると Unity をバッチモード(-batchmode)で起動します
 
 UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 
@@ -8,13 +11,28 @@ UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 # 引数パース
 ###############################################################################
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <UnityProjectPath> '<Regex>'"
+  echo "Usage: $0 <UnityProjectPath> '<Regex>' [isBatch]"
   exit 1
 fi
 
 PROJECT="$1"; shift
 case "$1" in -testRegex|-r|--regex) shift ;; esac
 REGEX="$1"
+
+# ### 変更: isBatch の有無を検出してフラグ化
+IS_BATCH=0
+for arg in "$@"; do
+  if [ "$arg" = "isBatch" ] || [ "$arg" = "-b" ] || [ "$arg" = "--batch" ]; then
+    IS_BATCH=1
+    break
+  fi
+done
+
+# ### 変更: バッチモードのオプションを組み立て
+BATCH_OPTS=""
+if [ $IS_BATCH -eq 1 ]; then
+  BATCH_OPTS="-batchmode"
+fi
 
 ###############################################################################
 # Unity 実行
@@ -27,6 +45,7 @@ LOGFILE="$(mktemp -t unity_cli_XXXX).log"
   -testRegex "$REGEX" \
   -isFromShellScript \
   -logFile "$LOGFILE" \
+  $BATCH_OPTS \
   -quit
 RET=$?
 
