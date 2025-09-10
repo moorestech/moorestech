@@ -485,6 +485,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb99a95a378264a018dee927765f170b
+    m_Address: Vanilla/Block/GearPump
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bbb696b242c00184fa25aa90c771adf2
     m_Address: Vanilla/Block/Primitive_Blast_Furnace
     m_ReadOnly: 0
