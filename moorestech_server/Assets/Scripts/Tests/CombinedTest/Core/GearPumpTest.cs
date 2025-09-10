@@ -11,6 +11,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -29,8 +30,7 @@ namespace Tests.CombinedTest.Core
 
             var world = ServerContext.WorldBlockDatastore;
 
-            // 出力を受けるための周囲パイプを設置（方角を気にせず受けられるように4方向）
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, out var pipePosX);
+            // 出力を受けるための周囲パイプを設置（+Xはジェネレーター用に空ける）
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var pipeNegX);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var pipePosZ);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var pipeNegZ);
@@ -46,41 +46,43 @@ namespace Tests.CombinedTest.Core
             const float testSeconds = 4f;
 
             // 1) フルパワー（RequiredRpm / RequireTorque を満たす）
-            var transformer = pumpBlock.GetComponent<IGearEnergyTransformer>();
-            Assert.NotNull(transformer, "GearPump should implement IGearEnergyTransformer");
+            // +XにSimpleGearGeneratorを設置し、ExtensionでRPM/Torqueを設定
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, out var generatorBlock);
+            var simpleGenerator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+            simpleGenerator.SetGenerateRpm(pumpParam.RequiredRpm);
+            simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
 
             var start = DateTime.Now;
             while ((DateTime.Now - start).TotalSeconds < testSeconds)
             {
-                transformer.SupplyPower(new RPM(pumpParam.RequiredRpm), new Torque(pumpParam.RequireTorque), true);
                 GameUpdater.UpdateWithWait();
             }
 
-            var fullAmount = GetPipeAmount(pipePosX) + GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
+            var fullAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
             var expectedFull = fullRatePerSec * testSeconds;
             Assert.AreEqual(expectedFull, fullAmount, expectedFull * 0.25f, "Full power generated amount mismatched");
 
             // 2) 供給不足（RPMを50%に低下）→ 生成量も50%になる
             // パイプ内を初期化（検証をわかりやすくするために新しい配置に切り替え）
-            world.RemoveBlock(new Vector3Int(1, 0, 0));
             world.RemoveBlock(new Vector3Int(-1, 0, 0));
             world.RemoveBlock(new Vector3Int(0, 0, 1));
             world.RemoveBlock(new Vector3Int(0, 0, -1));
 
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, out pipePosX);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out pipeNegX);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out pipePosZ);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out pipeNegZ);
 
+            // ジェネレーターのRPMだけ半減（トルクは維持）
             var halfRpm = new RPM(Math.Max(0.0f, pumpParam.RequiredRpm / 2f));
+            simpleGenerator.SetGenerateRpm(halfRpm.AsPrimitive());
+            simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
             start = DateTime.Now;
             while ((DateTime.Now - start).TotalSeconds < testSeconds)
             {
-                transformer.SupplyPower(halfRpm, new Torque(pumpParam.RequireTorque), true);
                 GameUpdater.UpdateWithWait();
             }
 
-            var halfAmount = GetPipeAmount(pipePosX) + GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
+            var halfAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
             var expectedHalf = expectedFull * 0.5f;
             Assert.AreEqual(expectedHalf, halfAmount, expectedHalf * 0.3f, "Half power should generate ~50% amount");
         }
