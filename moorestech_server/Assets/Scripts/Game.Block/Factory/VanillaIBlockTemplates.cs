@@ -43,6 +43,9 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.TrainStation, new VanillaTrainStationTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.TrainCargoPlatform, new VanillaTrainCargoTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.BaseCamp, new BaseCampBlockTemplate());
+            
+            // Test/extended blocks
+            BlockTypesDictionary.Add(BlockTypeConst.GearPump, new BlockTemplate.VanillaGearPumpTemplate());
         }
     }
 }

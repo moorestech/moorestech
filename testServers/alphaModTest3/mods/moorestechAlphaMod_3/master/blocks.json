@@ -628,7 +628,7 @@
           "inputConnects": [
             {
               "offset": [
-                1,
+                0,
                 0,
                 0
               ],
@@ -637,22 +637,58 @@
                 "isReverse": true,
                 "inventoryOptions": []
               },
-              "directions": []
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
             }
           ],
           "outputConnects": [
             {
               "offset": [
-                1,
                 0,
-                2
+                0,
+                0
               ],
               "connectType": "Inventory",
               "directions": [
                 [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  0,
+                  -1
                 ]
               ],
               "connectOption": {
@@ -869,8 +905,8 @@
       "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 0.2,
-        "beltConveyorSpeed": 0.01,
+        "requireTorque": 0.02,
+        "beltConveyorSpeed": 0.05,
         "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
@@ -1598,10 +1634,14 @@
           {
             "time": 15,
             "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          },
+          {
+            "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d",
+            "time": 15
           }
         ],
         "teethCount": 10,
-        "requiredRpm": 40,
+        "requiredRpm": 10,
         "requireTorque": 1,
         "gear": {
           "gearConnects": [
@@ -1758,7 +1798,8 @@
       "name": "圧延機",
       "blockPrefabAddressablesPath": "Vanilla/Block/rolling mill",
       "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {},
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "blockSize": [
@@ -1886,13 +1927,88 @@
         "requireTorque": 1,
         "teethCount": 10,
         "outputSlotCount": 1,
-        "inputSlotCount": 1,
+        "inputSlotCount": 2,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                6
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
         },
         "gear": {
-          "gearConnects": []
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "connectType": "Gear",
+              "offset": [
+                3,
+                0,
+                1
+              ],
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
         },
         "fluidContainerCapacity": 0,
         "fluidContainerCount": 0,
@@ -2277,7 +2393,7 @@
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
-      "name": "量子チェスト",
+      "name": "チェスト",
       "blockType": "Chest",
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "blockSize": [
@@ -2955,6 +3071,25 @@
           "outflowConnects": []
         }
       }
+    },
+    {
+      "blockGuid": "dfad3e32-798d-425f-9b0e-671d09621f31",
+      "name": "歯車ポンプ",
+      "blockType": "GearPump",
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false
     }
   ]
 }

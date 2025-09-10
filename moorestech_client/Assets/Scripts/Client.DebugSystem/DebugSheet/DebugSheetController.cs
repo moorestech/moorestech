@@ -25,6 +25,14 @@ namespace Client.DebugSystem
             
             var rootPage = debugSheet.GetOrCreateInitialPage();
             
+            /*
+             * デバッグコマンドの実装方法:
+             * 1. DebugConst.csに定数（Label, Key）を追加
+             * 2. DebugSheetController.csでrootPage.AddBoolWithSaveを使ってトグルを追加
+             * 3. 実際の機能箇所でDebugParameters.GetValueOrDefaultBool(キー)で値を取得して処理
+             * ※DebugParametersはmoorestech_server側のクラスで、値はcache/BoolDebugParameters.json等に永続化される
+             */
+            
             rootPage.AddPageLinkButton<ItemGetDebugSheet>("Get Item");
             rootPage.AddPageLinkButton<SkitDebugSheet>("Skit Player");
             rootPage.AddPageLinkButton<CinematicCameraDebugSheet>("Cinematic Camera");
@@ -41,6 +49,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);
             rootPage.AddBoolWithSave(false, SkitPlaySettingsLabel, SkitPlaySettingsKey);
             rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, MapObjectSuperMineKey);
+            rootPage.AddBoolWithSave(false, FixCraftTimeLabel, FixCraftTimeKey);
             
         }
         
