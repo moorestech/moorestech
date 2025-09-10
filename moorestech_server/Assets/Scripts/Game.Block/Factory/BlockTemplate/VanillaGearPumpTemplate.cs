@@ -1,0 +1,56 @@
+using System.Collections.Generic;
+using Game.Block.Blocks;
+using Game.Block.Blocks.Gear;
+using Game.Block.Component;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Block.Blocks.Fluid;
+using Game.Gear.Common;
+using Mooresmaster.Model.BlocksModule;
+
+namespace Game.Block.Factory.BlockTemplate
+{
+    public class VanillaGearPumpTemplate : IBlockTemplate
+    {
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            return CreatePump(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            return CreatePump(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+
+        private IBlock CreatePump(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            var param = (GearPumpBlockParam)blockMasterElement.BlockParam;
+
+            // Gear connector and transformer
+            var gearConnectSetting = param.Gear.GearConnects;
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
+            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector);
+
+            // Fluid connector (outflow only)
+            var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
+
+            // Fluid output component (has an inner tank and pushes to pipes)
+            var outputComponent = new GearPumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector);
+
+            // Pump logic that generates fluid based on supplied gear power
+            var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent);
+
+            var components = new List<IBlockComponent>
+            {
+                gearConnector,
+                gearEnergyTransformer,
+                fluidConnector,
+                outputComponent,
+                pumpComponent,
+            };
+
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+        }
+    }
+}
