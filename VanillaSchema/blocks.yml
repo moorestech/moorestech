@@ -578,6 +578,9 @@ properties:
                 displayElementPath: /data/[*]/name
             - key: amount
               type: number
+              default: 5
+            - key: generateTime
+              type: number
               default: 1
         - key: innerTankCapacity
           type: number
