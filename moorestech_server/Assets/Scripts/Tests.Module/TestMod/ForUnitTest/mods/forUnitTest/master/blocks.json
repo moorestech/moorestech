@@ -3916,41 +3916,7 @@
           "inflowConnects": []
         },
         "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ]
-            }
-          ]
+          "gearConnects": []
         }
       }
     }

@@ -7,7 +7,6 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.Fluid;
 using Game.Gear.Common;
-using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -26,21 +25,18 @@ namespace Tests.CombinedTest.Core
         public void GenerateFluid_ScalesWithGearPower()
         {
             // Arrange: DI起動 + BlockMasterからGearPumpを特定
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
 
             // 出力を受けるための周囲パイプを設置（方角を気にせず受けられるように4方向）
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(2, 0, 0), BlockDirection.North, out var pipePosX);
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-2, 0, 0), BlockDirection.North, out var pipeNegX);
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 2), BlockDirection.North, out var pipePosZ);
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -2), BlockDirection.North, out var pipeNegZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, out var pipePosX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var pipeNegX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var pipePosZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var pipeNegZ);
 
-            // GearPumpを設置 (x=1の位置)
-            world.TryAddBlock(ForUnitTestModBlockId.GearPump, new Vector3Int(1, 0, 0), BlockDirection.North, out var pumpBlock);
-            
-            // SimpleGearGeneratorを隣に設置してギアネットワークを構築 (x=0の位置)
-            world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, Vector3Int.zero, BlockDirection.North, out var generatorBlock);
+            // GearPumpを中心に設置
+            world.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, out var pumpBlock);
 
             // 期待生成レート（full power時の1秒あたり）
             var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
@@ -50,25 +46,13 @@ namespace Tests.CombinedTest.Core
             const float testSeconds = 4f;
 
             // 1) フルパワー（RequiredRpm / RequireTorque を満たす）
-            var generatorTransformer = generatorBlock.GetComponent<IGearEnergyTransformer>();
-            Assert.NotNull(generatorTransformer, "Generator should implement IGearEnergyTransformer");
-            
-            // GearNetworkDatastoreを取得
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            
+            var transformer = pumpBlock.GetComponent<IGearEnergyTransformer>();
+            Assert.NotNull(transformer, "GearPump should implement IGearEnergyTransformer");
+
             var start = DateTime.Now;
             while ((DateTime.Now - start).TotalSeconds < testSeconds)
             {
-                // ジェネレーターに動力を供給（InfinityTorqueなので十分な動力が出る）
-                generatorTransformer.SupplyPower(new RPM(pumpParam.RequiredRpm * 2), new Torque(1000), true);
-                
-                // GearNetworkを手動で更新
-                if (gearNetworkDatastore.GearNetworks.Count > 0)
-                {
-                    var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-                    gearNetwork.ManualUpdate();
-                }
-                
+                transformer.SupplyPower(new RPM(pumpParam.RequiredRpm), new Torque(pumpParam.RequireTorque), true);
                 GameUpdater.UpdateWithWait();
             }
 
@@ -78,30 +62,21 @@ namespace Tests.CombinedTest.Core
 
             // 2) 供給不足（RPMを50%に低下）→ 生成量も50%になる
             // パイプ内を初期化（検証をわかりやすくするために新しい配置に切り替え）
-            world.RemoveBlock(new Vector3Int(2, 0, 0));
-            world.RemoveBlock(new Vector3Int(-2, 0, 0));
-            world.RemoveBlock(new Vector3Int(0, 0, 2));
-            world.RemoveBlock(new Vector3Int(0, 0, -2));
+            world.RemoveBlock(new Vector3Int(1, 0, 0));
+            world.RemoveBlock(new Vector3Int(-1, 0, 0));
+            world.RemoveBlock(new Vector3Int(0, 0, 1));
+            world.RemoveBlock(new Vector3Int(0, 0, -1));
 
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(2, 0, 0), BlockDirection.North, out pipePosX);
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-2, 0, 0), BlockDirection.North, out pipeNegX);
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 2), BlockDirection.North, out pipePosZ);
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -2), BlockDirection.North, out pipeNegZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, out pipePosX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out pipeNegX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out pipePosZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out pipeNegZ);
 
             var halfRpm = new RPM(Math.Max(0.0f, pumpParam.RequiredRpm / 2f));
             start = DateTime.Now;
             while ((DateTime.Now - start).TotalSeconds < testSeconds)
             {
-                // ジェネレーターに半分のRPMを供給
-                generatorTransformer.SupplyPower(halfRpm, new Torque(1000), true);
-                
-                // GearNetworkを手動で更新
-                if (gearNetworkDatastore.GearNetworks.Count > 0)
-                {
-                    var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-                    gearNetwork.ManualUpdate();
-                }
-                
+                transformer.SupplyPower(halfRpm, new Torque(pumpParam.RequireTorque), true);
                 GameUpdater.UpdateWithWait();
             }
 
