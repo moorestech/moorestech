@@ -3846,6 +3846,79 @@
           "outputConnects": []
         }
       }
+    },
+    {
+      "blockGuid": "13806455-551c-4399-a7e7-b45a95709a6b",
+      "name": "GearPump",
+      "blockType": "GearPump",
+      "itemGuid": "c9715726-11d8-4e3f-a925-f460956f3505",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 10,
+            "generateTime": 4
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requireTorque": 5,
+        "requiredRpm": 10,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "inflowConnects": []
+        },
+        "gear": {
+          "gearConnects": []
+        }
+      }
     }
   ]
 }

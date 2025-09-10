@@ -454,6 +454,16 @@
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "c9715726-11d8-4e3f-a925-f460956f3505",
+      "imagePath": "",
+      "name": "GearPump",
+      "maxStack": 100,
+      "sortPriority": 730,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }

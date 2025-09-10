@@ -68,5 +68,6 @@ namespace Tests.Module.TestMod
         public static BlockId BaseCamp1 => GetBlock("9af7370b-9982-4cdb-bee2-c8d4545581af"); // 単一アイテム要求
         public static BlockId BaseCamp2 => GetBlock("9e18bb3d-b821-4f19-a47e-e3718c39eafa"); // 複数アイテム要求
         public static BlockId TransformedBlock => GetBlock("cda19f55-adef-41f4-9212-3ed5f4f926b9"); // 変換後のブロック
+        public static BlockId GearPump => GetBlock("13806455-551c-4399-a7e7-b45a95709a6b");
     }
 }

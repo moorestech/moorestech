@@ -725,7 +725,7 @@
       "name": "石灰粉",
       "maxStack": 100,
       "sortPriority": 880,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -735,7 +735,17 @@
       "name": "鋼鉄",
       "maxStack": 100,
       "sortPriority": 890,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "imagePath": "",
+      "name": "歯車ポンプ",
+      "maxStack": 100,
+      "sortPriority": 900,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     }

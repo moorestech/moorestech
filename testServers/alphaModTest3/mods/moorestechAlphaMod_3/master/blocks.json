@@ -3071,6 +3071,25 @@
           "outflowConnects": []
         }
       }
+    },
+    {
+      "blockGuid": "dfad3e32-798d-425f-9b0e-671d09621f31",
+      "name": "歯車ポンプ",
+      "blockType": "GearPump",
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false
     }
   ]
 }
