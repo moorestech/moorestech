@@ -26,7 +26,8 @@ LOGFILE="$(mktemp -t unity_cli_XXXX).log"
   -executeMethod CliTestRunner.Run \
   -testRegex "$REGEX" \
   -isFromShellScript \
-  -logFile "$LOGFILE"
+  -logFile "$LOGFILE" \
+  -quit
 RET=$?
 
 ###############################################################################
@@ -36,11 +37,15 @@ RET=$?
 if grep -q "Unhandled log message: '\[Assert\] Calling EndWrite before BeginWrite'" "$LOGFILE"; then
   echo "不明なエラーが発生したため、テスト結果が出力できませんでした。テストを再実行してください。"
   RET=1
-elif [ $RET -eq 2 ] || grep -q "Scripts have compiler errors" "$LOGFILE"; then
+elif [ $RET -eq 2 ] || \
+     grep -q "Scripts have compiler errors" "$LOGFILE" || \
+     grep -qE "error CS[0-9]{4}:" "$LOGFILE" || \
+     grep -q "Safe Mode" "$LOGFILE"
+then
   # --- ❶ コンパイルエラー行を抽出 ------------------------------------------
   echo "❌ Compile errors detected"
   #   Unity が出力する例: Assets/Scripts/Foo.cs(12,18): error CS1002: ; expected
-  #   error CS でも error CSxxxx でも取得
+  #   error CSxxxx を取得
   grep -E "error CS[0-9]{4}:" "$LOGFILE" | sed 's/^/    /'
   echo "❌ Compilation failed — tests were not executed"
   RET=1        # CI で失敗扱いにしたいので必ず 1
