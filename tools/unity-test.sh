@@ -45,8 +45,7 @@ LOGFILE="$(mktemp -t unity_cli_XXXX).log"
   -testRegex "$REGEX" \
   -isFromShellScript \
   -logFile "$LOGFILE" \
-  $BATCH_OPTS \
-  -quit
+  $BATCH_OPTS
 RET=$?
 
 ###############################################################################
@@ -77,7 +76,9 @@ fi
 # 最終メッセージ
 ###############################################################################
 # EndWrite before BeginWrite エラーの場合は最終メッセージを出力しない
-if grep -q "Unhandled log message: '\[Assert\] Calling EndWrite before BeginWrite'" "$LOGFILE"; then
+if grep -q "Unhandled log message: '\[Assert\] Calling EndWrite before BeginWrite'" "$LOGFILE" || \
+     grep -q "No tests matched" "$LOGFILE"
+then
   : # 何も出力しない
 elif [ $RET -eq 0 ]; then
   echo "✅  All matching tests passed"
