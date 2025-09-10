@@ -7,6 +7,7 @@ using Game.EnergySystem;
 using Game.Fluid;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -19,7 +20,6 @@ namespace Game.Block.Blocks.Gear
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly GearPumpFluidOutputComponent _output;
 
-        //指摘　独自のGearPumpFluidOutputComponentを定義するのではなく、FluidPipeComponentで代用することはできないか？
         public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, GearPumpFluidOutputComponent output)
         {
             _param = param;
@@ -37,10 +37,7 @@ namespace Game.Block.Blocks.Gear
             var supplied = _gearEnergyTransformer.CalcMachineSupplyPower(requiredRpm, requiredTorque);
             var requiredPower = requiredRpm.AsPrimitive() * requiredTorque.AsPrimitive();
             var powerRate = requiredPower <= 0 ? 0f : supplied.AsPrimitive() / requiredPower;
-            
-            //指摘　ここはClampにして
-            if (powerRate < 0) powerRate = 0;
-            if (powerRate > 1) powerRate = 1;
+            powerRate = Mathf.Clamp(powerRate, 0f, 1f);
 
             // Generate fluids scaled by powerRate
             var dt = (float)GameUpdater.UpdateSecondTime;
@@ -64,4 +61,3 @@ namespace Game.Block.Blocks.Gear
         }
     }
 }
-
