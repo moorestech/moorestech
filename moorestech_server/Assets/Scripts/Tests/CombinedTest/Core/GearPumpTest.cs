@@ -85,6 +85,38 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(expectedHalf, halfAmount, expectedHalf * 0.3f, "Half power should generate ~50% amount");
         }
 
+        [Test]
+        public void GenerateFluid_WithAdjacentInfinityTorqueGenerator()
+        {
+            // Arrange: DI起動
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var world = ServerContext.WorldBlockDatastore;
+
+            // GearPumpを原点に設置。ポンプの周囲3方向にパイプを設置（+Xはジェネレーター用に空ける）
+            world.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, out var pumpBlock);
+
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var pipeNegX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var pipePosZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var pipeNegZ);
+
+            // InfinityTorqueSimpleGearGeneratorを+Xに隣接設置（常時トルク供給）
+            world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, out var generatorBlock);
+
+            // 起動・接続安定化のため少しアップデート
+            var testDurationSec = 2.5f;
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).TotalSeconds < testDurationSec)
+            {
+                GameUpdater.UpdateWithWait();
+            }
+
+            // ポンプの出力先パイプに液体が生成されていること（> 0）を確認
+            var totalOut = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
+            Assert.Greater(totalOut, 0, "Adjacent InfinityTorque generator should power pump to output fluid.");
+            
+        }
+
         #region Internal
 
         private static double GetPipeAmount(IBlock pipeBlock)
