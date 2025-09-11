@@ -26,6 +26,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         public void UpdateWaterLevel(float waterLevel)
         {
+            if (waterLevelTransform == null) return;
+            
             waterLevelTransform.position = new Vector3(0.5f, (waterLevel + 0.5f) * 0.5f, 0.5f);
             waterLevelTransform.localScale = new Vector3(Mathf.Sqrt(1 - Mathf.Pow(waterLevel * 2 - 1, 2)) * 0.5f, 1, 1);
             
