@@ -41,7 +41,7 @@ namespace Client.Mod.Texture
             {
                 var fluidMaster = MasterHolder.FluidMaster.GetFluidMaster(fluidId);
                 
-                var path = string.IsNullOrEmpty(fluidMaster.ImagePath) ? Path.Combine("assets", "item", $"{fluidMaster.Name}.png") : fluidMaster.ImagePath;
+                var path = Path.Combine("assets", "fluid", $"{fluidMaster.Name}.png");
                 
                 var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
                 textureList.Add(new FluidViewData(texture, fluidMaster));

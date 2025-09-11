@@ -122,7 +122,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var param = BlockGameObject.BlockMasterElement.BlockParam as IMachineParam;
                 
                 // 入力スロットの更新
-                for (var i = 0; i < param.InputSlotCount && i < fluidState.InputTanks.Count; i++)
+                for (var i = 0; i < fluidState.InputTanks.Count; i++)
                 {
                     var fluidInfo = fluidState.InputTanks[i];
                     var fluidId = new FluidId(fluidInfo.FluidId);
@@ -132,8 +132,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 }
                 
                 // 出力スロットの更新
-                var outputStartIndex = param.InputSlotCount;
-                for (var i = 0; i < param.OutputSlotCount && i < fluidState.OutputTanks.Count; i++)
+                var outputStartIndex = param.InputTankCount;
+                for (var i = 0; i < fluidState.OutputTanks.Count; i++)
                 {
                     var fluidInfo = fluidState.OutputTanks[i];
                     var fluidId = new FluidId(fluidInfo.FluidId);
