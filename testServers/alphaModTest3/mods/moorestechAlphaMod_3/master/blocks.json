@@ -2782,7 +2782,7 @@
         1,
         1
       ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraight",
+      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraightWindow",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
@@ -2898,9 +2898,9 @@
       "blockType": "ElectricMachine",
       "itemGuid": "b62e1cf2-ab6c-4a43-b134-74e3d85e3caa",
       "blockSize": [
-        1,
-        1,
-        1
+        3,
+        5,
+        3
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Boyler",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
@@ -3072,9 +3072,9 @@
       "blockType": "GearPump",
       "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
       "blockSize": [
+        2,
         1,
-        1,
-        1
+        2
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/GearPump",
       "blockUIAddressablesPath": "",

@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 6989336683146004095}
   - component: {fileID: 1120591757194633287}
   - component: {fileID: 131543095466679876}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -369,7 +369,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5883432744439673512}
   - component: {fileID: 7866576508506021417}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GearPump
   m_TagString: Untagged
   m_Icon: {fileID: 0}
