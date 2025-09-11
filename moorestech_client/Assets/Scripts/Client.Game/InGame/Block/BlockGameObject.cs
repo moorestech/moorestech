@@ -83,6 +83,7 @@ namespace Client.Game.InGame.Block
             
             void SubscribeBlockState()
             {
+                var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(posInfo);
                 ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag,
                     payload =>
                     {
