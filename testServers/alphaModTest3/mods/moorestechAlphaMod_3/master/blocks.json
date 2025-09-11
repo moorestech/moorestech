@@ -2922,7 +2922,7 @@
             {
               "connectType": "Fluid",
               "offset": [
-                3,
+                2,
                 0,
                 1
               ],
@@ -2935,7 +2935,7 @@
               ],
               "connectOption": {
                 "flowCapacity": 10,
-                "connectTankIndex": 1
+                "connectTankIndex": 0
               }
             }
           ],
