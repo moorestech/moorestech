@@ -2782,7 +2782,7 @@
         1,
         1
       ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraight",
+      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraightWindow",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
@@ -2898,9 +2898,9 @@
       "blockType": "ElectricMachine",
       "itemGuid": "b62e1cf2-ab6c-4a43-b134-74e3d85e3caa",
       "blockSize": [
-        1,
-        1,
-        1
+        3,
+        5,
+        3
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Boyler",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
@@ -2914,10 +2914,189 @@
         "requiredPower": 0,
         "inputSlotCount": 5,
         "outputSlotCount": 0,
-        "inputTankCount": 0,
-        "outputTankCount": 5,
-        "innerTankCapacity": 1,
+        "inputTankCount": 1,
+        "outputTankCount": 1,
+        "innerTankCapacity": 200,
         "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 1
+              }
+            }
+          ],
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "532b0907-ab1a-46e6-b4d7-ed6363544e34",
+      "name": "蒸気機関",
+      "blockType": "SteamGearGenerator",
+      "itemGuid": "2b40caf7-bec9-45f8-81a5-a95a10c311de",
+      "blockSize": [
+        2,
+        5,
+        11
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/static steam engine",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "teethCount": 10,
+        "generateMaxRpm": 60,
+        "generateMaxTorque": 100,
+        "timeToMax": 30,
+        "timeToMaxEasing": "Linear",
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                2,
+                3,
+                8
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "fluidCapacity": 100,
+        "requiredFluids": [
+          {
+            "fluidGuid": "a6d350b4-ff9e-46c0-8c29-dcfb4488bacc",
+            "amount": 5,
+            "consumptionTime": 1
+          }
+        ],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "46725c68-888b-4346-a650-db7738cbc9e1",
+      "name": "歯車ポンプ",
+      "blockType": "GearPump",
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "blockSize": [
+        2,
+        1,
+        2
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/GearPump",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "1cb67dbf-df47-462d-a1bc-44f68f12bdb3",
+            "amount": 5,
+            "generateTime": 3
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requireTorque": 10,
+        "requiredRpm": 5,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
           "outflowConnects": [
             {
               "connectType": "Fluid",
@@ -2949,49 +3128,18 @@
                 ]
               ],
               "connectOption": {
-                "flowCapacity": 10,
+                "flowCapacity": 5,
                 "connectTankIndex": 0
               }
             }
-          ],
-          "inflowConnects": []
+          ]
         },
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
-        }
-      }
-    },
-    {
-      "blockGuid": "532b0907-ab1a-46e6-b4d7-ed6363544e34",
-      "name": "蒸気機関",
-      "blockType": "SteamGearGenerator",
-      "itemGuid": "2b40caf7-bec9-45f8-81a5-a95a10c311de",
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/static steam engine",
-      "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
-      "enableConveyorPlacement": false,
-      "blockParam": {
-        "teethCount": 10,
-        "generateMaxRpm": 60,
-        "generateMaxTorque": 100,
-        "timeToMax": 30,
-        "timeToMaxEasing": "Linear",
         "gear": {
           "gearConnects": [
             {
               "connectType": "Gear",
               "offset": [
-                0,
+                1,
                 0,
                 0
               ],
@@ -3022,53 +3170,6 @@
               }
             }
           ]
-        },
-        "fluidCapacity": 100,
-        "requiredFluids": [
-          {
-            "fluidGuid": "a6d350b4-ff9e-46c0-8c29-dcfb4488bacc",
-            "amount": 5,
-            "consumptionTime": 1
-          }
-        ],
-        "fluidInventoryConnectors": {
-          "inflowConnects": [
-            {
-              "connectType": "Fluid",
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectOption": {
-                "flowCapacity": 10,
-                "connectTankIndex": 0
-              }
-            }
-          ],
-          "outflowConnects": []
         }
       }
     }
