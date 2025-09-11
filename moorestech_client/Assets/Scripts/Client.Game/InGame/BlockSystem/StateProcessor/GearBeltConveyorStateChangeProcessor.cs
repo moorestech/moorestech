@@ -19,13 +19,5 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         {
             _currentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }
-        
-        private void Update()
-        {
-            if (_currentGearState == null) return;
-            
-            _offset.x += _currentGearState.CurrentRpm / 60 * Time.time * speed;
-            meshRenderer.sharedMaterial.SetTextureOffset(BaseMap, _offset);
-        }
     }
 }
