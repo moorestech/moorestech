@@ -35,6 +35,10 @@ defineInterface:
   properties:
   - key: inventoryConnectors
     ref: inventoryConnects
+- interfaceName: IGearConnectors
+  properties:
+    - key: gear
+      ref: gear
 
 properties:
 - key: data
@@ -230,6 +234,8 @@ properties:
           ref: gear
       - when: Shaft
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: requireTorque
           type: number
@@ -242,6 +248,7 @@ properties:
         - IMachineParam
         - IGearMachineParam
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: inputSlotCount
           type: integer
@@ -275,6 +282,8 @@ properties:
           ref: fluidInventoryConnects
       - when: SimpleGearGenerator
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -289,6 +298,8 @@ properties:
           ref: gear
       - when: SteamGearGenerator
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -343,6 +354,7 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -393,6 +405,7 @@ properties:
         implementationInterface:
         - IGearMachineParam
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -418,6 +431,7 @@ properties:
         - IChestParam
         - IGearMachineParam
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -564,6 +578,8 @@ properties:
             displayElementPath: /data/[*]/name
       - when: GearPump
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: generateFluid
           type: array

@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Block;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface.State;
 using Server.Event.EventReceive;
@@ -11,6 +12,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public class CommonMachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
+        public void Initialize(BlockGameObject blockGameObject) { }
+        
         public void OnChangeState(BlockStateMessagePack blockState)
         {
             var state = blockState.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);

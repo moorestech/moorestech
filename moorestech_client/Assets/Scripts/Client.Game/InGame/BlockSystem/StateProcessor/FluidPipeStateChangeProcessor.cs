@@ -1,4 +1,5 @@
 ﻿using System;
+using Client.Game.InGame.Block;
 using Game.Fluid;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -29,6 +30,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             
             UpdateWaterLevel(_currentFluidPipeState.Amount / _currentFluidPipeState.Capacity);
         }
+        
+        public void Initialize(BlockGameObject blockGameObject) { }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {

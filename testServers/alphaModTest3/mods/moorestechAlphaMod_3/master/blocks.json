@@ -2912,7 +2912,7 @@
       "enableConveyorPlacement": false,
       "blockParam": {
         "requiredPower": 0,
-        "inputSlotCount": 5,
+        "inputSlotCount": 1,
         "outputSlotCount": 0,
         "inputTankCount": 1,
         "outputTankCount": 1,
@@ -3015,8 +3015,8 @@
             {
               "connectType": "Gear",
               "offset": [
+                1,
                 2,
-                3,
                 8
               ],
               "directions": [
