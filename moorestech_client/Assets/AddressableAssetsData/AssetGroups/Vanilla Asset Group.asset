@@ -55,6 +55,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0d176e3dd7401408b91fd6abfa557f21
+    m_Address: Vanilla/Block/Util/GearConnectorView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 107503fe8cad07c4994e7e2c837e8bb0
     m_Address: Vanilla/Block/Fast_BeltConveyor_T
     m_ReadOnly: 0
@@ -442,6 +447,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a819d4d8e87d2d5429bf8bfe484fce58
     m_Address: Vanilla/Block/WoodenFoundationStairs
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9e2e36a8281341579f99adcc8f9347a
+    m_Address: Vanilla/Block/Util/GearConnectorLineView
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
