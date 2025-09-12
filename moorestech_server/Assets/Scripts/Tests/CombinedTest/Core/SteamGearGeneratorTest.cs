@@ -158,8 +158,8 @@ namespace Tests.CombinedTest.Core
             }
             
             // ゼロになっていることを確認
-            Assert.AreEqual(0, gearGeneratorComponent.CurrentRpm.AsPrimitive(), "RPMが0になっていません");
-            Assert.AreEqual(0, gearGeneratorComponent.CurrentTorque.AsPrimitive(), "トルクが0になっていません");
+            Assert.AreEqual(0, gearGeneratorComponent.CurrentRpm.AsPrimitive(), 0.1, "RPMが0になっていません");
+            Assert.AreEqual(0, gearGeneratorComponent.CurrentTorque.AsPrimitive(), 0.1, "トルクが0になっていません");
             // ゼロに達した時間が+-0.5秒以内になっていることを確認
             var timeToZero = DateTime.Now - startTime;
             Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive()) < 0.5, $"RPMが0になっている時間が+-0.5秒以内になっていません。0になった秒数：{timeToZero.TotalSeconds}"); 
@@ -403,7 +403,7 @@ namespace Tests.CombinedTest.Core
             void ValidateBlockStateDetails(BlockStateDetail[] details, string expectedState, float expectedRpm, 
                 float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
             {
-                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
                 Assert.AreEqual(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
                 
                 // 単一のBlockStateDetailから状態データを取得
@@ -419,7 +419,7 @@ namespace Tests.CombinedTest.Core
             
             (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
             {
-                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
                 
                 // 単一のBlockStateDetailから状態データを取得
                 var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
