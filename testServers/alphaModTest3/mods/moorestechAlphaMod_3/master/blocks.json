@@ -3036,7 +3036,7 @@
         "requiredFluids": [
           {
             "fluidGuid": "a6d350b4-ff9e-46c0-8c29-dcfb4488bacc",
-            "amount": 5,
+            "amount": 0.1,
             "consumptionTime": 1
           }
         ],

@@ -4244,6 +4244,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5472978091728215009}
   - component: {fileID: 5875213807572921758}
+  - component: {fileID: 732146308378326896}
   m_Layer: 7
   m_Name: static steam engine
   m_TagString: Untagged
@@ -4290,6 +4291,87 @@ MonoBehaviour:
     rpm60Speed: 2.5
     isReverse: 0
     rotationSpeed: 1
+--- !u!114 &732146308378326896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7152712139784919903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 054d87831e9b44e5aea89582f42b7ea0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualEffect: {fileID: 5504513973510221741}
+  rateMaxValue: 25
+  rateCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.0054359324
+      value: 0.1605764
+      inSlope: 1.5263897
+      outSlope: 1.5263897
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.061999626
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  rateSizeValue: 1.25
+  sizeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.0054359324
+      value: 0.1605764
+      inSlope: 1.5263897
+      outSlope: 1.5263897
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.061999626
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &7289347223471085791
 GameObject:
   m_ObjectHideFlags: 0
@@ -5752,6 +5834,34 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[0].m_Name
+      value: Rate
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[1].m_Name
+      value: Size
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[0].m_Value
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[1].m_Value
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[0].m_Overridden
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+      propertyPath: m_PropertySheet.m_Float.m_Array.Array.data[1].m_Overridden
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7168059181342127312, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.929
@@ -5797,6 +5907,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+--- !u!2083052967 &5504513973510221741 stripped
+VisualEffect:
+  m_CorrespondingSourceObject: {fileID: 4755048966881366041, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
+  m_PrefabInstance: {fileID: 981403862085500852}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7990698848233360228 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7168059181342127312, guid: dc4b113f5fc20c848bed7f771da2c36c, type: 3}
