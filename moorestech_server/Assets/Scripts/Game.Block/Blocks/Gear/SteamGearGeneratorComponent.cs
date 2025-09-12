@@ -94,8 +94,6 @@ namespace Game.Block.Blocks.Gear
             
             UpdateState();
             UpdateOutput();
-            
-            Debug.Log($"[SteamGearGenerator] State: {_currentState}, Rate: {_steamConsumptionRate:F2}, RPM: {GenerateRpm.AsPrimitive():F2}, CurrentRpm: {CurrentRpm.AsPrimitive():F2}");
         }
         
         private void UpdateState()
