@@ -46,7 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // イベントが発行されたことを確認
             var events = eventProtocolProvider.GetEventBytesList(playerId);
             Assert.AreEqual(1, events.Count);
-            Assert.AreEqual(ChangeBlockStateEventPacket.EventTag, events[0].Tag);
+            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPositionInfo);
+            Assert.AreEqual(eventTag, events[0].Tag);
             
             // イベントペイロードの確認
             var blockStateMessage = MessagePackSerializer.Deserialize<BlockStateMessagePack>(events[0].Payload);
