@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -12,6 +13,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private List<RotationInfo> rotationInfos;
         
         private GearStateDetail _currentGearState;
+        
+        public void Initialize(BlockGameObject blockGameObject) { }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {

@@ -57,6 +57,9 @@ namespace Client.Game.InGame.Block
                 groundCollisionDetector.enabled = false;
             }
             
+            // BlockStateChangeProcessorsの初期化
+            foreach (var state in BlockStateChangeProcessors) state.Initialize(this);
+            
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
             OffPreviewOnlyObjectsActive();
