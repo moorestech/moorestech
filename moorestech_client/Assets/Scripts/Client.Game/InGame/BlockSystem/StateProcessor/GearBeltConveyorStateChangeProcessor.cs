@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Block;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         private Vector2 _offset;
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
+        
+        public void Initialize(BlockGameObject blockGameObject) { }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {
