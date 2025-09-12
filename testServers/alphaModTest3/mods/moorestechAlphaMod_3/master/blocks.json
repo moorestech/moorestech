@@ -3015,8 +3015,8 @@
             {
               "connectType": "Gear",
               "offset": [
+                1,
                 2,
-                3,
                 8
               ],
               "directions": [
