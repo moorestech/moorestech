@@ -1,3 +1,46 @@
 {
-  "data": []
+  "data": [
+    {
+      "researchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
+      "researchNodetName": "New Research",
+      "researchNodeDescription": "New Research Description",
+      "prevResearchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
+      "clearedActions": [
+        {
+          "challengeActionType": ""
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "a3d1c63b-b14c-44ba-aae9-22f7c621b72d",
+      "researchNodetName": "New Research",
+      "researchNodeDescription": "New Research Description",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    }
+  ]
 }
