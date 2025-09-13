@@ -180,26 +180,4 @@ properties:
         - key: clearedActions
           ref: challengeAction
         - key: displayListParam
-          type: object
-          isDefaultOpen: true
-          properties:
-          - key: UIPosition
-            type: vector2
-            default:
-            - 0
-            - 0
-            overrideCodeGeneratePropertyName: DisplayInChallengeListPosition
-          - key: UIScale
-            type: vector3
-            default:
-            - 1
-            - 1
-            - 1
-            overrideCodeGeneratePropertyName: DisplayInChallengeListScale
-          - key: IconItem
-            type: uuid
-            foreignKey:
-              schemaId: items
-              foreignKeyIdPath: /data/[*]/itemGuid
-              displayElementPath: /data/[*]/name
-            overrideCodeGeneratePropertyName: DisplayInChallengeListIconItemGuid
+          ref: graphViewSettings
