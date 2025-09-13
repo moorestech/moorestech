@@ -1,0 +1,22 @@
+id: graphViewSettings
+overrideCodeGeneratePropertyName: GraphViewSettingsMasterElement
+type: object
+isDefaultOpen: true
+properties:
+- key: UIPosition
+  type: vector2
+  default:
+  - 0
+  - 0
+- key: UIScale
+  type: vector3
+  default:
+  - 1
+  - 1
+  - 1
+- key: IconItem
+  type: uuid
+  foreignKey:
+    schemaId: items
+    foreignKeyIdPath: /data/[*]/itemGuid
+    displayElementPath: /data/[*]/name
