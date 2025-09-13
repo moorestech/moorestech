@@ -1339,7 +1339,8 @@
         "horizontalBlockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
         "downBlockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115"
       },
-      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter straight"
+      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter straight",
+      "enableConveyorPlacement": true
     },
     {
       "blockSize": [
@@ -2638,7 +2639,7 @@
       "enableConveyorPlacement": false,
       "blockParam": {
         "teethCount": 5,
-        "requireTorque": 20,
+        "requireTorque": 30,
         "requiredRpm": 10,
         "outputItemSlotCount": 5,
         "mineSettings": [
@@ -2720,7 +2721,7 @@
         "inputSlotCount": 3,
         "outputSlotCount": 3,
         "teethCount": 10,
-        "requireTorque": 10,
+        "requireTorque": 30,
         "requiredRpm": 10,
         "gear": {
           "gearConnects": [
@@ -3006,8 +3007,8 @@
       "enableConveyorPlacement": false,
       "blockParam": {
         "teethCount": 10,
-        "generateMaxRpm": 60,
-        "generateMaxTorque": 100,
+        "generateMaxRpm": 30,
+        "generateMaxTorque": 300,
         "timeToMax": 30,
         "timeToMaxEasing": "Linear",
         "gear": {
