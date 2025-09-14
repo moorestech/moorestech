@@ -1,13 +1,9 @@
 {
-  "name": "Game.Research",
+  "name": "Game.Action",
   "rootNamespace": "",
   "references": [
     "Core.Master",
-    "Game.Action",
-    "Game.PlayerInventory.Interface",
-    "UniRx",
-    "Core.Item.Interface",
-    "Core.Inventory"
+    "Game.UnlockState"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
