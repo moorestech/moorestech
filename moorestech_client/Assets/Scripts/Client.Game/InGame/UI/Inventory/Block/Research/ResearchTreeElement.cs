@@ -20,16 +20,17 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         [SerializeField] private TMP_Text title;
         [SerializeField] private TMP_Text description;
 
-        public ResearchNodeMasterElement Node { get; private set; }
+        public ResearchNodeData Node { get; private set; }
 
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
 
-        public void SetResearchNode(ResearchNodeMasterElement node)
+        public void SetResearchNode(ResearchNodeData node)
         {
             Node = node;
 
-            var view = node.GraphViewSettings;
+            var master = node.MasterElement;
+            var view = master.GraphViewSettings;
             rectTransform.anchoredPosition = view.UIPosition;
             rectTransform.localScale = view.UIScale;
 
@@ -40,8 +41,8 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 IsShowToolTip = false,
             });
 
-            title.text = node.ResearchNodetName;
-            description.text = node.ResearchNodeDescription;
+            title.text = master.ResearchNodetName;
+            description.text = master.ResearchNodeDescription;
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)
@@ -50,7 +51,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             ClearConnectLines();
 
             // 前のノードがある場合、線を引く
-            var prevGuid = Node.PrevResearchNodeGuid;
+            var prevGuid = Node.MasterElement.PrevResearchNodeGuid;
             if (prevGuid == Guid.Empty) return;
 
             if (nodeElements.TryGetValue(prevGuid, out var prevNodeElement))

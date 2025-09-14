@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         private readonly Dictionary<Guid, ResearchTreeElement> _nodeElements = new();
 
-        public void SetResearchNodes(IEnumerable<ResearchNodeMasterElement> nodes)
+        public void SetResearchNodes(IEnumerable<ResearchNodeData> nodes)
         {
             // 既存の要素をクリア
             ClearNodeElements();
@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             {
                 var nodeElement = Instantiate(nodeElementPrefab, nodeListParent);
                 nodeElement.SetResearchNode(node);
-                _nodeElements.Add(node.ResearchNodeGuid, nodeElement);
+                _nodeElements.Add(node.MasterElement.ResearchNodeGuid, nodeElement);
             }
 
             // 接続線を作成
