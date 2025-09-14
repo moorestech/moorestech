@@ -8,7 +8,6 @@ using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
-using Game.Action;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftChainer;
@@ -23,8 +22,6 @@ using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.Paths;
-using Game.Research;
-using Game.Research.Interface;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -122,11 +119,6 @@ namespace Server.Boot
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
 
-            // Research System
-            services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
-            services.AddSingleton<ResearchEvent, ResearchEvent>();
-            services.AddSingleton<IResearchDataStore, ResearchDataStore>();
-
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
@@ -151,7 +143,6 @@ namespace Server.Boot
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
-            services.AddSingleton<ResearchStateEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -176,7 +167,6 @@ namespace Server.Boot
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
-            serviceProvider.GetService<ResearchStateEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 
