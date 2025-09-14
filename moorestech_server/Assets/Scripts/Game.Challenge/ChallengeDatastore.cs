@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Core.Update;
+using Game.Action;
 using Game.Challenge.Task;
 using Game.Challenge.Task.Factory;
 using Game.UnlockState;
@@ -19,12 +20,13 @@ namespace Game.Challenge
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly ChallengeEvent _challengeEvent;
         private readonly ChallengeFactory _challengeFactory = new();
-        
-        
-        public ChallengeDatastore(IGameUnlockStateDataController gameUnlockStateDataController, ChallengeEvent challengeEvent)
+        private readonly IGameActionExecutor _gameActionExecutor;
+
+        public ChallengeDatastore(IGameUnlockStateDataController gameUnlockStateDataController, ChallengeEvent challengeEvent, IGameActionExecutor gameActionExecutor)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
+            _gameActionExecutor = gameActionExecutor;
             GameUpdater.UpdateObservable.Subscribe(Update);
             
             // カテゴリアンロック時のイベントを購読
@@ -43,10 +45,19 @@ namespace Game.Challenge
             foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
                 // アンロックされていないカテゴリはスキップ
-                if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos.ContainsKey(category.CategoryGuid)) continue;
-                if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos[category.CategoryGuid].IsUnlocked) continue;
+                if (!_gameUnlockStateDataController.ChallengeCategoryUnlockStateInfos.TryGetValue(category.CategoryGuid, out var info)) continue;
+                if (!info.IsUnlocked) continue;
                 
-                foreach (var challengeElement in category.Challenges)
+                CreateInitialChallenge(category.Challenges);
+            }
+            
+            return result;
+            
+            #region Internal
+            
+            void CreateInitialChallenge(ChallengeMasterElement[] categoryChallenges)
+            {
+                foreach (var challengeElement in categoryChallenges)
                 {
                     // initialUnlockedがtrueかつ前提条件がないチャレンジを初期チャレンジとする
                     if (challengeElement.PrevChallengeGuids != null && challengeElement.PrevChallengeGuids.Length != 0) continue;
@@ -55,14 +66,11 @@ namespace Game.Challenge
                     result.Add(challenge);
                     
                     // チャレンジスタートのアクションを実行
-                    foreach (var action in challengeElement.StartedActions.items)
-                    {
-                        ExecuteChallengeAction(action);
-                    }
+                    _gameActionExecutor.ExecuteActions(challengeElement.StartedActions.items);
                 }
             }
             
-            return result;
+            #endregion
         }
         
         private void Update(Unit unit)
@@ -95,10 +103,7 @@ namespace Game.Challenge
                 CurrentChallengeInfo.CurrentChallenges.Add(challenge);
                 
                 // チャレンジスタートのアクションを実行
-                foreach (var action in challengeElement.StartedActions.items)
-                {
-                    ExecuteChallengeAction(action);
-                }
+                _gameActionExecutor.ExecuteActions(challengeElement.StartedActions.items);
             }
         }
         
@@ -197,7 +202,7 @@ namespace Game.Challenge
                 
                 // 新規で追加されたレシピやアイテムをアンロックするため、ロードのたびにアンロック系クリアアクションを実行
                 // To unlock newly added recipes and items, perform unlock clear actions every time you load the game.
-                ExecuteUnlockActions(challengeElement.ClearedActions.items);
+                _gameActionExecutor.ExecuteUnlockActions(challengeElement.ClearedActions.items);
             }
             
             
@@ -233,26 +238,11 @@ namespace Game.Challenge
                     
                     // 新たにマスタで追加されたチャレンジの可能性もあるため、アンロック系だけ実行しておく
                     // There may be new challenges added by the master, so only run the unlocking ones.
-                    ExecuteUnlockActions(next.ChallengeMasterElement.StartedActions.items);
+                    _gameActionExecutor.ExecuteUnlockActions(next.ChallengeMasterElement.StartedActions.items);
                 }
             }
             
-            void ExecuteUnlockActions(ChallengeActionElement[] actions)
-            {
-                foreach (var action in actions)
-                {
-                    switch (action.ChallengeActionType)
-                    {
-                        case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
-                        case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
-                        case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
-                            ExecuteChallengeAction(action);
-                            break;
-                    }
-                }
-            }
-            
-#endregion
+            #endregion
         }
         
         public ChallengeJsonObject GetSaveJsonObject()
@@ -299,31 +289,6 @@ namespace Game.Challenge
         
         private void ExecuteChallengeAction(ChallengeActionElement action)
         {
-            switch (action.ChallengeActionType)
-            {
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
-                    var unlockRecipeGuids = ((UnlockCraftRecipeChallengeActionParam) action.ChallengeActionParam).UnlockRecipeGuids;
-                    foreach (var guid in unlockRecipeGuids)
-                    {
-                        _gameUnlockStateDataController.UnlockCraftRecipe(guid);
-                    }
-                    break;
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
-                    var itemGuids = ((UnlockItemRecipeViewChallengeActionParam) action.ChallengeActionParam).UnlockItemGuids;
-                    foreach (var itemGuid in itemGuids)
-                    {
-                        var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
-                        _gameUnlockStateDataController.UnlockItem(itemId);
-                    }
-                    break;
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
-                    var challenges = ((UnlockChallengeCategoryChallengeActionParam) action.ChallengeActionParam).UnlockChallengeCategoryGuids;
-                    foreach (var guid in challenges)
-                    {
-                        _gameUnlockStateDataController.UnlockChallenge(guid);
-                    }
-                    break;
-            }
         }
     }
     
