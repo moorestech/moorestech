@@ -1,9 +1,9 @@
 {
   "feature_name": "research-system-implementation",
   "created_at": "2025-01-14T15:30:00Z",
-  "updated_at": "2025-01-14T15:45:00Z",
+  "updated_at": "2025-01-14T16:00:00Z",
   "language": "japanese",
-  "phase": "design-generated",
+  "phase": "design-updated",
   "approvals": {
     "requirements": {
       "generated": true,
