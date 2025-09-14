@@ -21,9 +21,9 @@
 ## 2. 研究マスターデータ構造の実装
 
 ### 2.1 ResearchMasterクラスの実装
-- [ ] `ResearchMaster`クラスを作成
-- [ ] 研究ノード検索メソッド`GetResearchNode(Guid id)`を実装
-- [ ] `MasterHolder`に`ResearchMaster`プロパティを追加
+- [x] `ResearchMaster`クラスを作成
+- [x] 研究ノード検索メソッド`GetResearchNode(Guid id)`を実装
+- [x] `MasterHolder`に`ResearchMaster`プロパティを追加
 - **対応要件**: REQ-002
 
 ## 3. ResearchDataStoreの実装
