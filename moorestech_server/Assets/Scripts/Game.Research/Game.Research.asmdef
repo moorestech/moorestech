@@ -1,3 +1,21 @@
 {
-  "name": "Game.Research"
+  "name": "Game.Research",
+  "rootNamespace": "",
+  "references": [
+    "Core.Master",
+    "Game.Action",
+    "Game.PlayerInventory.Interface",
+    "UniRx",
+    "Core.Item.Interface",
+    "Core.Inventory"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }
