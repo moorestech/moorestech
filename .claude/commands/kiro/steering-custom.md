@@ -27,7 +27,6 @@ You will create a new custom steering document based on user requirements. Commo
    - REST/GraphQL conventions
    - Error handling patterns
    - Authentication/authorization approaches
-   - Rate limiting and pagination
    - API versioning strategy
 
 2. **Testing Approach** (`testing.md`)
