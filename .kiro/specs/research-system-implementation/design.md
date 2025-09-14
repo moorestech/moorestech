@@ -3,14 +3,19 @@
 ## 概要
 本ドキュメントは、Moorestechゲームにおける研究システムの技術設計を定義します。既存のChallengeDatastore、GameUnlockStateDataController、MasterHolderなどの実装パターンに従い、一貫性のあるアーキテクチャで設計します。
 
+### 重要な設計方針
+- **アクション実行の共通化**: 新規にGameActionExecutorクラスを作成し、ChallengeDatastoreと研究システムの両方が利用
+- **データ構造の共通化**: ChallengeActionElement型を共通のアクション定義として使用
+- **ワールド単位の管理**: 研究進捗はプレイヤーごとではなくワールド単位で管理
+
 ## 要件マッピング
 
 ### 設計コンポーネントと要件の対応
 - **ResearchDataStore** → 要件1: 研究完了状態の管理（ワールド単位）
 - **ResearchMaster** → 要件2: 前提条件の検証
+- **GameActionExecutor** → 要件5: アクション実行システム（共通化）
 - **アイテム消費処理** → 要件3: アイテム消費の処理
 - **プロトコル実装** → 要件4: 研究完了プロトコル
-- **アクション実行** → 要件5: アクション実行システム（ChallengeDatastoreと共通化）
 
 ## アーキテクチャ概要
 
@@ -19,13 +24,99 @@
 
 1. **マスターデータ層**: ResearchMasterによる研究定義の管理
 2. **データ層**: ワールド単位での研究進捗データの管理と永続化
-3. **ビジネスロジック層**: 研究完了条件の検証とアクション実行（既存システムと共通化）
-4. **プロトコル層**: クライアント・サーバー間の通信
-5. **イベント層**: 状態変更の通知
+3. **ビジネスロジック層**: 研究完了条件の検証とアクション実行
+4. **アクション実行層**: GameActionExecutorによる共通アクション処理
+5. **プロトコル層**: クライアント・サーバー間の通信
+6. **イベント層**: 状態変更の通知
 
 ## 詳細設計
 
-### 1. マスターデータ実装
+### 1. アクション実行専用クラス（新規作成）
+
+#### GameActionExecutor
+ChallengeDatastoreのExecuteChallengeActionメソッドのロジックを切り出し、共通化
+
+```csharp
+namespace Game.Action
+{
+    public interface IGameActionExecutor
+    {
+        void ExecuteAction(ChallengeActionElement action);
+    }
+
+    public class GameActionExecutor : IGameActionExecutor
+    {
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+
+        public GameActionExecutor(IGameUnlockStateDataController gameUnlockStateDataController)
+        {
+            _gameUnlockStateDataController = gameUnlockStateDataController;
+        }
+
+        public void ExecuteAction(ChallengeActionElement action)
+        {
+            // ChallengeDatastoreのExecuteChallengeActionメソッドから移動
+            switch (action.ChallengeActionType)
+            {
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
+                    var unlockRecipeGuids = ((UnlockCraftRecipeChallengeActionParam) action.ChallengeActionParam).UnlockRecipeGuids;
+                    foreach (var guid in unlockRecipeGuids)
+                    {
+                        _gameUnlockStateDataController.UnlockCraftRecipe(guid);
+                    }
+                    break;
+
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
+                    var itemGuids = ((UnlockItemRecipeViewChallengeActionParam) action.ChallengeActionParam).UnlockItemGuids;
+                    foreach (var itemGuid in itemGuids)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+                        _gameUnlockStateDataController.UnlockItem(itemId);
+                    }
+                    break;
+
+                case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
+                    var challenges = ((UnlockChallengeCategoryChallengeActionParam) action.ChallengeActionParam).UnlockChallengeCategoryGuids;
+                    foreach (var guid in challenges)
+                    {
+                        _gameUnlockStateDataController.UnlockChallenge(guid);
+                    }
+                    break;
+            }
+        }
+    }
+}
+```
+
+### 2. ChallengeDatastoreの修正
+
+既存のChallengeDatastoreをGameActionExecutorを使用するように変更
+
+```csharp
+public class ChallengeDatastore
+{
+    private readonly IGameActionExecutor _gameActionExecutor;
+
+    public ChallengeDatastore(
+        IGameUnlockStateDataController gameUnlockStateDataController,
+        ChallengeEvent challengeEvent,
+        IGameActionExecutor gameActionExecutor)  // 新規追加
+    {
+        _gameUnlockStateDataController = gameUnlockStateDataController;
+        _challengeEvent = challengeEvent;
+        _gameActionExecutor = gameActionExecutor;
+        // ...
+    }
+
+    private void ExecuteChallengeAction(ChallengeActionElement action)
+    {
+        // GameActionExecutorに委譲
+        _gameActionExecutor.ExecuteAction(action);
+    }
+}
+```
+
+### 3. マスターデータ実装
 
 #### ResearchMaster
 MasterHolder.csパターンに従い、研究マスターデータを管理
@@ -40,7 +131,6 @@ namespace Core.Master
         public ResearchMaster(JToken researchJson)
         {
             _researchElements = new Dictionary<Guid, ResearchMasterElement>();
-            // JSONからマスターデータを読み込み
             LoadFromJson(researchJson);
         }
 
@@ -62,6 +152,21 @@ namespace Core.Master
         }
     }
 }
+
+// 研究マスターエレメントのデータ構造
+public class ResearchMasterElement
+{
+    public Guid ResearchNodeGuid { get; set; }
+    public string ResearchNodeName { get; set; }
+    public string ResearchNodeDescription { get; set; }
+    public Guid PrevResearchNodeGuid { get; set; }
+
+    // ChallengeActionElementを使用してアクション定義を共通化
+    public ChallengeActionElement[] ClearedActions { get; set; }
+
+    public ConsumeItem[] ConsumeItems { get; set; }
+    public GraphViewSettings GraphViewSettings { get; set; }
+}
 ```
 
 #### MasterHolder.csへの追加
@@ -80,7 +185,7 @@ public class MasterHolder
 }
 ```
 
-### 2. データストア実装（ワールド単位）
+### 4. データストア実装（ワールド単位）
 
 #### IResearchDataStore インターフェース
 
@@ -117,16 +222,16 @@ namespace Game.Research
         private readonly HashSet<Guid> _completedResearchGuids = new();
 
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
-        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly IGameActionExecutor _gameActionExecutor;
         private readonly ResearchEvent _researchEvent;
 
         public ResearchDataStore(
             IPlayerInventoryDataStore inventoryDataStore,
-            IGameUnlockStateDataController gameUnlockStateDataController,
+            IGameActionExecutor gameActionExecutor,
             ResearchEvent researchEvent)
         {
             _inventoryDataStore = inventoryDataStore;
-            _gameUnlockStateDataController = gameUnlockStateDataController;
+            _gameActionExecutor = gameActionExecutor;
             _researchEvent = researchEvent;
         }
 
@@ -182,7 +287,7 @@ namespace Game.Research
             // 研究完了記録（ワールドレベル）
             _completedResearchGuids.Add(researchGuid);
 
-            // アクション実行（ChallengeDatastoreと共通パターン）
+            // アクション実行（GameActionExecutorを使用）
             ExecuteResearchActions(researchElement.ClearedActions);
 
             // イベント発行
@@ -195,45 +300,12 @@ namespace Game.Research
             };
         }
 
-        private void ExecuteResearchActions(ResearchActionElement[] actions)
+        private void ExecuteResearchActions(ChallengeActionElement[] actions)
         {
-            // ChallengeDatastoreのExecuteChallengeActionと同様のパターン
+            // GameActionExecutorを使用してアクションを実行
             foreach (var action in actions)
             {
-                ExecuteResearchAction(action);
-            }
-        }
-
-        private void ExecuteResearchAction(ResearchActionElement action)
-        {
-            // ChallengeDatastoreのパターンを踏襲
-            switch (action.ActionType)
-            {
-                case ResearchActionType.UnlockCraftRecipe:
-                    var unlockRecipeGuids = action.UnlockRecipeGuids;
-                    foreach (var guid in unlockRecipeGuids)
-                    {
-                        _gameUnlockStateDataController.UnlockCraftRecipe(guid);
-                    }
-                    break;
-
-                case ResearchActionType.UnlockItem:
-                    var itemGuids = action.UnlockItemGuids;
-                    foreach (var itemGuid in itemGuids)
-                    {
-                        var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
-                        _gameUnlockStateDataController.UnlockItem(itemId);
-                    }
-                    break;
-
-                case ResearchActionType.UnlockBlock:
-                    var blockGuids = action.UnlockBlockGuids;
-                    foreach (var blockGuid in blockGuids)
-                    {
-                        var blockId = MasterHolder.BlockMaster.GetBlockId(blockGuid);
-                        _gameUnlockStateDataController.UnlockBlock(blockId);
-                    }
-                    break;
+                _gameActionExecutor.ExecuteAction(action);
             }
         }
 
@@ -272,28 +344,44 @@ namespace Game.Research
             }
         }
 
-        private void ExecuteUnlockActions(ResearchActionElement[] actions)
+        private void ExecuteUnlockActions(ChallengeActionElement[] actions)
         {
-            // ロード時はアンロック系アクションのみ実行（ChallengeDatastoreと同様）
+            // ロード時はアンロック系アクションのみ実行
             foreach (var action in actions)
             {
-                switch (action.ActionType)
+                switch (action.ChallengeActionType)
                 {
-                    case ResearchActionType.UnlockCraftRecipe:
-                    case ResearchActionType.UnlockItem:
-                    case ResearchActionType.UnlockBlock:
-                        ExecuteResearchAction(action);
+                    case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
+                    case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
+                    case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
+                        _gameActionExecutor.ExecuteAction(action);
                         break;
                 }
             }
         }
 
         #endregion
+
+        private bool CheckRequiredItems(int playerId, ConsumeItem[] consumeItems)
+        {
+            // プレイヤーインベントリからアイテムチェック
+            var inventory = _inventoryDataStore.GetInventoryData(playerId);
+            // ... アイテムチェックロジック
+            return true;
+        }
+
+        private bool ConsumeRequiredItems(int playerId, ConsumeItem[] consumeItems)
+        {
+            // プレイヤーインベントリからアイテム消費
+            var inventory = _inventoryDataStore.GetInventoryData(playerId);
+            // ... アイテム消費ロジック
+            return true;
+        }
     }
 }
 ```
 
-### 3. プロトコル実装
+### 5. プロトコル実装
 
 #### リクエスト/レスポンス
 
@@ -354,7 +442,7 @@ namespace Server.Protocol.PacketResponse
 }
 ```
 
-### 4. 初期化と統合
+### 6. 初期化と統合
 
 #### DIコンテナへの登録（MoorestechServerDIContainerGenerator.cs）
 
@@ -362,6 +450,12 @@ namespace Server.Protocol.PacketResponse
 public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
 {
     // 既存のサービス登録...
+
+    // アクション実行サービスの登録（ChallengeDatastoreより前に登録）
+    services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
+
+    // 既存のChallengeDatastoreは上記のGameActionExecutorを使用するよう修正される
+    services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
 
     // 研究システムの登録
     services.AddSingleton<IResearchDataStore, ResearchDataStore>();
@@ -415,19 +509,22 @@ public class AssembleSaveJsonText
 }
 ```
 
-### 5. イベント通知
+### 7. イベント通知
 
 ```csharp
 // 研究完了イベント
 public class ResearchCompletedEventPacket
 {
     private readonly EventProtocolProvider _eventProtocolProvider;
+    private readonly IResearchDataStore _researchDataStore;
 
     public ResearchCompletedEventPacket(
         EventProtocolProvider eventProtocolProvider,
-        ResearchEvent researchEvent)
+        ResearchEvent researchEvent,
+        IResearchDataStore researchDataStore)
     {
         _eventProtocolProvider = eventProtocolProvider;
+        _researchDataStore = researchDataStore;
         researchEvent.OnResearchCompleted.Subscribe(OnResearchCompleted);
     }
 
@@ -436,7 +533,9 @@ public class ResearchCompletedEventPacket
         var packet = new ResearchCompletedEventMessagePack
         {
             ResearchGuid = researchGuid.ToString(),
-            CompletedResearchGuids = // 全完了済み研究のリスト
+            CompletedResearchGuids = _researchDataStore.GetCompletedResearchGuids()
+                .Select(g => g.ToString())
+                .ToList()
         };
 
         // 全プレイヤーに通知（ワールド単位のため）
@@ -448,10 +547,11 @@ public class ResearchCompletedEventPacket
 ## 既存システムとの統合
 
 ### アクション実行の共通化
-ChallengeDatastoreで使用されているアクション実行パターンを再利用：
-- `IGameUnlockStateDataController`を通じたアンロック処理
-- レシピ、アイテム、ブロックのアンロック
-- ロード時のアンロック専用処理
+新規作成したGameActionExecutorクラスによる共通化：
+- ChallengeDatastoreの`ExecuteChallengeAction`メソッドのロジックを移動
+- ResearchDataStoreとChallengeDatastoreの両方がGameActionExecutorを使用
+- `IGameUnlockStateDataController`を通じた共通のアンロック処理
+- ロード時のアンロック専用処理も共通化
 
 ### マスターデータの統合
 MasterHolderパターンに従い、研究マスターデータを静的プロパティとして提供：
@@ -488,6 +588,7 @@ ChallengeDatastoreやGameUnlockStateDataControllerと同様の設計：
 ## テスト戦略
 
 1. **単体テスト**
+   - GameActionExecutorの各アクションタイプのテスト
    - ResearchDataStoreの各メソッドのテスト
    - 前提条件検証ロジックのテスト
    - アイテム消費処理のテスト
@@ -496,6 +597,7 @@ ChallengeDatastoreやGameUnlockStateDataControllerと同様の設計：
    - プロトコル通信の動作確認
    - セーブ/ロードの正確性検証
    - アクション実行の確認
+   - ChallengeDatastoreとの連携テスト
 
 ## 今後の拡張性
 
@@ -506,3 +608,7 @@ ChallengeDatastoreやGameUnlockStateDataControllerと同様の設計：
 2. **研究カテゴリ機能**
    - ChallengeDatastoreのカテゴリシステムを参考に実装
    - カテゴリごとのアンロック管理
+
+3. **新しいアクションタイプの追加**
+   - GameActionExecutorに新しいケースを追加するだけで拡張可能
+   - 研究とチャレンジの両方で利用可能
