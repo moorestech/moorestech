@@ -8,7 +8,6 @@ namespace Core.Master
         public static ItemMaster ItemMaster { get; private set; }
         public static BlockMaster BlockMaster { get; private set; }
         public static ChallengeMaster ChallengeMaster { get; private set; }
-        public static ResearchMaster ResearchMaster { get; private set; }
         public static CraftRecipeMaster CraftRecipeMaster { get; private set; }
         public static MachineRecipesMaster MachineRecipesMaster { get; private set; }
         public static MapObjectMaster MapObjectMaster { get; private set; }
@@ -20,14 +19,6 @@ namespace Core.Master
             ItemMaster = new ItemMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")), ItemMaster);
             ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
-            if (masterJsonFileContainer.ConfigJsons[0].JsonContents.ContainsKey(new JsonFileName("research")))
-            {
-                ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
-            }
-            else
-            {
-                ResearchMaster = new ResearchMaster("{\"data\":[]}");
-            }
             
             CraftRecipeMaster = new CraftRecipeMaster(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));
             

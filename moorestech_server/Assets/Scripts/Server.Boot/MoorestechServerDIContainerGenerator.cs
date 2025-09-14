@@ -112,14 +112,12 @@ namespace Server.Boot
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
-            services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton<CraftTreeManager>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
-
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
