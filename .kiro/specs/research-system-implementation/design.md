@@ -1,65 +1,86 @@
 # 設計ドキュメント
 
 ## 概要
-本ドキュメントは、Moorestechゲームにおける研究システムの技術設計を定義します。既存のPlayerInventoryシステムやプロトコル実装パターンを参考に、拡張性と保守性を重視した設計を行います。
+本ドキュメントは、Moorestechゲームにおける研究システムの技術設計を定義します。既存のChallengeDatastore、GameUnlockStateDataController、MasterHolderなどの実装パターンに従い、一貫性のあるアーキテクチャで設計します。
+
+## 要件マッピング
+
+### 設計コンポーネントと要件の対応
+- **ResearchDataStore** → 要件1: 研究完了状態の管理（ワールド単位）
+- **ResearchMaster** → 要件2: 前提条件の検証
+- **アイテム消費処理** → 要件3: アイテム消費の処理
+- **プロトコル実装** → 要件4: 研究完了プロトコル
+- **アクション実行** → 要件5: アクション実行システム（ChallengeDatastoreと共通化）
 
 ## アーキテクチャ概要
 
 ### システム構成
-研究システムは以下のコンポーネントで構成されます：
+研究システムは以下のコンポーネントで構成され、既存システムと統合されます：
 
-1. **データ層**: 研究進捗データの管理と永続化
-2. **ビジネスロジック層**: 研究完了条件の検証とアクション実行
-3. **プロトコル層**: クライアント・サーバー間の通信
-4. **イベント層**: 状態変更の通知
+1. **マスターデータ層**: ResearchMasterによる研究定義の管理
+2. **データ層**: ワールド単位での研究進捗データの管理と永続化
+3. **ビジネスロジック層**: 研究完了条件の検証とアクション実行（既存システムと共通化）
+4. **プロトコル層**: クライアント・サーバー間の通信
+5. **イベント層**: 状態変更の通知
 
 ## 詳細設計
 
-### 1. データモデル
+### 1. マスターデータ実装
 
-#### ResearchData
-プレイヤーごとの研究進捗を管理するデータクラス
+#### ResearchMaster
+MasterHolder.csパターンに従い、研究マスターデータを管理
 
 ```csharp
-namespace Game.Research
+namespace Core.Master
 {
-    public class ResearchData
+    public class ResearchMaster
     {
-        // 完了済み研究ノードのGUID集合（高速検索用）
-        public HashSet<Guid> CompletedResearchGuids { get; private set; }
+        private readonly Dictionary<Guid, ResearchMasterElement> _researchElements;
 
-        // プレイヤーID
-        public int PlayerId { get; private set; }
-
-        // 最後に研究を完了した時刻（デバッグ・分析用）
-        public DateTime LastResearchCompletedAt { get; set; }
-
-        public ResearchData(int playerId)
+        public ResearchMaster(JToken researchJson)
         {
-            PlayerId = playerId;
-            CompletedResearchGuids = new HashSet<Guid>();
+            _researchElements = new Dictionary<Guid, ResearchMasterElement>();
+            // JSONからマスターデータを読み込み
+            LoadFromJson(researchJson);
+        }
+
+        public ResearchMasterElement GetResearch(Guid researchGuid)
+        {
+            return _researchElements.TryGetValue(researchGuid, out var element)
+                ? element : null;
+        }
+
+        public List<ResearchMasterElement> GetAllResearches()
+        {
+            return _researchElements.Values.ToList();
+        }
+
+        private void LoadFromJson(JToken json)
+        {
+            // research.jsonからデータを読み込み
+            // VanillaSchema/research.ymlから生成されたJSONを解析
         }
     }
 }
 ```
 
-#### ResearchSaveJsonObject
-永続化用のJSON構造
+#### MasterHolder.csへの追加
 
 ```csharp
-public class ResearchSaveJsonObject
+public class MasterHolder
 {
-    public Dictionary<int, PlayerResearchSaveData> PlayerResearchData { get; set; }
-}
+    // 既存のプロパティ...
+    public static ResearchMaster ResearchMaster { get; private set; }
 
-public class PlayerResearchSaveData
-{
-    public List<string> CompletedResearchGuids { get; set; }
-    public string LastResearchCompletedAt { get; set; }
+    public static void Load(MasterJsonFileContainer masterJsonFileContainer)
+    {
+        // 既存のロード処理...
+        ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
+    }
 }
 ```
 
-### 2. データストア実装
+### 2. データストア実装（ワールド単位）
 
 #### IResearchDataStore インターフェース
 
@@ -68,16 +89,15 @@ namespace Game.Research.Interface
 {
     public interface IResearchDataStore
     {
-        // 研究完了チェック
-        bool IsResearchCompleted(int playerId, Guid researchGuid);
-        bool CanCompleteResearch(int playerId, Guid researchGuid);
+        // 研究完了チェック（ワールド単位）
+        bool IsResearchCompleted(Guid researchGuid);
+        bool CanCompleteResearch(Guid researchGuid, int playerId);
 
         // 研究完了処理
-        ResearchCompletionResult CompleteResearch(int playerId, Guid researchGuid);
+        ResearchCompletionResult CompleteResearch(Guid researchGuid, int playerId);
 
         // データ取得
-        ResearchData GetResearchData(int playerId);
-        HashSet<Guid> GetCompletedResearchGuids(int playerId);
+        HashSet<Guid> GetCompletedResearchGuids();
 
         // 永続化
         ResearchSaveJsonObject GetSaveJsonObject();
@@ -86,68 +106,59 @@ namespace Game.Research.Interface
 }
 ```
 
-#### ResearchDataStore 実装
+#### ResearchDataStore 実装（ワールド単位）
 
 ```csharp
 namespace Game.Research
 {
     public class ResearchDataStore : IResearchDataStore
     {
-        private readonly Dictionary<int, ResearchData> _playerResearchData;
-        private readonly IResearchNodeRepository _researchNodeRepository;
+        // ワールド全体で共有される完了済み研究のセット
+        private readonly HashSet<Guid> _completedResearchGuids = new();
+
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
-        private readonly IResearchCompletedEvent _researchCompletedEvent;
-        private readonly IActionDispatcher _actionDispatcher;
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly ResearchEvent _researchEvent;
 
         public ResearchDataStore(
-            IResearchNodeRepository researchNodeRepository,
             IPlayerInventoryDataStore inventoryDataStore,
-            IResearchCompletedEvent researchCompletedEvent,
-            IActionDispatcher actionDispatcher)
+            IGameUnlockStateDataController gameUnlockStateDataController,
+            ResearchEvent researchEvent)
         {
-            _playerResearchData = new Dictionary<int, ResearchData>();
-            _researchNodeRepository = researchNodeRepository;
             _inventoryDataStore = inventoryDataStore;
-            _researchCompletedEvent = researchCompletedEvent;
-            _actionDispatcher = actionDispatcher;
+            _gameUnlockStateDataController = gameUnlockStateDataController;
+            _researchEvent = researchEvent;
         }
 
-        public ResearchData GetResearchData(int playerId)
+        public bool IsResearchCompleted(Guid researchGuid)
         {
-            if (!_playerResearchData.ContainsKey(playerId))
-            {
-                _playerResearchData[playerId] = new ResearchData(playerId);
-            }
-            return _playerResearchData[playerId];
+            return _completedResearchGuids.Contains(researchGuid);
         }
 
-        public bool CanCompleteResearch(int playerId, Guid researchGuid)
+        public bool CanCompleteResearch(Guid researchGuid, int playerId)
         {
-            var researchData = GetResearchData(playerId);
-            var researchNode = _researchNodeRepository.GetNode(researchGuid);
-
-            if (researchNode == null) return false;
+            var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
+            if (researchElement == null) return false;
 
             // 既に完了済みチェック
-            if (researchData.CompletedResearchGuids.Contains(researchGuid))
+            if (_completedResearchGuids.Contains(researchGuid))
                 return false;
 
             // 前提研究チェック
-            if (researchNode.PrevResearchNodeGuid != Guid.Empty &&
-                !researchData.CompletedResearchGuids.Contains(researchNode.PrevResearchNodeGuid))
+            if (researchElement.PrevResearchNodeGuid != Guid.Empty &&
+                !_completedResearchGuids.Contains(researchElement.PrevResearchNodeGuid))
                 return false;
 
-            // アイテム所持チェック
-            if (!CheckRequiredItems(playerId, researchNode.ConsumeItems))
+            // アイテム所持チェック（プレイヤーのインベントリから）
+            if (!CheckRequiredItems(playerId, researchElement.ConsumeItems))
                 return false;
 
             return true;
         }
 
-        public ResearchCompletionResult CompleteResearch(int playerId, Guid researchGuid)
+        public ResearchCompletionResult CompleteResearch(Guid researchGuid, int playerId)
         {
-            // トランザクション的な処理
-            if (!CanCompleteResearch(playerId, researchGuid))
+            if (!CanCompleteResearch(researchGuid, playerId))
             {
                 return new ResearchCompletionResult
                 {
@@ -156,10 +167,10 @@ namespace Game.Research
                 };
             }
 
-            var researchNode = _researchNodeRepository.GetNode(researchGuid);
+            var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
 
-            // アイテム消費
-            if (!ConsumeRequiredItems(playerId, researchNode.ConsumeItems))
+            // プレイヤーのインベントリからアイテムを消費
+            if (!ConsumeRequiredItems(playerId, researchElement.ConsumeItems))
             {
                 return new ResearchCompletionResult
                 {
@@ -168,16 +179,14 @@ namespace Game.Research
                 };
             }
 
-            // 研究完了記録
-            var researchData = GetResearchData(playerId);
-            researchData.CompletedResearchGuids.Add(researchGuid);
-            researchData.LastResearchCompletedAt = DateTime.UtcNow;
+            // 研究完了記録（ワールドレベル）
+            _completedResearchGuids.Add(researchGuid);
 
-            // アクション実行
-            ExecuteClearedActions(playerId, researchNode.ClearedActions);
+            // アクション実行（ChallengeDatastoreと共通パターン）
+            ExecuteResearchActions(researchElement.ClearedActions);
 
             // イベント発行
-            _researchCompletedEvent.OnResearchCompleted(playerId, researchGuid);
+            _researchEvent.OnResearchCompleted(playerId, researchGuid);
 
             return new ResearchCompletionResult
             {
@@ -185,6 +194,101 @@ namespace Game.Research
                 CompletedResearchGuid = researchGuid
             };
         }
+
+        private void ExecuteResearchActions(ResearchActionElement[] actions)
+        {
+            // ChallengeDatastoreのExecuteChallengeActionと同様のパターン
+            foreach (var action in actions)
+            {
+                ExecuteResearchAction(action);
+            }
+        }
+
+        private void ExecuteResearchAction(ResearchActionElement action)
+        {
+            // ChallengeDatastoreのパターンを踏襲
+            switch (action.ActionType)
+            {
+                case ResearchActionType.UnlockCraftRecipe:
+                    var unlockRecipeGuids = action.UnlockRecipeGuids;
+                    foreach (var guid in unlockRecipeGuids)
+                    {
+                        _gameUnlockStateDataController.UnlockCraftRecipe(guid);
+                    }
+                    break;
+
+                case ResearchActionType.UnlockItem:
+                    var itemGuids = action.UnlockItemGuids;
+                    foreach (var itemGuid in itemGuids)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+                        _gameUnlockStateDataController.UnlockItem(itemId);
+                    }
+                    break;
+
+                case ResearchActionType.UnlockBlock:
+                    var blockGuids = action.UnlockBlockGuids;
+                    foreach (var blockGuid in blockGuids)
+                    {
+                        var blockId = MasterHolder.BlockMaster.GetBlockId(blockGuid);
+                        _gameUnlockStateDataController.UnlockBlock(blockId);
+                    }
+                    break;
+            }
+        }
+
+        #region SaveLoad
+
+        public ResearchSaveJsonObject GetSaveJsonObject()
+        {
+            return new ResearchSaveJsonObject
+            {
+                CompletedResearchGuids = _completedResearchGuids
+                    .Select(g => g.ToString())
+                    .ToList()
+            };
+        }
+
+        public void LoadResearchData(ResearchSaveJsonObject saveData)
+        {
+            _completedResearchGuids.Clear();
+
+            if (saveData?.CompletedResearchGuids != null)
+            {
+                foreach (var guidString in saveData.CompletedResearchGuids)
+                {
+                    if (Guid.TryParse(guidString, out var guid))
+                    {
+                        _completedResearchGuids.Add(guid);
+
+                        // 新規追加された要素のアンロックアクションを実行
+                        var researchElement = MasterHolder.ResearchMaster.GetResearch(guid);
+                        if (researchElement != null)
+                        {
+                            ExecuteUnlockActions(researchElement.ClearedActions);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ExecuteUnlockActions(ResearchActionElement[] actions)
+        {
+            // ロード時はアンロック系アクションのみ実行（ChallengeDatastoreと同様）
+            foreach (var action in actions)
+            {
+                switch (action.ActionType)
+                {
+                    case ResearchActionType.UnlockCraftRecipe:
+                    case ResearchActionType.UnlockItem:
+                    case ResearchActionType.UnlockBlock:
+                        ExecuteResearchAction(action);
+                        break;
+                }
+            }
+        }
+
+        #endregion
     }
 }
 ```
@@ -196,7 +300,7 @@ namespace Game.Research
 ```csharp
 // クライアント → サーバー
 [MessagePackObject]
-public class CompleteResearchRequestMessagePack : IByteArraySerializable
+public class CompleteResearchRequestMessagePack : ProtocolMessagePackBase
 {
     public const string ProtocolTag = "CompleteResearch";
 
@@ -206,36 +310,12 @@ public class CompleteResearchRequestMessagePack : IByteArraySerializable
 
 // サーバー → クライアント
 [MessagePackObject]
-public class CompleteResearchResponseMessagePack
+public class CompleteResearchResponseMessagePack : ProtocolMessagePackBase
 {
     [Key(0)] public bool Success { get; set; }
     [Key(1)] public string ResearchGuid { get; set; }
     [Key(2)] public string FailureReason { get; set; }
-    [Key(3)] public List<string> MissingItems { get; set; }
-}
-```
-
-#### イベント通知
-
-```csharp
-// 研究完了イベント（サーバー → クライアント）
-[MessagePackObject]
-public class ResearchCompletedEventPacket : IByteArraySerializable
-{
-    public const string EventTag = "ResearchCompleted";
-
-    [Key(0)] public int PlayerId { get; set; }
-    [Key(1)] public string ResearchGuid { get; set; }
-    [Key(2)] public List<string> UnlockedItems { get; set; }
-}
-
-// プレイヤーログイン時の同期
-[MessagePackObject]
-public class SyncPlayerResearchDataPacket : IByteArraySerializable
-{
-    public const string EventTag = "SyncResearchData";
-
-    [Key(0)] public List<string> CompletedResearchGuids { get; set; }
+    [Key(3)] public List<string> CompletedResearchGuids { get; set; } // ワールド全体の完了済み研究
 }
 ```
 
@@ -248,154 +328,79 @@ namespace Server.Protocol.PacketResponse
     {
         private readonly IResearchDataStore _researchDataStore;
 
-        public CompleteResearchProtocol(IResearchDataStore researchDataStore)
+        public CompleteResearchProtocol(ServiceProvider serviceProvider)
         {
-            _researchDataStore = researchDataStore;
+            _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
         }
 
-        public List<ResponsePacket> GetResponsePackets(RequestPacket request)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            var requestData = MessagePackSerializer.Deserialize<CompleteResearchRequestMessagePack>(
-                request.Payload);
+            var request = MessagePackSerializer.Deserialize<CompleteResearchRequestMessagePack>(payload.ToArray());
 
-            var researchGuid = Guid.Parse(requestData.ResearchGuid);
-            var result = _researchDataStore.CompleteResearch(
-                requestData.PlayerId, researchGuid);
+            var researchGuid = Guid.Parse(request.ResearchGuid);
+            var result = _researchDataStore.CompleteResearch(researchGuid, request.PlayerId);
 
-            var response = new CompleteResearchResponseMessagePack
+            return new CompleteResearchResponseMessagePack
             {
                 Success = result.Success,
-                ResearchGuid = requestData.ResearchGuid,
+                ResearchGuid = request.ResearchGuid,
                 FailureReason = result.Reason,
-                MissingItems = result.MissingItems
-            };
-
-            return new List<ResponsePacket>
-            {
-                new ResponsePacket(
-                    requestData.PlayerId,
-                    MessagePackSerializer.Serialize(response))
+                CompletedResearchGuids = _researchDataStore.GetCompletedResearchGuids()
+                    .Select(g => g.ToString())
+                    .ToList()
             };
         }
     }
 }
 ```
 
-### 4. 研究ノードリポジトリ
+### 4. 初期化と統合
+
+#### DIコンテナへの登録（MoorestechServerDIContainerGenerator.cs）
 
 ```csharp
-namespace Game.Research
+public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
 {
-    public interface IResearchNodeRepository
-    {
-        ResearchNode GetNode(Guid researchGuid);
-        List<ResearchNode> GetAllNodes();
-        void LoadFromSchema(string schemaPath);
-    }
+    // 既存のサービス登録...
 
-    public class ResearchNodeRepository : IResearchNodeRepository
-    {
-        private readonly Dictionary<Guid, ResearchNode> _researchNodes;
+    // 研究システムの登録
+    services.AddSingleton<IResearchDataStore, ResearchDataStore>();
+    services.AddSingleton<ResearchEvent, ResearchEvent>();
 
-        public ResearchNodeRepository()
-        {
-            _researchNodes = new Dictionary<Guid, ResearchNode>();
-        }
-
-        public void LoadFromSchema(string schemaPath)
-        {
-            // VanillaSchema/research.ymlからデータを読み込み
-            // Addressableまたは直接ファイル読み込みで実装
-        }
-
-        public ResearchNode GetNode(Guid researchGuid)
-        {
-            return _researchNodes.TryGetValue(researchGuid, out var node)
-                ? node : null;
-        }
-    }
+    // 既存の処理...
 }
 ```
 
-### 5. アクション実行システム
+#### プロトコル登録（PacketResponseCreator.cs）
 
 ```csharp
-namespace Game.Research
+public PacketResponseCreator(ServiceProvider serviceProvider)
 {
-    public interface IActionDispatcher
-    {
-        void ExecuteActions(int playerId, List<ResearchAction> actions);
-    }
+    // 既存のプロトコル登録...
 
-    public class ResearchActionDispatcher : IActionDispatcher
-    {
-        private readonly Dictionary<string, IActionExecutor> _executors;
-
-        public ResearchActionDispatcher(
-            IRecipeUnlockExecutor recipeUnlocker,
-            IItemGrantExecutor itemGranter)
-        {
-            _executors = new Dictionary<string, IActionExecutor>
-            {
-                ["UnlockRecipe"] = recipeUnlocker,
-                ["GrantItem"] = itemGranter
-            };
-        }
-
-        public void ExecuteActions(int playerId, List<ResearchAction> actions)
-        {
-            foreach (var action in actions)
-            {
-                if (_executors.TryGetValue(action.Type, out var executor))
-                {
-                    executor.Execute(playerId, action.Parameters);
-                }
-            }
-        }
-    }
+    // 研究プロトコルの追加
+    _packetResponseDictionary.Add(
+        CompleteResearchProtocol.ProtocolTag,
+        new CompleteResearchProtocol(serviceProvider));
+    _packetResponseDictionary.Add(
+        GetResearchStateProtocol.ProtocolTag,
+        new GetResearchStateProtocol(serviceProvider));
 }
 ```
 
-### 6. 統合ポイント
-
-#### サーバー初期化時
+#### セーブ/ロード統合（AssembleSaveJsonText.cs）
 
 ```csharp
-// ServerMainSystemBuilder.cs への追加
-public class ServerMainSystemBuilder
-{
-    public void BuildResearchSystem()
-    {
-        // リポジトリ初期化
-        var researchNodeRepository = new ResearchNodeRepository();
-        researchNodeRepository.LoadFromSchema("VanillaSchema/research.yml");
-
-        // アクションディスパッチャー初期化
-        var actionDispatcher = new ResearchActionDispatcher(
-            recipeUnlocker, itemGranter);
-
-        // データストア初期化
-        var researchDataStore = new ResearchDataStore(
-            researchNodeRepository,
-            inventoryDataStore,
-            researchCompletedEvent,
-            actionDispatcher);
-
-        // プロトコルハンドラー登録
-        packetResponseCreator.AddProtocol(
-            CompleteResearchRequestMessagePack.ProtocolTag,
-            new CompleteResearchProtocol(researchDataStore));
-    }
-}
-```
-
-#### セーブ/ロード統合
-
-```csharp
-// AssembleSaveJsonText.cs への追加
 public class AssembleSaveJsonText
 {
     private readonly IResearchDataStore _researchDataStore;
+
+    public AssembleSaveJsonText(
+        // 既存の依存性...
+        IResearchDataStore researchDataStore)
+    {
+        _researchDataStore = researchDataStore;
+    }
 
     public string AssembleSaveText()
     {
@@ -407,45 +412,78 @@ public class AssembleSaveJsonText
 
         return JsonConvert.SerializeObject(saveData);
     }
+}
+```
 
-    public void LoadSaveData(SaveJsonObject saveData)
+### 5. イベント通知
+
+```csharp
+// 研究完了イベント
+public class ResearchCompletedEventPacket
+{
+    private readonly EventProtocolProvider _eventProtocolProvider;
+
+    public ResearchCompletedEventPacket(
+        EventProtocolProvider eventProtocolProvider,
+        ResearchEvent researchEvent)
     {
-        // 既存のロード処理...
-        if (saveData.ResearchData != null)
+        _eventProtocolProvider = eventProtocolProvider;
+        researchEvent.OnResearchCompleted.Subscribe(OnResearchCompleted);
+    }
+
+    private void OnResearchCompleted(int playerId, Guid researchGuid)
+    {
+        var packet = new ResearchCompletedEventMessagePack
         {
-            _researchDataStore.LoadResearchData(saveData.ResearchData);
-        }
+            ResearchGuid = researchGuid.ToString(),
+            CompletedResearchGuids = // 全完了済み研究のリスト
+        };
+
+        // 全プレイヤーに通知（ワールド単位のため）
+        _eventProtocolProvider.SendEventToAllPlayers(packet);
     }
 }
 ```
+
+## 既存システムとの統合
+
+### アクション実行の共通化
+ChallengeDatastoreで使用されているアクション実行パターンを再利用：
+- `IGameUnlockStateDataController`を通じたアンロック処理
+- レシピ、アイテム、ブロックのアンロック
+- ロード時のアンロック専用処理
+
+### マスターデータの統合
+MasterHolderパターンに従い、研究マスターデータを静的プロパティとして提供：
+- 起動時の一括ロード
+- グローバルアクセス可能
+- JSONファイルからの読み込み
+
+### ワールドレベルデータ管理
+ChallengeDatastoreやGameUnlockStateDataControllerと同様の設計：
+- プレイヤーごとではなくワールド単位でのデータ管理
+- シングルトンサービスとしてDIコンテナに登録
+- セーブ/ロードシステムへの統合
 
 ## パフォーマンス考慮事項
 
 1. **研究完了チェックの最適化**
    - HashSetを使用してO(1)での検索を実現
-   - 頻繁にアクセスされるデータはメモリ上にキャッシュ
+   - メモリ上にキャッシュ
 
-2. **並行処理の安全性**
-   - 複数プレイヤーが同時に研究を完了する場合のロック機構
-   - アトミックなトランザクション処理
-
-3. **メモリ効率**
-   - 遅延初期化によるメモリ使用量の最適化
-   - 不要なデータの定期的なクリーンアップ
+2. **アイテム消費の原子性**
+   - プレイヤーインベントリとの整合性保証
+   - トランザクション的な処理
 
 ## セキュリティ考慮事項
 
 1. **サーバーサイド検証**
    - すべての研究完了条件をサーバー側で検証
-   - クライアントからのデータは一切信頼しない
+   - クライアントからのデータは信頼しない
 
-2. **レート制限**
-   - 短時間での大量リクエストを検出・防止
-   - 不正なアクセスパターンのログ記録
-
-3. **データ整合性**
-   - トランザクション失敗時の完全なロールバック
-   - 永続化データの定期的な整合性チェック
+2. **アイテム消費の検証**
+   - インベントリ操作は必ずサーバー側で実行
+   - 不正な研究完了を防止
 
 ## テスト戦略
 
@@ -457,11 +495,7 @@ public class AssembleSaveJsonText
 2. **統合テスト**
    - プロトコル通信の動作確認
    - セーブ/ロードの正確性検証
-   - 複数プレイヤー環境での動作確認
-
-3. **パフォーマンステスト**
-   - 大量の研究ノードでの応答速度
-   - 同時接続プレイヤー数の限界値測定
+   - アクション実行の確認
 
 ## 今後の拡張性
 
@@ -469,10 +503,6 @@ public class AssembleSaveJsonText
    - graphViewSettings を活用したUI表現
    - 研究の依存関係の視覚化
 
-2. **共同研究機能**
-   - 複数プレイヤーでの研究進捗共有
-   - チーム研究の実装
-
-3. **研究ブースト機能**
-   - 研究速度を上げるアイテムやバフ
-   - 時間経過による自動研究完了
+2. **研究カテゴリ機能**
+   - ChallengeDatastoreのカテゴリシステムを参考に実装
+   - カテゴリごとのアンロック管理
