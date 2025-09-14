@@ -45,6 +45,8 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetCraftTreeProtocol.ProtocolTag, new GetCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RegisterPlayedSkitProtocol.ProtocolTag, new RegisterPlayedSkitProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetFluidInventoryProtocol.ProtocolTag, new GetFluidInventoryProtocol(serviceProvider));
+            // research
+            _packetResponseDictionary.Add(CompleteResearchProtocol.ProtocolTag, new CompleteResearchProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
