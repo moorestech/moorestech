@@ -1,20 +1,21 @@
 ---
 description: Show specification status and progress
 allowed-tools: Bash, Read, Glob, Write, Edit, MultiEdit, Update
+argument-hint: <feature-name>
 ---
 
 # Specification Status
 
-Show current status and progress for feature: **$ARGUMENTS**
+Show current status and progress for feature: **$1**
 
 ## Spec Context
 
 ### Spec Files
-- Spec directory: !`ls -la .kiro/specs/$ARGUMENTS/`
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
-- Requirements: @.kiro/specs/$ARGUMENTS/requirements.md
-- Design: @.kiro/specs/$ARGUMENTS/design.md
-- Tasks: @.kiro/specs/$ARGUMENTS/tasks.md
+- Spec directory: !`ls -la .kiro/specs/$1/`
+- Spec metadata: `.kiro/specs/$1/spec.json`
+- Requirements: `.kiro/specs/$1/requirements.md`
+- Design: `.kiro/specs/$1/design.md`
+- Tasks: `.kiro/specs/$1/tasks.md`
 
 ### All Specs Overview
 - Available specs: !`ls -la .kiro/specs/`
@@ -22,7 +23,7 @@ Show current status and progress for feature: **$ARGUMENTS**
 
 ## Task: Generate Status Report
 
-Create comprehensive status report for the specification in the language specified in spec.json (check `@.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/$1/spec.json` for "language" field):
 
 ### 1. Specification Overview
 Display:
