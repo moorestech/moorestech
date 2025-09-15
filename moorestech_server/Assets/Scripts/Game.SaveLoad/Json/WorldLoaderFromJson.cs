@@ -13,6 +13,7 @@ using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 using UnityEngine;
+using Game.Research;
 
 namespace Game.SaveLoad.Json
 {
@@ -30,10 +31,11 @@ namespace Game.SaveLoad.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
+        private readonly IResearchDataStore _researchDataStore;
         
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
-            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson)
+            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson, IResearchDataStore researchDataStore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -46,6 +48,7 @@ namespace Game.SaveLoad.Json
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _craftTreeManager = craftTreeManager;
             _mapInfoJson = mapInfoJson;
+            _researchDataStore = researchDataStore;
         }
         
         public void LoadOrInitialize()
@@ -106,6 +109,7 @@ namespace Game.SaveLoad.Json
             
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
+            _researchDataStore.LoadResearchData(load.Research);
         }
         
         public void WorldInitialize()
