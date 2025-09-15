@@ -25,7 +25,8 @@
     "Core.Master",
     "Game.UnlockState",
     "Game.CraftTree",
-    "Game.Fluid"
+    "Game.Fluid",
+    "Game.Research"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
