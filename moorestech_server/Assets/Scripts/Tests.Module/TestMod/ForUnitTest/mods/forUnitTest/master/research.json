@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "researchNodeGuid": "cd05e30d-d599-46d3-a079-769113cbbf17",
+      "researchNodetName": "Test Research 1",
+      "researchNodeDescription": "Test Research 1",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": []
+    }
+  ]
+}
