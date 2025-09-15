@@ -24,11 +24,16 @@ namespace Game.Research
             _gameActionExecutor = gameActionExecutor;
             _researchEvent = researchEvent;
         }
+        
+        public bool IsResearchCompleted(Guid researchGuid)
+        {
+            return _completedResearchGuids.Contains(researchGuid);
+        }
 
         public bool CompleteResearch(Guid researchGuid, int playerId)
         {
             // すでに完了済みかチェック
-            if (_completedResearchGuids.Contains(researchGuid)) return false;
+            if (IsResearchCompleted(researchGuid)) return false;
                 
             // TODO 前提研究のチェックをする
             
