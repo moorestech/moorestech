@@ -51,12 +51,15 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             ClearConnectLines();
 
             // 前のノードがある場合、線を引く
-            var prevGuid = Node.MasterElement.PrevResearchNodeGuid;
-            if (prevGuid == Guid.Empty) return;
+            var prevGuids = Node.MasterElement.PrevResearchNodeGuids;
+            if (prevGuids == null || prevGuids.Length == 0) return;
 
-            if (nodeElements.TryGetValue(prevGuid, out var prevNodeElement))
+            foreach (var prevGuid in prevGuids)
             {
-                CreateLine(prevNodeElement, lineParent);
+                if (nodeElements.TryGetValue(prevGuid, out var prevNodeElement))
+                {
+                    CreateLine(prevNodeElement, lineParent);
+                }
             }
 
             #region Internal
