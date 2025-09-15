@@ -116,7 +116,10 @@ namespace Server.Boot
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
-            services.AddSingleton<IResearchDataStore, ResearchDataStore>();
+            // Research system
+            services.AddSingleton<ResearchEvent>();
+            services.AddSingleton<ResearchDataStore>();
+            services.AddSingleton<IResearchDataStore>(sp => sp.GetRequiredService<ResearchDataStore>());
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
@@ -158,9 +161,10 @@ namespace Server.Boot
 
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<OpenableBlockInventoryUpdateEventPacket>();
-            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
+            // インベントリ更新イベントは明示的に使用されるときに初期化する
+            // serviceProvider.GetService<MainInventoryUpdateEventPacket>();
+            // serviceProvider.GetService<OpenableBlockInventoryUpdateEventPacket>();
+            // serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<CompletedChallengeEventPacket>();

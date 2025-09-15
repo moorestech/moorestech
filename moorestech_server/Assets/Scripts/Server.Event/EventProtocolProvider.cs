@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MessagePack;
+using System.Linq;
 using Server.Event.EventReceive;
 
 namespace Server.Event
@@ -32,8 +33,16 @@ namespace Server.Event
             lock (_events)
             {
                 var eventMessagePack = new EventMessagePack(tag, payload);
-                
-                foreach (var key in _events.Keys) _events[key].Add(eventMessagePack);
+
+                foreach (var key in _events.Keys)
+                {
+                    var list = _events[key];
+                    var isDuplicate = list.Any(e => e.Tag == tag && e.Payload != null && payload != null && e.Payload.SequenceEqual(payload));
+                    if (!isDuplicate)
+                    {
+                        list.Add(eventMessagePack);
+                    }
+                }
             }
         }
         
