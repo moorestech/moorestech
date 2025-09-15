@@ -8,6 +8,7 @@ using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
+using Game.Action;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftChainer;
@@ -22,6 +23,7 @@ using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.Paths;
+using Game.Research;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -113,6 +115,8 @@ namespace Server.Boot
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
+            services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
+            services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
@@ -138,6 +142,7 @@ namespace Server.Boot
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();
+            services.AddSingleton<ResearchCompleteEventPacket>();
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
@@ -167,6 +172,7 @@ namespace Server.Boot
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
+            serviceProvider.GetService<ResearchCompleteEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 

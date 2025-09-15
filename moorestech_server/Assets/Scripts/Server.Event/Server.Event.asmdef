@@ -17,7 +17,8 @@
     "Game.Challenge.Interface",
     "Core.Master",
     "Game.UnlockState",
-    "Game.CraftTree"
+    "Game.CraftTree",
+    "Game.Research"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

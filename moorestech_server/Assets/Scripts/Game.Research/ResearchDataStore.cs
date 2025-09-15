@@ -5,7 +5,6 @@ using Core.Inventory;
 using Core.Master;
 using Game.Action;
 using Game.PlayerInventory.Interface;
-using Game.Research.Interface;
 using Mooresmaster.Model.ResearchModule;
 
 namespace Game.Research
@@ -17,11 +16,13 @@ namespace Game.Research
 
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IGameActionExecutor _gameActionExecutor;
+        private readonly ResearchEvent _researchEvent;
 
-        public ResearchDataStore(IPlayerInventoryDataStore inventoryDataStore, IGameActionExecutor gameActionExecutor)
+        public ResearchDataStore(IPlayerInventoryDataStore inventoryDataStore, IGameActionExecutor gameActionExecutor, ResearchEvent researchEvent)
         {
             _inventoryDataStore = inventoryDataStore;
             _gameActionExecutor = gameActionExecutor;
+            _researchEvent = researchEvent;
         }
 
         public bool CompleteResearch(Guid researchGuid, int playerId)
@@ -42,8 +43,10 @@ namespace Game.Research
             ConsumeItem(researchElement.ConsumeItems);
             // 研究完了記録
             _completedResearchGuids.Add(researchGuid);
-            // アクション実行（GameActionExecutorを使用）
+            // アクション実行
             _gameActionExecutor.ExecuteActions(researchElement.ClearedActions.items);
+            // イベント発火
+            _researchEvent.InvokeOnResearchCompleted(playerId, researchElement);
             
             return true;
             
