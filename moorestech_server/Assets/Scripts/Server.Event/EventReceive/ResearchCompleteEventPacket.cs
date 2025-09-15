@@ -1,6 +1,7 @@
 using System;
 using Game.Research;
 using MessagePack;
+using Server.Protocol;
 using UniRx;
 
 namespace Server.Event.EventReceive
