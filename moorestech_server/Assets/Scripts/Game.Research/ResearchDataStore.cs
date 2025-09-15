@@ -34,13 +34,9 @@ namespace Game.Research
         {
             // すでに完了済みかチェック
             if (IsResearchCompleted(researchGuid)) return false;
-
-            // 前提研究のチェック
-            if (!ArePrerequisitesCompleted(researchGuid))
-            {
-                return false;
-            }
-
+                
+            // TODO 前提研究のチェックをする
+            
             var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
             var inventory = _inventoryDataStore.GetInventoryData(playerId);
             // プレイヤーのインベントリのアイテムチェック
@@ -62,60 +58,6 @@ namespace Game.Research
             
             #region Internal
             
-            bool ArePrerequisitesCompleted(Guid targetGuid)
-            {
-                var element = MasterHolder.ResearchMaster.GetResearch(targetGuid);
-                if (element == null) return false;
-
-                // 可能なキーをリフレクションで吸収（生成物の差異を吸収）
-                var type = element.GetType();
-                var prevGuids = new List<Guid>();
-
-                var multiProp = type.GetProperty("PrevResearchNodeGuids");
-                var singleProp = type.GetProperty("PrevResearchNodeGuid");
-
-                if (multiProp != null)
-                {
-                    var val = multiProp.GetValue(element);
-                    if (val is System.Collections.IEnumerable enumerable)
-                    {
-                        foreach (var item in enumerable)
-                        {
-                            if (item is Guid g)
-                            {
-                                prevGuids.Add(g);
-                            }
-                            else if (item is string s && Guid.TryParse(s, out var parsed))
-                            {
-                                prevGuids.Add(parsed);
-                            }
-                        }
-                    }
-                }
-                else if (singleProp != null)
-                {
-                    var val = singleProp.GetValue(element);
-                    if (val is Guid g)
-                    {
-                        prevGuids.Add(g);
-                    }
-                    else if (val is string s && Guid.TryParse(s, out var parsed))
-                    {
-                        prevGuids.Add(parsed);
-                    }
-                }
-
-                if (prevGuids.Count == 0) return true;
-
-                foreach (var prev in prevGuids)
-                {
-                    // 自身を前提に含むデータは無視
-                    if (prev == Guid.Empty || prev == targetGuid) continue;
-                    if (!IsResearchCompleted(prev)) return false;
-                }
-                return true;
-            }
-
             bool CheckRequiredItems(ConsumeItemsElement[] consumeItems)
             {
                 foreach (var consumeItem in consumeItems)
