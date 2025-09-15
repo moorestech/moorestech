@@ -1,14 +1,4 @@
-using System;
-using System.Collections.Generic;
-using Core.Inventory;
-using Core.Master;
-using Game.Action;
-using Game.PlayerInventory.Interface;
-using Game.Research;
-using Mooresmaster.Model.ChallengeActionModule;
-using Mooresmaster.Model.ResearchModule;
 using NUnit.Framework;
-using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Game.Research
 {
