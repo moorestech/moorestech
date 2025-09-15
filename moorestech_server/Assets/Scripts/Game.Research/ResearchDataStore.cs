@@ -30,6 +30,7 @@ namespace Game.Research
             // すでに完了済みかチェック
             if (_completedResearchGuids.Contains(researchGuid)) return false;
                 
+            // TODO 前提研究のチェックをする
             
             var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
             var inventory = _inventoryDataStore.GetInventoryData(playerId);
@@ -102,12 +103,6 @@ namespace Game.Research
             
             #endregion
         }
-
-        public HashSet<Guid> GetCompletedResearchGuids()
-        {
-            return new HashSet<Guid>(_completedResearchGuids);
-        }
-        
         
         #region SaveLoad
         
