@@ -10,16 +10,16 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Tests.CombinedTest.Game.Research
+namespace Tests.CombinedTest.Game
 {
     public class ResearchDataStoreTest
     {
-        private const int PlayerId = 0;
+        public const int PlayerId = 0;
         
-        public readonly Guid Research1Guid = Guid.Parse("cd05e30d-d599-46d3-a079-769113cbbf17");
-        public readonly Guid Research2Guid = Guid.Parse("7f1464a7-ba55-4b96-9257-cfdeddf5bbdd");
-        public readonly Guid Research3Guid = Guid.Parse("d18ea842-7d03-42f1-ac80-29370083d040");
-        public readonly Guid Research4Guid = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
+        public static readonly Guid Research1Guid = Guid.Parse("cd05e30d-d599-46d3-a079-769113cbbf17");
+        public static readonly Guid Research2Guid = Guid.Parse("7f1464a7-ba55-4b96-9257-cfdeddf5bbdd");
+        public static readonly Guid Research3Guid = Guid.Parse("d18ea842-7d03-42f1-ac80-29370083d040");
+        public static readonly Guid Research4Guid = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
         
         // もしインベントリのアイテムが足りないなら研究できない
         // If you don't have enough inventory items, you can't research them.
@@ -154,7 +154,7 @@ namespace Tests.CombinedTest.Game.Research
             Assert.IsTrue(researchDataStore.IsResearchCompleted(Research2Guid));
         }
         
-        private void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid)
+        public static void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid)
         {
             var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
