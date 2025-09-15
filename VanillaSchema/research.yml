@@ -21,12 +21,14 @@ properties:
     - key: researchNodeDescription
       type: string
       default: New Research Description
-    - key: prevResearchNodeGuid
-      type: uuid
-      foreignKey:
-        schemaId: research
-        foreignKeyIdPath: /data/[*]/researchNodeGuid
-        displayElementPath: /data/[*]/researchNodetName
+    - key: prevResearchNodeGuids
+      type: array
+      items:
+        type: uuid
+        foreignKey:
+          schemaId: research
+          foreignKeyIdPath: /data/[*]/researchNodeGuid
+          displayElementPath: /data/[*]/researchNodetName
     - key: clearedActions
       ref: challengeAction
     - key: graphViewSettings
