@@ -45,7 +45,9 @@
       "Bash(./tools/unity-test.sh:*)",
       "mcp__serena__search_for_pattern",
       "mcp__serena__find_symbol",
-      "mcp__serena__get_symbols_overview"
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__replace_symbol_body",
+      "Bash(dotnet build)"
     ],
     "deny": []
   },
