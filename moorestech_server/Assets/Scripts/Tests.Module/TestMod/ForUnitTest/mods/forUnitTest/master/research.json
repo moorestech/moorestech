@@ -18,7 +18,8 @@
         ],
         "IconItem": ""
       },
-      "consumeItems": []
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
     }
   ]
 }
