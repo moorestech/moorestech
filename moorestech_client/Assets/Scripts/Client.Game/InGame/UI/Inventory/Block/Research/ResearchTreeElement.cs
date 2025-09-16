@@ -4,15 +4,19 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Mooresmaster.Model.ChallengeActionModule;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
 {
     public class ResearchTreeElement : MonoBehaviour, ITreeViewElement
     {
+        public ResearchNodeData Node { get; private set; }
+        
         public RectTransform RectTransform => rectTransform;
         
         [SerializeField] private RectTransform rectTransform;
@@ -23,12 +27,13 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         [SerializeField] private TMP_Text description;
         
         [SerializeField] private RectTransform unlockItemIcons;
-
-        public ResearchNodeData Node { get; private set; }
-
+        
+        [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
+        [SerializeField] private Button researchButton;
+        
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
-
+        
         public void SetResearchNode(ResearchNodeData node)
         {
             Node = node;
@@ -40,7 +45,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             rectTransform.anchoredPosition = view.UIPosition;
             rectTransform.localScale = view.UIScale;
 
-            title.text = master.ResearchNodetName;
+            title.text = master.ResearchNodeName;
             description.text = master.ResearchNodeDescription;
             
             CreateUnlockItemIcons();
@@ -114,7 +119,12 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
             #endregion
         }
-
+        
+        private void Update()
+        {
+            
+        }
+        
         private void OnDestroy()
         {
             ClearConnectLines();
