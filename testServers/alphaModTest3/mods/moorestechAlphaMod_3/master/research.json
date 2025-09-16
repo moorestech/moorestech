@@ -2,7 +2,7 @@
   "data": [
     {
       "researchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
-      "researchNodetName": "研究1",
+      "researchNodeName": "研究1",
       "researchNodeDescription": "New Research Description",
       "prevResearchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
       "clearedActions": [],
@@ -28,7 +28,7 @@
     },
     {
       "researchNodeGuid": "a3d1c63b-b14c-44ba-aae9-22f7c621b72d",
-      "researchNodetName": "研究2",
+      "researchNodeName": "研究2",
       "researchNodeDescription": "New Research Description",
       "prevResearchNodeGuid": "",
       "clearedActions": [],
@@ -56,7 +56,7 @@
     },
     {
       "researchNodeGuid": "d4e0b2bb-9f20-4e0f-bfef-26c7f9449cd0",
-      "researchNodetName": "研究3",
+      "researchNodeName": "研究3",
       "researchNodeDescription": "New Research Description",
       "prevResearchNodeGuids": [
         "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
