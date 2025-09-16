@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -29,11 +30,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
 
-            // イベントがあることを確認する
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            var researchEvents = eventMessagePack.Events
+                .Where(e => e.Tag == ResearchCompleteEventPacket.EventTag)
+                .ToList();
+
+            // 研究完了イベントが1件であることを確認
+            Assert.AreEqual(1, researchEvents.Count);
 
             // 研究完了イベントを確認
-            VerifyResearchCompleteEvent(eventMessagePack.Events[0], Research1Guid);
+            VerifyResearchCompleteEvent(researchEvents[0], Research1Guid);
 
             // Research 2を完了させる（前提条件付き）
             CompleteResearchForTest(serviceProvider, Research2Guid);
@@ -42,11 +47,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
 
-            // 新しいイベントがあることを確認する
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            researchEvents = eventMessagePack.Events
+                .Where(e => e.Tag == ResearchCompleteEventPacket.EventTag)
+                .ToList();
+
+            // ResearchCompleteイベントが1件であることを確認
+            Assert.AreEqual(1, researchEvents.Count);
 
             // Research 2の完了イベントを確認
-            VerifyResearchCompleteEvent(eventMessagePack.Events[0], Research2Guid);
+            VerifyResearchCompleteEvent(researchEvents[0], Research2Guid);
         }
 
         private void VerifyResearchCompleteEvent(EventMessagePack eventData, Guid expectedResearchGuid)

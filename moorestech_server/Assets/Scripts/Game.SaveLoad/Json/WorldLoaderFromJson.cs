@@ -9,6 +9,7 @@ using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;
+using Game.Research;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
@@ -30,10 +31,12 @@ namespace Game.SaveLoad.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
+        private readonly IResearchDataStore _researchDataStore;
         
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
-            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson)
+            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
+            IResearchDataStore researchDataStore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -46,6 +49,7 @@ namespace Game.SaveLoad.Json
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _craftTreeManager = craftTreeManager;
             _mapInfoJson = mapInfoJson;
+            _researchDataStore = researchDataStore;
         }
         
         public void LoadOrInitialize()
@@ -83,6 +87,7 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
+            _researchDataStore.LoadResearchData(load.Research ?? new ResearchSaveJsonObject());
             
             // Challengeがnullまたはリストがnullでないことを確認
             if (load.Challenge == null)
