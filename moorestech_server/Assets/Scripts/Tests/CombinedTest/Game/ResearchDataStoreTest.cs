@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Game.UnlockState;
 
 namespace Tests.CombinedTest.Game
 {
@@ -20,6 +21,8 @@ namespace Tests.CombinedTest.Game
         public static readonly Guid Research2Guid = Guid.Parse("7f1464a7-ba55-4b96-9257-cfdeddf5bbdd");
         public static readonly Guid Research3Guid = Guid.Parse("d18ea842-7d03-42f1-ac80-29370083d040");
         public static readonly Guid Research4Guid = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
+        public static readonly Guid Test3ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000003");
+        public static readonly Guid CraftRecipeGuid = Guid.Parse("00000010-0000-0000-0000-000000000000");
         
         // もしインベントリのアイテムが足りないなら研究できない
         // If you don't have enough inventory items, you can't research them.
@@ -123,6 +126,22 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             CompleteResearchForTest(serviceProvider, Research4Guid);
+        }
+
+        [Test]
+        public void CompleteResearch4UnlocksTest3ItemAndCraftRecipe()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
+            var test3ItemId = MasterHolder.ItemMaster.GetItemId(Test3ItemGuid);
+
+            Assert.IsFalse(unlockState.ItemUnlockStateInfos[test3ItemId].IsUnlocked, "Research4 completion前にTest3アイテムはロックされている想定");
+
+            CompleteResearchForTest(serviceProvider, Research4Guid);
+
+            Assert.IsTrue(unlockState.ItemUnlockStateInfos[test3ItemId].IsUnlocked, "Research4 completion後にTest3アイテムがアンロックされるべき");
+            Assert.IsTrue(unlockState.CraftRecipeUnlockStateInfos[CraftRecipeGuid].IsUnlocked, "Research4 completion後にクラフトレシピがアンロックされるべき");
         }
         
         
