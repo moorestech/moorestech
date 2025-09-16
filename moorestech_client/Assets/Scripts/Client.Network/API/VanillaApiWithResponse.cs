@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -150,7 +151,21 @@ namespace Client.Network.API
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids);
         }
-        
+
+        public async UniTask<List<Guid>> GetCompletedResearchGuids(CancellationToken ct)
+        {
+            var request = new GetCompletedResearchProtocol.RequestGetCompletedResearchMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetCompletedResearchProtocol.ResponseGetCompletedResearchMessagePack>(request, ct);
+
+            if (response == null)
+            {
+                return new List<Guid>();
+            }
+
+            List<string> guidStrings = response.CompletedResearchGuidStrings ?? new List<string>();
+            return guidStrings.Select(Guid.Parse).ToList();
+        }
+
         public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
         {
             var request = new GetCraftTreeProtocol.RequestGetCraftTreeMessagePack(playerId);

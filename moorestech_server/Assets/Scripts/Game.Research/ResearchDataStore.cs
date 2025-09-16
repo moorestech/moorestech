@@ -137,6 +137,11 @@ namespace Game.Research
             
             #endregion
         }
+
+        public HashSet<Guid> GetCompletedResearchNodes()
+        {
+            return new HashSet<Guid>(_completedResearchGuids);
+        }
         
         #region SaveLoad
         
