@@ -58,8 +58,8 @@
       "researchNodetName": "Test Research 3",
       "researchNodeDescription": "Test Research 3",
       "prevResearchNodeGuids": [
-        "cd05e30d-d599-46d3-a079-769113cbbf17",
-        "7f1464a7-ba55-4b96-9257-cfdeddf5bbdd"
+        "7f1464a7-ba55-4b96-9257-cfdeddf5bbdd",
+        "d18ea842-7d03-42f1-ac80-29370083d040"
       ],
       "clearedActions": [],
       "graphViewSettings": {

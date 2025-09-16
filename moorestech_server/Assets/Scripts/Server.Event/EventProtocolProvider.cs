@@ -19,7 +19,7 @@ namespace Server.Event
             lock (_events)
             {
                 var eventMessagePack = new EventMessagePack(tag, payload);
-
+                
                 if (_events.TryGetValue(playerId, out var eventList))
                     eventList.Add(eventMessagePack);
                 else
@@ -32,7 +32,7 @@ namespace Server.Event
             lock (_events)
             {
                 var eventMessagePack = new EventMessagePack(tag, payload);
-
+                
                 foreach (var key in _events.Keys) _events[key].Add(eventMessagePack);
             }
         }
@@ -46,26 +46,15 @@ namespace Server.Event
                     var events = _events[playerId];
                     var data = new List<EventMessagePack>();
                     data.AddRange(events);
-
+                    
                     _events[playerId].Clear();
                     return data;
                 }
-
+                
                 //ブロードキャストイベントの時に使うので、何かしらリクエストがあった際はDictionaryにキーを追加しておく
                 _events.Add(playerId, new List<EventMessagePack>());
-
+                
                 return new List<EventMessagePack>();
-            }
-        }
-
-        /// <summary>
-        /// テスト用：すべてのイベントをクリアする
-        /// </summary>
-        public void ClearAllEvents()
-        {
-            lock (_events)
-            {
-                _events.Clear();
             }
         }
     }

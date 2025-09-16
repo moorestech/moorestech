@@ -15,49 +15,36 @@ namespace Tests.CombinedTest.Game
     public class ResearchDataStoreTest
     {
         public const int PlayerId = 0;
-
+        
         public static readonly Guid Research1Guid = Guid.Parse("cd05e30d-d599-46d3-a079-769113cbbf17");
         public static readonly Guid Research2Guid = Guid.Parse("7f1464a7-ba55-4b96-9257-cfdeddf5bbdd");
         public static readonly Guid Research3Guid = Guid.Parse("d18ea842-7d03-42f1-ac80-29370083d040");
         public static readonly Guid Research4Guid = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
-
-        private ServiceProvider _serviceProvider;
-
-        [SetUp]
-        public void SetUp()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            _serviceProvider = serviceProvider;
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            _serviceProvider?.Dispose();
-        }
-
+        
         // もしインベントリのアイテムが足りないなら研究できない
         // If you don't have enough inventory items, you can't research them.
         [Test]
         public void NotEnoughItemToFailResearchTest()
         {
-            var researchDataStore = _serviceProvider.GetService<IResearchDataStore>();
-
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+            
             // アイテムがない状態で研究を試みる
             // Attempting research without the item
             var result = researchDataStore.CompleteResearch(Research1Guid, PlayerId);
 
             Assert.IsFalse(result);
         }
-
+        
         // 1つの前提研究が完了していないなら研究できない
         // If one prerequisite study is not completed, you cannot research it.
         [Test]
         public void NotOneCompletedPreviousToFailResearchTest()
         {
-            var researchDataStore = _serviceProvider.GetService<IResearchDataStore>();
-            var playerInventoryData = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            
             // 必要なアイテムを追加
             // Add necessary items
             var researchMaster = MasterHolder.ResearchMaster.GetResearch(Research2Guid);
@@ -73,18 +60,19 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsFalse(result);
         }
-
+        
         // 複数の前提研究が完了していないなら研究できない
         [Test]
         public void NotAllCompletedPreviousToFailResearchTest()
         {
-            var researchDataStore = _serviceProvider.GetService<IResearchDataStore>();
-            var playerInventoryData = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
             // Research 1を完了させる
             // Complete Research 1
-            CompleteResearchForTest(_serviceProvider, Research1Guid);
-
+            CompleteResearchForTest(serviceProvider, Research1Guid);
+            
             // Research 3に必要なアイテムを追加（Research 2は未完了）
             // Add necessary items for Research 3 (Research 2 is incomplete)
             var researchMaster = MasterHolder.ResearchMaster.GetResearch(Research3Guid);
@@ -99,79 +87,78 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsFalse(result, "すべての前提研究が完了していないため失敗するべき");
         }
-
+        
         // すべての前提研究が完了しているなら研究できる
         // If all prerequisite studies are completed, you can research them.
         [Test]
         public void AllCompletedPreviousToSuccessResearchTest()
         {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
             // Research 1, 2を完了させる
             // Complete Research 1 and 2
-            CompleteResearchForTest(_serviceProvider, Research1Guid);
-            CompleteResearchForTest(_serviceProvider, Research2Guid);
-
+            CompleteResearchForTest(serviceProvider, Research1Guid);
+            CompleteResearchForTest(serviceProvider, Research2Guid);
+            
             // Research 3に必要なアイテムを追加
             // Add necessary items for Research 3
-            var playerInventoryData = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var researchMaster = MasterHolder.ResearchMaster.GetResearch(Research3Guid);
             foreach (var consumeItem in researchMaster.ConsumeItems)
             {
                 var item = ServerContext.ItemStackFactory.Create(consumeItem.ItemGuid, consumeItem.ItemCount);
                 playerInventoryData.MainOpenableInventory.InsertItem(item);
             }
-
-            var researchDataStore = _serviceProvider.GetService<IResearchDataStore>();
+            
+            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
             var result = researchDataStore.CompleteResearch(Research3Guid, PlayerId);
             Assert.IsTrue(result);
         }
-
+        
         // 前提研究が無いなら研究できる
         // If there is no prerequisite research, you can research it.
         [Test]
         public void NoPreviousToSuccessResearchTest()
         {
-            CompleteResearchForTest(_serviceProvider, Research4Guid);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
+            CompleteResearchForTest(serviceProvider, Research4Guid);
         }
-
-
+        
+        
         // 保存、ロードテスト
         [Test]
         public void SaveLoadTest()
         {
-            // Research 1と2を完了させる
-            CompleteResearchForTest(_serviceProvider, Research1Guid);
-            CompleteResearchForTest(_serviceProvider, Research2Guid);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
+            // Research 1と2を完了させる
+            CompleteResearchForTest(serviceProvider, Research1Guid);
+            CompleteResearchForTest(serviceProvider, Research2Guid);
+            
             // なにもクリアしていない状態でセーブ
             // Save without clearing anything
-            var assembleSaveJsonText = _serviceProvider.GetService<AssembleSaveJsonText>();
+            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var saveJson = assembleSaveJsonText.AssembleSaveJson();
-
+            
             // ロード
             // load
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            try
-            {
-                (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
-
-                var researchDataStore = loadServiceProvider.GetService<IResearchDataStore>();
-
-                // Research 1, 2が完了していることを確認
-                // Check that Research 1 and 2 are completed
-                Assert.IsTrue(researchDataStore.IsResearchCompleted(Research1Guid));
-                Assert.IsTrue(researchDataStore.IsResearchCompleted(Research2Guid));
-            }
-            finally
-            {
-                loadServiceProvider?.Dispose();
-            }
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+            
+            var researchDataStore = loadServiceProvider.GetService<ResearchDataStore>();
+            
+            // Research 1, 2が完了していることを確認
+            // Check that Research 1 and 2 are completed
+            Assert.IsTrue(researchDataStore.IsResearchCompleted(Research1Guid));
+            Assert.IsTrue(researchDataStore.IsResearchCompleted(Research2Guid));
         }
-
+        
         public static void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid)
         {
-            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-
+            
             var researchMaster = MasterHolder.ResearchMaster.GetResearch(researchGuid);
             foreach (var consumeItem in researchMaster.ConsumeItems)
             {

@@ -35,16 +35,9 @@ namespace Game.Research
             // すでに完了済みかチェック
             if (IsResearchCompleted(researchGuid)) return false;
                 
+            // TODO 前提研究のチェックをする
+            
             var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
-
-            // 前提研究のチェック
-            if (researchElement.PrevResearchNodeGuids != null)
-            {
-                foreach (var prevGuid in researchElement.PrevResearchNodeGuids)
-                {
-                    if (!IsResearchCompleted(prevGuid)) return false;
-                }
-            }
             var inventory = _inventoryDataStore.GetInventoryData(playerId);
             // プレイヤーのインベントリのアイテムチェック
             if (!CheckRequiredItems(researchElement.ConsumeItems))

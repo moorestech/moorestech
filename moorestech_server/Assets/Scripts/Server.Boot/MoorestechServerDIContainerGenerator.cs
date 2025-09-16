@@ -117,8 +117,7 @@ namespace Server.Boot
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
-            services.AddSingleton<ResearchEvent, ResearchEvent>();
-
+            
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
