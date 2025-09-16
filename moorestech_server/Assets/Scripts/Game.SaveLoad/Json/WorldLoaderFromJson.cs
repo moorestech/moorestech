@@ -7,7 +7,6 @@ using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
-using Game.Research;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.UnlockState;
@@ -31,11 +30,10 @@ namespace Game.SaveLoad.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
-        private readonly IResearchDataStore _researchDataStore;
         
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson, IResearchDataStore researchDataStore)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
+            ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -48,7 +46,6 @@ namespace Game.SaveLoad.Json
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _craftTreeManager = craftTreeManager;
             _mapInfoJson = mapInfoJson;
-            _researchDataStore = researchDataStore;
         }
         
         public void LoadOrInitialize()
@@ -109,12 +106,6 @@ namespace Game.SaveLoad.Json
             
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
-
-            // Researchデータのロード
-            if (load.Research != null)
-            {
-                _researchDataStore.LoadResearchData(load.Research);
-            }
         }
         
         public void WorldInitialize()
