@@ -116,8 +116,7 @@ namespace Server.Boot
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
-            services.AddSingleton<ResearchDataStore>();
-            services.AddSingleton<IResearchDataStore>(sp => sp.GetRequiredService<ResearchDataStore>());
+            services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<ResearchEvent>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());

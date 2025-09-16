@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Game
         public void NotOneCompletedPreviousToFailResearchTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             // 必要なアイテムを追加
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Game
         public void NotAllCompletedPreviousToFailResearchTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
             // Research 1を完了させる
@@ -110,7 +110,7 @@ namespace Tests.CombinedTest.Game
                 playerInventoryData.MainOpenableInventory.InsertItem(item);
             }
             
-            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var result = researchDataStore.CompleteResearch(Research3Guid, PlayerId);
             Assert.IsTrue(result);
         }
@@ -146,7 +146,7 @@ namespace Tests.CombinedTest.Game
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
             
-            var researchDataStore = loadServiceProvider.GetService<ResearchDataStore>();
+            var researchDataStore = loadServiceProvider.GetService<IResearchDataStore>();
             
             // Research 1, 2が完了していることを確認
             // Check that Research 1 and 2 are completed
@@ -156,7 +156,7 @@ namespace Tests.CombinedTest.Game
         
         public static void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid)
         {
-            var researchDataStore = serviceProvider.GetService<ResearchDataStore>();
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             var researchMaster = MasterHolder.ResearchMaster.GetResearch(researchGuid);
