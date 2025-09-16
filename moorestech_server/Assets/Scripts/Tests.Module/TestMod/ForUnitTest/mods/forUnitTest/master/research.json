@@ -2,7 +2,7 @@
   "data": [
     {
       "researchNodeGuid": "cd05e30d-d599-46d3-a079-769113cbbf17",
-      "researchNodetName": "Test Research 1",
+      "researchNodeName": "Test Research 1",
       "researchNodeDescription": "2 and 3’s previous",
       "prevResearchNodeGuid": "",
       "clearedActions": [],
@@ -28,7 +28,7 @@
     },
     {
       "researchNodeGuid": "7f1464a7-ba55-4b96-9257-cfdeddf5bbdd",
-      "researchNodetName": "Test Research 2",
+      "researchNodeName": "Test Research 2",
       "researchNodeDescription": "3’s previous",
       "prevResearchNodeGuids": [
         "cd05e30d-d599-46d3-a079-769113cbbf17"
@@ -55,7 +55,7 @@
     },
     {
       "researchNodeGuid": "d18ea842-7d03-42f1-ac80-29370083d040",
-      "researchNodetName": "Test Research 3",
+      "researchNodeName": "Test Research 3",
       "researchNodeDescription": "Test Research 3",
       "prevResearchNodeGuids": [
         "7f1464a7-ba55-4b96-9257-cfdeddf5bbdd",
@@ -87,7 +87,7 @@
     },
     {
       "researchNodeGuid": "bf9bda9e-dace-43c4-9a33-75f248fd17f6",
-      "researchNodetName": "Test Research 4",
+      "researchNodeName": "Test Research 4",
       "researchNodeDescription": "Don't have previous",
       "prevResearchNodeGuids": [],
       "clearedActions": [
