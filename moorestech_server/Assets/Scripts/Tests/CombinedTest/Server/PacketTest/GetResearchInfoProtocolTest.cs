@@ -31,12 +31,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsFalse(response.CompletedResearchGuidStrings.Contains(Research3Guid.ToString()));
         }
 
-        private GetResearchInfoProtocol.ResponseGetCompletedResearchMessagePack SendGetCompletedResearchRequest(PacketResponseCreator packet)
+        private GetResearchInfoProtocol.ResponseResearchInfoMessagePack SendGetCompletedResearchRequest(PacketResponseCreator packet)
         {
-            var requestData = MessagePackSerializer.Serialize(new GetResearchInfoProtocol.RequestGetCompletedResearchMessagePack()).ToList();
+            var requestData = MessagePackSerializer.Serialize(new GetResearchInfoProtocol.RequestResearchInfoMessagePack()).ToList();
             var response = packet.GetPacketResponse(requestData);
 
-            return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseGetCompletedResearchMessagePack>(response[0].ToArray());
+            return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(response[0].ToArray());
         }
     }
 }
