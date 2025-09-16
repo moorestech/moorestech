@@ -3173,6 +3173,20 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "ff8d2077-7ae6-4fbf-b1be-4b4844856273",
+      "name": "研究テーブル",
+      "blockType": "Block",
+      "itemGuid": "06aff80a-2edd-499c-9292-141ca365b17a",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockParam": {},
+      "blockPrefabAddressablesPath": "Vanilla/Block/BaseCamp2",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ResearchTable/ResearchTreeUI"
     }
   ]
 }

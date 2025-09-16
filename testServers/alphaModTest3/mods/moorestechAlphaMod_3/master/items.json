@@ -748,6 +748,16 @@
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "06aff80a-2edd-499c-9292-141ca365b17a",
+      "imagePath": "",
+      "name": "研究テーブル",
+      "maxStack": 100,
+      "sortPriority": 910,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
