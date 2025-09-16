@@ -8,21 +8,28 @@ namespace Server.Event.EventReceive
     /// <summary>
     /// 研究状態の変化をクライアントに通知するイベントパケット
     /// </summary>
-    public class ResearchCompleteEventPacket
+    public class ResearchCompleteEventPacket : IDisposable
     {
         public const string EventTag = "va:event:researchComplete";
-        
+
+        private readonly IDisposable _disposable;
+
         public ResearchCompleteEventPacket(EventProtocolProvider eventProtocolProvider, ResearchEvent researchEvent)
         {
             // 研究完了イベントをサブスクライブ
-            researchEvent.OnResearchCompleted.Subscribe(data =>
+            _disposable = researchEvent.OnResearchCompleted.Subscribe(data =>
             {
                 var eventData = new ResearchCompleteEventMessagePack(data.playerId, data.researchNode.ResearchNodeGuid);
                 var payload = MessagePackSerializer.Serialize(eventData);
                 eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
             });
         }
-        
+
+        public void Dispose()
+        {
+            _disposable?.Dispose();
+        }
+
         [MessagePackObject]
         public class ResearchCompleteEventMessagePack
         {
@@ -33,7 +40,7 @@ namespace Server.Event.EventReceive
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResearchCompleteEventMessagePack() { }
-            
+
             public ResearchCompleteEventMessagePack(int playerId, Guid researchGuid)
             {
                 PlayerId = playerId;

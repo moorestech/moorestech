@@ -3,6 +3,7 @@ using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
+using Game.Research;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
@@ -18,8 +19,9 @@ namespace Game.SaveLoad.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
+        private readonly IResearchDataStore _researchDataStore;
         
-        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager)
+        public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, IResearchDataStore researchDataStore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -27,6 +29,7 @@ namespace Game.SaveLoad.Json
             _challengeDatastore = challengeDatastore;
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _craftTreeManager = craftTreeManager;
+            _researchDataStore = researchDataStore;
         }
         
         public string AssembleSaveJson()
@@ -42,7 +45,8 @@ namespace Game.SaveLoad.Json
                 mapObjectDatastore.GetSaveJsonObject(),
                 _challengeDatastore.GetSaveJsonObject(),
                 _gameUnlockStateDataController.GetSaveJsonObject(),
-                _craftTreeManager.GetSaveJsonObject()
+                _craftTreeManager.GetSaveJsonObject(),
+                _researchDataStore.GetSaveJsonObject()
            );
 
 
