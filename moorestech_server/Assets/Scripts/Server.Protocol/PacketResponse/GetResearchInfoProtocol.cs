@@ -7,13 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class GetCompletedResearchProtocol : IPacketResponse
+    public class GetResearchInfoProtocol : IPacketResponse
     {
-        public const string ProtocolTag = "va:getCompletedResearch";
+        public const string ProtocolTag = "va:getResearchInfo";
         
         private readonly IResearchDataStore _researchDataStore;
         
-        public GetCompletedResearchProtocol(ServiceProvider serviceProvider)
+        public GetResearchInfoProtocol(ServiceProvider serviceProvider)
         {
             _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
         }

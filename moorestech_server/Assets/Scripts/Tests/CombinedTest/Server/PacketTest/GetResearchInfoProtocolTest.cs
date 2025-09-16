@@ -10,7 +10,7 @@ using static Tests.CombinedTest.Game.ResearchDataStoreTest;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class GetCompletedResearchProtocolTest
+    public class GetResearchInfoProtocolTest
     {
         [Test]
         public void GetCompletedResearchGuidsAreReturned()
@@ -31,12 +31,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsFalse(response.CompletedResearchGuidStrings.Contains(Research3Guid.ToString()));
         }
 
-        private GetCompletedResearchProtocol.ResponseGetCompletedResearchMessagePack SendGetCompletedResearchRequest(PacketResponseCreator packet)
+        private GetResearchInfoProtocol.ResponseGetCompletedResearchMessagePack SendGetCompletedResearchRequest(PacketResponseCreator packet)
         {
-            var requestData = MessagePackSerializer.Serialize(new GetCompletedResearchProtocol.RequestGetCompletedResearchMessagePack()).ToList();
+            var requestData = MessagePackSerializer.Serialize(new GetResearchInfoProtocol.RequestGetCompletedResearchMessagePack()).ToList();
             var response = packet.GetPacketResponse(requestData);
 
-            return MessagePackSerializer.Deserialize<GetCompletedResearchProtocol.ResponseGetCompletedResearchMessagePack>(response[0].ToArray());
+            return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseGetCompletedResearchMessagePack>(response[0].ToArray());
         }
     }
 }
