@@ -154,8 +154,8 @@ namespace Client.Network.API
 
         public async UniTask<List<Guid>> GetCompletedResearchGuids(CancellationToken ct)
         {
-            var request = new GetCompletedResearchProtocol.RequestGetCompletedResearchMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetCompletedResearchProtocol.ResponseGetCompletedResearchMessagePack>(request, ct);
+            var request = new GetResearchInfoProtocol.RequestGetCompletedResearchMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetResearchInfoProtocol.ResponseGetCompletedResearchMessagePack>(request, ct);
 
             if (response == null)
             {
