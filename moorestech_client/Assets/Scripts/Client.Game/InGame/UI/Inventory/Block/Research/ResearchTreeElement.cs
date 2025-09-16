@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Common;
-using Mooresmaster.Model.ResearchModule;
+using Core.Master;
+using Mooresmaster.Model.ChallengeActionModule;
 using TMPro;
 using UnityEngine;
 
@@ -15,10 +17,12 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private RectTransform connectLinePrefab;
+        [SerializeField] private GameObject completeOverlay;
 
-        [SerializeField] private ItemSlotView itemSlotView;
         [SerializeField] private TMP_Text title;
         [SerializeField] private TMP_Text description;
+        
+        [SerializeField] private RectTransform unlockItemIcons;
 
         public ResearchNodeData Node { get; private set; }
 
@@ -28,21 +32,41 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         public void SetResearchNode(ResearchNodeData node)
         {
             Node = node;
-
+            
+            completeOverlay.SetActive(node.IsCompleted);
+            
             var master = node.MasterElement;
             var view = master.GraphViewSettings;
             rectTransform.anchoredPosition = view.UIPosition;
             rectTransform.localScale = view.UIScale;
 
-            var itemView = ClientContext.ItemImageContainer.GetItemView(view.IconItem);
-            itemSlotView.SetItem(itemView, 0);
-            itemSlotView.SetSlotViewOption(new CommonSlotViewOption
-            {
-                IsShowToolTip = false,
-            });
-
             title.text = master.ResearchNodetName;
             description.text = master.ResearchNodeDescription;
+            
+            CreateUnlockItemIcons();
+            
+            #region Internal
+            
+            void CreateUnlockItemIcons()
+            {
+                var unlockItems = node.MasterElement.ClearedActions.items.Where(a => a.ChallengeActionType == ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView);
+
+                foreach (var unlockItem in unlockItems)
+                {
+                    var param = (UnlockItemRecipeViewChallengeActionParam)unlockItem.ChallengeActionParam;
+                    foreach (var unlockItemGuid in param.UnlockItemGuids)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemId(unlockItemGuid);
+                        var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
+                        
+                        var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
+                        icon.SetItem(itemView, 0);
+                        icon.SetSizeDelta(new Vector2(30, 30));
+                    }
+                }
+            }
+            
+            #endregion
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)
