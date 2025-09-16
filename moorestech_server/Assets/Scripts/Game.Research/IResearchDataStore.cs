@@ -21,4 +21,14 @@ namespace Game.Research
             CompletedResearchGuids = new List<string>();
         }
     }
+    
+    public enum ResearchNodeState
+    {
+        Completed,
+        Researchable,
+        
+        UnresearchableAllReasons,
+        UnresearchableNotEnoughItem,
+        UnresearchableNotEnoughPreNode,
+    }
 }

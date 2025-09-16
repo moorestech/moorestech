@@ -21,33 +21,33 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var completedNodes = _researchDataStore.GetCompletedResearchNodes();
-            return new ResponseGetCompletedResearchMessagePack(completedNodes);
+            return new ResponseResearchInfoMessagePack(completedNodes);
         }
         
         #region MessagePack Classes
         
         [MessagePackObject]
-        public class RequestGetCompletedResearchMessagePack : ProtocolMessagePackBase
+        public class RequestResearchInfoMessagePack : ProtocolMessagePackBase
         {
-            public RequestGetCompletedResearchMessagePack()
+            public RequestResearchInfoMessagePack()
             {
                 Tag = ProtocolTag;
             }
         }
         
         [MessagePackObject]
-        public class ResponseGetCompletedResearchMessagePack : ProtocolMessagePackBase
+        public class ResponseResearchInfoMessagePack : ProtocolMessagePackBase
         {
             [IgnoreMember] public IReadOnlyList<Guid> CompletedResearchGuids => CompletedResearchGuidStrings.Select(Guid.Parse).ToList();
             
             [Key(2)] public List<string> CompletedResearchGuidStrings { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public ResponseGetCompletedResearchMessagePack()
+            public ResponseResearchInfoMessagePack()
             {
             }
             
-            public ResponseGetCompletedResearchMessagePack(IEnumerable<Guid> completedResearchGuids)
+            public ResponseResearchInfoMessagePack(IEnumerable<Guid> completedResearchGuids)
             {
                 Tag = ProtocolTag;
                 CompletedResearchGuidStrings = completedResearchGuids.Select(guid => guid.ToString()).ToList();
