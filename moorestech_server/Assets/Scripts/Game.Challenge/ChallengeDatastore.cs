@@ -175,10 +175,7 @@ namespace Game.Challenge
             
             void ExecuteChallengeActions(ChallengeActionElement[] actions)
             {
-                foreach (var action in actions)
-                {
-                    ExecuteChallengeAction(action);
-                }
+                _gameActionExecutor.ExecuteActions(actions);
             }
             
             #endregion
@@ -286,10 +283,6 @@ namespace Game.Challenge
             return true;
         }
 
-        
-        private void ExecuteChallengeAction(ChallengeActionElement action)
-        {
-        }
     }
     
     public class CurrentChallengeInfo

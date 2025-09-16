@@ -15,6 +15,8 @@ namespace Game.Action
         }
         public void ExecuteUnlockActions(ChallengeActionElement[] actions)
         {
+            if (actions == null || actions.Length == 0) return;
+
             foreach (var action in actions)
             {
                 switch (action.ChallengeActionType)
@@ -29,6 +31,8 @@ namespace Game.Action
         }
         public void ExecuteActions(ChallengeActionElement[] actions)
         {
+            if (actions == null || actions.Length == 0) return;
+            
             foreach (var action in actions)
             {
                 ExecuteAction(action);
@@ -38,17 +42,16 @@ namespace Game.Action
         private void ExecuteAction(ChallengeActionElement action)
         {
             if (action == null) return;
-            
             switch (action.ChallengeActionType)
             {
                 case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
                     UnlockCraftRecipe();
                     break;
-                
+
                 case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
                     UnlockItemRecipeView();
                     break;
-                
+
                 case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
                     UnlockChallengeCategory();
                     break;
