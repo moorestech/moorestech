@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Client.Game.InGame.UI.Inventory.Common
 {
     /// <summary>
@@ -12,6 +14,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public bool? HotBarSelected;
         public bool? IsShowToolTip;
         public float? CountTextFontSize;
+        public Vector2? SizeDelta;
     }
     
     public enum ItemUIEventType

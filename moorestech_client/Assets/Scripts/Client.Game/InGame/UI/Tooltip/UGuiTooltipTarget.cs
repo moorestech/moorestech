@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UI.Tooltip
         [SerializeField] private bool displayEnable;
         
         [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
-        private bool _isLocalize;
+        [SerializeField] private bool localize = true;
         
         private bool _pointerStay;
         
@@ -32,7 +32,7 @@ namespace Client.Game.InGame.UI.Tooltip
         
         public void SetText(string text, bool isLocalize = true)
         {
-            _isLocalize = isLocalize;
+            localize = isLocalize;
             textKey = text;
         }
         
@@ -44,7 +44,7 @@ namespace Client.Game.InGame.UI.Tooltip
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorTooltip.Instance.Show(textKey, fontSize, _isLocalize);
+                MouseCursorTooltip.Instance.Show(textKey, fontSize, localize);
                 return;
             }
             
