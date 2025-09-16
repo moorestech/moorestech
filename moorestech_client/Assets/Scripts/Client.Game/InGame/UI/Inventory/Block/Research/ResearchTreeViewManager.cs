@@ -52,6 +52,9 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         
         public void UpdateItemList(List<IItemStack> response) { }
         public void UpdateInventorySlot(int slot, IItemStack item) { }
-        public void DestroyUI() { }
+        public void DestroyUI() 
+        {
+            Destroy(gameObject);
+        }
     }
 }
