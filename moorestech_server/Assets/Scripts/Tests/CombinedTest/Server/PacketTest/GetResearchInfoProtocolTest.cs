@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Game.Research;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -13,30 +14,43 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class GetResearchInfoProtocolTest
     {
         [Test]
-        public void GetCompletedResearchGuidsAreReturned()
+        public void GetResearchNodeStatesAreReturned()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var emptyResponse = SendGetCompletedResearchRequest(packet);
+            var emptyResponse = SendGetResearchInfoRequest(packet);
             Assert.IsNotNull(emptyResponse);
-            Assert.AreEqual(0, emptyResponse.CompletedResearchGuidStrings.Count);
+            Assert.AreEqual(4, emptyResponse.ResearchNodeStates.Count);
+            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, GetNodeState(emptyResponse, Research1Guid));
+            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, GetNodeState(emptyResponse, Research2Guid));
+            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, GetNodeState(emptyResponse, Research3Guid));
+            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, GetNodeState(emptyResponse, Research4Guid));
 
             CompleteResearchForTest(serviceProvider, Research1Guid);
             CompleteResearchForTest(serviceProvider, Research2Guid);
 
-            var response = SendGetCompletedResearchRequest(packet);
+            var response = SendGetResearchInfoRequest(packet);
 
-            Assert.That(response.CompletedResearchGuidStrings, Does.Contain(Research1Guid.ToString()));
-            Assert.That(response.CompletedResearchGuidStrings, Does.Contain(Research2Guid.ToString()));
-            Assert.IsFalse(response.CompletedResearchGuidStrings.Contains(Research3Guid.ToString()));
+            Assert.AreEqual(ResearchNodeState.Completed, GetNodeState(response, Research1Guid));
+            Assert.AreEqual(ResearchNodeState.Completed, GetNodeState(response, Research2Guid));
+            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, GetNodeState(response, Research3Guid));
+            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, GetNodeState(response, Research4Guid));
         }
 
-        private GetResearchInfoProtocol.ResponseResearchInfoMessagePack SendGetCompletedResearchRequest(PacketResponseCreator packet)
+        private GetResearchInfoProtocol.ResponseResearchInfoMessagePack SendGetResearchInfoRequest(PacketResponseCreator packet)
         {
-            var requestData = MessagePackSerializer.Serialize(new GetResearchInfoProtocol.RequestResearchInfoMessagePack()).ToList();
+            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(PlayerId);
+            var requestData = MessagePackSerializer.Serialize(request).ToList();
             var response = packet.GetPacketResponse(requestData);
 
             return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(response[0].ToArray());
+        }
+
+        private ResearchNodeState GetNodeState(GetResearchInfoProtocol.ResponseResearchInfoMessagePack response, Guid researchGuid)
+        {
+            return response.ResearchNodeStates
+                .First(s => s.ResearchGuid == researchGuid)
+                .State;
         }
     }
 }
