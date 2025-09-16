@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
-using Client.Network.API;
+using Core.Master;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -20,20 +21,32 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();
         public int Count => 0;
         
-        private CancellationTokenSource _cancellationTokenSource;
-        
+        private CancellationToken _destroyCancellationToken;
+
         public void Initialize(BlockGameObject blockGameObject)
         {
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
-            _cancellationTokenSource = new CancellationTokenSource();
-            
+            _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
+            LoadResearchTree().Forget();
+
             #region Internal
-            
-            async UniTask GetResearchData()
+
+            async UniTask LoadResearchTree()
             {
-                //var blockStates = await ClientContext.VanillaApi.Response.GetBlockState(pos, _gameObjectCancellationToken);
+                var completedResearchGuids = await ClientContext.VanillaApi.Response.GetCompletedResearchGuids(_destroyCancellationToken);
+                var completedResearchSet = new HashSet<Guid>(completedResearchGuids);
+
+                var researchMasters = MasterHolder.ResearchMaster.GetAllResearches();
+                var nodes = new List<ResearchNodeData>(researchMasters.Count);
+                foreach (var master in researchMasters)
+                {
+                    var node = new ResearchNodeData(master, completedResearchSet.Contains(master.ResearchNodeGuid));
+                    nodes.Add(node);
+                }
+
+                researchTreeView.SetResearchNodes(nodes);
             }
-            
+
   #endregion
         }
         
