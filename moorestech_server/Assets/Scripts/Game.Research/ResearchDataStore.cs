@@ -35,9 +35,16 @@ namespace Game.Research
             // すでに完了済みかチェック
             if (IsResearchCompleted(researchGuid)) return false;
                 
-            // TODO 前提研究のチェックをする
-            
             var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
+            if (researchElement == null)
+            {
+                return false;
+            }
+
+            if (!ArePrerequisitesCompleted(researchElement.PrevResearchNodeGuids, researchGuid))
+            {
+                return false;
+            }
             var inventory = _inventoryDataStore.GetInventoryData(playerId);
             // プレイヤーのインベントリのアイテムチェック
             if (!CheckRequiredItems(researchElement.ConsumeItems))
@@ -57,7 +64,29 @@ namespace Game.Research
             return true;
             
             #region Internal
-            
+
+            bool ArePrerequisitesCompleted(Guid[] prerequisiteGuids, Guid currentResearchGuid)
+            {
+                if (prerequisiteGuids == null || prerequisiteGuids.Length == 0)
+                {
+                    return true;
+                }
+
+                foreach (var prerequisite in prerequisiteGuids)
+                {
+                    if (prerequisite == currentResearchGuid)
+                    {
+                        continue;
+                    }
+                    if (!_completedResearchGuids.Contains(prerequisite))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             bool CheckRequiredItems(ConsumeItemsElement[] consumeItems)
             {
                 foreach (var consumeItem in consumeItems)
