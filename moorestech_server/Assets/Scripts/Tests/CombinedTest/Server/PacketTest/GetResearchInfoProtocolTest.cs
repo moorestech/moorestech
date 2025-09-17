@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             return response.ResearchNodeStates
                 .First(s => s.ResearchGuid == researchGuid)
-                .State;
+                .ResearchNodeState;
         }
     }
 }

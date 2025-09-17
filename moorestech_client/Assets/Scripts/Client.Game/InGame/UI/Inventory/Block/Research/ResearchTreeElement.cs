@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
+using Game.Research;
 using Mooresmaster.Model.ChallengeActionModule;
 using TMPro;
 using UnityEngine;
@@ -25,7 +26,9 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         [SerializeField] private TMP_Text title;
         [SerializeField] private TMP_Text description;
-        
+       
+        [SerializeField] private Vector2 iconSize = new(30, 30);
+        [SerializeField] private RectTransform consumeItemIcons;
         [SerializeField] private RectTransform unlockItemIcons;
         
         [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
@@ -38,7 +41,11 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         {
             Node = node;
             
-            completeOverlay.SetActive(node.IsCompleted);
+            completeOverlay.SetActive(node.State == ResearchNodeState.Completed);
+            if (researchButton != null)
+            {
+                researchButton.interactable = node.State == ResearchNodeState.Researchable;
+            }
             
             var master = node.MasterElement;
             var view = master.GraphViewSettings;
@@ -49,6 +56,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             description.text = master.ResearchNodeDescription;
             
             CreateUnlockItemIcons();
+            CreateConsumeItemIcons();
             
             #region Internal
             
@@ -66,8 +74,21 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                         
                         var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
                         icon.SetItem(itemView, 0);
-                        icon.SetSizeDelta(new Vector2(30, 30));
+                        icon.SetSizeDelta(iconSize);
                     }
+                }
+            }
+            
+            void CreateConsumeItemIcons()
+            {
+                foreach (var consumeItem in node.MasterElement.ConsumeItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
+                    var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
+                    
+                    var icon = Instantiate(ItemSlotView.Prefab, consumeItemIcons);
+                    icon.SetItem(itemView, consumeItem.ItemCount);
+                    icon.SetSizeDelta(iconSize);
                 }
             }
             

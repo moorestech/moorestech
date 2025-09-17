@@ -68,9 +68,10 @@ namespace Server.Protocol.PacketResponse
         public class ResearchNodeStateMessagePack
         {
             [Key(0)] public string ResearchGuidStr { get; set; }
-            [Key(1)] public ResearchNodeState State { get; set; }
+            [Key(1)] public int State { get; set; }
 
             [IgnoreMember] public Guid ResearchGuid => Guid.Parse(ResearchGuidStr);
+            [IgnoreMember] public ResearchNodeState ResearchNodeState => (ResearchNodeState)State;
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResearchNodeStateMessagePack()
@@ -80,7 +81,7 @@ namespace Server.Protocol.PacketResponse
             public ResearchNodeStateMessagePack(Guid researchGuid, ResearchNodeState state)
             {
                 ResearchGuidStr = researchGuid.ToString();
-                State = state;
+                State = (int)state;
             }
         }
         
