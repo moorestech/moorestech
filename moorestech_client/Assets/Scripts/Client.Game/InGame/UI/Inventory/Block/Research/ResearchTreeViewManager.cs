@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -7,6 +6,7 @@ using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
+using Game.Research;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
 
@@ -33,14 +33,14 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
             async UniTask LoadResearchTree()
             {
-                var completedResearchGuids = await ClientContext.VanillaApi.Response.GetCompletedResearchGuids(_destroyCancellationToken);
-                var completedResearchSet = new HashSet<Guid>(completedResearchGuids);
+                var nodeStates = await ClientContext.VanillaApi.Response.GetResearchNodeStates(_destroyCancellationToken);
 
                 var researchMasters = MasterHolder.ResearchMaster.GetAllResearches();
                 var nodes = new List<ResearchNodeData>(researchMasters.Count);
                 foreach (var master in researchMasters)
                 {
-                    var node = new ResearchNodeData(master, completedResearchSet.Contains(master.ResearchNodeGuid));
+                    var state = nodeStates.GetValueOrDefault(master.ResearchNodeGuid, ResearchNodeState.UnresearchableAllReasons);
+                    var node = new ResearchNodeData(master, state);
                     nodes.Add(node);
                 }
 

@@ -2,10 +2,19 @@
   "data": [
     {
       "researchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
-      "researchNodeName": "研究1",
+      "researchNodetName": "研究1",
       "researchNodeDescription": "New Research Description",
       "prevResearchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
-      "clearedActions": [],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+            ]
+          }
+        }
+      ],
       "graphViewSettings": {
         "UIPosition": [
           0,
@@ -24,17 +33,18 @@
           "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87",
           "itemCount": 1
         }
-      ]
+      ],
+      "researchNodeName": "研究1"
     },
     {
       "researchNodeGuid": "a3d1c63b-b14c-44ba-aae9-22f7c621b72d",
-      "researchNodeName": "研究2",
+      "researchNodetName": "研究2",
       "researchNodeDescription": "New Research Description",
       "prevResearchNodeGuid": "",
       "clearedActions": [],
       "graphViewSettings": {
         "UIPosition": [
-          150,
+          400,
           0
         ],
         "UIScale": [
@@ -52,11 +62,12 @@
           "itemGuid": "86670a2a-ab7c-46f4-bedf-1b30d1da111e",
           "itemCount": 1
         }
-      ]
+      ],
+      "researchNodeName": "研究2"
     },
     {
       "researchNodeGuid": "d4e0b2bb-9f20-4e0f-bfef-26c7f9449cd0",
-      "researchNodeName": "研究3",
+      "researchNodetName": "研究3",
       "researchNodeDescription": "New Research Description",
       "prevResearchNodeGuids": [
         "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
@@ -65,8 +76,8 @@
       "clearedActions": [],
       "graphViewSettings": {
         "UIPosition": [
-          300,
-          300
+          0,
+          400
         ],
         "UIScale": [
           1,
@@ -80,7 +91,8 @@
           "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
           "itemCount": 1
         }
-      ]
+      ],
+      "researchNodeName": "研究3"
     }
   ]
 }

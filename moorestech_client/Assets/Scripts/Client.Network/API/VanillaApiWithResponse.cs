@@ -8,6 +8,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.CraftTree.Models;
+using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -152,18 +153,23 @@ namespace Client.Network.API
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids);
         }
 
-        public async UniTask<List<Guid>> GetCompletedResearchGuids(CancellationToken ct)
+        public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
         {
-            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack();
+            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(_playerConnectionSetting.PlayerId);
             var response = await _packetExchangeManager.GetPacketResponse<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(request, ct);
 
-            if (response == null)
+            if (response?.ResearchNodeStates == null)
             {
-                return new List<Guid>();
+                return new Dictionary<Guid, ResearchNodeState>();
             }
 
-            List<string> guidStrings = response.CompletedResearchGuidStrings ?? new List<string>();
-            return guidStrings.Select(Guid.Parse).ToList();
+            var nodeStates = new Dictionary<Guid, ResearchNodeState>(response.ResearchNodeStates.Count);
+            foreach (var node in response.ResearchNodeStates)
+            {
+                nodeStates[node.ResearchGuid] = node.ResearchNodeState;
+            }
+
+            return nodeStates;
         }
 
         public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
