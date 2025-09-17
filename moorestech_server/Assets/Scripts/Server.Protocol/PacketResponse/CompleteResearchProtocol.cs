@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.Research;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,9 @@ namespace Server.Protocol.PacketResponse
 
             // 研究完了を試みる
             var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, request.PlayerId);
-            
-            return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString());
+            var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
+
+            return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);
         }
 
         #region MessagePack Classes
@@ -54,17 +56,24 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public bool Success { get; set; }
             [Key(3)] public string CompletedResearchGuidStr { get; set; }
+            [Key(4)] public List<GetResearchInfoProtocol.ResearchNodeStateMessagePack> ResearchNodeStates { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseCompleteResearchMessagePack()
             {
             }
 
-            public ResponseCompleteResearchMessagePack(bool success, string completedResearchGuidStr)
+            public ResponseCompleteResearchMessagePack(
+                bool success,
+                string completedResearchGuidStr,
+                Dictionary<Guid, ResearchNodeState> nodeStates)
             {
                 Tag = ProtocolTag;
                 Success = success;
                 CompletedResearchGuidStr = completedResearchGuidStr;
+                ResearchNodeStates = nodeStates
+                    .Select(kvp => new GetResearchInfoProtocol.ResearchNodeStateMessagePack(kvp.Key, kvp.Value))
+                    .ToList();
             }
         }
 
