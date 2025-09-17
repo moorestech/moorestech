@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public bool Success { get; set; }
             [Key(3)] public string CompletedResearchGuidStr { get; set; }
-            [Key(4)] public List<GetResearchInfoProtocol.ResearchNodeStateMessagePack> ResearchNodeStates { get; set; }
+            [Key(4)] public GetResearchInfoProtocol.ResponseResearchInfoMessagePack NodeState { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseCompleteResearchMessagePack()
@@ -71,9 +71,7 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
                 Success = success;
                 CompletedResearchGuidStr = completedResearchGuidStr;
-                ResearchNodeStates = nodeStates
-                    .Select(kvp => new GetResearchInfoProtocol.ResearchNodeStateMessagePack(kvp.Key, kvp.Value))
-                    .ToList();
+                NodeState = new GetResearchInfoProtocol.ResponseResearchInfoMessagePack(nodeStates);
             }
         }
 

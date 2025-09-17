@@ -88,12 +88,12 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             void AssertResearchNodes(CompleteResearchProtocol.ResponseCompleteResearchMessagePack response, params (Guid researchGuid, ResearchNodeState expectedState)[] expectations)
             {
-                Assert.IsNotNull(response.ResearchNodeStates);
-                Assert.AreEqual(ResearchNodeCount, response.ResearchNodeStates.Count);
+                Assert.IsNotNull(response.NodeState.ResearchNodeStates);
+                Assert.AreEqual(ResearchNodeCount, response.NodeState.ResearchNodeStates.Count);
 
                 foreach (var (researchGuid, expectedState) in expectations)
                 {
-                    var nodeState = response.ResearchNodeStates
+                    var nodeState = response.NodeState.ResearchNodeStates
                         .First(node => node.ResearchGuid == researchGuid)
                         .ResearchNodeState;
 

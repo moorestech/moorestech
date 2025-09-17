@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.Challenge;
-using Mooresmaster.Model.ResearchModule;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
 {
     public class ResearchTreeView : MonoBehaviour
     {
+        public IObservable<ResearchNodeData> OnClickResearchButton => _onClickResearchButton;
+        private readonly Subject<ResearchNodeData> _onClickResearchButton = new();
+        
         [SerializeField] private ResearchTreeElement nodeElementPrefab;
         
         [SerializeField] private Transform nodeListParent;
@@ -17,42 +20,57 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         [SerializeField] private RectTransform resizeTarget;
         [SerializeField] private RectTransform offsetTarget;
 
-        private readonly Dictionary<Guid, ResearchTreeElement> _nodeElements = new();
+        private Dictionary<Guid, ResearchTreeElement> _nodeElements;
 
-        public void SetResearchNodes(IEnumerable<ResearchNodeData> nodes)
+        public void SetResearchNodes(List<ResearchNodeData> nodes)
         {
-            // 既存の要素をクリア
-            ClearNodeElements();
-
-            // 新しいノード要素を作成
-            foreach (var node in nodes)
+            if (_nodeElements == null)
             {
-                var nodeElement = Instantiate(nodeElementPrefab, nodeListParent);
-                nodeElement.SetResearchNode(node);
-                _nodeElements.Add(node.MasterElement.ResearchNodeGuid, nodeElement);
+                CreateResearchTree();
+                return;
             }
-
-            // 接続線を作成
-            foreach (var nodeElement in _nodeElements.Values)
+            
+            UpdateResearchTree();
+            
+            #region Internal
+            
+            void CreateResearchTree()
             {
-                nodeElement.CreateConnect(connectLineParent, _nodeElements);
-            }
-
-            // 全要素を包含するように親のサイズを調整
-            var elements = _nodeElements.Values.Select(e => (ITreeViewElement)e);
-            TreeViewAdjuster.AdjustParentSize(resizeTarget, offsetTarget, elements);
-        }
-
-        private void ClearNodeElements()
-        {
-            foreach (var element in _nodeElements.Values)
-            {
-                if (element != null)
+                _nodeElements = new Dictionary<Guid, ResearchTreeElement>();
+                
+                // 新しいノード要素を作成
+                foreach (var node in nodes)
                 {
-                    Destroy(element.gameObject);
+                    var nodeElement = Instantiate(nodeElementPrefab, nodeListParent);
+                    _nodeElements.Add(node.MasterElement.ResearchNodeGuid, nodeElement);
+                    nodeElement.OnClickResearchButton.Subscribe(n => _onClickResearchButton.OnNext(n)).AddTo(this);
+                    
+                    nodeElement.SetResearchNode(node);
+                }
+                
+                // 接続線を作成
+                foreach (var nodeElement in _nodeElements.Values)
+                {
+                    nodeElement.CreateConnect(connectLineParent, _nodeElements);
+                }
+                
+                // 全要素を包含するように親のサイズを調整
+                var elements = _nodeElements.Values.Select(e => (ITreeViewElement)e);
+                TreeViewAdjuster.AdjustParentSize(resizeTarget, offsetTarget, elements);
+            }
+            
+            void UpdateResearchTree()
+            {
+                foreach (var node in nodes)
+                {
+                    if (_nodeElements.TryGetValue(node.MasterElement.ResearchNodeGuid, out var element))
+                    {
+                        element.SetResearchNode(node);
+                    }
                 }
             }
-            _nodeElements.Clear();
+            
+            #endregion
         }
     }
 }

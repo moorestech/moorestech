@@ -157,19 +157,8 @@ namespace Client.Network.API
         {
             var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(_playerConnectionSetting.PlayerId);
             var response = await _packetExchangeManager.GetPacketResponse<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(request, ct);
-
-            if (response?.ResearchNodeStates == null)
-            {
-                return new Dictionary<Guid, ResearchNodeState>();
-            }
-
-            var nodeStates = new Dictionary<Guid, ResearchNodeState>(response.ResearchNodeStates.Count);
-            foreach (var node in response.ResearchNodeStates)
-            {
-                nodeStates[node.ResearchGuid] = node.ResearchNodeState;
-            }
-
-            return nodeStates;
+            
+            return response.ToDictionary();
         }
 
         public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
