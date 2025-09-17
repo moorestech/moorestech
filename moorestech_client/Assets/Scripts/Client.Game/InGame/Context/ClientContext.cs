@@ -7,7 +7,7 @@ namespace Client.Game.InGame.Context
     {
         public static BlockGameObjectContainer BlockGameObjectContainer { get; private set; }
         public static ItemImageContainer ItemImageContainer { get; private set; }
-        public static FluidImageContainer FluidImageContiner { get; private set; }
+        public static FluidImageContainer FluidImageContainer { get; private set; }
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
         public static VanillaApi VanillaApi { get; private set; }
         public static DIContainer DIContainer { get; private set; }
@@ -16,7 +16,7 @@ namespace Client.Game.InGame.Context
         {
             BlockGameObjectContainer = blockGameObjectContainer;
             ItemImageContainer = itemImageContainer;
-            FluidImageContiner = fluidImageContainer;
+            FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;
         }

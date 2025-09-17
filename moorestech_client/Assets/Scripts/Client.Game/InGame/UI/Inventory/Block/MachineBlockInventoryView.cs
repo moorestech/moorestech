@@ -127,7 +127,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     var fluidInfo = fluidState.InputTanks[i];
                     var fluidId = new FluidId(fluidInfo.FluidId);
                     
-                    var fluidView = fluidId == FluidMaster.EmptyFluidId ? null : ClientContext.FluidImageContiner.GetItemView(fluidId);
+                    var fluidView = fluidId == FluidMaster.EmptyFluidId ? null : ClientContext.FluidImageContainer.GetItemView(fluidId);
                     _fluidSlotViews[i].SetFluid(fluidView, fluidInfo.Amount);
                 }
                 
@@ -139,7 +139,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     var fluidId = new FluidId(fluidInfo.FluidId);
                     var slotIndex = outputStartIndex + i;
                     
-                    var fluidView = fluidId == FluidMaster.EmptyFluidId ? null : ClientContext.FluidImageContiner.GetItemView(fluidId);
+                    var fluidView = fluidId == FluidMaster.EmptyFluidId ? null : ClientContext.FluidImageContainer.GetItemView(fluidId);
                     _fluidSlotViews[slotIndex].SetFluid(fluidView, fluidInfo.Amount);
                 }
             }
