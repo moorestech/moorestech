@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.Research;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -17,6 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class CompleteResearchProtocolTest
     {
+        private const int ResearchNodeCount = 4;
+
         [Test]
         public void CompleteResearchTest()
         {
@@ -29,6 +32,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.IsTrue(responseData.Success);
             Assert.AreEqual(Research1Guid.ToString(), responseData.CompletedResearchGuidStr);
+            AssertResearchNodes(responseData,
+                (Research1Guid, ResearchNodeState.Completed),
+                (Research2Guid, ResearchNodeState.UnresearchableNotEnoughItem),
+                (Research3Guid, ResearchNodeState.UnresearchableAllReasons),
+                (Research4Guid, ResearchNodeState.UnresearchableNotEnoughItem));
 
             // アイテムが消費されたことを確認
             // Confirm that the item has been consumed
@@ -39,6 +47,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             responseData = SendCompleteResearchRequest(packet, Research1Guid);
 
             Assert.IsFalse(responseData.Success);
+            AssertResearchNodes(responseData,
+                (Research1Guid, ResearchNodeState.Completed));
             
             // Research 2の完了テスト（テスト1の完了条件あり）
             // Research 2 Completion Test (with Test 1 completion conditions)
@@ -47,6 +57,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.IsTrue(responseData.Success);
             Assert.AreEqual(Research2Guid.ToString(), responseData.CompletedResearchGuidStr);
+            AssertResearchNodes(responseData,
+                (Research1Guid, ResearchNodeState.Completed),
+                (Research2Guid, ResearchNodeState.Completed));
             
             // Research 4の完了テスト（アイテム不足）
             // Research 4 Completion Test (Insufficient Items)
@@ -55,6 +68,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             responseData = SendCompleteResearchRequest(packet, Research4Guid);
 
             Assert.IsFalse(responseData.Success);
+            AssertResearchNodes(responseData,
+                (Research4Guid, ResearchNodeState.UnresearchableNotEnoughItem));
             
             // Research 4の完了テスト（アイテム十分）
             // Research 4 Completion Test (Sufficient Items)
@@ -64,6 +79,29 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.IsTrue(responseData.Success);
             Assert.AreEqual(Research4Guid.ToString(), responseData.CompletedResearchGuidStr);
+            AssertResearchNodes(responseData,
+                (Research1Guid, ResearchNodeState.Completed),
+                (Research2Guid, ResearchNodeState.Completed),
+                (Research4Guid, ResearchNodeState.Completed));
+
+            #region Internal
+
+            void AssertResearchNodes(CompleteResearchProtocol.ResponseCompleteResearchMessagePack response, params (Guid researchGuid, ResearchNodeState expectedState)[] expectations)
+            {
+                Assert.IsNotNull(response.ResearchNodeStates);
+                Assert.AreEqual(ResearchNodeCount, response.ResearchNodeStates.Count);
+
+                foreach (var (researchGuid, expectedState) in expectations)
+                {
+                    var nodeState = response.ResearchNodeStates
+                        .First(node => node.ResearchGuid == researchGuid)
+                        .ResearchNodeState;
+
+                    Assert.AreEqual(expectedState, nodeState);
+                }
+            }
+
+            #endregion
         }
 
         private void AddRequiredItemsForResearch(ServiceProvider serviceProvider, Guid researchGuid)
