@@ -186,5 +186,13 @@ namespace Client.Network.API
             
             return new CraftTreeResponse(craftTreeNodes, response.CurrentTargetNode);
         }
+
+        public async UniTask<CompleteResearchProtocol.ResponseCompleteResearchMessagePack> CompleteResearch(Guid researchGuid, CancellationToken ct)
+        {
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerConnectionSetting.PlayerId, researchGuid);
+            var response = await _packetExchangeManager.GetPacketResponse<CompleteResearchProtocol.ResponseCompleteResearchMessagePack>(request, ct);
+            
+            return response;
+        }
     }
 }

@@ -64,7 +64,7 @@ MonoBehaviour:
   iconSize: {x: 30, y: 30}
   consumeItemIcons: {fileID: 7615005463972533782}
   unlockItemIcons: {fileID: 8190514410663338867}
-  uGuiTooltipTarget: {fileID: 1588708108466798585}
+  researchButtonTooltipTarget: {fileID: 1588708108466798585}
   researchButton: {fileID: 2751428301744258096}
 --- !u!1 &1499145304132126064
 GameObject:
@@ -201,9 +201,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textKey: 
-  displayEnable: 0
+  displayEnable: 1
   fontSize: 36
-  localize: 0
+  localize: 1
 --- !u!1 &2475214188912896717
 GameObject:
   m_ObjectHideFlags: 0

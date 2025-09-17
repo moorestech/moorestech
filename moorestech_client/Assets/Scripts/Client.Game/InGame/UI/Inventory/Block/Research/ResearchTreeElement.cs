@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Game.Research;
 using Mooresmaster.Model.ChallengeActionModule;
+using Server.Protocol.PacketResponse;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,11 +34,37 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         [SerializeField] private RectTransform consumeItemIcons;
         [SerializeField] private RectTransform unlockItemIcons;
         
-        [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
+        [SerializeField] private UGuiTooltipTarget researchButtonTooltipTarget;
         [SerializeField] private Button researchButton;
         
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
+        private CancellationToken _cts;
+        
+        private void Awake()
+        {
+            _cts = this.GetCancellationTokenOnDestroy();
+            researchButton.onClick.AddListener(() =>
+            {
+                if (Node.State == ResearchNodeState.Researchable)
+                {
+                    CompleteResearchProtocol().Forget();
+                }
+            });
+            
+            #region Internal
+            
+            async UniTask CompleteResearchProtocol()
+            {
+                var response = await ClientContext.VanillaApi.Response.CompleteResearch(Node.MasterElement.ResearchNodeGuid, _cts);
+                if (response.Success)
+                {
+                    SetResearchNode(new ResearchNodeData(Node.MasterElement, ResearchNodeState.Completed));
+                }
+            }
+            
+  #endregion
+        }
         
         public void SetResearchNode(ResearchNodeData node)
         {
@@ -57,11 +86,20 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             
             CreateUnlockItemIcons();
             CreateConsumeItemIcons();
+            SetButtonToolTipText();
             
             #region Internal
             
             void CreateUnlockItemIcons()
             {
+                foreach (Transform child in unlockItemIcons)
+                {
+                    if (child.GetComponent<ItemSlotView>())
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+                
                 var unlockItems = node.MasterElement.ClearedActions.items.Where(a => a.ChallengeActionType == ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView);
 
                 foreach (var unlockItem in unlockItems)
@@ -81,6 +119,15 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             
             void CreateConsumeItemIcons()
             {
+                foreach (Transform child in consumeItemIcons)
+                {
+                    if (child.GetComponent<ItemSlotView>())
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+
+                
                 foreach (var consumeItem in node.MasterElement.ConsumeItems)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
@@ -90,6 +137,20 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                     icon.SetItem(itemView, consumeItem.ItemCount);
                     icon.SetSizeDelta(iconSize);
                 }
+            }
+            
+            void SetButtonToolTipText()
+            {
+                var text = node.State switch
+                {
+                    ResearchNodeState.UnresearchableAllReasons => "研究アイテムが足りません。\n前提研究が完了していません。",
+                    ResearchNodeState.UnresearchableNotEnoughItem => "研究アイテムが足りません。",
+                    ResearchNodeState.UnresearchableNotEnoughPreNode => "前提研究が完了していません。",
+                    ResearchNodeState.Researchable => "クリックして研究",
+                    ResearchNodeState.Completed => "研究済み",
+                    _ => ""
+                };
+                researchButtonTooltipTarget.SetText(text, false);
             }
             
             #endregion
