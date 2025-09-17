@@ -7,7 +7,6 @@ namespace Game.Research
     {
         bool IsResearchCompleted(Guid researchGuid);
         bool CompleteResearch(Guid researchGuid, int playerId);
-        HashSet<Guid> GetCompletedResearchNodes();
         Dictionary<Guid, ResearchNodeState> GetResearchNodeStates(int playerId);
         ResearchSaveJsonObject GetSaveJsonObject();
         void LoadResearchData(ResearchSaveJsonObject saveData);

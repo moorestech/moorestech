@@ -37,13 +37,7 @@ namespace Game.Research
                 return false;
             }
 
-            var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
-            if (researchElement == null)
-            {
-                return false;
-            }
-
-            var inventory = _inventoryDataStore.GetInventoryData(playerId);
+            var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);            var inventory = _inventoryDataStore.GetInventoryData(playerId);
             var nodeState = EvaluateResearchNodeState(researchElement, inventory);
             if (nodeState != ResearchNodeState.Researchable)
             {
@@ -56,11 +50,6 @@ namespace Game.Research
             _researchEvent.InvokeOnResearchCompleted(playerId, researchElement);
 
             return true;
-        }
-
-        public HashSet<Guid> GetCompletedResearchNodes()
-        {
-            return new HashSet<Guid>(_completedResearchGuids);
         }
 
         public Dictionary<Guid, ResearchNodeState> GetResearchNodeStates(int playerId)
@@ -77,7 +66,6 @@ namespace Game.Research
             return nodeStates;
         }
 
-        #region Internal
 
         private ResearchNodeState EvaluateResearchNodeState(ResearchNodeMasterElement researchElement, PlayerInventoryData inventory)
         {
@@ -87,7 +75,7 @@ namespace Game.Research
             }
 
             var prerequisitesCompleted = ArePrerequisitesCompleted(researchElement.PrevResearchNodeGuids, researchElement.ResearchNodeGuid);
-            var hasRequiredItems = HasRequiredItems(inventory, researchElement.ConsumeItems);
+            var hasRequiredItems = HasRequiredItems(researchElement.ConsumeItems);
 
             if (prerequisitesCompleted && hasRequiredItems)
             {
@@ -105,66 +93,70 @@ namespace Game.Research
             }
 
             return ResearchNodeState.UnresearchableNotEnoughItem;
-        }
-
-        private bool ArePrerequisitesCompleted(Guid[] prerequisiteGuids, Guid currentResearchGuid)
-        {
-            if (prerequisiteGuids == null || prerequisiteGuids.Length == 0)
+            
+            #region Internal
+            
+            bool ArePrerequisitesCompleted(Guid[] prerequisiteGuids, Guid currentResearchGuid)
             {
+                if (prerequisiteGuids == null || prerequisiteGuids.Length == 0)
+                {
+                    return true;
+                }
+                
+                foreach (var prerequisite in prerequisiteGuids)
+                {
+                    if (prerequisite == currentResearchGuid)
+                    {
+                        continue;
+                    }
+                    
+                    if (!_completedResearchGuids.Contains(prerequisite))
+                    {
+                        return false;
+                    }
+                }
+                
                 return true;
             }
-
-            foreach (var prerequisite in prerequisiteGuids)
+            
+            bool HasRequiredItems(ConsumeItemsElement[] consumeItems)
             {
-                if (prerequisite == currentResearchGuid)
+                if (consumeItems == null || consumeItems.Length == 0)
                 {
-                    continue;
+                    return true;
                 }
-
-                if (!_completedResearchGuids.Contains(prerequisite))
+                
+                foreach (var consumeItem in consumeItems)
                 {
-                    return false;
+                    var itemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
+                    var currentCount = GetItemCount(itemId);
+                    
+                    if (currentCount < consumeItem.ItemCount)
+                    {
+                        return false;
+                    }
                 }
-            }
-
-            return true;
-        }
-
-        private bool HasRequiredItems(PlayerInventoryData inventory, ConsumeItemsElement[] consumeItems)
-        {
-            if (consumeItems == null || consumeItems.Length == 0)
-            {
+                
                 return true;
             }
-
-            foreach (var consumeItem in consumeItems)
+            
+            int GetItemCount(ItemId itemId)
             {
-                var itemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
-                var currentCount = GetItemCount(inventory, itemId);
-
-                if (currentCount < consumeItem.ItemCount)
+                var totalCount = 0;
+                foreach (var itemStack in inventory.MainOpenableInventory.InventoryItems)
                 {
-                    return false;
+                    if (itemStack.Id != itemId)
+                    {
+                        continue;
+                    }
+                    
+                    totalCount += itemStack.Count;
                 }
+                
+                return totalCount;
             }
-
-            return true;
-        }
-
-        private int GetItemCount(PlayerInventoryData inventory, ItemId itemId)
-        {
-            var totalCount = 0;
-            foreach (var itemStack in inventory.MainOpenableInventory.InventoryItems)
-            {
-                if (itemStack.Id != itemId)
-                {
-                    continue;
-                }
-
-                totalCount += itemStack.Count;
-            }
-
-            return totalCount;
+            
+            #endregion
         }
 
         private void ConsumeItems(ConsumeItemsElement[] consumeItems, PlayerInventoryData inventory)
@@ -195,7 +187,6 @@ namespace Game.Research
             }
         }
 
-        #endregion
 
         #region SaveLoad
         
