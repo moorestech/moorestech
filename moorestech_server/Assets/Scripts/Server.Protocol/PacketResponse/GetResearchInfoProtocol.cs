@@ -62,6 +62,13 @@ namespace Server.Protocol.PacketResponse
                     .Select(kvp => new ResearchNodeStateMessagePack(kvp.Key, kvp.Value))
                     .ToList();
             }
+            
+            public Dictionary<Guid, ResearchNodeState> ToDictionary()
+            {
+                return ResearchNodeStates.ToDictionary(
+                    node => node.ResearchGuid,
+                    node => node.ResearchNodeState);
+            }
         }
 
         [MessagePackObject]

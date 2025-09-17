@@ -9,12 +9,17 @@ namespace Client.Game.InGame.UI.Modal.ModalObject
 {
     public class OneButtonModal : ModalGameObjectBase
     {
+        [SerializeField] private TMP_Text titleText;
+        [SerializeField] private TMP_Text descriptionText;
+        
         [SerializeField] private Button confirmButton;
         [SerializeField] private TMP_Text confirmButtonText;
         
-        public void OneModalInitialize(string modalText)
+        public void OneModalInitialize(OneButtonModalProperties modalText)
         {
-            confirmButtonText.text = modalText;
+            titleText.text = modalText.Title;
+            descriptionText.text = modalText.Description;
+            confirmButtonText.text = modalText.ButtonText;
         }
         
         public override async UniTask<IModalResult> OpenModal(CancellationToken token)
