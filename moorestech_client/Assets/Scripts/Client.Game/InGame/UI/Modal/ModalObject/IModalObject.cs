@@ -1,17 +1,20 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Game.InGame.UI.Modal.ModalObject
 {
     public interface IModalInstantiator
     {
-        public UniTask<IModalObject> InstantiateModal();
+        UniTask<IModalObject> InstantiateModal();
     }
     
     public interface IModalObject
     {
-        public void Initialize(int canvasSortOrder);
+        void Initialize(int canvasSortOrder);
         
-        UniTask<IModalResult> OpenModal();
+        UniTask<IModalResult> OpenModal(CancellationToken token);
+        
+        void DestroyModal();
     }
     
     public interface IModalResult { }

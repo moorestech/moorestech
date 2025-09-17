@@ -145,6 +145,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2983e03b6176b4abd95ec81a3bae0c48
+    m_Address: Vanilla/UI/Modal/OneButtonModal
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2be4fde42a4bf477fae4587b089f81f6
     m_Address: Vanilla/Block/iron_miner
     m_ReadOnly: 0
@@ -392,6 +397,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 90e31bd775ec74542975d914c3ae3336
     m_Address: Vanilla/Skit/skits/100_start_game
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 91113de485c1847d3abc5f0fa061b0b0
+    m_Address: Vanilla/UI/Modal/CommonModalBase
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

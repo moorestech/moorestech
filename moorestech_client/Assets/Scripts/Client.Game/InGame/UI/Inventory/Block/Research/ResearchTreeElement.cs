@@ -10,7 +10,6 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Research;
 using Mooresmaster.Model.ChallengeActionModule;
-using Server.Protocol.PacketResponse;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
