@@ -47,6 +47,22 @@ jobs:
           unityVersion: 6000.1.6f1
           testMode: editmode
 
+      # 追加: Python をセットアップ
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # 追加: 失敗テストを解析して標準出力 & Webhook に投稿（任意）
+      # ※ WEBHOOK_URL は Secrets に設定（未設定なら投稿はスキップしログのみ）
+      - name: Report failed Unity tests (Python)
+        if: always()
+        shell: pwsh
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: |
+          python .github/workflows/report_unity_failures.py --artifacts-path artifacts --limit 50 --webhook-url "$env:WEBHOOK_URL"
+
       # テストの実行結果をアーティファクトにアップロードしてダウンロードして参照できるようにする
       - uses: actions/upload-artifact@v4
         if: always()
