@@ -58,8 +58,6 @@ namespace Client.Starter
         
         private async UniTask Initialize()
         {
-            Application.targetFrameRate = 60;
-            
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
             
