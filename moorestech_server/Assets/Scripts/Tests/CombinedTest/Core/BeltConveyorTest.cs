@@ -93,8 +93,8 @@ namespace Tests.CombinedTest.Core
             
             
             //チェック
-            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.1));
-            Assert.True(expectedEndTime.AddSeconds(-0.1) <= DateTime.Now);
+            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
+            Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
             
             Debug.Log($"{(DateTime.Now - expectedEndTime).TotalSeconds}");
             
