@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Client.DebugSystem.Environment;
 using Client.Game.InGame.Context;
-using Client.Network.API;
+using Client.Game.InGame.Player;
 using IngameDebugConsole;
 using Server.Protocol.PacketResponse;
 using Tayx.Graphy;
@@ -47,6 +47,19 @@ namespace Client.DebugSystem
             });
             
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
+            rootPage.AddButton("Warp Environment Default Position", clicked: () =>
+            {
+                var defaultPosition = Object.FindFirstObjectByType<EnvironmentDefaultPosition>(FindObjectsInactive.Include);
+                if (defaultPosition == null)
+                {
+                    Debug.LogError("EnvironmentDefaultPosition not found in the scene.");
+                    return;
+                }
+                
+                var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
+                playerObjectController.SetPlayerPosition(defaultPosition.transform.position);
+            });
+            
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);
             rootPage.AddBoolWithSave(false, SkitPlaySettingsLabel, SkitPlaySettingsKey);
             rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, MapObjectSuperMineKey);
