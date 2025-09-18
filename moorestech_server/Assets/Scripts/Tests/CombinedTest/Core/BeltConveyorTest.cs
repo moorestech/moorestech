@@ -102,6 +102,8 @@ namespace Tests.CombinedTest.Core
             var tmp = itemStackFactory.Create(id, 1);
             Debug.Log($"{tmp} {dummy.InsertedItems[0]}");
             Assert.AreEqual(tmp.ToString(), dummy.InsertedItems[0].ToString());
+            
+            Assert.Fail();
         }
         
         //ベルトコンベアのインベントリをフルにするテスト
