@@ -26,12 +26,22 @@ namespace Client.Game.InGame.Map.MapObject
             ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
             
             // mapObjectの破壊状況の初期設定
-            foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
+            foreach (var mapObject in mapObjects)
+            {
+                if (mapObject == null)
+                {
+                    Debug.LogError("MapObjectGameObjectDatastore: mapObjectsにnullが含まれています。moorestech/MapExportAndSettingを実行して設定してください");
+                    continue;
+                }
+                _allMapObjects.Add(mapObject.InstanceId, mapObject);
+            }
             
             foreach (var mapObjectInfo in handshakeResponse.MapObjects)
             {
-                var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
-                mapObject.Initialize(mapObjectInfo);
+                if (_allMapObjects.TryGetValue(mapObjectInfo.InstanceId, out var mapObject))
+                {
+                    mapObject.Initialize(mapObjectInfo);
+                }
             }
         }
         
