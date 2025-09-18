@@ -4,7 +4,8 @@
 """
 Unity Test Runner の XML 出力(artifacts 下など)を解析し、
 失敗テストの一覧とメッセージ/スタックトレースを標準出力に出力。
-オプションで Webhook(Slack/Discord 等) にも投稿する。
+さらに GitHub の repository_dispatch を発行して、
+リポジトリに設定済みの Webhooks へ GitHub から通知を配送する。
 
 - NUnit3 形式（Unity Test Framework 既定）:
   <test-case result="Failed"> <failure><message>..</message><stack-trace>..</stack-trace></failure> </test-case>
@@ -14,10 +15,10 @@ Unity Test Runner の XML 出力(artifacts 下など)を解析し、
 出力:
 - 標準出力: 失敗テストの詳細（テスト名、メッセージ、スタックトレース）
 - artifacts/failed_tests.json: 失敗テストを配列で保存
-- Webhook（任意）: テキストメッセージで投稿（Slackのtext/Discordのcontent両対応）
+- repository_dispatch: event_type=unity-tests-failed（既定）、client_payload に失敗詳細（サマリ）を格納
 
 使い方例:
-python scripts/report_unity_failures.py --artifacts-path artifacts --limit 50 --webhook-url "$WEBHOOK_URL"
+python scripts/report_unity_failures.py --artifacts-path artifacts --limit 50 --dispatch-event-type unity-tests-failed
 """
 
 import argparse
@@ -133,22 +134,32 @@ def shorten(s: str, limit: int):
     return s[: max(0, limit - 3)] + "..."
 
 
-def build_run_context_text():
+def build_run_context():
     server = _read_env("GITHUB_SERVER_URL", "https://github.com")
     repo = _read_env("GITHUB_REPOSITORY", "")
     run_id = _read_env("GITHUB_RUN_ID", "")
     ref = _read_env("GITHUB_REF", "")
     sha = _read_env("GITHUB_SHA", "")
     run_url = f"{server}/{repo}/actions/runs/{run_id}" if repo and run_id else ""
+    return {
+        "repository": repo,
+        "ref": ref,
+        "sha": sha,
+        "run_url": run_url,
+    }
+
+
+def build_run_context_text():
+    ctx = build_run_context()
     lines = []
-    if repo:
-        lines.append(f"Repo : {repo}")
-    if ref:
-        lines.append(f"Ref  : {ref}")
-    if sha:
-        lines.append(f"SHA  : {sha}")
-    if run_url:
-        lines.append(f"Run  : {run_url}")
+    if ctx.get("repository"):
+        lines.append(f"Repo : {ctx['repository']}")
+    if ctx.get("ref"):
+        lines.append(f"Ref  : {ctx['ref']}")
+    if ctx.get("sha"):
+        lines.append(f"SHA  : {ctx['sha']}")
+    if ctx.get("run_url"):
+        lines.append(f"Run  : {ctx['run_url']}")
     return "\n".join(lines)
 
 
@@ -164,54 +175,88 @@ def format_console_output(failures, show_stack=True):
             parts.append(f"  Message: {f['message']}")
         if show_stack and f.get("stack_trace"):
             parts.append("  StackTrace:")
-            # インデント付きで複数行を表示
             st = "\n".join(("    " + ln) for ln in f["stack_trace"].splitlines())
             parts.append(st)
         parts.append(f"  (file: {f['file']}, framework: {f['framework']})")
     return "\n".join(parts)
 
 
-def format_webhook_text(failures, limit=50, per_stack_limit=4000):
-    head = "🚨 Unity tests failed"
-    ctx = build_run_context_text()
-    body_lines = []
-    take = failures[: max(0, limit)]
-    for f in take:
-        # スタックは長くなりやすいので適度に切る
-        stack = f.get("stack_trace") or ""
-        stack_block = f"```\n{shorten(stack, per_stack_limit)}\n```" if stack else ""
-        msg = f.get("message") or ""
-        body_lines.append(
-            f"- *{f['test_name']}*\n  Message: {shorten(msg, 1000)}\n  {stack_block}".strip()
-        )
-    more = ""
-    if len(failures) > len(take):
-        more = f"\n...and {len(failures) - len(take)} more"
-    return f"{head}\n{ctx}\n\nFailed: {len(failures)}\n\n" + "\n\n".join(body_lines) + more
+def post_repository_dispatch(event_type: str, client_payload: dict) -> tuple[bool, str]:
+    """
+    GitHub REST API: POST /repos/{owner}/{repo}/dispatches
+    - Authorization: token <GITHUB_TOKEN or GH_TOKEN>
+    - Accept: application/vnd.github+json
+    """
+    repo = _read_env("GITHUB_REPOSITORY", "")
+    if not repo:
+        return False, "GITHUB_REPOSITORY not set"
 
+    api_base = _read_env("GITHUB_API_URL", "https://api.github.com")
+    url = f"{api_base}/repos/{repo}/dispatches"
 
-def post_webhook(url: str, text: str):
-    if not url:
-        return False, "WEBHOOK_URL not set"
-    payload = {"text": text, "content": text}  # Slack/Discord 兼用
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    token = _read_env("GH_TOKEN") or _read_env("GITHUB_TOKEN")
+    if not token:
+        return False, "No token (GH_TOKEN or GITHUB_TOKEN) available"
+
+    body = {
+        "event_type": event_type,
+        "client_payload": client_payload,
+    }
+    data = json.dumps(body).encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "User-Agent": "unity-test-reporter",
+        },
+    )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             _ = resp.read()
         return True, ""
     except urllib.error.HTTPError as e:
-        return False, f"HTTPError {e.code}: {e.read()!r}"
+        try:
+            err_body = e.read().decode("utf-8", "ignore")
+        except Exception:
+            err_body = "<no body>"
+        return False, f"HTTPError {e.code}: {err_body}"
     except Exception as e:
         return False, f"Exception: {e!r}"
+
+
+def build_payload_summary(failures, limit: int, per_message_limit=1000, per_stack_limit=3000):
+    """
+    Webhook配送向けにサイズを抑えたサマリを返す。
+    """
+    take = failures[: max(0, limit)]
+    items = []
+    for f in take:
+        items.append({
+            "test_name": f.get("test_name", "")[:2000],
+            "message": shorten(f.get("message", ""), per_message_limit),
+            "stack_trace": shorten(f.get("stack_trace", ""), per_stack_limit),
+            "framework": f.get("framework", ""),
+            "file": f.get("file", ""),
+        })
+    payload = {
+        "run": build_run_context(),
+        "failed_count": len(failures),
+        "failures": items,
+        "truncated": len(failures) > len(take),
+    }
+    return payload
 
 
 def main():
     p = argparse.ArgumentParser(description="Parse Unity Test Runner XML and report failures")
     p.add_argument("--artifacts-path", required=True, help="Artifacts directory (e.g., artifacts)")
-    p.add_argument("--webhook-url", default="", help="Webhook URL (optional)")
-    p.add_argument("--limit", type=int, default=50, help="Max failures to include in webhook/text")
+    p.add_argument("--limit", type=int, default=50, help="Max failures to include in dispatch payload")
     p.add_argument("--no-stack", action="store_true", help="Do not print stack traces to console")
+    p.add_argument("--dispatch-event-type", default="unity-tests-failed", help="repository_dispatch event_type")
     args = p.parse_args()
 
     root_dir = Path(args.artifacts_path)
@@ -219,43 +264,3 @@ def main():
 
     if not xml_files:
         print(f"[info] No XML files found under: {root_dir}")
-        return 0
-
-    all_failures = []
-    for x in xml_files:
-        try:
-            all_failures.extend(parse_failures_from_xml(x))
-        except Exception:
-            print(f"[warn] Failed parsing: {x}\n{traceback.format_exc()}", file=sys.stderr)
-
-    # 失敗が 0 件なら終了（非ゼロでも成功扱いにしたいので return 0）
-    if not all_failures:
-        print("No failed tests found.")
-        return 0
-
-    # 標準出力
-    out = format_console_output(all_failures, show_stack=not args.no_stack)
-    print(out)
-
-    # JSON も artifacts に保存（既存の upload-artifact で収集される）
-    try:
-        root_dir.mkdir(parents=True, exist_ok=True)
-        with open(root_dir / "failed_tests.json", "w", encoding="utf-8") as f:
-            json.dump(all_failures, f, ensure_ascii=False, indent=2)
-    except Exception:
-        print(f"[warn] Failed to write JSON to {root_dir/'failed_tests.json'}", file=sys.stderr)
-
-    # Webhook 送信（任意）
-    if args.webhook_url:
-        text = format_webhook_text(all_failures, limit=args.limit)
-        ok, err = post_webhook(args.webhook_url, text)
-        if ok:
-            print("[info] Posted failed tests to webhook.")
-        else:
-            print(f"[warn] Webhook post failed: {err}", file=sys.stderr)
-
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

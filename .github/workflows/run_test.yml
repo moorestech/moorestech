@@ -53,13 +53,15 @@ jobs:
         with:
           python-version: '3.x'
 
-      # 追加: 失敗テストを解析して標準出力 & Webhook に投稿（任意）
-      # ※ WEBHOOK_URL は Secrets に設定（未設定なら投稿はスキップしログのみ）
-      - name: Report failed Unity tests (Python)
+      # 追加: 失敗テストを解析して標準出力 & GitHub repository_dispatch を発行
+      - name: Report failed Unity tests via repository_dispatch (Python)
         if: always()
         shell: pwsh
         env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          # 優先トークン: 生成した App トークン。未設定なら GITHUB_TOKEN が自動で入っているためスクリプト側でフォールバック
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          # 任意: event_type を変えたい場合だけ上書き
+          DISPATCH_EVENT_TYPE: unity-tests-failed
         run: |
           python .github/workflows/report_unity_failures.py --artifacts-path artifacts --limit 50 --webhook-url "$env:WEBHOOK_URL"
 
