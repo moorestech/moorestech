@@ -34,7 +34,7 @@ properties:
         startWith: 100
     - key: initialUnlocked
       type: boolean
-      default: true
+      default: false
     - key: recipeViewType
       type: enum
       default: IsUnlocked

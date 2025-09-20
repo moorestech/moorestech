@@ -21,18 +21,6 @@ properties:
     - key: researchNodeDescription
       type: string
       default: New Research Description
-    - key: prevResearchNodeGuids
-      type: array
-      items:
-        type: uuid
-        foreignKey:
-          schemaId: research
-          foreignKeyIdPath: /data/[*]/researchNodeGuid
-          displayElementPath: /data/[*]/researchNodeName
-    - key: clearedActions
-      ref: challengeAction
-    - key: graphViewSettings
-      ref: graphViewSettings
     - key: consumeItems
       type: array
       items:
@@ -47,4 +35,16 @@ properties:
           - key: itemCount
             type: integer
             default: 1
+    - key: prevResearchNodeGuids
+      type: array
+      items:
+        type: uuid
+        foreignKey:
+          schemaId: research
+          foreignKeyIdPath: /data/[*]/researchNodeGuid
+          displayElementPath: /data/[*]/researchNodeName
+    - key: clearedActions
+      ref: challengeAction
+    - key: graphViewSettings
+      ref: graphViewSettings
 
