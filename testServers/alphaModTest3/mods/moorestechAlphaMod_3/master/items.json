@@ -705,7 +705,7 @@
       "name": "石灰岩",
       "maxStack": 100,
       "sortPriority": 860,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -715,7 +715,7 @@
       "name": "生石​灰石",
       "maxStack": 100,
       "sortPriority": 870,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -755,9 +755,25 @@
       "name": "研究テーブル",
       "maxStack": 100,
       "sortPriority": 910,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "21869384-905a-48ba-983e-600a4182d1de",
+      "name": "ミキサー",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 920
+    },
+    {
+      "itemGuid": "7756da68-35db-4dbb-8372-e93fc86bbfa7",
+      "name": "コンクリート",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 930
     }
   ]
 }
