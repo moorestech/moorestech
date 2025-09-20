@@ -774,6 +774,24 @@
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "sortPriority": 930
+    },
+    {
+      "itemGuid": "9fa494c0-c5eb-442b-8385-507b94e04d33",
+      "name": "土台",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 940
+    },
+    {
+      "itemGuid": "9434e1fc-23dd-4fa4-9b1c-00daa78ae65f",
+      "imagePath": "",
+      "name": "鋼鉄フレーム",
+      "maxStack": 100,
+      "sortPriority": 950,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }

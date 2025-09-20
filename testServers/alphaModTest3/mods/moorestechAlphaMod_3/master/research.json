@@ -246,13 +246,251 @@
           "challengeActionType": "unlockItemRecipeView",
           "challengeActionParam": {
             "unlockChallengeCategoryGuids": [],
-            "unlockItemGuids": []
+            "unlockItemGuids": [
+              "21869384-905a-48ba-983e-600a4182d1de",
+              "7756da68-35db-4dbb-8372-e93fc86bbfa7"
+            ]
           }
         }
       ],
       "graphViewSettings": {
         "UIPosition": [
           3200,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "9ae3acda-4026-44fa-953d-28d9222bf2c3",
+      "researchNodeName": "土台",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "7756da68-35db-4dbb-8372-e93fc86bbfa7",
+          "itemCount": 40
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "56f43949-6e70-40f8-a2e3-cbffac35d621"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9fa494c0-c5eb-442b-8385-507b94e04d33"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          4000,
+          800
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "d2c20322-547b-40eb-8dd5-d603b6b70b9e",
+      "researchNodeName": "鋼鉄",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+          "itemCount": 40
+        },
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+          "itemCount": 40
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "56f43949-6e70-40f8-a2e3-cbffac35d621"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          4800,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "d481206a-4587-4cbd-b7be-608514af68e5",
+      "researchNodeName": "鉄の粉砕機",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 40
+        },
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d481206a-4587-4cbd-b7be-608514af68e5"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+              "93b2a5cc-3cbc-4072-9770-7337c4904906"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          5600,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "6d031323-4bce-44a1-addb-90cbeffe6705",
+      "researchNodeName": "鋼鉄フレーム",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d2c20322-547b-40eb-8dd5-d603b6b70b9e"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9434e1fc-23dd-4fa4-9b1c-00daa78ae65f"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          7200,
+          1600
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "9c71f783-e902-43a5-b5f2-5ed4323a7d98",
+      "researchNodeName": "モーター",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 100
+        },
+        {
+          "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d2c20322-547b-40eb-8dd5-d603b6b70b9e"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9993466d-1790-4008-afaf-cce42943a17f",
+              "2e7c64a5-8349-4ca1-a41b-d3658e67b1ba"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          7200,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "cffb59a5-97fb-4c4e-b8fe-0eb958c8b2f1",
+      "researchNodeName": "電柱",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 100
+        },
+        {
+          "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "9c71f783-e902-43a5-b5f2-5ed4323a7d98"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9993466d-1790-4008-afaf-cce42943a17f",
+              "2e7c64a5-8349-4ca1-a41b-d3658e67b1ba"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          8000,
           0
         ],
         "UIScale": [
