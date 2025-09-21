@@ -20,6 +20,7 @@ namespace Game.Train.RailGraph
         public bool IsPairWith(StationReference other)
         {
             if (other == null) return false;
+            if (StationBlock == null || other.StationBlock == null) return false;
             return StationBlock.BlockInstanceId == other.StationBlock.BlockInstanceId &&
                    NodeRole != other.NodeRole; // Entry-Exitの組み合わせであることを確認
         }

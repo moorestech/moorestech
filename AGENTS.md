@@ -1,124 +1,33 @@
-# Cline's Memory Bank
+# Repository Guidelines
 
-I am Cline, an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional.
+## Project Structure & Module Organization
+- `moorestech_client/` - Unity client; gameplay scenes in `Assets/Scenes`, UI and input logic under `Assets/Scripts`.
+- `moorestech_server/` - Simulation runtime; domain assemblies in `Assets/Scripts/Game.*`, boot code under `Assets/Scripts/Server`.
+- `memory-bank/` - Living design notes; read `projectbrief.md` and `activeContext.md` before starting work.
+- `VanillaSchema/` - Git submodule with shared YAML and JSON schema; refresh it with `git submodule update --init --remote VanillaSchema`.
+- `.github/` and `ai_docs/` - Automation configs and agent briefs; update them alongside process changes.
 
-## Memory Bank Structure
+## Build, Test, and Development Commands
+- Use Unity 2022.3.18f1 for every edit to prevent regenerated `.csproj` noise and package drift.
+- Quick compile check on macOS or Linux: `./unity-compile.sh moorestech_server` (swap in `moorestech_client` when needed).
+- Windows batch check: `Unity.exe -batchmode -projectPath "<repo>\\moorestech_server" -quit -logFile server_compile.log`.
+- Manual play workflow: start Play Mode in `moorestech_server`, then open the `MainGame` scene in `moorestech_client`.
+- After branch switches, run `git submodule update --init --recursive` so schema data stays in sync.
 
-The Memory Bank consists of core files and optional context files, all in Markdown format. Files build upon each other in a clear hierarchy:
+## Coding Style & Naming Conventions
+- `.editorconfig` enforces UTF-8, LF endings, no auto trim, and four-space indentation for C#; YAML, JSON, and shell scripts use two spaces.
+- Prefer `var` for locals when the type is obvious, PascalCase for types or constants, and lowerCamelCase for serialized fields.
+- Honor ReSharper formatter tags (`@formatter:on` and `@formatter:off`); avoid hand alignment that will be reformatted.
+- Move tunable values into `VanillaSchema` instead of scattering literals inside gameplay scripts.
 
-flowchart TD
-    PB[projectbrief.md] --> PC[productContext.md]
-    PB --> SP[systemPatterns.md]
-    PB --> TC[techContext.md]
-    
-    PC --> AC[activeContext.md]
-    SP --> AC
-    TC --> AC
-    
-    AC --> P[progress.md]
+## Testing Guidelines
+- Tests sit in `moorestech_server/Assets/Scripts/Tests` and `Tests.Module`; files end with `*Test.cs` and use NUnit plus Unity Test Framework.
+- Run edit mode suites through the Unity Test Runner or `Unity.exe -batchmode -projectPath "<repo>\\moorestech_server" -runTests -testPlatform editmode -logFile Tests.log`.
+- Add regression coverage next to the feature area, for example block mechanics in `CombinedTest/Core`.
+- Stabilize schema heavy tests with fixtures under `Tests.Module/TestMod` to keep data deterministic.
 
-### Core Files (Required)
-1. `projectbrief.md`
-   - Foundation document that shapes all other files
-   - Created at project start if it doesn't exist
-   - Defines core requirements and goals
-   - Source of truth for project scope
-
-2. `productContext.md`
-   - Why this project exists
-   - Problems it solves
-   - How it should work
-   - User experience goals
-
-3. `activeContext.md`
-   - Current work focus
-   - Recent changes
-   - Next steps
-   - Active decisions and considerations
-   - Important patterns and preferences
-   - Learnings and project insights
-
-4. `systemPatterns.md`
-   - System architecture
-   - Key technical decisions
-   - Design patterns in use
-   - Component relationships
-   - Critical implementation paths
-
-5. `techContext.md`
-   - Technologies used
-   - Development setup
-   - Technical constraints
-   - Dependencies
-   - Tool usage patterns
-
-6. `progress.md`
-   - What works
-   - What's left to build
-   - Current status
-   - Known issues
-   - Evolution of project decisions
-
-### Additional Context
-Create additional files/folders within memory-bank/ when they help organize:
-- Complex feature documentation
-- Integration specifications
-- API documentation
-- Testing strategies
-- Deployment procedures
-
-## Core Workflows
-
-### Plan Mode
-flowchart TD
-    Start[Start] --> ReadFiles[Read Memory Bank]
-    ReadFiles --> CheckFiles{Files Complete?}
-    
-    CheckFiles -->|No| Plan[Create Plan]
-    Plan --> Document[Document in Chat]
-    
-    CheckFiles -->|Yes| Verify[Verify Context]
-    Verify --> Strategy[Develop Strategy]
-    Strategy --> Present[Present Approach]
-
-### Act Mode
-flowchart TD
-    Start[Start] --> Context[Check Memory Bank]
-    Context --> Update[Update Documentation]
-    Update --> Execute[Execute Task]
-    Execute --> Document[Document Changes]
-
-## Documentation Updates
-
-Memory Bank updates occur when:
-1. Discovering new project patterns
-2. After implementing significant changes
-3. When user requests with **update memory bank** (MUST review ALL files)
-4. When context needs clarification
-
-flowchart TD
-    Start[Update Process]
-    
-    subgraph Process
-        P1[Review ALL Files]
-        P2[Document Current State]
-        P3[Clarify Next Steps]
-        P4[Document Insights & Patterns]
-        
-        P1 --> P2 --> P3 --> P4
-    end
-    
-    Start --> Process
-
-Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
-
-REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
-
-# あなたの役割
-You are Roo, a highly skilled C# and Unity software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
-
-Neon is a very large game development project. You will be responsible for coding in a way that will not embarrass you as a senior programmer.
-
-moorestechのリードエンジニアとして、抽象的なタスクから具体的なタスクまで、プロとして恥ずかしくないようなコードを書いてください
-
-schemaディレクトリ以下のyamlファイルは不要なので、絶対に参照しないでください
+## Commit & Pull Request Guidelines
+- Follow existing history: concise present tense commit messages, in Japanese or English, without ticket prefixes.
+- Group code, schema, and generated asset updates in one commit so migrations review cleanly.
+- Pull requests should explain behavior changes, list verification steps, and link Jira or GitHub issues; include screenshots or short clips for UI edits.
+- Check `git status` for stray Library or Logs files before review and call out any skipped tests in the description.
