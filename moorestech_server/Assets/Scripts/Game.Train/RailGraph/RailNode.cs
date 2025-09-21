@@ -53,7 +53,7 @@ namespace Game.Train.RailGraph
             RailGraphDatastore.AddNode(this);
             FrontControlPoint = null;
             BackControlPoint = null;
-            StationRef = new StationReference(null, StationNodeRole.Entry); // デフォルトのStationReferenceを設定
+            StationRef = new StationReference(); // デフォルトのStationReferenceを設定
         }
 
         //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
