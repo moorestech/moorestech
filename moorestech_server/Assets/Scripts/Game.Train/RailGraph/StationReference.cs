@@ -7,10 +7,15 @@ namespace Game.Train.RailGraph
 {
     public class StationReference
     {
-        public IBlock StationBlock { get; }
-        public StationNodeRole NodeRole { get; }
+        public IBlock StationBlock { get; private set; }
 
-        public StationReference(IBlock stationBlock, StationNodeRole role)
+        public StationNodeRole NodeRole { get; private set; }
+
+        public StationReference()
+        {
+            SetStationReference(null, StationNodeRole.Entry);
+        }
+        public void SetStationReference(IBlock stationBlock, StationNodeRole role)
         {
             StationBlock = stationBlock;
             NodeRole = role;
