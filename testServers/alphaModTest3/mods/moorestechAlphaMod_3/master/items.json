@@ -804,6 +804,16 @@
       "handGrabModelAddressablePath": ""
     },
     {
+      "itemGuid": "f7460000-36c0-4dfa-b97b-046750df6855",
+      "imagePath": "",
+      "name": "電柱",
+      "maxStack": 100,
+      "sortPriority": 965,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
       "itemGuid": "d3f6e08d-761e-4156-abec-e32c8423f595",
       "imagePath": "",
       "name": "電気採掘機",
