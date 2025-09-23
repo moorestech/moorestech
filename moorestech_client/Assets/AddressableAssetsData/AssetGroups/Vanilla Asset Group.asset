@@ -400,6 +400,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9142fcb884dd340289d8c1f4a6dc04b4
+    m_Address: Vanilla/Block/vacuum_pump
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 91a734989a1ae40aaafc6a377e2b1b29
     m_Address: Vanilla/Skit/i18n/english
     m_ReadOnly: 0
@@ -597,6 +602,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d793aaf0184d71c448ea70d6f7a7fab9
     m_Address: Vanilla/Block/itemshooter down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d83514a389dfe4f7e9da9d2375529bcd
+    m_Address: Vanilla/Block/Hydrogen_reduction_furnace
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
