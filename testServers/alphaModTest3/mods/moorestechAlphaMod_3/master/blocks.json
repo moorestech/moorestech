@@ -3349,6 +3349,93 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "0f70bc10-25d4-4906-9c79-2403e3d3626f",
+      "name": "水素​還​元​炉",
+      "blockType": "ElectricMachine",
+      "itemGuid": "d9cbebc7-6742-48bd-ad2b-2b45e4d4b435",
+      "blockSize": [
+        3,
+        1,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Hydrogen_reduction_furnace",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 5,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "inputTankCount": 1,
+        "outputTankCount": 0,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        }
+      }
     }
   ]
 }
