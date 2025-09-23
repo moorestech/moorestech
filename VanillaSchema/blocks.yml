@@ -85,6 +85,7 @@ properties:
       - FluidPipe
       - BaseCamp
       - GearPump
+      - GearElectricGenerator
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -612,6 +613,25 @@ properties:
           default: 5
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
+        - key: gear
+          ref: gear
+      - when: GearElectricGenerator
+        type: object
+        implementationInterface:
+        - IGearConnectors
+        properties:
+        - key: teethCount
+          type: integer
+          default: 10
+        - key: requiredRpm
+          type: number
+          default: 120
+        - key: requiredTorque
+          type: number
+          default: 100
+        - key: maxGeneratedPower
+          type: number
+          default: 100
         - key: gear
           ref: gear
 
