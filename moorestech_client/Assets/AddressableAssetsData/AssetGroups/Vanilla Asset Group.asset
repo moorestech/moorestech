@@ -401,7 +401,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9142fcb884dd340289d8c1f4a6dc04b4
-    m_Address: Vanilla/Block/vacuum_pump
+    m_Address: Vanilla/Block/Vacuum_pump
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
