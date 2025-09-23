@@ -3953,6 +3953,39 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "00000000-0000-0000-0000-000000000028",
+      "itemGuid": "11110000-0000-0000-0000-000000000000",
+      "name": "TestGearElectricGenerator",
+      "blockType": "GearElectricGenerator",
+      "blockSize": [1, 1, 1],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "blockParam": {
+        "teethCount": 10,
+        "requiredRpm": 120,
+        "requiredTorque": 100,
+        "maxGeneratedPower": 100,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [0, 0, -1],
+                [0, 0, 1],
+                [1, 0, 0],
+                [-1, 0, 0]
+              ]
+            }
+          ]
+        }
+      },
+      "overrideVerticalBlock": {}
     }
   ]
 }

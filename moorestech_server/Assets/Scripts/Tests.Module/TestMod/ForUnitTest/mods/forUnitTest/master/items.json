@@ -464,6 +464,16 @@
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "11110000-0000-0000-0000-000000000000",
+      "imagePath": "",
+      "name": "TestGearElectricGenerator",
+      "maxStack": 100,
+      "sortPriority": 740,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
