@@ -465,6 +465,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a908ab188a0fc4d869906b034cee290e
+    m_Address: Vanilla/Block/Electric_miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a9e2e36a8281341579f99adcc8f9347a
     m_Address: Vanilla/Block/Util/GearConnectorLineView
     m_ReadOnly: 0

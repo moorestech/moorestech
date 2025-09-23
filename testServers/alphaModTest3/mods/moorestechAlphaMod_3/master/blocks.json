@@ -2248,7 +2248,7 @@
           ]
         }
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": false
     },
     {
       "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
@@ -2319,7 +2319,7 @@
           ]
         }
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": false
     },
     {
       "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
@@ -2390,7 +2390,7 @@
           ]
         }
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": false
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
@@ -3284,7 +3284,23 @@
         "mineSettings": [],
         "inventoryConnectors": {
           "inputConnects": [],
-          "outputConnects": []
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
         }
       }
     }
