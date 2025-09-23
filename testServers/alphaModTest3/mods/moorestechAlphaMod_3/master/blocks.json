@@ -3517,6 +3517,32 @@
           "outflowConnects": []
         }
       }
+    },
+    {
+      "blockGuid": "93cd95b0-b1a8-45dd-b56c-62296053b878",
+      "name": "石油採掘機",
+      "blockType": "Chest",
+      "itemGuid": "3e34cc08-4c08-4e7e-9efd-81c492574380",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
     }
   ]
 }
