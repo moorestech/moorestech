@@ -3259,6 +3259,34 @@
         "poleConnectionRange": 7,
         "machineConnectionRange": 7
       }
+    },
+    {
+      "blockGuid": "8d90ebd3-8a12-4c50-a6da-dc3b1dc543ad",
+      "name": "電気採掘機",
+      "blockType": "ElectricMiner",
+      "itemGuid": "d3f6e08d-761e-4156-abec-e32c8423f595",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Electric_miner",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 5,
+        "outputItemSlotCount": 3,
+        "mineSettings": [],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
     }
   ]
 }
