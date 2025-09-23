@@ -3236,6 +3236,29 @@
       "blockParam": {},
       "blockPrefabAddressablesPath": "Vanilla/Block/BaseCamp2",
       "blockUIAddressablesPath": "Vanilla/UI/Block/ResearchTable/ResearchTreeUI"
+    },
+    {
+      "blockGuid": "4b6baecb-24c3-4482-95eb-f18471065181",
+      "name": "電柱",
+      "blockType": "ElectricPole",
+      "itemGuid": "f7460000-36c0-4dfa-b97b-046750df6855",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Electric_pole",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "poleConnectionRange": 7,
+        "machineConnectionRange": 7
+      }
     }
   ]
 }
