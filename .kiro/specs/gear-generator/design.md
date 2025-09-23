@@ -37,34 +37,12 @@ GearElectricGeneratorComponent
 ```csharp
 namespace Game.Block.Blocks.GearElectric
 {
-    public class GearElectricGeneratorComponent :
-        IGearEnergyTransformer,
-        IElectricGenerator,
-        IUpdatableBlockComponent,
-        ISaveBlockComponent,
-        IBlockStateDetail
+    public class GearElectricGeneratorComponent :IGearEnergyTransformer,IElectricGenerator,IUpdatableBlockComponent,ISaveBlockComponent,IBlockStateDetail
     {
         // パラメータ
         private readonly GearElectricGeneratorParam _param;
 
-        // 状態
-        private RPM _inputRpm;
-        private Torque _inputTorque;
-        private float _energyFulfillmentRate;
-        private ElectricPower _currentGeneratedPower;
-
-        // イベント
-        public event Action<ElectricPower> OnChangeGeneratedPower;
-
-        // コンストラクタ
-        public GearElectricGeneratorComponent(
-            GearElectricGeneratorParam param,
-            BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo,
-            Func<MachineIOService> machineIOServiceAccessor)
-        {
-            // 初期化処理
-        }
+        // その他の実装
     }
 }
 ```
@@ -103,112 +81,11 @@ private void UpdateGeneratedPower()
 ### ネットワーク接続処理
 
 #### 歯車ネットワークとの接続
-```csharp
-public TeethCount TeethCount => _param.TeethCount;
-
-public Torque RequiredTorque => new Torque(
-    _param.RequiredTorque.Value * _energyFulfillmentRate
-);
-
-// 歯車ネットワークから入力を受け取る
-public void SetGearInput(RPM rpm, Torque torque)
-{
-    _inputRpm = rpm;
-    _inputTorque = torque;
-    UpdateGeneratedPower();
-}
-```
 
 #### 電力ネットワークとの接続
-```csharp
-public ElectricPower GeneratedElectricPower => _currentGeneratedPower;
-
-// 電力ネットワークへの登録
-private void RegisterToEnergyNetwork()
-{
-    var energySegment = GetConnectedEnergySegment();
-    energySegment?.RegisterGenerator(this);
-}
-```
 
 
 ## ブロック配置と接続仕様
-
-### 接続面の定義
-- **背面（North）**: 歯車ネットワークからの動力入力
-- **前面（South）**: 電力ネットワークへの電力出力
-- **その他の面**: 接続不可
-
-### 接続検証ロジック
-
-```csharp
-private bool ValidateConnections()
-{
-    // 背面に歯車接続があるか確認
-    var gearConnection = GetConnectionAtDirection(BlockDirection.North);
-    if (gearConnection == null || !gearConnection.IsGearNetwork)
-    {
-        return false;
-    }
-
-    // 前面に電力接続があるか確認
-    var powerConnection = GetConnectionAtDirection(BlockDirection.South);
-    if (powerConnection == null || !powerConnection.IsEnergyNetwork)
-    {
-        return false;
-    }
-
-    return true;
-}
-```
-
-## パフォーマンス最適化
-
-### 更新頻度の制御
-```csharp
-public void Update()
-{
-    _updateTimer += Time.deltaTime;
-
-    // 0.1秒ごとに更新（10Hz）
-    if (_updateTimer >= UpdateInterval)
-    {
-        _updateTimer = 0;
-        UpdateGeneratedPower();
-    }
-}
-
-private const float UpdateInterval = 0.1f;
-```
-
-### イベント最適化
-- 発電量の変化が閾値（0.01 EP）以上の場合のみイベント発火
-- 不要な再計算を避けるためのキャッシング
-
-## 例外処理とエラーハンドリング
-
-### 入力検証
-```csharp
-private bool ValidateInput()
-{
-    // 負の値チェック
-    if (_inputRpm.Value < 0 || _inputTorque.Value < 0)
-    {
-        _currentGeneratedPower = ElectricPower.Zero;
-        return false;
-    }
-
-    // 過負荷チェック（200%超）
-    if (_inputRpm.Value > _param.RequiredRpm.Value * 2 ||
-        _inputTorque.Value > _param.RequiredTorque.Value * 2)
-    {
-        // 警告表示
-        ShowOverloadWarning();
-    }
-
-    return true;
-}
-```
 
 ## テスト計画
 
@@ -283,91 +160,6 @@ private bool ValidateInput()
     default: 100
   - key: gear
     ref: gear
-```
-
-### moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json への追加内容
-
-```json
-{
-  "blockGuid": "00000000-0000-0000-0000-000000000028",
-  "itemGuid": "11110000-0000-0000-0000-000000000000",
-  "name": "TestGearElectricGenerator",
-  "blockType": "GearElectricGenerator",
-  "blockSize": [1, 1, 1],
-  "blockParam": {
-    "teethCount": 10,
-    "requiredRpm": 120,
-    "requiredTorque": 100,
-    "maxGeneratedPower": 100,
-    "gear": {
-      "gearConnects": [
-        {
-          "offset": [0, 0, 0],
-          "connectType": "Gear",
-          "connectOption": {
-            "isReverse": false
-          },
-          "directions": [
-            [0, 0, -1],
-            [0, 0, 1],
-            [1, 0, 0],
-            [-1, 0, 0]
-          ]
-        }
-      ]
-    }
-  },
-  "overrideVerticalBlock": {}
-}
-```
-
-### ForUnitTestModBlockId.cs への追加内容
-
-```csharp
-public static class ForUnitTestModBlockId
-{
-    // ... 既存の定義 ...
-
-    // 歯車発電機のテスト用ID
-    public static readonly BlockGuid TestGearElectricGenerator = new("00000000-0000-0000-0000-000000000028");
-}
-```
-
-## マスターデータ設定
-
-### 製品版向けブロック定義（VanillaMod/master/blocks.json）
-
-```json
-{
-  "blockGuid": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
-  "itemGuid": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
-  "name": "歯車発電機",
-  "blockType": "GearElectricGenerator",
-  "blockSize": [1, 1, 1],
-  "blockPrefabAddressablesPath": "Assets/Prefabs/Blocks/GearElectricGenerator.prefab",
-  "blockUIAddressablesPath": "Assets/UI/Blocks/GearElectricGeneratorUI.prefab",
-  "blockParam": {
-    "teethCount": 20,
-    "requiredRpm": 120,
-    "requiredTorque": 100,
-    "maxGeneratedPower": 100,
-    "gear": {
-      "gearConnects": [
-        {
-          "offset": [0, 0, 0],
-          "connectType": "Gear",
-          "connectOption": {
-            "isReverse": false
-          },
-          "directions": [
-            [0, 0, -1]
-          ]
-        }
-      ]
-    }
-  },
-  "overrideVerticalBlock": {}
-}
 ```
 
 ## コンポーネント登録
