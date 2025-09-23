@@ -2697,7 +2697,7 @@
           "inputConnects": [],
           "outputConnects": [
             {
-              "connectType": "",
+              "connectType": "Inventory",
               "offset": [
                 0,
                 0,
@@ -3299,6 +3299,96 @@
                   -1
                 ]
               ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "8458ae4c-97c4-432c-9dbc-6739e8ece43a",
+      "name": "電気採掘機",
+      "blockType": "GearMiner",
+      "itemGuid": "d3f6e08d-761e-4156-abec-e32c8423f595",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Electric_miner",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "teethCount": 5,
+        "requireTorque": 30,
+        "requiredRpm": 10,
+        "outputItemSlotCount": 5,
+        "mineSettings": [
+          {
+            "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+            "time": 3
+          },
+          {
+            "itemGuid": "f59ed4c5-991d-48f6-a5e0-0d707608fed0",
+            "time": 3
+          },
+          {
+            "itemGuid": "6f5a5586-1140-4593-8835-049ba8323110",
+            "time": 3
+          }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": []
             }
           ]
         }
