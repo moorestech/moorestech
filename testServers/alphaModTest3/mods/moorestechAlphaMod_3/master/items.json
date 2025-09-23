@@ -904,6 +904,16 @@
       "handGrabModelAddressablePath": ""
     },
     {
+      "itemGuid": "4311e162-958c-44ed-829c-aea38003d4ba",
+      "imagePath": "",
+      "name": "ガラス管",
+      "maxStack": 100,
+      "sortPriority": 1055,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
       "itemGuid": "7b000985-6823-4dec-a02f-ddbfbadf6c11",
       "imagePath": "",
       "name": "真空管",
