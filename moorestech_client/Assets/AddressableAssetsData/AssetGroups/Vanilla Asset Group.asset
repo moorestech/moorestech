@@ -140,11 +140,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 28dddce8f5fb04af3883632a8d31ee9e
-    m_Address: Vanilla/Block/iron_crasher
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2983e03b6176b4abd95ec81a3bae0c48
     m_Address: Vanilla/UI/Modal/OneButtonModal
     m_ReadOnly: 0
@@ -475,6 +470,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa6c93f707827450ba679d52727164eb
+    m_Address: Vanilla/Block/Electric_pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: addad9320f24544a69ad9f0ca74078b3
     m_Address: Vanilla/Block/Mining Machine Primitive
     m_ReadOnly: 0
@@ -716,7 +716,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ff0ce874150644b289f1028c53a9c17f
-    m_Address: Vanilla/Block/bronze_crasher
+    m_Address: Vanilla/Block/iron_crasher
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
