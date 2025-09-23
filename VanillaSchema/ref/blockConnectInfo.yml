@@ -68,5 +68,6 @@ items:
       properties:
       - key: flowCapacity
         type: number
+        default: 10
       - key: connectTankIndex
         type: integer
