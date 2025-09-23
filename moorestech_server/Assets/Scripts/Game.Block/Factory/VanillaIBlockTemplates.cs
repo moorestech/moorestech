@@ -46,7 +46,6 @@ namespace Game.Block.Factory
             
             // Test/extended blocks
             BlockTypesDictionary.Add(BlockTypeConst.GearPump, new BlockTemplate.VanillaGearPumpTemplate());
-            BlockTypesDictionary.Add(BlockTypeConst.GearElectricGenerator, new BlockTemplate.VanillaGearElectricGeneratorTemplate());
         }
     }
 }
