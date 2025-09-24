@@ -404,7 +404,7 @@ namespace Tests.CombinedTest.Core
                 float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
             {
                 Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
-                Assert.AreEqual(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
+                Assert.AreEqual(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
                 
                 // 単一のBlockStateDetailから状態データを取得
                 var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);

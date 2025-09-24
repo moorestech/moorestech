@@ -373,7 +373,7 @@ namespace Game.Block.Blocks.Gear
                 
                 var serializedState = MessagePackSerializer.Serialize(stateDetail);
                 
-                return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, serializedState);
+                return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, serializedState);
             }
             
   #endregion
