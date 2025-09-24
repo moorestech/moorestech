@@ -2619,6 +2619,160 @@
       }
     },
     {
+      "blockGuid": "ee397ec6-0c0a-47d0-ad0a-dc0af7168c54",
+      "name": "鉄の採掘機",
+      "blockType": "GearMiner",
+      "itemGuid": "93b2a5cc-3cbc-4072-9770-7337c4904906",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/iron_miner",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "teethCount": 5,
+        "requireTorque": 20,
+        "requiredRpm": 10,
+        "outputItemSlotCount": 5,
+        "mineSettings": [
+          {
+            "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+            "time": 3
+          },
+          {
+            "itemGuid": "f59ed4c5-991d-48f6-a5e0-0d707608fed0",
+            "time": 3
+          },
+          {
+            "itemGuid": "6f5a5586-1140-4593-8835-049ba8323110",
+            "time": 3
+          }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "7cae339a-9f03-4cf6-a9eb-98713ee04607",
+      "name": "鉄の粉砕機",
+      "blockType": "GearMachine",
+      "itemGuid": "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/iron_crasher",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "teethCount": 10,
+        "requireTorque": 10,
+        "requiredRpm": 10,
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
       "blockGuid": "7d35321c-98b7-49db-8fc7-6f23854dd1c7",
       "name": "鉄のパイプ",
       "blockType": "FluidPipe",
@@ -2909,6 +3063,113 @@
             }
           ],
           "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "46725c68-888b-4346-a650-db7738cbc9e1",
+      "name": "歯車ポンプ",
+      "blockType": "GearPump",
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "blockSize": [
+        2,
+        1,
+        2
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/GearPump",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "1cb67dbf-df47-462d-a1bc-44f68f12bdb3",
+            "amount": 5,
+            "generateTime": 3
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requireTorque": 10,
+        "requiredRpm": 5,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 5,
+                "connectTankIndex": 0
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
         }
       }
     }

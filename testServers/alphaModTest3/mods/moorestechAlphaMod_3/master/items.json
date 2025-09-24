@@ -580,6 +580,26 @@
       "handGrabModelAddressablePath": ""
     },
     {
+      "itemGuid": "93b2a5cc-3cbc-4072-9770-7337c4904906",
+      "imagePath": "",
+      "name": "鉄の採掘機",
+      "maxStack": 100,
+      "sortPriority": 730,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+      "imagePath": "",
+      "name": "鉄の粉砕機",
+      "maxStack": 100,
+      "sortPriority": 740,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
       "itemGuid": "b62e1cf2-ab6c-4a43-b134-74e3d85e3caa",
       "imagePath": "",
       "name": "ボイラー",
@@ -715,6 +735,16 @@
       "name": "鋼鉄",
       "maxStack": 100,
       "sortPriority": 890,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "imagePath": "",
+      "name": "歯車ポンプ",
+      "maxStack": 100,
+      "sortPriority": 900,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
