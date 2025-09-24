@@ -50,11 +50,11 @@ namespace Game.Block.Blocks.GearElectric
                 return;
             }
             
-            var rpmRate = currentRpm / requiredRpm;
-            var torqueRate = currentTorque / requiredTorque;
-            var fulfillment = rpmRate * torqueRate;
+            var rpmRate = Mathf.Min(currentRpm / requiredRpm, 1f);
+            var torqueRate = Mathf.Min(currentTorque / requiredTorque, 1f);
+            var fulfillment = Mathf.Clamp01(Mathf.Min(rpmRate, torqueRate));
             
-            SetState(_param.MaxGeneratedPower * EnergyFulfillmentRate, fulfillment);
+            SetState(_param.MaxGeneratedPower * fulfillment, fulfillment);
             
             #region Internal
             
