@@ -6,24 +6,22 @@ using Game.Block.Interface.Component;
 using Game.Fluid;
 using Mooresmaster.Model.BlockConnectInfoModule;
 
-namespace Game.Block.Blocks.Gear
+namespace Game.Block.Blocks.Pump
 {
     /// <summary>
     /// Holds an inner fluid tank and pushes it to connected pipes each update.
-    /// Output-only; AddLiquid simply returns the input unchanged.
+    /// Output-only for external inventories; internal generators enqueue via AddLiquid.
     /// </summary>
-    public class GearPumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent
+    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent
     {
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
 
-        public GearPumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
+        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
             _tank = new FluidContainer(capacity);
             _fluidConnector = fluidConnector;
         }
-
-        public FluidContainer Tank => _tank;
 
         public void Update()
         {
@@ -66,10 +64,16 @@ namespace Game.Block.Blocks.Gear
             }
             return 10.0;
         }
+        
+        public void EnqueueGeneratedFluid(FluidStack fluidStack)
+        {
+            _tank.AddLiquid(fluidStack, FluidContainer.Empty);
+        }
 
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
-            // Output only; do not accept external input
+            // 外部からの注入は拒否する（供給専用）
+            // Refuse external injections (supply only)
             return fluidStack;
         }
 
