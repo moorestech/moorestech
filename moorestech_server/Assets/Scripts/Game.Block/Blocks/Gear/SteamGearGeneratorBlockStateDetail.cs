@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.Gear
     [Serializable,MessagePackObject]
     public class SteamGearGeneratorBlockStateDetail : GearStateDetail
     {
-        public new const string BlockStateDetailKey = "SteamGearGenerator";
+        public const string SteamGearGeneratorBlockStateDetailKey = "SteamGearGenerator";
         
         /// <summary>
         /// 現在の状態（Idle, Accelerating, Running, Decelerating）
