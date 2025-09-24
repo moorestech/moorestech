@@ -35,6 +35,10 @@ defineInterface:
   properties:
   - key: inventoryConnectors
     ref: inventoryConnects
+- interfaceName: IGearConnectors
+  properties:
+    - key: gear
+      ref: gear
 
 properties:
 - key: data
@@ -77,6 +81,7 @@ properties:
       - TrainCargoPlatform
       - FluidPipe
       - BaseCamp
+      - GearPump
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -229,6 +234,8 @@ properties:
           ref: gear
       - when: Shaft
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: requireTorque
           type: number
@@ -241,6 +248,7 @@ properties:
         - IMachineParam
         - IGearMachineParam
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: inputSlotCount
           type: integer
@@ -274,6 +282,8 @@ properties:
           ref: fluidInventoryConnects
       - when: SimpleGearGenerator
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -288,6 +298,8 @@ properties:
           ref: gear
       - when: SteamGearGenerator
         type: object
+        implementationInterface:
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -342,6 +354,7 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -392,6 +405,7 @@ properties:
         implementationInterface:
         - IGearMachineParam
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -417,6 +431,7 @@ properties:
         - IChestParam
         - IGearMachineParam
         - IInventoryConnectors
+        - IGearConnectors
         properties:
         - key: teethCount
           type: integer
@@ -561,6 +576,41 @@ properties:
             schemaId: blocks
             foreignKeyIdPath: /data/[*]/blockGuid
             displayElementPath: /data/[*]/name
+      - when: GearPump
+        type: object
+        implementationInterface:
+        - IGearConnectors
+        properties:
+        - key: generateFluid
+          type: array
+          items:
+            type: object
+            properties:
+            - key: fluidGuid
+              type: uuid
+              foreignKey:
+                schemaId: fluids
+                foreignKeyIdPath: /data/[*]/fluidGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: number
+              default: 5
+            - key: generateTime
+              type: number
+              default: 1
+        - key: innerTankCapacity
+          type: number
+          default: 100
+        - key: requireTorque
+          type: number
+          default: 1
+        - key: requiredRpm
+          type: number
+          default: 5
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
+        - key: gear
+          ref: gear
 
     - key: overrideVerticalBlock
       type: object

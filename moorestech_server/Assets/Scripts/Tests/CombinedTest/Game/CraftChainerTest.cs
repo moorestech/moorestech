@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Game
         [SetUp]
         public void SetupCraftChainerTest()
         {
-            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             Guid itemAGuid = new("189672cb-6811-4080-bde1-1f9ff0ec63ff");
             Guid itemBGuid = new("547791fe-bfd8-4748-aafa-c7449391eca5");
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game
         
         public void ExecuteChainerCraftTest(List<(ItemId id,int count)> materials, ItemId targetId, int targetCount, bool isSuccess)
         {
-            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             // ネットワークの作成
             // Create a network

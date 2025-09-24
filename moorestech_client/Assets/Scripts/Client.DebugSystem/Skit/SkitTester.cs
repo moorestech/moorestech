@@ -1,6 +1,7 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Skit;
+using Client.Game.InGame.Tutorial;
 using Client.Game.Skit;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -35,12 +36,15 @@ namespace Client.DebugSystem.Skit
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(environmentRoot);
             builder.RegisterComponent(skitUI);
+            builder.RegisterInstance<IMapObjectPin>(new MapObjectTest());
             
             // 依存関係を解決
             _resolver = builder.Build();
             _resolver.Inject(skitManager);
             
-            new MoorestechServerDIContainerGenerator().Create(ServerDirectory.GetDirectory());
+            var options = new MoorestechServerDIContainerOptions(ServerDirectory.GetDirectory());
+            
+            new MoorestechServerDIContainerGenerator().Create(options);
             
             skitManager.StartSkit("Vanilla/Skit/skits/100_start_game").Forget();
         }

@@ -4,36 +4,14 @@
 
 # moorestech
 
-
-
 工業ゲームmoorestechのUnityのサーバー、クライアントです
 
 # 起動方法
-mooresech_server、clientともにUnityで開き、serverを再生した後、clientのMainGameシーンを再生してください
+mooresech_clientをUnityで開きMainGameシーンを再生してください
 
-
-# subtreeの設定
-
-## 初期設定
-remoteの追加
-
-```sh
-git remote add schema git@github.com:moorestech/VanillaSchema.git
-git fetch schema
-git subtree add --prefix=schema --squash schema main
-```
-
-## コミットをVanillaSchemaにpush
-
-```sh
-git subtree push --prefix=schema schema main 
-```
-
-## VanillaSchemaからpull
-```sh
-git subtree pull --prefix=schema schema main 
-```
-
+# LICENSE
+コードは[Apache2.0](https://github.com/moorestech/moorestech/blob/master/LICENSE) ライセンスで配布されています。
+コード以外の各種コンテンツは[moorestech Game Content License ](https://github.com/moorestech/moorestech/blob/master/CONTENT_LICENSE.md) ライセンスでは配布されています。
 
 ### OSSに関する表記
 

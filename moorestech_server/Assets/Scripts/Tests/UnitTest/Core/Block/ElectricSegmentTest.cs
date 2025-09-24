@@ -13,7 +13,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void ElectricEnergyTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var segment = new EnergySegment();
             

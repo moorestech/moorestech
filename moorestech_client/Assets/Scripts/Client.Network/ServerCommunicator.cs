@@ -31,15 +31,15 @@ namespace Client.Network
         
         public IObservable<Unit> OnDisconnect => _onDisconnect;
         
-        public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerConfig connectionServerConfig)
+        public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerProperties connectionServerProperties)
         {
             //IPアドレスやポートを設定
-            if (!IPAddress.TryParse(connectionServerConfig.IP, out var ipAddress)) throw new ArgumentException("IP解析失敗");
+            if (!IPAddress.TryParse(connectionServerProperties.IP, out var ipAddress)) throw new ArgumentException("IP解析失敗");
             
             var socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             
             //接続を行う
-            socket.Connect(ipAddress, connectionServerConfig.Port);
+            socket.Connect(ipAddress, connectionServerProperties.Port);
             
             // 接続に10秒かかったらエラーを出す
             await UniTask.WaitUntil(() => socket.Connected).Timeout(TimeSpan.FromSeconds(10));

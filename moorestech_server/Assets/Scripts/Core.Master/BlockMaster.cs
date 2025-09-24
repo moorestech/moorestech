@@ -83,7 +83,7 @@ namespace Core.Master
             return blockId;
         }
         
-        public List<BlockId> GetBlockIds()
+        public List<BlockId> GetBlockAllIds()
         {
             return _blockElementTableById.Keys.ToList();
         }

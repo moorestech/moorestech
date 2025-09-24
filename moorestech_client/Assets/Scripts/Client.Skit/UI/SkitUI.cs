@@ -11,13 +11,13 @@ namespace Client.Skit.UI
     {
         [SerializeField] private UIDocument skitUiDocument;
         
-        [Inject] ISkitActionContext _skitActionContext;
+        [Inject] ISkitActionController _skitActionController;
         
         private SkitUITools _skitUITools;
         
         private void Start()
         {
-            _skitUITools = new SkitUITools(skitUiDocument, _skitActionContext);
+            _skitUITools = new SkitUITools(skitUiDocument, _skitActionController);
         }
         
         public void SetText(string characterName, string text)

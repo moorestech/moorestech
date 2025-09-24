@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void InvokeTest()
         {
             // Arrange
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlock = ServerContext.WorldBlockDatastore;
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             
@@ -46,7 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // イベントが発行されたことを確認
             var events = eventProtocolProvider.GetEventBytesList(playerId);
             Assert.AreEqual(1, events.Count);
-            Assert.AreEqual(ChangeBlockStateEventPacket.EventTag, events[0].Tag);
+            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPositionInfo);
+            Assert.AreEqual(eventTag, events[0].Tag);
             
             // イベントペイロードの確認
             var blockStateMessage = MessagePackSerializer.Deserialize<BlockStateMessagePack>(events[0].Payload);
@@ -57,7 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void NotInvokeTest()
         {
             // Arrange
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             
             var blockPosition = new Vector3Int(100, 200, 300); // 存在しない座標

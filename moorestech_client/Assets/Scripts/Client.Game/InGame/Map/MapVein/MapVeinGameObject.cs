@@ -16,9 +16,6 @@ namespace Client.Game.InGame.Map.MapVein
             Mathf.RoundToInt(transform.position.y + bounds.size.y / 2f + bounds.center.y),
             Mathf.RoundToInt(transform.position.z + bounds.size.z / 2f + bounds.center.z));
         
-        public Vector3 Size => bounds.size;
-        public Vector3 CenterPosition => bounds.center + transform.position;
-        
         public Guid VeinItemGuid => Guid.Parse(veinItemGuid);
         [SerializeField] private string veinItemGuid;
         
@@ -49,20 +46,19 @@ namespace Client.Game.InGame.Map.MapVein
         }
         
         private void OnEditorUpdate()
-        {
-            transform.position = new Vector3Int(
-                Mathf.RoundToInt(transform.position.x),
-                Mathf.RoundToInt(transform.position.y),
-                Mathf.RoundToInt(transform.position.z));
+        {;
             SetBounds(bounds);
         }
         
         private void OnDrawGizmosSelected()
         {
+            var gizmoBounds = new Bounds();
+            gizmoBounds.SetMinMax(MinPosition, MaxPosition);
+            
             var color = Color.red;
             color.a = 0.5f;
             Gizmos.color = color;
-            Gizmos.DrawCube(CenterPosition, Size);
+            Gizmos.DrawCube(gizmoBounds.center, gizmoBounds.size);
         }
     }
 }

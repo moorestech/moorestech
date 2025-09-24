@@ -110,7 +110,7 @@
       "initialUnlocked": false,
       "sortPriority": 220,
       "maxStack": 100,
-      "name": "砕石",
+      "name": "砕いた石",
       "itemGuid": "619638d5-13f0-4c04-b4e6-5113e946be7e",
       "recipeViewType": "IsUnlocked"
     },
@@ -304,6 +304,30 @@
       "recipeViewType": "IsUnlocked"
     },
     {
+      "itemGuid": "efd714bf-150c-48ff-8257-a8e9fb70b7ee",
+      "name": "薄い低品質鉄板",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 435
+    },
+    {
+      "itemGuid": "26cbb01d-bede-4194-b0a4-d32f6c1c56e9",
+      "name": "とても薄い低品質鉄板",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 436
+    },
+    {
+      "itemGuid": "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
+      "name": "低品​質​鉄粉",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 437
+    },
+    {
       "initialUnlocked": false,
       "sortPriority": 450,
       "maxStack": 100,
@@ -346,7 +370,7 @@
       "maxStack": 100,
       "name": "直進シューター",
       "itemGuid": "cb37c3e6-ac1d-417a-b178-b04abc0e09d0",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "ForceHide"
     },
     {
       "initialUnlocked": false,
@@ -354,7 +378,7 @@
       "maxStack": 100,
       "name": "上りシューター",
       "itemGuid": "cc3dffdc-0fac-43ec-8772-7c9a51baa161",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "ForceHide"
     },
     {
       "initialUnlocked": false,
@@ -362,7 +386,7 @@
       "maxStack": 100,
       "name": "下りシューター",
       "itemGuid": "c32c8417-4872-4cb2-89f9-aa94611aef74",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "ForceHide"
     },
     {
       "blockSize": [
@@ -471,17 +495,17 @@
       "name": "核融合炉",
       "maxStack": 100,
       "sortPriority": 640,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
     {
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "imagePath": "",
-      "name": "量子チェスト",
+      "name": "チェスト",
       "maxStack": 100,
       "sortPriority": 650,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -491,7 +515,7 @@
       "name": "直線高速ベルトコンベア",
       "maxStack": 100,
       "sortPriority": 660,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -501,7 +525,7 @@
       "name": "上り高速ベルトコンベア",
       "maxStack": 100,
       "sortPriority": 670,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -511,7 +535,7 @@
       "name": "下り高速ベルトコンベア",
       "maxStack": 100,
       "sortPriority": 680,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -521,7 +545,7 @@
       "name": "無限歯車ジェネレーター",
       "maxStack": 100,
       "sortPriority": 690,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -531,7 +555,7 @@
       "name": "ベースキャンプ1",
       "maxStack": 100,
       "sortPriority": 700,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -541,7 +565,187 @@
       "name": "ベースキャンプ2",
       "maxStack": 100,
       "sortPriority": 710,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "5f29799a-62fc-4b48-8c08-18ed35699b1e",
+      "imagePath": "",
+      "name": "鉄のドリル",
+      "maxStack": 100,
+      "sortPriority": 720,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "93b2a5cc-3cbc-4072-9770-7337c4904906",
+      "imagePath": "",
+      "name": "鉄の採掘機",
+      "maxStack": 100,
+      "sortPriority": 730,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+      "imagePath": "",
+      "name": "鉄の粉砕機",
+      "maxStack": 100,
+      "sortPriority": 740,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "b62e1cf2-ab6c-4a43-b134-74e3d85e3caa",
+      "imagePath": "",
+      "name": "ボイラー",
+      "maxStack": 100,
+      "sortPriority": 750,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "83e24258-bd99-4b0d-afc7-e6174c0366f2",
+      "imagePath": "",
+      "name": "鉄のパイプ",
+      "maxStack": 100,
+      "sortPriority": 760,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "2b40caf7-bec9-45f8-81a5-a95a10c311de",
+      "imagePath": "",
+      "name": "蒸気機関",
+      "maxStack": 100,
+      "sortPriority": 770,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "2e7c64a5-8349-4ca1-a41b-d3658e67b1ba",
+      "imagePath": "",
+      "name": "モーター",
+      "maxStack": 100,
+      "sortPriority": 780,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f59ed4c5-991d-48f6-a5e0-0d707608fed0",
+      "imagePath": "",
+      "name": "鉄鉱石",
+      "maxStack": 100,
+      "sortPriority": 790,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "6f5a5586-1140-4593-8835-049ba8323110",
+      "imagePath": "",
+      "name": "銅鉱石",
+      "maxStack": 100,
+      "sortPriority": 800,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f1fdf5a7-d17d-4813-b719-633a622625f2",
+      "imagePath": "",
+      "name": "鉄鉱石の粉",
+      "maxStack": 100,
+      "sortPriority": 810,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "21a75c80-b186-4c38-9d1d-519b0798770f",
+      "imagePath": "",
+      "name": "銅鉱石の粉",
+      "maxStack": 100,
+      "sortPriority": 820,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+      "imagePath": "",
+      "name": "銅インゴット",
+      "maxStack": 100,
+      "sortPriority": 840,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "9993466d-1790-4008-afaf-cce42943a17f",
+      "imagePath": "",
+      "name": "銅線",
+      "maxStack": 100,
+      "sortPriority": 850,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "ec21231e-7ea3-4179-8653-84a37f00716d",
+      "imagePath": "",
+      "name": "石灰岩",
+      "maxStack": 100,
+      "sortPriority": 860,
       "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
+      "imagePath": "",
+      "name": "生石​灰石",
+      "maxStack": 100,
+      "sortPriority": 870,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+      "imagePath": "",
+      "name": "石灰粉",
+      "maxStack": 100,
+      "sortPriority": 880,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+      "imagePath": "",
+      "name": "鋼鉄",
+      "maxStack": 100,
+      "sortPriority": 890,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "9afa0b21-b918-4d38-82c7-5013fab65845",
+      "imagePath": "",
+      "name": "歯車ポンプ",
+      "maxStack": 100,
+      "sortPriority": 900,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     }

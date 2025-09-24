@@ -1,4 +1,6 @@
+using System.Threading;
 using Client.Skit.Context;
+using Client.Skit.Skit;
 using Cysharp.Threading.Tasks;
 
 namespace CommandForgeGenerator.Command
@@ -7,7 +9,11 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            await UniTask.Delay((int)(Seconds * 1000));
+            var isSkip = storyContext.GetService<ISkitActionContext>().IsSkip;
+            if (!isSkip)
+            {
+                await UniTask.Delay((int)(Seconds * 1000));
+            }
             return null;
         }
     }

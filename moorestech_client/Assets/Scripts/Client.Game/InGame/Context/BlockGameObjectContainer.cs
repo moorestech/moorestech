@@ -37,7 +37,7 @@ namespace Client.Game.InGame.Context
         {
             var blocks = new Dictionary<BlockId, BlockObjectInfo>();
             var tasks = new List<UniTask<BlockObjectInfo>>();
-            foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
+            foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
             {
                 tasks.Add(LoadBlockGameObject(blockId));
             }

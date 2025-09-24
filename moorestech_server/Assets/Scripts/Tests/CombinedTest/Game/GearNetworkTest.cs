@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Game
         //Install a simple generator, make a simple gear NW, and test if RPM and direction of rotation are correct.
         public void SimpleGeneratorAndGearRpmTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, out var generator);
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Game
         // Create a looped gear NW and test if RPM and direction of rotation are correct.
         public void LoopGearNetworkTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // C - D
@@ -129,7 +129,7 @@ namespace Tests.CombinedTest.Game
         // Using BigGear, forcibly connect SmallGear with a different RPM and SmallGear with an unchanged RPM, and test that it locks.
         public void DifferentRpmGearNetworkToRockTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPos = new Vector3Int(1, 1, 0); // 大歯車を使ってRPMを変化させた側の歯車
@@ -169,7 +169,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void DifferentDirectionGearNetworkToRockTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -200,7 +200,7 @@ namespace Tests.CombinedTest.Game
         public void MultiGeneratorOverrideRpmTest()
         {
             // 複数のジェネレーターのRPMがオーバーライドされるテスト
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var fastGeneratorPosition = new Vector3Int(0, 0, 0);
@@ -243,7 +243,7 @@ namespace Tests.CombinedTest.Game
             // Gen1 - Gear1 このような構成になっている
             //        Gear2
             // Gen2 - Gear3
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generator1Position = new Vector3Int(0, 0, 0);
@@ -276,7 +276,7 @@ namespace Tests.CombinedTest.Game
         public void ServeTorqueTest()
         {
             // 機械によってトルクが消費されるテスト（正しいトルクが供給されるかのテスト
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -314,7 +314,7 @@ namespace Tests.CombinedTest.Game
             // The generator generates 3 torque, but since it is connected to 6 gears, the required torque becomes 6
             // As a result, the supplied torque becomes 3/6=0.5
             
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -371,7 +371,7 @@ namespace Tests.CombinedTest.Game
         // RPMが1/2になると供給されるトルクが倍になるテスト
         public void TorqueHalfTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -421,7 +421,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void GearNetworkMergeTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             

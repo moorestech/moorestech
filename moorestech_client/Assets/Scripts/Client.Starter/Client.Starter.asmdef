@@ -1,0 +1,31 @@
+{
+    "name": "Client.Starter",
+    "rootNamespace": "",
+    "references": [
+        "Client.Common",
+        "UniTask",
+        "Client.Game",
+        "Server.Boot",
+        "Game.Context",
+        "Client.Network",
+        "Client.Skit",
+        "Game.UnlockState",
+        "Server.Protocol",
+        "Core.Master",
+        "Client.Mod",
+        "UniTask.Addressables",
+        "Unity.Addressables",
+        "VContainer",
+        "Unity.TextMeshPro",
+        "Unity.ResourceManager"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

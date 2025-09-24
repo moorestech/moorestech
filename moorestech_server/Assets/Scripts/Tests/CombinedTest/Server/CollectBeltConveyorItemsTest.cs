@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server
         [Test]
         public void BlockDirectionItemPositionTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldDataStore = ServerContext.WorldBlockDatastore;
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
             
@@ -134,7 +134,7 @@ namespace Tests.CombinedTest.Server
         [Test]
         public void ItemInstanceIdTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldDataStore = ServerContext.WorldBlockDatastore;
             

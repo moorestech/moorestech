@@ -6,17 +6,17 @@ namespace Game.SaveLoad.Json
     public class WorldSaverForJson : IWorldSaveDataSaver
     {
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
-        private readonly SaveJsonFileName _fileName;
+        private readonly SaveJsonFilePath _filePath;
         
-        public WorldSaverForJson(SaveJsonFileName fileName, AssembleSaveJsonText assembleSaveJsonText)
+        public WorldSaverForJson(SaveJsonFilePath filePath, AssembleSaveJsonText assembleSaveJsonText)
         {
-            _fileName = fileName;
+            _filePath = filePath;
             _assembleSaveJsonText = assembleSaveJsonText;
         }
         
         public void Save()
         {
-            File.WriteAllText(_fileName.FullSaveFilePath, _assembleSaveJsonText.AssembleSaveJson());
+            File.WriteAllText(_filePath.Path, _assembleSaveJsonText.AssembleSaveJson());
         }
     }
 }

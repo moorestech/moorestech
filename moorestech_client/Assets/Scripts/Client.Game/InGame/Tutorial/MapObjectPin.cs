@@ -11,7 +11,12 @@ using VContainer;
 
 namespace Client.Game.InGame.Tutorial
 {
-    public class MapObjectPin : MonoBehaviour, ITutorialView, ITutorialViewManager
+    public interface IMapObjectPin : ITutorialViewManager, ITutorialView
+    {
+        public void SetActive(bool active);
+    }
+    
+    public class MapObjectPin : MonoBehaviour, IMapObjectPin
     {
         [SerializeField] private TMP_Text pinText;
         

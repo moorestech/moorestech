@@ -94,9 +94,6 @@ namespace Game.Block.Blocks.Gear
             
             UpdateState();
             UpdateOutput();
-            
-            // 接続されたギアに動力を供給
-            SupplyPower(GenerateRpm, GenerateTorque, GenerateIsClockwise);
         }
         
         private void UpdateState()
@@ -238,8 +235,6 @@ namespace Game.Block.Blocks.Gear
         
         private void UpdateOutput()
         {
-            var prevRate = _steamConsumptionRate;
-            
             switch (_currentState)
             {
                 case GeneratorState.Idle:
@@ -350,21 +345,38 @@ namespace Game.Block.Blocks.Gear
         
         public new BlockStateDetail[] GetBlockStateDetails()
         {
-            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var gearNetworkInfo = network.CurrentGearNetworkInfo;
+            var steamGearDetail = GetSteamGearDetail();
+            var baseDetails = base.GetBlockStateDetails();
             
-            var stateDetail = new SteamGearGeneratorBlockStateDetail(
-                _currentState.ToString(),
-                GenerateRpm,
-                GenerateTorque,
-                GenerateIsClockwise,
-                _steamConsumptionRate,
-                _fluidComponent.SteamTank,
-                gearNetworkInfo
-            );
+            var resultDetails = new BlockStateDetail[baseDetails.Length + 1];
+            resultDetails[0] = steamGearDetail;
+            Array.Copy(baseDetails, 0, resultDetails, 1, baseDetails.Length);
             
-            var serializedState = MessagePackSerializer.Serialize(stateDetail);
-            return new[] { new BlockStateDetail(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, serializedState) };
+            return resultDetails;
+            
+            #region Internal
+            
+            BlockStateDetail GetSteamGearDetail()
+            {
+                var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
+                var gearNetworkInfo = network.CurrentGearNetworkInfo;
+                
+                var stateDetail = new SteamGearGeneratorBlockStateDetail(
+                    _currentState.ToString(),
+                    GenerateRpm,
+                    GenerateTorque,
+                    GenerateIsClockwise,
+                    _steamConsumptionRate,
+                    _fluidComponent.SteamTank,
+                    gearNetworkInfo
+                );
+                
+                var serializedState = MessagePackSerializer.Serialize(stateDetail);
+                
+                return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.BlockStateDetailKey, serializedState);
+            }
+            
+  #endregion
         }
         
         #endregion

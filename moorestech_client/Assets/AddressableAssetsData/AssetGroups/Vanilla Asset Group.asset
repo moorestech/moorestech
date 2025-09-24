@@ -55,6 +55,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0d176e3dd7401408b91fd6abfa557f21
+    m_Address: Vanilla/Block/Util/GearConnectorView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 107503fe8cad07c4994e7e2c837e8bb0
     m_Address: Vanilla/Block/Fast_BeltConveyor_T
     m_ReadOnly: 0
@@ -127,6 +132,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
     m_Address: Vanilla/Block/SmallGear
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 28dddce8f5fb04af3883632a8d31ee9e
+    m_Address: Vanilla/Block/iron_crasher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2be4fde42a4bf477fae4587b089f81f6
+    m_Address: Vanilla/Block/iron_miner
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -435,6 +450,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9e2e36a8281341579f99adcc8f9347a
+    m_Address: Vanilla/Block/Util/GearConnectorLineView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: addad9320f24544a69ad9f0ca74078b3
     m_Address: Vanilla/Block/Mining Machine Primitive
     m_ReadOnly: 0
@@ -472,6 +492,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bb72c386ac1ae15458bc2b7afbd83b6b
     m_Address: Vanilla/Block/Fast_BeltConveyor_Up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb99a95a378264a018dee927765f170b
+    m_Address: Vanilla/Block/GearPump
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

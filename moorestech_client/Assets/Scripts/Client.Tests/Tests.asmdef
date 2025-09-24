@@ -8,7 +8,17 @@
         "Client.Game",
         "Game.Block.Interface",
         "Core.Master",
-        "Server.Protocol"
+        "Server.Protocol",
+        "UniTask",
+        "Client.Starter",
+      "Unity.InputSystem",
+      "Unity.InputSystem.TestFramework",
+      "Client.Common",
+      "Server.Boot",
+      "Client.Network",
+      "Game.Context",
+      "Game.World.Interface",
+      "Core.Item.Interface"
     ],
     "includePlatforms": [
         "Editor"

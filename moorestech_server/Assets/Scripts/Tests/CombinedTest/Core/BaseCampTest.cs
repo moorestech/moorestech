@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void SimpleSingleItemDeliveryTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MultipleItemDeliveryTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void WrongItemDeliveryTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
@@ -123,7 +123,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void PartialDeliveryProgressTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;

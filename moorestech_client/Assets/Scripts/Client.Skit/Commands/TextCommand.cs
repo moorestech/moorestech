@@ -12,6 +12,7 @@ namespace CommandForgeGenerator.Command
     {
         private const float TextDuration = 0.05f;
         private const float WaitDuration = 1f;
+        private const float SkipDuration = 0.1f;
         
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
@@ -23,6 +24,13 @@ namespace CommandForgeGenerator.Command
             
             var skitUi = storyContext.GetSkitUI();
             var skitActionContext = storyContext.GetService<ISkitActionContext>();
+            
+            if (skitActionContext.IsSkip)
+            {
+                skitUi.SetText(characterName, Body);
+                await UniTask.Delay(TimeSpan.FromSeconds(SkipDuration));
+                return null;
+            }
             
             var setTextTaskCancellationTokenSource = new CancellationTokenSource();
             UniTask<bool> setTextTask = UniTask.Create(factory: async () =>
@@ -45,7 +53,7 @@ namespace CommandForgeGenerator.Command
             // 文字送りを止め、全てを表示する
             while (setTextTask.Status != UniTaskStatus.Succeeded && setTextTask.Status != UniTaskStatus.Canceled && setTextTask.Status != UniTaskStatus.Faulted && !setTextTaskCancellationTokenSource.IsCancellationRequested)
             {
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetMouseButtonDown(0) || skitActionContext.IsSkip)
                 {
                     setTextTaskCancellationTokenSource.Cancel();
                     await UniTask.Yield();
@@ -60,7 +68,7 @@ namespace CommandForgeGenerator.Command
             var waitStartTime = Time.timeAsDouble;
             while (true)
             {
-                if (skitActionContext.IsAuto && Time.timeAsDouble - waitStartTime >= WaitDuration || Input.GetMouseButtonDown(0))
+                if (skitActionContext.IsAuto && Time.timeAsDouble - waitStartTime >= WaitDuration || Input.GetMouseButtonDown(0) || skitActionContext.IsSkip)
                 {
                     await UniTask.Yield();
                     return null;

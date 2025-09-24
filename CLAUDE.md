@@ -114,12 +114,41 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
 
 # クライアント側の開発
-moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
-- `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
-- `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
+moorestech_client配下の開発について
 
+## テストの実行
+クライアント側のテスト実行には `tools/unity-test.sh` を使用してください。
 
-両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。
+**重要：テスト実行時の注意事項**
+- **必ず正規表現を使用して実施したいテストのみを実行してください**
+- 全てのテストを一括で実行すると、結果が安定しない等の不具合が生じる恐れがあります
+- 例：
+  - 特定のnamespaceのテストのみ: `./tools/unity-test.sh "^MyNamespace\."`
+  - 特定のクラスのテストのみ: `./tools/unity-test.sh "^MyNamespace\.MyTestClass$"`
+  - 特定の機能に関連するテストのみ: `./tools/unity-test.sh ".*\.Feature\."`
+
+## ビルドの実行
+CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
+
+### 使用方法
+```bash
+# 基本的な使い方（デフォルト出力先: moorestech_client/Library/ShellScriptBuild）
+./tools/unity-build-test.sh moorestech_client
+
+# 出力先を指定する場合
+./tools/unity-build-test.sh moorestech_client /path/to/output
+```
+
+### 機能
+- プラットフォームの自動判定（macOS/Windows/Linux）
+- Unityのビルド結果（Succeeded/Failed）を正確に判定
+- ビルド失敗時のコンパイルエラー詳細表示
+- ビルド成功時のファイルサイズ表示
+- エラー時のログファイル保存（デバッグ用）
+
+### 注意事項
+- ビルドが失敗した場合、ログファイルが保存されるので詳細を確認してください
+- macOSの場合、.appファイルが生成されても実際に開けない場合があるため、Unityが報告するビルド結果を信頼してください
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
@@ -153,9 +182,40 @@ public class MySingleton : MonoBehaviour
 
 早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
+# Physics.SyncTransforms()の使用指針
+Unityの物理演算において、`Physics.SyncTransforms()`を呼ぶ必要があるケースは以下の通りです：
+
+## 呼び出しが必要なケース
+
+2. **テストコード内での物理演算**
+   - PlayModeテストで物理オブジェクトを配置・移動した後
+   - アサーションで位置や衝突を検証する前
+   - 「Calling EndWrite before BeginWrite」エラーを防ぐため
+   
+## PlayModeテストでの使用例
+```csharp
+// オブジェクト配置後
+PlaceBlock("ベルトコンベア", position, direction);
+Physics.SyncTransforms();
+await UniTask.WaitForFixedUpdate();
+
+// アサーションループ内
+while (testRunning)
+{
+    // 位置のチェック
+    Assert.IsTrue(bounds.Contains(position));
+    
+    // 次のフレームの前に同期
+    Physics.SyncTransforms();
+    await UniTask.WaitForFixedUpdate();
+}
+```
+
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
+
+NEVER:Libraryディレクトリの削除は絶対にしないでください。UnityのLibraryディレクトリには重要なキャッシュやビルド情報が含まれており、削除すると再インポートに膨大な時間がかかります。
 
 YOU MUST:コードを書き終わったから必ずコンパイルを実行してください。
 

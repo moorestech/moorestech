@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
 using StarterAssets;
@@ -42,10 +44,24 @@ namespace Client.Game.InGame.Player
         
         private void LateUpdate()
         {
-            if (transform.localPosition.y < -10)
+            if (transform.localPosition.y < -50)
             {
-                var height = SlopeBlockPlaceSystem.GetGroundPoint(transform.position).y;
-                SetPlayerPosition(new Vector3(transform.localPosition.x, height, transform.localPosition.z));
+                var point = SlopeBlockPlaceSystem.GetGroundPoint(transform.position);
+                if (point.HasValue)
+                {
+                    SetPlayerPosition(new Vector3(transform.localPosition.x, point.Value.y, transform.localPosition.z));
+                }
+                else
+                {
+                    var spawnPoint = FindObjectsByType<SpawnPointObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault();
+                    if (spawnPoint == null)
+                    {
+                        SetPlayerPosition(new Vector3(0, 100, 0));
+                        Debug.LogError("SpawnPointObject not found in the scene.");
+                        return;
+                    }
+                    SetPlayerPosition(spawnPoint.transform.position);
+                }
             }
         }
         

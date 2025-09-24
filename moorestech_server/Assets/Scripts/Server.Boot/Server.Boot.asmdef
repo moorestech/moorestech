@@ -34,7 +34,8 @@
         "Game.CraftChainer",
         "Game.Train",
         "Game.UnlockState",
-        "Game.CraftTree"
+        "Game.CraftTree",
+        "Game.Paths"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

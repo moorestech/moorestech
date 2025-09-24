@@ -53,22 +53,22 @@ namespace Server.Protocol.PacketResponse
             }
 
             // Get challenge unlock states
-            var lockedChallenge = new List<string>();
-            var unlockedChallenge = new List<string>();
-            foreach (var challenge in gameUnlockStateData.ChallengeUnlockStateInfos.Values)
+            var lockedChallengeCategory = new List<string>();
+            var unlockedChallengeCategory = new List<string>();
+            foreach (var challenge in gameUnlockStateData.ChallengeCategoryUnlockStateInfos.Values)
             {
                 if (challenge.IsUnlocked)
                 {
-                    unlockedChallenge.Add(challenge.ChallengeGuid.ToString());
+                    unlockedChallengeCategory.Add(challenge.ChallengeCategoryGuid.ToString());
                 }
                 else
                 {
-                    lockedChallenge.Add(challenge.ChallengeGuid.ToString());
+                    lockedChallengeCategory.Add(challenge.ChallengeCategoryGuid.ToString());
                 }
             }
             
             // Pass challenge unlock states to the constructor
-            return new ResponseGameUnlockStateProtocolMessagePack(unlockedCraftRecipe, lockedCraftRecipe, lockedItem, unlockedItem, lockedChallenge, unlockedChallenge);
+            return new ResponseGameUnlockStateProtocolMessagePack(unlockedCraftRecipe, lockedCraftRecipe, lockedItem, unlockedItem, lockedChallengeCategory, unlockedChallengeCategory);
         }
         
         
@@ -88,8 +88,8 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public List<Guid> LockedCraftRecipeGuids => LockedCraftRecipeGuidsStr.Select(Guid.Parse).ToList();
             [IgnoreMember] public List<ItemId> UnlockedItemIds => UnlockedItemIdsInt.Select(i => new ItemId(i)).ToList();
             [IgnoreMember] public List<ItemId> LockedItemIds => LockedItemIdsInt.Select(i => new ItemId(i)).ToList();
-            [IgnoreMember] public List<Guid> UnlockedChallengeGuids => UnlockedChallengeGuidsStr.Select(Guid.Parse).ToList();
-            [IgnoreMember] public List<Guid> LockedChallengeGuids => LockedChallengeGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> UnlockedCategoryChallengeGuids => UnlockedChallengeCategoryGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> LockedCategoryChallengeGuids => LockedChallengeCategoryGuidsStr.Select(Guid.Parse).ToList();
             
             [Key(2)] public List<string> UnlockedCraftRecipeGuidsStr { get; set; }
             [Key(3)] public List<string> LockedCraftRecipeGuidsStr { get; set; }
@@ -97,8 +97,8 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public List<int> LockedItemIdsInt { get; set; }
             [Key(5)] public List<int> UnlockedItemIdsInt { get; set; }
 
-            [Key(6)] public List<string> LockedChallengeGuidsStr { get; set; }
-            [Key(7)] public List<string> UnlockedChallengeGuidsStr { get; set; }
+            [Key(6)] public List<string> LockedChallengeCategoryGuidsStr { get; set; }
+            [Key(7)] public List<string> UnlockedChallengeCategoryGuidsStr { get; set; }
             
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -106,15 +106,15 @@ namespace Server.Protocol.PacketResponse
             public ResponseGameUnlockStateProtocolMessagePack(
                 List<string> unlockedCraftRecipeGuidsStr, List<string> lockedCraftRecipeGuidsStr,
                 List<int> lockedItemIds, List<int> unlockedItemIds,
-                List<string> lockedChallengeGuidsStr, List<string> unlockedChallengeGuidsStr) // Added challenge parameters
+                List<string> lockedChallengeCategoryGuidsStr, List<string> unlockedChallengeCategoryGuidsStr) // Added challenge parameters
             {
                 Tag = ProtocolTag;
                 UnlockedCraftRecipeGuidsStr = unlockedCraftRecipeGuidsStr;
                 LockedCraftRecipeGuidsStr = lockedCraftRecipeGuidsStr;
                 LockedItemIdsInt = lockedItemIds;
                 UnlockedItemIdsInt = unlockedItemIds;
-                LockedChallengeGuidsStr = lockedChallengeGuidsStr; // Added assignment
-                UnlockedChallengeGuidsStr = unlockedChallengeGuidsStr; // Added assignment
+                LockedChallengeCategoryGuidsStr = lockedChallengeCategoryGuidsStr; // Added assignment
+                UnlockedChallengeCategoryGuidsStr = unlockedChallengeCategoryGuidsStr; // Added assignment
             }
         }
     }

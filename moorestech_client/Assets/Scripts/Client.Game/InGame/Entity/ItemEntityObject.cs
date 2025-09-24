@@ -5,6 +5,8 @@ namespace Client.Game.InGame.Entity
 {
     public class ItemEntityObject : MonoBehaviour, IEntityObject
     {
+        public long EntityId { get; private set; }
+        
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Material itemMaterial;
         private float _linerTime;
@@ -16,6 +18,11 @@ namespace Client.Game.InGame.Entity
         {
             _targetPosition = transform.position;
             _previousPosition = transform.position;
+        }
+        
+        public void Initialize(long entityId)
+        {
+            EntityId = entityId;
         }
         
         //Linerでポジションを補完させる

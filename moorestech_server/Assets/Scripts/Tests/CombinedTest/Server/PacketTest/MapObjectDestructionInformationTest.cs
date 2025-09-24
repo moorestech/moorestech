@@ -16,7 +16,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             //一個だけマップオブジェクトを破壊
             var mapObjectDatastore = ServerContext.MapObjectDatastore;

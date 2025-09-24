@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockInventoryUpdatePacketTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void OnlyOneInventoryCanBeOpenedTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
