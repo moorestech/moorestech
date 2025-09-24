@@ -13,5 +13,6 @@
 /additionalfile:Assets/../../VanillaSchema/ref/mineSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/mapObjectMineSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/fluidInventoryConnects.yml
+/additionalfile:Assets/../../VanillaSchema/ref/generateFluids.yml
 /additionalfile:Assets/../../VanillaSchema/ref/challengeAction.yml
 /additionalfile:Assets/../../VanillaSchema/ref/graphViewSettings.yml
