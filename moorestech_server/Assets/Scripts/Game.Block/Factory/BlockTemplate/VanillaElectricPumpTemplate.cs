@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
-using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Pump;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
-using Game.Block.Blocks.Fluid;
-using Game.Gear.Common;
+using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class VanillaGearPumpTemplate : IBlockTemplate
+    public class VanillaElectricPumpTemplate : IBlockTemplate
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
@@ -24,27 +22,21 @@ namespace Game.Block.Factory.BlockTemplate
             return CreatePump(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private IBlock CreatePump(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static IBlock CreatePump(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var param = (GearPumpBlockParam)blockMasterElement.BlockParam;
-
-            // Gear connector and transformer
-            var gearConnectSetting = param.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector);
+            var param = (ElectricPumpBlockParam)blockMasterElement.BlockParam;
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
             var outputComponent = new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector);
-            
-            var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent);
+            var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent);
+            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), processorComponent);
 
             var components = new List<IBlockComponent>
             {
-                gearConnector,
-                gearEnergyTransformer,
                 fluidConnector,
                 outputComponent,
-                pumpComponent,
+                processorComponent,
+                electricComponent,
             };
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
