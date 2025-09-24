@@ -254,9 +254,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     
                     case PreviewSurfaceType.XZ_Origin:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.XZ_Y:
                         return new Vector3Int(
