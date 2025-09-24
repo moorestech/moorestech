@@ -85,6 +85,7 @@ properties:
       - FluidPipe
       - BaseCamp
       - GearPump
+      - ElectricPump
       - GearElectricGenerator
     - key: itemGuid
       type: uuid
@@ -586,22 +587,7 @@ properties:
         - IGearConnectors
         properties:
         - key: generateFluid
-          type: array
-          items:
-            type: object
-            properties:
-            - key: fluidGuid
-              type: uuid
-              foreignKey:
-                schemaId: fluids
-                foreignKeyIdPath: /data/[*]/fluidGuid
-                displayElementPath: /data/[*]/name
-            - key: amount
-              type: number
-              default: 5
-            - key: generateTime
-              type: number
-              default: 1
+          ref: generateFluids
         - key: innerTankCapacity
           type: number
           default: 100
@@ -615,6 +601,19 @@ properties:
           ref: fluidInventoryConnects
         - key: gear
           ref: gear
+      - when: ElectricPump
+        type: object
+        properties:
+        - key: generateFluid
+          ref: generateFluids
+        - key: innerTankCapacity
+          type: number
+          default: 100
+        - key: requiredPower
+          type: number
+          default: 5
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
       - when: GearElectricGenerator
         type: object
         implementationInterface:
