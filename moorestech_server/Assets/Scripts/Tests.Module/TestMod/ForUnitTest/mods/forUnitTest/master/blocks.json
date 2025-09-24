@@ -3955,6 +3955,75 @@
       }
     },
     {
+      "blockGuid": "3829088a-5a78-43d7-8c3c-d3e4bb91b90a",
+      "name": "ElectricPump",
+      "blockType": "ElectricPump",
+      "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 10,
+            "generateTime": 4
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 50,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "inflowConnects": []
+        }
+      }
+    },
+    {
       "blockGuid": "00000000-0000-0000-0000-000000000028",
       "itemGuid": "11110000-0000-0000-0000-000000000000",
       "name": "TestGearElectricGenerator",
