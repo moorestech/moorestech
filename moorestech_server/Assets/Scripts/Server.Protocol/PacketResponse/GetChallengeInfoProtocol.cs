@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Challenge;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.EventReceive;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -12,55 +14,40 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:getChallengeInfo";
         
         private readonly ChallengeDatastore _challengeDatastore;
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         
         public GetChallengeInfoProtocol(ServiceProvider serviceProvider)
         {
             _challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestChallengeMessagePack>(payload.ToArray());
+            var challengeCategories = CompletedChallengeEventPacket.GetChallengeCategories(_challengeDatastore, _gameUnlockStateDataController);
             
-            var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
-            var currentChallengeIds = info.CurrentChallenges.Select(c => c.ChallengeMasterElement.ChallengeGuid).ToList();
-            
-            return new ResponseChallengeInfoMessagePack(data.PlayerId, currentChallengeIds, info.CompletedChallengeGuids);
+            return new ResponseChallengeInfoMessagePack(challengeCategories);
         }
         
         
         [MessagePackObject]
         public class RequestChallengeMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RequestChallengeMessagePack() { }
-            public RequestChallengeMessagePack(int playerId)
-            {
-                Tag = ProtocolTag;
-                PlayerId = playerId;
-            }
+            public RequestChallengeMessagePack() { Tag = ProtocolTag; }
         }
         
         [MessagePackObject]
         public class ResponseChallengeInfoMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public List<string> CurrentChallengeGuidsStr { get; set; }
-            [Key(4)] public List<string> CompletedChallengeGuidsStr { get; set; }
+            [Key(2)] public List<ChallengeCategoryMessagePack> Categories { get; set; }
             
-            [IgnoreMember] public List<Guid> CurrentChallengeGuids => CurrentChallengeGuidsStr.Select(Guid.Parse).ToList();
-            [IgnoreMember] public List<Guid> CompletedChallengeGuids => CompletedChallengeGuidsStr.Select(Guid.Parse).ToList();
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseChallengeInfoMessagePack() { }
-            public ResponseChallengeInfoMessagePack(int playerId, List<Guid> currentChallengeIds, List<Guid> completedChallengeIds)
+            public ResponseChallengeInfoMessagePack(List<ChallengeCategoryMessagePack> categories)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
-                CurrentChallengeGuidsStr = currentChallengeIds.Select(x => x.ToString()).ToList();
-                CompletedChallengeGuidsStr = completedChallengeIds.Select(x => x.ToString()).ToList();
+                Categories = categories;
             }
         }
     }

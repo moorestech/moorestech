@@ -57,6 +57,9 @@ namespace Client.Game.InGame.Block
                 groundCollisionDetector.enabled = false;
             }
             
+            // BlockStateChangeProcessorsの初期化
+            foreach (var state in BlockStateChangeProcessors) state.Initialize(this);
+            
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
             OffPreviewOnlyObjectsActive();
@@ -83,7 +86,8 @@ namespace Client.Game.InGame.Block
             
             void SubscribeBlockState()
             {
-                ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag,
+                var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(posInfo);
+                ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag,
                     payload =>
                     {
                         var data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);

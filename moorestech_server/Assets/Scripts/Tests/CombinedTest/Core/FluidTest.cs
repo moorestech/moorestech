@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidTransportTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -75,7 +75,7 @@ namespace Tests.CombinedTest.Core
             const float pipeFlowCapacity = 10f;
             var fillTime = amount / pipeFlowCapacity; // 全て搬入するのにかかる時間
             
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void SetFluidPipeTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var blockFactory = ServerContext.BlockFactory;
             
@@ -141,7 +141,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidPipeConnectTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -176,7 +176,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FlowBlockTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -234,7 +234,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidTotalAmountTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -274,7 +274,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidSplitTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -314,7 +314,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidBounceTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -366,7 +366,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMixTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -402,7 +402,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMasterTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var fluidMaster = MasterHolder.FluidMaster;
             
@@ -418,7 +418,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidPipeNetworkTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             

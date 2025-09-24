@@ -24,7 +24,7 @@ namespace Server.Event.EventReceive
             
             unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe ,c)));
             unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
-            unlockState.OnUnlockChallenge.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Challenge ,c)));
+            unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ChallengeCategory ,c)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -41,12 +41,12 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public UnlockEventType UnlockEventType => (UnlockEventType)UnlockEventTypeInt; 
         [IgnoreMember] public Guid UnlockedCraftRecipeGuid => Guid.Parse(UnlockedCraftRecipeGuidStr);
         [IgnoreMember] public ItemId UnlockedItemId => new(UnlockedItemIdInt);
-        [IgnoreMember] public Guid UnlockedChallengeGuid => Guid.Parse(UnlockedChallengeGuidStr);
+        [IgnoreMember] public Guid UnlockedChallengeCategoryGuid => Guid.Parse(UnlockedChallengeCategoryGuidStr);
         
         [Key(0)] public int UnlockEventTypeInt { get; set; }
         [Key(1)] public string UnlockedCraftRecipeGuidStr { get; set; }
         [Key(2)] public int UnlockedItemIdInt { get; set; } 
-        [Key(3)] public string UnlockedChallengeGuidStr { get; set; }
+        [Key(3)] public string UnlockedChallengeCategoryGuidStr { get; set; }
         
         
         
@@ -59,16 +59,16 @@ namespace Server.Event.EventReceive
             UnlockedItemIdInt = (int)itemId;
         }
         
-        public UnlockEventMessagePack(UnlockEventType unlockEventType,Guid unlockedChallengeGuid)
+        public UnlockEventMessagePack(UnlockEventType unlockEventType,Guid unlockedChallengeCategoryGuid)
         {
             UnlockEventTypeInt = (int)unlockEventType;
             switch (unlockEventType)
             {
-                case UnlockEventType.Challenge:
-                    UnlockedChallengeGuidStr = unlockedChallengeGuid.ToString();
+                case UnlockEventType.ChallengeCategory:
+                    UnlockedChallengeCategoryGuidStr = unlockedChallengeCategoryGuid.ToString();
                     break;
                 case UnlockEventType.CraftRecipe:
-                    UnlockedCraftRecipeGuidStr = unlockedChallengeGuid.ToString();
+                    UnlockedCraftRecipeGuidStr = unlockedChallengeCategoryGuid.ToString();
                     break;
             }
         }
@@ -78,6 +78,6 @@ namespace Server.Event.EventReceive
     {
         CraftRecipe,
         Item,
-        Challenge
+        ChallengeCategory
     }
 }

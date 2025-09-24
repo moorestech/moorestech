@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Core.Block
         public void SaveLoadTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var blockFactory = ServerContext.BlockFactory;
             var minerGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricMinerId).BlockGuid;
             

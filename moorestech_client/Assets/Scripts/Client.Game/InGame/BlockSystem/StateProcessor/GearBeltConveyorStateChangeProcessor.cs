@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Block;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -15,17 +16,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         private Vector2 _offset;
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
         
+        public void Initialize(BlockGameObject blockGameObject) { }
+        
         public void OnChangeState(BlockStateMessagePack blockState)
         {
             _currentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
-        }
-        
-        private void Update()
-        {
-            if (_currentGearState == null) return;
-            
-            _offset.x += _currentGearState.CurrentRpm / 60 * Time.time * speed;
-            meshRenderer.sharedMaterial.SetTextureOffset(BaseMap, _offset);
         }
     }
 }

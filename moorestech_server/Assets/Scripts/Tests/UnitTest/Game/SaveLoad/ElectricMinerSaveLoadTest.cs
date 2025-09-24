@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Core.Block
         public void SaveLoadTest()
         {
             // Initialize the server and get the block factory.
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var blockFactory = ServerContext.BlockFactory;
 
             // Get the block GUID for the ElectricMiner.

@@ -25,6 +25,11 @@ namespace Game.PlayerInventory
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
         }
         
+        public List<int> GetAllPlayerId()
+        {
+            return new List<int>(_playerInventoryData.Keys);
+        }
+        
         public PlayerInventoryData GetInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))

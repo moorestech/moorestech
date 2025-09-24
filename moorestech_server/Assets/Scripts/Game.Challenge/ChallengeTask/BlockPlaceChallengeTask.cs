@@ -9,21 +9,18 @@ namespace Game.Challenge.Task
     public class BlockPlaceChallengeTask : IChallengeTask
     {
         public ChallengeMasterElement ChallengeMasterElement { get; }
-        public int PlayerId { get; }
-        
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
         private readonly Subject<IChallengeTask> _onChallengeComplete = new();
         
         private bool _completed;
         
-        public static IChallengeTask Create(int playerId, ChallengeMasterElement challengeMasterElement)
+        public static IChallengeTask Create(ChallengeMasterElement challengeMasterElement)
         {
-            return new BlockPlaceChallengeTask(playerId, challengeMasterElement);
+            return new BlockPlaceChallengeTask(challengeMasterElement);
         }
-        public BlockPlaceChallengeTask(int playerId, ChallengeMasterElement challengeMasterElement)
+        public BlockPlaceChallengeTask(ChallengeMasterElement challengeMasterElement)
         {
             ChallengeMasterElement = challengeMasterElement;
-            PlayerId = playerId;
             
             var worldEvent = ServerContext.WorldBlockUpdateEvent;
             worldEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);

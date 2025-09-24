@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void ShooterTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemFactory = ServerContext.ItemStackFactory;
             
             // アイテムシューターのテストは、以下のように、一度下がり、再び上がるような構造になっている

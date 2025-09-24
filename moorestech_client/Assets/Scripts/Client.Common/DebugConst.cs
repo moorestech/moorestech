@@ -10,5 +10,8 @@ namespace Client.Game
         
         public const string MapObjectSuperMineLabel = "Map object super mine";
         public const string MapObjectSuperMineKey = "MapObjectSuperMine";
+        
+        public const string FixCraftTimeLabel = "Fix fast craft time";
+        public const string FixCraftTimeKey = "FixCraftTime";
     }
 }

@@ -2,6 +2,7 @@
   "dependencies": {
     "com.annulusgames.debug-ui": "https://github.com/AnnulusGames/DebugUI.git?path=src/DebugUI/Assets/DebugUI",
     "com.annulusgames.tween-playables": "https://github.com/AnnulusGames/TweenPlayables.git?path=/Assets/TweenPlayables",
+    "com.boxqkrtm.ide.cursor": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.harumak.unitydebugsheet": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet",
@@ -9,7 +10,6 @@
     "com.moorestech.command-forge-generator-util": "https://github.com/moorestech/CommandForgeGenerator.git?path=UnityEditorExtension/CommandForgeGeneratorUtil/Assets/Scripts#main",
     "com.moorestech.dependency-tracer": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages",
     "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
-    "com.singularitygroup.hotreload": "git+https://gitlab.hotreload.net/root/hot-reload-releases.git#1.13.7",
     "com.tayx.graphy": "https://github.com/Tayx94/graphy.git",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "2.5.0",
@@ -20,6 +20,7 @@
     "com.unity.ide.rider": "3.0.36",
     "com.unity.ide.visualstudio": "2.0.23",
     "com.unity.inputsystem": "1.14.0",
+    "com.unity.memoryprofiler": "1.1.9",
     "com.unity.multiplayer.center": "1.0.0",
     "com.unity.profiling.core": "1.0.2",
     "com.unity.render-pipelines.universal": "17.1.0",

@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void BaseCampCompleteProtocolTest_Success()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;

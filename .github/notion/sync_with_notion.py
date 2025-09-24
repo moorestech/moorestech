@@ -58,7 +58,7 @@ def query_notion_database_for_tickets():
 
 def create_ticket(issue):
     issue_url = issue.html_url
-    issue_status = "Done" if issue.state == "closed" else "TODO"
+    issue_status = "Done" if issue.state == "closed" else "Backlog"
 
     notion_client.pages.create(
         **{
@@ -130,7 +130,7 @@ def main():
 
         issue_url = issue.html_url
         if issue_url in notion_tickets_url_to_id:
-            issue_status = "Done" if issue.state == "closed" else "TODO"
+            issue_status = "Done" if issue.state == "closed" else "Backlog"
 
             # タイトルとステータスが変わった場合のみ更新
             if notion_tickets_url_to_id[issue_url]["title"] == issue.title and notion_tickets_url_to_id[issue_url]["status"] == issue_status:

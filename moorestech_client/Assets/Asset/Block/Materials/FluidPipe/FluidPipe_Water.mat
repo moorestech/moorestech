@@ -141,7 +141,7 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _WaterLevel: 0.39
+    - _WaterLevel: 0.000271
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

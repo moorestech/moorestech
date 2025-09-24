@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RegisterPlayedSkitMessagePack>(payload.ToArray());
-            var info = _challengeDatastore.GetOrCreateChallengeInfo(data.PlayerId);
+            var info = _challengeDatastore.CurrentChallengeInfo;
             
             // 既に登録されている場合は重複登録しない
             if (info.PlayedSkitIds.Contains(data.SkitId)) return null;

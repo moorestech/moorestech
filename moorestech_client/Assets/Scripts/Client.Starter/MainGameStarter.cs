@@ -70,8 +70,8 @@ namespace Client.Starter
         [SerializeField] private RecipeViewerView recipeViewerView;
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
-        [SerializeField] private ChallengeListUI challengeListUI;
         [SerializeField] private CraftTreeViewManager craftTreeViewManager;
+        [SerializeField] private ChallengeListView challengeListView;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -147,7 +147,9 @@ namespace Client.Starter
             
             // スキット関連
             // register skit related
-            builder.Register<ISkitActionContext, SkitActionContext>(Lifetime.Singleton);
+            var skitActionContext = new SkitActionContext();
+            builder.RegisterInstance<ISkitActionContext>(skitActionContext);
+            builder.RegisterInstance<ISkitActionController>(skitActionContext);
             
             // その他インスタンス
             // register other instance
@@ -182,16 +184,16 @@ namespace Client.Starter
             builder.RegisterComponent(recipeViewerView);
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
-            builder.RegisterComponent(challengeListUI);
             builder.RegisterComponent(craftTreeViewManager);
+            builder.RegisterComponent(challengeListView);
             
-            builder.RegisterComponent(mapObjectPin);
+            builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
-            builder.RegisterComponent(skitManager);
+            builder.RegisterComponent(skitManager).As<IInitializable>();
             builder.RegisterComponent(skitUI);
             builder.RegisterComponent(backgroundSkitManager);
             

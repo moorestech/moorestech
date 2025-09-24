@@ -30,7 +30,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
                     toolTipText = GetToolTipText(fluidView);
                 }
                 
-                var countText = amount != 0 ? amount.ToString("F2") : string.Empty;
+                var countText = amount != 0 ? amount.ToString("N0") : string.Empty;
                 commonSlotView.SetView(fluidView.FluidImage, countText, toolTipText);
             }
         }
