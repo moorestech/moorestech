@@ -20,13 +20,11 @@ namespace Tests.CombinedTest.Core
     {
         // テストで使用する流体（Water）のFluidId
         private static readonly Guid DefaultFluidGuid = new("00000000-0000-0000-1234-000000000001");
-        private static FluidId DefaultFluidId => MasterHolder.FluidMaster.GetFluidId(DefaultFluidGuid);
-
+        
         [Test]
         public void GenerateFluid_ScalesWithGearPower()
         {
-            // Arrange: DI起動 + BlockMasterからGearPumpを特定
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
 
@@ -40,7 +38,7 @@ namespace Tests.CombinedTest.Core
 
             // 期待生成レート（full power時の1秒あたり）
             var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
-            var fullRatePerSec = pumpParam.GenerateFluid.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
+            var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
 
             // テストウィンドウ
             const float testSeconds = 4f;
@@ -90,8 +88,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void GenerateFluid_WithAdjacentInfinityTorqueGenerator()
         {
-            // Arrange: DI起動
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
 
