@@ -176,42 +176,60 @@ MasterHolder.Load()
 3. 既存のテストに影響しないよう注意して編集
 
 
-# コンパイルエラー確認時の注意事項
-コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
-- `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
-- `moorestech_client/`配下のコードを編集した場合：クライアント側のMCPツールでコンパイルエラーの確認のみ（テストは不要）
+# テストとコンパイルの実行方針
 
-**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
-
-# サーバー側の開発
-moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
-- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
-- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
-- `mcp__moorestech_server__RunEditModeTests`: テストを実行（必要に応じてregexでフィルタリング）
-
-## MCPテスト実行時の重要事項
-**テストを実行する際は、必ずgroupNamesパラメータと正規表現を活用して、実行するテストを適切に絞り込んでください。**
-
-例：
-- 特定のnamespaceのテストのみ実行: `groupNames: ["^MyNamespace\\."]`
-- 特定のクラスのテストのみ実行: `groupNames: ["^MyNamespace\\.MyTestClass$"]`
-- 特定の機能に関連するテストのみ実行: `groupNames: ["^.*\\.Inventory\\."]`
-
-これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
-
-# クライアント側の開発
-moorestech_client配下の開発について
+## 基本方針
+このプロジェクトでは、**MCPツールを優先的に使用**し、Unityエディタが使用できない場合**シェルスクリプトをフォールバック**として使用します。
 
 ## テストの実行
-クライアント側のテスト実行には `tools/unity-test.sh` を使用してください。
 
-**重要：テスト実行時の注意事項**
-- **必ず正規表現を使用して実施したいテストのみを実行してください**
-- 全てのテストを一括で実行すると、結果が安定しない等の不具合が生じる恐れがあります
-- 例：
-  - 特定のnamespaceのテストのみ: `./tools/unity-test.sh "^MyNamespace\."`
-  - 特定のクラスのテストのみ: `./tools/unity-test.sh "^MyNamespace\.MyTestClass$"`
-  - 特定の機能に関連するテストのみ: `./tools/unity-test.sh ".*\.Feature\."`
+### 1. MCPツールでのテスト実行（推奨）
+Unityエディタが起動している場合は、MCPツールを使用してテストを実行します。
+
+#### サーバー側テスト
+```
+mcp__moorestech_server__RunEditModeTests
+```
+- 必ず`groupNames`パラメータで実行対象を限定
+- 例: `groupNames: ["^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"]`
+
+#### クライアント側テスト
+```
+mcp__moorestech_client__RunEditModeTests
+```
+- 必ず`groupNames`パラメータで実行対象を限定
+- 例: `groupNames: ["^ClientTests\\.Feature\\.InventoryTest$"]`
+
+### 2. シェルスクリプトでのテスト実行（フォールバック）
+Unityエディタが使用できない場合やMCPツールリストに上記MCPが無い場合では `tools/unity-test.sh` を使用します。
+
+```bash
+# サーバー側のテスト
+./tools/unity-test.sh moorestech_server "^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"
+
+# クライアント側のテスト クライアント側の場合、バッチモードでは結果が安定しないことがあるため、 isGui オプションを追加してください。
+./tools/unity-test.sh moorestech_client "^ClientTests\\.Feature\\.InventoryTest$" isGui
+```
+
+### 重要な注意事項
+- **必ず正規表現で実行対象を限定してください**
+- 全テストの一括実行は時間がかかり、不安定になる可能性があります
+- 関連するテストのみを実行して開発サイクルを高速化しましょう
+
+## コンパイルエラーの確認
+
+### MCPツールでのコンパイル（推奨）
+編集したコードのパスに応じて適切なMCPツールを使用：
+
+- **サーバー側**（`moorestech_server/`配下）
+  - `mcp__moorestech_server__RefreshAssets`: コンパイル実行
+  - `mcp__moorestech_server__GetCompileLogs`: エラー確認
+
+- **クライアント側**（`moorestech_client/`配下）
+  - `mcp__moorestech_client__RefreshAssets`: コンパイル実行
+  - `mcp__moorestech_client__GetCompileLogs`: エラー確認
+
+**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
 
 ## ビルドの実行
 CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
