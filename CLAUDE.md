@@ -89,6 +89,92 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
+# マスターデータシステムについて
+このゲームのすべてのマスターデータ（ブロック、アイテム、液体、レシピ、チャレンジ、研究等）は、以下の一貫した仕組みで管理されています。
+
+## 概要
+マスターデータシステムは次の4段階のプロセスで動作します：
+1. **YAMLでスキーマ定義** - データ構造とプロパティを定義
+2. **SourceGeneratorで自動生成** - C#のデータクラスとローダーを生成
+3. **JSONで実データ作成** - 実際のゲームデータを記述
+4. **実行時にロード** - MasterHolderで一元管理してゲーム内で利用
+
+## システムの主要構成
+
+### スキーマ定義 (VanillaSchema/)
+- `blocks.yml`, `items.yml`, `fluids.yml` など各種YAMLファイル
+- データ構造、型、デフォルト値、外部キー参照などを定義
+- 詳細な仕様は `moorestech_server/Assets/yaml仕様書v1.md` を参照
+
+### 自動生成される名前空間
+- **Mooresmaster.Model.*Module** - SourceGeneratorによって自動生成
+  - `Mooresmaster.Model.BlocksModule` - ブロック関連のクラス
+  - `Mooresmaster.Model.ItemsModule` - アイテム関連のクラス
+  - `Mooresmaster.Model.FluidsModule` - 液体関連のクラス
+  - その他、各マスターデータに対応するモジュール
+
+### マスターデータ管理クラス
+- **MasterHolder** (`Core.Master.MasterHolder`)
+  - すべてのマスターデータを静的プロパティで保持
+  - `ItemMaster`, `BlockMaster`, `FluidMaster` など各種Masterへのアクセスポイント
+  - `Load(MasterJsonFileContainer)` メソッドでJSONからデータをロード
+
+- **個別のMasterクラス**
+  - `ItemMaster`, `BlockMaster`, `FluidMaster` など
+  - 各種マスターデータのID検索、データ取得機能を提供
+
+## データフロー
+```
+VanillaSchema/*.yml (スキーマ定義)
+    ↓ SourceGenerator (ビルド時に自動生成)
+Mooresmaster.Model.*Module (C#クラス)
+    ↓ 実行時
+mods/*/master/*.json (JSONファイル)
+    ↓ MasterJsonFileContainer
+MasterHolder.Load()
+    ↓
+ゲーム内で利用 (MasterHolder.ItemMaster等でアクセス)
+```
+
+## 開発時の重要事項
+
+### 絶対に守るべきルール
+1. **手動でのクラス作成禁止**: `Mooresmaster.Model.*` 名前空間のクラスは絶対に手動で作成しない
+2. **BlockParamなどは自動生成**: ブロックパラメータ等もSourceGeneratorが生成するため手動実装禁止
+
+### スキーマを変更する場合
+1. `VanillaSchema/*.yml` の該当ファイルを編集
+2. プロジェクトをリビルドして自動生成を実行
+3. 生成されたクラスを確認
+
+### 新しいマスターデータを追加する場合
+1. `VanillaSchema/` に新しいYAMLファイルを作成
+2. `Core.Master.MasterHolder` にプロパティを追加
+3. 対応するMasterクラス（例：`NewDataMaster`）を実装
+4. `MasterHolder.Load()` メソッドに読み込み処理を追加
+
+## テスト時の注意事項
+ユニットテストでマスターデータが必要な場合は、以下のテスト用マスターデータを使用してください：
+
+### テスト用マスターデータの場所
+- **パス**: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/`
+- **含まれるファイル**:
+  - `items.json` - テスト用アイテムデータ
+  - `blocks.json` - テスト用ブロックデータ
+  - `fluids.json` - テスト用液体データ
+  - `craftRecipes.json` - テスト用レシピデータ
+  - その他、各種マスターデータのテスト用JSON
+
+### テスト用ブロックIDの定義
+- `ForUnitTestModBlockId.cs` でテスト用のブロックIDを定義
+- テストコードではこれらの定義済みIDを使用すること
+
+### テスト用マスターデータの更新
+新しいテストケースでマスターデータが必要な場合：
+1. 上記のテスト用JSONファイルを更新
+2. 必要に応じて `ForUnitTestModBlockId.cs` に新しいIDを追加
+3. 既存のテストに影響しないよう注意して編集
+
 
 # コンパイルエラー確認時の注意事項
 コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
@@ -182,35 +268,6 @@ public class MySingleton : MonoBehaviour
 
 早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
-# Physics.SyncTransforms()の使用指針
-Unityの物理演算において、`Physics.SyncTransforms()`を呼ぶ必要があるケースは以下の通りです：
-
-## 呼び出しが必要なケース
-
-2. **テストコード内での物理演算**
-   - PlayModeテストで物理オブジェクトを配置・移動した後
-   - アサーションで位置や衝突を検証する前
-   - 「Calling EndWrite before BeginWrite」エラーを防ぐため
-   
-## PlayModeテストでの使用例
-```csharp
-// オブジェクト配置後
-PlaceBlock("ベルトコンベア", position, direction);
-Physics.SyncTransforms();
-await UniTask.WaitForFixedUpdate();
-
-// アサーションループ内
-while (testRunning)
-{
-    // 位置のチェック
-    Assert.IsTrue(bounds.Contains(position));
-    
-    // 次のフレームの前に同期
-    Physics.SyncTransforms();
-    await UniTask.WaitForFixedUpdate();
-}
-```
-
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
@@ -224,7 +281,7 @@ IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコ�
 IMPORTANT:このゲームのコードベースは非常に大規模であり、たいていタスクもすでにある実装の拡張であることが多いです。そのため、良くコードを読み、コードの性質を理解し、周り合わせて空気を読んだコードを記述することを心がけてください。
 IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
-IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。Mooresmaster.Model.BlocksModule名前空間に生成されるため、手動で作成しないでください。
+IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。

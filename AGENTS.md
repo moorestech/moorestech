@@ -61,6 +61,92 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
+# マスターデータシステムについて
+このゲームのすべてのマスターデータ（ブロック、アイテム、液体、レシピ、チャレンジ、研究等）は、以下の一貫した仕組みで管理されています。
+
+## 概要
+マスターデータシステムは次の4段階のプロセスで動作します：
+1. **YAMLでスキーマ定義** - データ構造とプロパティを定義
+2. **SourceGeneratorで自動生成** - C#のデータクラスとローダーを生成
+3. **JSONで実データ作成** - 実際のゲームデータを記述
+4. **実行時にロード** - MasterHolderで一元管理してゲーム内で利用
+
+## システムの主要構成
+
+### スキーマ定義 (VanillaSchema/)
+- `blocks.yml`, `items.yml`, `fluids.yml` など各種YAMLファイル
+- データ構造、型、デフォルト値、外部キー参照などを定義
+- 詳細な仕様は `moorestech_server/Assets/yaml仕様書v1.md` を参照
+
+### 自動生成される名前空間
+- **Mooresmaster.Model.*Module** - SourceGeneratorによって自動生成
+  - `Mooresmaster.Model.BlocksModule` - ブロック関連のクラス
+  - `Mooresmaster.Model.ItemsModule` - アイテム関連のクラス
+  - `Mooresmaster.Model.FluidsModule` - 液体関連のクラス
+  - その他、各マスターデータに対応するモジュール
+
+### マスターデータ管理クラス
+- **MasterHolder** (`Core.Master.MasterHolder`)
+  - すべてのマスターデータを静的プロパティで保持
+  - `ItemMaster`, `BlockMaster`, `FluidMaster` など各種Masterへのアクセスポイント
+  - `Load(MasterJsonFileContainer)` メソッドでJSONからデータをロード
+
+- **個別のMasterクラス**
+  - `ItemMaster`, `BlockMaster`, `FluidMaster` など
+  - 各種マスターデータのID検索、データ取得機能を提供
+
+## データフロー
+```
+VanillaSchema/*.yml (スキーマ定義)
+    ↓ SourceGenerator (ビルド時に自動生成)
+Mooresmaster.Model.*Module (C#クラス)
+    ↓ 実行時
+mods/*/master/*.json (JSONファイル)
+    ↓ MasterJsonFileContainer
+MasterHolder.Load()
+    ↓
+ゲーム内で利用 (MasterHolder.ItemMaster等でアクセス)
+```
+
+## 開発時の重要事項
+
+### 絶対に守るべきルール
+1. **手動でのクラス作成禁止**: `Mooresmaster.Model.*` 名前空間のクラスは絶対に手動で作成しない
+2. **BlockParamなどは自動生成**: ブロックパラメータ等もSourceGeneratorが生成するため手動実装禁止
+
+### スキーマを変更する場合
+1. `VanillaSchema/*.yml` の該当ファイルを編集
+2. プロジェクトをリビルドして自動生成を実行
+3. 生成されたクラスを確認
+
+### 新しいマスターデータを追加する場合
+1. `VanillaSchema/` に新しいYAMLファイルを作成
+2. `Core.Master.MasterHolder` にプロパティを追加
+3. 対応するMasterクラス（例：`NewDataMaster`）を実装
+4. `MasterHolder.Load()` メソッドに読み込み処理を追加
+
+## テスト時の注意事項
+ユニットテストでマスターデータが必要な場合は、以下のテスト用マスターデータを使用してください：
+
+### テスト用マスターデータの場所
+- **パス**: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/`
+- **含まれるファイル**:
+  - `items.json` - テスト用アイテムデータ
+  - `blocks.json` - テスト用ブロックデータ
+  - `fluids.json` - テスト用液体データ
+  - `craftRecipes.json` - テスト用レシピデータ
+  - その他、各種マスターデータのテスト用JSON
+
+### テスト用ブロックIDの定義
+- `ForUnitTestModBlockId.cs` でテスト用のブロックIDを定義
+- テストコードではこれらの定義済みIDを使用すること
+
+### テスト用マスターデータの更新
+新しいテストケースでマスターデータが必要な場合：
+1. 上記のテスト用JSONファイルを更新
+2. 必要に応じて `ForUnitTestModBlockId.cs` に新しいIDを追加
+3. 既存のテストに影響しないよう注意して編集
+
 
 # コンパイルエラー確認時の注意事項
 コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
@@ -86,23 +172,41 @@ moorestech_server配下の開発はTDDで行っています。server側のコー
 これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
 
 # クライアント側の開発
-moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
-- `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
-- `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
+moorestech_client配下の開発について
 
-## クライアント側のテスト実行（unity-test.sh で限定実行）
-- 実行方法: MCPではなく`tools/unity-test.sh`を使用してください。
-- 重要: 必ず正規表現で「実施したいテストのみ」を指定してください。全件実行は結果が不安定になる恐れがあります。
-- 使い方: `./tools/unity-test.sh <UnityProjectPath> '<Regex>'`
-  - `<UnityProjectPath>`: Unityプロジェクトのルート（このリポジトリのルート）
-  - `'<Regex>'`: 実行対象を絞る正規表現（クラス名・namespaceなど）
-- 実行例:
-  - 単一クラスのみ: `./tools/unity-test.sh . '^MyNamespace\\.MyTestClass$'`
-  - 特定namespace配下のみ: `./tools/unity-test.sh . '^MyNamespace\\.'`
-  - 機能単位（例: Inventory）: `./tools/unity-test.sh . '^.*\\.Inventory\\.'`
-- 挙動: コンパイル失敗時は失敗として終了し、`[CliTest]`の行のみをサマリ表示します。
+## テストの実行
+クライアント側のテスト実行には `tools/unity-test.sh` を使用してください。
 
-両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。クライアント側のテストは必ず`tools/unity-test.sh`＋正規表現で限定実行してください。
+**重要：テスト実行時の注意事項**
+- **必ず正規表現を使用して実施したいテストのみを実行してください**
+- 全てのテストを一括で実行すると、結果が安定しない等の不具合が生じる恐れがあります
+- 例：
+  - 特定のnamespaceのテストのみ: `./tools/unity-test.sh "^MyNamespace\."`
+  - 特定のクラスのテストのみ: `./tools/unity-test.sh "^MyNamespace\.MyTestClass$"`
+  - 特定の機能に関連するテストのみ: `./tools/unity-test.sh ".*\.Feature\."`
+
+## ビルドの実行
+CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
+
+### 使用方法
+```bash
+# 基本的な使い方（デフォルト出力先: moorestech_client/Library/ShellScriptBuild）
+./tools/unity-build-test.sh moorestech_client
+
+# 出力先を指定する場合
+./tools/unity-build-test.sh moorestech_client /path/to/output
+```
+
+### 機能
+- プラットフォームの自動判定（macOS/Windows/Linux）
+- Unityのビルド結果（Succeeded/Failed）を正確に判定
+- ビルド失敗時のコンパイルエラー詳細表示
+- ビルド成功時のファイルサイズ表示
+- エラー時のログファイル保存（デバッグ用）
+
+### 注意事項
+- ビルドが失敗した場合、ログファイルが保存されるので詳細を確認してください
+- macOSの場合、.appファイルが生成されても実際に開けない場合があるため、Unityが報告するビルド結果を信頼してください
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
@@ -140,6 +244,8 @@ public class MySingleton : MonoBehaviour
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
 
+NEVER:Libraryディレクトリの削除は絶対にしないでください。UnityのLibraryディレクトリには重要なキャッシュやビルド情報が含まれており、削除すると再インポートに膨大な時間がかかります。
+
 YOU MUST:コードを書き終わったから必ずコンパイルを実行してください。
 
 IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライアントの実装をする際はdocs/ClientGuide.mdを必ず参照してください。
@@ -147,7 +253,7 @@ IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコ�
 IMPORTANT:このゲームのコードベースは非常に大規模であり、たいていタスクもすでにある実装の拡張であることが多いです。そのため、良くコードを読み、コードの性質を理解し、周り合わせて空気を読んだコードを記述することを心がけてください。
 IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
-IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。Mooresmaster.Model.BlocksModule名前空間に生成されるため、手動で作成しないでください。
+IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。
