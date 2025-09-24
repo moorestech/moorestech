@@ -31,23 +31,36 @@ namespace Tests.CombinedTest.Core
             var driveComponent = driveBlock.GetComponent<SimpleGearGeneratorComponent>();
             var param = (GearElectricGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestGearElectricGenerator).BlockParam;
 
-            // フルフィルメント
+            // フル出力
+            // Full output
             driveComponent.SetGenerateRpm(param.RequiredRpm);
             driveComponent.SetGenerateTorque(param.RequiredTorque);
-            AdvanceTime(1.0f);
-            Assert.That(generatorComponent.OutputEnergy().AsPrimitive(), Is.EqualTo(param.MaxGeneratedPower).Within(param.MaxGeneratedPower * 0.05f));
-            Assert.That(generatorComponent.EnergyFulfillmentRate, Is.EqualTo(1f).Within(0.05f));
+            AdvanceTime(0.5f);
+            Assert.AreEqual(param.MaxGeneratedPower, generatorComponent.OutputEnergy().AsPrimitive(),  0.1f);
+            Assert.AreEqual(1f, generatorComponent.EnergyFulfillmentRate, 0.05f);
 
             // 半分のRPM -> 半分の出力
+            // Half RPM -> Half output
             driveComponent.SetGenerateRpm(param.RequiredRpm * 0.5f);
             driveComponent.SetGenerateTorque(param.RequiredTorque);
-            AdvanceTime(1.0f);
-            Assert.That(generatorComponent.OutputEnergy().AsPrimitive(), Is.EqualTo(param.MaxGeneratedPower * 0.5f).Within(param.MaxGeneratedPower * 0.1f));
-
-            // トルク0 -> 出力0
-            driveComponent.SetGenerateTorque(0f);
             AdvanceTime(0.5f);
-            Assert.That(generatorComponent.OutputEnergy().AsPrimitive(), Is.EqualTo(0f).Within(0.01f));
+            Assert.AreEqual(param.MaxGeneratedPower * 0.5f, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
+            Assert.AreEqual(0.5f, generatorComponent.EnergyFulfillmentRate, 0.05f);
+            
+            // 半分のトルク -> 半分の出力
+            // Half torque -> Half output
+            driveComponent.SetGenerateRpm(param.RequiredRpm);
+            driveComponent.SetGenerateTorque(param.RequiredTorque * 0.5f);
+            AdvanceTime(0.5f);
+            Assert.AreEqual(param.MaxGeneratedPower * 0.5f, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
+            Assert.AreEqual(0.5f, generatorComponent.EnergyFulfillmentRate, 0.05f);
+
+            // RPM 0 -> 出力 0
+            // RPM 0 -> Output 0
+            driveComponent.SetGenerateRpm(0f);
+            AdvanceTime(0.5f);
+            Assert.AreEqual(0f, generatorComponent.OutputEnergy().AsPrimitive(), 0.01f);
+            Assert.AreEqual(0f, generatorComponent.EnergyFulfillmentRate, 0.05f);
         }
 
         #region Internal
