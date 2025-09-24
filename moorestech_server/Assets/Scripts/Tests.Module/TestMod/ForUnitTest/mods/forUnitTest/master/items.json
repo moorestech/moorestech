@@ -466,6 +466,16 @@
       "handGrabModelAddressablePath": ""
     },
     {
+      "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
+      "imagePath": "",
+      "name": "ElectricPump",
+      "maxStack": 100,
+      "sortPriority": 735,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
       "itemGuid": "11110000-0000-0000-0000-000000000000",
       "imagePath": "",
       "name": "TestGearElectricGenerator",
