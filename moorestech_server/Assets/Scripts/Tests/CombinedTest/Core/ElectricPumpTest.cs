@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
@@ -119,6 +120,51 @@ namespace Tests.CombinedTest.Core
             }
 
             #endregion
+        }
+
+        [Test]
+        public void SaveLoad_PreservesInnerTankState()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // ElectricPumpを設置し、内部タンクに液体を注入
+            // Place an ElectricPump and inject fluid into the internal tank
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump);
+            var pumpParam = (ElectricPumpBlockParam)blockMaster.BlockParam;
+            var positionInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
+
+            var originalPump = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.ElectricPump, new BlockInstanceId(1), positionInfo);
+            var outputComponent = originalPump.GetComponent<PumpFluidOutputComponent>();
+
+            // 内部タンクに液体を注入
+            // Inject fluid into the internal tank
+            var fluidGuid = pumpParam.GenerateFluid.items[0].FluidGuid;
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(fluidGuid);
+            var targetAmount = Math.Min(pumpParam.InnerTankCapacity * 0.5f, pumpParam.InnerTankCapacity);
+            outputComponent.EnqueueGeneratedFluid(new FluidStack(targetAmount, fluidId));
+
+            // ブロック内の液体量を保存
+            // Save the amount of fluid in the block
+            var originalTank = GetPumpTankState(outputComponent);
+            Assert.Greater(originalTank.Amount, 0d, "Original pump should hold fluid before save.");
+
+            // ブロックをロードする
+            // Load the block
+            var saveState = originalPump.GetSaveState();
+            var loadedPump = ServerContext.BlockFactory.Load(blockMaster.BlockGuid, new BlockInstanceId(1), saveState, positionInfo);
+            var loadedTank = GetPumpTankState(loadedPump.GetComponent<PumpFluidOutputComponent>());
+
+            // ロード後も液体量が維持されていることを確認
+            // Verify that the amount of fluid is maintained after loading
+            Assert.AreEqual(originalTank.FluidId, loadedTank.FluidId, "Loaded pump should retain fluid type.");
+            Assert.AreEqual(originalTank.Amount, loadedTank.Amount, "Loaded pump should retain fluid amount.");
+        }
+
+        private static (double Amount, FluidId FluidId) GetPumpTankState(PumpFluidOutputComponent outputComponent)
+        {
+            var tankField = typeof(PumpFluidOutputComponent).GetField("_tank", BindingFlags.NonPublic | BindingFlags.Instance);
+            var container = (FluidContainer)tankField.GetValue(outputComponent);
+            return (container.Amount, container.FluidId);
         }
     }
 }
