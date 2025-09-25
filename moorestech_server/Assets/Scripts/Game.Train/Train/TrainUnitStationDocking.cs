@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Train.Common;
 using Game.Train.RailGraph;
 //using Game.Block.Blocks.TrainRail;
 
@@ -31,6 +34,8 @@ namespace Game.Train.Train
 
         // 各車両のドッキング状態を管理  
         private TrainUnit _trainUnit;
+        private readonly TrainDockHandle _dockHandle;
+        private readonly Dictionary<IBlock, ITrainDockingReceiver> _dockedReceivers = new();
 
         //これは列車全体TrainCarを調査し一つでもドッキングしていたらドッキングしているとみなす
         public bool IsDocked => _trainUnit._cars.Any(car => car.IsDocked);
@@ -38,14 +43,36 @@ namespace Game.Train.Train
         public TrainUnitStationDocking(TrainUnit trainUnit)
         {
             _trainUnit = trainUnit;
+            _dockHandle = new TrainDockHandle(trainUnit);
         }
 
+
+        public void TickDockedStations()
+        {
+            if (_dockedReceivers.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var receiver in _dockedReceivers.Values.ToArray())
+            {
+                receiver.OnTrainDockedTick(_dockHandle);
+            }
+        }
 
 
         //すべてのTrainCarのドッキング状態をfalseにする
         public void UndockFromStation()
         {
-            // 各車両のドッキング状態をリセット  
+            if (_dockedReceivers.Count > 0)
+            {
+                foreach (var receiver in _dockedReceivers.Values.ToArray())
+                {
+                    receiver.OnTrainUndocked(_dockHandle.TrainId);
+                }
+                _dockedReceivers.Clear();
+            }
+
             foreach (var car in _trainUnit._cars)
             {
                 car.dockingblock = null; // ドッキング状態を解除  
@@ -88,7 +115,8 @@ namespace Game.Train.Train
                             if (IsSameStation(frontNode, rearNode))
                             {
                                 // ドッキング状態を更新  
-                                car.dockingblock = frontNode.StationRef.StationBlock; // 前端ノードをドッキングブロックとする  
+                                car.dockingblock = frontNode.StationRef.StationBlock;
+                                RegisterDockingBlock(car.dockingblock); // 前端ノードをドッキングブロックとする  
                                 flag = true;
                                 break;
                             }
@@ -114,6 +142,25 @@ namespace Game.Train.Train
             return frontNode.StationRef.NodeRole == StationNodeRole.Entry;
         }
 
+
+        private void RegisterDockingBlock(IBlock block)
+        {
+            if (block == null)
+            {
+                return;
+            }
+
+            if (_dockedReceivers.ContainsKey(block))
+            {
+                return;
+            }
+
+            if (block.ComponentManager.TryGetComponent<ITrainDockingReceiver>(out var receiver))
+            {
+                _dockedReceivers[block] = receiver;
+                receiver.OnTrainDocked(_dockHandle);
+            }
+        }
 
     }
 }

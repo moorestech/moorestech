@@ -15,12 +15,15 @@ namespace Game.Train.Train
         public RailPosition _railPosition;
         public RailNode _destinationNode; // 現在の最終目的地（駅ノードなど）
         // _destinationNodeまでの距離
+        private readonly Guid _trainId;
         private int _remainingDistance;
         private bool _isAutoRun;
         public bool IsAutoRun
         {
             get { return _isAutoRun; }
         }
+
+        public Guid TrainId => _trainId;
 
         public double _currentSpeed;   // m/s など適宜
         //摩擦係数、空気抵抗係数などはここに追加する
@@ -39,6 +42,7 @@ namespace Game.Train.Train
         )
         {
             _railPosition = initialPosition;
+            _trainId = Guid.NewGuid();
             _destinationNode = destination;
             _cars = cars;  // 追加
             _currentSpeed = 0.0; // 仮の初期速度
@@ -58,6 +62,7 @@ namespace Game.Train.Train
                 // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
                 if (trainUnitStationDocking.IsDocked)
                 {
+                    trainUnitStationDocking.TickDockedStations();
                     // ドッキング中は進まない
                     _currentSpeed = 0;
                     // もしtrainDiagramの出発条件を満たしていたらtrainDiagramは次の目的地をセットして、ドッキングを解除する
@@ -84,6 +89,7 @@ namespace Game.Train.Train
                 // もしドッキング中なら
                 if (trainUnitStationDocking.IsDocked)
                 {
+                    trainUnitStationDocking.TickDockedStations();
                     // ドッキング中は進まない
                     _currentSpeed = 0;
                     // Fキーとかでドッキング解除
