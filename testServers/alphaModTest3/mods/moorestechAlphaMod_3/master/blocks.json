@@ -3576,6 +3576,72 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "a13bd02e-f641-4f3d-81fb-afe5d9289a56",
+      "name": "タンク",
+      "blockType": "FluidPipe",
+      "itemGuid": "884a085e-d4a7-4abd-b504-f7db263f1bd6",
+      "blockSize": [
+        8,
+        8,
+        9
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilTank",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                5,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ]
+        },
+        "capacity": 1000
+      }
     }
   ]
 }
