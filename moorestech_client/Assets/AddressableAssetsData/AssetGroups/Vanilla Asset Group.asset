@@ -375,6 +375,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c9a616c44001473593a4473ce1f2b5c
+    m_Address: Vanilla/Block/GearGenerator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8cf55c07f16014690a41d5d8ecb00da2
     m_Address: Vanilla/Skit/skits/200_star_background
     m_ReadOnly: 0
