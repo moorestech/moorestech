@@ -6,15 +6,15 @@ using Newtonsoft.Json;
 namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
-    /// 貨物駁E��のコンポ�Eネント、E
-    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ、E
+    /// 貨物駅用のコンポーネント。
+    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
     /// </summary>
     public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver
     {
         private readonly int _stationLength;
         private readonly HashSet<Guid> _dockedTrainIds = new();
 
-        // インベントリスロチE��数やUI更新のための設宁E
+        // インベントリスロット数やUI更新のための設定
         public int InputSlotCount { get; private set; }
         public int OutputSlotCount { get; private set; }
 
@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.TrainRail
         }
 
         /// <summary>
-        /// セーブ機�E�E�ブロチE��が破壊されたりサーバ�Eを落とすとき用
+        /// セーブ機能：ブロックが破壊されたりサーバーを落とすとき用
         /// </summary>
         public string SaveKey { get; } = typeof(CargoplatformComponent).FullName;
 
