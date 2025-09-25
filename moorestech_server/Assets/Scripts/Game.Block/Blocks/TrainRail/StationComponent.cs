@@ -12,11 +12,12 @@ namespace Game.Block.Blocks.TrainRail
     /// 駅(TrainStation)用のコンポーネント。
     /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
     /// </summary>
-    public class StationComponent : IBlockSaveState
+    public class StationComponent : IBlockSaveState, ITrainDockingReceiver
     {
         public string StationName { get; }
 
         private readonly int _stationLength;
+        private readonly HashSet<Guid> _dockedTrainIds = new();
         // 列車関連
         private TrainUnit _currentTrain;
 
@@ -55,6 +56,22 @@ namespace Game.Block.Blocks.TrainRail
             if (_currentTrain == null) return false;
             _currentTrain = null;
             return true;
+        }
+
+        public void OnTrainDocked(ITrainDockHandle handle)
+        {
+            if (handle == null) return;
+            _dockedTrainIds.Add(handle.TrainId);
+        }
+
+        public void OnTrainDockedTick(ITrainDockHandle handle)
+        {
+            // TODO: アイテム搬出をここで実装予定
+        }
+
+        public void OnTrainUndocked(Guid trainId)
+        {
+            _dockedTrainIds.Remove(trainId);
         }
 
         /// <summary>

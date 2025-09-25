@@ -1,22 +1,24 @@
 using Game.Block.Interface.Component;
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
-    /// 貨物駅用のコンポーネント。
-    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
+    /// 貨物駁E��のコンポ�Eネント、E
+    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ、E
     /// </summary>
-    public class CargoplatformComponent : IBlockSaveState
+    public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver
     {
         private readonly int _stationLength;
-        
-        // インベントリスロット数やUI更新のための設定
+        private readonly HashSet<Guid> _dockedTrainIds = new();
+
+        // インベントリスロチE��数やUI更新のための設宁E
         public int InputSlotCount { get; private set; }
         public int OutputSlotCount { get; private set; }
 
         public bool IsDestroy { get; private set; }
-
 
         /// <summary>
         /// コンストラクタ
@@ -32,12 +34,26 @@ namespace Game.Block.Blocks.TrainRail
             OutputSlotCount = outputSlotCount;
         }
 
+        public void OnTrainDocked(ITrainDockHandle handle)
+        {
+            if (handle == null) return;
+            _dockedTrainIds.Add(handle.TrainId);
+        }
+
+        public void OnTrainDockedTick(ITrainDockHandle handle)
+        {
+            // TODO: アイテム搬入をここで実装予定
+        }
+
+        public void OnTrainUndocked(Guid trainId)
+        {
+            _dockedTrainIds.Remove(trainId);
+        }
 
         /// <summary>
-        /// セーブ機能：ブロックが破壊されたりサーバーを落とすとき用
+        /// セーブ機�E�E�ブロチE��が破壊されたりサーバ�Eを落とすとき用
         /// </summary>
         public string SaveKey { get; } = typeof(CargoplatformComponent).FullName;
-
 
         public string GetSaveState()
         {
@@ -48,7 +64,6 @@ namespace Game.Block.Blocks.TrainRail
             }*/
             return JsonConvert.SerializeObject(stationComponentSaverData);
         }
-
 
         public void Destroy()
         {
