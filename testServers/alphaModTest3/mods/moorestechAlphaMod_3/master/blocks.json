@@ -3521,14 +3521,14 @@
     {
       "blockGuid": "93cd95b0-b1a8-45dd-b56c-62296053b878",
       "name": "石油採掘機",
-      "blockType": "Chest",
+      "blockType": "ElectricPump",
       "itemGuid": "3e34cc08-4c08-4e7e-9efd-81c492574380",
       "blockSize": [
         1,
         1,
         1
       ],
-      "blockPrefabAddressablesPath": "",
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilWell",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
@@ -3541,6 +3541,39 @@
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
+        },
+        "generateFluid": [
+          {
+            "fluidGuid": "15fdf899-d9d9-4f6b-b71f-5951045e9d19",
+            "amount": 5,
+            "generateTime": 1
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 5,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                1,
+                1,
+                8
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ]
         }
       }
     }

@@ -9,6 +9,22 @@
       "name": "水蒸気",
       "fluidGuid": "a6d350b4-ff9e-46c0-8c29-dcfb4488bacc",
       "imagePath": ""
+    },
+    {
+      "name": "原油",
+      "fluidGuid": "15fdf899-d9d9-4f6b-b71f-5951045e9d19"
+    },
+    {
+      "name": "ガソリン",
+      "fluidGuid": "24da4332-f347-401e-93e6-6e8a1ecb6827"
+    },
+    {
+      "name": "重質ナフサ",
+      "fluidGuid": "3f54833b-419d-4cbe-b152-d4dbd3910f49"
+    },
+    {
+      "name": "軽質ナフサ",
+      "fluidGuid": "f85b3aea-5e93-4a6c-a315-fd9d15b8bbf5"
     }
   ]
 }
