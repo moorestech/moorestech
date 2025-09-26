@@ -2,6 +2,7 @@ using UniRx;
 using Core.Update;
 using Game.Train.Train;
 using System.Collections.Generic;
+using System.Linq;
 
 
 namespace Game.Train.Common
@@ -38,5 +39,6 @@ namespace Game.Train.Common
 
         public void RegisterTrain(TrainUnit trainUnit) => _trainUnits.Add(trainUnit);
         public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
+        public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
     }
 }

@@ -58,9 +58,16 @@ namespace Game.Block.Blocks.TrainRail
             return true;
         }
 
+        public bool CanDock(ITrainDockHandle handle)
+        {
+            if (handle == null) return false;
+            return !_dockedTrainId.HasValue || _dockedTrainId == handle.TrainId;
+        }
+
         public void OnTrainDocked(ITrainDockHandle handle)
         {
             if (handle == null) return;
+            if (_dockedTrainId.HasValue && _dockedTrainId != handle.TrainId) return;
             _dockedTrainId = handle.TrainId;
         }
 
@@ -72,6 +79,11 @@ namespace Game.Block.Blocks.TrainRail
         public void OnTrainUndocked(Guid trainId)
         {
             if (_dockedTrainId == trainId) _dockedTrainId = null;
+        }
+
+        public void ForceUndock()
+        {
+            _dockedTrainId = null;
         }
 
         /// <summary>
