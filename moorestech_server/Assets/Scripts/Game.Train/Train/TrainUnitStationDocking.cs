@@ -103,6 +103,8 @@ namespace Game.Train.Train
                 carposition += car.Length;
                 var rearNodelist = _trainUnit._railPosition.GetNodesAtDistance(carposition);
 
+                car.dockingblock = null;
+
                 // frontとrearのノードのStationRefを参照して、同じ駅にいるかつ前輪が駅の前、後輪が駅の後ろにある、という組み合わせが一つでもあれば合格
                 if (frontNodelist != null && rearNodelist != null)
                 {
@@ -111,15 +113,20 @@ namespace Game.Train.Train
                     {
                         foreach (var rearNode in rearNodelist)
                         {
-                            // 同じ駅に属するかチェック  
-                            if (IsSameStation(frontNode, rearNode))
+                            if (!IsSameStation(frontNode, rearNode))
                             {
-                                // ドッキング状態を更新  
-                                car.dockingblock = frontNode.StationRef.StationBlock;
-                                RegisterDockingBlock(car.dockingblock); // 前端ノードをドッキングブロックとする  
-                                flag = true;
-                                break;
+                                continue;
                             }
+
+                            var dockingBlock = frontNode.StationRef.StationBlock;
+                            if (!RegisterDockingBlock(dockingBlock))
+                            {
+                                continue;
+                            }
+
+                            car.dockingblock = dockingBlock;
+                            flag = true;
+                            break;
                         }
                         if (flag) break;
                     }
@@ -143,23 +150,31 @@ namespace Game.Train.Train
         }
 
 
-        private void RegisterDockingBlock(IBlock block)
+        private bool RegisterDockingBlock(IBlock block)
         {
             if (block == null)
             {
-                return;
+                return false;
             }
 
             if (_dockedReceivers.ContainsKey(block))
             {
-                return;
+                return true;
             }
 
             if (block.ComponentManager.TryGetComponent<ITrainDockingReceiver>(out var receiver))
             {
+                if (!receiver.CanDock(_dockHandle))
+                {
+                    return false;
+                }
+
                 _dockedReceivers[block] = receiver;
                 receiver.OnTrainDocked(_dockHandle);
+                return true;
             }
+
+            return false;
         }
 
     }

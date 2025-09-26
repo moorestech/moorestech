@@ -11,6 +11,7 @@ using Game.SaveLoad.Json.WorldVersions;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
+using Game.Train.Train;
 using UnityEngine;
 
 namespace Game.SaveLoad.Json
@@ -82,6 +83,8 @@ namespace Game.SaveLoad.Json
             _mapObjectDatastore.LoadMapObject(load.MapObjects);
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
+
+            TrainDockingStateRestorer.RestoreDockingState();
         }
         
         public void WorldInitialize()
