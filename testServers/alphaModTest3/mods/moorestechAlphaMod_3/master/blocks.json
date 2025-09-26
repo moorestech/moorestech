@@ -3642,6 +3642,66 @@
         },
         "capacity": 1000
       }
+    },
+    {
+      "blockGuid": "e0b3ecee-3752-4e13-b6c3-f31aa8b39c46",
+      "name": "2x2",
+      "blockType": "Block",
+      "itemGuid": "3a1b7457-29fd-4a70-a5ab-c6e77c290c3e",
+      "blockSize": [
+        2,
+        2,
+        2
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/2x2",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {}
+    },
+    {
+      "blockParam": {},
+      "blockGuid": "17353256-53a1-41a7-9872-d8cfb5ee6c35",
+      "name": "3x3",
+      "blockType": "Block",
+      "itemGuid": "00292137-5fbd-4a61-ab61-ef208450a9f5",
+      "blockSize": [
+        3,
+        3,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/3x3",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false
+    },
+    {
+      "blockParam": {},
+      "blockGuid": "3dd84e22-fd77-4b45-83a8-53924d323a07",
+      "name": "4x4",
+      "blockType": "Block",
+      "itemGuid": "01daf403-b47b-4a0e-b277-d339fab300ec",
+      "blockSize": [
+        4,
+        4,
+        4
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/4x4",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false
     }
   ]
 }
