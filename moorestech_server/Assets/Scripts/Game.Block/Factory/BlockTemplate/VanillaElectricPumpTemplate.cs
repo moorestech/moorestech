@@ -27,7 +27,9 @@ namespace Game.Block.Factory.BlockTemplate
             var param = (ElectricPumpBlockParam)blockMasterElement.BlockParam;
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
-            var outputComponent = new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector);
+            var outputComponent = componentStates == null
+                ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
+                : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
             var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent);
             var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), processorComponent);
 
