@@ -10,6 +10,7 @@ namespace Game.Train.Train
         public static void RestoreDockingState()
         {
             var trains = TrainUpdateService.Instance.GetRegisteredTrains().ToArray();
+            var trainsToRedock = trains.Where(train => train.trainUnitStationDocking.IsDocked).ToArray();
 
             foreach (var train in trains)
             {
@@ -25,7 +26,7 @@ namespace Game.Train.Train
                 }
             }
 
-            foreach (var train in trains)
+            foreach (var train in trainsToRedock)
             {
                 train.trainUnitStationDocking.TryDockWhenStopped();
             }
