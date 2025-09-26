@@ -748,6 +748,36 @@
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "3a1b7457-29fd-4a70-a5ab-c6e77c290c3e",
+      "imagePath": "",
+      "name": "2x2",
+      "maxStack": 100,
+      "sortPriority": 910,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "00292137-5fbd-4a61-ab61-ef208450a9f5",
+      "imagePath": "",
+      "name": "3x3",
+      "maxStack": 100,
+      "sortPriority": 920,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "01daf403-b47b-4a0e-b277-d339fab300ec",
+      "imagePath": "",
+      "name": "4x4",
+      "maxStack": 100,
+      "sortPriority": 930,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
