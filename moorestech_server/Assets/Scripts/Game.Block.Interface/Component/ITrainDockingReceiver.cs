@@ -5,6 +5,8 @@ namespace Game.Block.Interface.Component
     public interface ITrainDockHandle
     {
         Guid TrainId { get; }
+        Guid CarId { get; }
+        int CarIndex { get; }
     }
 
     public interface ITrainDockingReceiver : IBlockComponent
@@ -13,6 +15,6 @@ namespace Game.Block.Interface.Component
         void ForceUndock();
         void OnTrainDocked(ITrainDockHandle handle);
         void OnTrainDockedTick(ITrainDockHandle handle);
-        void OnTrainUndocked(Guid trainId);
+        void OnTrainUndocked(ITrainDockHandle handle);
     }
 }

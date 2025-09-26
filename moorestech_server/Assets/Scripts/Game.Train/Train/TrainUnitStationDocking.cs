@@ -34,8 +34,20 @@ namespace Game.Train.Train
 
         // 各車両のドッキング状態を管理  
         private TrainUnit _trainUnit;
-        private readonly TrainDockHandle _dockHandle;
-        private readonly Dictionary<IBlock, ITrainDockingReceiver> _dockedReceivers = new();
+
+        private sealed class DockedReceiver
+        {
+            public DockedReceiver(ITrainDockingReceiver receiver, TrainDockHandle handle)
+            {
+                Receiver = receiver;
+                Handle = handle;
+            }
+
+            public ITrainDockingReceiver Receiver { get; }
+            public TrainDockHandle Handle { get; }
+        }
+
+        private readonly Dictionary<IBlock, DockedReceiver> _dockedReceivers = new();
 
         //これは列車全体TrainCarを調査し一つでもドッキングしていたらドッキングしているとみなす
         public bool IsDocked => _trainUnit._cars.Any(car => car.IsDocked);
@@ -43,7 +55,6 @@ namespace Game.Train.Train
         public TrainUnitStationDocking(TrainUnit trainUnit)
         {
             _trainUnit = trainUnit;
-            _dockHandle = new TrainDockHandle(trainUnit);
         }
 
 
@@ -54,9 +65,9 @@ namespace Game.Train.Train
                 return;
             }
 
-            foreach (var receiver in _dockedReceivers.Values.ToArray())
+            foreach (var entry in _dockedReceivers.Values.ToArray())
             {
-                receiver.OnTrainDockedTick(_dockHandle);
+                entry.Receiver.OnTrainDockedTick(entry.Handle);
             }
         }
 
@@ -66,9 +77,9 @@ namespace Game.Train.Train
         {
             if (_dockedReceivers.Count > 0)
             {
-                foreach (var receiver in _dockedReceivers.Values.ToArray())
+                foreach (var entry in _dockedReceivers.Values.ToArray())
                 {
-                    receiver.OnTrainUndocked(_dockHandle.TrainId);
+                    entry.Receiver.OnTrainUndocked(entry.Handle);
                 }
                 _dockedReceivers.Clear();
             }
@@ -95,8 +106,9 @@ namespace Game.Train.Train
             //GetNodesAtDistanceをつかう
             //列車を先頭から順にみていく
             int carposition = 0;
-            foreach (var car in _trainUnit._cars)
+            for (int carIndex = 0; carIndex < _trainUnit._cars.Count; carIndex++)
             {
+                var car = _trainUnit._cars[carIndex];
                 // 車両の前端位置 = carposition
                 var frontNodelist = _trainUnit._railPosition.GetNodesAtDistance(carposition);
                 // 車両の後端位置 = carposition + car.Length
@@ -119,7 +131,7 @@ namespace Game.Train.Train
                             }
 
                             var dockingBlock = frontNode.StationRef.StationBlock;
-                            if (!RegisterDockingBlock(dockingBlock))
+                            if (!RegisterDockingBlock(dockingBlock, car, carIndex))
                             {
                                 continue;
                             }
@@ -150,27 +162,28 @@ namespace Game.Train.Train
         }
 
 
-        private bool RegisterDockingBlock(IBlock block)
+        private bool RegisterDockingBlock(IBlock block, TrainCar car, int carIndex)
         {
             if (block == null)
             {
                 return false;
             }
 
-            if (_dockedReceivers.ContainsKey(block))
+            if (_dockedReceivers.TryGetValue(block, out var existing))
             {
-                return true;
+                return existing.Handle.CarId == car.CarId;
             }
 
             if (block.ComponentManager.TryGetComponent<ITrainDockingReceiver>(out var receiver))
             {
-                if (!receiver.CanDock(_dockHandle))
+                var handle = new TrainDockHandle(_trainUnit, car, carIndex);
+                if (!receiver.CanDock(handle))
                 {
                     return false;
                 }
 
-                _dockedReceivers[block] = receiver;
-                receiver.OnTrainDocked(_dockHandle);
+                _dockedReceivers[block] = new DockedReceiver(receiver, handle);
+                receiver.OnTrainDocked(handle);
                 return true;
             }
 

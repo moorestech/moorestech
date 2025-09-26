@@ -13,6 +13,7 @@ namespace Game.Train.Train
         const int FUEL_WEIGHT_PER_SLOT = 40;
         const int DEFAULT_WEIGHT = 120;
         const int DEFAULT_TRACTION = 100;
+        private readonly Guid _carId = Guid.NewGuid();
         // 駆動力 (動力車での推進力、貨車では0)
         public int TractionForce { get; private set; }
 
@@ -26,6 +27,7 @@ namespace Game.Train.Train
         public int Length { get; private set; }
         //列車が駅とドッキングしているかどうか
         public bool IsDocked => dockingblock != null; // ドッキングしているかどうかのプロパティ
+        public Guid CarId => _carId;
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
 
         private readonly IItemStack[] _inventoryItems;
