@@ -330,6 +330,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6cf497b4abc9242a9abec5053e4e76a9
+    m_Address: Vanilla/Block/Old/3x3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6f66b5f793cadea49bd28b222c6c710b
     m_Address: Vanilla/Block/Old/iron chest
     m_ReadOnly: 0
@@ -470,6 +475,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a7600e5c0f7f64ba0ae0080debb23a74
+    m_Address: Vanilla/Block/Old/2x2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a819d4d8e87d2d5429bf8bfe484fce58
     m_Address: Vanilla/Block/WoodenFoundationStairs
     m_ReadOnly: 0
@@ -577,6 +587,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
     m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d258c65b476e14ad88d21bb0f9698544
+    m_Address: Vanilla/Block/Old/4x4
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

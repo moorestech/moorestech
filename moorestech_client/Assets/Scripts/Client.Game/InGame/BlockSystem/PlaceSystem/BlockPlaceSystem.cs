@@ -224,44 +224,45 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     return point;
                 }
                 
+                Debug.Log(boundingBoxSurface.PreviewSurfaceType);
                 switch (boundingBoxSurface.PreviewSurfaceType)
                 {
                     case PreviewSurfaceType.YX_Origin:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
                             Mathf.FloorToInt(hitPoint.z) - Mathf.RoundToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.YX_Z:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) + Mathf.RoundToInt(rotatedSize.z / 2f)
+                            Mathf.FloorToInt(hitPoint.z)
                         );
                     case PreviewSurfaceType.YZ_Origin:
                         return new Vector3Int(
                             Mathf.FloorToInt(hitPoint.x) - Mathf.RoundToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.YZ_X:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) + Mathf.RoundToInt(rotatedSize.x / 2f),
+                            Mathf.FloorToInt(hitPoint.x),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     
                     case PreviewSurfaceType.XZ_Origin:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.XZ_Y:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     
                     default:
