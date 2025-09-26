@@ -755,7 +755,7 @@
       "name": "2x2",
       "maxStack": 100,
       "sortPriority": 910,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -765,7 +765,7 @@
       "name": "3x3",
       "maxStack": 100,
       "sortPriority": 920,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -775,7 +775,7 @@
       "name": "4x4",
       "maxStack": 100,
       "sortPriority": 930,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     }

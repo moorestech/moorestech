@@ -3193,7 +3193,8 @@
       "enableConveyorPlacement": false,
       "blockParam": {}
     },
-    {"blockParam": {},
+    {
+      "blockParam": {},
       "blockGuid": "17353256-53a1-41a7-9872-d8cfb5ee6c35",
       "name": "3x3",
       "blockType": "Block",
@@ -3212,7 +3213,8 @@
       },
       "enableConveyorPlacement": false
     },
-    {"blockParam": {},
+    {
+      "blockParam": {},
       "blockGuid": "3dd84e22-fd77-4b45-83a8-53924d323a07",
       "name": "4x4",
       "blockType": "Block",
