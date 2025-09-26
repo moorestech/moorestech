@@ -392,7 +392,7 @@ namespace Tests.CombinedTest.Game
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             // テストしたいGear2で不要なトルク消費が行われないように必要トルクを0に設定
             // Set the required torque to 0 so that unnecessary torque consumption is not performed in Gear2 to be tested
-            typeof(GearEnergyTransformer).GetField("_requiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(gear1, new Torque(0));
+            typeof(GearEnergyTransformer).GetField("RequiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(gear1, new Torque(0));
             
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
             
