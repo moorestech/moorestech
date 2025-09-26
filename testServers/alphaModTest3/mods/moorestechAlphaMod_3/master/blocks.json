@@ -2703,7 +2703,16 @@
                 0,
                 0
               ],
-              "directions": []
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -3238,20 +3247,6 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/ResearchTable/ResearchTreeUI"
     },
     {
-      "blockGuid": "6e753ef6-2ebb-4cd3-be74-0187fc9f1427",
-      "name": "研究テーブル",
-      "blockType": "Block",
-      "itemGuid": "06aff80a-2edd-499c-9292-141ca365b17a",
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockParam": {},
-      "blockPrefabAddressablesPath": "Vanilla/Block/BaseCamp2",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/ResearchTable/ResearchTreeUI"
-    },
-    {
       "blockGuid": "4b6baecb-24c3-4482-95eb-f18471065181",
       "name": "電柱",
       "blockType": "ElectricPole",
@@ -3270,8 +3265,8 @@
       },
       "enableConveyorPlacement": false,
       "blockParam": {
-        "poleConnectionRange": 7,
-        "machineConnectionRange": 7
+        "poleConnectionRange": 5,
+        "machineConnectionRange": 5
       }
     },
     {
@@ -3358,7 +3353,16 @@
                 0,
                 0
               ],
-              "directions": []
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         }
@@ -3401,7 +3405,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -3418,7 +3425,10 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -3468,7 +3478,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -3485,7 +3498,10 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
