@@ -34,7 +34,9 @@ namespace Game.Block.Factory.BlockTemplate
             var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector);
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
-            var outputComponent = new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector);
+            var outputComponent = componentStates == null
+                ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
+                : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
             
             var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent);
 
