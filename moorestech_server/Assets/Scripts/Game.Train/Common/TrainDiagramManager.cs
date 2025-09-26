@@ -1,6 +1,7 @@
-using Game.Train.Train;
+using System;
 using System.Collections.Generic;
 using Game.Train.RailGraph;
+using Game.Train.Train;
 
 namespace Game.Train.Common
 {
@@ -17,10 +18,11 @@ namespace Game.Train.Common
             }
         }
 
-        private Dictionary<TrainUnit, TrainDiagram> _diagrams;
+        private readonly Dictionary<TrainUnit, TrainDiagram> _diagrams;
 
-        private TrainDiagramManager()
+        public TrainDiagramManager()
         {
+            _instance = this;
             _diagrams = new Dictionary<TrainUnit, TrainDiagram>();
         }
 
