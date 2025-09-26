@@ -126,9 +126,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // ========== z-x 平面 ==========
             zx_Origin_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
+            zx_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Origin);
             
             zx_Y_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Y_Surface.transform.localPosition = new Vector3(0, blockSize.y, 0);
+            zx_Y_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Y);
         }
     }
 }
