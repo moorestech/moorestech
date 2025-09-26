@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.TrainRail
         public string StationName { get; }
 
         private readonly int _stationLength;
-        private readonly HashSet<Guid> _dockedTrainIds = new();
+        private Guid? _dockedTrainId;
         // 列車関連
         private TrainUnit _currentTrain;
 
@@ -61,7 +61,7 @@ namespace Game.Block.Blocks.TrainRail
         public void OnTrainDocked(ITrainDockHandle handle)
         {
             if (handle == null) return;
-            _dockedTrainIds.Add(handle.TrainId);
+            _dockedTrainId = handle.TrainId;
         }
 
         public void OnTrainDockedTick(ITrainDockHandle handle)
@@ -71,7 +71,7 @@ namespace Game.Block.Blocks.TrainRail
 
         public void OnTrainUndocked(Guid trainId)
         {
-            _dockedTrainIds.Remove(trainId);
+            if (_dockedTrainId == trainId) _dockedTrainId = null;
         }
 
         /// <summary>

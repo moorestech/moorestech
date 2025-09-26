@@ -1,6 +1,5 @@
 using Game.Block.Interface.Component;
 using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
@@ -12,7 +11,7 @@ namespace Game.Block.Blocks.TrainRail
     public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver
     {
         private readonly int _stationLength;
-        private readonly HashSet<Guid> _dockedTrainIds = new();
+        private Guid? _dockedTrainId;
 
         // インベントリスロット数やUI更新のための設定
         public int InputSlotCount { get; private set; }
@@ -37,7 +36,7 @@ namespace Game.Block.Blocks.TrainRail
         public void OnTrainDocked(ITrainDockHandle handle)
         {
             if (handle == null) return;
-            _dockedTrainIds.Add(handle.TrainId);
+            _dockedTrainId = handle.TrainId;
         }
 
         public void OnTrainDockedTick(ITrainDockHandle handle)
@@ -47,7 +46,7 @@ namespace Game.Block.Blocks.TrainRail
 
         public void OnTrainUndocked(Guid trainId)
         {
-            _dockedTrainIds.Remove(trainId);
+            if (_dockedTrainId == trainId) _dockedTrainId = null;
         }
 
         /// <summary>
