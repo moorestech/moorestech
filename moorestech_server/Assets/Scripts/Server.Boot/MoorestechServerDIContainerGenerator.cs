@@ -28,6 +28,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.UnlockState;
 using Game.World;
@@ -86,6 +87,8 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
+            initializerCollection.AddSingleton<TrainUpdateService>();
+            initializerCollection.AddSingleton<TrainDiagramManager>();
 
             var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
@@ -111,6 +114,9 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
+            services.AddSingleton<TrainUpdateService>();
+            services.AddSingleton<TrainDiagramManager>();
+
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
             
@@ -162,6 +168,8 @@ namespace Server.Boot
 
             serviceProvider.GetService<GearNetworkDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
+            serviceProvider.GetService<TrainUpdateService>();
+            serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
