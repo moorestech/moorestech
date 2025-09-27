@@ -1230,7 +1230,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 993e71dd9c6b24893b2ae97dfb5842d9, type: 3}
---- !u!1001 &2521499084115036166
+--- !u!1001 &6590614094886408201
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -1238,47 +1238,47 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 569799579007875092, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 2022877131358765964, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_Name
-      value: OilTank
+      value: OilRefinery
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5370129188467706591, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+    - target: {fileID: 5788067062376138032, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
@@ -1286,7 +1286,7 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: e23c1ad2c3e6e49d6aa1009315a9c33d, type: 3}
+  m_SourcePrefab: {fileID: 100100000, guid: 79a02af79b4d244f3951276026734a3e, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1294,4 +1294,4 @@ SceneRoots:
   - {fileID: 709433685}
   - {fileID: 253068337}
   - {fileID: 2049096084}
-  - {fileID: 2521499084115036166}
+  - {fileID: 6590614094886408201}

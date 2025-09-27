@@ -3718,6 +3718,115 @@
         "downBlockGuid": ""
       },
       "enableConveyorPlacement": false
+    },
+    {
+      "blockGuid": "e82b0491-8436-4b96-9187-8f55345e8a7c",
+      "name": "蒸留塔",
+      "blockType": "ElectricMachine",
+      "itemGuid": "cb996e54-eb0a-4f82-ab49-c3e6aa51be65",
+      "blockSize": [
+        7,
+        16,
+        11
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilRefinery",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 0,
+        "outputSlotCount": 0,
+        "inputTankCount": 1,
+        "outputTankCount": 3,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                1,
+                1,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            },
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "connectTankIndex": 1,
+                "flowCapacity": 100
+              }
+            },
+            {
+              "connectType": "Fluid",
+              "offset": [
+                5,
+                1,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 2
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }
