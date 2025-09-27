@@ -32,7 +32,7 @@ namespace Game.Block.Blocks.TrainRail
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public RailComponent(Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID = null)
+        public RailComponent(Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID)
         {
             Position = position;
             railBlockDirection = blockDirection;
@@ -42,7 +42,6 @@ namespace Game.Block.Blocks.TrainRail
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
             BackControlPoint = new RailControlPoint(position, CalculateControlPointOffset(false));
 
-            // RailNode を作成して RailGraph に登録
             FrontNode = new RailNode();
             BackNode = new RailNode();
 
@@ -57,6 +56,7 @@ namespace Game.Block.Blocks.TrainRail
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);
         }
+
 
         /// <summary>
         /// RailComponent同士を接続する
