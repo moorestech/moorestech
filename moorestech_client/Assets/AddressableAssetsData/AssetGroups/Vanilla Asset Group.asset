@@ -210,6 +210,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d6b7f79778db43549cd9b3291d2bd2f
+    m_Address: Vanilla/Block/Electronic_component_manufacturing_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 50e0b09afaa3747d490bdd5d395c0c56
     m_Address: Vanilla/Block/Util/InventoryConnectorView
     m_ReadOnly: 0
@@ -375,6 +380,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87d6ff3663a4142acb81c53850b3aa39
+    m_Address: Vanilla/Block/Engine_Generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8b1d523ce7c92403490cc41115519a02
     m_Address: Vanilla/Block/Shaft Vertical
     m_ReadOnly: 0
@@ -502,6 +512,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aa6c93f707827450ba679d52727164eb
     m_Address: Vanilla/Block/Electric_pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ac4682b0a2d3e456caa2201a66fc3142
+    m_Address: Vanilla/Block/Arc_furnace
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
